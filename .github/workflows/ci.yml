@@ -1,0 +1,17 @@
+name: Deploy to GitHub pages
+on:
+  push:
+    branches: [main]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
+      - name: Install pnpm
+        run: npm i -g pnpm
+      - run: pnpm install
+      - run: pnpm build
+        # todo use nohup and official action?
+      # - run: pnpm prod-start & pnpm test:cypress
