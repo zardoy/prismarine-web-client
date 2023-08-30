@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Prismarine Web Client</title>
+    <link rel="stylesheet" href="index.css">
+    <link rel="favicon" href="favicon.ico">
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <meta name="description" content="Minecraft web client running in your browser">
+    <meta name="keywords" content="Minecraft, Web, Voxel, Javascript, PrismarineJS">
+    <meta name="author" content="PrismarineJS">
+    <meta name="theme-color" content="#349474">
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0,user-scalable=0'>
+    <meta property="og:title" content="Prismarine Web Client" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://prismarinejs.github.io/prismarine-web-client/" />
+    <meta property="og:image" content="https://prismarinejs.github.io/prismarine-web-client/favicon.png" />
+    <link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+  </head>
+  <body>
+    <div id="ui-root">
+      <div id="react-root"></div>
+      <pmui-hud id="hud" style="display: none;"></pmui-hud>
+      <pmui-pausescreen id="pause-screen" style="display: none;"></pmui-pausescreen>
+      <pmui-loading-error-screen id="loading-error-screen" style="display: none;"></pmui-loading-error-screen>
+      <pmui-playscreen id="play-screen" style="display: none;"></pmui-playscreen>
+      <pmui-keybindsscreen id="keybinds-screen" style="display: none;"></pmui-keybindsscreen>
+      <pmui-optionsscreen id="options-screen" style="display: none;"></pmui-optionsscreen>
+      <pmui-advanced-optionsscreen style="display: none;"></pmui-advanced-optionsscreen>
+      <pmui-titlescreen id="title-screen" style="display: none;"></pmui-titlescreen>
+      <pmui-notification></pmui-notification>
+      <context-menu id="context-menu"></context-menu>
+    </div>
+    <script src="index.js"></script>
+  </body>
+</html>
