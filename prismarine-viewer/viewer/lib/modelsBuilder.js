@@ -34,6 +34,7 @@ function getModel (name, blocksModels) {
 }
 
 function prepareModel (model, texturesJson) {
+  // resolve texture names eg west: #all -> blocks/stone
   for (const tex in model.textures) {
     let root = model.textures[tex]
     while (root.charAt(0) === '#') {
