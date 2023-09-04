@@ -30,6 +30,12 @@ class Viewer {
     this.domElement = renderer.domElement
   }
 
+  resetAll () {
+    this.world.resetWorld()
+    this.entities.clear()
+    this.primitives.clear()
+  }
+
   setVersion (version) {
     version = getVersion(version)
     console.log('Using version: ' + version)
