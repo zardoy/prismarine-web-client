@@ -8,7 +8,7 @@
     "pretest": "npm run lint",
     "lint": "standard",
     "fix": "standard --fix",
-    "postinstall": "node viewer/prerender.js && node buildWorker.mjs"
+    "prepare": "node viewer/prerender.js && node buildWorker.mjs"
   },
   "author": "PrismarineJS",
   "license": "MIT",
