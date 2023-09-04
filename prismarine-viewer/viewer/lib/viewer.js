@@ -28,6 +28,13 @@ class Viewer {
     this.primitives = new Primitives(this.scene, this.camera)
 
     this.domElement = renderer.domElement
+    this.playerHeight = 1.6
+  }
+
+  resetAll () {
+    this.world.resetWorld()
+    this.entities.clear()
+    this.primitives.clear()
   }
 
   setVersion (version) {
@@ -60,7 +67,7 @@ class Viewer {
   }
 
   setFirstPersonCamera (pos, yaw, pitch) {
-    if (pos) new TWEEN.Tween(this.camera.position).to({ x: pos.x, y: pos.y + 1.6, z: pos.z }, 50).start()
+    if (pos) new TWEEN.Tween(this.camera.position).to({ x: pos.x, y: pos.y + this.playerHeight, z: pos.z }, 50).start()
     this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
   }
 

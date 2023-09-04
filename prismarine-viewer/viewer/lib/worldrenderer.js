@@ -60,11 +60,18 @@ class WorldRenderer {
     }
   }
 
-  setVersion (version) {
+  resetWorld () {
     for (const mesh of Object.values(this.sectionMeshs)) {
       this.scene.remove(mesh)
     }
     this.sectionMeshs = {}
+    for (const worker of this.workers) {
+      worker.postMessage({ type: 'reset' })
+    }
+  }
+
+  setVersion (version) {
+    this.resetWorld()
     for (const worker of this.workers) {
       worker.postMessage({ type: 'version', version })
     }
