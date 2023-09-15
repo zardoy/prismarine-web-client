@@ -478,7 +478,8 @@ function matchProperties (block, properties) {
 }
 
 function getModelVariants (block, blockStates) {
-  const state = blockStates[block.name]
+  if (block.name === 'air') return []
+  const state = blockStates[block.name] ?? blockStates['missing_texture']
   if (!state) return []
   if (state.variants) {
     for (const [properties, variant] of Object.entries(state.variants)) {

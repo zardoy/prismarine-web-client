@@ -5,7 +5,7 @@ const mcAssets = require('minecraft-assets')
 const fs = require('fs-extra')
 
 const texturesPath = path.resolve(__dirname, '../public/textures')
-if (fs.existsSync(texturesPath)) {
+if (fs.existsSync(texturesPath) && !process.argv.includes('-f')) {
   console.log('textures folder already exists, skipping...')
   process.exit(0)
 }
