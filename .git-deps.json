@@ -1,0 +1,12 @@
+{
+  "zardoy/browserfs": "#build",
+  "zardoy/space-squid": "#everything",
+  "PrismarineJS/net-browserify": "",
+  "zardoy/minecraft-inventory-gui": "#next",
+  "zardoy/mineflayer": "#custom",
+  "PrismarineJS/node-process": "",
+  "zardoy/prismarine-block": "#next-era",
+  "zardoy/prismarine-world": "#next-era",
+  "zardoy/prismarine-provider-anvil": "#everything",
+  "zardoy/minecraft-protocol": "#custom-client-extra"
+}

@@ -28,7 +28,7 @@
     "@types/wicg-file-system-access": "^2020.9.6",
     "@zardoy/react-util": "^0.2.0",
     "@zardoy/utils": "^0.0.11",
-    "browserfs": "github:zardoy/browserfs#build",
+    "browserfs": "github:zardoy/browserfs#0ff5df5c4e67f54b5f032b87dc650e8b78626bc7",
     "compression": "^1.7.4",
     "cypress-plugin-snapshots": "^1.4.4",
     "diamond-square": "^1.2.0",
@@ -37,13 +37,13 @@
     "esbuild-loader": "^4.0.0",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
-    "flying-squid": "github:zardoy/space-squid#everything",
+    "flying-squid": "github:zardoy/space-squid#eec886b7a881eb40dd8efc6d48fa52e638e07693",
     "fs-extra": "^11.1.1",
     "iconify-icon": "^1.0.8",
     "jszip": "^3.10.1",
     "lit": "^2.8.0",
     "minecraft-data": "^3.0.0",
-    "net-browserify": "github:PrismarineJS/net-browserify",
+    "net-browserify": "github:PrismarineJS/net-browserify#0acebf76d5a14991e6b2586f83f707be5171579c",
     "peerjs": "^1.5.0",
     "pretty-bytes": "^6.1.1",
     "prismarine-world": "^3.6.2",
@@ -79,14 +79,14 @@
     "https-browserify": "^1.0.0",
     "lodash-webpack-plugin": "^0.11.6",
     "memfs": "^3.5.3",
-    "minecraft-inventory-gui": "github:zardoy/minecraft-inventory-gui#next",
-    "mineflayer": "github:zardoy/mineflayer#custom",
+    "minecraft-inventory-gui": "github:zardoy/minecraft-inventory-gui#c1331c91fb39bd562dc48eeb33321240d4870edd",
+    "mineflayer": "github:zardoy/mineflayer#08a79e7affa1ce82e1ac7aad177745665ed54572",
     "mineflayer-pathfinder": "^2.4.4",
     "npm-run-all": "^4.1.5",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
     "prismarine-viewer": "./prismarine-viewer",
-    "process": "github:PrismarineJS/node-process",
+    "process": "github:PrismarineJS/node-process#380d0b4f4c86f1b65b216c311bf00431f314e88e",
     "rimraf": "^5.0.1",
     "stream-browserify": "^3.0.0",
     "style-loader": "^3.3.3",
@@ -104,11 +104,11 @@
   },
   "pnpm": {
     "overrides": {
-      "prismarine-block": "github:zardoy/prismarine-block#next-era",
-      "prismarine-world": "github:zardoy/prismarine-world#next-era",
+      "prismarine-block": "github:zardoy/prismarine-block#100f3e3be7927b8144e19a71c8d06f6218021a02",
+      "prismarine-world": "github:zardoy/prismarine-world#c358222204d21fe7d45379fbfcefb047f926c786",
       "minecraft-data": "3.45.0",
-      "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
-      "minecraft-protocol": "github:zardoy/minecraft-protocol#custom-client-extra"
+      "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#49bf8150422301565b386110aaf3dec69e31c4cf",
+      "minecraft-protocol": "github:zardoy/minecraft-protocol#22e71bf29f3471f2543102ad76dfeebd5123e43f"
     }
   }
 }
