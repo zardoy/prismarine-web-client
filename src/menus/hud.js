@@ -10,6 +10,7 @@ export const guiIcons1_16_4 = require('minecraft-assets/minecraft-assets/data/1.
 
 class Hud extends LitElement {
   firstUpdated () {
+    this.isReady = true
     window.dispatchEvent(new CustomEvent('hud-ready', { detail: this }))
   }
 

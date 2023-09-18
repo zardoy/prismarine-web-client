@@ -766,6 +766,7 @@ downloadAndOpenFile().then((downloadAction) => {
     if (peerId) {
       let username = options.guestUsername
       if (options.askGuestName) username = prompt('Enter your username', username)
+      if (!username) return
       options.guestUsername = username
       connect({
         server: '', port: '', proxy: '', password: '',
@@ -775,6 +776,7 @@ downloadAndOpenFile().then((downloadAction) => {
       })
     }
   })
+  if (document.getElementById('hud').isReady) window.dispatchEvent(new Event('hud-ready'))
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)
