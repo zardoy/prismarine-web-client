@@ -197,14 +197,21 @@ const optionsScrn = document.getElementById('options-screen')
 const pauseMenu = document.getElementById('pause-screen')
 
 let mouseMovePostHandle = (e) => { }
-let lastMouseCall
-function onMouseMove(e) {
+let lastMouseMove: number
+let cursor: Cursor
+let debugMenu
+const updateCursor = () => {
+  cursor.update(bot)
+  debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
+  debugMenu.cursorBlock = cursor.cursorBlock
+}
+function onCameraMove(e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
   e.stopPropagation?.()
   const now = performance.now()
   // todo: limit camera movement for now to avoid unexpected jumps
-  if (now - lastMouseCall < 4) return
-  lastMouseCall = now
+  if (now - lastMouseMove < 4) return
+  lastMouseMove = now
   let { mouseSensX, mouseSensY } = optionsScrn
   if (mouseSensY === true) mouseSensY = mouseSensX
   // debugPitch.innerText = +debugPitch.innerText + e.movementX
@@ -212,8 +219,10 @@ function onMouseMove(e) {
     x: e.movementX * mouseSensX * 0.0001,
     y: e.movementY * mouseSensY * 0.0001
   })
+  // todo do it also on every block update within radius 5
+  updateCursor()
 }
-window.addEventListener('mousemove', onMouseMove, { capture: true })
+window.addEventListener('mousemove', onCameraMove, { capture: true })
 
 
 function hideCurrentScreens() {
@@ -290,8 +299,6 @@ async function connect(connectOptions: {
     timeouts.push(id)
     return id
   }
-  const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
-
   const { renderDistance, maxMultiplayerRenderDistance } = options
   const hostprompt = connectOptions.server
   const proxyprompt = connectOptions.proxy
@@ -479,6 +486,9 @@ async function connect(connectOptions: {
     handleError(err)
   }
   if (!bot) return
+  cursor = new Cursor(viewer, renderer, bot)
+  // bot.on('move', () => updateCursor())
+
   let p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on other side, check console.') }, 20_000) : undefined
   hud.preload(bot)
 
@@ -547,7 +557,10 @@ async function connect(connectOptions: {
     })
     optionsScrn.addEventListener('fov_changed', updateFov)
 
+    bot.on('physicsTick', () => updateCursor())
     viewer.setVersion(version)
+
+    const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
 
     window.viewer = viewer
     window.loadedData = mcData
@@ -560,11 +573,8 @@ async function connect(connectOptions: {
 
     initVR(bot, renderer, viewer)
 
-    const cursor = new Cursor(viewer, renderer, bot)
     postRenderFrameFn = () => {
-      viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
-      cursor.update(bot)
-      debugMenu.cursorBlock = cursor.cursorBlock
+      // viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
     }
 
     try {
@@ -658,7 +668,7 @@ async function connect(connectOptions: {
       if (capturedPointer.activateCameraMove) {
         clearTimeout(virtualClickTimeout)
       }
-      onMouseMove({ movementX: e.pageX - capturedPointer.x, movementY: e.pageY - capturedPointer.y, type: 'touchmove' })
+      onCameraMove({ movementX: e.pageX - capturedPointer.x, movementY: e.pageY - capturedPointer.y, type: 'touchmove' })
       capturedPointer.x = e.pageX
       capturedPointer.y = e.pageY
     }, { passive: false })
@@ -668,7 +678,7 @@ async function connect(connectOptions: {
       let { x, z } = vector
       if (Math.abs(x) < 0.18) x = 0
       if (Math.abs(z) < 0.18) z = 0
-      onMouseMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
+      onCameraMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
     })
 
     registerListener(document, 'lostpointercapture', (e) => {
