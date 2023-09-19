@@ -55,6 +55,7 @@ import {
   miscUiState,
   gameAdditionalState
 } from './globalState'
+import viewerSupportedVersions from 'prismarine-viewer/viewer/supportedVersions.json'
 
 import {
   pointerLock,
@@ -63,7 +64,8 @@ import {
   isCypress,
   loadScript,
   toMajorVersion,
-  setLoadingScreenStatus
+  setLoadingScreenStatus,
+  downloadDefaultTextures
 } from './utils'
 
 import {
@@ -80,8 +82,10 @@ import { options } from './optionsStorage'
 import { subscribeKey } from 'valtio/utils'
 import _ from 'lodash'
 import { contro } from './controls'
-import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
+import { genTexturePackTextures, resourcePackState, watchTexturepackInViewer } from './texturePack'
 import { connectToPeer } from './localServerMultiplayer'
+import { loadTexture } from 'prismarine-viewer/viewer/lib/utils.web'
+import { getVersion } from 'prismarine-viewer/viewer/lib/version'
 
 //@ts-ignore
 window.THREE = THREE
@@ -410,8 +414,16 @@ async function connect(connectOptions: {
         console.error(err)
         const doContinue = prompt('Failed to apply texture pack. See errors in the console. Continue?')
         if (!doContinue) {
-          setLoadingScreenStatus(undefined)
+          throw new Error('Failed to apply texture pack')
         }
+      }
+
+      if (resourcePackState.currentTexturesDataUrl === undefined) {
+        // resourcepack textures are not applied, we download default manually to ensure testing works
+        const viewerVersion = getVersion(version) ?? viewerSupportedVersions.at(-1)
+        const texturesDataUrl = await downloadDefaultTextures(viewerVersion)
+        viewer.world.texturesDataUrl = texturesDataUrl
+        viewer.world.blockStatesData = await fetch(`./blocksStates/${viewerVersion}.json`).then(res => res.json())
       }
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
     }
@@ -721,6 +733,10 @@ async function connect(connectOptions: {
     hud.init(renderer, bot, host)
     hud.style.display = 'block'
 
+    viewer.waitForChunksToRender().then(() => {
+      console.log('ready!')
+      document.dispatchEvent(new Event('cypress-world-ready'))
+    })
     setTimeout(function () {
       errorAbortController.abort()
       if (loadingScreen.hasError) return

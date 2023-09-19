@@ -10,21 +10,27 @@ const setLocalStorageSettings = () => {
 it('Loads & renders singleplayer', () => {
     cy.visit('/')
     window.localStorage.clear()
-    window.localStorage.setItem('renderDistance', '2')
     window.localStorage.setItem('options', JSON.stringify({
         localServerOptions: {
             generation: {
                 name: 'superflat',
                 options: { seed: 250869072 }
             }
-        }
+        },
+        renderDistance: 2
     }))
     setLocalStorageSettings()
     cy.get('#title-screen').find('[data-test-id="singleplayer-button"]', { includeShadowDom: true, }).click()
-    // todo implement load event
-    cy.wait(12000)
-    cy.get('body').toMatchImageSnapshot({
-        name: 'superflat-world',
+    cy.document().then({ timeout: 20_000, }, doc => {
+        return new Cypress.Promise(resolve => {
+            doc.addEventListener('cypress-world-ready', resolve)
+        })
+    }).then(() => {
+        // wait for render
+        cy.wait(6000)
+        cy.get('body').toMatchImageSnapshot({
+            name: 'superflat-world',
+        })
     })
 })
 

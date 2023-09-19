@@ -244,3 +244,25 @@ export const resolveTimeout = (promise, timeout = 10000) => {
     }, timeout)
   })
 }
+
+const cachedTextures = {}
+
+export const downloadDefaultTextures = async (version) => {
+  if (cachedTextures[version]) return cachedTextures[version]
+
+  const texturesDataUrl = await new Promise<string>(async resolve => {
+    const result = await fetch(`./textures/${version}.png`)
+    if (result.status !== 200) {
+      throw new Error(`Failed to download textures: ${result.status}`)
+    }
+    // get base64
+    const blob = await result.blob()
+    const reader = new FileReader()
+    reader.onload = () => {
+      resolve(reader.result as string)
+    }
+    reader.readAsDataURL(blob)
+  })
+  cachedTextures[version] = texturesDataUrl
+  return texturesDataUrl
+}
