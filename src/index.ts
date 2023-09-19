@@ -574,7 +574,7 @@ async function connect(connectOptions: {
     initVR(bot, renderer, viewer)
 
     postRenderFrameFn = () => {
-      // viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
+      viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
     }
 
     try {
