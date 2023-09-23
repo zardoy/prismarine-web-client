@@ -36,7 +36,7 @@ it('Joins to server', () => {
     cy.get('input#serverip', { includeShadowDom: true, }).clear().focus().type('localhost')
     cy.get('[data-test-id="connect-to-server"]', { includeShadowDom: true, }).click()
     // todo implement load event
-    cy.wait(12000)
+    cy.wait(22000)
     cy.get('body').toMatchImageSnapshot({
         name: 'superflat-world',
     })
