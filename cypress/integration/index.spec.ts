@@ -31,6 +31,7 @@ it('Loads & renders singleplayer', () => {
 it('Joins to server', () => {
     cy.visit('/')
     setLocalStorageSettings()
+    window.localStorage.version = ''
     // todo replace with data-test
     cy.get('#title-screen').find('[data-test-id="connect-screen-button"]', { includeShadowDom: true, }).click()
     cy.get('input#serverip', { includeShadowDom: true, }).clear().focus().type('localhost')
