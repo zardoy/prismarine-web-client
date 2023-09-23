@@ -38,8 +38,6 @@ export const pointerLock = {
     }
     const displayBrowserProblem = () => {
       notification.show = true
-      // todo use notification stack
-      notification.autoHide = true
       notification.message = navigator['keyboard'] ? 'Browser Limitation: Click on screen, enable Auto Fullscreen or F11' : 'Browser Limitation: Click on screen or use fullscreen in Chrome'
     }
     if (!(document.fullscreenElement && navigator['keyboard']) && this.justHitEscape) {
@@ -70,7 +68,7 @@ window.getScreenRefreshRate = getScreenRefreshRate
 /**
  * Allows to obtain the estimated Hz of the primary monitor in the system.
  */
-export function getScreenRefreshRate() {
+export function getScreenRefreshRate(): Promise<number> {
   let requestId = null
   let callbackTriggered = false
   let resolve
@@ -198,13 +196,18 @@ export const toMajorVersion = (version) => {
 }
 
 let prevRenderDistance = options.renderDistance
-export const reloadChunks = () => {
-  if (!worldView || !localServer) return
-  localServer.options['view-distance'] = options.renderDistance
+export const setRenderDistance = () => {
   worldView.viewDistance = options.renderDistance
-  localServer.players[0].emit('playerChangeRenderDistance', options.renderDistance)
-  worldView.updatePosition(bot.entity.position, true)
+  if (localServer) {
+    localServer.options['view-distance'] = options.renderDistance
+    localServer.players[0].emit('playerChangeRenderDistance', options.renderDistance)
+  }
   prevRenderDistance = options.renderDistance
+}
+export const reloadChunks = () => {
+  if (!worldView) return
+  setRenderDistance()
+  worldView.updatePosition(bot.entity.position, true)
 }
 
 export const openFilePicker = (specificCase?: 'resourcepack') => {
