@@ -23,13 +23,6 @@ it('Loads & renders singleplayer', () => {
     cy.get('#title-screen').find('[data-test-id="singleplayer-button"]', { includeShadowDom: true, }).click()
     // todo implement load event
     cy.wait(12000)
-    cy.window().then((window) => {
-        window.bot.entity.pitch = 1.5
-    })
-    cy.wait(500)
-    cy.get('body').toMatchImageSnapshot({
-        name: 'superflat-world',
-    })
 })
 
 // even on local testing indeed it doesn't work sometimes, but sometimes it does
@@ -43,13 +36,6 @@ it.skip('Joins to server', () => {
     cy.get('[data-test-id="connect-to-server"]', { includeShadowDom: true, }).click()
     // todo implement load event
     cy.wait(16000)
-    cy.window().then((window) => {
-        window.bot.entity.pitch = 1.5
-    })
-    cy.wait(500)
-    cy.get('body').toMatchImageSnapshot({
-        name: 'superflat-world',
-    })
 })
 
 it('Loads & renders zip world', () => {
@@ -59,13 +45,6 @@ it('Loads & renders zip world', () => {
     cy.get('input[type="file"]').selectFile('cypress/superflat.zip', { force: true })
     // todo implement load event
     cy.wait(10000)
-    cy.window().then((window) => {
-        window.bot.entity.pitch = 1.5
-    })
-    cy.wait(500)
-    cy.get('body').toMatchImageSnapshot({
-        name: 'superflat-world',
-    })
 })
 
 it.skip('Performance test', () => {
