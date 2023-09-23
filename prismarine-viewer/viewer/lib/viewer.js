@@ -29,6 +29,7 @@ class Viewer {
 
     this.domElement = renderer.domElement
     this.playerHeight = 1.6
+    this.isSneaking = false
   }
 
   resetAll () {
@@ -67,7 +68,11 @@ class Viewer {
   }
 
   setFirstPersonCamera (pos, yaw, pitch) {
-    if (pos) new TWEEN.Tween(this.camera.position).to({ x: pos.x, y: pos.y + this.playerHeight, z: pos.z }, 50).start()
+    if (pos) {
+      let y = pos.y + this.playerHeight
+      if (this.isSneaking) y -= 0.3
+      new TWEEN.Tween(this.camera.position).to({ x: pos.x, y, z: pos.z }, 50).start()
+    }
     this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
   }
 

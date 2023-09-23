@@ -78,7 +78,7 @@ import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalS
 import serverOptions from './defaultLocalServerOptions'
 import { customCommunication } from './customServer'
 import updateTime from './updateTime'
-import { options } from './optionsStorage'
+import { options, watchValue } from './optionsStorage'
 import { subscribeKey } from 'valtio/utils'
 import _ from 'lodash'
 import { contro } from './controls'
@@ -87,6 +87,7 @@ import { connectToPeer } from './localServerMultiplayer'
 
 //@ts-ignore
 window.THREE = THREE
+// workaround to be used in prismarine-block
 globalThis.emptyShapeReplacer = [[0.0, 0.0, 0.0, 1.0, 1.0, 1.0]]
 
 if ('serviceWorker' in navigator && !isCypress() && process.env.NODE_ENV !== 'development') {
@@ -143,13 +144,13 @@ document.body.appendChild(renderer.domElement)
 
 // Create viewer
 const viewer: import('../prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
+window.viewer = viewer
 initPanoramaOptions(viewer)
 watchTexturepackInViewer(viewer)
 
-const frameLimit = toNumber(localStorage.frameLimit)
-let interval = frameLimit && 1000 / frameLimit
-window.addEventListener('option-change', ({ detail }: any) => {
-  if (detail.name === 'frameLimit') interval = toNumber(detail.value) && 1000 / toNumber(detail.value)
+let renderInterval: number
+watchValue(options, (o) => {
+  renderInterval = o.frameLimit && 1000 / o.frameLimit
 })
 
 let nextFrameFn = []
@@ -160,11 +161,11 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
   window.requestAnimationFrame(renderFrame)
   if (window.stopRender) return
-  if (interval) {
+  if (renderInterval) {
     delta += time - lastTime
     lastTime = time
-    if (delta > interval) {
-      delta = delta % interval
+    if (delta > renderInterval) {
+      delta = delta % renderInterval
       // continue rendering
     } else {
       return
@@ -195,7 +196,6 @@ window.addEventListener('resize', () => {
 const loadingScreen = document.getElementById('loading-error-screen')
 
 const hud = document.getElementById('hud')
-const optionsScrn = document.getElementById('options-screen')
 const pauseMenu = document.getElementById('pause-screen')
 
 let mouseMovePostHandle = (e) => { }
@@ -214,7 +214,7 @@ function onCameraMove(e) {
   // todo: limit camera movement for now to avoid unexpected jumps
   if (now - lastMouseMove < 4) return
   lastMouseMove = now
-  let { mouseSensX, mouseSensY } = optionsScrn
+  let { mouseSensX, mouseSensY } = options
   if (mouseSensY === true) mouseSensY = mouseSensX
   // debugPitch.innerText = +debugPitch.innerText + e.movementX
   mouseMovePostHandle({
@@ -539,9 +539,8 @@ async function connect(connectOptions: {
     window.worldView = worldView
     setRenderDistance()
 
-    let fovSetting = optionsScrn.fov
     const updateFov = () => {
-      fovSetting = optionsScrn.fov
+      let fovSetting = options.fov
       // todo check values and add transition
       if (bot.controlState.sprint && !bot.controlState.sneak) {
         fovSetting += 5
@@ -553,21 +552,19 @@ async function connect(connectOptions: {
       viewer.camera.updateProjectionMatrix()
     }
     updateFov()
+    subscribeKey(options, 'fov', updateFov)
     subscribeKey(gameAdditionalState, 'isFlying', updateFov)
     subscribeKey(gameAdditionalState, 'isSprinting', updateFov)
-    const defaultPlayerHeight = viewer.playerHeight
     subscribeKey(gameAdditionalState, 'isSneaking', () => {
-      viewer.playerHeight = gameAdditionalState.isSneaking ? defaultPlayerHeight - 0.3 : defaultPlayerHeight
+      viewer.isSneaking = gameAdditionalState.isSneaking
       viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
     })
-    optionsScrn.addEventListener('fov_changed', updateFov)
 
     bot.on('physicsTick', () => updateCursor())
     viewer.setVersion(version)
 
     const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
 
-    window.viewer = viewer
     window.loadedData = mcData
     window.bot = bot
     window.Vec3 = Vec3
@@ -630,7 +627,11 @@ async function connect(connectOptions: {
     let virtualClickTimeout
     let screenTouches = 0
     let capturedPointer: { id; x; y; sourceX; sourceY; activateCameraMove; time } | null
-    document.body.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false })
+    document.body.addEventListener('touchstart', (e) => {
+      if (isGameActive(true)) {
+        e.preventDefault()
+      }
+    }, { passive: false })
     registerListener(document, 'pointerdown', (e) => {
       const clickedEl = e.composedPath()[0]
       if (!isGameActive(true) || !miscUiState.currentTouch || clickedEl !== cameraControlEl || e.pointerId === undefined) {

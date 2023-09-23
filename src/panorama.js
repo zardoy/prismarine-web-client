@@ -1,10 +1,10 @@
 //@ts-check
 
 import { join } from 'path'
-import { miscUiState } from './globalState'
-import { fromTexturePackPath } from './texturePack'
+import { fromTexturePackPath, resourcePackState } from './texturePack'
 import fs from 'fs'
 import { subscribeKey } from 'valtio/utils'
+import { options } from './optionsStorage'
 
 let panoramaCubeMap
 let panoramaUsesResourePack = false
@@ -46,9 +46,9 @@ const updateResourecePackSupportPanorama = async () => {
   }
 }
 
-subscribeKey(miscUiState, 'resourcePackInstalled', async () => {
+subscribeKey(resourcePackState, 'resourcePackInstalled', async () => {
   const oldState = panoramaUsesResourePack
-  const newState = miscUiState.resourcePackInstalled && (await updateResourecePackSupportPanorama(), panoramaUsesResourePack)
+  const newState = resourcePackState.resourcePackInstalled && (await updateResourecePackSupportPanorama(), panoramaUsesResourePack)
   if (newState === oldState) return
   removePanorama()
   addPanoramaCubeMap()
@@ -107,7 +107,7 @@ export async function addPanoramaCubeMap () {
 
 export function removePanorama () {
   if (!panoramaCubeMap) return
-  viewer.camera = new THREE.PerspectiveCamera(document.getElementById('options-screen').fov, window.innerWidth / window.innerHeight, 0.1, 1000)
+  viewer.camera = new THREE.PerspectiveCamera(options.fov, window.innerWidth / window.innerHeight, 0.1, 1000)
   viewer.camera.updateProjectionMatrix()
   viewer.scene.remove(panoramaCubeMap)
 }

@@ -38,8 +38,6 @@ export const pointerLock = {
     }
     const displayBrowserProblem = () => {
       notification.show = true
-      // todo use notification stack
-      notification.autoHide = true
       notification.message = navigator['keyboard'] ? 'Browser Limitation: Click on screen, enable Auto Fullscreen or F11' : 'Browser Limitation: Click on screen or use fullscreen in Chrome'
     }
     if (!(document.fullscreenElement && navigator['keyboard']) && this.justHitEscape) {
@@ -70,7 +68,7 @@ window.getScreenRefreshRate = getScreenRefreshRate
 /**
  * Allows to obtain the estimated Hz of the primary monitor in the system.
  */
-export function getScreenRefreshRate() {
+export function getScreenRefreshRate(): Promise<number> {
   let requestId = null
   let callbackTriggered = false
   let resolve
@@ -151,7 +149,8 @@ export const setLoadingScreenStatus = function (status: string | undefined, isEr
   }
   loadingScreen.hideDots = hideDots
   loadingScreen.hasError = isError
-  loadingScreen.status = isError && loadingScreen.status ? status + `\nLast status: ${loadingScreen.status}` : status
+  loadingScreen.lastStatus = isError ? loadingScreen.status : ''
+  loadingScreen.status = status
 }
 
 
