@@ -10,14 +10,14 @@ const setLocalStorageSettings = () => {
 it('Loads & renders singleplayer', () => {
     cy.visit('/')
     window.localStorage.clear()
-    window.localStorage.setItem('renderDistance', '2')
     window.localStorage.setItem('options', JSON.stringify({
         localServerOptions: {
             generation: {
                 name: 'superflat',
                 options: { seed: 250869072 }
             }
-        }
+        },
+        renderDistance: 2
     }))
     setLocalStorageSettings()
     cy.get('#title-screen').find('[data-test-id="singleplayer-button"]', { includeShadowDom: true, }).click()
@@ -36,7 +36,11 @@ it('Joins to server', () => {
     cy.get('input#serverip', { includeShadowDom: true, }).clear().focus().type('localhost')
     cy.get('[data-test-id="connect-to-server"]', { includeShadowDom: true, }).click()
     // todo implement load event
-    cy.wait(22000)
+    cy.wait(16000)
+    cy.window().then((window) => {
+        window.bot.entity.pitch = 1.5
+    })
+    cy.wait(500)
     cy.get('body').toMatchImageSnapshot({
         name: 'superflat-world',
     })
@@ -48,7 +52,11 @@ it('Loads & renders zip world', () => {
     cy.get('#title-screen').find('[data-test-id="select-file-folder"]', { includeShadowDom: true, }).click({ shiftKey: true })
     cy.get('input[type="file"]').selectFile('cypress/superflat.zip', { force: true })
     // todo implement load event
-    cy.wait(12000)
+    cy.wait(10000)
+    cy.window().then((window) => {
+        window.bot.entity.pitch = 1.5
+    })
+    cy.wait(500)
     cy.get('body').toMatchImageSnapshot({
         name: 'superflat-world',
     })
