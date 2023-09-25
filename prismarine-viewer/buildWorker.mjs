@@ -29,9 +29,13 @@ const buildOptions = {
       setup (build) {
         build.onResolve({ filter: /\.json$/ }, args => {
           const fileName = args.path.split('/').pop().replace('.json', '')
-          if (args.resolveDir.includes('minecraft-data') && !allowedWorkerFiles.includes(fileName)) {
-            // console.log('skipped', fileName)
-            return { path: args.path, namespace: 'empty-file', }
+          if (args.resolveDir.includes('minecraft-data')) {
+            if (args.path.replaceAll('\\', '/').endsWith('bedrock/common/protocolVersions.json')) {
+              return
+            }
+            if (!allowedWorkerFiles.includes(fileName) || args.path.includes('bedrock')) {
+              return { path: args.path, namespace: 'empty-file', }
+            }
           }
         })
         build.onResolve({

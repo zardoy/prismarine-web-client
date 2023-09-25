@@ -41,7 +41,7 @@ import { WorldView, Viewer } from 'prismarine-viewer/viewer'
 import pathfinder from 'mineflayer-pathfinder'
 import { Vec3 } from 'vec3'
 
-import Cursor from './cursor'
+import blockInteraction from './blockInteraction'
 
 import * as THREE from 'three'
 
@@ -59,9 +59,7 @@ import {
 
 import {
   pointerLock,
-  goFullscreen,
-  toNumber,
-  isCypress,
+  goFullscreen, isCypress,
   loadScript,
   toMajorVersion,
   setLoadingScreenStatus,
@@ -76,7 +74,6 @@ import {
 
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
 import serverOptions from './defaultLocalServerOptions'
-import { customCommunication } from './customServer'
 import updateTime from './updateTime'
 import { options, watchValue } from './optionsStorage'
 import { subscribeKey } from 'valtio/utils'
@@ -84,11 +81,12 @@ import _ from 'lodash'
 import { contro } from './controls'
 import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
 import { connectToPeer } from './localServerMultiplayer'
+import CustomChannelClient from './customClient'
+import debug from 'debug'
 
+window.debug = debug
 //@ts-ignore
 window.THREE = THREE
-// workaround to be used in prismarine-block
-globalThis.emptyShapeReplacer = [[0.0, 0.0, 0.0, 1.0, 1.0, 1.0]]
 
 if ('serviceWorker' in navigator && !isCypress() && process.env.NODE_ENV !== 'development') {
   window.addEventListener('load', () => {
@@ -102,6 +100,7 @@ if ('serviceWorker' in navigator && !isCypress() && process.env.NODE_ENV !== 'de
 
 // ACTUAL CODE
 
+// todo stats-gl
 let stats
 let stats2
 stats = new Stats()
@@ -200,12 +199,11 @@ const pauseMenu = document.getElementById('pause-screen')
 
 let mouseMovePostHandle = (e) => { }
 let lastMouseMove: number
-let cursor: Cursor
 let debugMenu
 const updateCursor = () => {
-  cursor.update(bot)
+  blockInteraction.update()
   debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
-  debugMenu.cursorBlock = cursor.cursorBlock
+  debugMenu.cursorBlock = blockInteraction.cursorBlock
 }
 function onCameraMove(e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
@@ -338,7 +336,9 @@ async function connect(connectOptions: {
       bot.removeAllListeners()
       bot._client.removeAllListeners()
       bot._client = undefined
-      bot = undefined
+      // for debugging
+      window._botDisconnected = undefined
+      window.bot = bot = undefined
     }
     removeAllListeners()
     for (const timeout of timeouts) {
@@ -365,6 +365,7 @@ async function connect(connectOptions: {
 
     setLoadingScreenStatus(`Error encountered. Error message: ${err}`, true)
     destroyAll()
+    if (isCypress()) throw err
   }
 
   const errorAbortController = new AbortController()
@@ -446,21 +447,21 @@ async function connect(connectOptions: {
       }
     }
 
-    const botDuplex = !p2pMultiplayer ? undefined/* clientDuplex */ : await connectToPeer(connectOptions.peerId)
-
     setLoadingScreenStatus('Creating mineflayer bot')
     bot = mineflayer.createBot({
       host,
       port,
       version: !connectOptions.botVersion ? false : connectOptions.botVersion,
+      ...p2pMultiplayer ? {
+        stream: await connectToPeer(connectOptions.peerId),
+      } : {},
       ...singeplayer || p2pMultiplayer ? {
         keepAlive: false,
-        stream: botDuplex,
       } : {},
       ...singeplayer ? {
         version: serverOptions.version,
         connect() { },
-        customCommunication,
+        Client: CustomChannelClient as any,
       } : {},
       username,
       password,
@@ -470,8 +471,10 @@ async function connect(connectOptions: {
       closeTimeout: 240 * 1000,
       async versionSelectedHook(client) {
         await downloadMcData(client.version)
+        setLoadingScreenStatus('Connecting to server')
       }
     })
+    window.bot = bot
     if (singeplayer || p2pMultiplayer) {
       // p2pMultiplayer still uses the same flying-squid server
       const _supportFeature = bot.supportFeature
@@ -484,12 +487,24 @@ async function connect(connectOptions: {
 
       bot.emit('inject_allowed')
       bot._client.emit('connect')
+    } else {
+      bot._client.socket.on('connect', () => {
+        console.log('TCP connection established')
+        //@ts-ignore
+        bot._client.socket._ws.addEventListener('close', () => {
+          console.log('TCP connection closed')
+          setTimeout(() => {
+            if (bot) {
+              bot.emit('end', 'TCP connection closed with unknown reason')
+            }
+          })
+        })
+      })
     }
   } catch (err) {
     handleError(err)
   }
   if (!bot) return
-  cursor = new Cursor(viewer, renderer, bot)
   // bot.on('move', () => updateCursor())
 
   let p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on other side, check console.') }, 20_000) : undefined
@@ -511,6 +526,7 @@ async function connect(connectOptions: {
     console.log('disconnected for', endReason)
     destroyAll()
     setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
+    if (isCypress()) throw new Error(`disconnected: ${endReason}`)
   })
 
   bot.once('login', () => {
@@ -566,7 +582,6 @@ async function connect(connectOptions: {
     const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
 
     window.loadedData = mcData
-    window.bot = bot
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
     window.debugMenu = debugMenu
@@ -619,19 +634,30 @@ async function connect(connectOptions: {
 
     registerListener(document, 'pointerlockchange', changeCallback, false)
 
+    let holdingTouch: { touch: Touch, elem: HTMLElement } | undefined
+    document.body.addEventListener('touchend', (e) => {
+      if (!isGameActive(true)) return
+      if (holdingTouch?.touch.identifier !== e.changedTouches[0].identifier) return
+      holdingTouch.elem.click()
+      holdingTouch = undefined
+    })
+    document.body.addEventListener('touchstart', (e) => {
+      if (!isGameActive(true)) return
+      e.preventDefault()
+      holdingTouch = {
+        touch: e.touches[0],
+        elem: e.composedPath()[0] as HTMLElement
+      }
+    }, { passive: false })
+
     const cameraControlEl = hud
 
-    // after what time of holding the finger start breaking the block
+    /** after what time of holding the finger start breaking the block */
     const touchStartBreakingBlockMs = 500
     let virtualClickActive = false
     let virtualClickTimeout
     let screenTouches = 0
     let capturedPointer: { id; x; y; sourceX; sourceY; activateCameraMove; time } | null
-    document.body.addEventListener('touchstart', (e) => {
-      if (isGameActive(true)) {
-        e.preventDefault()
-      }
-    }, { passive: false })
     registerListener(document, 'pointerdown', (e) => {
       const clickedEl = e.composedPath()[0]
       if (!isGameActive(true) || !miscUiState.currentTouch || clickedEl !== cameraControlEl || e.pointerId === undefined) {
@@ -652,8 +678,9 @@ async function connect(connectOptions: {
         sourceX: e.clientX,
         sourceY: e.clientY,
         activateCameraMove: false,
-        time: new Date()
+        time: Date.now()
       }
+      console.log('capture!')
       virtualClickTimeout ??= setTimeout(() => {
         virtualClickActive = true
         document.dispatchEvent(new MouseEvent('mousedown', { button: 0 }))
@@ -697,9 +724,8 @@ async function connect(connectOptions: {
         virtualClickActive = false
       } else if (!capturedPointer.activateCameraMove && (Date.now() - capturedPointer.time < touchStartBreakingBlockMs)) {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 2 }))
-        nextFrameFn.push(() => {
-          document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
-        })
+        blockInteraction.update()
+        document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       }
       capturedPointer = undefined
     }, { passive: false })
@@ -724,6 +750,7 @@ async function connect(connectOptions: {
 
     hud.init(renderer, bot, host)
     hud.style.display = 'block'
+    blockInteraction.init()
 
     setTimeout(function () {
       errorAbortController.abort()
@@ -731,6 +758,10 @@ async function connect(connectOptions: {
       // remove loading screen, wait a second to make sure a frame has properly rendered
       setLoadingScreenStatus(undefined)
       hideCurrentScreens()
+      viewer.waitForChunksToRender().then(() => {
+        console.log('All done and ready!')
+        document.dispatchEvent(new Event('cypress-world-ready'))
+      })
     }, singeplayer ? 0 : 2500)
   })
 }
