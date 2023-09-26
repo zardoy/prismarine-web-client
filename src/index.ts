@@ -1,3 +1,4 @@
+/* eslint-disable import/order */
 import './importsWorkaround'
 import './styles.css'
 import './globals'
@@ -25,9 +26,9 @@ import './menus/advanced_options_screen'
 import { notification } from './menus/notification'
 import './menus/title_screen'
 
-import './optionsStorage'
+import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
-import './controls'
+import { contro } from './controls'
 import './dragndrop'
 import './browserfs'
 import './eruda'
@@ -75,25 +76,24 @@ import {
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
 import serverOptions from './defaultLocalServerOptions'
 import updateTime from './updateTime'
-import { options, watchValue } from './optionsStorage'
+
 import { subscribeKey } from 'valtio/utils'
 import _ from 'lodash'
-import { contro } from './controls'
+
 import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
 import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import debug from 'debug'
 
 window.debug = debug
-//@ts-ignore
 window.THREE = THREE
 
 if ('serviceWorker' in navigator && !isCypress() && process.env.NODE_ENV !== 'development') {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js').then(registration => {
-      console.log('SW registered: ', registration)
+      console.log('SW registered:', registration)
     }).catch(registrationError => {
-      console.log('SW registration failed: ', registrationError)
+      console.log('SW registration failed:', registrationError)
     })
   })
 }
@@ -101,10 +101,8 @@ if ('serviceWorker' in navigator && !isCypress() && process.env.NODE_ENV !== 'de
 // ACTUAL CODE
 
 // todo stats-gl
-let stats
-let stats2
-stats = new Stats()
-stats2 = new Stats()
+const stats = new Stats()
+const stats2 = new Stats()
 stats2.showPanel(2)
 
 document.body.appendChild(stats.dom)
@@ -120,19 +118,6 @@ if (localStorage.hideStats || isCypress()) {
   stats.dom.style.display = 'none'
   stats2.dom.style.display = 'none'
 }
-
-// const debugPitch = document.createElement('span')
-// debugPitch.style.cssText = `
-//   position: absolute;
-//   top: 0;
-//   right: 0;
-//   z-index: 100;
-//   color:white;
-// `
-// document.body.appendChild(debugPitch)
-
-const maxPitch = 0.5 * Math.PI
-const minPitch = -0.5 * Math.PI
 
 // Create three.js context, add to page
 const renderer = new THREE.WebGLRenderer()
@@ -152,7 +137,6 @@ watchValue(options, (o) => {
   renderInterval = o.frameLimit && 1000 / o.frameLimit
 })
 
-let nextFrameFn = []
 let postRenderFrameFn = () => { }
 let delta = 0
 let lastTime = performance.now()
@@ -164,7 +148,7 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
     delta += time - lastTime
     lastTime = time
     if (delta > renderInterval) {
-      delta = delta % renderInterval
+      delta %= renderInterval
       // continue rendering
     } else {
       return
@@ -175,12 +159,6 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
   viewer.update()
   renderer.render(viewer.scene, viewer.camera)
   postRenderFrameFn()
-  if (nextFrameFn.length) {
-    for (const fn of nextFrameFn) {
-      fn()
-    }
-    nextFrameFn = []
-  }
   stats?.end()
   stats2?.end()
 }
@@ -214,7 +192,6 @@ function onCameraMove(e) {
   lastMouseMove = now
   let { mouseSensX, mouseSensY } = options
   if (mouseSensY === true) mouseSensY = mouseSensX
-  // debugPitch.innerText = +debugPitch.innerText + e.movementX
   mouseMovePostHandle({
     x: e.movementX * mouseSensX * 0.0001,
     y: e.movementY * mouseSensY * 0.0001
@@ -241,7 +218,7 @@ async function main() {
     connect({ server: '', port: '', proxy: '', singleplayer: true, username: options.localUsername, password: '', serverOverrides })
   }
   document.querySelector('#title-screen').addEventListener('singleplayer', (e) => {
-    //@ts-ignore
+    //@ts-expect-error
     connectSingleplayer(e.detail)
   })
   const qs = new URLSearchParams(window.location.search)
@@ -254,9 +231,7 @@ async function main() {
 }
 
 let listeners = []
-let disposables = []
 let timeouts = []
-let intervals = []
 // only for dom listeners (no removeAllListeners)
 // todo refactor them out of connect fn instead
 const registerListener: import('./utilsTs').RegisterListener = (target, event, callback) => {
@@ -264,16 +239,14 @@ const registerListener: import('./utilsTs').RegisterListener = (target, event, c
   listeners.push({ target, event, callback })
 }
 const removeAllListeners = () => {
-  listeners.forEach(({ target, event, callback }) => {
+  for (const { target, event, callback } of listeners) {
     target.removeEventListener(event, callback)
-  })
-  listeners = []
-  for (const disposable of disposables) {
-    disposable()
   }
-  disposables = []
+  listeners = []
 }
 
+// todo
+// eslint-disable-next-line complexity
 async function connect(connectOptions: {
   server: any; port?: string; singleplayer?: any; username: any; password: any; proxy: any; botVersion?: any; serverOverrides?; peerId?: string
 }) {
@@ -285,15 +258,8 @@ async function connect(connectOptions: {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singeplayer
   miscUiState.flyingSquid = singeplayer || p2pMultiplayer
-  const oldSetInterval = window.setInterval
-  // @ts-ignore
-  window.setInterval = (callback, ms) => {
-    const id = oldSetInterval.call(window, callback, ms)
-    timeouts.push(id)
-    return id
-  }
   const oldSetTimeout = window.setTimeout
-  //@ts-ignore
+  //@ts-expect-error
   window.setTimeout = (callback, ms) => {
     const id = oldSetTimeout.call(window, callback, ms)
     timeouts.push(id)
@@ -302,24 +268,24 @@ async function connect(connectOptions: {
   const { renderDistance, maxMultiplayerRenderDistance } = options
   const hostprompt = connectOptions.server
   const proxyprompt = connectOptions.proxy
-  const username = connectOptions.username
-  const password = connectOptions.password
+  const { username } = connectOptions
+  const { password } = connectOptions
 
-  let host, port, proxy, proxyport
-  if (!hostprompt.includes(':')) {
-    host = hostprompt
-    port = 25565
-  } else {
+  let host; let port; let proxy; let proxyport
+  if (hostprompt.includes(':')) {
     [host, port] = hostprompt.split(':')
     port = parseInt(port, 10)
+  } else {
+    host = hostprompt
+    port = 25_565
   }
 
-  if (!proxyprompt.includes(':')) {
-    proxy = proxyprompt
-    proxyport = undefined
-  } else {
+  if (proxyprompt.includes(':')) {
     [proxy, proxyport] = proxyprompt.split(':')
     proxyport = parseInt(proxyport, 10)
+  } else {
+    proxy = proxyprompt
+    proxyport = undefined
   }
   console.log(`connecting to ${host} ${port} with ${username}`)
 
@@ -345,10 +311,6 @@ async function connect(connectOptions: {
       clearTimeout(timeout)
     }
     timeouts = []
-    for (const interval of intervals) {
-      clearInterval(interval)
-    }
-    intervals = []
   }
   const handleError = (err) => {
     console.log('Encountered error!', err)
@@ -396,7 +358,7 @@ async function connect(connectOptions: {
     //   console.error(err)
     //   throw new Error(`Proxy server ${proxy}:${proxyport} is not available`)
     // }
-    //@ts-ignore
+    //@ts-expect-error
     net.setProxy({ hostname: proxy, port: proxyport })
   }
 
@@ -451,7 +413,7 @@ async function connect(connectOptions: {
     bot = mineflayer.createBot({
       host,
       port,
-      version: !connectOptions.botVersion ? false : connectOptions.botVersion,
+      version: connectOptions.botVersion || false,
       ...p2pMultiplayer ? {
         stream: await connectToPeer(connectOptions.peerId),
       } : {},
@@ -488,26 +450,38 @@ async function connect(connectOptions: {
       bot.emit('inject_allowed')
       bot._client.emit('connect')
     } else {
-      bot._client.socket.on('connect', () => {
-        console.log('TCP connection established')
-        //@ts-ignore
-        bot._client.socket._ws.addEventListener('close', () => {
-          console.log('TCP connection closed')
-          setTimeout(() => {
-            if (bot) {
-              bot.emit('end', 'TCP connection closed with unknown reason')
-            }
+      const setupConnectHandlers = () => {
+        bot._client.socket.on('connect', () => {
+          console.log('TCP connection established')
+          //@ts-expect-error
+          bot._client.socket._ws.addEventListener('close', () => {
+            console.log('TCP connection closed')
+            setTimeout(() => {
+              if (bot) {
+                bot.emit('end', 'TCP connection closed with unknown reason')
+              }
+            })
           })
         })
-      })
+      }
+      // socket setup actually can be delayed because of dns lookup
+      if (bot._client.socket) {
+        setupConnectHandlers()
+      } else {
+        const originalSetSocket = bot._client.setSocket.bind(bot._client)
+        bot._client.setSocket = (socket) => {
+          originalSetSocket(socket)
+          setupConnectHandlers()
+        }
+      }
+
     }
   } catch (err) {
     handleError(err)
   }
   if (!bot) return
-  // bot.on('move', () => updateCursor())
 
-  let p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on other side, check console.') }, 20_000) : undefined
+  const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on other side, check console.') }, 20_000) : undefined
   hud.preload(bot)
 
   // bot.on('inject_allowed', () => {
@@ -547,7 +521,7 @@ async function connect(connectOptions: {
 
     console.log('bot spawned - starting viewer')
 
-    const version = bot.version
+    const { version } = bot
 
     const center = bot.entity.position
 
@@ -619,6 +593,8 @@ async function connect(connectOptions: {
 
     setLoadingScreenStatus('Setting callbacks')
 
+    const maxPitch = 0.5 * Math.PI
+    const minPitch = -0.5 * Math.PI
     mouseMovePostHandle = ({ x, y }) => {
       bot.entity.pitch -= y
       bot.entity.pitch = Math.max(minPitch, Math.min(maxPitch, bot.entity.pitch))
@@ -680,7 +656,6 @@ async function connect(connectOptions: {
         activateCameraMove: false,
         time: Date.now()
       }
-      console.log('capture!')
       virtualClickTimeout ??= setTimeout(() => {
         virtualClickActive = true
         document.dispatchEvent(new MouseEvent('mousedown', { button: 0 }))
@@ -745,23 +720,23 @@ async function connect(connectOptions: {
     }, false)
 
     setLoadingScreenStatus('Done!')
-    miscUiState.gameLoaded = true
     console.log('Done!')
 
     hud.init(renderer, bot, host)
     hud.style.display = 'block'
     blockInteraction.init()
 
-    setTimeout(function () {
+    setTimeout(() => {
       errorAbortController.abort()
       if (loadingScreen.hasError) return
       // remove loading screen, wait a second to make sure a frame has properly rendered
       setLoadingScreenStatus(undefined)
       hideCurrentScreens()
-      viewer.waitForChunksToRender().then(() => {
+      void viewer.waitForChunksToRender().then(() => {
         console.log('All done and ready!')
         document.dispatchEvent(new Event('cypress-world-ready'))
       })
+      miscUiState.gameLoaded = true
     }, singeplayer ? 0 : 2500)
   })
 }
@@ -778,15 +753,13 @@ window.addEventListener('keydown', (e) => {
         pointerLock.justHitEscape = true
       }
     })
-  } else {
-    if (pointerLock.hasPointerLock) {
-      document.exitPointerLock()
-      if (options.autoExitFullscreen) {
-        document.exitFullscreen()
-      }
-    } else {
-      document.dispatchEvent(new Event('pointerlockchange'))
+  } else if (pointerLock.hasPointerLock) {
+    document.exitPointerLock()
+    if (options.autoExitFullscreen) {
+      document.exitFullscreen()
     }
+  } else {
+    document.dispatchEvent(new Event('pointerlockchange'))
   }
 })
 
@@ -802,9 +775,9 @@ window.addEventListener('keydown', (e) => {
 
 addPanoramaCubeMap()
 showModal(document.getElementById('title-screen'))
-main()
+void main()
 downloadAndOpenFile().then((downloadAction) => {
-  if (downloadAction !== false) return
+  if (downloadAction) return
 
   window.addEventListener('hud-ready', (e) => {
     // try to connect to peer

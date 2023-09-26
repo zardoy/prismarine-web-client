@@ -1,7 +1,7 @@
-import { activeModalStack, hideModal, miscUiState, showModal } from './globalState'
-import { notification } from './menus/notification'
 import * as crypto from 'crypto'
 import UUID from 'uuid-1345'
+import { activeModalStack, hideModal, miscUiState, showModal } from './globalState'
+import { notification } from './menus/notification'
 import { options } from './optionsStorage'
 import { saveWorld } from './builtinCommands'
 import { openWorldZip } from './browserfs'
@@ -12,7 +12,7 @@ export const goFullscreen = async (doToggle = false) => {
     // todo display a message or repeat?
     await document.documentElement.requestFullscreen().catch(() => { })
     // request full keyboard access
-    //@ts-ignore
+    //@ts-expect-error
     navigator.keyboard?.lock?.(['Escape', 'KeyW'])
   } else if (doToggle) {
     await document.exitFullscreen().catch(() => { })
@@ -43,12 +43,12 @@ export const pointerLock = {
     if (!(document.fullscreenElement && navigator['keyboard']) && this.justHitEscape) {
       displayBrowserProblem()
     } else {
-      //@ts-ignore
+      //@ts-expect-error
       const promise: any = document.documentElement.requestPointerLock({
         unadjustedMovement: options.mouseRawInput
       })
       promise?.catch((error) => {
-        if (error.name === "NotSupportedError") {
+        if (error.name === 'NotSupportedError') {
           // Some platforms may not support unadjusted movement, request again a regular pointer lock.
           document.documentElement.requestPointerLock()
         } else if (error.name === 'SecurityError') {
@@ -68,7 +68,7 @@ window.getScreenRefreshRate = getScreenRefreshRate
 /**
  * Allows to obtain the estimated Hz of the primary monitor in the system.
  */
-export function getScreenRefreshRate(): Promise<number> {
+export async function getScreenRefreshRate(): Promise<number> {
   let requestId = null
   let callbackTriggered = false
   let resolve
@@ -79,8 +79,8 @@ export function getScreenRefreshRate(): Promise<number> {
     DOMHighResTimeStampCollection.unshift(DOMHighResTimeStamp)
 
     if (DOMHighResTimeStampCollection.length > 10) {
-      let t0 = DOMHighResTimeStampCollection.pop()
-      let fps = Math.floor(1000 * 10 / (DOMHighResTimeStamp - t0))
+      const t0 = DOMHighResTimeStampCollection.pop()
+      const fps = Math.floor(1000 * 10 / (DOMHighResTimeStamp - t0))
 
       if (!callbackTriggered) {
         resolve(fps/* , DOMHighResTimeStampCollection */)
@@ -106,11 +106,11 @@ export function getScreenRefreshRate(): Promise<number> {
 
 export const getGamemodeNumber = (bot) => {
   switch (bot.game.gameMode) {
-    case 'survival': return 0
-    case 'creative': return 1
-    case 'adventure': return 2
-    case 'spectator': return 3
-    default: return -1
+      case 'survival': return 0
+      case 'creative': return 1
+      case 'adventure': return 2
+      case 'spectator': return 3
+      default: return -1
   }
 }
 
@@ -177,9 +177,9 @@ export const loadScript = async function (scriptSrc: string) {
     scriptElement.src = scriptSrc
     scriptElement.async = true
 
-    scriptElement.onload = () => {
+    scriptElement.addEventListener('load', () => {
       resolve(scriptElement)
-    }
+    })
 
     scriptElement.onerror = (error) => {
       reject(error)
@@ -191,7 +191,7 @@ export const loadScript = async function (scriptSrc: string) {
 
 // doesn't support snapshots
 export const toMajorVersion = (version) => {
-  const [a, b] = (version + '').split('.')
+  const [a, b] = (String(version)).split('.')
   return `${a}.${b}`
 }
 
@@ -239,7 +239,7 @@ export const openFilePicker = (specificCase?: 'resourcepack') => {
   picker.click()
 }
 
-export const resolveTimeout = (promise, timeout = 10000) => {
+export const resolveTimeout = async (promise, timeout = 10_000) => {
   return new Promise((resolve, reject) => {
     promise.then(resolve, reject)
     setTimeout(() => {

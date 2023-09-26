@@ -1,21 +1,21 @@
 //@ts-check
-import { fsState, loadSave } from './loadSave'
+import { join } from 'path'
+import { promisify } from 'util'
+import fs from 'fs'
 import { oneOf } from '@zardoy/utils'
 import JSZip from 'jszip'
-import { join } from 'path'
+import * as browserfs from 'browserfs'
 import { options } from './optionsStorage'
 
-import { promisify } from 'util'
-import * as browserfs from 'browserfs'
-import fs from 'fs'
+import { fsState, loadSave } from './loadSave'
 import { installTexturePack, updateTexturePackInstalledState } from './texturePack'
 
 browserfs.install(window)
 // todo migrate to StorageManager API for localsave as localstorage has only 5mb limit, when localstorage is fallback test limit warning on 4mb
 const deafultMountablePoints = {
-  "/world": { fs: "LocalStorage" },
+  '/world': { fs: 'LocalStorage' },
   '/userData': { fs: 'IndexedDB' },
-};
+}
 browserfs.configure({
   fs: 'MountableFileSystem',
   options: deafultMountablePoints,
@@ -26,10 +26,9 @@ browserfs.configure({
 
 export const forceCachedDataPaths = {}
 
-//@ts-ignore
+//@ts-expect-error
 fs.promises = new Proxy(Object.fromEntries(['readFile', 'writeFile', 'stat', 'mkdir', 'rmdir', 'unlink', 'rename', /* 'copyFile',  */'readdir'].map(key => [key, promisify(fs[key])])), {
-  get(target, p, receiver) {
-    //@ts-ignore
+  get(target, p: string, receiver) {
     if (!target[p]) throw new Error(`Not implemented fs.promises.${p}`)
     return (...args) => {
       // browser fs bug: if path doesn't start with / dirname will return . which would cause infinite loop, so we need to normalize paths
@@ -50,20 +49,20 @@ fs.promises = new Proxy(Object.fromEntries(['readFile', 'writeFile', 'stat', 'mk
       if (p === 'open' && fsState.isReadonly) {
         args[1] = 'r' // read-only, zipfs throw otherwise
       }
-      //@ts-ignore
       return target[p](...args)
     }
   }
 })
-//@ts-ignore
+//@ts-expect-error
 fs.promises.open = async (...args) => {
   const fd = await promisify(fs.open)(...args)
   return {
     ...Object.fromEntries(['read', 'write', 'close'].map(x => [x, async (...args) => {
-      return await new Promise(resolve => {
+      return new Promise(resolve => {
         // todo it results in world corruption on interactions eg block placements
         if (x === 'write' && fsState.isReadonly) {
-          return resolve({ buffer: Buffer.from([]), bytesRead: 0 })
+          resolve({ buffer: Buffer.from([]), bytesRead: 0 })
+          return
         }
 
         fs[x](fd, ...args, (err, bytesRead, buffer) => {
@@ -80,7 +79,7 @@ fs.promises.open = async (...args) => {
     // for debugging
     fd,
     filename: args[0],
-    close: () => {
+    async close() {
       return new Promise<void>(resolve => {
         fs.close(fd, (err) => {
           if (err) {
@@ -96,7 +95,7 @@ fs.promises.open = async (...args) => {
 
 // for testing purposes, todo move it to core patch
 const removeFileRecursiveSync = (path) => {
-  fs.readdirSync(path).forEach((file) => {
+  for (const file of fs.readdirSync(path)) {
     const curPath = join(path, file)
     if (fs.lstatSync(curPath).isDirectory()) {
       // recurse
@@ -106,30 +105,26 @@ const removeFileRecursiveSync = (path) => {
       // delete file
       fs.unlinkSync(curPath)
     }
-  })
+  }
 }
 
 window.removeFileRecursiveSync = removeFileRecursiveSync
 
 // todo it still doesnt clean the storage, need to debug
 export async function removeFileRecursiveAsync(path) {
-  try {
-    const files = await fs.promises.readdir(path);
-    for (const file of files) {
-      const curPath = join(path, file);
-      const stats = await fs.promises.stat(curPath);
-      if (stats.isDirectory()) {
-        // Recurse
-        await removeFileRecursiveAsync(curPath);
-      } else {
-        // Delete file
-        await fs.promises.unlink(curPath);
-      }
+  const files = await fs.promises.readdir(path)
+  for (const file of files) {
+    const curPath = join(path, file)
+    const stats = await fs.promises.stat(curPath)
+    if (stats.isDirectory()) {
+      // Recurse
+      await removeFileRecursiveAsync(curPath)
+    } else {
+      // Delete file
+      await fs.promises.unlink(curPath)
     }
-    await fs.promises.rmdir(path);
-  } catch (error) {
-    throw error;
   }
+  await fs.promises.rmdir(path)
 }
 
 
@@ -159,8 +154,8 @@ export const openWorldDirectory = async (dragndropHandle?: FileSystemDirectoryHa
       // todo
       fs: 'MountableFileSystem',
       options: {
-        "/world": {
-          fs: "FileSystemAccess",
+        '/world': {
+          fs: 'FileSystemAccess',
           options: {
             handle: directoryHandle
           }
@@ -181,9 +176,9 @@ export const openWorldDirectory = async (dragndropHandle?: FileSystemDirectoryHa
 const tryToDetectResourcePack = async (file: File | ArrayBuffer) => {
   const askInstall = async () => {
     return alert('ATM You can install texturepacks only via options menu. WIll be fixed')
-    if (confirm('Resource pack detected, do you want to install it?')) {
-      await installTexturePack(file)
-    }
+    // if (confirm('Resource pack detected, do you want to install it?')) {
+    //   await installTexturePack(file)
+    // }
   }
 
   if (fs.existsSync('/world/pack.mcmeta')) {
@@ -220,8 +215,8 @@ const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name']) 
       fs: 'MountableFileSystem',
       options: {
         ...deafultMountablePoints,
-        "/world": {
-          fs: "ZipFS",
+        '/world': {
+          fs: 'ZipFS',
           options: {
             zipData: Buffer.from(file instanceof File ? (await file.arrayBuffer()) : file),
             name
@@ -243,7 +238,7 @@ const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name']) 
     await loadSave()
   } else {
     const dirs = fs.readdirSync('/world')
-    let availableWorlds: string[] = []
+    const availableWorlds: string[] = []
     for (const dir of dirs) {
       if (fs.existsSync(`/world/${dir}/level.dat`)) {
         availableWorlds.push(dir)
@@ -281,12 +276,12 @@ export async function generateAndDownloadWorldZip() {
   zip.folder('world')
 
   // Generate the ZIP archive content
-  const zipContent = await zip.generateAsync({ type: "blob" })
+  const zipContent = await zip.generateAsync({ type: 'blob' })
 
   // Create a download link and trigger the download
-  const downloadLink = document.createElement("a")
+  const downloadLink = document.createElement('a')
   downloadLink.href = URL.createObjectURL(zipContent)
-  downloadLink.download = "prismarine-world.zip"
+  downloadLink.download = 'prismarine-world.zip'
   downloadLink.click()
 
   // Clean up the URL object after download

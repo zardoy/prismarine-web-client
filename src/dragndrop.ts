@@ -1,23 +1,23 @@
-import * as nbt from 'prismarine-nbt'
 import { promisify } from 'util'
+import * as nbt from 'prismarine-nbt'
 import { showNotification } from './menus/notification'
 import { openWorldDirectory, openWorldZip } from './browserfs'
 import { isGameActive } from './globalState'
 
 const parseNbt = promisify(nbt.parse)
-window.nbt = nbt;
+window.nbt = nbt
 
 // todo display drop zone
-["drag", "dragstart", "dragend", "dragover", "dragenter", "dragleave", "drop"].forEach(event => {
+for (const event of ['drag', 'dragstart', 'dragend', 'dragover', 'dragenter', 'dragleave', 'drop']) {
   window.addEventListener(event, (e: any) => {
-    if (e.dataTransfer && !e.dataTransfer.types.includes("Files")) {
+    if (e.dataTransfer && !e.dataTransfer.types.includes('Files')) {
       // e.dataTransfer.effectAllowed = "none"
       return
     }
     e.preventDefault()
   })
-})
-window.addEventListener("drop", async e => {
+}
+window.addEventListener('drop', async e => {
   if (!e.dataTransfer?.files.length) return
   const { items } = e.dataTransfer
   const item = items[0]
@@ -32,7 +32,7 @@ window.addEventListener("drop", async e => {
         alert('Exit current world first, before loading a new one.')
         return
       }
-      await openWorldDirectory(filehandle as FileSystemDirectoryHandle)
+      await openWorldDirectory(filehandle )
     }
   } else {
     await handleDroppedFile(item.getAsFile())
