@@ -402,7 +402,15 @@ class ChatBox extends LitElement {
       if (items[0].match) items = items.map(i => i.match)
     }
     if (value !== this.completeRequestValue) return
-    if (this.completeRequestValue === '/' && localServer) items = [...items, ...getBuiltinCommandsList()]
+    if (this.completeRequestValue === '/') {
+      if (!items[0].startsWith('/')) {
+        // normalize
+        items = items.map(item => `/${item}`)
+      }
+      if (localServer) {
+        items = [...items, ...getBuiltinCommandsList()]
+      }
+    }
     this.completionItems = items
     this.completionItemsSource = items
   }
@@ -466,6 +474,7 @@ class ChatBox extends LitElement {
     // // trigger next tab complete
     // this.chatInput.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }))
     this.chatInput.focus()
+
   }
 
   render () {
