@@ -20,13 +20,15 @@ addStat(stats.dom)
 addStat(stats2.dom)
 addStat(statsGl.container)
 
-if (localStorage.hideStats || isCypress()) {
+const hideStats = localStorage.hideStats || isCypress()
+if (hideStats) {
   stats.dom.style.display = 'none'
   stats2.dom.style.display = 'none'
   statsGl.container.style.display = 'none'
 }
 
 export const initWithRenderer = (canvas) => {
+  if (hideStats) return
   statsGl.init(canvas)
   statsGl.container.style.display = 'flex'
   statsGl.container.style.justifyContent = 'flex-end'

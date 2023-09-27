@@ -13,6 +13,7 @@
             "error",
             "always"
         ],
+        "comma-spacing": "error",
         "semi": [
             "error",
             "never"
