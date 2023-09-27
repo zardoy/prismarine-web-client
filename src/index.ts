@@ -112,7 +112,7 @@ renderer.domElement.id = 'viewer-canvas'
 document.body.appendChild(renderer.domElement)
 
 // Create viewer
-const viewer: import('../prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
+const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
 initPanoramaOptions(viewer)
 watchTexturepackInViewer(viewer)
@@ -499,7 +499,7 @@ async function connect(connectOptions: {
 
     const center = bot.entity.position
 
-    const worldView: import('../prismarine-viewer/viewer/lib/worldView').WorldView = new WorldView(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
+    const worldView: import('prismarine-viewer/viewer/lib/worldView').WorldView = new WorldView(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
     window.worldView = worldView
     setRenderDistance()
 
