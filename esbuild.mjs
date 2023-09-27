@@ -21,7 +21,7 @@ const banner = [
   // report reload time
   dev && 'if (sessionStorage.lastReload) { const [rebuild, reloadStart] = sessionStorage.lastReload.split(","); const now = Date.now(); console.log(`rebuild + reload:`, +rebuild, "+", now - reloadStart, "=", ((+rebuild + (now - reloadStart)) / 1000).toFixed(1) + "s");sessionStorage.lastReload = ""; }',
   // auto-reload
-  dev && ';(() => new EventSource("/esbuild").onmessage = ({ data: _data }) => { if (!_data) return; const data = JSON.parse(_data); if (!data.update) return; sessionStorage.lastReload = `${data.update.time},${Date.now()}`; location.reload() })();'
+  dev && 'window.noAutoReload ??= false;(() => new EventSource("/esbuild").onmessage = ({ data: _data }) => { if (!_data) return; const data = JSON.parse(_data); if (!data.update) return;console.log("[esbuild] Page is outdated");document.title = `[O] ${document.title}`;if (window.noAutoReload || localStorage.noAutoReload) return; if (localStorage.autoReloadVisible && document.visibilityState !== "visible") return; sessionStorage.lastReload = `${data.update.time},${Date.now()}`; location.reload() })();'
 ].filter(Boolean)
 
 const buildingVersion = new Date().toISOString().split(':')[0]
