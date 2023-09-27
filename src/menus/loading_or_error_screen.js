@@ -4,6 +4,7 @@ const { addPanoramaCubeMap } = require('../panorama')
 const { hideModal, activeModalStacks, activeModalStack, replaceActiveModalStack, miscUiState } = require('../globalState')
 const { guessProblem } = require('../guessProblem')
 const { fsState } = require('../loadSave')
+const { resetLocalStorageWorld } = require('../browserfs')
 const { commonCss } = require('./components/common')
 
 class LoadingErrorScreen extends LitElement {
@@ -98,11 +99,7 @@ class LoadingErrorScreen extends LitElement {
         addPanoramaCubeMap()
       }}></pmui-button><pmui-button .hidden=${!(miscUiState.singleplayer && fsState.inMemorySave)} pmui-width="200px" pmui-label="Reset world" @pmui-click=${() => {
         if (!confirm('Are you sure you want to delete all local world content?')) return
-        for (const key of Object.keys(localStorage)) {
-          if (/^[\da-fA-F]{8}(?:\b-[\da-fA-F]{4}){3}\b-[\da-fA-F]{12}$/g.test(key) || key === '/') {
-            localStorage.removeItem(key)
-          }
-        }
+        resetLocalStorageWorld()
         window.location.reload()
       }}></pmui-button><pmui-button @pmui-click=${() => window.location.reload()} pmui-label="Full Reload" pmui-width="200px"></pmui-button></div>`
       : ''

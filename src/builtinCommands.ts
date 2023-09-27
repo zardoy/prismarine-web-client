@@ -3,6 +3,7 @@ import { join } from 'path'
 import JSZip from 'jszip'
 import { fsState } from './loadSave'
 import { closeWan, openToWanAndCopyJoinLink } from './localServerMultiplayer'
+import { resetLocalStorageWorld } from './browserfs'
 
 const notImplemented = () => {
   return 'Not implemented yet'
@@ -42,7 +43,8 @@ const exportWorld = async () => {
   // Create a download link and trigger the download
   const downloadLink = document.createElement('a')
   downloadLink.href = URL.createObjectURL(zipContent)
-  downloadLink.download = 'world-exported.zip'
+  // todo use loaded zip/folder name
+  downloadLink.download = 'world-prismarine-exported.zip'
   downloadLink.click()
 
   // Clean up the URL object after download
@@ -81,11 +83,10 @@ const commands = [
     async invoke() {
       if (fsState.inMemorySave) return
       // todo for testing purposes
-      sessionStorage.oldData = localStorage
+      sessionStorage.oldWorldData = localStorage
       console.log('World removed. Old data saved to sessionStorage.oldData')
       localServer.quit()
-      // todo browserfs bug
-      fs.rmdirSync(localServer.options.worldFolder, { recursive: true })
+      resetLocalStorageWorld()
     }
   },
   {
