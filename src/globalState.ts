@@ -22,6 +22,18 @@ export const activeModalStacks: Record<string, Modal[]> = {}
 
 window.activeModalStack = activeModalStack
 
+subscribe(activeModalStack, () => {
+  if (activeModalStack.length === 0) {
+    if (isGameActive(false)) {
+      pointerLock.requestPointerLock()
+    } else {
+      showModal(document.getElementById('title-screen'))
+    }
+  } else {
+    document.exitPointerLock()
+  }
+})
+
 export const customDisplayManageKeyword = 'custom'
 
 const defaultModalActions = {
@@ -75,16 +87,9 @@ export const hideModal = (modal = activeModalStack.at(-1), data: any = undefined
   }
 }
 
-export const hideCurrentModal = (_data = undefined, restoredActions = undefined) => {
+export const hideCurrentModal = (_data = undefined, onHide = undefined) => {
   if (hideModal(undefined, undefined)) {
-    restoredActions?.()
-    if (activeModalStack.length === 0) {
-      if (isGameActive(false)) {
-        pointerLock.requestPointerLock()
-      } else {
-        showModal(document.getElementById('title-screen'))
-      }
-    }
+    onHide?.()
   }
 }
 

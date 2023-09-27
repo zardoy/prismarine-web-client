@@ -38,7 +38,10 @@ const defaultOptions = {
   preferLoadReadonly: false,
   disableLoadPrompts: false,
   guestUsername: 'guest',
-  askGuestName: true
+  askGuestName: true,
+
+  // advanced bot options
+  autoRespawn: false
 }
 
 export type AppOptions = typeof defaultOptions

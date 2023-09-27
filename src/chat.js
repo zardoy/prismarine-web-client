@@ -7,44 +7,13 @@ import { getBuiltinCommandsList, tryHandleBuiltinCommand } from './builtinComman
 import { notification } from './menus/notification'
 import { options } from './optionsStorage'
 import { activeModalStack, hideCurrentModal, showModal, miscUiState } from './globalState'
+import { formatMessage } from './botUtils'
+import { getColorShadow, messageFormatStylesMap } from './react/MessageFormatted'
 
-const styles = {
-  black: 'color:#000000',
-  dark_blue: 'color:#0000AA',
-  dark_green: 'color:#00AA00',
-  dark_aqua: 'color:#00AAAA',
-  dark_red: 'color:#AA0000',
-  dark_purple: 'color:#AA00AA',
-  gold: 'color:#FFAA00',
-  gray: 'color:#AAAAAA',
-  dark_gray: 'color:#555555',
-  blue: 'color:#5555FF',
-  green: 'color:#55FF55',
-  aqua: 'color:#55FFFF',
-  red: 'color:#FF5555',
-  light_purple: 'color:#FF55FF',
-  yellow: 'color:#FFFF55',
-  white: 'color:#FFFFFF',
-  bold: 'font-weight:900',
-  strikethrough: 'text-decoration:line-through',
-  underlined: 'text-decoration:underline',
-  italic: 'font-style:italic'
-}
 
-function colorShadow (hex, dim = 0.25) {
-  const color = parseInt(hex.replace('#', ''), 16)
-
-  const r = Math.trunc((color >> 16 & 0xFF) * dim)
-  const g = Math.trunc((color >> 8 & 0xFF) * dim)
-  const b = Math.trunc((color & 0xFF) * dim)
-
-  const f = (c) => ('00' + c.toString(16)).slice(-2)
-  return `#${f(r)}${f(g)}${f(b)}`
-}
 
 /**
- * @typedef {{text;color?;italic?;underlined?;strikethrough?;bold?}} MessagePart
- * @typedef {{parts: MessagePart[], id, fading?, faded}} Message
+ * @typedef {{parts: import('./botUtils').MessageFormatPart[], id, fading?, faded}} Message
  */
 
 class ChatBox extends LitElement {
@@ -263,8 +232,6 @@ class ChatBox extends LitElement {
 
     showModal(this)
 
-    // Exit the pointer lock
-    document.exitPointerLock?.()
     // Show extended chat history
     chat.style.maxHeight = 'var(--chatHeight)'
     chat.scrollTop = chat.scrollHeight // Stay bottom of the list
@@ -352,73 +319,12 @@ class ChatBox extends LitElement {
     client.on('chat', (packet) => {
       // Handle new message
       const fullmessage = JSON.parse(packet.message.toString())
-      /** @type {MessagePart[]} */
-      const msglist = []
 
-      const readMsg = (msg) => {
-        const styles = {
-          color: msg.color,
-          bold: !!msg.bold,
-          italic: !!msg.italic,
-          underlined: !!msg.underlined,
-          strikethrough: !!msg.strikethrough,
-          obfuscated: !!msg.obfuscated
-        }
-
-        if (msg.text) {
-          msglist.push({
-            ...msg,
-            text: msg.text,
-            ...styles
-          })
-        } else if (msg.translate) {
-          const tText = window.loadedData.language[msg.translate] ?? msg.translate
-
-          if (msg.with) {
-            const splitted = tText.split(/%s|%\d+\$s/g)
-
-            let i = 0
-            for (const [j, part] of splitted.entries()) {
-              msglist.push({ text: part, ...styles })
-
-              if (j + 1 < splitted.length) {
-                if (msg.with[i]) {
-                  if (typeof msg.with[i] === 'string') {
-                    readMsg({
-                      ...styles,
-                      text: msg.with[i]
-                    })
-                  } else {
-                    readMsg({
-                      ...styles,
-                      ...msg.with[i]
-                    })
-                  }
-                }
-                i++
-              }
-            }
-          } else {
-            msglist.push({
-              ...msg,
-              text: tText,
-              ...styles
-            })
-          }
-        }
-
-        if (msg.extra) {
-          for (const ex of msg.extra) {
-            readMsg({ ...styles, ...ex })
-          }
-        }
-      }
-
-      readMsg(fullmessage)
+      const parts = formatMessage(fullmessage)
 
       const lastId = this.messages.at(-1)?.id ?? 0
       this.messages = [...this.messages.slice(-this.messagesLimit), {
-        parts: msglist,
+        parts,
         id: lastId + 1,
         fading: false,
         faded: false
@@ -501,19 +407,19 @@ class ChatBox extends LitElement {
     this.completionItemsSource = items
   }
 
-  renderMessagePart (/** @type {MessagePart} */{ bold, color, italic, strikethrough, text, underlined }) {
+  renderMessagePart (/** @type {import('./botUtils').MessageFormatPart} */{ bold, color, italic, strikethrough, text, underlined }) {
     const colorF = (color) => {
-      return color.trim().startsWith('#') ? `color:${color}` : styles[color] ?? undefined
+      return color.trim().startsWith('#') ? `color:${color}` : messageFormatStylesMap[color] ?? undefined
     }
 
     /** @type {string[]} */
     const applyStyles = [
-      color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${colorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : styles.white,
-      italic && styles.italic,
-      bold && styles.bold,
-      italic && styles.italic,
-      underlined && styles.underlined,
-      strikethrough && styles.strikethrough
+      color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${getColorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : messageFormatStylesMap.white,
+      italic && messageFormatStylesMap.italic,
+      bold && messageFormatStylesMap.bold,
+      italic && messageFormatStylesMap.italic,
+      underlined && messageFormatStylesMap.underlined,
+      strikethrough && messageFormatStylesMap.strikethrough
     ].filter(Boolean)
 
     return html`

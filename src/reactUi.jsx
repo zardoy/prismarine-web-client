@@ -3,10 +3,10 @@ import { renderToDom } from '@zardoy/react-util'
 
 import { LeftTouchArea, RightTouchArea, useUsingTouch, useInterfaceState } from '@dimaka/interface'
 import { css } from '@emotion/css'
-// import DeathScreen from './react/DeathScreen'
 import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
+import DeathScreen from './react/DeathScreen'
 import { contro } from './controls'
 import { activeModalStack, isGameActive, miscUiState } from './globalState'
 import { options, watchValue } from './optionsStorage'
@@ -83,12 +83,16 @@ function useIsBotAvailable() {
   return isGameActive(false)
 }
 
+const Portal = ({ children, to }) => {
+  return createPortal(children, to)
+}
+
 const DisplayQr = () => {
   const { currentDisplayQr } = useSnapshot(miscUiState)
 
   if (!currentDisplayQr) return null
 
-  return createPortal(<div
+  return <div
     style={{
       position: 'fixed',
       top: 0,
@@ -105,8 +109,7 @@ const DisplayQr = () => {
     }}
   >
     <QRCodeSVG size={384} value={currentDisplayQr} style={{ display: 'block', border: '2px solid black' }} />
-  </div>, document.body)
-
+  </div>
 }
 
 const App = () => {
@@ -114,6 +117,10 @@ const App = () => {
   if (!isBotAvailable) return null
 
   return <div>
+    <Portal to={document.querySelector('#ui-root')}>
+      {/* apply scaling */}
+      <DeathScreen />
+    </Portal>
     <DisplayQr />
     <TouchControls />
   </div>

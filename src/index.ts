@@ -214,7 +214,6 @@ async function main() {
 }
 
 let listeners = []
-let timeouts = []
 // only for dom listeners (no removeAllListeners)
 // todo refactor them out of connect fn instead
 const registerListener: import('./utilsTs').RegisterListener = (target, event, callback) => {
@@ -241,13 +240,6 @@ async function connect(connectOptions: {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singeplayer
   miscUiState.flyingSquid = singeplayer || p2pMultiplayer
-  const oldSetTimeout = window.setTimeout
-  //@ts-expect-error
-  window.setTimeout = (callback, ms) => {
-    const id = oldSetTimeout.call(window, callback, ms)
-    timeouts.push(id)
-    return id
-  }
   const { renderDistance, maxMultiplayerRenderDistance } = options
   const hostprompt = connectOptions.server
   const proxyprompt = connectOptions.proxy
@@ -274,8 +266,10 @@ async function connect(connectOptions: {
 
   setLoadingScreenStatus('Logging in')
 
+  let disconnected = false
   let bot: mineflayer.Bot
   const destroyAll = () => {
+    // ensure bot cleanup
     viewer.resetAll()
     window.localServer = undefined
 
@@ -288,12 +282,10 @@ async function connect(connectOptions: {
       // for debugging
       window._botDisconnected = undefined
       window.bot = bot = undefined
+      bot.end()
+      bot.emit('end', '')
     }
     removeAllListeners()
-    for (const timeout of timeouts) {
-      clearTimeout(timeout)
-    }
-    timeouts = []
   }
   const handleError = (err) => {
     console.log('Encountered error!', err)
@@ -406,6 +398,7 @@ async function connect(connectOptions: {
       checkTimeoutInterval: 240 * 1000,
       noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
+      respawn: options.autoRespawn,
       async versionSelectedHook(client) {
         await downloadMcData(client.version)
         setLoadingScreenStatus('Connecting to server')
@@ -472,6 +465,8 @@ async function connect(connectOptions: {
   })
 
   bot.on('end', (endReason) => {
+    if (disconnected) return
+    disconnected = true
     console.log('disconnected for', endReason)
     destroyAll()
     setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
@@ -487,7 +482,8 @@ async function connect(connectOptions: {
     setLoadingScreenStatus('Loading world')
   })
 
-  bot.once('spawn', () => {
+  // don't use spawn event, player can be dead
+  bot.once('health', () => {
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
     const mcData = require('minecraft-data')(bot.version)
 
@@ -727,7 +723,6 @@ window.addEventListener('keydown', (e) => {
       }
     })
   } else if (pointerLock.hasPointerLock) {
-    document.exitPointerLock()
     if (options.autoExitFullscreen) {
       document.exitFullscreen()
     }
