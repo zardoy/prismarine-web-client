@@ -58,7 +58,7 @@ const showModalInner = (modal: Modal) => {
 export const showModal = (elem: (HTMLElement & Record<string, any>) | { reactType: string }) => {
   const resolved = elem instanceof HTMLElement ? { elem: ref(elem) } : elem
   const curModal = activeModalStack.at(-1)
-  if (elem === curModal?.elem || !showModalInner(resolved)) return
+  if (elem === curModal?.elem || (elem.reactType && elem.reactType === curModal?.reactType) || !showModalInner(resolved)) return
   if (curModal) defaultModalActions.hide(curModal)
   activeModalStack.push(resolved)
 }
