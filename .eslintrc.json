@@ -4,6 +4,11 @@
         "!*.js"
     ],
     "rules": {
+        "no-multi-spaces": "error",
+        "space-in-parens": [
+            "error",
+            "never"
+        ],
         "object-curly-spacing": [
             "error",
             "always"

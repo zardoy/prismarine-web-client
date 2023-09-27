@@ -32,7 +32,7 @@ window.addEventListener('drop', async e => {
         alert('Exit current world first, before loading a new one.')
         return
       }
-      await openWorldDirectory(filehandle )
+      await openWorldDirectory(filehandle)
     }
   } else {
     await handleDroppedFile(item.getAsFile())
