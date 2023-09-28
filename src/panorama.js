@@ -111,4 +111,5 @@ export function removePanorama () {
   viewer.camera = new THREE.PerspectiveCamera(options.fov, window.innerWidth / window.innerHeight, 0.1, 1000)
   viewer.camera.updateProjectionMatrix()
   viewer.scene.remove(panoramaCubeMap)
+  panoramaCubeMap = null
 }

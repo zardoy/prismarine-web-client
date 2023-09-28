@@ -15,7 +15,8 @@ export const activeModalStack: Modal[] = proxy([])
 export const insertActiveModalStack = (name: string, newModalStack = activeModalStacks[name]) => {
   hideModal(undefined, undefined, { restorePrevious: false, force: true })
   activeModalStack.splice(0, activeModalStack.length, ...newModalStack)
-  // todo restore previous
+  const last = activeModalStack.at(-1)
+  if (last) showModalInner(last)
 }
 
 export const activeModalStacks: Record<string, Modal[]> = {}
@@ -25,7 +26,7 @@ window.activeModalStack = activeModalStack
 subscribe(activeModalStack, () => {
   if (activeModalStack.length === 0) {
     if (isGameActive(false)) {
-      pointerLock.requestPointerLock()
+      void pointerLock.requestPointerLock()
     } else {
       showModal(document.getElementById('title-screen'))
     }

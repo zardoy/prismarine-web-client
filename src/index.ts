@@ -264,6 +264,7 @@ async function connect(connectOptions: {
   }
   console.log(`connecting to ${host} ${port} with ${username}`)
 
+  hideCurrentScreens()
   setLoadingScreenStatus('Logging in')
 
   let disconnected = false
@@ -700,7 +701,6 @@ async function connect(connectOptions: {
       if (loadingScreen.hasError) return
       // remove loading screen, wait a second to make sure a frame has properly rendered
       setLoadingScreenStatus(undefined)
-      hideCurrentScreens()
       void viewer.waitForChunksToRender().then(() => {
         console.log('All done and ready!')
         document.dispatchEvent(new Event('cypress-world-ready'))

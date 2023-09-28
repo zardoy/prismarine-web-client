@@ -95,7 +95,6 @@ class LoadingErrorScreen extends LitElement {
         } else {
           hideModal(undefined, undefined, { force: true })
         }
-        document.getElementById('play-screen').style.display = 'block'
         addPanoramaCubeMap()
       }}></pmui-button><pmui-button .hidden=${!(miscUiState.singleplayer && fsState.inMemorySave)} pmui-width="200px" pmui-label="Reset world" @pmui-click=${() => {
         if (!confirm('Are you sure you want to delete all local world content?')) return

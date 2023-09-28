@@ -161,7 +161,7 @@ export const disconnect = async () => {
   } else {
     // workaround bot.end doesn't end the socket and emit end event
     bot.end()
-    bot._client.socket.end()
+    bot._client.socket?.end?.()
   }
   bot._client.emit('end', 'You left the server')
   miscUiState.gameLoaded = false
