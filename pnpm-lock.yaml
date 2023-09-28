@@ -75,6 +75,9 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
+      minecraft-assets:
+        specifier: ^1.9.1
+        version: 1.9.1
       minecraft-data:
         specifier: 3.45.0
         version: 3.45.0
@@ -182,7 +185,7 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       prismarine-viewer:
-        specifier: ./prismarine-viewer
+        specifier: link:prismarine-viewer
         version: link:prismarine-viewer
       process:
         specifier: github:PrismarineJS/node-process
@@ -8445,6 +8448,10 @@ packages:
   /minecraft-assets@1.9.0:
     resolution: {integrity: sha512-KtvIRd9gcKlxbvrswGv1Ap9k7tVs//QW2ukp+8vJ28miYwkhUmYfjTZyElIG8KUXV/46wL2kDzLH8SJbXQ56Mg==}
     dev: true
+
+  /minecraft-assets@1.9.1:
+    resolution: {integrity: sha512-vYKN5fhMilPafH0CnmYQBCP8zW0Fn3FVvPM25w7HC2PiXZQsP/p3Yl5QdCKjgqTk1LddNdmrw4notNoE6exVRQ==}
+    dev: false
 
   /minecraft-data@3.45.0:
     resolution: {integrity: sha512-LJMKveMXNjQKk48mDEhFgjDQGBAGa0xKDXjsJ865eB2qdFei73vgu1YXQbyK3Zlg5a0cIgfvyHKG8Pf5s6XFqg==}
