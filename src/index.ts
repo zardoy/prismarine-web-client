@@ -52,7 +52,7 @@ import {
   showModal,
   hideCurrentModal,
   activeModalStacks,
-  replaceActiveModalStack,
+  insertActiveModalStack,
   isGameActive,
   miscUiState,
   gameAdditionalState
@@ -186,8 +186,8 @@ window.addEventListener('mousemove', onCameraMove, { capture: true })
 
 
 function hideCurrentScreens() {
-  activeModalStacks['main-menu'] = activeModalStack
-  replaceActiveModalStack('', [])
+  activeModalStacks['main-menu'] = [...activeModalStack]
+  insertActiveModalStack('', [])
 }
 
 async function main() {
@@ -276,14 +276,14 @@ async function connect(connectOptions: {
     // simple variant, still buggy
     postRenderFrameFn = () => { }
     if (bot) {
+      bot.end()
+      bot.emit('end', '')
       bot.removeAllListeners()
       bot._client.removeAllListeners()
       bot._client = undefined
       // for debugging
       window._botDisconnected = undefined
       window.bot = bot = undefined
-      bot.end()
-      bot.emit('end', '')
     }
     removeAllListeners()
   }

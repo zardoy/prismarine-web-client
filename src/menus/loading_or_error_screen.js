@@ -1,7 +1,7 @@
 //@ts-check
 const { LitElement, html, css } = require('lit')
 const { addPanoramaCubeMap } = require('../panorama')
-const { hideModal, activeModalStacks, activeModalStack, replaceActiveModalStack, miscUiState } = require('../globalState')
+const { hideModal, activeModalStacks, activeModalStack, insertActiveModalStack, miscUiState } = require('../globalState')
 const { guessProblem } = require('../guessProblem')
 const { fsState } = require('../loadSave')
 const { resetLocalStorageWorld } = require('../browserfs')
@@ -91,7 +91,7 @@ class LoadingErrorScreen extends LitElement {
         this.lastStatus = ''
         miscUiState.gameLoaded = false
         if (activeModalStacks['main-menu']) {
-          replaceActiveModalStack('main-menu')
+          insertActiveModalStack('main-menu')
         } else {
           hideModal(undefined, undefined, { force: true })
         }
