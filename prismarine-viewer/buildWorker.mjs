@@ -19,6 +19,7 @@ const buildOptions = {
   entryPoints: [path.join(__dirname, './viewer/lib/worker.js')],
   outfile: path.join(__dirname, './public/worker.js'),
   minify: true,
+  logLevel: 'info',
   drop: [
     'debugger'
   ],

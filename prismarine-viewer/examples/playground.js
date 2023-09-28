@@ -48,6 +48,8 @@ const setQs = () => {
 async function main () {
   const { version } = params
   const mcData = require('minecraft-data')(version)
+  window['mcData'] = mcData
+
   gui.add(params, 'version', globalThis.includedVersions)
   gui.add(params, 'block', mcData.blocksArray.map(b => b.name))
   const metadataGui = gui.add(params, 'metadata')
@@ -119,7 +121,7 @@ async function main () {
 
   let blockProps = {}
   const getBlock  = () => {
-    return mcData.blocksByName[params.block]
+    return mcData.blocksByName[params.block || 'air']
   }
   const onUpdate = {
     block() {

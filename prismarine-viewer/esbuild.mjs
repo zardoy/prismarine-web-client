@@ -65,8 +65,7 @@ const buildOptions = {
 
           const allowOnlyList = process.env.ONLY_MC_DATA?.split(',') ?? []
 
-          // skip data for 0.30c, snapshots and pre-releases
-          const includeVersions = ['1.16.4']
+          const includeVersions = ['1.20.1', '1.18.1']
 
           const includedVersions = []
           let contents = `module.exports =\n{\n`
