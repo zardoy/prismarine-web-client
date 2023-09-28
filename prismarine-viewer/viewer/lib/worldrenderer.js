@@ -32,6 +32,7 @@ class WorldRenderer {
 
       const worker = new Worker(src)
       worker.onmessage = ({ data }) => {
+        if (!this.active) return
         if (data.type === 'geometry') {
           let mesh = this.sectionMeshs[data.key]
           if (mesh) {
@@ -70,6 +71,8 @@ class WorldRenderer {
       this.scene.remove(mesh)
     }
     this.sectionMeshs = {}
+    this.loadedChunks = {}
+    this.sectionsOutstanding = new Set()
     for (const worker of this.workers) {
       worker.postMessage({ type: 'reset' })
     }
