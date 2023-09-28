@@ -24,7 +24,7 @@ function minor (version) {
 
 function getVersion (version) {
   if (supportedVersions.indexOf(version) !== -1) return version
-  return lastOfMajor[toMajor(version)]
+  return lastOfMajor[toMajor(version)] ?? Object.values(lastOfMajor).at(-1)
 }
 
 module.exports = { getVersion }

@@ -78,8 +78,9 @@ class WorldRenderer {
     }
   }
 
-  setVersion (version) {
+  setVersion (version, texturesVersion = version) {
     this.version = version
+    this.texturesVersion = texturesVersion
     this.resetWorld()
     this.active = true
     for (const worker of this.workers) {
@@ -90,7 +91,7 @@ class WorldRenderer {
   }
 
   updateTexturesData () {
-    loadTexture(this.texturesDataUrl || `textures/${this.version}.png`, texture => {
+    loadTexture(this.texturesDataUrl || `textures/${this.texturesVersion}.png`, texture => {
       texture.magFilter = THREE.NearestFilter
       texture.minFilter = THREE.NearestFilter
       texture.flipY = false
@@ -100,7 +101,7 @@ class WorldRenderer {
     const loadBlockStates = () => {
       return new Promise(resolve => {
         if (this.blockStatesData) return resolve(this.blockStatesData)
-        return loadJSON(`blocksStates/${this.version}.json`, resolve)
+        return loadJSON(`blocksStates/${this.texturesVersion}.json`, resolve)
       })
     }
     loadBlockStates().then((blockStates) => {
