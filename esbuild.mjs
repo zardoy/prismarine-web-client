@@ -35,14 +35,15 @@ const ctx = await esbuild.context({
   // logLevel: 'debug',
   logLevel: 'info',
   platform: 'browser',
-  sourcemap: true,
+  sourcemap: prod ? true : 'inline',
   outdir: 'dist',
   mainFields: [
     'browser', 'module', 'main'
   ],
   keepNames: true,
   banner: {
-    js: banner.join('\n'),
+    // using \n breaks sourcemaps!
+    js: banner.join(';'),
   },
   alias: {
     events: 'events', // make explicit
