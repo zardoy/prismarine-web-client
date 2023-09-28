@@ -13,13 +13,12 @@ const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)))
 /** @type {import('esbuild').BuildOptions} */
 const buildOptions = {
   bundle: true,
-  // entryPoints: [join(__dirname, 'lib/index.js')],
-  entryPoints: [join(__dirname, './examples/schematic.js')],
+  entryPoints: [join(__dirname, './examples/playground.js')],
   // target: ['es2020'],
   // logLevel: 'debug',
   logLevel: 'info',
   platform: 'browser',
-  sourcemap: dev,
+  sourcemap: dev ? 'inline' : false,
   outfile: join(__dirname, 'public/index.js'),
   mainFields: [
     'browser', 'module', 'main'
@@ -70,7 +69,7 @@ const buildOptions = {
           const includeVersions = ['1.16.4']
 
           const includedVersions = []
-          let contents = 'module.exports =\n{\n'
+          let contents = `module.exports =\n{\n`
           for (const platform of Object.keys(dataPaths)) {
             contents += `  '${platform}': {\n`
             for (const version of Object.keys(dataPaths[platform])) {
@@ -87,7 +86,7 @@ const buildOptions = {
             }
             contents += '  },\n'
           }
-          contents += '}\n'
+          contents += `}\n;globalThis.includedVersions = ${JSON.stringify(includedVersions)};`
 
           return {
             contents,
