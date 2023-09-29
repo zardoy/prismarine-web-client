@@ -81,11 +81,11 @@ class ChatBox extends LitElement {
           scrollbar-width: none;
         }
         /* unsupported by firefox */
-        .chat-completions-items::-webkit-scrollbar {
+        ::-webkit-scrollbar {
             width: 5px;
             background-color: rgb(24, 24, 24);
         }
-        .chat-completions-items::-webkit-scrollbar-thumb {
+        ::-webkit-scrollbar-thumb {
             background-color: rgb(50, 50, 50);
         }
         .chat-completions-items > div {
@@ -119,9 +119,11 @@ class ChatBox extends LitElement {
           pointer-events: none;
           overflow: hidden;
           width: 100%;
+          scrollbar-width: thin;
         }
         .chat.opened {
             pointer-events: auto;
+            overflow-y: auto;
         }
 
         input[type=text], #chatinput {
@@ -154,9 +156,10 @@ class ChatBox extends LitElement {
         }
 
         .chat-message {
-            display: flex;
             padding-left: 4px;
             background-color: rgba(0, 0, 0, 0.5);
+            list-style: none;
+            word-break: break-all;
         }
 
         .chat-message-fadeout {
@@ -178,7 +181,6 @@ class ChatBox extends LitElement {
         }
 
         .chat-message-part {
-            white-space: pre-wrap;
         }
     `
   }
@@ -319,28 +321,7 @@ class ChatBox extends LitElement {
     }
     this.hide()
 
-    // loadedData.protocol.play.toClient.types
-    const handleClientEvents = (packets) => {
-      for (const [packet, handler] of Object.entries(packets)) {
-        bot._client.on(packet, handler)
-      }
-    }
-    handleClientEvents({
-      playerChat ({ formattedMessage, plainMessage, senderName }) {
-        client.emit('chat', {
-          message: formattedMessage || JSON.stringify({ text: `<${JSON.parse(senderName || '{}').text}> ${plainMessage}` })
-        })
-      },
-      systemChat ({ formattedMessage }) {
-        client.emit('chat', {
-          message: formattedMessage
-        })
-      },
-    })
-    client.on('chat', (packet) => {
-      // Handle new message
-      const fullmessage = JSON.parse(packet.message.toString())
-
+    bot.on('message', (fullmessage) => {
       const parts = formatMessage(fullmessage)
 
       const lastId = this.messages.at(-1)?.id ?? 0
