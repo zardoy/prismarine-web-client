@@ -31,7 +31,10 @@ export async function playSound (path) {
   const volume = options.volume / 100
 
   const soundBuffer = sounds[path]
-  if (!soundBuffer) throw new Error(`Sound ${path} not loaded`)
+  if (!soundBuffer) {
+    console.warn(`Sound ${path} not loaded`)
+    return
+  }
 
   const gainNode = audioContext.createGain()
   const source = audioContext.createBufferSource()

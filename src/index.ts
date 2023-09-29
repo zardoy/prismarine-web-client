@@ -45,6 +45,7 @@ import { Vec3 } from 'vec3'
 import blockInteraction from './blockInteraction'
 
 import * as THREE from 'three'
+import { versionsByMinecraftVersion } from 'minecraft-data'
 
 import { initVR } from './vr'
 import {
@@ -401,6 +402,11 @@ async function connect(connectOptions: {
       closeTimeout: 240 * 1000,
       respawn: options.autoRespawn,
       async versionSelectedHook(client) {
+        // todo keep in sync with esbuild preload, expose cache ideally
+        if (client.version === '1.20.1') {
+          // ignore cache hit
+          versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']++
+        }
         await downloadMcData(client.version)
         setLoadingScreenStatus('Connecting to server')
       }
