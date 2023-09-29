@@ -185,8 +185,8 @@ importers:
         specifier: ^1.0.1
         version: 1.0.1
       prismarine-viewer:
-        specifier: link:prismarine-viewer
-        version: link:prismarine-viewer
+        specifier: file:prismarine-viewer
+        version: file:prismarine-viewer(debug@4.3.4)(puppeteer@16.0.0)
       process:
         specifier: github:PrismarineJS/node-process
         version: github.com/PrismarineJS/node-process/380d0b4f4c86f1b65b216c311bf00431f314e88e
@@ -1985,7 +1985,7 @@ packages:
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       chalk: 4.1.2
       jest-message-util: 27.5.1
       jest-util: 27.5.1
@@ -2006,7 +2006,7 @@ packages:
       '@jest/test-result': 27.5.1
       '@jest/transform': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       emittery: 0.8.1
@@ -2043,7 +2043,7 @@ packages:
     dependencies:
       '@jest/fake-timers': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.6.2
+      '@types/node': 20.6.4
       jest-mock: 27.5.1
     dev: true
 
@@ -2053,7 +2053,7 @@ packages:
     dependencies:
       '@jest/types': 27.5.1
       '@sinonjs/fake-timers': 8.1.0
-      '@types/node': 20.6.2
+      '@types/node': 20.6.4
       jest-message-util: 27.5.1
       jest-mock: 27.5.1
       jest-util: 27.5.1
@@ -2082,7 +2082,7 @@ packages:
       '@jest/test-result': 27.5.1
       '@jest/transform': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       chalk: 4.1.2
       collect-v8-coverage: 1.0.2
       exit: 0.1.2
@@ -2166,7 +2166,7 @@ packages:
     dependencies:
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.1
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       '@types/yargs': 16.0.5
       chalk: 4.1.2
     dev: true
@@ -2819,7 +2819,7 @@ packages:
   /@types/cors@2.8.13:
     resolution: {integrity: sha512-RG8AStHlUiV5ysZQKq97copd2UmVYw3/pRMLefISZ3S1hK104Cwm7iLQ3fTKx+lsUH2CE8FlLaYeEA2LSeqYUA==}
     dependencies:
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
 
   /@types/eslint-scope@3.7.4:
     resolution: {integrity: sha512-9K4zoImiZc3HlIp6AVUDE4CWYx22a+lhSZMYNpbjW04+YF0KWj4pJXnEMjdnFTiQibFFmElcsasJXDbdI/EPhA==}
@@ -2846,7 +2846,7 @@ packages:
   /@types/graceful-fs@4.1.6:
     resolution: {integrity: sha512-Sig0SNORX9fdW+bQuTEovKj3uHcUL6LQKbCrrqb1X7J6/ReAbhCXRAhc+SMejhLELFj2QcyuxmUooZ4bt5ReSw==}
     dependencies:
-      '@types/node': 20.6.2
+      '@types/node': 20.6.4
     dev: true
 
   /@types/istanbul-lib-coverage@2.0.4:
@@ -2893,10 +2893,7 @@ packages:
   /@types/node@20.5.7:
     resolution: {integrity: sha512-dP7f3LdZIysZnmvP3ANJYTSwg+wLLl8p7RqniVlV7j+oXSXAbt9h0WIBFmJy5inWZoX9wZN6eXx+YXd9Rh3RBA==}
     requiresBuild: true
-
-  /@types/node@20.6.2:
-    resolution: {integrity: sha512-Y+/1vGBHV/cYk6OI1Na/LHzwnlNCAfU3ZNGrc1LdRe/LAIbdDPTTv/HU3M7yXN448aTVDq3eKRm2cg7iKLb8gw==}
-    dev: true
+    optional: true
 
   /@types/node@20.6.4:
     resolution: {integrity: sha512-nU6d9MPY0NBUMiE/nXd2IIoC4OLvsLpwAjheoAeuzgvDZA1Cb10QYg+91AF6zQiKWRN5i1m07x6sMe0niBznoQ==}
@@ -2915,6 +2912,10 @@ packages:
 
   /@types/prop-types@15.7.5:
     resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
+
+  /@types/rbush@3.0.0:
+    resolution: {integrity: sha512-W3ue/GYWXBOpkRm0VSoifrP3HV0Ni47aVJWvXyWMcbtpBy/l/K/smBRiJ+fI8f7shXRjZBiux+iJzYbh7VmcZg==}
+    dev: true
 
   /@types/react-dom@18.2.7:
     resolution: {integrity: sha512-GRaAEriuT4zp9N4p1i8BDBYmEyfo+xQ3yHjJU4eiK5NDa1RmUZG+unZABUTK4/Ox/M+GaHwb6Ow8rUITrtjszA==}
@@ -2940,6 +2941,10 @@ packages:
     dependencies:
       '@types/node': 20.6.4
     dev: false
+
+  /@types/sat@0.0.31:
+    resolution: {integrity: sha512-P4SVw79XheP1p92useDVpLYYOUQ6lpw2L7IdQz4dD23DZ8DiC1STgPOh72hjR5IZJBPQbzlICAbmjCKbwyYuxg==}
+    dev: true
 
   /@types/scheduler@0.16.3:
     resolution: {integrity: sha512-5cJ8CB4yAx7BH1oMvdU0Jh9lrEXyPkar6F9G/ERswkCuvP4KQZfZkSjcMbAICCpQTN4OuZn8tz0HiKv9TGZgrQ==}
@@ -3719,7 +3724,7 @@ packages:
   /axios@0.25.0(debug@4.3.4):
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.15.2(debug@4.3.4)
+      follow-redirects: 1.15.3(debug@4.3.4)
     transitivePeerDependencies:
       - debug
     dev: true
@@ -4855,6 +4860,16 @@ packages:
     resolution: {integrity: sha512-2sJGJTaXIIaR1w4iJSNoN0hnMY7Gpc/n8D4qSCJw8QqFWXf7cuAgnEHxBpweaVcPevC2l3KpjYCx3NypQQgaJg==}
     engines: {node: '>= 0.8', npm: 1.2.8000 || >= 1.4.16}
 
+  /detect-collisions@7.0.5:
+    resolution: {integrity: sha512-RiebSYJ9Vok1uVm57bxpI69EO2ySK1rdcHpRv28IDBh/wgaF8wxjoZJV7mmqz8MOKioLwMHvcMyP1R0CLZ+RbA==}
+    dependencies:
+      '@types/rbush': 3.0.0
+      '@types/sat': 0.0.31
+      poly-decomp: 0.3.0
+      rbush: 3.0.1
+      sat: 0.9.0
+    dev: true
+
   /detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
@@ -5097,7 +5112,7 @@ packages:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.13
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.4.2
@@ -7308,7 +7323,7 @@ packages:
       '@jest/environment': 27.5.1
       '@jest/test-result': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.6.2
+      '@types/node': 20.6.4
       chalk: 4.1.2
       co: 4.6.0
       dedent: 0.7.0
@@ -7448,7 +7463,7 @@ packages:
       '@jest/environment': 27.5.1
       '@jest/fake-timers': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.6.2
+      '@types/node': 20.6.4
       jest-mock: 27.5.1
       jest-util: 27.5.1
       jsdom: 16.7.0(canvas@2.11.2)
@@ -7466,7 +7481,7 @@ packages:
       '@jest/environment': 27.5.1
       '@jest/fake-timers': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       jest-mock: 27.5.1
       jest-util: 27.5.1
     dev: true
@@ -7495,7 +7510,7 @@ packages:
     dependencies:
       '@jest/types': 27.5.1
       '@types/graceful-fs': 4.1.6
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -7517,7 +7532,7 @@ packages:
       '@jest/source-map': 27.5.1
       '@jest/test-result': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.6.2
+      '@types/node': 20.6.4
       chalk: 4.1.2
       co: 4.6.0
       expect: 27.5.1
@@ -7572,7 +7587,7 @@ packages:
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 20.6.2
+      '@types/node': 20.6.4
     dev: true
 
   /jest-pnp-resolver@1.2.3(jest-resolve@27.5.1):
@@ -7641,7 +7656,7 @@ packages:
       '@jest/test-result': 27.5.1
       '@jest/transform': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       chalk: 4.1.2
       emittery: 0.8.1
       graceful-fs: 4.2.11
@@ -7698,7 +7713,7 @@ packages:
     resolution: {integrity: sha512-jZCyo6iIxO1aqUxpuBlwTDMkzOAJS4a3eYz3YzgxxVQFwLeSA7Jfq5cbqCY+JLvTDrWirgusI/0KwxKMgrdf7w==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
-      '@types/node': 20.6.2
+      '@types/node': 20.6.4
       graceful-fs: 4.2.11
     dev: true
 
@@ -7737,7 +7752,7 @@ packages:
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     dependencies:
       '@jest/types': 27.5.1
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       chalk: 4.1.2
       ci-info: 3.8.0
       graceful-fs: 4.2.11
@@ -7762,7 +7777,7 @@ packages:
     dependencies:
       '@jest/test-result': 27.5.1
       '@jest/types': 27.5.1
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       ansi-escapes: 4.3.2
       chalk: 4.1.2
       jest-util: 27.5.1
@@ -7782,7 +7797,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 20.5.7
+      '@types/node': 20.6.4
       merge-stream: 2.0.0
       supports-color: 8.1.1
     dev: true
@@ -8108,6 +8123,10 @@ packages:
     dependencies:
       immediate: 3.0.6
     dev: false
+
+  /lil-gui@0.18.2:
+    resolution: {integrity: sha512-DgdrLy3/KGC0PiQLKgOcJMPItP4xY4iWgJ9+91Zaxfr8GCTmMps05QS9w9jW7yspILlbscbquwjOwxmWnSx5Uw==}
+    dev: true
 
   /lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
@@ -8451,7 +8470,6 @@ packages:
 
   /minecraft-assets@1.9.1:
     resolution: {integrity: sha512-vYKN5fhMilPafH0CnmYQBCP8zW0Fn3FVvPM25w7HC2PiXZQsP/p3Yl5QdCKjgqTk1LddNdmrw4notNoE6exVRQ==}
-    dev: false
 
   /minecraft-data@3.45.0:
     resolution: {integrity: sha512-LJMKveMXNjQKk48mDEhFgjDQGBAGa0xKDXjsJ865eB2qdFei73vgu1YXQbyK3Zlg5a0cIgfvyHKG8Pf5s6XFqg==}
@@ -8481,6 +8499,13 @@ packages:
       - supports-color
     dev: true
 
+  /minecrafthawkeye@1.3.6:
+    resolution: {integrity: sha512-SlRlorxQs6nNzMiiIQ5z47wzbAI27UaCdbRB82CE8jqj4C8m3Gqk5TlgN+PSThxx8EDPXySzd8Vk+/wNigAd5A==}
+    dependencies:
+      detect-collisions: 7.0.5
+      vec3: 0.1.8
+    dev: true
+
   /mineflayer-pathfinder@2.4.4:
     resolution: {integrity: sha512-HAXakZrJRb1UC+5dv8EaDrqjW3ZnBnBk3nkb6x/YWyhHCUKn/E7VU0FO+UN9whuqPlkSaVumEdXJdydE6lSYxQ==}
     dependencies:
@@ -8491,6 +8516,32 @@ packages:
       prismarine-nbt: 2.2.1
       prismarine-physics: 1.7.0
       vec3: 0.1.8
+    dev: true
+
+  /mineflayer@4.14.0:
+    resolution: {integrity: sha512-4EYzUmZNxH3Gpz3GkgO2eaR90ANb50nVhMCU2y6Rl1Ru8M6HqxID1Eg7tRgsodfAOD+AKh5SPwmPnISLcxvnOA==}
+    engines: {node: '>=14'}
+    dependencies:
+      minecraft-data: 3.45.0
+      minecraft-protocol: github.com/zardoy/minecraft-protocol/320088fcc115b4c500f8de66d0e3ae87efadcc15
+      prismarine-biome: 1.3.0(minecraft-data@3.45.0)(prismarine-registry@1.7.0)
+      prismarine-block: github.com/zardoy/prismarine-block/753cf1fe507f7647063c69d5c124d40f85b29cc2
+      prismarine-chat: 1.9.1
+      prismarine-chunk: 1.35.0(minecraft-data@3.45.0)
+      prismarine-entity: 2.3.1
+      prismarine-item: 1.14.0
+      prismarine-nbt: 2.2.1
+      prismarine-physics: 1.8.0
+      prismarine-recipe: 1.3.1(prismarine-registry@1.7.0)
+      prismarine-registry: 1.7.0
+      prismarine-windows: 2.8.0
+      prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
+      protodef: 1.15.0
+      typed-emitter: 1.4.0
+      vec3: 0.1.8
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
     dev: true
 
   /minimalistic-assert@1.0.1:
@@ -9211,6 +9262,10 @@ packages:
     engines: {node: '>=4.0.0'}
     dev: false
 
+  /poly-decomp@0.3.0:
+    resolution: {integrity: sha512-hWeBxGzPYiybmI4548Fca7Up/0k1qS5+79cVHI9+H33dKya5YNb9hxl0ZnDaDgvrZSuYFBhkCK/HOnqN7gefkQ==}
+    dev: true
+
   /portfinder@1.0.32:
     resolution: {integrity: sha512-on2ZJVVDXRADWE6jnQaX0ioEylzgBpQk8r55NE4wjXW1ZxO+BgDlY6DXwj20i0V8eB4SenDQ00WEaxfiIQPcxg==}
     engines: {node: '>= 0.12.0'}
@@ -9476,7 +9531,7 @@ packages:
   /puppeteer@16.0.0:
     resolution: {integrity: sha512-FgSe21IHNHkqv1SiJiob4ANsxVujcINa4p3MaDEMyoZsocbgSgwYE0c9lnF8eoinw4id3vx4DOXwhFdOOwVlDg==}
     engines: {node: '>=14.1.0'}
-    deprecated: < 18.1.0 is no longer supported
+    deprecated: < 19.4.0 is no longer supported
     requiresBuild: true
     dependencies:
       cross-fetch: 3.1.5
@@ -9535,6 +9590,10 @@ packages:
 
   /queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
+    dev: true
+
+  /quickselect@2.0.0:
+    resolution: {integrity: sha512-RKJ22hX8mHe3Y6wH/N3wCM6BWtjaxIyyUIkpHOvfFnxdI4yD4tBXEBKSbriGujF6jnSVkJrffuo6vxACiSSxIw==}
     dev: true
 
   /railroad-diagrams@1.0.0:
@@ -9597,6 +9656,12 @@ packages:
       iconv-lite: 0.4.24
       unpipe: 1.0.0
     dev: false
+
+  /rbush@3.0.1:
+    resolution: {integrity: sha512-XRaVO0YecOpEuIvbhbpTrZgoiI6xBlz6hnlr6EHhd+0x9ase6EmeN+hdwwUaJvLcsFFQ8iWVF1GAK1yB0BWi0w==}
+    dependencies:
+      quickselect: 2.0.0
+    dev: true
 
   /react-dom@18.2.0(react@18.2.0):
     resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
@@ -10088,6 +10153,10 @@ packages:
     dependencies:
       truncate-utf8-bytes: 1.0.2
     dev: false
+
+  /sat@0.9.0:
+    resolution: {integrity: sha512-mxdv5RZJO4tdMnUURGU3gAMcnDUEwcNJwE+lPO0/V+rBeDvFLH3wEZEOR0fH7cTN0zQaNxBEbHnyQL9DzupwQQ==}
+    dev: true
 
   /sax@1.2.4:
     resolution: {integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==}
@@ -12126,6 +12195,51 @@ packages:
     transitivePeerDependencies:
       - bufferutil
       - supports-color
+      - utf-8-validate
+    dev: true
+
+  file:prismarine-viewer(debug@4.3.4)(puppeteer@16.0.0):
+    resolution: {directory: prismarine-viewer, type: directory}
+    id: file:prismarine-viewer
+    name: prismarine-viewer
+    requiresBuild: true
+    dependencies:
+      '@tweenjs/tween.js': 20.0.3
+      assert: 2.0.0
+      buffer: 6.0.3
+      canvas: 2.11.2
+      compression: 1.7.4
+      express: 4.18.2
+      filesize: 10.0.12
+      fs-extra: 11.1.1
+      jest: 27.0.4(canvas@2.11.2)
+      jest-puppeteer: 6.0.0(debug@4.3.4)(puppeteer@16.0.0)
+      lil-gui: 0.18.2
+      minecraft-assets: 1.9.1
+      minecraft-data: 3.45.0
+      minecraft-wrap: 1.3.0
+      minecrafthawkeye: 1.3.6
+      mineflayer: 4.14.0
+      mineflayer-pathfinder: 2.4.4
+      prismarine-block: github.com/zardoy/prismarine-block/753cf1fe507f7647063c69d5c124d40f85b29cc2
+      prismarine-chunk: 1.35.0(minecraft-data@3.45.0)
+      prismarine-schematic: 1.2.0
+      prismarine-viewer: 'link:'
+      prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
+      process: 0.11.10
+      socket.io: 4.7.2
+      socket.io-client: 4.7.2
+      three: 0.128.0
+      three.meshline: 1.4.0
+      vec3: 0.1.8
+    transitivePeerDependencies:
+      - bufferutil
+      - debug
+      - encoding
+      - node-notifier
+      - puppeteer
+      - supports-color
+      - ts-node
       - utf-8-validate
     dev: true
 
