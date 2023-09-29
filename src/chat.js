@@ -319,28 +319,7 @@ class ChatBox extends LitElement {
     }
     this.hide()
 
-    // loadedData.protocol.play.toClient.types
-    const handleClientEvents = (packets) => {
-      for (const [packet, handler] of Object.entries(packets)) {
-        bot._client.on(packet, handler)
-      }
-    }
-    handleClientEvents({
-      playerChat ({ formattedMessage, plainMessage, senderName }) {
-        client.emit('chat', {
-          message: formattedMessage || JSON.stringify({ text: `<${JSON.parse(senderName || '{}').text}> ${plainMessage}` })
-        })
-      },
-      systemChat ({ formattedMessage }) {
-        client.emit('chat', {
-          message: formattedMessage
-        })
-      },
-    })
-    client.on('chat', (packet) => {
-      // Handle new message
-      const fullmessage = JSON.parse(packet.message.toString())
-
+    bot.on('message', (fullmessage) => {
       const parts = formatMessage(fullmessage)
 
       const lastId = this.messages.at(-1)?.id ?? 0
