@@ -77,7 +77,10 @@ class ChatBox extends LitElement {
           padding: 2px;
           max-height: 100px;
           overflow: auto;
+          /* hide ugly scrollbars in firefox */
+          scrollbar-width: none;
         }
+        /* unsupported by firefox */
         .chat-completions-items::-webkit-scrollbar {
             width: 5px;
             background-color: rgb(24, 24, 24);
@@ -295,7 +298,7 @@ class ChatBox extends LitElement {
           window.sessionStorage.chatHistory = JSON.stringify(this.chatHistory)
           const builtinHandled = tryHandleBuiltinCommand(message)
           if (!builtinHandled) {
-            client.write('chat', { message })
+            bot.chat(message)
           }
         }
         hideCurrentModal()
@@ -316,6 +319,24 @@ class ChatBox extends LitElement {
     }
     this.hide()
 
+    // loadedData.protocol.play.toClient.types
+    const handleClientEvents = (packets) => {
+      for (const [packet, handler] of Object.entries(packets)) {
+        bot._client.on(packet, handler)
+      }
+    }
+    handleClientEvents({
+      playerChat ({ formattedMessage, plainMessage, senderName }) {
+        client.emit('chat', {
+          message: formattedMessage || JSON.stringify({ text: `<${JSON.parse(senderName || '{}').text}> ${plainMessage}` })
+        })
+      },
+      systemChat ({ formattedMessage }) {
+        client.emit('chat', {
+          message: formattedMessage
+        })
+      },
+    })
     client.on('chat', (packet) => {
       // Handle new message
       const fullmessage = JSON.parse(packet.message.toString())
