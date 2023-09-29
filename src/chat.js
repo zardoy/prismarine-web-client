@@ -81,11 +81,11 @@ class ChatBox extends LitElement {
           scrollbar-width: none;
         }
         /* unsupported by firefox */
-        .chat-completions-items::-webkit-scrollbar {
+        ::-webkit-scrollbar {
             width: 5px;
             background-color: rgb(24, 24, 24);
         }
-        .chat-completions-items::-webkit-scrollbar-thumb {
+        ::-webkit-scrollbar-thumb {
             background-color: rgb(50, 50, 50);
         }
         .chat-completions-items > div {
@@ -119,9 +119,11 @@ class ChatBox extends LitElement {
           pointer-events: none;
           overflow: hidden;
           width: 100%;
+          scrollbar-width: thin;
         }
         .chat.opened {
             pointer-events: auto;
+            overflow-y: auto;
         }
 
         input[type=text], #chatinput {
@@ -154,9 +156,10 @@ class ChatBox extends LitElement {
         }
 
         .chat-message {
-            display: flex;
             padding-left: 4px;
             background-color: rgba(0, 0, 0, 0.5);
+            list-style: none;
+            word-break: break-all;
         }
 
         .chat-message-fadeout {
@@ -178,7 +181,6 @@ class ChatBox extends LitElement {
         }
 
         .chat-message-part {
-            white-space: pre-wrap;
         }
     `
   }
