@@ -31,7 +31,7 @@ subscribe(activeModalStack, () => {
       showModal(document.getElementById('title-screen'))
     }
   } else {
-    document.exitPointerLock()
+    document.exitPointerLock?.()
   }
 })
 
