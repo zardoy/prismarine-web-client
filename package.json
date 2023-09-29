@@ -10,7 +10,8 @@
     "test:cypress": "cypress run",
     "test:e2e": "start-test http-get://localhost:8080 test:cypress",
     "prod-start": "node server.js",
-    "postinstall": "node scripts/gen-texturepack-files.mjs",
+    "viewer-init": "path-exists prismarine-viewer/node_modules || pnpm i --dir prismarine-viewer",
+    "postinstall": "node scripts/gen-texturepack-files.mjs && pnpm viewer-init",
     "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\""
   },
   "keywords": [
@@ -67,6 +68,7 @@
     "crypto-browserify": "^3.12.0",
     "cypress": "^9.5.4",
     "cypress-esbuild-preprocessor": "^1.0.2",
+    "path-exists-cli": "^2.0.0",
     "eslint": "^8.50.0",
     "eslint-config-zardoy": "^0.2.17",
     "events": "^3.3.0",
@@ -80,7 +82,7 @@
     "npm-run-all": "^4.1.5",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
-    "prismarine-viewer": "file:prismarine-viewer",
+    "prismarine-viewer": "link:prismarine-viewer",
     "process": "github:PrismarineJS/node-process",
     "rimraf": "^5.0.1",
     "stream-browserify": "^3.0.0",
