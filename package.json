@@ -10,8 +10,7 @@
     "test:cypress": "cypress run",
     "test:e2e": "start-test http-get://localhost:8080 test:cypress",
     "prod-start": "node server.js",
-    "viewer-init": "path-exists prismarine-viewer/node_modules || pnpm i --dir prismarine-viewer",
-    "postinstall": "node scripts/gen-texturepack-files.mjs && pnpm viewer-init",
+    "postinstall": "node scripts/gen-texturepack-files.mjs",
     "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\""
   },
   "keywords": [
@@ -37,6 +36,7 @@
     "esbuild": "^0.19.3",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
+    "cors": "^2.8.5",
     "flying-squid": "github:zardoy/space-squid#everything",
     "fs-extra": "^11.1.1",
     "iconify-icon": "^1.0.8",
