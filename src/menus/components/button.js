@@ -8,30 +8,33 @@ let audioContext
 const sounds = {}
 
 // load as many resources on page load as possible instead on demand as user can disable internet connection after he thinks the page is loaded
-let loadingSounds = []
+const loadingSounds = []
+const convertedSounds = []
 async function loadSound (path) {
   loadingSounds.push(path)
   const res = await window.fetch(path)
   const data = await res.arrayBuffer()
 
-  // sounds[path] = await audioContext.decodeAudioData(data)
   sounds[path] = data
   loadingSounds.splice(loadingSounds.indexOf(path), 1)
 }
 
 export async function playSound (path) {
-  if (!audioContext) {
-    audioContext = new window.AudioContext()
-    for (const [soundName, sound] of Object.entries(sounds)) {
-      sounds[soundName] = await audioContext.decodeAudioData(sound)
-    }
+  audioContext ??= new window.AudioContext()
+
+  for (const [soundName, sound] of Object.entries(sounds)) {
+    if (convertedSounds.includes(soundName)) continue
+    sounds[soundName] = await audioContext.decodeAudioData(sound)
+    convertedSounds.push(soundName)
   }
 
   const volume = options.volume / 100
 
-  if (loadingSounds.includes(path)) return
   const soundBuffer = sounds[path]
-  if (!soundBuffer) throw new Error(`Sound ${path} not loaded`)
+  if (!soundBuffer) {
+    console.warn(`Sound ${path} not loaded`)
+    return
+  }
 
   const gainNode = audioContext.createGain()
   const source = audioContext.createBufferSource()
@@ -151,22 +154,23 @@ class Button extends LitElement {
 
   render () {
     return html`
-    <button
-      class="button"
-      ?disabled=${this.disabled}
-      @click=${this.onBtnClick}
-      style="width: ${this.width};"
-      data-test-id=${this.testId}
-    >
-    <!-- todo self host icons -->
-      ${this.icon ? html`<iconify-icon class="icon" icon="${this.icon}"></iconify-icon>` : ''}
-      ${this.label}
-    </button>`
+      <button
+        class="button"
+        ?disabled=${this.disabled}
+        @click=${this.onBtnClick}
+        style="width: ${this.width};"
+        data-test-id=${this.testId}
+      >
+      <!-- todo self host icons -->
+        ${this.icon ? html`<iconify-icon class="icon" icon="${this.icon}"></iconify-icon>` : ''}
+        ${this.label}
+      </button>
+    `
   }
 
   onBtnClick (e) {
     playSound('button_click.mp3')
-    this.dispatchEvent(new window.CustomEvent('pmui-click', { detail: e, }))
+    this.dispatchEvent(new window.CustomEvent('pmui-click', { detail: e }))
   }
 }
 

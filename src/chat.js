@@ -1,51 +1,19 @@
 //@ts-check
-const { LitElement, html, css } = require('lit')
-const { isMobile } = require('./menus/components/common')
-const { activeModalStack, hideCurrentModal, showModal, miscUiState } = require('./globalState')
 import { repeat } from 'lit/directives/repeat.js'
 import { classMap } from 'lit/directives/class-map.js'
+import { LitElement, html, css } from 'lit'
 import { isCypress } from './utils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from './builtinCommands'
 import { notification } from './menus/notification'
 import { options } from './optionsStorage'
+import { activeModalStack, hideCurrentModal, showModal, miscUiState } from './globalState'
+import { formatMessage } from './botUtils'
+import { getColorShadow, messageFormatStylesMap } from './react/MessageFormatted'
 
-const styles = {
-  black: 'color:#000000',
-  dark_blue: 'color:#0000AA',
-  dark_green: 'color:#00AA00',
-  dark_aqua: 'color:#00AAAA',
-  dark_red: 'color:#AA0000',
-  dark_purple: 'color:#AA00AA',
-  gold: 'color:#FFAA00',
-  gray: 'color:#AAAAAA',
-  dark_gray: 'color:#555555',
-  blue: 'color:#5555FF',
-  green: 'color:#55FF55',
-  aqua: 'color:#55FFFF',
-  red: 'color:#FF5555',
-  light_purple: 'color:#FF55FF',
-  yellow: 'color:#FFFF55',
-  white: 'color:#FFFFFF',
-  bold: 'font-weight:900',
-  strikethrough: 'text-decoration:line-through',
-  underlined: 'text-decoration:underline',
-  italic: 'font-style:italic'
-}
 
-function colorShadow (hex, dim = 0.25) {
-  const color = parseInt(hex.replace('#', ''), 16)
-
-  const r = (color >> 16 & 0xFF) * dim | 0
-  const g = (color >> 8 & 0xFF) * dim | 0
-  const b = (color & 0xFF) * dim | 0
-
-  const f = (c) => ('00' + c.toString(16)).substr(-2)
-  return `#${f(r)}${f(g)}${f(b)}`
-}
 
 /**
- * @typedef {{text;color?;italic?;underlined?;strikethrough?;bold?}} MessagePart
- * @typedef {{parts: MessagePart[], id, fading?, faded}} Message
+ * @typedef {{parts: import('./botUtils').MessageFormatPart[], id, fading?, faded}} Message
  */
 
 class ChatBox extends LitElement {
@@ -109,7 +77,10 @@ class ChatBox extends LitElement {
           padding: 2px;
           max-height: 100px;
           overflow: auto;
+          /* hide ugly scrollbars in firefox */
+          scrollbar-width: none;
         }
+        /* unsupported by firefox */
         .chat-completions-items::-webkit-scrollbar {
             width: 5px;
             background-color: rgb(24, 24, 24);
@@ -259,13 +230,11 @@ class ChatBox extends LitElement {
     notification.show = false
     const chat = this.shadowRoot.getElementById('chat-messages')
     /** @type {HTMLInputElement} */
-    // @ts-ignore
+    // @ts-expect-error
     const chatInput = this.shadowRoot.getElementById('chatinput')
 
     showModal(this)
 
-    // Exit the pointer lock
-    document.exitPointerLock?.()
     // Show extended chat history
     chat.style.maxHeight = 'var(--chatHeight)'
     chat.scrollTop = chat.scrollHeight // Stay bottom of the list
@@ -281,7 +250,7 @@ class ChatBox extends LitElement {
   }
 
   get inChat () {
-    return activeModalStack.find(m => m.elem === this) !== undefined
+    return activeModalStack.some(m => m.elem === this)
   }
 
   /**
@@ -290,7 +259,7 @@ class ChatBox extends LitElement {
   init (client) {
     const chat = this.shadowRoot.getElementById('chat-messages')
     /** @type {HTMLInputElement} */
-    // @ts-ignore
+    // @ts-expect-error
     const chatInput = this.shadowRoot.getElementById('chatinput')
     this.chatInput = chatInput
 
@@ -300,7 +269,7 @@ class ChatBox extends LitElement {
     let savedCurrentValue
     // Chat events
     document.addEventListener('keydown', e => {
-      if (activeModalStack.slice(-1)[0]?.elem !== this) return
+      if (activeModalStack.at(-1)?.elem !== this) return
       if (e.code === 'ArrowUp') {
         if (this.chatHistoryPos === 0) return
         if (this.chatHistoryPos === this.chatHistory.length) {
@@ -329,7 +298,7 @@ class ChatBox extends LitElement {
           window.sessionStorage.chatHistory = JSON.stringify(this.chatHistory)
           const builtinHandled = tryHandleBuiltinCommand(message)
           if (!builtinHandled) {
-            client.write('chat', { message })
+            bot.chat(message)
           }
         }
         hideCurrentModal()
@@ -350,76 +319,33 @@ class ChatBox extends LitElement {
     }
     this.hide()
 
+    // loadedData.protocol.play.toClient.types
+    const handleClientEvents = (packets) => {
+      for (const [packet, handler] of Object.entries(packets)) {
+        bot._client.on(packet, handler)
+      }
+    }
+    handleClientEvents({
+      playerChat ({ formattedMessage, plainMessage, senderName }) {
+        client.emit('chat', {
+          message: formattedMessage || JSON.stringify({ text: `<${JSON.parse(senderName || '{}').text}> ${plainMessage}` })
+        })
+      },
+      systemChat ({ formattedMessage }) {
+        client.emit('chat', {
+          message: formattedMessage
+        })
+      },
+    })
     client.on('chat', (packet) => {
       // Handle new message
       const fullmessage = JSON.parse(packet.message.toString())
-      /** @type {MessagePart[]} */
-      const msglist = []
 
-      const readMsg = (msg) => {
-        const styles = {
-          color: msg.color,
-          bold: !!msg.bold,
-          italic: !!msg.italic,
-          underlined: !!msg.underlined,
-          strikethrough: !!msg.strikethrough,
-          obfuscated: !!msg.obfuscated
-        }
-
-        if (msg.text) {
-          msglist.push({
-            ...msg,
-            text: msg.text,
-            ...styles
-          })
-        } else if (msg.translate) {
-          const tText = window.loadedData.language[msg.translate] ?? msg.translate
-
-          if (msg.with) {
-            const splitted = tText.split(/%s|%\d+\$s/g)
-
-            let i = 0
-            splitted.forEach((part, j) => {
-              msglist.push({ text: part, ...styles })
-
-              if (j + 1 < splitted.length) {
-                if (msg.with[i]) {
-                  if (typeof msg.with[i] === 'string') {
-                    readMsg({
-                      ...styles,
-                      text: msg.with[i]
-                    })
-                  } else {
-                    readMsg({
-                      ...styles,
-                      ...msg.with[i]
-                    })
-                  }
-                }
-                i++
-              }
-            })
-          } else {
-            msglist.push({
-              ...msg,
-              text: tText,
-              ...styles
-            })
-          }
-        }
-
-        if (msg.extra) {
-          msg.extra.forEach(ex => {
-            readMsg({ ...styles, ...ex })
-          })
-        }
-      }
-
-      readMsg(fullmessage)
+      const parts = formatMessage(fullmessage)
 
       const lastId = this.messages.at(-1)?.id ?? 0
       this.messages = [...this.messages.slice(-this.messagesLimit), {
-        parts: msglist,
+        parts,
         id: lastId + 1,
         fading: false,
         faded: false
@@ -441,9 +367,9 @@ class ChatBox extends LitElement {
     // todo remove
     window.dummyMessage = () => {
       client.emit('chat', {
-        message: "{\"color\":\"yellow\",\"translate\":\"multiplayer.player.joined\",\"with\":[{\"insertion\":\"pviewer672\",\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tell pviewer672 \"},\"hoverEvent\":{\"action\":\"show_entity\",\"contents\":{\"type\":\"minecraft:player\",\"id\":\"ecd0eeb1-625e-3fea-b16e-cb449dcfa434\",\"name\":{\"text\":\"pviewer672\"}}},\"text\":\"pviewer672\"}]}",
+        message: '{"color":"yellow","translate":"multiplayer.player.joined","with":[{"insertion":"pviewer672","clickEvent":{"action":"suggest_command","value":"/tell pviewer672 "},"hoverEvent":{"action":"show_entity","contents":{"type":"minecraft:player","id":"ecd0eeb1-625e-3fea-b16e-cb449dcfa434","name":{"text":"pviewer672"}}},"text":"pviewer672"}]}',
         position: 1,
-        sender: "00000000-0000-0000-0000-000000000000",
+        sender: '00000000-0000-0000-0000-000000000000',
       })
     }
     // window.dummyMessage()
@@ -493,35 +419,44 @@ class ChatBox extends LitElement {
     this.completeRequestValue = value
     let items = await bot.tabComplete(value, true, true)
     if (typeof items[0] === 'object') {
-      // @ts-ignore
+      // @ts-expect-error
       if (items[0].match) items = items.map(i => i.match)
     }
     if (value !== this.completeRequestValue) return
-    if (this.completeRequestValue === '/') items = [...items, ...getBuiltinCommandsList()]
+    if (this.completeRequestValue === '/') {
+      if (!items[0].startsWith('/')) {
+        // normalize
+        items = items.map(item => `/${item}`)
+      }
+      if (localServer) {
+        items = [...items, ...getBuiltinCommandsList()]
+      }
+    }
     this.completionItems = items
     this.completionItemsSource = items
   }
 
-  renderMessagePart (/** @type {MessagePart} */{ bold, color, italic, strikethrough, text, underlined }) {
+  renderMessagePart (/** @type {import('./botUtils').MessageFormatPart} */{ bold, color, italic, strikethrough, text, underlined }) {
     const colorF = (color) => {
-      return color.trim().startsWith('#') ? `color:${color}` : styles[color] ?? undefined
+      return color.trim().startsWith('#') ? `color:${color}` : messageFormatStylesMap[color] ?? undefined
     }
 
     /** @type {string[]} */
     const applyStyles = [
-      color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${colorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : styles.white,
-      italic && styles.italic,
-      bold && styles.bold,
-      italic && styles.italic,
-      underlined && styles.underlined,
-      strikethrough && styles.strikethrough
+      color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${getColorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : messageFormatStylesMap.white,
+      italic && messageFormatStylesMap.italic,
+      bold && messageFormatStylesMap.bold,
+      italic && messageFormatStylesMap.italic,
+      underlined && messageFormatStylesMap.underlined,
+      strikethrough && messageFormatStylesMap.strikethrough
     ].filter(Boolean)
 
     return html`
-        <span
-          class="chat-message-part"
-          style="${applyStyles.join(';')}"
-        >${text}</span>`
+      <span
+        class="chat-message-part"
+        style="${applyStyles.join(';')}"
+      >${text}</span>
+    `
   }
 
   renderMessage (/** @type {Message} */message) {
@@ -560,34 +495,37 @@ class ChatBox extends LitElement {
     // // trigger next tab complete
     // this.chatInput.dispatchEvent(new KeyboardEvent('keydown', { code: 'Space' }))
     this.chatInput.focus()
+
   }
 
   render () {
 
     return html`
-    <div class="chat-wrapper chat-messages-wrapper ${miscUiState.currentTouch ? 'display-mobile' : ''}">
-      <div class="chat ${this.inChat ? 'opened' : ''}" id="chat-messages">
-        <!-- its to hide player joined at random timings, todo add chat tests as well -->
-        ${repeat(isCypress() ? [] : this.messages, (m) => m.id, (m) => this.renderMessage(m))}
+      <div class="chat-wrapper chat-messages-wrapper ${miscUiState.currentTouch ? 'display-mobile' : ''}">
+        <div class="chat ${this.inChat ? 'opened' : ''}" id="chat-messages">
+          <!-- its to hide player joined at random timings, todo add chat tests as well -->
+          ${repeat(isCypress() ? [] : this.messages, (m) => m.id, (m) => this.renderMessage(m))}
+        </div>
       </div>
-    </div>
-    <div class="chat-wrapper chat-input-wrapper ${miscUiState.currentTouch ? 'input-mobile' : ''}" style="display: ${this.inChat ? 'block' : 'none'}">
-      <div class="chat-input">
-        ${this.completionItems.length ? html`<div class="chat-completions">
-          <div class="chat-completions-pad-text">${this.completePadText}</div>
-          <div class="chat-completions-items">
-            ${repeat(this.completionItems, (i) => i, (i) => html`<div @click=${() => this.acceptComplete(i)}>${i}</div>`)}
-          </div>
-        </div>` : ''}
-        <input type="text" class="chat-mobile-hidden" id="chatinput-next-command" spellcheck="false" autocomplete="off" @focus=${() => {
-        this.auxInputFocus('ArrowUp')
-      }}></input>
-        <input type="text" class="chat-input" id="chatinput" spellcheck="false" autocomplete="off" aria-autocomplete="both"></input>
-        <input type="text" class="chat-mobile-hidden" id="chatinput-prev-command" spellcheck="false" autocomplete="off" @focus=${() => {
-        this.auxInputFocus('ArrowDown')
-      }}></input>
+      <div class="chat-wrapper chat-input-wrapper ${miscUiState.currentTouch ? 'input-mobile' : ''}" style="display: ${this.inChat ? 'block' : 'none'}">
+        <div class="chat-input">
+          ${this.completionItems.length ? html`
+            <div class="chat-completions">
+                      <div class="chat-completions-pad-text">${this.completePadText}</div>
+                      <div class="chat-completions-items">
+                        ${repeat(this.completionItems, (i) => i, (i) => html`<div @click=${() => this.acceptComplete(i)}>${i}</div>`)}
+                      </div>
+                    </div>
+          ` : ''}
+          <input type="text" class="chat-mobile-hidden" id="chatinput-next-command" spellcheck="false" autocomplete="off" @focus=${() => {
+      this.auxInputFocus('ArrowUp')
+    }}></input>
+          <input type="text" class="chat-input" id="chatinput" spellcheck="false" autocomplete="off" aria-autocomplete="both"></input>
+          <input type="text" class="chat-mobile-hidden" id="chatinput-prev-command" spellcheck="false" autocomplete="off" @focus=${() => {
+      this.auxInputFocus('ArrowDown')
+    }}></input>
+        </div>
       </div>
-    </div>
     `
   }
 }

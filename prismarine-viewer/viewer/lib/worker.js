@@ -16,12 +16,11 @@ const { getSectionGeometry } = require('./models')
 
 let blocksStates = null
 let world = null
+let dirtySections = {}
 
 function sectionKey (x, y, z) {
   return `${x},${y},${z}`
 }
-
-const dirtySections = {}
 
 function setSectionDirty (pos, value = true) {
   const x = Math.floor(pos.x / 16) * 16
@@ -57,6 +56,7 @@ self.onmessage = ({ data }) => {
   } else if (data.type === 'reset') {
     world = null
     blocksStates = null
+    dirtySections = {}
   }
 }
 

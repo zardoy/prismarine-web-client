@@ -38,11 +38,11 @@ class Viewer {
     this.primitives.clear()
   }
 
-  setVersion (version) {
-    version = getVersion(version)
-    console.log('Using version: ' + version)
-    this.version = version
-    this.world.setVersion(version)
+  setVersion (userVersion) {
+    const texturesVersion = getVersion(userVersion)
+    console.log('Using version:', userVersion, 'textures:', texturesVersion)
+    this.version = userVersion
+    this.world.setVersion(userVersion, texturesVersion)
     this.entities.clear()
     this.primitives.clear()
   }

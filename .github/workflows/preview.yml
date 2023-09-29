@@ -20,7 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          fetch-depth: 0
           ref: refs/pull/${{ github.event.issue.number }}/head
       - name: Install Global Dependencies
         run: npm install --global vercel pnpm

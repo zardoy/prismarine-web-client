@@ -25,6 +25,7 @@ const defaultOptions = {
   guiScale: 3,
   autoRequestCompletions: true,
   touchButtonsSize: 40,
+  highPerformanceGpu: false,
 
   frameLimit: false as number | false,
   alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
@@ -37,7 +38,10 @@ const defaultOptions = {
   preferLoadReadonly: false,
   disableLoadPrompts: false,
   guestUsername: 'guest',
-  askGuestName: true
+  askGuestName: true,
+
+  // advanced bot options
+  autoRespawn: false
 }
 
 export type AppOptions = typeof defaultOptions

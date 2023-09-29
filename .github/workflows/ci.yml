@@ -10,6 +10,7 @@ jobs:
         uses: actions/checkout@master
       - name: Install pnpm
         run: npm i -g pnpm
+        # todo this needs investigating fixing
       - run: pnpm install
       - run: pnpm lint
       - run: pnpm check-build

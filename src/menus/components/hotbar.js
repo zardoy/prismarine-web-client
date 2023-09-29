@@ -1,9 +1,9 @@
 const { LitElement, html, css, unsafeCSS } = require('lit')
+const widgetsTexture = require('minecraft-assets/minecraft-assets/data/1.16.4/gui/widgets.png')
+const { subscribeKey } = require('valtio/utils')
 const invsprite = require('../../invsprite.json')
 const { isGameActive, miscUiState, showModal } = require('../../globalState')
 
-const widgetsTexture = require('minecraft-assets/minecraft-assets/data/1.16.4/gui/widgets.png')
-const { subscribeKey } = require('valtio/utils')
 const { isProbablyIphone } = require('./common')
 
 class Hotbar extends LitElement {
@@ -139,7 +139,7 @@ class Hotbar extends LitElement {
 
     document.addEventListener('keydown', (e) => {
       if (!isGameActive(true)) return
-      const numPressed = +(e.code.match(/Digit(\d)/)?.[1] ?? -1)
+      const numPressed = +((/Digit(\d)/.exec(e.code))?.[1] ?? -1)
       if (numPressed < 1 || numPressed > 9) return
       this.reloadHotbarSelected(numPressed - 1)
     })
@@ -154,7 +154,7 @@ class Hotbar extends LitElement {
       const slotStack = slotEl.children[1]
       slotIcon.style['background-position-x'] = `-${sprite.x}px`
       slotIcon.style['background-position-y'] = `-${sprite.y}px`
-      slotStack.innerText = newItem?.count > 1 ? newItem.count : ''
+      slotStack.textContent = newItem?.count > 1 ? newItem.count : ''
     })
   }
 
@@ -167,7 +167,7 @@ class Hotbar extends LitElement {
       const slotStack = slotEl.children[1]
       slotIcon.style['background-position-x'] = `-${sprite.x}px`
       slotIcon.style['background-position-y'] = `-${sprite.y}px`
-      slotStack.innerText = item?.count > 1 ? item.count : ''
+      slotStack.textContent = item?.count > 1 ? item.count : ''
     }
   }
 
@@ -188,21 +188,21 @@ class Hotbar extends LitElement {
         <p id="hotbar-item-name">${this.activeItemName}</p>
         <div id="hotbar-selected"></div>
         <div id="hotbar-items-wrapper" @pointerdown=${(e) => {
-        if (!e.target.id.startsWith('hotbar')) return
-        const slot = +e.target.id.split('-')[1]
-        this.reloadHotbarSelected(slot)
-      }}>
-      ${Array.from({ length: 9 }).map((_, i) => html`
-          <div class="hotbar-item" id="${`hotbar-${i}`}" @pointerdown=${(e) => {
-          this.reloadHotbarSelected(i)
-        }}>
-          <div class="item-icon"></div>
-          <span class="item-stack"></span>
-      </div>
-      `)}
-          ${miscUiState.currentTouch ? html`<div class="hotbar-item hotbar-more" @pointerdown=${() => {
-        showModal({ reactType: 'inventory', })
-      }}>` : undefined}
+      if (!e.target.id.startsWith('hotbar')) return
+      const slot = +e.target.id.split('-')[1]
+      this.reloadHotbarSelected(slot)
+    }}>
+        ${Array.from({ length: 9 }).map((_, i) => html`
+              <div class="hotbar-item" id="${`hotbar-${i}`}" @pointerdown=${(e) => {
+      this.reloadHotbarSelected(i)
+    }}>
+              <div class="item-icon"></div>
+              <span class="item-stack"></span>
+          </div>
+        `)}
+            ${miscUiState.currentTouch ? html`<div class="hotbar-item hotbar-more" @pointerdown=${() => {
+      showModal({ reactType: 'inventory' })
+    }}>` : undefined}
           </div>
         </div>
       </div>

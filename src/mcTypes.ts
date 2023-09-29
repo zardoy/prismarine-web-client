@@ -1,3 +1,4 @@
+/* eslint-disable no-multi-spaces */
 // todo move from here
 
 //@ts-format-ignore-region

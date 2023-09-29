@@ -25,6 +25,7 @@ import './menus/options_screen'
 import './menus/advanced_options_screen'
 import { notification } from './menus/notification'
 import './menus/title_screen'
+import { initWithRenderer, statsEnd, statsStart } from './rightTopStats'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -36,7 +37,6 @@ import './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
 import net from 'net'
-import Stats from 'stats.js'
 import mineflayer from 'mineflayer'
 import { WorldView, Viewer } from 'prismarine-viewer/viewer'
 import pathfinder from 'mineflayer-pathfinder'
@@ -45,6 +45,7 @@ import { Vec3 } from 'vec3'
 import blockInteraction from './blockInteraction'
 
 import * as THREE from 'three'
+import { versionsByMinecraftVersion } from 'minecraft-data'
 
 import { initVR } from './vr'
 import {
@@ -52,7 +53,7 @@ import {
   showModal,
   hideCurrentModal,
   activeModalStacks,
-  replaceActiveModalStack,
+  insertActiveModalStack,
   isGameActive,
   miscUiState,
   gameAdditionalState
@@ -78,7 +79,7 @@ import serverOptions from './defaultLocalServerOptions'
 import updateTime from './updateTime'
 
 import { subscribeKey } from 'valtio/utils'
-import _ from 'lodash'
+import _ from 'lodash-es'
 
 import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
 import { connectToPeer } from './localServerMultiplayer'
@@ -100,34 +101,19 @@ if ('serviceWorker' in navigator && !isCypress() && process.env.NODE_ENV !== 'de
 
 // ACTUAL CODE
 
-// todo stats-gl
-const stats = new Stats()
-const stats2 = new Stats()
-stats2.showPanel(2)
-
-document.body.appendChild(stats.dom)
-stats.dom.style.left = ''
-stats.dom.style.right = '0px'
-stats.dom.style.width = '80px'
-stats2.dom.style.width = '80px'
-stats2.dom.style.right = '80px'
-stats2.dom.style.left = ''
-document.body.appendChild(stats2.dom)
-
-if (localStorage.hideStats || isCypress()) {
-  stats.dom.style.display = 'none'
-  stats2.dom.style.display = 'none'
-}
-
 // Create three.js context, add to page
-const renderer = new THREE.WebGLRenderer()
+const renderer = new THREE.WebGLRenderer({
+  powerPreference: options.highPerformanceGpu ? 'high-performance' : 'default',
+})
+initWithRenderer(renderer.domElement)
+window.renderer = renderer
 renderer.setPixelRatio(window.devicePixelRatio || 1) // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.domElement.id = 'viewer-canvas'
 document.body.appendChild(renderer.domElement)
 
 // Create viewer
-const viewer: import('../prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
+const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
 initPanoramaOptions(viewer)
 watchTexturepackInViewer(viewer)
@@ -154,13 +140,11 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
       return
     }
   }
-  stats?.begin()
-  stats2?.begin()
+  statsStart()
   viewer.update()
   renderer.render(viewer.scene, viewer.camera)
   postRenderFrameFn()
-  stats?.end()
-  stats2?.end()
+  statsEnd()
 }
 renderFrame(performance.now())
 
@@ -203,8 +187,8 @@ window.addEventListener('mousemove', onCameraMove, { capture: true })
 
 
 function hideCurrentScreens() {
-  activeModalStacks['main-menu'] = activeModalStack
-  replaceActiveModalStack('', [])
+  activeModalStacks['main-menu'] = [...activeModalStack]
+  insertActiveModalStack('', [])
 }
 
 async function main() {
@@ -231,7 +215,6 @@ async function main() {
 }
 
 let listeners = []
-let timeouts = []
 // only for dom listeners (no removeAllListeners)
 // todo refactor them out of connect fn instead
 const registerListener: import('./utilsTs').RegisterListener = (target, event, callback) => {
@@ -258,13 +241,6 @@ async function connect(connectOptions: {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singeplayer
   miscUiState.flyingSquid = singeplayer || p2pMultiplayer
-  const oldSetTimeout = window.setTimeout
-  //@ts-expect-error
-  window.setTimeout = (callback, ms) => {
-    const id = oldSetTimeout.call(window, callback, ms)
-    timeouts.push(id)
-    return id
-  }
   const { renderDistance, maxMultiplayerRenderDistance } = options
   const hostprompt = connectOptions.server
   const proxyprompt = connectOptions.proxy
@@ -289,16 +265,21 @@ async function connect(connectOptions: {
   }
   console.log(`connecting to ${host} ${port} with ${username}`)
 
+  hideCurrentScreens()
   setLoadingScreenStatus('Logging in')
 
+  let disconnected = false
   let bot: mineflayer.Bot
   const destroyAll = () => {
+    // ensure bot cleanup
     viewer.resetAll()
     window.localServer = undefined
 
     // simple variant, still buggy
     postRenderFrameFn = () => { }
     if (bot) {
+      bot.end()
+      bot.emit('end', '')
       bot.removeAllListeners()
       bot._client.removeAllListeners()
       bot._client = undefined
@@ -307,10 +288,6 @@ async function connect(connectOptions: {
       window.bot = bot = undefined
     }
     removeAllListeners()
-    for (const timeout of timeouts) {
-      clearTimeout(timeout)
-    }
-    timeouts = []
   }
   const handleError = (err) => {
     console.log('Encountered error!', err)
@@ -350,14 +327,6 @@ async function connect(connectOptions: {
   if (proxy) {
     console.log(`using proxy ${proxy} ${proxyport}`)
 
-    // check proxy server availability for proper error message
-    // todo fix correctly
-    // try {
-    //   await fetch(`http://${proxy}:${proxyport}/api/vm/net`, { method: 'GET' })
-    // } catch (err) {
-    //   console.error(err)
-    //   throw new Error(`Proxy server ${proxy}:${proxyport} is not available`)
-    // }
     //@ts-expect-error
     net.setProxy({ hostname: proxy, port: proxyport })
   }
@@ -431,7 +400,13 @@ async function connect(connectOptions: {
       checkTimeoutInterval: 240 * 1000,
       noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
+      respawn: options.autoRespawn,
       async versionSelectedHook(client) {
+        // todo keep in sync with esbuild preload, expose cache ideally
+        if (client.version === '1.20.1') {
+          // ignore cache hit
+          versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']++
+        }
         await downloadMcData(client.version)
         setLoadingScreenStatus('Connecting to server')
       }
@@ -497,6 +472,8 @@ async function connect(connectOptions: {
   })
 
   bot.on('end', (endReason) => {
+    if (disconnected) return
+    disconnected = true
     console.log('disconnected for', endReason)
     destroyAll()
     setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
@@ -512,9 +489,9 @@ async function connect(connectOptions: {
     setLoadingScreenStatus('Loading world')
   })
 
-  bot.once('spawn', () => {
+  // don't use spawn event, player can be dead
+  bot.once('health', () => {
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
-    // todo display notification if not critical
     const mcData = require('minecraft-data')(bot.version)
 
     setLoadingScreenStatus('Placing blocks (starting viewer)')
@@ -525,7 +502,7 @@ async function connect(connectOptions: {
 
     const center = bot.entity.position
 
-    const worldView: import('../prismarine-viewer/viewer/lib/worldView').WorldView = new WorldView(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
+    const worldView: import('prismarine-viewer/viewer/lib/worldView').WorldView = new WorldView(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
     window.worldView = worldView
     setRenderDistance()
 
@@ -559,7 +536,6 @@ async function connect(connectOptions: {
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
     window.debugMenu = debugMenu
-    window.renderer = renderer
 
     initVR(bot, renderer, viewer)
 
@@ -641,7 +617,7 @@ async function connect(connectOptions: {
       }
       screenTouches++
       if (screenTouches === 3) {
-        window.dispatchEvent(new MouseEvent('mousedown', { button: 1, }))
+        window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
       }
       if (capturedPointer) {
         return
@@ -731,7 +707,6 @@ async function connect(connectOptions: {
       if (loadingScreen.hasError) return
       // remove loading screen, wait a second to make sure a frame has properly rendered
       setLoadingScreenStatus(undefined)
-      hideCurrentScreens()
       void viewer.waitForChunksToRender().then(() => {
         console.log('All done and ready!')
         document.dispatchEvent(new Event('cypress-world-ready'))
@@ -754,7 +729,6 @@ window.addEventListener('keydown', (e) => {
       }
     })
   } else if (pointerLock.hasPointerLock) {
-    document.exitPointerLock()
     if (options.autoExitFullscreen) {
       document.exitFullscreen()
     }

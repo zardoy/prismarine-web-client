@@ -1,6 +1,6 @@
 const { LitElement, html, css } = require('lit')
-const { commonCss } = require('./components/common')
 const { hideCurrentModal } = require('../globalState')
+const { commonCss } = require('./components/common')
 
 class KeyBindsScreen extends LitElement {
   static get styles () {
@@ -135,23 +135,23 @@ class KeyBindsScreen extends LitElement {
         <main>
           <div class="keymap-list">
             ${this.keymaps.map((m, i) => html`
-            <div class="keymap-entry">
-              <span>${m.name}</span>
+              <div class="keymap-entry">
+                <span>${m.name}</span>
 
-              <div class="keymap-entry-btns">
-                <pmui-button pmui-width="72px" pmui-label="${this.selected === i ? `> ${m.key} <` : m.key}" @pmui-click=${e => {
-        e.target.setAttribute('pmui-label', `> ${m.key} <`)
-        this.selected = i
-        this.requestUpdate()
-      }}></pmui-button>
-                <pmui-button pmui-width="50px" ?pmui-disabled=${m.key === m.defaultKey} pmui-label="Reset" @pmui-click=${() => {
-        this.keymaps[i].key = this.keymaps[i].defaultKey
-        this.requestUpdate()
-        this.selected = -1
-      }}></pmui-button>
+                <div class="keymap-entry-btns">
+                  <pmui-button pmui-width="72px" pmui-label="${this.selected === i ? `> ${m.key} <` : m.key}" @pmui-click=${e => {
+      e.target.setAttribute('pmui-label', `> ${m.key} <`)
+      this.selected = i
+      this.requestUpdate()
+    }}></pmui-button>
+                  <pmui-button pmui-width="50px" ?pmui-disabled=${m.key === m.defaultKey} pmui-label="Reset" @pmui-click=${() => {
+      this.keymaps[i].key = this.keymaps[i].defaultKey
+      this.requestUpdate()
+      this.selected = -1
+    }}></pmui-button>
+                </div>
               </div>
-            </div>
-          `)}
+            `)}
           </div>
         </main>
 
@@ -163,8 +163,8 @@ class KeyBindsScreen extends LitElement {
   }
 
   onResetAllPress () {
-    for (let i = 0; i < this.keymaps.length; i++) {
-      this.keymaps[i].key = this.keymaps[i].defaultKey
+    for (const keymap of this.keymaps) {
+      keymap.key = keymap.defaultKey
     }
     this.requestUpdate()
   }

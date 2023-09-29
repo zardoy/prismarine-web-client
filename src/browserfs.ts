@@ -270,20 +270,12 @@ export const openWorldZip = async (...args: Parameters<typeof openWorldZipInner>
   }
 }
 
-export async function generateAndDownloadWorldZip() {
-  const zip = new JSZip()
-
-  zip.folder('world')
-
-  // Generate the ZIP archive content
-  const zipContent = await zip.generateAsync({ type: 'blob' })
-
-  // Create a download link and trigger the download
-  const downloadLink = document.createElement('a')
-  downloadLink.href = URL.createObjectURL(zipContent)
-  downloadLink.download = 'prismarine-world.zip'
-  downloadLink.click()
-
-  // Clean up the URL object after download
-  URL.revokeObjectURL(downloadLink.href)
+export const resetLocalStorageWorld = () => {
+  for (const key of Object.keys(localStorage)) {
+    if (/^[\da-fA-F]{8}(?:\b-[\da-fA-F]{4}){3}\b-[\da-fA-F]{12}$/g.test(key) || key === '/') {
+      localStorage.removeItem(key)
+    }
+  }
 }
+
+window.resetLocalStorageWorld = resetLocalStorageWorld

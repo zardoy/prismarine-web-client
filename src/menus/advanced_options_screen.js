@@ -1,10 +1,10 @@
 //@ts-check
 const { html, css, LitElement } = require('lit')
-const { commonCss, openURL } = require('./components/common')
+const { subscribe } = require('valtio')
 const { hideCurrentModal } = require('../globalState')
 const { getScreenRefreshRate } = require('../utils')
-const { subscribe } = require('valtio')
 const { options } = require('../optionsStorage')
+const { commonCss, openURL } = require('./components/common')
 
 class AdvancedOptionsScreen extends LitElement {
   /** @type {null | number} */
@@ -55,8 +55,8 @@ class AdvancedOptionsScreen extends LitElement {
       <main>
         <div class="wrapper">
           <pmui-button pmui-width="150px" pmui-label=${`Always Show Mobile Controls: ${options.alwaysShowMobileControls ? 'ON' : 'OFF'}`} @pmui-click=${() => {
-        options.alwaysShowMobileControls = !options.alwaysShowMobileControls
-      }
+      options.alwaysShowMobileControls = !options.alwaysShowMobileControls
+    }
       }></pmui-button>
       <!-- todo rename button, also might be unstable -->
         <pmui-button pmui-width="150px" pmui-label="Guide: Disable VSync" @click=${() => openURL('https://gist.github.com/zardoy/6e5ce377d2b4c1e322e660973da069cd')}></pmui-button>
@@ -78,6 +78,9 @@ class AdvancedOptionsScreen extends LitElement {
         <pmui-slider pmui-width="150px" pmui-label="Touch Buttons Size" pmui-value="${options.touchButtonsSize}" pmui-type="%" pmui-min="20" pmui-max="100" @input=${(e) => {
         options.touchButtonsSize = +e.target.value
       }}></pmui-slider>
+        <pmui-button pmui-width="150px" pmui-label="${`Use Dedicated GPU: ${options.highPerformanceGpu ? 'ON' : 'OFF'}`}" title="Changing requires page reload. Only for those who have two GPUs e.g. on laptops" @pmui-click=${() => {
+        options.highPerformanceGpu = !options.highPerformanceGpu
+      }}></pmui-button>
       </div>
 
       <pmui-button pmui-width="200px" pmui-label="Done" @pmui-click=${() => hideCurrentModal()}></pmui-button>

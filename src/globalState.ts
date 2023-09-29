@@ -12,15 +12,28 @@ type ContextMenuItem = { callback; label }
 
 export const activeModalStack: Modal[] = proxy([])
 
-export const replaceActiveModalStack = (name: string, newModalStack = activeModalStacks[name]) => {
-  hideModal(undefined, undefined, { restorePrevious: false, force: true, })
+export const insertActiveModalStack = (name: string, newModalStack = activeModalStacks[name]) => {
+  hideModal(undefined, undefined, { restorePrevious: false, force: true })
   activeModalStack.splice(0, activeModalStack.length, ...newModalStack)
-  // todo restore previous
+  const last = activeModalStack.at(-1)
+  if (last) showModalInner(last)
 }
 
 export const activeModalStacks: Record<string, Modal[]> = {}
 
 window.activeModalStack = activeModalStack
+
+subscribe(activeModalStack, () => {
+  if (activeModalStack.length === 0) {
+    if (isGameActive(false)) {
+      void pointerLock.requestPointerLock()
+    } else {
+      showModal(document.getElementById('title-screen'))
+    }
+  } else {
+    document.exitPointerLock()
+  }
+})
 
 export const customDisplayManageKeyword = 'custom'
 
@@ -46,7 +59,7 @@ const showModalInner = (modal: Modal) => {
 export const showModal = (elem: (HTMLElement & Record<string, any>) | { reactType: string }) => {
   const resolved = elem instanceof HTMLElement ? { elem: ref(elem) } : elem
   const curModal = activeModalStack.at(-1)
-  if (elem === curModal?.elem || !showModalInner(resolved)) return
+  if (elem === curModal?.elem || (elem.reactType && elem.reactType === curModal?.reactType) || !showModalInner(resolved)) return
   if (curModal) defaultModalActions.hide(curModal)
   activeModalStack.push(resolved)
 }
@@ -75,22 +88,15 @@ export const hideModal = (modal = activeModalStack.at(-1), data: any = undefined
   }
 }
 
-export const hideCurrentModal = (_data = undefined, restoredActions = undefined) => {
+export const hideCurrentModal = (_data = undefined, onHide = undefined) => {
   if (hideModal(undefined, undefined)) {
-    restoredActions?.()
-    if (activeModalStack.length === 0) {
-      if (isGameActive(false)) {
-        pointerLock.requestPointerLock()
-      } else {
-        showModal(document.getElementById('title-screen'))
-      }
-    }
+    onHide?.()
   }
 }
 
 // ---
 
-export const currentContextMenu = proxy({ items: [] as ContextMenuItem[] | null, x: 0, y: 0, })
+export const currentContextMenu = proxy({ items: [] as ContextMenuItem[] | null, x: 0, y: 0 })
 
 export const showContextmenu = (items: ContextMenuItem[], { clientX, clientY }) => {
   Object.assign(currentContextMenu, {
