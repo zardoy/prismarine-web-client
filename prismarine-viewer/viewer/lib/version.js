@@ -27,4 +27,4 @@ function getVersion (version) {
   return lastOfMajor[toMajor(version)] ?? Object.values(lastOfMajor).at(-1)
 }
 
-module.exports = { getVersion }
+module.exports = { getVersion, toMajor }
