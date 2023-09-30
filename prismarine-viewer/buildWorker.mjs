@@ -107,7 +107,9 @@ const buildOptions = {
                 // skip writing & browser loading sourcemap there, debugging should be done in playground
                 continue
               }
-              fs.writeFileSync(path.join(__dirname, outPath), outputFile.text)
+              const savePath = path.join(__dirname, outPath);
+              fs.mkdirSync(path.dirname(savePath), { recursive: true })
+              fs.writeFileSync(savePath, outputFile.text)
             }
           }
         })
