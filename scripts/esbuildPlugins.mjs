@@ -20,31 +20,18 @@ const plugins = [
           path: (await build.resolve('minecraft-protocol/src/index.js', { kind, resolveDir })).path,
         }
       })
-      build.onResolve({
-        filter: /^\.\/data.js$/,
-      }, ({ resolveDir, path }) => {
-        if (!resolveDir.endsWith('minecraft-data')) return
-        return {
-          namespace: 'load-global-minecraft-data',
-          path,
-          pluginData: {
-            resolveDir
-          },
-        }
-      })
       build.onLoad({
-        filter: /.+/,
-        namespace: 'load-global-minecraft-data',
-      }, ({ pluginData: { resolveDir } }) => {
+        filter: /minecraft-data[\/\\]data.js$/,
+      }, (args) => {
         const defaultVersionsObj = {
-          // default protocol data, needed for auto-select
+          // default protocol data, needed for auto-version
           "1.20.1": {
             version: {
               "minecraftVersion": "1.20.1",
               "version": 763,
               "majorVersion": "1.20"
             },
-            protocol: JSON.parse(fs.readFileSync(join(resolveDir, 'minecraft-data/data/pc/1.20/protocol.json'), 'utf8')),
+            protocol: JSON.parse(fs.readFileSync(join(args.path, '..', 'minecraft-data/data/pc/1.20/protocol.json'), 'utf8')),
           }
         }
         return {
@@ -62,14 +49,9 @@ const plugins = [
   {
     name: 'data-assets',
     setup (build) {
-      const customMcDataNs = 'custom-mc-data'
-
       build.onResolve({
         filter: /.*/,
       }, async ({ path, ...rest }) => {
-        if (join(rest.resolveDir, path).replaceAll('\\', '/').endsWith('minecraft-data/data.js')) {
-          throw new Error('Should not hit')
-        }
         if (['.woff', '.woff2', '.ttf'].some(ext => path.endsWith(ext))) {
           return {
             path,
@@ -82,17 +64,7 @@ const plugins = [
       build.onEnd(async ({ metafile, outputFiles }) => {
         // write outputFiles
         for (const file of outputFiles) {
-          // if (file.path.endsWith('index.js.map')) {
-          //   const map = JSON.parse(file.text)
-          //   map.sourcesContent = map.sourcesContent.map((c, index) => {
-          //     if (map.sources[index].endsWith('.json')) return ''
-          //     return c
-          //   })
-          //   // data.sources = data.sources.filter(source => !source.endsWith('.json'))
-          //   await fs.promises.writeFile(file.path, JSON.stringify(map), 'utf8')
-          // } else {
           await fs.promises.writeFile(file.path, file.contents)
-          // }
         }
         if (!prod) return
         // const deps = Object.entries(metafile.inputs).sort(([, a], [, b]) => b.bytes - a.bytes).map(([x, { bytes }]) => [x, filesize(bytes)]).slice(0, 5)
@@ -114,10 +86,16 @@ const plugins = [
     setup (build) {
       build.onResolve({
         filter: /.+/,
-      }, ({ resolveDir }) => {
-        // disallow imports from outside the root directory to ensure modules are resolved from node_modules of this workspace
+      }, async ({ resolveDir, path, importer, kind, pluginData }) => {
+        if (pluginData?.__internal) return
         if (!resolveDir.startsWith(process.cwd())) {
-          throw new Error(`Restricted import from outside the root directory: ${resolveDir}`)
+          const redirected = await build.resolve(path, { kind, importer, resolveDir: process.cwd(), pluginData: {__internal: true}, });
+          return redirected
+        }
+        // disallow imports from outside the root directory to ensure modules are resolved from node_modules of this workspace
+        if ([resolveDir, path].some(x => x.includes('node_modules')) && !resolveDir.startsWith(process.cwd())) {
+          // why? ensure workspace dependency versions are used (we have overrides and need to dedupe so it doesn't grow in size)
+          throw new Error(`Restricted package import from outside the root directory: ${resolveDir}`)
         }
         return undefined
       })
@@ -133,12 +111,7 @@ const plugins = [
       })
       build.onEnd(({ errors, outputFiles, metafile, warnings }) => {
         const elapsed = Date.now() - time
-        // write metafile to disk if needed
-        // fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
-        console.log(`Done in ${elapsed}ms`)
-        if (count++ === 0) {
-          return
-        }
+
         if (errors.length) {
           connectedClients.forEach((res) => {
             res.write(`data: ${JSON.stringify({ errors: errors.map(error => error.text) })}\n\n`)
@@ -146,6 +119,22 @@ const plugins = [
           })
           return
         }
+
+        // write metafile to disk if needed to analyze
+        // fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
+
+        const outputFile = outputFiles.find(x => x.path.endsWith('.js'))
+        let outputText = outputFile.text
+        //@ts-ignore
+        if (['inline', 'both'].includes(build.initialOptions.sourcemap)) {
+          outputText = outputText.slice(0, outputText.indexOf('//# sourceMappingURL=data:application/json;base64,'))
+        }
+        console.log(`Done in ${elapsed}ms. Size: ${filesize(outputText.length)} (${build.initialOptions.minify ? 'minified' : 'without minify'})`)
+
+        if (count++ === 0) {
+          return
+        }
+
         connectedClients.forEach((res) => {
           res.write(`data: ${JSON.stringify({ update: { time: elapsed } })}\n\n`)
           res.flush()
