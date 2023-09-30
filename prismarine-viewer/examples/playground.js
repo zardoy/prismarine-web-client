@@ -1,6 +1,6 @@
 //@ts-check
 /* global THREE, fetch */
-const { WorldView, Viewer, MapControls } = require('prismarine-viewer/viewer')
+const { WorldView, Viewer, MapControls } = require('../viewer')
 const { Vec3 } = require('vec3')
 const { Schematic } = require('prismarine-schematic')
 const BlockLoader = require('prismarine-block')
@@ -107,18 +107,6 @@ async function main () {
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
   viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
 
-  // Browser animation loop
-  const animate = () => {
-    // if (controls) controls.update()
-    // worldView.updatePosition(controls.target)
-    viewer.update()
-    renderer.render(viewer.scene, viewer.camera)
-    window.requestAnimationFrame(animate)
-  }
-  // to fix: stairs, signs, chests, skulls, conduit
-  // hay, log, mushroom, terract
-  animate()
-
   let blockProps = {}
   const getBlock  = () => {
     return mcData.blocksByName[params.block || 'air']
@@ -193,6 +181,19 @@ async function main () {
     applyChanges()
     gui.openAnimated()
   })
+
+  // Browser animation loop
+  const animate = () => {
+    // if (controls) controls.update()
+    // worldView.updatePosition(controls.target)
+    viewer.update()
+    renderer.render(viewer.scene, viewer.camera)
+    // window.requestAnimationFrame(animate)
+  }
+  viewer.world.renderUpdateEmitter.addListener('update', () => {
+    animate()
+  })
+  animate()
 
   setTimeout(() => {
     // worldView.emit('entity', {
