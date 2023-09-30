@@ -1,12 +1,12 @@
-export default (bot: import('mineflayer').Bot) => {
+export default () => {
   bot.on('time', () => {
     // 0 morning
     const dayTotal = 24_000
-    const evening = 12_542 / dayTotal
-    const night = 17_843 / dayTotal
-    const morningStart = 22_300 / dayTotal
-    const morningEnd = 23_961 / dayTotal
-    const timeProgress = bot.time.time / dayTotal
+    const evening = 12_542
+    const night = 17_843
+    const morningStart = 22_300
+    const morningEnd = 23_961
+    const timeProgress = bot.time.time
 
     // todo check actual colors
     const dayColorRainy = { r: 111 / 255, g: 156 / 255, b: 236 / 255 }
@@ -30,11 +30,9 @@ export default (bot: import('mineflayer').Bot) => {
     }
     // todo need to think wisely how to set these values & also move directional light around!
     const colorInt = Math.max(int, 0.1)
-    window.viewer.scene.background = new THREE.Color(dayColor.r * colorInt, dayColor.g * colorInt, dayColor.b * colorInt)
-    // todo and these too!
-    // ambient light
-    window.viewer.scene.children[0].intensity = Math.max(int, 0.25)
+    viewer.scene.background = new THREE.Color(dayColor.r * colorInt, dayColor.g * colorInt, dayColor.b * colorInt)
+    viewer.ambientLight.intensity = Math.max(int, 0.25)
     // directional light
-    window.viewer.scene.children[1].intensity = Math.min(int, 0.5)
+    viewer.directionalLight.intensity = Math.min(int, 0.5)
   })
 }
