@@ -19,13 +19,13 @@ const buildOptions = {
   },
   platform: 'browser',
   entryPoints: [path.join(__dirname, './viewer/lib/worker.js')],
-  outfile: path.join(__dirname, './public/worker.js'),
   minify: true,
   logLevel: 'info',
   drop: [
     'debugger'
   ],
   sourcemap: true,
+  write: false,
   metafile: true,
   plugins: [
     {
@@ -90,7 +90,7 @@ const buildOptions = {
         }, () => {
           const data = {
             // todo always use latest
-            tints: 'require("minecraft-data/minecraft-data/data/pc/1.20/tints.json")'
+            tints: 'require("minecraft-data/minecraft-data/data/pc/1.16.2/tints.json")'
           }
           return {
             contents: `module.exports = {${Object.entries(data).map(([key, code]) => `${key}: ${code}`).join(', ')}}`,
@@ -98,9 +98,18 @@ const buildOptions = {
             resolveDir: process.cwd(),
           }
         })
-        build.onEnd(({metafile}) => {
+        build.onEnd(({metafile, outputFiles}) => {
           if (!metafile) return
           fs.writeFileSync(path.join(__dirname, './public/metafile.json'), JSON.stringify(metafile))
+          for (const outPath of ['../dist/worker.js', './public/worker.js']) {
+            for (const outputFile of outputFiles) {
+              if (outPath === '../dist/worker.js' && outputFile.path.endsWith('.map')) {
+                // skip writing & browser loading sourcemap there, debugging should be done in playground
+                continue
+              }
+              fs.writeFileSync(path.join(__dirname, outPath), outputFile.text)
+            }
+          }
         })
       }
     },
