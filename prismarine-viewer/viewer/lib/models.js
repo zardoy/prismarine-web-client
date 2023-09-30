@@ -1,9 +1,10 @@
 const { Vec3 } = require('vec3')
 
-const tints = require('minecraft-data')('1.16.2').tints
+const tints = {}
 
-for (const key of Object.keys(tints)) {
-  tints[key] = prepareTints(tints[key])
+const tintsData = require('esbuild-data').tints
+for (const key of Object.keys(tintsData)) {
+  tints[key] = prepareTints(tintsData[key])
 }
 
 function prepareTints (tints) {

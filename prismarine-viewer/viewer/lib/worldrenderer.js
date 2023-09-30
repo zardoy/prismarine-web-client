@@ -1,9 +1,12 @@
+//@ts-check
 /* global Worker */
 const THREE = require('three')
 const Vec3 = require('vec3').Vec3
 const { loadTexture, loadJSON } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
 const { EventEmitter } = require('events')
 const { dispose3 } = require('./dispose')
+const { dynamicMcDataFiles } = require('../../buildWorkerConfig.mjs')
+const mcDataRaw = require('minecraft-data/data.js')
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -30,6 +33,7 @@ class WorldRenderer {
       if (typeof window !== 'undefined') src = 'worker.js'
       else src += '/worker.js'
 
+      /** @type {any} */
       const worker = new Worker(src)
       worker.onmessage = ({ data }) => {
         if (!this.active) return
@@ -83,8 +87,12 @@ class WorldRenderer {
     this.texturesVersion = texturesVersion
     this.resetWorld()
     this.active = true
+
+    const allMcData = mcDataRaw.pc[this.version]
     for (const worker of this.workers) {
-      worker.postMessage({ type: 'version', version })
+      const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
+      mcData.version = JSON.parse(JSON.stringify(mcData.version))
+      worker.postMessage({ type: 'mcData', mcData, version: this.version, time: Date.now() })
     }
 
     this.updateTexturesData()
