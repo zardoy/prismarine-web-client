@@ -7,6 +7,7 @@ const { EventEmitter } = require('events')
 const { dispose3 } = require('./dispose')
 const { dynamicMcDataFiles } = require('../../buildWorkerConfig.mjs')
 const mcDataRaw = require('minecraft-data/data.js')
+const { toMajor } = require('./version.js')
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -88,7 +89,7 @@ class WorldRenderer {
     this.resetWorld()
     this.active = true
 
-    const allMcData = mcDataRaw.pc[this.version]
+    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
     for (const worker of this.workers) {
       const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
       mcData.version = JSON.parse(JSON.stringify(mcData.version))
