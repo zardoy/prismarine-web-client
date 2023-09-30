@@ -9,6 +9,7 @@ declare const localServer: any
 
 declare interface Document {
     getElementById(id): any
+    exitPointerLock?(): void
 }
 
 declare namespace JSX {

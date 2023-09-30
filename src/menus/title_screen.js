@@ -182,7 +182,7 @@ class TitleScreen extends LitElement {
         </div>
         <pmui-button pmui-width="200px" pmui-label="Options" @pmui-click=${() => showModal(document.getElementById('options-screen'))}></pmui-button>
         <div class="menu-row">
-          <pmui-button pmui-width="98px" pmui-label="Github" @pmui-click=${() => openURL(process.env.GITHUB_URL)}></pmui-button>
+          <pmui-button pmui-width="98px" pmui-label="GitHub" @pmui-click=${() => openURL(process.env.GITHUB_URL)}></pmui-button>
           <pmui-button pmui-width="98px" pmui-label="Discord" @pmui-click=${() => openURL('https://discord.gg/4Ucm684Fq3')}></pmui-button>
         </div>
       </div>

@@ -20,6 +20,7 @@ browserfs.configure({
   fs: 'MountableFileSystem',
   options: deafultMountablePoints,
 }, (e) => {
+  // todo disable singleplayer button
   if (e) throw e
   updateTexturePackInstalledState()
 })

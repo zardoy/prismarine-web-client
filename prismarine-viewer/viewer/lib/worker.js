@@ -39,7 +39,8 @@ function setSectionDirty (pos, value = true) {
 }
 
 self.onmessage = ({ data }) => {
-  if (data.type === 'version') {
+  if (data.type === 'mcData') {
+    globalThis.mcData = data.mcData
     world = new World(data.version)
   } else if (data.type === 'blockStates') {
     blocksStates = data.json
@@ -57,6 +58,8 @@ self.onmessage = ({ data }) => {
     world = null
     blocksStates = null
     dirtySections = {}
+    // todo also remove cached
+    globalThis.mcData = null
   }
 }
 

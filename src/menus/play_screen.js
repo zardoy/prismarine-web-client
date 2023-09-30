@@ -84,8 +84,10 @@ class PlayScreen extends LitElement {
   constructor () {
     super()
     this.version = ''
+    this.serverport = ''
+    this.proxyport = ''
     // todo set them sooner add indicator
-    window.fetch('config.json').then(async res => res.json()).then(c => c, (error) => {
+    void window.fetch('config.json').then(async res => res.json()).then(c => c, (error) => {
       console.error('Failed to load config.json', error)
       return {}
     }).then(config => {
@@ -101,9 +103,7 @@ class PlayScreen extends LitElement {
       }
 
       this.server = getParam('server', 'ip') ?? config.defaultHost
-      this.serverport = getParam('serverport', false) ?? config.defaultHostPort ?? 25_565
       this.proxy = getParam('proxy') ?? config.defaultProxy
-      this.proxyport = getParam('proxyport', false) ?? (!config.defaultProxy && !config.defaultProxyPort ? '' : config.defaultProxyPort ?? 443)
       this.version = getParam('version') || (window.localStorage.getItem('version') ?? config.defaultVersion)
       this.username = getParam('username') || 'pviewer' + (Math.floor(Math.random() * 1000))
       this.password = getParam('password') || ''
@@ -192,19 +192,20 @@ class PlayScreen extends LitElement {
   }
 
   onConnectPress () {
+    const server = `${this.server}${this.serverport && `:${this.serverport}`}`
+    const proxy = this.proxy && `${this.proxy}${this.proxyport && `:${this.proxyport}`}`
+
     document.getElementById('title-screen').style.display = 'none'
     window.localStorage.setItem('username', this.username)
     window.localStorage.setItem('password', this.password)
-    window.localStorage.setItem('server', this.server)
-    window.localStorage.setItem('serverport', this.serverport)
-    window.localStorage.setItem('proxy', this.proxy)
-    window.localStorage.setItem('proxyport', this.proxyport)
+    window.localStorage.setItem('server', server)
+    window.localStorage.setItem('proxy', proxy)
     window.localStorage.setItem('version', this.version)
 
     this.dispatchEvent(new window.CustomEvent('connect', {
       detail: {
-        server: `${this.server}:${this.serverport}`,
-        proxy: `${this.proxy}${this.proxy === '' ? '' : `:${this.proxyport}`}`,
+        server,
+        proxy,
         username: this.username,
         password: this.password,
         botVersion: this.version

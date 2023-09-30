@@ -1,11 +1,13 @@
+//@ts-check
 import { context } from 'esbuild'
 import { build } from 'esbuild'
 import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import fs from 'fs'
+import { dynamicMcDataFiles } from './buildWorkerConfig.mjs'
 
-const allowedWorkerFiles = ['blocks', 'blockCollisionShapes', 'tints', 'blockStates',
-  'biomes', 'features', 'version', 'legacy', 'versions', 'version', 'protocolVersions']
+const allowedBundleFiles = ['legacy', 'versions', 'protocolVersions', 'features']
 
 const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)))
 
@@ -13,17 +15,18 @@ const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)))
 const buildOptions = {
   bundle: true,
   banner: {
-    js: 'globalThis.global = globalThis;process = {env: {}, versions: {}, };',
+    js: `globalThis.global = globalThis;process = {env: {}, versions: {} };`,
   },
   platform: 'browser',
   entryPoints: [path.join(__dirname, './viewer/lib/worker.js')],
-  outfile: path.join(__dirname, './public/worker.js'),
   minify: true,
   logLevel: 'info',
   drop: [
     'debugger'
   ],
   sourcemap: true,
+  write: false,
+  metafile: true,
   plugins: [
     {
       name: 'external-json',
@@ -34,7 +37,16 @@ const buildOptions = {
             if (args.path.replaceAll('\\', '/').endsWith('bedrock/common/protocolVersions.json')) {
               return
             }
-            if (!allowedWorkerFiles.includes(fileName) || args.path.includes('bedrock')) {
+            if (args.path.includes('bedrock')) {
+              return { path: args.path, namespace: 'empty-file', }
+            }
+            if (dynamicMcDataFiles.includes(fileName)) {
+              return {
+                path: args.path,
+                namespace: 'mc-data',
+              }
+            }
+            if (!allowedBundleFiles.includes(fileName)) {
               return { path: args.path, namespace: 'empty-file', }
             }
           }
@@ -52,6 +64,54 @@ const buildOptions = {
           namespace: 'empty-file',
         }, () => {
           return { contents: 'module.exports = undefined', loader: 'js' }
+        })
+        build.onLoad({
+          namespace: 'mc-data',
+          filter: /.*/,
+        }, async ({ path }) => {
+          const fileName = path.split(/[\\\/]/).pop().replace('.json', '')
+          return {
+            contents: `module.exports = globalThis.mcData["${fileName}"]`,
+            loader: 'js',
+            resolveDir: process.cwd(),
+          }
+        })
+        build.onResolve({
+          filter: /^esbuild-data$/,
+        }, () => {
+          return {
+            path: 'esbuild-data',
+            namespace: 'esbuild-data',
+          }
+        })
+        build.onLoad({
+          filter: /.*/,
+          namespace: 'esbuild-data',
+        }, () => {
+          const data = {
+            // todo always use latest
+            tints: 'require("minecraft-data/minecraft-data/data/pc/1.16.2/tints.json")'
+          }
+          return {
+            contents: `module.exports = {${Object.entries(data).map(([key, code]) => `${key}: ${code}`).join(', ')}}`,
+            loader: 'js',
+            resolveDir: process.cwd(),
+          }
+        })
+        build.onEnd(({metafile, outputFiles}) => {
+          if (!metafile) return
+          fs.writeFileSync(path.join(__dirname, './public/metafile.json'), JSON.stringify(metafile))
+          for (const outPath of ['../dist/worker.js', './public/worker.js']) {
+            for (const outputFile of outputFiles) {
+              if (outPath === '../dist/worker.js' && outputFile.path.endsWith('.map')) {
+                // skip writing & browser loading sourcemap there, debugging should be done in playground
+                continue
+              }
+              const savePath = path.join(__dirname, outPath);
+              fs.mkdirSync(path.dirname(savePath), { recursive: true })
+              fs.writeFileSync(savePath, outputFile.text)
+            }
+          }
         })
       }
     },
