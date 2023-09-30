@@ -4,29 +4,41 @@ const TWEEN = require('@tweenjs/tween.js')
 const Entity = require('./entity/Entity')
 const { dispose3 } = require('./dispose')
 
-function getEntityMesh (entity, scene) {
+function getUsernameTexture(username, { fontFamily = 'sans-serif' }) {
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+
+const fontSize = 50;
+const padding = 5
+ctx.font = `${fontSize}px ${fontFamily}`;
+
+const textWidth = ctx.measureText(username).width + padding * 2;
+
+canvas.width = textWidth;
+canvas.height = fontSize + padding * 2;
+
+ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+ctx.font = `${fontSize}px ${fontFamily}`;
+ctx.fillStyle = 'white'
+ctx.fillText(username, padding, fontSize);
+
+return canvas;
+}
+
+function getEntityMesh (entity, scene, options) {
   if (entity.name) {
     try {
       const e = new Entity('1.16.4', entity.name, scene)
 
       if (entity.username !== undefined) {
-        const canvas = document.createElement('canvas')
-        canvas.width = 500
-        canvas.height = 100
-
-        const ctx = canvas.getContext('2d')
-        ctx.font = '50pt Arial'
-        ctx.fillStyle = '#000000'
-        ctx.textAlign = 'left'
-        ctx.textBaseline = 'top'
-
-        const txt = entity.username
-        ctx.fillText(txt, 100, 0)
-
+        const canvas = getUsernameTexture(entity.username, options);
         const tex = new THREE.Texture(canvas)
         tex.needsUpdate = true
         const spriteMat = new THREE.SpriteMaterial({ map: tex })
         const sprite = new THREE.Sprite(spriteMat)
+        sprite.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
         sprite.position.y += entity.height + 0.6
 
         e.mesh.add(sprite)
@@ -48,6 +60,7 @@ class Entities {
   constructor (scene) {
     this.scene = scene
     this.entities = {}
+    this.entitiesOptions = {}
   }
 
   clear () {
@@ -60,7 +73,7 @@ class Entities {
 
   update (entity) {
     if (!this.entities[entity.id]) {
-      const mesh = getEntityMesh(entity, this.scene)
+      const mesh = getEntityMesh(entity, this.scene, this.entitiesOptions)
       if (!mesh) return
       this.entities[entity.id] = mesh
       this.scene.add(mesh)
