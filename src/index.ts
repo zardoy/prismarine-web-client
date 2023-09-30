@@ -198,8 +198,7 @@ async function main() {
     connect(options)
   })
   const connectSingleplayer = (serverOverrides = {}) => {
-    // todo clean
-    connect({ server: '', port: '', proxy: '', singleplayer: true, username: options.localUsername, password: '', serverOverrides })
+    void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
   }
   document.querySelector('#title-screen').addEventListener('singleplayer', (e) => {
     //@ts-expect-error
@@ -228,13 +227,22 @@ const removeAllListeners = () => {
   listeners = []
 }
 
-// todo
-// eslint-disable-next-line complexity
+const cleanConnectIp = (host: string | undefined, defaultPort: string | undefined) => {
+  const hostPort = host && /:\d+$/.exec(host)
+  if (hostPort) {
+    return {
+      host: host.slice(0, -hostPort[0].length),
+      port: hostPort[0].slice(1)
+    }
+  } else {
+    return { host, port: defaultPort }
+  }
+}
+
 async function connect(connectOptions: {
-  server: any; port?: string; singleplayer?: any; username: any; password: any; proxy: any; botVersion?: any; serverOverrides?; peerId?: string
+  server?: string; singleplayer?: any; username?: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
 }) {
-  const menu = document.getElementById('play-screen')
-  menu.style = 'display: none;'
+  document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
 
   const singeplayer = connectOptions.singleplayer
@@ -242,35 +250,20 @@ async function connect(connectOptions: {
   miscUiState.singleplayer = singeplayer
   miscUiState.flyingSquid = singeplayer || p2pMultiplayer
   const { renderDistance, maxMultiplayerRenderDistance } = options
-  const hostprompt = connectOptions.server
-  const proxyprompt = connectOptions.proxy
-  const { username } = connectOptions
-  const { password } = connectOptions
+  const server = cleanConnectIp(connectOptions.server, '25565')
+  const proxy = cleanConnectIp(connectOptions.proxy, undefined)
+  const { username, password } = connectOptions
 
-  let host; let port; let proxy; let proxyport
-  if (hostprompt.includes(':')) {
-    [host, port] = hostprompt.split(':')
-    port = parseInt(port, 10)
-  } else {
-    host = hostprompt
-    port = 25_565
-  }
-
-  if (proxyprompt.includes(':')) {
-    [proxy, proxyport] = proxyprompt.split(':')
-    proxyport = parseInt(proxyport, 10)
-  } else {
-    proxy = proxyprompt
-    proxyport = undefined
-  }
-  console.log(`connecting to ${host} ${port} with ${username}`)
+  console.log(`connecting to ${server.host}:${server.port} with ${username}`)
 
   hideCurrentScreens()
   setLoadingScreenStatus('Logging in')
 
-  let disconnected = false
+  let ended = false
   let bot: mineflayer.Bot
   const destroyAll = () => {
+    if (ended) return
+    ended = true
     // ensure bot cleanup
     viewer.resetAll()
     window.localServer = undefined
@@ -325,10 +318,9 @@ async function connect(connectOptions: {
   })
 
   if (proxy) {
-    console.log(`using proxy ${proxy} ${proxyport}`)
+    console.log(`using proxy ${proxy.host}:${proxy.port}`)
 
-    //@ts-expect-error
-    net.setProxy({ hostname: proxy, port: proxyport })
+    net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
 
   let localServer
@@ -380,8 +372,8 @@ async function connect(connectOptions: {
 
     setLoadingScreenStatus('Creating mineflayer bot')
     bot = mineflayer.createBot({
-      host,
-      port,
+      host: server.host,
+      port: +server.port,
       version: connectOptions.botVersion || false,
       ...p2pMultiplayer ? {
         stream: await connectToPeer(connectOptions.peerId),
@@ -472,8 +464,6 @@ async function connect(connectOptions: {
   })
 
   bot.on('end', (endReason) => {
-    if (disconnected) return
-    disconnected = true
     console.log('disconnected for', endReason)
     destroyAll()
     setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
@@ -698,7 +688,7 @@ async function connect(connectOptions: {
     setLoadingScreenStatus('Done!')
     console.log('Done!')
 
-    hud.init(renderer, bot, host)
+    hud.init(renderer, bot, server.host)
     hud.style.display = 'block'
     blockInteraction.init()
 
@@ -763,8 +753,7 @@ downloadAndOpenFile().then((downloadAction) => {
       if (options.askGuestName) username = prompt('Enter your username', username)
       if (!username) return
       options.guestUsername = username
-      connect({
-        server: '', port: '', proxy: '', password: '',
+      void connect({
         username,
         botVersion: version || undefined,
         peerId
