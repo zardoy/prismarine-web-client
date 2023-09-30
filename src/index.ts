@@ -76,7 +76,7 @@ import {
 
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
 import serverOptions from './defaultLocalServerOptions'
-import updateTime from './updateTime'
+import dayCycle from './dayCycle'
 
 import { subscribeKey } from 'valtio/utils'
 import _ from 'lodash-es'
@@ -283,14 +283,15 @@ async function connect(connectOptions: {
     removeAllListeners()
   }
   const handleError = (err) => {
+    errorAbortController.abort()
     console.log('Encountered error!', err)
 
     // #region rejoin key
     const controller = new AbortController()
-    window.addEventListener('keydown', (e) => {
+    window.addEventListener('keyup', (e) => {
       if (e.code !== 'KeyR') return
       controller.abort()
-      connect(connectOptions)
+      void connect(connectOptions)
       loadingScreen.hasError = false
     }, { signal: controller.signal })
     // #endregion
@@ -546,7 +547,7 @@ async function connect(connectOptions: {
     worldView.listenToBot(bot)
     worldView.init(bot.entity.position)
 
-    updateTime(bot)
+    dayCycle()
 
     // Bot position callback
     function botPosition() {
@@ -692,8 +693,8 @@ async function connect(connectOptions: {
     hud.style.display = 'block'
     blockInteraction.init()
 
+    errorAbortController.abort()
     setTimeout(() => {
-      errorAbortController.abort()
       if (loadingScreen.hasError) return
       // remove loading screen, wait a second to make sure a frame has properly rendered
       setLoadingScreenStatus(undefined)
@@ -706,8 +707,8 @@ async function connect(connectOptions: {
   })
 }
 
-window.addEventListener('mousedown', (e) => {
-  pointerLock.requestPointerLock()
+window.addEventListener('mousedown', () => {
+  void pointerLock.requestPointerLock()
 })
 
 window.addEventListener('keydown', (e) => {
@@ -720,7 +721,7 @@ window.addEventListener('keydown', (e) => {
     })
   } else if (pointerLock.hasPointerLock) {
     if (options.autoExitFullscreen) {
-      document.exitFullscreen()
+      void document.exitFullscreen()
     }
   } else {
     document.dispatchEvent(new Event('pointerlockchange'))
