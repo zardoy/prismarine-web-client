@@ -36,6 +36,9 @@ importers:
       browserfs:
         specifier: github:zardoy/browserfs#build
         version: github.com/zardoy/browserfs/0ff5df5c4e67f54b5f032b87dc650e8b78626bc7
+      cat-names:
+        specifier: ^3.1.0
+        version: 3.1.0
       compression:
         specifier: ^1.7.4
         version: 1.7.4
@@ -108,6 +111,9 @@ importers:
       stats.js:
         specifier: ^0.17.0
         version: 0.17.0
+      superb:
+        specifier: ^4.0.0
+        version: 4.0.0
       valtio:
         specifier: ^1.11.1
         version: 1.11.2(@types/react@18.2.20)(react@18.2.0)
@@ -3495,6 +3501,15 @@ packages:
   /caseless@0.12.0:
     resolution: {integrity: sha512-4tYFyifaFfGacoiObjJegolkwSU4xQNGbVgUiNYVUxbQ2x2lUsFvY4hVgVzGiIe6WLOPqycWXA40l+PWsxthUw==}
 
+  /cat-names@3.1.0:
+    resolution: {integrity: sha512-cW5oH6EdBF8g/XovpPyM/5CHne6tsX63IBqGVpeZxDcHrIUpqmbXhRkptsMwHXiwSyDd+/bEndsib3kn4Q1qtQ==}
+    engines: {node: '>=8'}
+    hasBin: true
+    dependencies:
+      meow: 6.1.1
+      unique-random-array: 2.0.0
+    dev: false
+
   /cbor-extract@2.1.1:
     resolution: {integrity: sha512-1UX977+L+zOJHsp0mWFG13GLwO6ucKgSmSW6JTl8B9GUvACvHeIVpFqhU92299Z6PfD09aTXDell5p+lp1rUFA==}
     hasBin: true
@@ -6558,6 +6573,23 @@ packages:
       yargs-parser: 20.2.9
     dev: true
 
+  /meow@6.1.1:
+    resolution: {integrity: sha512-3YffViIt2QWgTy6Pale5QpopX/IvU3LPL03jOTqp6pGj3VjesdO/U8CuHMKpnQr4shCNCM5fd5XFFvIIl6JBHg==}
+    engines: {node: '>=8'}
+    dependencies:
+      '@types/minimist': 1.2.3
+      camelcase-keys: 6.2.2
+      decamelize-keys: 1.1.1
+      hard-rejection: 2.1.0
+      minimist-options: 4.1.0
+      normalize-package-data: 2.5.0
+      read-pkg-up: 7.0.1
+      redent: 3.0.0
+      trim-newlines: 3.0.1
+      type-fest: 0.13.1
+      yargs-parser: 18.1.3
+    dev: false
+
   /merge-descriptors@1.0.1:
     resolution: {integrity: sha512-cCi6g3/Zr1iqQi6ySbseM1Xvooa98N0w31jzUYrXPX2xqObmFGHJ0tQ5u74H3mVh7wLouTseZyYIq39g8cNp1w==}
     dev: false
@@ -8770,6 +8802,13 @@ packages:
     resolution: {integrity: sha512-Orov6g6BB1sDfYgzWfTHDOxamtX1bE/zo104Dh9e6fqJ3PooipYyfJ0pUmrZO2wAvO8YbEyeFrkV91XTsGMSrw==}
     dev: false
 
+  /superb@4.0.0:
+    resolution: {integrity: sha512-4Kie62y4kBxNGXXWJAVR63sdQlswBZq2G/x1d37pRQbjqfhIH1WPhirZFHZUpI76uCDrFnxej0F3NtEy1/H+OQ==}
+    engines: {node: '>=8'}
+    dependencies:
+      unique-random-array: 2.0.0
+    dev: false
+
   /supports-color@5.5.0:
     resolution: {integrity: sha512-QjVjwdXIt408MIiAqCX4oUKsgU2EqAGzs2Ppkm4aQYbjm+ZEWEcW4SfFNTr4uMNZma0ey4f5lgLrkB0aX0QMow==}
     engines: {node: '>=4'}
@@ -9736,6 +9775,14 @@ packages:
     resolution: {integrity: sha512-N/lyzTPaJasoDmfV7YTrYCI0G/3ivm/9wdG0aHuheKowWQwGTsK0Eoiw6utmzAnI6pkJa0DUVygvp3spqqEKXg==}
     engines: {node: '>= 14'}
     dev: true
+
+  /yargs-parser@18.1.3:
+    resolution: {integrity: sha512-o50j0JeToy/4K6OZcaQmW6lyXXKhq7csREXcDwk2omFPJEwUNOVtJKvmDr9EI1fAJZUyZcRF7kxGBWmRXudrCQ==}
+    engines: {node: '>=6'}
+    dependencies:
+      camelcase: 5.3.1
+      decamelize: 1.2.0
+    dev: false
 
   /yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}

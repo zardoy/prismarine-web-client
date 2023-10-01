@@ -29,6 +29,7 @@
     "@zardoy/react-util": "^0.2.0",
     "@zardoy/utils": "^0.0.11",
     "browserfs": "github:zardoy/browserfs#build",
+    "cat-names": "^3.1.0",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "cypress-plugin-snapshots": "^1.4.4",
@@ -53,6 +54,7 @@
     "react-dom": "^18.2.0",
     "stats-gl": "^1.0.5",
     "stats.js": "^0.17.0",
+    "superb": "^4.0.0",
     "valtio": "^1.11.1",
     "workbox-build": "^7.0.0"
   },

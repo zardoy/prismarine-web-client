@@ -5,6 +5,8 @@ const viewerSupportedVersions = require('prismarine-viewer/viewer/supportedVersi
 const { versionsByMinecraftVersion } = require('minecraft-data')
 const { hideCurrentModal } = require('../globalState')
 const { commonCss } = require('./components/common')
+const superb = require('superb')
+const catNames = require('cat-names')
 
 const fullySupporedVersions = viewerSupportedVersions
 const partiallySupportVersions = mineflayer.supportedVersions
@@ -105,7 +107,7 @@ class PlayScreen extends LitElement {
       this.server = getParam('server', 'ip') ?? config.defaultHost
       this.proxy = getParam('proxy') ?? config.defaultProxy
       this.version = getParam('version') || (window.localStorage.getItem('version') ?? config.defaultVersion)
-      this.username = getParam('username') || 'pviewer' + (Math.floor(Math.random() * 1000))
+      this.username = getParam('username') || superb.random()+catNames.random().toLowerCase()
       this.password = getParam('password') || ''
       if (process.env.NODE_ENV === 'development' && params.get('reconnect') && this.server && this.username) {
         this.onConnectPress()
