@@ -264,20 +264,17 @@ async function connect(connectOptions: {
   const destroyAll = () => {
     if (ended) return
     ended = true
-    // ensure bot cleanup
     viewer.resetAll()
     window.localServer = undefined
 
-    // simple variant, still buggy
     postRenderFrameFn = () => { }
     if (bot) {
       bot.end()
+      // ensure mineflayer plugins receive this even for cleanup
       bot.emit('end', '')
       bot.removeAllListeners()
       bot._client.removeAllListeners()
       bot._client = undefined
-      // for debugging
-      window._botDisconnected = undefined
       window.bot = bot = undefined
     }
     removeAllListeners()
@@ -465,9 +462,10 @@ async function connect(connectOptions: {
   })
 
   bot.on('end', (endReason) => {
+    if (ended) return
     console.log('disconnected for', endReason)
-    destroyAll()
     setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
+    destroyAll()
     if (isCypress()) throw new Error(`disconnected: ${endReason}`)
   })
 
