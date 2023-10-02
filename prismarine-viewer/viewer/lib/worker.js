@@ -12,11 +12,11 @@ if (!global.self) {
 
 const { Vec3 } = require('vec3')
 const { World } = require('./world')
-const { getSectionGeometry } = require('./models')
+const { getSectionGeometry, setBlockStates } = require('./models')
 
-let blocksStates = null
 let world = null
 let dirtySections = {}
+let blockStatesReady = false
 
 function sectionKey (x, y, z) {
   return `${x},${y},${z}`
@@ -43,7 +43,8 @@ self.onmessage = ({ data }) => {
     globalThis.mcData = data.mcData
     world = new World(data.version)
   } else if (data.type === 'blockStates') {
-    blocksStates = data.json
+    setBlockStates(data.json)
+    blockStatesReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)
     setSectionDirty(loc, data.value)
@@ -60,11 +61,12 @@ self.onmessage = ({ data }) => {
     dirtySections = {}
     // todo also remove cached
     globalThis.mcData = null
+    blockStatesReady = false
   }
 }
 
 setInterval(() => {
-  if (world === null || blocksStates === null) return
+  if (world === null || !blockStatesReady) return
   const sections = Object.keys(dirtySections)
 
   if (sections.length === 0) return
@@ -79,7 +81,7 @@ setInterval(() => {
     const chunk = world.getColumn(x, z)
     if (chunk && chunk.sections[Math.floor(y / 16)]) {
       delete dirtySections[key]
-      const geometry = getSectionGeometry(x, y, z, world, blocksStates)
+      const geometry = getSectionGeometry(x, y, z, world)
       const transferable = [geometry.positions.buffer, geometry.normals.buffer, geometry.colors.buffer, geometry.uvs.buffer]
       postMessage({ type: 'geometry', key, geometry }, transferable)
     }
