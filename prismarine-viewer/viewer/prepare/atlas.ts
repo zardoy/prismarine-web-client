@@ -1,6 +1,6 @@
-const fs = require('fs')
-const { Canvas, Image } = require('canvas')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
+import { Canvas, Image } from 'canvas'
 
 function nextPowerOfTwo (n) {
   if (n === 0) return 1
@@ -13,44 +13,50 @@ function nextPowerOfTwo (n) {
   return n + 1
 }
 
+const localTextures = ['missing_texture.png']
+
 function readTexture (basePath, name) {
-  if (name === 'missing_texture.png') {
+  if (localTextures.includes(name)) {
     // grab ./missing_texture.png
     basePath = __dirname
   }
   return fs.readFileSync(path.join(basePath, name), 'base64')
 }
 
-function makeTextureAtlas (mcAssets) {
+export function makeTextureAtlas (mcAssets) {
   const blocksTexturePath = path.join(mcAssets.directory, '/blocks')
   const textureFiles = fs.readdirSync(blocksTexturePath).filter(file => file.endsWith('.png'))
-  textureFiles.unshift('missing_texture.png')
+  textureFiles.unshift(...localTextures)
 
   const texSize = nextPowerOfTwo(Math.ceil(Math.sqrt(textureFiles.length)))
   const tileSize = 16
 
   const imgSize = texSize * tileSize
-  const canvas = new Canvas(imgSize, imgSize, 'png')
+  const canvas = new Canvas(imgSize, imgSize, 'png' as any)
   const g = canvas.getContext('2d')
 
   const texturesIndex = {}
 
+  let offset = 0
   for (const i in textureFiles) {
-    const x = (i % texSize) * tileSize
-    const y = Math.floor(i / texSize) * tileSize
+    const pos = +i + offset
+    const x = (pos % texSize) * tileSize
+    const y = Math.floor(pos / texSize) * tileSize
 
     const name = textureFiles[i].split('.')[0]
 
-    texturesIndex[name] = { u: x / imgSize, v: y / imgSize, su: tileSize / imgSize, sv: tileSize / imgSize }
-
     const img = new Image()
     img.src = 'data:image/png;base64,' + readTexture(blocksTexturePath, textureFiles[i])
-    g.drawImage(img, 0, 0, 16, 16, x, y, 16, 16)
+    const needsMoreWidth = img.width > tileSize
+    if (needsMoreWidth) {
+      console.log('needs more', name, img.width, img.height)
+      offset++
+    }
+    const renderWidth = needsMoreWidth ? tileSize * 2 : tileSize
+    g.drawImage(img, 0, 0, img.width, img.height, x, y, renderWidth, tileSize)
+
+    texturesIndex[name] = { u: x / imgSize, v: y / imgSize, su: renderWidth / imgSize, sv: tileSize / imgSize }
   }
 
   return { image: canvas.toBuffer(), canvas, json: { size: tileSize / imgSize, textures: texturesIndex } }
-}
-
-module.exports = {
-  makeTextureAtlas
 }
