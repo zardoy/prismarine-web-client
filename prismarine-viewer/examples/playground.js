@@ -179,9 +179,24 @@ async function main () {
   }
 
 
-  const applyChanges = () => {
-    //@ts-ignore
-    const block = Block.fromProperties(getBlock()?.id ?? -1, blockProps, 0)
+  const applyChanges = (metadataUpdate = false) => {
+    const blockId = getBlock()?.id;
+    /** @type {BlockLoader.Block} */
+    let block
+    if (metadataUpdate) {
+      block = new Block(blockId, 0, params.metadata)
+      Object.assign(blockProps, block.getProperties())
+      for (const _child of folder.children) {
+        /** @type {import('lil-gui').Controller} */
+        //@ts-ignore
+        const child = _child
+        child.updateDisplay()
+      }
+    } else {
+      //@ts-ignore
+      block = Block.fromProperties(blockId ?? -1, blockProps, 0)
+    }
+
     viewer.setBlockStateId(targetBlockPos, block.stateId)
     console.log('up', block.stateId)
     params.metadata = block.metadata
@@ -190,8 +205,9 @@ async function main () {
     setQs()
   }
   gui.onChange(({property}) => {
+    if (property === 'camera') return
     onUpdate[property]?.()
-    applyChanges()
+    applyChanges(property === 'metadata')
   })
   viewer.waitForChunksToRender().then(async () => {
     await new Promise(resolve => {
@@ -200,7 +216,7 @@ async function main () {
     for (const update of Object.values(onUpdate)) {
       update()
     }
-    applyChanges()
+    applyChanges(true)
     gui.openAnimated()
   })
 
