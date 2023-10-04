@@ -1,21 +1,23 @@
 
 const THREE = require('three')
 const TWEEN = require('@tweenjs/tween.js')
+const { Vec3 } = require('vec3')
 const { WorldRenderer } = require('./worldrenderer')
 const { Entities } = require('./entities')
 const { Primitives } = require('./primitives')
 const { getVersion } = require('./version')
-const { Vec3 } = require('vec3')
+
+// new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial())
 
 class Viewer {
   constructor (renderer, numWorkers = undefined) {
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('lightblue')
 
-    this.ambientLight = new THREE.AmbientLight(0xcccccc)
+    this.ambientLight = new THREE.AmbientLight(0xcc_cc_cc)
     this.scene.add(this.ambientLight)
 
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 0.5)
+    this.directionalLight = new THREE.DirectionalLight(0xff_ff_ff, 0.5)
     this.directionalLight.position.set(1, 1, 0.5).normalize()
     this.directionalLight.castShadow = true
     this.scene.add(this.directionalLight)
@@ -40,7 +42,7 @@ class Viewer {
 
   setVersion (userVersion) {
     const texturesVersion = getVersion(userVersion)
-    console.log('Using version:', userVersion, 'textures:', texturesVersion)
+    console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
     this.version = userVersion
     this.world.setVersion(userVersion, texturesVersion)
     this.entities.clear()
@@ -103,7 +105,7 @@ class Viewer {
       mouse.x = (evt.clientX / this.domElement.clientWidth) * 2 - 1
       mouse.y = -(evt.clientY / this.domElement.clientHeight) * 2 + 1
       raycaster.setFromCamera(mouse, this.camera)
-      const ray = raycaster.ray
+      const { ray } = raycaster
       emitter.emit('mouseClick', { origin: ray.origin, direction: ray.direction, button: evt.button })
     })
   }

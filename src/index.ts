@@ -115,6 +115,9 @@ document.body.appendChild(renderer.domElement)
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
+viewer.entities.entitiesOptions = {
+  fontFamily: 'mojangles'
+}
 initPanoramaOptions(viewer)
 watchTexturepackInViewer(viewer)
 
@@ -316,7 +319,7 @@ async function connect(connectOptions: {
   })
 
   if (proxy) {
-    console.log(`using proxy ${proxy.host}:${proxy.port}`)
+    console.log(`using proxy ${proxy.host}${proxy.port && `:${proxy.port}`}`)
 
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
@@ -331,12 +334,13 @@ async function connect(connectOptions: {
         await genTexturePackTextures(version)
       } catch (err) {
         console.error(err)
-        const doContinue = prompt('Failed to apply texture pack. See errors in the console. Continue?')
+        const doContinue = confirm('Failed to apply texture pack. See errors in the console. Continue?')
         if (!doContinue) {
-          setLoadingScreenStatus(undefined)
+          throw err
         }
       }
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
+      viewer.setVersion(version)
     }
 
     const downloadVersion = connectOptions.botVersion || (singeplayer ? serverOptions.version : undefined)
@@ -368,7 +372,7 @@ async function connect(connectOptions: {
       }
     }
 
-    setLoadingScreenStatus('Creating mineflayer bot')
+    setLoadingScreenStatus('Connecting to server')
     bot = mineflayer.createBot({
       host: server.host,
       port: +server.port,
@@ -517,7 +521,6 @@ async function connect(connectOptions: {
     })
 
     bot.on('physicsTick', () => updateCursor())
-    viewer.setVersion(version)
 
     const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
 
@@ -684,7 +687,6 @@ async function connect(connectOptions: {
       bot.clearControlStates()
     }, false)
 
-    setLoadingScreenStatus('Done!')
     console.log('Done!')
 
     hud.init(renderer, bot, server.host)
@@ -692,16 +694,13 @@ async function connect(connectOptions: {
     blockInteraction.init()
 
     errorAbortController.abort()
-    setTimeout(() => {
-      if (loadingScreen.hasError) return
-      // remove loading screen, wait a second to make sure a frame has properly rendered
-      setLoadingScreenStatus(undefined)
-      void viewer.waitForChunksToRender().then(() => {
-        console.log('All done and ready!')
-        document.dispatchEvent(new Event('cypress-world-ready'))
-      })
-      miscUiState.gameLoaded = true
-    }, singeplayer ? 0 : 2500)
+    if (loadingScreen.hasError) return
+    setLoadingScreenStatus(undefined)
+    miscUiState.gameLoaded = true
+    void viewer.waitForChunksToRender().then(() => {
+      console.log('All done and ready!')
+      document.dispatchEvent(new Event('cypress-world-ready'))
+    })
   })
 }
 
