@@ -62,7 +62,6 @@ import {
 import {
   pointerLock,
   goFullscreen, isCypress,
-  loadScript,
   toMajorVersion,
   setLoadingScreenStatus,
   setRenderDistance
@@ -85,6 +84,7 @@ import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
 import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import debug from 'debug'
+import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 
 window.debug = debug
 window.THREE = THREE

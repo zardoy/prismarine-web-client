@@ -1,5 +1,6 @@
 //@ts-check
 /* global THREE, fetch */
+const _ = require('lodash')
 const { WorldView, Viewer, MapControls } = require('../viewer')
 const { Vec3 } = require('vec3')
 const { Schematic } = require('prismarine-schematic')
@@ -12,14 +13,24 @@ const ChunkLoader = require('prismarine-chunk')
 const WorldLoader = require('prismarine-world');
 const THREE = require('three')
 const {GUI} = require('lil-gui')
-global.THREE = THREE
+const { toMajor } = require('../viewer/lib/version')
+const { loadScript } = require('../viewer/lib/utils')
+globalThis.THREE = THREE
+//@ts-ignore
+require('three/examples/js/controls/OrbitControls')
 
 const gui = new GUI()
 
 // initial values
 const params = {
   skip: '',
-  version: globalThis.includedVersions[0],
+  version: globalThis.includedVersions.sort((a, b) => {
+    const s = (x) => {
+      const parts = x.split('.');
+      return +parts[0]+(+parts[1])
+    }
+    return s(a) - s(b)
+  }).at(-1),
   block: '',
   metadata: 0,
   supportBlock: false,
@@ -47,8 +58,19 @@ const setQs = () => {
 
 async function main () {
   const { version } = params
+  // temporary solution until web worker is here, cache data for faster reloads
+  if (!window['mcData']['version']) {
+    const sessionKey = `mcData-${version}`;
+    if (sessionStorage[sessionKey]) {
+      window['mcData'][version] = JSON.parse(sessionStorage[sessionKey])
+    } else {
+      await loadScript(`./mc-data/${toMajor(version)}.js`)
+      sessionStorage[sessionKey] = JSON.stringify(window['mcData'][version])
+    }
+  }
+
   const mcData = require('minecraft-data')(version)
-  window['mcData'] = mcData
+  window['loadedData'] = mcData
 
   gui.add(params, 'version', globalThis.includedVersions)
   gui.add(params, 'block', mcData.blocksArray.map(b => b.name))
