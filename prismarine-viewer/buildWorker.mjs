@@ -24,9 +24,10 @@ const buildOptions = {
   drop: [
     'debugger'
   ],
-  sourcemap: true,
+  sourcemap: 'linked',
   write: false,
   metafile: true,
+  outdir: path.join(__dirname, './public'),
   plugins: [
     {
       name: 'external-json',
