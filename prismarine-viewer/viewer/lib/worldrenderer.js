@@ -18,6 +18,7 @@ class WorldRenderer {
     this.sectionMeshs = {}
     this.active = false
     this.version = undefined
+    /** @type {THREE.Scene} */
     this.scene = scene
     this.loadedChunks = {}
     this.sectionsOutstanding = new Set()
