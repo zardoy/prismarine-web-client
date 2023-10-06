@@ -1,27 +1,26 @@
-//@ts-check
-const { spiral, ViewRect, chunkPos } = require('./simpleUtils')
-const { Vec3 } = require('vec3')
-const EventEmitter = require('events')
+import { spiral, ViewRect, chunkPos } from './simpleUtils'
+import { Vec3 } from 'vec3'
+import { EventEmitter } from 'events'
+
+export type ChunkPosKey = string
 
 /**
  * Usually connects to mineflayer bot and emits world data (chunks, entities)
  * It's up to the consumer to serialize the data if needed
  */
-class WorldDataEmitter extends EventEmitter {
-  /**
-   * @param {import('prismarine-world').world.World} world
-   * @param {number} viewDistance
-   */
-  constructor (world, viewDistance, position = new Vec3(0, 0, 0)) {
+export class WorldDataEmitter extends EventEmitter {
+  private loadedChunks: Record<ChunkPosKey, boolean>
+  private lastPos: Vec3
+  private eventListeners: Record<string, any> = {};
+  private emitter: WorldDataEmitter
+
+  constructor(public world: import('prismarine-world').world.World, public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
     this.world = world
-    this.viewDistance = viewDistance
-    /** @type {Record<string, boolean>} */
     this.loadedChunks = {}
     this.lastPos = new Vec3(0, 0, 0).update(position)
     this.emitter = this
 
-    this.listeners = {}
     this.emitter.on('mouseClick', async (click) => {
       const ori = new Vec3(click.origin.x, click.origin.y, click.origin.z)
       const dir = new Vec3(click.direction.x, click.direction.y, click.direction.z)
@@ -32,31 +31,30 @@ class WorldDataEmitter extends EventEmitter {
     })
   }
 
-  listenToBot (bot) {
-    const worldView = this
-    this.listeners[bot.username] = {
+  listenToBot (bot: import('mineflayer').Bot) {
+    this.eventListeners[bot.username] = {
       // 'move': botPosition,
-      entitySpawn: function (e) {
+      entitySpawn: (e: any) => {
         if (e === bot.entity) return
-        worldView.emitter.emit('entity', { id: e.id, name: e.name, pos: e.position, width: e.width, height: e.height, username: e.username })
+        this.emitter.emit('entity', { id: e.id, name: e.name, pos: e.position, width: e.width, height: e.height, username: e.username })
       },
-      entityMoved: function (e) {
-        worldView.emitter.emit('entity', { id: e.id, pos: e.position, pitch: e.pitch, yaw: e.yaw })
+      entityMoved: (e: any) => {
+        this.emitter.emit('entity', { id: e.id, pos: e.position, pitch: e.pitch, yaw: e.yaw })
       },
-      entityGone: function (e) {
-        worldView.emitter.emit('entity', { id: e.id, delete: true })
+      entityGone: (e: any) => {
+        this.emitter.emit('entity', { id: e.id, delete: true })
       },
-      chunkColumnLoad: function (pos) {
-        worldView.loadChunk(pos)
+      chunkColumnLoad: (pos: Vec3) => {
+        this.loadChunk(pos)
       },
-      blockUpdate: function (oldBlock, newBlock) {
+      blockUpdate: (oldBlock: any, newBlock: any) => {
         const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
-        worldView.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
+        this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
       }
     }
 
-    for (const [evt, listener] of Object.entries(this.listeners[bot.username])) {
-      bot.on(evt, listener)
+    for (const [evt, listener] of Object.entries(this.eventListeners[bot.username])) {
+      bot.on(evt as any, listener)
     }
 
     for (const id in bot.entities) {
@@ -67,17 +65,17 @@ class WorldDataEmitter extends EventEmitter {
     }
   }
 
-  removeListenersFromBot (bot) {
-    for (const [evt, listener] of Object.entries(this.listeners[bot.username])) {
-      bot.removeListener(evt, listener)
+  removeListenersFromBot (bot: import('mineflayer').Bot) {
+    for (const [evt, listener] of Object.entries(this.eventListeners[bot.username])) {
+      bot.removeListener(evt as any, listener)
     }
-    delete this.listeners[bot.username]
+    delete this.eventListeners[bot.username]
   }
 
-  async init (pos) {
+  async init (pos: Vec3) {
     const [botX, botZ] = chunkPos(pos)
 
-    const positions = []
+    const positions: Vec3[] = []
     spiral(this.viewDistance * 2, this.viewDistance * 2, (x, z) => {
       const p = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
       positions.push(p)
@@ -87,14 +85,14 @@ class WorldDataEmitter extends EventEmitter {
     await this._loadChunks(positions)
   }
 
-  async _loadChunks (positions, sliceSize = 5, waitTime = 0) {
+  async _loadChunks (positions: Vec3[], sliceSize = 5, waitTime = 0) {
     for (let i = 0; i < positions.length; i += sliceSize) {
       await new Promise((resolve) => setTimeout(resolve, waitTime))
-      await Promise.all(positions.slice(i, i + sliceSize).map(p => this.loadChunk(p)))
+      await Promise.all(positions.slice(i, i + sliceSize).map((p) => this.loadChunk(p)))
     }
   }
 
-  async loadChunk (pos) {
+  async loadChunk (pos: Vec3) {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
     const dz = Math.abs(botZ - Math.floor(pos.z / 16))
@@ -103,18 +101,20 @@ class WorldDataEmitter extends EventEmitter {
       if (column) {
         // todo optimize toJson data, make it clear why it is used
         const chunk = column.toJson()
+        // TODO: blockEntities
+        //@ts-ignore
         this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
     }
   }
 
-  unloadChunk (pos) {
+  unloadChunk (pos: Vec3) {
     this.emitter.emit('unloadChunk', { x: pos.x, z: pos.z })
     delete this.loadedChunks[`${pos.x},${pos.z}`]
   }
 
-  async updatePosition (pos, force = false) {
+  async updatePosition (pos: Vec3, force = false) {
     const [lastX, lastZ] = chunkPos(this.lastPos)
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {
@@ -127,7 +127,7 @@ class WorldDataEmitter extends EventEmitter {
           this.unloadChunk(p)
         }
       }
-      const positions = []
+      const positions: Vec3[] = []
       spiral(this.viewDistance * 2, this.viewDistance * 2, (x, z) => {
         const p = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
         if (!this.loadedChunks[`${p.x},${p.z}`]) {
@@ -141,5 +141,3 @@ class WorldDataEmitter extends EventEmitter {
     }
   }
 }
-
-module.exports = { WorldDataEmitter }
