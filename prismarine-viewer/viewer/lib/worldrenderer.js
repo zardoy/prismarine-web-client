@@ -14,6 +14,7 @@ function mod (x, n) {
 
 class WorldRenderer {
   constructor (scene, numWorkers = 4) {
+    this.blockEntities = {}
     this.sectionMeshs = {}
     this.active = false
     this.version = undefined
@@ -29,10 +30,10 @@ class WorldRenderer {
 
     this.workers = []
     for (let i = 0; i < numWorkers; i++) {
-      // Node environement needs an absolute path, but browser needs the url of the file
+      // Node environment needs an absolute path, but browser needs the url of the file
       let src = __dirname
-      if (typeof window !== 'undefined') src = 'worker.js'
-      else src += '/worker.js'
+      if (typeof window === 'undefined') src += '/worker.js'
+      else src = 'worker.js'
 
       /** @type {any} */
       const worker = new Worker(src)
