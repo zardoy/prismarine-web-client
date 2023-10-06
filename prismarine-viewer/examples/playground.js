@@ -101,8 +101,8 @@ async function main () {
   })
 
   // await schem.paste(world, new Vec3(0, 60, 0))
-
-  const worldView = new WorldView(world, viewDistance, center)
+  
+  const worldView = new WorldDataEmitter(world, viewDistance, center)
 
   // Create three.js context, add to page
   const renderer = new THREE.WebGLRenderer()

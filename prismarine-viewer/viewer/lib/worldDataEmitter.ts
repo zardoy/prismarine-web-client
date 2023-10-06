@@ -1,9 +1,10 @@
 import { chunkPos } from './simpleUtils'
-import { spiral, ViewRect } from 'flying-squid/src/utils'
+import { generateSpiralMatrix, ViewRect } from 'flying-squid/src/utils'
 import { Vec3 } from 'vec3'
 import { EventEmitter } from 'events'
 
 export type ChunkPosKey = string
+type ChunkPos = { x: number, z: number }
 
 /**
  * Usually connects to mineflayer bot and emits world data (chunks, entities)
@@ -76,10 +77,9 @@ export class WorldDataEmitter extends EventEmitter {
   async init (pos: Vec3) {
     const [botX, botZ] = chunkPos(pos)
 
-    const positions = spiral(this.viewDistance).map(([x, z]) => new Vec3((botX + x) * 16, 0, (botZ + z) * 16))
+    const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => new Vec3((botX + x) * 16, 0, (botZ + z) * 16))
 
     this.lastPos.update(pos)
-    console.log(positions)
     await this._loadChunks(positions)
   }
 
@@ -90,12 +90,12 @@ export class WorldDataEmitter extends EventEmitter {
     }
   }
 
-  async loadChunk (pos: Vec3) {
+  async loadChunk (pos: ChunkPos) {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
     const dz = Math.abs(botZ - Math.floor(pos.z / 16))
     if (dx < this.viewDistance && dz < this.viewDistance) {
-      const column = await this.world.getColumnAt(pos)
+      const column = await this.world.getColumnAt(pos['y'] ? pos as Vec3 : new Vec3(pos.x, 0, pos.z))
       if (column) {
         // todo optimize toJson data, make it clear why it is used
         const chunk = column.toJson()
@@ -107,7 +107,7 @@ export class WorldDataEmitter extends EventEmitter {
     }
   }
 
-  unloadChunk (pos: Vec3) {
+  unloadChunk (pos: ChunkPos) {
     this.emitter.emit('unloadChunk', { x: pos.x, z: pos.z })
     delete this.loadedChunks[`${pos.x},${pos.z}`]
   }
@@ -127,11 +127,12 @@ export class WorldDataEmitter extends EventEmitter {
           chunksToUnload.push(p)
         }
       }
+      // todo @sa2urami
       console.log('unloading', chunksToUnload.length, 'total now', Object.keys(this.loadedChunks).length)
       for (const p of chunksToUnload) {
         this.unloadChunk(p)
       }
-      const positions = spiral(this.viewDistance).map(([x, z]) => {
+      const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => {
         const pos = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
         if (!this.loadedChunks[`${pos.x},${pos.z}`]) return pos
       }).filter(Boolean)
