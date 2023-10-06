@@ -1,5 +1,4 @@
 //@ts-check
-/* global Worker */
 const THREE = require('three')
 const Vec3 = require('vec3').Vec3
 const { loadTexture, loadJSON } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
@@ -94,7 +93,7 @@ class WorldRenderer {
     for (const worker of this.workers) {
       const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
       mcData.version = JSON.parse(JSON.stringify(mcData.version))
-      worker.postMessage({ type: 'mcData', mcData, version: this.version, time: Date.now() })
+      worker.postMessage({ type: 'mcData', mcData, version: this.version })
     }
 
     this.updateTexturesData()
@@ -108,7 +107,7 @@ class WorldRenderer {
       this.material.map = texture
     })
 
-    const loadBlockStates = () => {
+    const loadBlockStates = async () => {
       return new Promise(resolve => {
         if (this.blockStatesData) return resolve(this.blockStatesData)
         return loadJSON(`blocksStates/${this.texturesVersion}.json`, resolve)
@@ -177,9 +176,9 @@ class WorldRenderer {
 
   // Listen for chunk rendering updates emitted if a worker finished a render and resolve if the number
   // of sections not rendered are 0
-  waitForChunksToRender () {
+  async waitForChunksToRender () {
     return new Promise((resolve, reject) => {
-      if (Array.from(this.sectionsOutstanding).length === 0) {
+      if ([...this.sectionsOutstanding].length === 0) {
         resolve()
         return
       }

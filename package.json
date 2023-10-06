@@ -11,6 +11,7 @@
     "test:e2e": "start-test http-get://localhost:8080 test:cypress",
     "prod-start": "node server.js",
     "postinstall": "node scripts/gen-texturepack-files.mjs",
+    "test-mc-server": "tsx cypress/minecraft-server.mjs",
     "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\""
   },
   "keywords": [
@@ -60,6 +61,7 @@
     "@types/lodash-es": "^4.17.9",
     "@types/stats.js": "^0.17.1",
     "@types/three": "0.128.0",
+    "@xmcl/installer": "^5.1.0",
     "assert": "^2.0.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
@@ -90,6 +92,7 @@
     "timers-browserify": "^2.0.12",
     "typescript": "^5.2.2",
     "use-typed-event-listener": "^4.0.2",
+    "vitest": "^0.34.6",
     "yaml": "^2.3.2"
   },
   "pnpm": {

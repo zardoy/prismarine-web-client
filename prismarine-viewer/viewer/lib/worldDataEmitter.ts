@@ -1,4 +1,5 @@
-import { spiral, ViewRect, chunkPos } from './simpleUtils'
+import { chunkPos } from './simpleUtils'
+import { spiral, ViewRect } from 'flying-squid/src/utils'
 import { Vec3 } from 'vec3'
 import { EventEmitter } from 'events'
 
@@ -16,9 +17,9 @@ export class WorldDataEmitter extends EventEmitter {
 
   constructor(public world: import('prismarine-world').world.World, public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
-    this.world = world
     this.loadedChunks = {}
     this.lastPos = new Vec3(0, 0, 0).update(position)
+    // todo
     this.emitter = this
 
     this.emitter.on('mouseClick', async (click) => {
@@ -75,13 +76,10 @@ export class WorldDataEmitter extends EventEmitter {
   async init (pos: Vec3) {
     const [botX, botZ] = chunkPos(pos)
 
-    const positions: Vec3[] = []
-    spiral(this.viewDistance * 2, this.viewDistance * 2, (x, z) => {
-      const p = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
-      positions.push(p)
-    })
+    const positions = spiral(this.viewDistance).map(([x, z]) => new Vec3((botX + x) * 16, 0, (botZ + z) * 16))
 
     this.lastPos.update(pos)
+    console.log(positions)
     await this._loadChunks(positions)
   }
 
@@ -119,21 +117,24 @@ export class WorldDataEmitter extends EventEmitter {
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {
       const newView = new ViewRect(botX, botZ, this.viewDistance)
+      const chunksToUnload: Vec3[] = []
       for (const coords of Object.keys(this.loadedChunks)) {
         const x = parseInt(coords.split(',')[0])
         const z = parseInt(coords.split(',')[1])
         const p = new Vec3(x, 0, z)
-        if (!newView.contains(Math.floor(x / 16), Math.floor(z / 16))) {
-          this.unloadChunk(p)
+        const [chunkX, chunkZ] = chunkPos(p)
+        if (!newView.contains(chunkX, chunkZ)) {
+          chunksToUnload.push(p)
         }
       }
-      const positions: Vec3[] = []
-      spiral(this.viewDistance * 2, this.viewDistance * 2, (x, z) => {
-        const p = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
-        if (!this.loadedChunks[`${p.x},${p.z}`]) {
-          positions.push(p)
-        }
-      })
+      console.log('unloading', chunksToUnload.length, 'total now', Object.keys(this.loadedChunks).length)
+      for (const p of chunksToUnload) {
+        this.unloadChunk(p)
+      }
+      const positions = spiral(this.viewDistance).map(([x, z]) => {
+        const pos = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
+        if (!this.loadedChunks[`${pos.x},${pos.z}`]) return pos
+      }).filter(Boolean)
       this.lastPos.update(pos)
       await this._loadChunks(positions)
     } else {
