@@ -38,7 +38,7 @@ import downloadAndOpenFile from './downloadAndOpenFile'
 
 import net from 'net'
 import mineflayer from 'mineflayer'
-import { WorldView, Viewer } from 'prismarine-viewer/viewer'
+import { WorldDataEmitter, Viewer } from 'prismarine-viewer/viewer'
 import pathfinder from 'mineflayer-pathfinder'
 import { Vec3 } from 'vec3'
 
@@ -495,8 +495,7 @@ async function connect(connectOptions: {
 
     const center = bot.entity.position
 
-    const worldView: import('prismarine-viewer/viewer/lib/worldView').WorldView = new WorldView(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
-    window.worldView = worldView
+    window.worldView = new WorldDataEmitter(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
     setRenderDistance()
 
     const updateFov = () => {
@@ -543,7 +542,7 @@ async function connect(connectOptions: {
       debugMenu.rendererDevice = '???'
     }
 
-    // Link WorldView and Viewer
+    // Link WorldDataEmitter and Viewer
     viewer.listen(worldView)
     worldView.listenToBot(bot)
     worldView.init(bot.entity.position)

@@ -4,7 +4,7 @@ declare const THREE: typeof import('three')
 // todo make optional
 declare const bot: import('mineflayer').Bot
 declare const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer | undefined
-declare const worldView: import('prismarine-viewer/viewer/lib/worldView').WorldView | undefined
+declare const worldView: import('prismarine-viewer/viewer/lib/worldDataEmitter').WorldDataEmitter | undefined
 declare const localServer: any
 
 declare interface Document {

@@ -87,7 +87,9 @@ class Viewer {
       this.updatePrimitive(p)
     })
 
-    emitter.on('loadChunk', ({ x, z, chunk }) => {
+    emitter.on('loadChunk', ({ x, z, chunk, blockEntities }) => {
+      // todo! clean stay in sync instead!
+      Object.assign(this.world.blockEntities, blockEntities)
       this.addColumn(x, z, chunk)
     })
 

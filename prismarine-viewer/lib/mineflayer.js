@@ -1,5 +1,5 @@
 const EventEmitter = require('events')
-const { WorldView } = require('../viewer')
+const { WorldDataEmitter } = require('../viewer')
 
 module.exports = (bot, { viewDistance = 6, firstPerson = false, port = 3000, prefix = '' }) => {
   const express = require('express')
@@ -49,7 +49,7 @@ module.exports = (bot, { viewDistance = 6, firstPerson = false, port = 3000, pre
     socket.emit('version', bot.version)
     sockets.push(socket)
 
-    const worldView = new WorldView(bot.world, viewDistance, bot.entity.position, socket)
+    const worldView = new WorldDataEmitter(bot.world, viewDistance, bot.entity.position, socket)
     worldView.init(bot.entity.position)
 
     worldView.on('blockClicked', (block, face, button) => {

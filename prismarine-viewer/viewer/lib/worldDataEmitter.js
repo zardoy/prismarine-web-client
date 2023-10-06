@@ -1,15 +1,25 @@
+//@ts-check
 const { spiral, ViewRect, chunkPos } = require('./simpleUtils')
 const { Vec3 } = require('vec3')
 const EventEmitter = require('events')
 
-class WorldView extends EventEmitter {
-  constructor (world, viewDistance, position = new Vec3(0, 0, 0), emitter = null) {
+/**
+ * Usually connects to mineflayer bot and emits world data (chunks, entities)
+ * It's up to the consumer to serialize the data if needed
+ */
+class WorldDataEmitter extends EventEmitter {
+  /**
+   * @param {import('prismarine-world').world.World} world
+   * @param {number} viewDistance
+   */
+  constructor (world, viewDistance, position = new Vec3(0, 0, 0)) {
     super()
     this.world = world
     this.viewDistance = viewDistance
+    /** @type {Record<string, boolean>} */
     this.loadedChunks = {}
     this.lastPos = new Vec3(0, 0, 0).update(position)
-    this.emitter = emitter || this
+    this.emitter = this
 
     this.listeners = {}
     this.emitter.on('mouseClick', async (click) => {
@@ -17,6 +27,7 @@ class WorldView extends EventEmitter {
       const dir = new Vec3(click.direction.x, click.direction.y, click.direction.z)
       const block = this.world.raycast(ori, dir, 256)
       if (!block) return
+      //@ts-ignore
       this.emit('blockClicked', block, block.face, click.button)
     })
   }
@@ -92,7 +103,7 @@ class WorldView extends EventEmitter {
       if (column) {
         // todo optimize toJson data, make it clear why it is used
         const chunk = column.toJson()
-        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk })
+        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
     }
@@ -131,4 +142,4 @@ class WorldView extends EventEmitter {
   }
 }
 
-module.exports = { WorldView }
+module.exports = { WorldDataEmitter }
