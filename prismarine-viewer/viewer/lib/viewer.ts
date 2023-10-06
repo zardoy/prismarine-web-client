@@ -1,16 +1,27 @@
-
-const THREE = require('three')
-const TWEEN = require('@tweenjs/tween.js')
-const { Vec3 } = require('vec3')
-const { WorldRenderer } = require('./worldrenderer')
-const { Entities } = require('./entities')
-const { Primitives } = require('./primitives')
-const { getVersion } = require('./version')
+import * as THREE from 'three'
+import * as tweenJs from '@tweenjs/tween.js'
+import { Vec3 } from 'vec3'
+import { WorldRenderer } from './worldrenderer'
+import { Entities } from './entities'
+import { Primitives } from './primitives'
+import { getVersion } from './version'
 
 // new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial())
 
-class Viewer {
-  constructor (renderer, numWorkers = undefined) {
+export class Viewer {
+  scene: THREE.Scene
+  ambientLight: THREE.AmbientLight
+  directionalLight: THREE.DirectionalLight
+  camera: THREE.PerspectiveCamera
+  world: WorldRenderer
+  entities: Entities
+  primitives: Primitives
+  domElement: HTMLCanvasElement
+  playerHeight: number
+  isSneaking: boolean
+  version: string
+
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers = undefined) {
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('lightblue')
 
@@ -40,7 +51,7 @@ class Viewer {
     this.primitives.clear()
   }
 
-  setVersion (userVersion) {
+  setVersion (userVersion: string) {
     const texturesVersion = getVersion(userVersion)
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
     this.version = userVersion
@@ -53,11 +64,11 @@ class Viewer {
     this.world.addColumn(x, z, chunk)
   }
 
-  removeColumn (x, z) {
+  removeColumn (x: string, z: string) {
     this.world.removeColumn(x, z)
   }
 
-  setBlockStateId (pos, stateId) {
+  setBlockStateId (pos: Vec3, stateId: number) {
     this.world.setBlockStateId(pos, stateId)
   }
 
@@ -69,15 +80,16 @@ class Viewer {
     this.primitives.update(p)
   }
 
-  setFirstPersonCamera (pos, yaw, pitch) {
+  setFirstPersonCamera (pos: Vec3, yaw: number, pitch: number, roll = 0) {
     if (pos) {
       let y = pos.y + this.playerHeight
       if (this.isSneaking) y -= 0.3
-      new TWEEN.Tween(this.camera.position).to({ x: pos.x, y, z: pos.z }, 50).start()
+      new tweenJs.Tween(this.camera.position).to({ x: pos.x, y, z: pos.z }, 50).start()
     }
-    this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+    this.camera.rotation.set(pitch, yaw, roll, 'ZYX')
   }
 
+  // todo type
   listen (emitter) {
     emitter.on('entity', (e) => {
       this.updateEntity(e)
@@ -113,12 +125,10 @@ class Viewer {
   }
 
   update () {
-    TWEEN.update()
+    tweenJs.update()
   }
 
   async waitForChunksToRender () {
     await this.world.waitForChunksToRender()
   }
 }
-
-module.exports = { Viewer }
