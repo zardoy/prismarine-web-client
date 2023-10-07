@@ -647,7 +647,7 @@ async function connect(connectOptions: {
       onCameraMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
     })
 
-    registerListener(document, 'lostpointercapture', (e) => {
+    const pointerUpHandler = (e: PointerEvent) => {
       if (e.pointerId === undefined || e.pointerId !== capturedPointer?.id) return
       clearTimeout(virtualClickTimeout)
       virtualClickTimeout = undefined
@@ -662,15 +662,11 @@ async function connect(connectOptions: {
         document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       }
       capturedPointer = undefined
-    }, { passive: false })
-
-    registerListener(document, 'pointerup', (e) => {
-      const clickedEl = e.composedPath()[0]
-      if (!isGameActive(true) || !miscUiState.currentTouch || clickedEl !== cameraControlEl || e.pointerId === undefined) {
-        return
-      }
       screenTouches--
-    })
+    }
+    registerListener(document, 'pointerup', pointerUpHandler)
+    registerListener(document, 'pointercancel', pointerUpHandler)
+    registerListener(document, 'lostpointercapture', pointerUpHandler)
 
     registerListener(document, 'contextmenu', (e) => e.preventDefault(), false)
 
