@@ -1,4 +1,6 @@
 import { chunkPos } from './simpleUtils'
+
+// todo refactor into its own commons module
 import { generateSpiralMatrix, ViewRect } from 'flying-squid/src/utils'
 import { Vec3 } from 'vec3'
 import { EventEmitter } from 'events'
@@ -16,7 +18,7 @@ export class WorldDataEmitter extends EventEmitter {
   private eventListeners: Record<string, any> = {};
   private emitter: WorldDataEmitter
 
-  constructor(public world: import('prismarine-world').world.World, public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
+  constructor(public world: import('prismarine-world').world.World | typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
     this.loadedChunks = {}
     this.lastPos = new Vec3(0, 0, 0).update(position)
@@ -33,7 +35,7 @@ export class WorldDataEmitter extends EventEmitter {
     })
   }
 
-  listenToBot (bot: import('mineflayer').Bot) {
+  listenToBot (bot: typeof __type_bot) {
     this.eventListeners[bot.username] = {
       // 'move': botPosition,
       entitySpawn: (e: any) => {
@@ -53,6 +55,21 @@ export class WorldDataEmitter extends EventEmitter {
         const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
       }
+    }
+
+    this.emitter.on('listening', () => {
+      this.emitter.emit('blockEntities', new Proxy({}, {
+        get(_target, posKey, receiver) {
+          if (typeof posKey !== 'string') return
+          const [x, y, z] = posKey.split(',').map(Number)
+          console.log('get entity', x, y, z)
+          return bot.world.getBlock(new Vec3(x, y, z)).entity
+        },
+      }))
+    })
+    // node.js stream data event pattern
+    if (this.emitter.listenerCount('blockEntities')) {
+      this.emitter.emit('listening')
     }
 
     for (const [evt, listener] of Object.entries(this.eventListeners[bot.username])) {

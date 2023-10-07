@@ -1,7 +1,7 @@
 //@ts-check
 /* global THREE, fetch */
 const _ = require('lodash')
-const { WorldView, Viewer, MapControls } = require('../viewer')
+const { WorldDataEmitter, Viewer, MapControls } = require('../viewer')
 const { Vec3 } = require('vec3')
 const { Schematic } = require('prismarine-schematic')
 const BlockLoader = require('prismarine-block')
@@ -10,9 +10,9 @@ const BlockLoader = require('prismarine-block')
 const ChunkLoader = require('prismarine-chunk')
 /** @type {import('prismarine-world')['default']} */
 //@ts-ignore
-const WorldLoader = require('prismarine-world');
+const WorldLoader = require('prismarine-world')
 const THREE = require('three')
-const {GUI} = require('lil-gui')
+const { GUI } = require('lil-gui')
 const { toMajor } = require('../viewer/lib/version')
 const { loadScript } = require('../viewer/lib/utils')
 globalThis.THREE = THREE
@@ -26,8 +26,8 @@ const params = {
   skip: '',
   version: globalThis.includedVersions.sort((a, b) => {
     const s = (x) => {
-      const parts = x.split('.');
-      return +parts[0]+(+parts[1])
+      const parts = x.split('.')
+      return +parts[0] + (+parts[1])
     }
     return s(a) - s(b)
   }).at(-1),
@@ -39,6 +39,7 @@ const params = {
     this.entity = ''
   },
   entityRotate: false,
+  camera: ''
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -59,13 +60,18 @@ const setQs = () => {
 async function main () {
   const { version } = params
   // temporary solution until web worker is here, cache data for faster reloads
-  if (!window['mcData']['version']) {
-    const sessionKey = `mcData-${version}`;
+  const globalMcData = window['mcData'];
+  if (!globalMcData['version']) {
+    const major = toMajor(version);
+    const sessionKey = `mcData-${major}`
     if (sessionStorage[sessionKey]) {
-      window['mcData'][version] = JSON.parse(sessionStorage[sessionKey])
+      Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))
     } else {
-      await loadScript(`./mc-data/${toMajor(version)}.js`)
-      sessionStorage[sessionKey] = JSON.stringify(window['mcData'][version])
+      if (sessionStorage.length > 1) sessionStorage.clear()
+      await loadScript(`./mc-data/${major}.js`)
+      try {
+        sessionStorage[sessionKey] = JSON.stringify(Object.fromEntries(Object.entries(globalMcData).filter(([ver]) => ver.startsWith(major))))
+      } catch {}
     }
   }
 
@@ -88,20 +94,30 @@ async function main () {
   // const data = await fetch('smallhouse1.schem').then(r => r.arrayBuffer())
   // const schem = await Schematic.read(Buffer.from(data), version)
 
-  const viewDistance = 1
+  const viewDistance = 2
   const center = new Vec3(0, 90, 0)
 
   const World = WorldLoader(version)
 
   // const diamondSquare = require('diamond-square')({ version, seed: Math.floor(Math.random() * Math.pow(2, 31)) })
-  const targetBlockPos = center
+
+  const targetPos = center
+  //@ts-ignore
+  const chunk1 = new Chunk()
+  //@ts-ignore
+  const chunk2 = new Chunk()
+  chunk1.setBlockStateId(center, 34)
+  chunk2.setBlockStateId(center.offset(1, 0, 0), 34)
   const world = new World((chunkX, chunkZ) => {
+    // if (chunkX === 0 && chunkZ === 0) return chunk1
+    // if (chunkX === 1 && chunkZ === 0) return chunk2
     //@ts-ignore
-    return new Chunk()
+    const chunk = new Chunk();
+    return chunk
   })
 
   // await schem.paste(world, new Vec3(0, 60, 0))
-  
+
   const worldView = new WorldDataEmitter(world, viewDistance, center)
 
   // Create three.js context, add to page
@@ -113,29 +129,33 @@ async function main () {
   // Create viewer
   const viewer = new Viewer(renderer)
   viewer.setVersion(version)
+
   viewer.listen(worldView)
-  // Initialize viewer, load chunks
+  // Load chunks
   worldView.init(center)
   window['worldView'] = worldView
   window['viewer'] = viewer
 
 
-  // const controls = new MapControls(viewer.camera, renderer.domElement)
-  // controls.update()
+  //@ts-ignore
+  const controls = new THREE.OrbitControls(viewer.camera, renderer.domElement)
+  controls.target.set(center.x + 0.5, center.y + 0.5, center.z + 0.5)
+  controls.update()
 
   const cameraPos = center.offset(2, 2, 2)
   const pitch = THREE.MathUtils.degToRad(-45)
   const yaw = THREE.MathUtils.degToRad(45)
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+  viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
   viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
 
   let blockProps = {}
-  const getBlock  = () => {
+  const getBlock = () => {
     return mcData.blocksByName[params.block || 'air']
   }
   const onUpdate = {
-    block() {
-      const {states} = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
+    block () {
+      const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
       folder.destroy()
       if (!states) {
         return
@@ -146,16 +166,16 @@ async function main () {
         switch (state.type) {
           case 'enum':
             defaultValue = state.values[0]
-            break;
+            break
           case 'bool':
             defaultValue = false
-            break;
+            break
           case 'int':
             defaultValue = 0
-            break;
+            break
           case 'direction':
             defaultValue = 'north'
-            break;
+            break
 
           default:
             continue
@@ -173,14 +193,14 @@ async function main () {
       viewer.entities.clear()
       if (!params.entity) return
       worldView.emit('entity', {
-        id: 'id', name: params.entity, pos: targetBlockPos.offset(0, 1, 0), width: 1, height: 1, username: 'username'
+        id: 'id', name: params.entity, pos: targetPos.offset(0, 1, 0), width: 1, height: 1, username: 'username'
       })
     }
   }
 
 
   const applyChanges = (metadataUpdate = false) => {
-    const blockId = getBlock()?.id;
+    const blockId = getBlock()?.id
     /** @type {BlockLoader.Block} */
     let block
     if (metadataUpdate) {
@@ -197,14 +217,14 @@ async function main () {
       block = Block.fromProperties(blockId ?? -1, blockProps, 0)
     }
 
-    viewer.setBlockStateId(targetBlockPos, block.stateId)
+    viewer.setBlockStateId(targetPos, block.stateId)
     console.log('up', block.stateId)
     params.metadata = block.metadata
     metadataGui.updateDisplay()
-    viewer.setBlockStateId(targetBlockPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
+    viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     setQs()
   }
-  gui.onChange(({property}) => {
+  gui.onChange(({ property }) => {
     if (property === 'camera') return
     onUpdate[property]?.()
     applyChanges(property === 'metadata')
@@ -232,6 +252,39 @@ async function main () {
     animate()
   })
   animate()
+
+  // #region camera rotation
+  if (params.camera) {
+    const [x, y] = params.camera.split(',')
+    viewer.camera.rotation.set(parseFloat(x), parseFloat(y), 0, 'ZYX')
+    controls.update()
+    console.log(viewer.camera.rotation.x, parseFloat(x))
+  }
+  const throttledCamQsUpdate = _.throttle(() => {
+    const { camera } = viewer
+    // params.camera = `${camera.rotation.x.toFixed(2)},${camera.rotation.y.toFixed(2)}`
+    setQs()
+  }, 200)
+  controls.addEventListener('change', () => {
+    throttledCamQsUpdate()
+    animate()
+  })
+  // #endregion
+
+  window.onresize = () => {
+    // const vec3 = new THREE.Vector3()
+    // vec3.set(-1, -1, -1).unproject(viewer.camera)
+    // console.log(vec3)
+    // box.position.set(vec3.x, vec3.y, vec3.z-1)
+
+    const { camera } = viewer
+    viewer.camera.aspect = window.innerWidth / window.innerHeight
+    viewer.camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+
+    animate()
+  }
+  window.dispatchEvent(new Event('resize'))
 
   setTimeout(() => {
     // worldView.emit('entity', {

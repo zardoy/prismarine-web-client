@@ -1,6 +1,7 @@
 //@ts-nocheck
 import { Vec3 } from 'vec3'
 import { BlockStatesOutput } from '../prepare/modelsBuilder'
+import { World } from './world'
 
 const tints = {}
 let blockStates: BlockStatesOutput
@@ -367,7 +368,7 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
   }
 }
 
-export function getSectionGeometry (sx, sy, sz, world) {
+export function getSectionGeometry (sx, sy, sz, world: World) {
   const attr = {
     sx: sx + 8,
     sy: sy + 8,
@@ -380,7 +381,9 @@ export function getSectionGeometry (sx, sy, sz, world) {
     t_normals: [],
     t_colors: [],
     t_uvs: [],
-    indices: []
+    indices: [],
+    // todo this can be removed here
+    signs: {}
   }
 
   const cursor = new Vec3(0, 0, 0)
@@ -388,6 +391,21 @@ export function getSectionGeometry (sx, sy, sz, world) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)
+        if (block.name.includes('sign')) {
+          const key = `${cursor.x},${cursor.y},${cursor.z}`
+          const props = block.getProperties();
+          const facingRotationMap = {
+            "north": 2,
+            "south": 0,
+            "west": 1,
+            "east": 3
+          }
+          const isWall = block.name.endsWith('wall_sign') || block.name.endsWith('hanging_sign');
+          attr.signs[key] = {
+            isWall,
+            rotation: isWall ? facingRotationMap[props.facing] : +props.rotation
+          }
+        }
         const biome = block.biome.name
         if (block.variant === undefined) {
           block.variant = getModelVariants(block)

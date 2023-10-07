@@ -85,21 +85,14 @@ import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import debug from 'debug'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
+import { registerServiceWorker } from './serviceWorker'
 
 window.debug = debug
 window.THREE = THREE
 
-if ('serviceWorker' in navigator && !isCypress() && process.env.NODE_ENV !== 'development') {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').then(registration => {
-      console.log('SW registered:', registration)
-    }).catch(registrationError => {
-      console.log('SW registration failed:', registrationError)
-    })
-  })
-}
-
 // ACTUAL CODE
+
+void registerServiceWorker()
 
 // Create three.js context, add to page
 const renderer = new THREE.WebGLRenderer({
@@ -183,7 +176,6 @@ function onCameraMove(e) {
     x: e.movementX * mouseSensX * 0.0001,
     y: e.movementY * mouseSensY * 0.0001
   })
-  // todo do it also on every block update within radius 5
   updateCursor()
 }
 window.addEventListener('mousemove', onCameraMove, { capture: true })
@@ -263,7 +255,7 @@ async function connect(connectOptions: {
   setLoadingScreenStatus('Logging in')
 
   let ended = false
-  let bot: mineflayer.Bot
+  let bot: typeof __type_bot
   const destroyAll = () => {
     if (ended) return
     ended = true
@@ -404,7 +396,7 @@ async function connect(connectOptions: {
         await downloadMcData(client.version)
         setLoadingScreenStatus('Connecting to server')
       }
-    })
+    }) as unknown as typeof __type_bot
     window.bot = bot
     if (singeplayer || p2pMultiplayer) {
       // p2pMultiplayer still uses the same flying-squid server
@@ -495,7 +487,7 @@ async function connect(connectOptions: {
 
     const center = bot.entity.position
 
-    window.worldView = new WorldDataEmitter(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
+    const worldView = window.worldView = new WorldDataEmitter(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
     setRenderDistance()
 
     const updateFov = () => {

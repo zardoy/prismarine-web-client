@@ -99,10 +99,12 @@ export class Viewer {
       this.updatePrimitive(p)
     })
 
-    emitter.on('loadChunk', ({ x, z, chunk, blockEntities }) => {
-      // todo! clean stay in sync instead!
-      Object.assign(this.world.blockEntities, blockEntities)
+    emitter.on('loadChunk', ({ x, z, chunk }) => {
       this.addColumn(x, z, chunk)
+    })
+    // todo remove and use other architecture instead so data flow is clear
+    emitter.on('blockEntities', (blockEntities) => {
+      this.world.blockEntities = blockEntities
     })
 
     emitter.on('unloadChunk', ({ x, z }) => {
@@ -112,6 +114,8 @@ export class Viewer {
     emitter.on('blockUpdate', ({ pos, stateId }) => {
       this.setBlockStateId(new Vec3(pos.x, pos.y, pos.z), stateId)
     })
+
+    emitter.emit('listening')
 
     this.domElement.addEventListener('pointerdown', (evt) => {
       const raycaster = new THREE.Raycaster()

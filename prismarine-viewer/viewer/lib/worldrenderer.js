@@ -1,12 +1,15 @@
 //@ts-check
 const THREE = require('three')
-const Vec3 = require('vec3').Vec3
+const { Vec3 } = require('vec3')
 const { loadTexture, loadJSON } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
 const { EventEmitter } = require('events')
-const { dispose3 } = require('./dispose')
-const { dynamicMcDataFiles } = require('../../buildWorkerConfig.mjs')
 const mcDataRaw = require('minecraft-data/data.js')
+const nbt = require('prismarine-nbt')
+const { dynamicMcDataFiles } = require('../../buildWorkerConfig.mjs')
+const { dispose3 } = require('./dispose')
 const { toMajor } = require('./version.js')
+const PrismarineChatLoader = require('prismarine-chat')
+const { renderSign } = require('../sign-renderer/')
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -37,9 +40,13 @@ class WorldRenderer {
 
       /** @type {any} */
       const worker = new Worker(src)
-      worker.onmessage = ({ data }) => {
+      worker.onmessage = async ({ data }) => {
         if (!this.active) return
+        await new Promise(resolve => {
+          setTimeout(resolve, 0)
+        })
         if (data.type === 'geometry') {
+          /** @type {THREE.Object3D} */
           let mesh = this.sectionMeshs[data.key]
           if (mesh) {
             this.scene.remove(mesh)
@@ -48,7 +55,7 @@ class WorldRenderer {
           }
 
           const chunkCoords = data.key.split(',')
-          if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]]) return
+          if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length) return
 
           const geometry = new THREE.BufferGeometry()
           geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
@@ -57,8 +64,23 @@ class WorldRenderer {
           geometry.setAttribute('uv', new THREE.BufferAttribute(data.geometry.uvs, 2))
           geometry.setIndex(data.geometry.indices)
 
-          mesh = new THREE.Mesh(geometry, this.material)
-          mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
+          const _mesh = new THREE.Mesh(geometry, this.material)
+          _mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
+          const boxHelper = new THREE.BoxHelper(_mesh, 0xffff00)
+          // shouldnt it compute once
+          if (Object.keys(data.geometry.signs).length) {
+            mesh = new THREE.Group()
+            mesh.add(_mesh)
+            mesh.add(boxHelper)
+            for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
+              const [x, y, z] = posKey.split(',')
+              const signBlockEntity = this.blockEntities[posKey]
+              if (!signBlockEntity) continue
+              mesh.add(this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity)))
+            }
+          } else {
+            mesh = _mesh
+          }
           this.sectionMeshs[data.key] = mesh
           this.scene.add(mesh)
         } else if (data.type === 'sectionFinished') {
@@ -69,6 +91,36 @@ class WorldRenderer {
       if (worker.on) worker.on('message', (data) => { worker.onmessage({ data }) })
       this.workers.push(worker)
     }
+  }
+
+  renderSign (/** @type {Vec3} */position, /** @type {number} */rotation, isWall, blockEntity) {
+    // @ts-ignore
+    const PrismarineChat = PrismarineChatLoader(this.version)
+    const canvas = renderSign(blockEntity, PrismarineChat)
+    const tex = new THREE.Texture(canvas)
+    tex.magFilter = THREE.NearestFilter
+    tex.minFilter = THREE.NearestFilter
+    tex.needsUpdate = true
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, }))
+    mesh.renderOrder = 999
+
+    // todo @sa2urami shouldnt all this be done in worker?
+    mesh.scale.set(1, 7 / 16, 1)
+    if (isWall) {
+      mesh.position.set(0, 0, -(8 - 1.5) / 16 + 0.001)
+    } else {
+      // standing
+      const faceEnd = 8.75
+      mesh.position.set(0, 0, (faceEnd - 16 / 2) / 16 + 0.001)
+    }
+
+    const group = new THREE.Group()
+    const rotateStep = isWall ? 2 : 4
+    group.rotation.set(0, -(Math.PI / rotateStep) * rotation, 0)
+    group.add(mesh)
+    const y = isWall ? 4.5 / 16 + mesh.scale.y / 2 : (1 - (mesh.scale.y / 2))
+    group.position.set(position.x + 0.5, position.y + y, position.z + 0.5)
+    return group
   }
 
   resetWorld () {

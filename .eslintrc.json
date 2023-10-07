@@ -1,7 +1,8 @@
 {
     "extends": "zardoy",
     "ignorePatterns": [
-        "!*.js"
+        "!*.js",
+        "prismarine-viewer/"
     ],
     "rules": {
         "space-infix-ops": "error",

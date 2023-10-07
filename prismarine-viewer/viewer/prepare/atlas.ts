@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { Canvas, Image } from 'canvas'
+import { getAdditionalTextures } from './moreGeneratedBlocks'
 
 function nextPowerOfTwo (n) {
   if (n === 0) return 1
@@ -28,7 +29,10 @@ export function makeTextureAtlas (mcAssets) {
   const textureFiles = fs.readdirSync(blocksTexturePath).filter(file => file.endsWith('.png'))
   textureFiles.unshift(...localTextures)
 
-  const texSize = nextPowerOfTwo(Math.ceil(Math.sqrt(textureFiles.length)))
+  const {generated:additionalTextures, twoBlockTextures} = getAdditionalTextures()
+  textureFiles.push(...Object.keys(additionalTextures))
+
+  const texSize = nextPowerOfTwo(Math.ceil(Math.sqrt(textureFiles.length + twoBlockTextures.length)))
   const tileSize = 16
 
   const imgSize = texSize * tileSize
@@ -46,13 +50,16 @@ export function makeTextureAtlas (mcAssets) {
     const name = textureFiles[i].split('.')[0]
 
     const img = new Image()
-    img.src = 'data:image/png;base64,' + readTexture(blocksTexturePath, textureFiles[i])
-    const needsMoreWidth = img.width > tileSize
-    if (needsMoreWidth) {
-      console.log('needs more', name, img.width, img.height)
+    if (additionalTextures[name]) {
+      img.src = additionalTextures[name]
+    } else {
+      img.src = 'data:image/png;base64,' + readTexture(blocksTexturePath, textureFiles[i])
+    }
+    const twoTileWidth = twoBlockTextures.includes(name)
+    if (twoTileWidth) {
       offset++
     }
-    const renderWidth = needsMoreWidth ? tileSize * 2 : tileSize
+    const renderWidth = twoTileWidth ? tileSize * 2 : tileSize
     g.drawImage(img, 0, 0, img.width, img.height, x, y, renderWidth, tileSize)
 
     texturesIndex[name] = { u: x / imgSize, v: y / imgSize, su: renderWidth / imgSize, sv: tileSize / imgSize }

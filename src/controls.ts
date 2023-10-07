@@ -228,6 +228,9 @@ document.addEventListener('keydown', (e) => {
       for (const [x, z] of loadedChunks) {
         worldView.unloadChunk({ x, z })
       }
+      if (localServer) {
+        localServer.players[0].world.columns = {}
+      }
       reloadChunks()
     }
   }
