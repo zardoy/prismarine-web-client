@@ -19,6 +19,8 @@ jobs:
       - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
       # will install + build to .vercel/output/static
       - run: vercel build --token=${{ secrets.VERCEL_TOKEN }} --prod
+      - name: Copy playground files
+        run: node prismarine-viewer/esbuild.mjs && cp prismarine-viewer/public/index.html .vercel/output/static/playground.html && cp prismarine-viewer/public/playground.js .vercel/output/static/playground.js
       - name: Deploy Project to Vercel
         uses: mathiasvr/command-output@v2.0.0
         with:
