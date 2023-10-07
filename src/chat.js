@@ -360,7 +360,10 @@ class ChatBox extends LitElement {
       this.completePadText = completeValue === '/' ? '' : completeValue
       if (this.completeRequestValue === completeValue) {
         const lastWord = chatInput.value.split(' ').at(-1)
-        this.completionItems = this.completionItemsSource.filter(i => i.startsWith(lastWord))
+        this.completionItems = this.completionItemsSource.filter(i => {
+          const compareableParts = i.split(/[_:]/)
+          return compareableParts.some(compareablePart => compareablePart.startsWith(lastWord))
+        })
         return
       }
       this.completeRequestValue = ''
