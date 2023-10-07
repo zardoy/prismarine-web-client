@@ -2,7 +2,7 @@
 
 A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
 
-This project is a work in progress, but it should be already in playable state. If you encounter any bugs or usability issues, please report them! I can't fix all the issues myself, but will try as many as I can.
+This project is a work in progress, but I consider it to be usable. If you encounter any bugs or usability issues, please report them!
 
 ### Big Features
 
@@ -34,7 +34,40 @@ MS account authentication will be supported soon.
 
 ### Things that are not planned yet
 
-- Mods and jar plugins support, shaders
+- Mods, plugins (basically JARs) support, shaders - since they all are related to specific game pipelines
+
+### Advanced Settings
+
+There are many many settings, that are not exposed in the UI yet. You can find or change them by opening the browser console and typing `options`. You can also change them by typing `options.<setting_name> = <value>`.
+
+### Console
+
+To open the console, press `F12`, or if you are on mobile, you can type `#debug` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
+
+### Debugging
+
+It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info.
+
+However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:
+
+- `localStorage.debug = '*'` - Enables all debug messages!
+
+- `bot` - Mineflayer bot instance. See Mineflayer documentation for more.
+- `viewer` - Three.js viewer instance, basically does all the rendering.
+- `viewer.world.sectionMeshs` - Object with all active chunk sections (geometries) in the world. Each chunk section is a Three.js mesh or group.
+- `localServer` - Only for singleplayer host / guest mode. Flying Squid server instance, see it's documentation for more.
+- `localServer.overworld.storageProvider.regions` - See ALL LOADED region files with all raw data!
+
+- `nbt.simplify(someNbt)` - Simplifies nbt data, so it's easier to read.
+
+You can also drag and drop any .dat file into the browser window to see it's contents in the console.
+
+### F3 Keybindings
+
+- `F3` - Toggle debug overlay
+- `F3 + A` - Reload all chunks (these that are loaded from the server)
+<!-- <!-- - `F3 + N` - Restart local server (basically resets the world!) -->
+- `F3 + G` - Toggle chunk sections (geometries) border visibility (aka Three.js geometry helpers) - most probably need to reload chunks after toggling
 
 ### Notable Things that Power this Project
 
