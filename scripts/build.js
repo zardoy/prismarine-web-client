@@ -17,15 +17,17 @@ const filesToCopy = [
     { from: `${prismarineViewerBase}/public/textures/1.16.4/entity`, to: 'dist/textures/1.16.4/entity' },
 ]
 exports.filesToCopy = filesToCopy
-exports.copyFiles = () => {
+exports.copyFiles = (dev = false) => {
     console.time('copy files')
-    // copy glob
-    const cwd = `${prismarineViewerBase}/public/textures/`
-    const files = glob.sync('*.png', { cwd: cwd, nodir: true, })
-    for (const file of files) {
-        const copyDest = path.join('dist/textures/', file)
-        fs.mkdirSync(path.dirname(copyDest), { recursive: true, })
-        fs.copyFileSync(path.join(cwd, file), copyDest)
+    if (!dev) {
+        // copy glob
+        const cwd = `${prismarineViewerBase}/public/textures/`
+        const files = glob.sync('*.png', { cwd: cwd, nodir: true, })
+        for (const file of files) {
+            const copyDest = path.join('dist/textures/', file)
+            fs.mkdirSync(path.dirname(copyDest), { recursive: true, })
+            fs.copyFileSync(path.join(cwd, file), copyDest)
+        }
     }
 
     filesToCopy.forEach(file => {
