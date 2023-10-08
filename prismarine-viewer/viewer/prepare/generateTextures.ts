@@ -20,7 +20,7 @@ fs.mkdirSync(blockStatesPath, { recursive: true })
 const warnings = new Set<string>()
 Promise.resolve().then(async () => {
   console.time('generateTextures')
-  for (const version of mcAssets.versions) {
+  for (const version of mcAssets.versions as typeof mcAssets['versions']) {
     // for debugging (e.g. when above is overridden)
     if (!mcAssets.versions.includes(version)) {
       throw new Error(`Version ${version} is not supported by minecraft-assets, skipping...`)

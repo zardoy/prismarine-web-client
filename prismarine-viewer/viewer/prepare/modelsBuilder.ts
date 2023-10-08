@@ -61,7 +61,7 @@ export type McAssets = {
 
 export type BlockStatesOutput = {
   // states: {
-  [blockName: string]: ResolvedModel
+  // [blockName: string]: ResolvedModel
   // }
   // defaults: {
   //   su: number
@@ -123,7 +123,7 @@ function cleanupBlockName (name: string) {
   return name
 }
 
-const objectAssignStrict = <T extends Record<string, any>>(target: T, source: Partial<T>) => Object.assign(target, source)
+const objectAssignStrict = <T extends Record<string, any>> (target: T, source: Partial<T>) => Object.assign(target, source)
 
 function getFinalModel (name: string, blocksModels: { [x: string]: BlockModel }) {
   name = cleanupBlockName(name)
@@ -155,13 +155,14 @@ function getFinalModel (name: string, blocksModels: { [x: string]: BlockModel })
 
 const deepCopy = (obj) => JSON.parse(JSON.stringify(obj))
 
+const workerUsedTextures = ['particle']
 function prepareModel (model: BlockModel, texturesJson) {
   const newModel = {}
 
   const getFinalTexture = (originalBlockName) => {
     // texture name e.g. blocks/anvil_base
     const cleanBlockName = cleanupBlockName(originalBlockName);
-    return {...texturesJson[cleanBlockName], __debugName: cleanBlockName}
+    return { ...texturesJson[cleanBlockName], __debugName: cleanBlockName }
   }
 
   const finalTextures = []
@@ -171,10 +172,15 @@ function prepareModel (model: BlockModel, texturesJson) {
     let texture = model.textures[side]
 
     while (texture.charAt(0) === '#') {
-      texture = model.textures[texture.slice(1)]
+      const textureName = texture.slice(1)
+      texture = model.textures[textureName]
+      if (texture === undefined) throw new Error(`Texture ${textureName} in ${JSON.stringify(model.textures)} not found`)
     }
 
     finalTextures[side] = getFinalTexture(texture)
+    if (workerUsedTextures.includes(side)) {
+      model.textures[side] = finalTextures[side]
+    }
   }
 
   for (const elem of model.elements!) {

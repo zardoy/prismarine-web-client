@@ -29,7 +29,7 @@ export function makeTextureAtlas (mcAssets) {
   const textureFiles = fs.readdirSync(blocksTexturePath).filter(file => file.endsWith('.png'))
   textureFiles.unshift(...localTextures)
 
-  const {generated:additionalTextures, twoBlockTextures} = getAdditionalTextures()
+  const { generated: additionalTextures, twoBlockTextures } = getAdditionalTextures()
   textureFiles.push(...Object.keys(additionalTextures))
 
   const texSize = nextPowerOfTwo(Math.ceil(Math.sqrt(textureFiles.length + twoBlockTextures.length)))
@@ -60,9 +60,9 @@ export function makeTextureAtlas (mcAssets) {
       offset++
     }
     const renderWidth = twoTileWidth ? tileSize * 2 : tileSize
-    g.drawImage(img, 0, 0, img.width, img.height, x, y, renderWidth, tileSize)
+    g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
 
-    texturesIndex[name] = { u: x / imgSize, v: y / imgSize, su: renderWidth / imgSize, sv: tileSize / imgSize }
+    texturesIndex[name] = { u: x / imgSize, v: y / imgSize, su: tileSize / imgSize, sv: tileSize / imgSize }
   }
 
   return { image: canvas.toBuffer(), canvas, json: { size: tileSize / imgSize, textures: texturesIndex } }

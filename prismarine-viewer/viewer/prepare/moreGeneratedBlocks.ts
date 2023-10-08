@@ -2,14 +2,18 @@ import Jimp from 'jimp'
 import minecraftData from 'minecraft-data'
 import prismarineRegistry from 'prismarine-registry'
 import { McAssets } from './modelsBuilder'
+import path from 'path'
+import fs from 'fs'
+import { fileURLToPath } from 'url'
 
 // todo refactor
-const twoBlockTextures = []
+const twoBlockTextures: string[] = []
 let currentImage: Jimp
 let currentBlockName: string
 let currentMcAssets: McAssets
 let isPreFlattening = false
 const postFlatenningRegistry = prismarineRegistry('1.13')
+const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)))
 
 type SidesType = {
   "up": string
@@ -46,6 +50,17 @@ type TextureMap = [
   height?: number,
 ]
 
+const justCropUV = (x: number, y: number, x1, y1) => {
+  // input: 0-16, output: 0-currentImage.getWidth()
+  const width = Math.abs(x1 - x)
+  const height = Math.abs(y1 - y)
+  return currentImage.clone().crop(
+    x / 16 * currentImage.getWidth(),
+    y / 16 * currentImage.getHeight(),
+    width / 16 * currentImage.getWidth(),
+    height / 16 * currentImage.getHeight(),
+  )
+}
 const justCrop = (x: number, y: number, width = 16, height = 16) => {
   return currentImage.clone().crop(x, y, width, height)
 }
@@ -65,10 +80,10 @@ const combineTextures = (locations: TextureMap[]) => {
 
 const generatedImageTextures: { [blockName: string]: /* base64 */string } = {}
 
-const getBlockTexturesFromJimp = async <T extends Record<string, Jimp>> (sides: T, withUv = false): Promise<Record<keyof T, any>> => {
+const getBlockTexturesFromJimp = async <T extends Record<string, Jimp>> (sides: T, withUv = false, textureNameBase = currentBlockName): Promise<Record<keyof T, any>> => {
   const sidesTextures = {} as any
   for (const [side, jimp] of Object.entries(sides)) {
-    const textureName = `${currentBlockName}_${side}`
+    const textureName = `${textureNameBase}_${side}`
     const sideTexture = withUv ? { uv: [0, 0, jimp.getWidth(), jimp.getHeight()], texture: textureName } : textureName
     const base64 = await jimp.getBase64Async(jimp.getMIME())
     if (side === 'side') {
@@ -128,10 +143,11 @@ const handleSign = async (dataBase: string, match: RegExpExecArray) => {
   const isWall = currentBlockName.includes('wall_')
   const isHanging = currentBlockName.includes('hanging_')
   const rotationState = states.find(state => state.name === 'rotation')
+  const faceTexture = { texture: blockTextures.face.texture, uv: blockTextures.face.uv }
   if (isWall || isHanging) {
     // todo isHanging
     if (!isHanging) {
-      const facingState = states.find(state => state.name === 'facing')
+      const facingState = states.find(state => state.name === 'facing')!
       const facingMap = {
         south: 0,
         west: 90,
@@ -157,12 +173,11 @@ const handleSign = async (dataBase: string, match: RegExpExecArray) => {
             "from": [0, 4.5, 0],
             "to": [16, 11.5, 1.5],
             faces: {
-              // north: { texture: blockTextures.face, uv: [0, 0, 16, 16] },
-              south: { texture: blockTextures.face.texture, uv: [0, 0, 16, 16] },
-              east: { texture: blockTextures.signboard_side.texture, uv: [0, 0, 16, 16] },
-              west: { texture: blockTextures.signboard_side.texture, uv: [0, 0, 16, 16] },
-              up: { texture: blockTextures.up.texture, uv: [0, 0, 16, 16] },
-              down: { texture: blockTextures.up.texture, uv: [0, 0, 16, 16] },
+              south: faceTexture,
+              east: blockTextures.signboard_side,
+              west: blockTextures.signboard_side,
+              up: blockTextures.up,
+              down: blockTextures.up,
             },
           }
         ],
@@ -202,18 +217,197 @@ const handleSign = async (dataBase: string, match: RegExpExecArray) => {
           "from": [0, 9, 7.25],
           "to": [16, 16, 8.75],
           faces: {
-            north: { texture: blockTextures.face.texture, uv: [0, 0, 16, 16] },
-            south: { texture: blockTextures.face.texture, uv: [0, 0, 16, 16] },
-            east: { texture: blockTextures.signboard_side.texture, uv: [0, 0, 16, 16] },
-            west: { texture: blockTextures.signboard_side.texture, uv: [0, 0, 16, 16] },
-            up: { texture: blockTextures.up.texture, uv: [0, 0, 16, 16] },
-            down: { texture: blockTextures.up.texture, uv: [0, 0, 16, 16] },
+            north: faceTexture,
+            south: faceTexture,
+            east: blockTextures.signboard_side,
+            west: blockTextures.signboard_side,
+            up: blockTextures.up,
+            down: blockTextures.up,
           },
         }
       ],
     }
   }
   twoBlockTextures.push(blockTextures.face.texture)
+  twoBlockTextures.push(blockTextures.up.texture)
+}
+
+const chestModels = {
+  chest: {
+    "parent": "block/block",
+    "textures": {
+      "particle": "#particles"
+    },
+    "elements": [
+      {
+        "from": [1, 0, 1],
+        "to": [15, 10, 15],
+        "faces": {
+          "down": { "texture": "#chest", "uv": [3.5, 4.75, 7, 8.25], "rotation": 180 },
+          "north": { "texture": "#chest", "uv": [10.5, 8.25, 14, 10.75], "rotation": 180 },
+          "east": { "texture": "#chest", "uv": [0, 8.25, 3.5, 10.75], "rotation": 180 },
+          "south": { "texture": "#chest", "uv": [3.5, 8.25, 7, 10.75], "rotation": 180 },
+          "west": { "texture": "#chest", "uv": [7, 8.25, 10.5, 10.75], "rotation": 180 }
+        },
+      },
+      {
+        "from": [1, 10, 1],
+        "to": [15, 14, 15],
+        "faces": {
+          "up": { "texture": "#chest", "uv": [3.5, 4.75, 7, 8.25] },
+          "north": { "texture": "#chest", "uv": [10.5, 3.75, 14, 4.75], "rotation": 180 },
+          "east": { "texture": "#chest", "uv": [0, 3.75, 3.5, 4.75], "rotation": 180 },
+          "south": { "texture": "#chest", "uv": [3.5, 3.75, 7, 4.75], "rotation": 180 },
+          "west": { "texture": "#chest", "uv": [7, 3.75, 10.5, 4.75], "rotation": 180 }
+        }
+      },
+      {
+        "from": [7, 7, 0],
+        "to": [9, 11, 1],
+        "faces": {
+          "down": { "texture": "#chest", "uv": [0.25, 0, 0.75, 0.25], "rotation": 180 },
+          "up": { "texture": "#chest", "uv": [0.75, 0, 1.25, 0.25], "rotation": 180 },
+          "north": { "texture": "#chest", "uv": [1, 0.25, 1.5, 1.25], "rotation": 180 },
+          "west": { "texture": "#chest", "uv": [0.75, 0.25, 1, 1.25], "rotation": 180 },
+          "east": { "texture": "#chest", "uv": [0, 0.25, 0.25, 1.25], "rotation": 180 }
+        }
+      }
+    ]
+  },
+  chest_left: {
+    "parent": "block/block",
+    "textures": {
+      "particle": "#particles"
+    },
+    "elements": [
+      {
+        "from": [1, 0, 1],
+        "to": [16, 10, 15],
+        "faces": {
+          "down": { "texture": "#chest", "uv": [3.5, 4.75, 7.25, 8.25], "rotation": 180 },
+          "north": { "texture": "#chest", "uv": [10.75, 8.25, 14.5, 10.75], "rotation": 180 },
+          "south": { "texture": "#chest", "uv": [3.5, 8.25, 7.25, 10.75], "rotation": 180 },
+          "west": { "texture": "#chest", "uv": [7.25, 8.25, 10.75, 10.75], "rotation": 180 }
+        }
+      },
+      {
+        "from": [1, 10, 1],
+        "to": [16, 14, 15],
+        "faces": {
+          "up": { "texture": "#chest", "uv": [3.5, 4.75, 7.25, 8.25], "rotation": 180 },
+          "north": { "texture": "#chest", "uv": [10.75, 3.75, 14.5, 4.75], "rotation": 180 },
+          "south": { "texture": "#chest", "uv": [3.5, 3.75, 7.25, 4.75], "rotation": 180 },
+          "west": { "texture": "#chest", "uv": [7.25, 3.75, 10.75, 4.75], "rotation": 180 }
+        }
+      },
+      {
+        "from": [15, 7, 0],
+        "to": [16, 11, 1],
+        "faces": {
+          "down": { "texture": "#chest", "uv": [0.25, 0, 0.5, 0.25], "rotation": 180 },
+          "up": { "texture": "#chest", "uv": [0.5, 0, 0.75, 0.25], "rotation": 180 },
+          "north": { "texture": "#chest", "uv": [0.75, 0.25, 1, 1.25], "rotation": 180 },
+          "west": { "texture": "#chest", "uv": [0.5, 0.25, 0.75, 1.25], "rotation": 180 }
+        }
+      }
+    ]
+  },
+  chest_right: {
+    "parent": "block/block",
+    "textures": {
+      "particle": "#particles"
+    },
+    "elements": [
+      {
+        "from": [0, 0, 1],
+        "to": [15, 10, 15],
+        "faces": {
+          "down": { "texture": "#chest", "uv": [3.5, 4.75, 7.25, 8.25], "rotation": 180 },
+          "north": { "texture": "#chest", "uv": [10.75, 8.25, 14.5, 10.75], "rotation": 180 },
+          "east": { "texture": "#chest", "uv": [0, 8.25, 3.5, 10.75], "rotation": 180 },
+          "south": { "texture": "#chest", "uv": [3.5, 8.25, 7.25, 10.75], "rotation": 180 }
+        }
+      },
+      {
+        "from": [0, 10, 1],
+        "to": [15, 14, 15],
+        "faces": {
+          "up": { "texture": "#chest", "uv": [3.5, 4.75, 7.25, 8.25], "rotation": 180 },
+          "north": { "texture": "#chest", "uv": [10.75, 3.75, 14.5, 4.75], "rotation": 180 },
+          "east": { "texture": "#chest", "uv": [0, 3.75, 3.5, 4.75], "rotation": 180 },
+          "south": { "texture": "#chest", "uv": [3.5, 3.75, 7.25, 4.75], "rotation": 180 }
+        }
+      },
+      {
+        "from": [0, 7, 0],
+        "to": [1, 11, 1],
+        "faces": {
+          "down": { "texture": "#chest", "uv": [0.25, 0, 0.5, 0.25], "rotation": 180 },
+          "up": { "texture": "#chest", "uv": [0.5, 0, 0.75, 0.25], "rotation": 180 },
+          "north": { "texture": "#chest", "uv": [0.75, 0.25, 1, 1.25], "rotation": 180 },
+          "east": { "texture": "#chest", "uv": [0.0, 0.25, 0.25, 1.25], "rotation": 180 }
+        }
+      }
+    ]
+  }
+}
+
+// these blockStates / models copied from https://github.com/FakeDomi/FastChest/blob/master/src/main/resources/assets/minecraft/blockstates/
+const chestBlockStatesMap = {
+  chest: JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/chest.json'), 'utf-8')),
+  trapped_chest: JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/trapped_chest.json'), 'utf-8')),
+  ender_chest: JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/ender_chest.json'), 'utf-8')),
+}
+const handleChest = async (dataBase: string, match: RegExpExecArray) => {
+  const blockStates = structuredClone(chestBlockStatesMap[currentBlockName])
+
+  const particle = match[1] === 'ender' ? 'obsidian' : 'oak_planks'
+
+  const blockStatesVariants = Object.values(blockStates.variants) as { model }[]
+  const neededModels = [...new Set(blockStatesVariants.map((x) => x.model))]
+
+  for (const modelName of neededModels) {
+    let chestTextureName = {
+      chest: 'normal',
+      trapped_chest: 'trapped',
+      ender_chest: 'ender',
+    }[currentBlockName]
+    if (modelName.endsWith('_left')) chestTextureName = `${chestTextureName}_left`
+    if (modelName.endsWith('_right')) chestTextureName = `${chestTextureName}_right`
+
+    // reading latest version since the texture wasn't changed, but in pre-flatenning need custom mapping for doubled_chest
+    const texture = path.join(currentMcAssets.directory, `../1.19.1/entity/chest/${chestTextureName}.png`)
+
+    currentImage = await Jimp.read(texture)
+
+    const model = structuredClone(chestModels[modelName])
+    // todo < 1.9
+    if (currentMcAssets.version === '1.8.8') {
+      // doesn't have definition of block yet
+      model.parent = undefined
+    }
+    model.textures.particle = particle
+    const newModelName = `${currentBlockName}_${modelName}`
+    for (const variant of blockStatesVariants) {
+      if (variant.model !== modelName) continue
+      variant.model = newModelName
+    }
+    for (const [i, { faces }] of model.elements.entries()) {
+      for (const [faceName, face] of Object.entries(faces) as any) {
+        const { uv } = face
+        //@ts-ignore
+        const jimp = justCropUV(...uv)
+        const key = `${chestTextureName}_${modelName}_${i}_${faceName}`
+        const texture = await getBlockTexturesFromJimp({
+          [key]: jimp
+        }, true, key).then(a => a[key])
+        face.texture = texture.texture
+        face.uv = texture.uv
+      }
+    }
+    currentMcAssets.blocksModels[newModelName] = model
+  }
+  currentMcAssets.blocksStates[currentBlockName] = blockStates
 }
 
 const handlers = [
@@ -224,6 +418,7 @@ const handlers = [
   [/^wall_sign$/, handleSign],
   [/(.+)_wall_sign$/, handleSign],
   [/(.+)_sign$/, handleSign],
+  [/^(?:(ender|trapped)_)?chest$/, handleChest],
   // no-op just suppress warning
   [/(^light|^moving_piston$)/, true],
 ] as const
@@ -262,7 +457,7 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
     }
   }
 
-  const warnings = []
+  const warnings: string[] = []
   for (const [name, model] of Object.entries(mcAssets.blocksModels)) {
     if (Object.keys(model).length === 1 && model.textures) {
       const keys = Object.keys(model.textures)
@@ -279,22 +474,3 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
 export const getAdditionalTextures = () => {
   return { generated: generatedImageTextures, twoBlockTextures }
 }
-
-// test below
-// const dataBase = '...'
-// const blockName = 'light_blue_shulker_box'
-
-// currentMcAssets = {
-//   blocksModels: {},
-//   blocksStates: {}
-// } as any
-// tryHandleBlockEntity(dataBase, blockName).then(() => {
-//   for (const [key, value] of Object.entries(generatedImageTextures)) {
-//     console.log(key, value)
-//   }
-//   console.log(currentMcAssets)
-// })
-// { name: 'chest_top', x: 0, y: 0, width: 16, height: 15 },
-// { name: 'chest_side_top', x: 0, y: 15, width: 16, height: 5 },
-// { name: 'chest_side_bottom', x: 0, y: 34, width: 16, height: 9 },
-// { name: 'chest_front', x: 0, y: 43, width: 16, height: 14 },
