@@ -60,9 +60,9 @@ const setQs = () => {
 async function main () {
   const { version } = params
   // temporary solution until web worker is here, cache data for faster reloads
-  const globalMcData = window['mcData'];
+  const globalMcData = window['mcData']
   if (!globalMcData['version']) {
-    const major = toMajor(version);
+    const major = toMajor(version)
     const sessionKey = `mcData-${major}`
     if (sessionStorage[sessionKey]) {
       Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))
@@ -71,7 +71,7 @@ async function main () {
       await loadScript(`./mc-data/${major}.js`)
       try {
         sessionStorage[sessionKey] = JSON.stringify(Object.fromEntries(Object.entries(globalMcData).filter(([ver]) => ver.startsWith(major))))
-      } catch {}
+      } catch { }
     }
   }
 
@@ -112,7 +112,7 @@ async function main () {
     // if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
     //@ts-ignore
-    const chunk = new Chunk();
+    const chunk = new Chunk()
     return chunk
   })
 
@@ -140,7 +140,6 @@ async function main () {
   //@ts-ignore
   const controls = new THREE.OrbitControls(viewer.camera, renderer.domElement)
   controls.target.set(center.x + 0.5, center.y + 0.5, center.z + 0.5)
-  controls.update()
 
   const cameraPos = center.offset(2, 2, 2)
   const pitch = THREE.MathUtils.degToRad(-45)
@@ -148,6 +147,7 @@ async function main () {
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
   viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
   viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
+  controls.update()
 
   let blockProps = {}
   const getBlock = () => {
@@ -155,6 +155,7 @@ async function main () {
   }
   const onUpdate = {
     block () {
+      //@ts-ignore
       const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
       folder.destroy()
       if (!states) {
@@ -217,6 +218,7 @@ async function main () {
       block = Block.fromProperties(blockId ?? -1, blockProps, 0)
     }
 
+    //@ts-ignore
     viewer.setBlockStateId(targetPos, block.stateId)
     console.log('up', block.stateId)
     params.metadata = block.metadata
@@ -245,7 +247,7 @@ async function main () {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
     viewer.update()
-    renderer.render(viewer.scene, viewer.camera)
+    viewer.render()
     // window.requestAnimationFrame(animate)
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
@@ -253,7 +255,7 @@ async function main () {
   })
   animate()
 
-  // #region camera rotation
+  // #region camera rotation param
   if (params.camera) {
     const [x, y] = params.camera.split(',')
     viewer.camera.rotation.set(parseFloat(x), parseFloat(y), 0, 'ZYX')

@@ -21,7 +21,7 @@ export class Viewer {
   isSneaking: boolean
   version: string
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers = undefined) {
+  constructor (public renderer: THREE.WebGLRenderer, numWorkers = undefined) {
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('lightblue')
 
@@ -130,6 +130,10 @@ export class Viewer {
 
   update () {
     tweenJs.update()
+  }
+
+  render () {
+    this.renderer.render(this.scene, this.camera)
   }
 
   async waitForChunksToRender () {
