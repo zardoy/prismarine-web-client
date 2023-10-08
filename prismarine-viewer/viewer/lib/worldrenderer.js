@@ -18,6 +18,7 @@ function mod (x, n) {
 class WorldRenderer {
   constructor (scene, numWorkers = 4) {
     this.blockEntities = {}
+    this.worldConfig = { minY: 0, worldHeight: 256 }
     this.sectionObjects = {}
     this.showChunkBorders = false
     this.active = false
@@ -179,7 +180,7 @@ class WorldRenderer {
     for (const worker of this.workers) {
       worker.postMessage({ type: 'chunk', x, z, chunk })
     }
-    for (let y = 0; y < 256; y += 16) {
+    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
       const loc = new Vec3(x, y, z)
       this.setSectionDirty(loc)
       this.setSectionDirty(loc.offset(-16, 0, 0))
@@ -194,7 +195,7 @@ class WorldRenderer {
     for (const worker of this.workers) {
       worker.postMessage({ type: 'unloadChunk', x, z })
     }
-    for (let y = 0; y < 256; y += 16) {
+    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
       this.setSectionDirty(new Vec3(x, y, z), false)
       const key = `${x},${y},${z}`
       const mesh = this.sectionObjects[key]

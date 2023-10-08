@@ -31,7 +31,7 @@ function setSectionDirty (pos, value = true) {
   if (!value) {
     delete dirtySections[key]
     postMessage({ type: 'sectionFinished', key })
-  } else if (chunk && chunk.sections[Math.floor(y / 16)]) {
+  } else if (chunk?.getSection(pos)) {
     dirtySections[key] = value
   } else {
     postMessage({ type: 'sectionFinished', key })
@@ -79,7 +79,7 @@ setInterval(() => {
     y = parseInt(y, 10)
     z = parseInt(z, 10)
     const chunk = world.getColumn(x, z)
-    if (chunk && chunk.sections[Math.floor(y / 16)]) {
+    if (chunk?.getSection(new Vec3(x, y, z))) {
       delete dirtySections[key]
       const geometry = getSectionGeometry(x, y, z, world)
       const transferable = [geometry.positions.buffer, geometry.normals.buffer, geometry.colors.buffer, geometry.uvs.buffer]

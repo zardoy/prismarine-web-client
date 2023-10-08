@@ -18,7 +18,7 @@ export class WorldDataEmitter extends EventEmitter {
   private eventListeners: Record<string, any> = {};
   private emitter: WorldDataEmitter
 
-  constructor(public world: import('prismarine-world').world.World | typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
+  constructor (public world: import('prismarine-world').world.World | typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
     this.loadedChunks = {}
     this.lastPos = new Vec3(0, 0, 0).update(position)
@@ -59,10 +59,9 @@ export class WorldDataEmitter extends EventEmitter {
 
     this.emitter.on('listening', () => {
       this.emitter.emit('blockEntities', new Proxy({}, {
-        get(_target, posKey, receiver) {
+        get (_target, posKey, receiver) {
           if (typeof posKey !== 'string') return
           const [x, y, z] = posKey.split(',').map(Number)
-          console.log('get entity', x, y, z)
           return bot.world.getBlock(new Vec3(x, y, z)).entity
         },
       }))
@@ -117,8 +116,12 @@ export class WorldDataEmitter extends EventEmitter {
         // todo optimize toJson data, make it clear why it is used
         const chunk = column.toJson()
         // TODO: blockEntities
+        const worldConfig = {
+          minY: column['minY'] ?? 0,
+          worldHeight: column['worldHeight'] ?? 256,
+        }
         //@ts-ignore
-        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities })
+        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
     }

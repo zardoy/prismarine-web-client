@@ -99,7 +99,8 @@ export class Viewer {
       this.updatePrimitive(p)
     })
 
-    emitter.on('loadChunk', ({ x, z, chunk }) => {
+    emitter.on('loadChunk', ({ x, z, chunk, worldConfig }) => {
+      this.world.worldConfig = worldConfig
       this.addColumn(x, z, chunk)
     })
     // todo remove and use other architecture instead so data flow is clear
