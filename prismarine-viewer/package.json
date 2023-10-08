@@ -42,6 +42,7 @@
     "socket.io": "^4.0.0",
     "socket.io-client": "^4.0.0",
     "three.meshline": "^1.3.0",
-    "vec3": "^0.1.7"
+    "vec3": "^0.1.7",
+    "node-canvas-webgl": "^0.3.0"
   }
 }

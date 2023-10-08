@@ -54,9 +54,9 @@ However, there are many things that can be done in online version. You can acces
 
 - `bot` - Mineflayer bot instance. See Mineflayer documentation for more.
 - `viewer` - Three.js viewer instance, basically does all the rendering.
-- `viewer.world.sectionMeshs` - Object with all active chunk sections (geometries) in the world. Each chunk section is a Three.js mesh or group.
-- `localServer` - Only for singleplayer host / guest mode. Flying Squid server instance, see it's documentation for more.
-- `localServer.overworld.storageProvider.regions` - See ALL LOADED region files with all raw data!
+- `viewer.world.sectionObjects` - Object with all active chunk sections (geometries) in the world. Each chunk section is a Three.js mesh or group.
+- `localServer` - Only for singleplayer mode/host. Flying Squid server instance, see it's documentation for more.
+- `localServer.overworld.storageProvider.regions` - See ALL LOADED region files with all raw data.
 
 - `nbt.simplify(someNbt)` - Simplifies nbt data, so it's easier to read.
 

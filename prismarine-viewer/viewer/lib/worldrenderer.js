@@ -18,7 +18,8 @@ function mod (x, n) {
 class WorldRenderer {
   constructor (scene, numWorkers = 4) {
     this.blockEntities = {}
-    this.sectionMeshs = {}
+    this.sectionObjects = {}
+    this.showChunkBorders = false
     this.active = false
     this.version = undefined
     /** @type {THREE.Scene} */
@@ -47,11 +48,11 @@ class WorldRenderer {
         })
         if (data.type === 'geometry') {
           /** @type {THREE.Object3D} */
-          let mesh = this.sectionMeshs[data.key]
-          if (mesh) {
-            this.scene.remove(mesh)
-            dispose3(mesh)
-            delete this.sectionMeshs[data.key]
+          let object = this.sectionObjects[data.key]
+          if (object) {
+            this.scene.remove(object)
+            dispose3(object)
+            delete this.sectionObjects[data.key]
           }
 
           const chunkCoords = data.key.split(',')
@@ -64,25 +65,25 @@ class WorldRenderer {
           geometry.setAttribute('uv', new THREE.BufferAttribute(data.geometry.uvs, 2))
           geometry.setIndex(data.geometry.indices)
 
-          const _mesh = new THREE.Mesh(geometry, this.material)
-          _mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
-          const boxHelper = new THREE.BoxHelper(_mesh, 0xffff00)
-          // shouldnt it compute once
+          const mesh = new THREE.Mesh(geometry, this.material)
+          mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
+          object = new THREE.Group()
+          object.add(mesh)
+          if (this.showChunkBorders) {
+            const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
+            object.add(boxHelper)
+          }
+          // should not it compute once
           if (Object.keys(data.geometry.signs).length) {
-            mesh = new THREE.Group()
-            mesh.add(_mesh)
-            mesh.add(boxHelper)
             for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
               const [x, y, z] = posKey.split(',')
               const signBlockEntity = this.blockEntities[posKey]
               if (!signBlockEntity) continue
-              mesh.add(this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity)))
+              object.add(this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity)))
             }
-          } else {
-            mesh = _mesh
           }
-          this.sectionMeshs[data.key] = mesh
-          this.scene.add(mesh)
+          this.sectionObjects[data.key] = object
+          this.scene.add(object)
         } else if (data.type === 'sectionFinished') {
           this.sectionsOutstanding.delete(data.key)
           this.renderUpdateEmitter.emit('update')
@@ -125,10 +126,10 @@ class WorldRenderer {
 
   resetWorld () {
     this.active = false
-    for (const mesh of Object.values(this.sectionMeshs)) {
+    for (const mesh of Object.values(this.sectionObjects)) {
       this.scene.remove(mesh)
     }
-    this.sectionMeshs = {}
+    this.sectionObjects = {}
     this.loadedChunks = {}
     this.sectionsOutstanding = new Set()
     for (const worker of this.workers) {
@@ -196,12 +197,12 @@ class WorldRenderer {
     for (let y = 0; y < 256; y += 16) {
       this.setSectionDirty(new Vec3(x, y, z), false)
       const key = `${x},${y},${z}`
-      const mesh = this.sectionMeshs[key]
+      const mesh = this.sectionObjects[key]
       if (mesh) {
         this.scene.remove(mesh)
         dispose3(mesh)
       }
-      delete this.sectionMeshs[key]
+      delete this.sectionObjects[key]
     }
   }
 

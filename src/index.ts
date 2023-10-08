@@ -33,7 +33,7 @@ import { contro } from './controls'
 import './dragndrop'
 import './browserfs'
 import './eruda'
-import './watchOptions'
+import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
 import net from 'net'
@@ -111,6 +111,7 @@ window.viewer = viewer
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
+watchOptionsAfterViewerInit()
 initPanoramaOptions(viewer)
 watchTexturepackInViewer(viewer)
 
@@ -163,7 +164,7 @@ const updateCursor = () => {
   debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
   debugMenu.cursorBlock = blockInteraction.cursorBlock
 }
-function onCameraMove(e) {
+function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
   e.stopPropagation?.()
   const now = performance.now()
@@ -181,12 +182,12 @@ function onCameraMove(e) {
 window.addEventListener('mousemove', onCameraMove, { capture: true })
 
 
-function hideCurrentScreens() {
+function hideCurrentScreens () {
   activeModalStacks['main-menu'] = [...activeModalStack]
   insertActiveModalStack('', [])
 }
 
-async function main() {
+async function main () {
   const menu = document.getElementById('play-screen')
   menu.addEventListener('connect', e => {
     const options = e.detail
@@ -234,7 +235,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
   }
 }
 
-async function connect(connectOptions: {
+async function connect (connectOptions: {
   server?: string; singleplayer?: any; username?: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
 }) {
   document.getElementById('play-screen').style = 'display: none;'
@@ -377,7 +378,7 @@ async function connect(connectOptions: {
       } : {},
       ...singeplayer ? {
         version: serverOptions.version,
-        connect() { },
+        connect () { },
         Client: CustomChannelClient as any,
       } : {},
       username,
@@ -387,7 +388,7 @@ async function connect(connectOptions: {
       noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
       respawn: options.autoRespawn,
-      async versionSelectedHook(client) {
+      async versionSelectedHook (client) {
         // todo keep in sync with esbuild preload, expose cache ideally
         if (client.version === '1.20.1') {
           // ignore cache hit
@@ -542,7 +543,7 @@ async function connect(connectOptions: {
     dayCycle()
 
     // Bot position callback
-    function botPosition() {
+    function botPosition () {
       // this might cause lag, but not sure
       viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
       worldView.updatePosition(bot.entity.position)
@@ -560,7 +561,7 @@ async function connect(connectOptions: {
       bot.entity.yaw -= x
     }
 
-    function changeCallback() {
+    function changeCallback () {
       notification.show = false
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
         showModal(pauseMenu)

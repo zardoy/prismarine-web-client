@@ -8,6 +8,7 @@ import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types
 import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal } from './globalState'
 import { reloadChunks } from './utils'
+import { options } from './optionsStorage'
 
 // doesnt seem to work for now
 const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
@@ -48,12 +49,12 @@ export const contro = new ControMax({
   },
 }, {
   target: document,
-  captureEvents() {
+  captureEvents () {
     return bot && isGameActive(false)
   },
   storeProvider: {
     load: () => customKeymaps,
-    save() { },
+    save () { },
   },
   gamepadPollingInterval: 10
 })
@@ -103,10 +104,10 @@ let lastCommandTrigger = null as { command: string, time: number } | null
 
 const secondActionActivationTimeout = 300
 const secondActionCommands = {
-  'general.jump'() {
+  'general.jump' () {
     toggleFly()
   },
-  'general.forward'() {
+  'general.forward' () {
     setSprinting(true)
   }
 }
@@ -233,13 +234,22 @@ document.addEventListener('keydown', (e) => {
       }
       reloadChunks()
     }
+    if (e.code === 'KeyG') {
+      // todo make it work without reload
+      options.showChunkBorders = !options.showChunkBorders
+    }
+    return
   }
 
-  if (hardcodedPressedKeys.has(e.code)) return
   hardcodedPressedKeys.add(e.code)
 })
 document.addEventListener('keyup', (e) => {
   hardcodedPressedKeys.delete(e.code)
+})
+document.addEventListener('visibilitychange', (e) => {
+  if (document.visibilityState === 'hidden') {
+    hardcodedPressedKeys.clear()
+  }
 })
 
 // #region creative fly
