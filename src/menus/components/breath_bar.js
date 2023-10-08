@@ -36,8 +36,8 @@ class BreathBar extends LitElement {
     `
   }
 
-  gameModeChanged (gamemode) {
-    this.shadowRoot.querySelector('#breathbar').classList.toggle('creative', gamemode === 1)
+  gameModeChanged () {
+    this.shadowRoot.querySelector('#breathbar').classList.toggle('creative', bot.game.gameMode === 'creative' || bot.game.gameMode === 'spectator')
   }
 
   updateOxygen (hValue) {

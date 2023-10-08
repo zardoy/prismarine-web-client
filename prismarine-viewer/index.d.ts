@@ -28,7 +28,7 @@ export function headless(bot: Bot, settings: {
 
 export const viewer: {
     Viewer: any;
-    WorldView: any;
+    WorldDataEmitter: any;
     MapControls: any;
     Entitiy: any;
     getBufferFromStream: (stream: any) => Promise<Buffer>;

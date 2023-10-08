@@ -127,7 +127,6 @@ class BlockInteraction {
   }
 
   // todo this shouldnt be done in the render loop, migrate the code to dom events to avoid delays on lags
-  // eslint-disable-next-line complexity
   update () {
     const cursorBlock = bot.blockAtCursor(5)
     let cursorBlockDiggable = cursorBlock

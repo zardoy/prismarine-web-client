@@ -1,0 +1,124 @@
+import { fromFormattedString, render, RenderNode, TextComponent } from '@xmcl/text-component'
+import type { ChatMessage } from 'prismarine-chat'
+
+type SignBlockEntity = {
+    Color?: string
+    GlowingText?: 0 | 1
+    Text1?: string
+    Text2?: string
+    Text3?: string
+    Text4?: string
+} | {
+    // todo
+    is_waxed: 0 | 1
+    front_text: {
+        // todo
+        // has_glowing_text: 0 | 1
+        color: string
+        messages: string[]
+    }
+    // todo
+    // back_text: {}
+}
+
+type JsonEncodedType = string | null | Record<string, any>
+
+const parseSafe = (text: string, task: string) => {
+    try {
+        return JSON.parse(text)
+    } catch (e) {
+        console.warn(`Failed to parse ${task}`, e)
+        return null
+    }
+}
+
+export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof ChatMessage, ctxHook = (ctx) => { }) => {
+    const canvas = document.createElement('canvas')
+
+    const factor = 50
+    const signboardY = [16, 9]
+    const heightOffset = signboardY[0] - signboardY[1]
+    const heightScalar = heightOffset / 16
+
+    canvas.width = 16 * factor
+    canvas.height = heightOffset * factor
+
+    const ctx = canvas.getContext('2d')!
+    ctx.imageSmoothingEnabled = false
+
+    ctxHook(ctx)
+
+    const texts = 'is_waxed' in blockEntity ? /* > 1.20 */ blockEntity.front_text.messages : [
+        blockEntity.Text1,
+        blockEntity.Text2,
+        blockEntity.Text3,
+        blockEntity.Text4
+    ]
+    const defaultColor = ('front_text' in blockEntity ? blockEntity.front_text.color : blockEntity.Color) || 'black'
+    for (let [lineNum, text] of texts.slice(0, 4).entries()) {
+        // todo test mojangson parsing
+        const parsed = parseSafe(text ?? '""', 'sign text')
+        if (!parsed || (typeof parsed !== 'object' && typeof parsed !== 'string')) continue
+        // todo fix type
+        const message = typeof parsed === 'string' ? fromFormattedString(parsed) : new PrismarineChat(parsed) as never
+        const patchExtra = ({ extra }: TextComponent) => {
+            if (!extra) return
+            for (const child of extra) {
+                if (child.color) {
+                    child.color = child.color === 'dark_green' ? child.color.toUpperCase() : child.color.toLowerCase()
+                }
+                patchExtra(child)
+            }
+        }
+        patchExtra(message)
+        const rendered = render(message)
+
+        const toRenderCanvas: {
+            fontStyle: string
+            fillStyle: string
+            underlineStyle: boolean
+            strikeStyle: boolean
+            text: string
+        }[] = []
+        let plainText = ''
+        const MAX_LENGTH = 15 // avoid abusing the signboard
+        const renderText = (node: RenderNode) => {
+            const { component } = node
+            let { text } = component
+            if (plainText.length + text.length > MAX_LENGTH) {
+                text = text.slice(0, MAX_LENGTH - plainText.length)
+                if (!text) return false
+            }
+            plainText += text
+            toRenderCanvas.push({
+                fontStyle: `${component.bold ? 'bold' : ''} ${component.italic ? 'italic' : ''}`,
+                fillStyle: node.style['color'] || defaultColor,
+                underlineStyle: component.underlined ?? false,
+                strikeStyle: component.strikethrough ?? false,
+                text
+            })
+            for (const child of node.children) {
+                const stop = renderText(child) === false
+                if (stop) return false
+            }
+        }
+        renderText(rendered)
+
+        const fontSize = 1.6 * factor;
+        ctx.font = `${fontSize}px mojangles`
+        const textWidth = ctx.measureText(plainText).width
+
+        let renderedWidth = 0
+        for (const { fillStyle, fontStyle, strikeStyle, text, underlineStyle } of toRenderCanvas) {
+            // todo strikeStyle, underlineStyle
+            ctx.fillStyle = fillStyle
+            ctx.font = `${fontStyle} ${fontSize}px mojangles`
+            ctx.fillText(text, (canvas.width - textWidth) / 2 + renderedWidth, fontSize * (lineNum + 1))
+            renderedWidth += ctx.measureText(text).width // todo isn't the font is monospace?
+        }
+    }
+    // ctx.fillStyle = 'red'
+    // ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    return canvas
+}

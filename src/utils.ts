@@ -161,32 +161,9 @@ export const disconnect = async () => {
   } else {
     // workaround bot.end doesn't end the socket and emit end event
     bot.end()
-    bot._client.socket?.end?.()
   }
   bot._client.emit('end', 'You left the server')
   miscUiState.gameLoaded = false
-}
-
-export const loadScript = async function (scriptSrc: string) {
-  if (document.querySelector(`script[src="${scriptSrc}"]`)) {
-    return
-  }
-
-  return new Promise((resolve, reject) => {
-    const scriptElement = document.createElement('script')
-    scriptElement.src = scriptSrc
-    scriptElement.async = true
-
-    scriptElement.addEventListener('load', () => {
-      resolve(scriptElement)
-    })
-
-    scriptElement.onerror = (error) => {
-      reject(error)
-    }
-
-    document.head.appendChild(scriptElement)
-  })
 }
 
 // doesn't support snapshots

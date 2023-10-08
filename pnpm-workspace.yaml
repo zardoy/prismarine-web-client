@@ -1,3 +1,4 @@
 packages:
   - "."
   - "prismarine-viewer"
+  - "prismarine-viewer/viewer/sign-renderer/"

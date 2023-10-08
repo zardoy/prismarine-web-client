@@ -12,7 +12,7 @@ global.THREE = require('three')
 global.Worker = require('worker_threads').Worker
 const { createCanvas } = safeRequire('node-canvas-webgl/lib')
 
-const { WorldView, Viewer, getBufferFromStream } = require('../viewer')
+const { WorldDataEmitter, Viewer, getBufferFromStream } = require('../viewer')
 
 module.exports = (bot, { viewDistance = 6, output = 'output.mp4', frames = -1, width = 512, height = 512, logFFMPEG = false, jpegOptions }) => {
   const canvas = createCanvas(width, height)
@@ -23,7 +23,7 @@ module.exports = (bot, { viewDistance = 6, output = 'output.mp4', frames = -1, w
   viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
 
   // Load world
-  const worldView = new WorldView(bot.world, viewDistance, bot.entity.position)
+  const worldView = new WorldDataEmitter(bot.world, viewDistance, bot.entity.position)
   viewer.listen(worldView)
   worldView.init(bot.entity.position)
 

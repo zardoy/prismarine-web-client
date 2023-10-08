@@ -6,6 +6,7 @@ import server from './server.js'
 import { clients, plugins } from './scripts/esbuildPlugins.mjs'
 import { generateSW } from 'workbox-build'
 import { getSwAdditionalEntries } from './scripts/build.js'
+import { build } from 'esbuild'
 
 //@ts-ignore
 try { await import('./localSettings.mjs') } catch { }
@@ -26,7 +27,8 @@ const banner = [
 
 const buildingVersion = new Date().toISOString().split(':')[0]
 
-const ctx = await esbuild.context({
+/** @type {import('esbuild').BuildOptions} */
+const buildOptions = {
   bundle: true,
   entryPoints: ['src/index.ts'],
   target: ['es2020'],
@@ -77,9 +79,10 @@ const ctx = await esbuild.context({
   write: false,
   // todo would be better to enable?
   // preserveSymlinks: true,
-})
+}
 
 if (watch) {
+  const ctx = await esbuild.context(buildOptions)
   await ctx.watch()
   server.app.get('/esbuild', (req, res, next) => {
     res.writeHead(200, {
@@ -103,7 +106,7 @@ if (watch) {
     })
   })
 } else {
-  const result = await ctx.rebuild()
+  const result = await build(buildOptions)
   // console.log(await esbuild.analyzeMetafile(result.metafile))
 
   if (prod) {
@@ -119,6 +122,4 @@ if (watch) {
       swDest: 'dist/service-worker.js',
     })
   }
-
-  await ctx.dispose()
 }

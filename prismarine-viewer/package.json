@@ -8,7 +8,8 @@
     "pretest": "npm run lint",
     "lint": "standard",
     "fix": "standard --fix",
-    "postinstall": "node viewer/generateTextures.js && node buildWorker.mjs"
+    "postinstall": "pnpm generate-textures && node buildWorker.mjs",
+    "generate-textures": "tsx viewer/prepare/generateTextures.ts"
   },
   "author": "PrismarineJS",
   "license": "MIT",
@@ -22,6 +23,8 @@
   },
   "dependencies": {
     "@tweenjs/tween.js": "^20.0.3",
+    "three-stdlib": "^2.26.11",
+    "tsx": "^3.13.0",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "canvas": "^2.11.2",
@@ -39,6 +42,7 @@
     "socket.io": "^4.0.0",
     "socket.io-client": "^4.0.0",
     "three.meshline": "^1.3.0",
-    "vec3": "^0.1.7"
+    "vec3": "^0.1.7",
+    "node-canvas-webgl": "^0.3.0"
   }
 }

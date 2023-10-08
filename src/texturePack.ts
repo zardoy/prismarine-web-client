@@ -200,7 +200,7 @@ export const genTexturePackTextures = async (version: string) => {
   }
 
   // we get the size of image from the first block file, which is not ideal but works in 99% cases
-  const tileSize = await getSizeFromImage(join(blocksBasePath, firstBlockFile))
+  const tileSize = Math.max(originalTileSize, await getSizeFromImage(join(blocksBasePath, firstBlockFile)))
 
   const imgSize = texSize * tileSize
 

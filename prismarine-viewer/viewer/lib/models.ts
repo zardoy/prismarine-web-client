@@ -1,6 +1,10 @@
-const { Vec3 } = require('vec3')
+//@ts-nocheck
+import { Vec3 } from 'vec3'
+import { BlockStatesOutput } from '../prepare/modelsBuilder'
+import { World } from './world'
 
 const tints = {}
+let blockStates: BlockStatesOutput
 
 const tintsData = require('esbuild-data').tints
 for (const key of Object.keys(tintsData)) {
@@ -131,7 +135,6 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     if (!neighbor) continue
     if (neighbor.type === type) continue
     if ((neighbor.isCube && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
-    if (neighbor.position.y < 0) continue
 
     let tint = [1, 1, 1]
     if (water) {
@@ -239,10 +242,10 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
 
     if (eFace.cullface) {
       const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
-      if (!neighbor) continue
-      if (cullIfIdentical && neighbor.type === block.type) continue
-      if (!neighbor.transparent && neighbor.isCube) continue
-      if (neighbor.position.y < 0) continue
+      if (neighbor) {
+        if (cullIfIdentical && neighbor.type === block.type) continue
+        if (!neighbor.transparent && neighbor.isCube) continue
+      }
     }
 
     const minx = element.from[0]
@@ -363,7 +366,7 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
   }
 }
 
-function getSectionGeometry (sx, sy, sz, world, blocksStates) {
+export function getSectionGeometry (sx, sy, sz, world: World) {
   const attr = {
     sx: sx + 8,
     sy: sy + 8,
@@ -376,7 +379,9 @@ function getSectionGeometry (sx, sy, sz, world, blocksStates) {
     t_normals: [],
     t_colors: [],
     t_uvs: [],
-    indices: []
+    indices: [],
+    // todo this can be removed here
+    signs: {}
   }
 
   const cursor = new Vec3(0, 0, 0)
@@ -384,9 +389,24 @@ function getSectionGeometry (sx, sy, sz, world, blocksStates) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)
+        if (block.name.includes('sign')) {
+          const key = `${cursor.x},${cursor.y},${cursor.z}`
+          const props = block.getProperties();
+          const facingRotationMap = {
+            "north": 2,
+            "south": 0,
+            "west": 1,
+            "east": 3
+          }
+          const isWall = block.name.endsWith('wall_sign') || block.name.endsWith('hanging_sign');
+          attr.signs[key] = {
+            isWall,
+            rotation: isWall ? facingRotationMap[props.facing] : +props.rotation
+          }
+        }
         const biome = block.biome.name
         if (block.variant === undefined) {
-          block.variant = getModelVariants(block, blocksStates)
+          block.variant = getModelVariants(block)
         }
 
         for (const variant of block.variant) {
@@ -478,9 +498,9 @@ function matchProperties (block, properties) {
   return true
 }
 
-function getModelVariants (block, blockStates) {
+function getModelVariants (block) {
   // air, cave_air, void_air and so on...
-  if (block.name.includes('air')) return []
+  if (block.name === 'air' || block.name.endsWith('_air')) return []
   const state = blockStates[block.name] ?? blockStates.missing_texture
   if (!state) return []
   if (state.variants) {
@@ -494,11 +514,7 @@ function getModelVariants (block, blockStates) {
     const parts = state.multipart.filter(multipart => matchProperties(block, multipart.when))
     let variants = []
     for (const part of parts) {
-      if (part.apply instanceof Array) {
-        variants = [...variants, ...part.apply]
-      } else {
-        variants = [...variants, part.apply]
-      }
+      variants = [...variants, ...Array.isArray(part.apply) ? part.apply : [part.apply]];
     }
 
     return variants
@@ -507,4 +523,6 @@ function getModelVariants (block, blockStates) {
   return []
 }
 
-module.exports = { getSectionGeometry }
+export const setBlockStates = (_blockStates: BlockStatesOutput | null) => {
+  blockStates = _blockStates!
+}

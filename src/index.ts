@@ -33,12 +33,12 @@ import { contro } from './controls'
 import './dragndrop'
 import './browserfs'
 import './eruda'
-import './watchOptions'
+import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
 import net from 'net'
 import mineflayer from 'mineflayer'
-import { WorldView, Viewer } from 'prismarine-viewer/viewer'
+import { WorldDataEmitter, Viewer } from 'prismarine-viewer/viewer'
 import pathfinder from 'mineflayer-pathfinder'
 import { Vec3 } from 'vec3'
 
@@ -62,7 +62,6 @@ import {
 import {
   pointerLock,
   goFullscreen, isCypress,
-  loadScript,
   toMajorVersion,
   setLoadingScreenStatus,
   setRenderDistance
@@ -85,21 +84,15 @@ import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
 import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import debug from 'debug'
+import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
+import { registerServiceWorker } from './serviceWorker'
 
 window.debug = debug
 window.THREE = THREE
 
-if ('serviceWorker' in navigator && !isCypress() && process.env.NODE_ENV !== 'development') {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').then(registration => {
-      console.log('SW registered:', registration)
-    }).catch(registrationError => {
-      console.log('SW registration failed:', registrationError)
-    })
-  })
-}
-
 // ACTUAL CODE
+
+void registerServiceWorker()
 
 // Create three.js context, add to page
 const renderer = new THREE.WebGLRenderer({
@@ -115,6 +108,10 @@ document.body.appendChild(renderer.domElement)
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
+viewer.entities.entitiesOptions = {
+  fontFamily: 'mojangles'
+}
+watchOptionsAfterViewerInit()
 initPanoramaOptions(viewer)
 watchTexturepackInViewer(viewer)
 
@@ -167,7 +164,7 @@ const updateCursor = () => {
   debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
   debugMenu.cursorBlock = blockInteraction.cursorBlock
 }
-function onCameraMove(e) {
+function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
   e.stopPropagation?.()
   const now = performance.now()
@@ -180,18 +177,17 @@ function onCameraMove(e) {
     x: e.movementX * mouseSensX * 0.0001,
     y: e.movementY * mouseSensY * 0.0001
   })
-  // todo do it also on every block update within radius 5
   updateCursor()
 }
 window.addEventListener('mousemove', onCameraMove, { capture: true })
 
 
-function hideCurrentScreens() {
+function hideCurrentScreens () {
   activeModalStacks['main-menu'] = [...activeModalStack]
   insertActiveModalStack('', [])
 }
 
-async function main() {
+async function main () {
   const menu = document.getElementById('play-screen')
   menu.addEventListener('connect', e => {
     const options = e.detail
@@ -239,7 +235,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
   }
 }
 
-async function connect(connectOptions: {
+async function connect (connectOptions: {
   server?: string; singleplayer?: any; username?: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
 }) {
   document.getElementById('play-screen').style = 'display: none;'
@@ -260,24 +256,21 @@ async function connect(connectOptions: {
   setLoadingScreenStatus('Logging in')
 
   let ended = false
-  let bot: mineflayer.Bot
+  let bot: typeof __type_bot
   const destroyAll = () => {
     if (ended) return
     ended = true
-    // ensure bot cleanup
     viewer.resetAll()
     window.localServer = undefined
 
-    // simple variant, still buggy
     postRenderFrameFn = () => { }
     if (bot) {
       bot.end()
+      // ensure mineflayer plugins receive this even for cleanup
       bot.emit('end', '')
       bot.removeAllListeners()
       bot._client.removeAllListeners()
       bot._client = undefined
-      // for debugging
-      window._botDisconnected = undefined
       window.bot = bot = undefined
     }
     removeAllListeners()
@@ -319,7 +312,7 @@ async function connect(connectOptions: {
   })
 
   if (proxy) {
-    console.log(`using proxy ${proxy.host}:${proxy.port}`)
+    console.log(`using proxy ${proxy.host}${proxy.port && `:${proxy.port}`}`)
 
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
@@ -334,12 +327,13 @@ async function connect(connectOptions: {
         await genTexturePackTextures(version)
       } catch (err) {
         console.error(err)
-        const doContinue = prompt('Failed to apply texture pack. See errors in the console. Continue?')
+        const doContinue = confirm('Failed to apply texture pack. See errors in the console. Continue?')
         if (!doContinue) {
-          setLoadingScreenStatus(undefined)
+          throw err
         }
       }
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
+      viewer.setVersion(version)
     }
 
     const downloadVersion = connectOptions.botVersion || (singeplayer ? serverOptions.version : undefined)
@@ -371,7 +365,7 @@ async function connect(connectOptions: {
       }
     }
 
-    setLoadingScreenStatus('Creating mineflayer bot')
+    setLoadingScreenStatus('Connecting to server')
     bot = mineflayer.createBot({
       host: server.host,
       port: +server.port,
@@ -384,7 +378,7 @@ async function connect(connectOptions: {
       } : {},
       ...singeplayer ? {
         version: serverOptions.version,
-        connect() { },
+        connect () { },
         Client: CustomChannelClient as any,
       } : {},
       username,
@@ -394,7 +388,7 @@ async function connect(connectOptions: {
       noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
       respawn: options.autoRespawn,
-      async versionSelectedHook(client) {
+      async versionSelectedHook (client) {
         // todo keep in sync with esbuild preload, expose cache ideally
         if (client.version === '1.20.1') {
           // ignore cache hit
@@ -403,7 +397,7 @@ async function connect(connectOptions: {
         await downloadMcData(client.version)
         setLoadingScreenStatus('Connecting to server')
       }
-    })
+    }) as unknown as typeof __type_bot
     window.bot = bot
     if (singeplayer || p2pMultiplayer) {
       // p2pMultiplayer still uses the same flying-squid server
@@ -465,9 +459,10 @@ async function connect(connectOptions: {
   })
 
   bot.on('end', (endReason) => {
+    if (ended) return
     console.log('disconnected for', endReason)
-    destroyAll()
     setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
+    destroyAll()
     if (isCypress()) throw new Error(`disconnected: ${endReason}`)
   })
 
@@ -493,8 +488,7 @@ async function connect(connectOptions: {
 
     const center = bot.entity.position
 
-    const worldView: import('prismarine-viewer/viewer/lib/worldView').WorldView = new WorldView(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
-    window.worldView = worldView
+    const worldView = window.worldView = new WorldDataEmitter(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
     setRenderDistance()
 
     const updateFov = () => {
@@ -519,7 +513,6 @@ async function connect(connectOptions: {
     })
 
     bot.on('physicsTick', () => updateCursor())
-    viewer.setVersion(version)
 
     const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
 
@@ -542,7 +535,7 @@ async function connect(connectOptions: {
       debugMenu.rendererDevice = '???'
     }
 
-    // Link WorldView and Viewer
+    // Link WorldDataEmitter and Viewer
     viewer.listen(worldView)
     worldView.listenToBot(bot)
     worldView.init(bot.entity.position)
@@ -550,7 +543,7 @@ async function connect(connectOptions: {
     dayCycle()
 
     // Bot position callback
-    function botPosition() {
+    function botPosition () {
       // this might cause lag, but not sure
       viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
       worldView.updatePosition(bot.entity.position)
@@ -568,7 +561,7 @@ async function connect(connectOptions: {
       bot.entity.yaw -= x
     }
 
-    function changeCallback() {
+    function changeCallback () {
       notification.show = false
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
         showModal(pauseMenu)
@@ -655,7 +648,7 @@ async function connect(connectOptions: {
       onCameraMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
     })
 
-    registerListener(document, 'lostpointercapture', (e) => {
+    const pointerUpHandler = (e: PointerEvent) => {
       if (e.pointerId === undefined || e.pointerId !== capturedPointer?.id) return
       clearTimeout(virtualClickTimeout)
       virtualClickTimeout = undefined
@@ -670,15 +663,11 @@ async function connect(connectOptions: {
         document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       }
       capturedPointer = undefined
-    }, { passive: false })
-
-    registerListener(document, 'pointerup', (e) => {
-      const clickedEl = e.composedPath()[0]
-      if (!isGameActive(true) || !miscUiState.currentTouch || clickedEl !== cameraControlEl || e.pointerId === undefined) {
-        return
-      }
       screenTouches--
-    })
+    }
+    registerListener(document, 'pointerup', pointerUpHandler)
+    registerListener(document, 'pointercancel', pointerUpHandler)
+    registerListener(document, 'lostpointercapture', pointerUpHandler)
 
     registerListener(document, 'contextmenu', (e) => e.preventDefault(), false)
 
@@ -686,7 +675,6 @@ async function connect(connectOptions: {
       bot.clearControlStates()
     }, false)
 
-    setLoadingScreenStatus('Done!')
     console.log('Done!')
 
     hud.init(renderer, bot, server.host)
@@ -694,16 +682,13 @@ async function connect(connectOptions: {
     blockInteraction.init()
 
     errorAbortController.abort()
-    setTimeout(() => {
-      if (loadingScreen.hasError) return
-      // remove loading screen, wait a second to make sure a frame has properly rendered
-      setLoadingScreenStatus(undefined)
-      void viewer.waitForChunksToRender().then(() => {
-        console.log('All done and ready!')
-        document.dispatchEvent(new Event('cypress-world-ready'))
-      })
-      miscUiState.gameLoaded = true
-    }, singeplayer ? 0 : 2500)
+    if (loadingScreen.hasError) return
+    setLoadingScreenStatus(undefined)
+    miscUiState.gameLoaded = true
+    void viewer.waitForChunksToRender().then(() => {
+      console.log('All done and ready!')
+      document.dispatchEvent(new Event('cypress-world-ready'))
+    })
   })
 }
 

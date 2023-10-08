@@ -20,7 +20,6 @@ export const fsState = proxy({
 
 const PROPOSE_BACKUP = true
 
-// eslint-disable-next-line complexity
 export const loadSave = async (root = '/world') => {
   const disablePrompts = options.disableLoadPrompts
 

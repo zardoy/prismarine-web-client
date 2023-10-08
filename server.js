@@ -11,29 +11,24 @@ const fs = require('fs')
 // Create our app
 const app = express()
 
+const isProd = process.argv.includes('--prod')
 app.use(compression())
 app.use(netApi({ allowOrigin: '*' }))
-if (process.argv[3] === 'dev') {
-  // https://webpack.js.org/guides/development/#using-webpack-dev-middleware
-  const webpackDevMiddleware = require('webpack-dev-middleware')
-  const config = require('./webpack.dev.js')
-  const webpack = require('webpack')
-  const compiler = webpack(config)
-
-  app.use(
-    webpackDevMiddleware(compiler, {
-      publicPath: config.output.publicPath
-    })
-  )
-} else {
-  app.use(express.static(path.join(__dirname, './dist')))
+let lastVersion = ''
+app.post('/lastVersion', (req, res) => {
+  res.send(lastVersion.toString())
+})
+if (!isProd) {
+  app.use('/blocksStates', express.static(path.join(__dirname, './prismarine-viewer/public/blocksStates')))
+  app.use('/textures', express.static(path.join(__dirname, './prismarine-viewer/public/textures')))
 }
+app.use(express.static(path.join(__dirname, './dist')))
 
 const portArg = process.argv.indexOf('--port')
 const port = (require.main === module ? process.argv[2] : portArg !== -1 ? process.argv[portArg + 1] : undefined) || 8080
 
 // Start the server
-const server = process.argv.includes('--prod') ?
+const server = isProd ?
   undefined :
   app.listen(port, function () {
     console.log('Server listening on port ' + server.address().port)

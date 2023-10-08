@@ -5,26 +5,26 @@ const Entity = require('./entity/Entity')
 const { dispose3 } = require('./dispose')
 
 function getUsernameTexture(username, { fontFamily = 'sans-serif' }) {
-const canvas = document.createElement('canvas');
-const ctx = canvas.getContext('2d');
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
 
-const fontSize = 50;
-const padding = 5
-ctx.font = `${fontSize}px ${fontFamily}`;
+  const fontSize = 50
+  const padding = 5
+  ctx.font = `${fontSize}px ${fontFamily}`
 
-const textWidth = ctx.measureText(username).width + padding * 2;
+  const textWidth = ctx.measureText(username).width + padding * 2
 
-canvas.width = textWidth;
-canvas.height = fontSize + padding * 2;
+  canvas.width = textWidth
+  canvas.height = fontSize + padding * 2
 
-ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-ctx.font = `${fontSize}px ${fontFamily}`;
-ctx.fillStyle = 'white'
-ctx.fillText(username, padding, fontSize);
+  ctx.font = `${fontSize}px ${fontFamily}`
+  ctx.fillStyle = 'white'
+  ctx.fillText(username, padding, fontSize)
 
-return canvas;
+  return canvas
 }
 
 function getEntityMesh (entity, scene, options) {
@@ -33,7 +33,7 @@ function getEntityMesh (entity, scene, options) {
       const e = new Entity('1.16.4', entity.name, scene)
 
       if (entity.username !== undefined) {
-        const canvas = getUsernameTexture(entity.username, options);
+        const canvas = getUsernameTexture(entity.username, options)
         const tex = new THREE.Texture(canvas)
         tex.needsUpdate = true
         const spriteMat = new THREE.SpriteMaterial({ map: tex })
@@ -51,7 +51,7 @@ function getEntityMesh (entity, scene, options) {
 
   const geometry = new THREE.BoxGeometry(entity.width, entity.height, entity.width)
   geometry.translate(0, entity.height / 2, 0)
-  const material = new THREE.MeshBasicMaterial({ color: 0xff00ff })
+  const material = new THREE.MeshBasicMaterial({ color: 0xff_00_ff })
   const cube = new THREE.Mesh(geometry, material)
   return cube
 }

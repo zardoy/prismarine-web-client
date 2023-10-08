@@ -1,4 +1,5 @@
 import * as fs from 'fs'
+import fsExtra from 'fs-extra'
 
 //@ts-check
 import * as esbuild from 'esbuild'
@@ -6,9 +7,20 @@ import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 import path, { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
-const dev = !process.argv.includes('-p')
+const dev = process.argv.includes('-w')
 
 const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)))
+
+const mcDataPath = join(__dirname, '../dist/mc-data')
+if (!fs.existsSync(mcDataPath)) {
+  // shouldn't it be in the viewer instead?
+  await import('../scripts/prepareData.mjs')
+}
+
+fs.mkdirSync(join(__dirname, 'public'), { recursive: true })
+fs.copyFileSync(join(__dirname, 'playground.html'), join(__dirname, 'public/index.html'))
+fsExtra.copySync(mcDataPath, join(__dirname, 'public/mc-data'))
+const availableVersions = fs.readdirSync(mcDataPath).map(ver => ver.replace('.js', ''))
 
 /** @type {import('esbuild').BuildOptions} */
 const buildOptions = {
@@ -19,13 +31,14 @@ const buildOptions = {
   logLevel: 'info',
   platform: 'browser',
   sourcemap: dev ? 'inline' : false,
-  outfile: join(__dirname, 'public/index.js'),
+  minify: !dev,
+  outfile: join(__dirname, 'public/playground.js'),
   mainFields: [
     'browser', 'module', 'main'
   ],
   keepNames: true,
   banner: {
-    js: 'globalThis.global = globalThis;',
+    js: `globalThis.global = globalThis;globalThis.includedVersions = ${JSON.stringify(availableVersions)};`,
   },
   alias: {
     events: 'events',
@@ -39,59 +52,19 @@ const buildOptions = {
   metafile: true,
   plugins: [
     {
-      name: 'data-handler',
+      name: 'minecraft-data',
       setup (build) {
-        const customMcDataNs = 'custom-mc'
-        build.onResolve({
-          filter: /.*/,
-        }, ({ path, ...rest }) => {
-          if (join(rest.resolveDir, path).replaceAll('\\', '/').endsWith('minecraft-data/data.js')) {
-            return {
-              path,
-              namespace: customMcDataNs,
-            }
-          }
-          return undefined
-        })
         build.onLoad({
-          filter: /.*/,
-          namespace: customMcDataNs,
-        }, async ({ path, ...rest }) => {
-          const resolvedPath = await build.resolve('minecraft-data/minecraft-data/data/dataPaths.json', { kind: 'require-call', resolveDir: process.cwd() })
-          const dataPaths = JSON.parse(await fs.promises.readFile(resolvedPath.path, 'utf8'))
-
-          // bedrock unsupported
-          delete dataPaths.bedrock
-
-          const allowOnlyList = process.env.ONLY_MC_DATA?.split(',') ?? []
-
-          const includeVersions = ['1.20.1', '1.18.1']
-
-          const includedVersions = []
-          let contents = `module.exports =\n{\n`
-          for (const platform of Object.keys(dataPaths)) {
-            contents += `  '${platform}': {\n`
-            for (const version of Object.keys(dataPaths[platform])) {
-              if (allowOnlyList.length && !allowOnlyList.includes(version)) continue
-              if (!includeVersions.includes(version)) continue
-
-              includedVersions.push(version)
-              contents += `    '${version}': {\n`
-              for (const dataType of Object.keys(dataPaths[platform][version])) {
-                const loc = `minecraft-data/data/${dataPaths[platform][version][dataType]}/`
-                contents += `      get ${dataType} () { return require("./${loc}${dataType}.json") },\n`
-              }
-              contents += '    },\n'
-            }
-            contents += '  },\n'
-          }
-          contents += `}\n;globalThis.includedVersions = ${JSON.stringify(includedVersions)};`
-
+          filter: /minecraft-data[\/\\]data.js$/,
+        }, () => {
+          const defaultVersionsObj = {}
           return {
-            contents,
+            contents: `window.mcData ??= ${JSON.stringify(defaultVersionsObj)};module.exports = { pc: window.mcData }`,
             loader: 'js',
-            resolveDir: join(dirname(resolvedPath.path), '../..'),
           }
+        })
+        build.onEnd((e) => {
+          fs.writeFileSync(join(__dirname, 'public/metafile.json'), JSON.stringify(e.metafile), 'utf8')
         })
       }
     },
@@ -109,7 +82,7 @@ const buildOptions = {
     })
   ],
 }
-if (process.argv.includes('-w')) {
+if (dev) {
   (await esbuild.context(buildOptions)).watch()
 } else {
   await esbuild.build(buildOptions)

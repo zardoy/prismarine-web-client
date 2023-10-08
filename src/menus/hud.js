@@ -264,7 +264,8 @@ class Hud extends LitElement {
       healthbar.gameModeChanged(gamemode, bot.game.hardcore)
       foodbar.gameModeChanged(gamemode)
       // breathbar.gameModeChanged(gamemode)
-      this.shadowRoot.querySelector('#xp-bar-bg').style.display = gamemode === 1 ? 'none' : 'block'
+      const creativeLike = gamemode === 1 || gamemode === 3
+      this.shadowRoot.querySelector('#xp-bar-bg').style.display = creativeLike ? 'none' : 'block'
     }
     bot.on('game', onGameModeChange)
     onGameModeChange()

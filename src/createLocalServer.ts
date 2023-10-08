@@ -8,6 +8,7 @@ export const startLocalServer = () => {
   const server = mcServer.createMCServer(passOptions)
   server.formatMessage = (message) => `[server] ${message}`
   server.options = passOptions
+  server.looseProtocolMode = true
   return server
 }
 

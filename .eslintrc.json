@@ -1,9 +1,11 @@
 {
     "extends": "zardoy",
     "ignorePatterns": [
-        "!*.js"
+        "!*.js",
+        "prismarine-viewer/"
     ],
     "rules": {
+        "space-infix-ops": "error",
         "no-multi-spaces": "error",
         "space-in-parens": [
             "error",
@@ -86,6 +88,7 @@
         "unicorn/no-empty-file": "off",
         "unicorn/prefer-event-target": "off",
         // needs to be fixed actually
+        "complexity": "off",
         "@typescript-eslint/no-floating-promises": "warn",
         "no-async-promise-executor": "off",
         "no-bitwise": "off",

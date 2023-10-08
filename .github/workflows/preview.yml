@@ -34,6 +34,8 @@ jobs:
         with:
           run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         id: deploy
+      - name: Set deployment alias
+        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }}
       - uses: mshick/add-pr-comment@v2
         with:
           message: |

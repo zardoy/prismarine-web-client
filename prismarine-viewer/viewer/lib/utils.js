@@ -6,12 +6,12 @@ function safeRequire (path) {
   }
 }
 const { loadImage } = safeRequire('node-canvas-webgl/lib')
-const THREE = require('three')
 const path = require('path')
+const THREE = require('three')
 
 const textureCache = {}
 // todo not ideal, export different functions for browser and node
-function loadTexture (texture, cb) {
+export function loadTexture (texture, cb) {
   if (process.platform === 'browser') {
     return require('./utils.web').loadTexture(texture, cb)
   }
@@ -26,11 +26,31 @@ function loadTexture (texture, cb) {
   }
 }
 
-function loadJSON (json, cb) {
+export function loadJSON (json, cb) {
   if (process.platform === 'browser') {
     return require('./utils.web').loadJSON(json, cb)
   }
   cb(require(path.resolve(__dirname, '../../public/' + json)))
 }
 
-module.exports = { loadTexture, loadJSON }
+export const loadScript = async function (/** @type {string} */scriptSrc) {
+  if (document.querySelector(`script[src="${scriptSrc}"]`)) {
+    return
+  }
+
+  return new Promise((resolve, reject) => {
+    const scriptElement = document.createElement('script')
+    scriptElement.src = scriptSrc
+    scriptElement.async = true
+
+    scriptElement.addEventListener('load', () => {
+      resolve(scriptElement)
+    })
+
+    scriptElement.onerror = (error) => {
+      reject(error)
+    }
+
+    document.head.appendChild(scriptElement)
+  })
+}

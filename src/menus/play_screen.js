@@ -178,7 +178,7 @@ class PlayScreen extends LitElement {
             pmui-inputmode="decimal"
             state="${this.version && (fullySupporedVersions.includes(/** @type {any} */(this.version)) ? '' : Object.keys(versionsByMinecraftVersion.pc).includes(this.version) ? 'warning' : 'invalid')}"
             .autocompleteValues=${fullySupporedVersions}
-            @input=${e => { this.version = e.target.value }}
+            @input=${e => { this.version = e.target.value = e.target.value.replaceAll(',', '.') }}
           ></pmui-editbox>
         </div>
         <p class="extra-info-version">Leave blank and it will be chosen automatically</p>

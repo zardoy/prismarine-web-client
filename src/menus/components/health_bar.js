@@ -110,7 +110,7 @@ class HealthBar extends LitElement {
   }
 
   gameModeChanged (gamemode, hardcore) {
-    this.shadowRoot.querySelector('#health').classList.toggle('creative', gamemode === 1)
+    this.shadowRoot.querySelector('#health').classList.toggle('creative', bot.game.gameMode === 'creative' || bot.game.gameMode === 'spectator')
     this.shadowRoot.querySelector('#health').classList.toggle('hardcore', hardcore)
   }
 

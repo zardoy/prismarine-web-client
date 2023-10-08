@@ -1,0 +1,49 @@
+{
+    "variants": {
+        "facing=north,type=single": {
+            "model": "chest"
+        },
+        "facing=east,type=single": {
+            "model": "chest",
+            "y": 90
+        },
+        "facing=south,type=single": {
+            "model": "chest",
+            "y": 180
+        },
+        "facing=west,type=single": {
+            "model": "chest",
+            "y": 270
+        },
+        "facing=north,type=left": {
+            "model": "chest_left"
+        },
+        "facing=east,type=left": {
+            "model": "chest_left",
+            "y": 90
+        },
+        "facing=south,type=left": {
+            "model": "chest_left",
+            "y": 180
+        },
+        "facing=west,type=left": {
+            "model": "chest_left",
+            "y": 270
+        },
+        "facing=north,type=right": {
+            "model": "chest_right"
+        },
+        "facing=east,type=right": {
+            "model": "chest_right",
+            "y": 90
+        },
+        "facing=south,type=right": {
+            "model": "chest_right",
+            "y": 180
+        },
+        "facing=west,type=right": {
+            "model": "chest_right",
+            "y": 270
+        }
+    }
+}

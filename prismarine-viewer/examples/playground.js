@@ -1,6 +1,7 @@
 //@ts-check
 /* global THREE, fetch */
-const { WorldView, Viewer, MapControls } = require('../viewer')
+const _ = require('lodash')
+const { WorldDataEmitter, Viewer, MapControls } = require('../viewer')
 const { Vec3 } = require('vec3')
 const { Schematic } = require('prismarine-schematic')
 const BlockLoader = require('prismarine-block')
@@ -9,17 +10,27 @@ const BlockLoader = require('prismarine-block')
 const ChunkLoader = require('prismarine-chunk')
 /** @type {import('prismarine-world')['default']} */
 //@ts-ignore
-const WorldLoader = require('prismarine-world');
+const WorldLoader = require('prismarine-world')
 const THREE = require('three')
-const {GUI} = require('lil-gui')
-global.THREE = THREE
+const { GUI } = require('lil-gui')
+const { toMajor } = require('../viewer/lib/version')
+const { loadScript } = require('../viewer/lib/utils')
+globalThis.THREE = THREE
+//@ts-ignore
+require('three/examples/js/controls/OrbitControls')
 
 const gui = new GUI()
 
 // initial values
 const params = {
   skip: '',
-  version: globalThis.includedVersions[0],
+  version: globalThis.includedVersions.sort((a, b) => {
+    const s = (x) => {
+      const parts = x.split('.')
+      return +parts[0] + (+parts[1])
+    }
+    return s(a) - s(b)
+  }).at(-1),
   block: '',
   metadata: 0,
   supportBlock: false,
@@ -28,6 +39,7 @@ const params = {
     this.entity = ''
   },
   entityRotate: false,
+  camera: ''
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -47,8 +59,24 @@ const setQs = () => {
 
 async function main () {
   const { version } = params
+  // temporary solution until web worker is here, cache data for faster reloads
+  const globalMcData = window['mcData']
+  if (!globalMcData['version']) {
+    const major = toMajor(version)
+    const sessionKey = `mcData-${major}`
+    if (sessionStorage[sessionKey]) {
+      Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))
+    } else {
+      if (sessionStorage.length > 1) sessionStorage.clear()
+      await loadScript(`./mc-data/${major}.js`)
+      try {
+        sessionStorage[sessionKey] = JSON.stringify(Object.fromEntries(Object.entries(globalMcData).filter(([ver]) => ver.startsWith(major))))
+      } catch { }
+    }
+  }
+
   const mcData = require('minecraft-data')(version)
-  window['mcData'] = mcData
+  window['loadedData'] = mcData
 
   gui.add(params, 'version', globalThis.includedVersions)
   gui.add(params, 'block', mcData.blocksArray.map(b => b.name))
@@ -66,21 +94,31 @@ async function main () {
   // const data = await fetch('smallhouse1.schem').then(r => r.arrayBuffer())
   // const schem = await Schematic.read(Buffer.from(data), version)
 
-  const viewDistance = 1
+  const viewDistance = 2
   const center = new Vec3(0, 90, 0)
 
   const World = WorldLoader(version)
 
   // const diamondSquare = require('diamond-square')({ version, seed: Math.floor(Math.random() * Math.pow(2, 31)) })
-  const targetBlockPos = center
+
+  const targetPos = center
+  //@ts-ignore
+  const chunk1 = new Chunk()
+  //@ts-ignore
+  const chunk2 = new Chunk()
+  chunk1.setBlockStateId(center, 34)
+  chunk2.setBlockStateId(center.offset(1, 0, 0), 34)
   const world = new World((chunkX, chunkZ) => {
+    // if (chunkX === 0 && chunkZ === 0) return chunk1
+    // if (chunkX === 1 && chunkZ === 0) return chunk2
     //@ts-ignore
-    return new Chunk()
+    const chunk = new Chunk()
+    return chunk
   })
 
   // await schem.paste(world, new Vec3(0, 60, 0))
 
-  const worldView = new WorldView(world, viewDistance, center)
+  const worldView = new WorldDataEmitter(world, viewDistance, center)
 
   // Create three.js context, add to page
   const renderer = new THREE.WebGLRenderer()
@@ -91,29 +129,34 @@ async function main () {
   // Create viewer
   const viewer = new Viewer(renderer)
   viewer.setVersion(version)
+
   viewer.listen(worldView)
-  // Initialize viewer, load chunks
+  // Load chunks
   worldView.init(center)
   window['worldView'] = worldView
   window['viewer'] = viewer
 
 
-  // const controls = new MapControls(viewer.camera, renderer.domElement)
-  // controls.update()
+  //@ts-ignore
+  const controls = new THREE.OrbitControls(viewer.camera, renderer.domElement)
+  controls.target.set(center.x + 0.5, center.y + 0.5, center.z + 0.5)
 
   const cameraPos = center.offset(2, 2, 2)
   const pitch = THREE.MathUtils.degToRad(-45)
   const yaw = THREE.MathUtils.degToRad(45)
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+  viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
   viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
+  controls.update()
 
   let blockProps = {}
-  const getBlock  = () => {
+  const getBlock = () => {
     return mcData.blocksByName[params.block || 'air']
   }
   const onUpdate = {
-    block() {
-      const {states} = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
+    block () {
+      //@ts-ignore
+      const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
       folder.destroy()
       if (!states) {
         return
@@ -124,16 +167,16 @@ async function main () {
         switch (state.type) {
           case 'enum':
             defaultValue = state.values[0]
-            break;
+            break
           case 'bool':
             defaultValue = false
-            break;
+            break
           case 'int':
             defaultValue = 0
-            break;
+            break
           case 'direction':
             defaultValue = 'north'
-            break;
+            break
 
           default:
             continue
@@ -151,25 +194,42 @@ async function main () {
       viewer.entities.clear()
       if (!params.entity) return
       worldView.emit('entity', {
-        id: 'id', name: params.entity, pos: targetBlockPos.offset(0, 1, 0), width: 1, height: 1, username: 'username'
+        id: 'id', name: params.entity, pos: targetPos.offset(0, 1, 0), width: 1, height: 1, username: 'username'
       })
     }
   }
 
 
-  const applyChanges = () => {
+  const applyChanges = (metadataUpdate = false) => {
+    const blockId = getBlock()?.id
+    /** @type {BlockLoader.Block} */
+    let block
+    if (metadataUpdate) {
+      block = new Block(blockId, 0, params.metadata)
+      Object.assign(blockProps, block.getProperties())
+      for (const _child of folder.children) {
+        /** @type {import('lil-gui').Controller} */
+        //@ts-ignore
+        const child = _child
+        child.updateDisplay()
+      }
+    } else {
+      //@ts-ignore
+      block = Block.fromProperties(blockId ?? -1, blockProps, 0)
+    }
+
     //@ts-ignore
-    const block = Block.fromProperties(getBlock()?.id ?? -1, blockProps, 0)
-    viewer.setBlockStateId(targetBlockPos, block.stateId)
+    viewer.setBlockStateId(targetPos, block.stateId)
     console.log('up', block.stateId)
     params.metadata = block.metadata
     metadataGui.updateDisplay()
-    viewer.setBlockStateId(targetBlockPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
+    viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     setQs()
   }
-  gui.onChange(({property}) => {
+  gui.onChange(({ property }) => {
+    if (property === 'camera') return
     onUpdate[property]?.()
-    applyChanges()
+    applyChanges(property === 'metadata')
   })
   viewer.waitForChunksToRender().then(async () => {
     await new Promise(resolve => {
@@ -178,7 +238,7 @@ async function main () {
     for (const update of Object.values(onUpdate)) {
       update()
     }
-    applyChanges()
+    applyChanges(true)
     gui.openAnimated()
   })
 
@@ -187,13 +247,46 @@ async function main () {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
     viewer.update()
-    renderer.render(viewer.scene, viewer.camera)
+    viewer.render()
     // window.requestAnimationFrame(animate)
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
     animate()
   })
   animate()
+
+  // #region camera rotation param
+  if (params.camera) {
+    const [x, y] = params.camera.split(',')
+    viewer.camera.rotation.set(parseFloat(x), parseFloat(y), 0, 'ZYX')
+    controls.update()
+    console.log(viewer.camera.rotation.x, parseFloat(x))
+  }
+  const throttledCamQsUpdate = _.throttle(() => {
+    const { camera } = viewer
+    // params.camera = `${camera.rotation.x.toFixed(2)},${camera.rotation.y.toFixed(2)}`
+    setQs()
+  }, 200)
+  controls.addEventListener('change', () => {
+    throttledCamQsUpdate()
+    animate()
+  })
+  // #endregion
+
+  window.onresize = () => {
+    // const vec3 = new THREE.Vector3()
+    // vec3.set(-1, -1, -1).unproject(viewer.camera)
+    // console.log(vec3)
+    // box.position.set(vec3.x, vec3.y, vec3.z-1)
+
+    const { camera } = viewer
+    viewer.camera.aspect = window.innerWidth / window.innerHeight
+    viewer.camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+
+    animate()
+  }
+  window.dispatchEvent(new Event('resize'))
 
   setTimeout(() => {
     // worldView.emit('entity', {

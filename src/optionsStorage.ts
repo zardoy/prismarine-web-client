@@ -27,6 +27,7 @@ const defaultOptions = {
   touchButtonsSize: 40,
   highPerformanceGpu: false,
 
+  showChunkBorders: false,
   frameLimit: false as number | false,
   alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
   alwaysShowMobileControls: false,
@@ -61,7 +62,7 @@ type WatchValue = <T extends Record<string, any>>(proxy: T, callback: (p: T) => 
 export const watchValue: WatchValue = (proxy, callback) => {
   const watchedProps = new Set<string>()
   callback(new Proxy(proxy, {
-    get(target, p, receiver) {
+    get (target, p, receiver) {
       watchedProps.add(p.toString())
       return Reflect.get(target, p, receiver)
     },
