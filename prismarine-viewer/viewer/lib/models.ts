@@ -135,7 +135,6 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     if (!neighbor) continue
     if (neighbor.type === type) continue
     if ((neighbor.isCube && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
-    if (neighbor.position.y < 0) continue
 
     let tint = [1, 1, 1]
     if (water) {
@@ -246,7 +245,6 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
       if (neighbor) {
         if (cullIfIdentical && neighbor.type === block.type) continue
         if (!neighbor.transparent && neighbor.isCube) continue
-        if (neighbor.position.y < 0) continue
       }
     }
 
