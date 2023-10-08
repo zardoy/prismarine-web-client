@@ -189,7 +189,7 @@ const handleSign = async (dataBase: string, match: RegExpExecArray) => {
         Array.from({ length: 16 }).map((_val, i) => {
           return [`rotation=${i}`, {
             "model": currentBlockName,
-            y: i * 45,
+            y: i * (45 / 2),
           }]
         })
       )

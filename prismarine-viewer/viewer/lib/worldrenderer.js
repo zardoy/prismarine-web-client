@@ -117,8 +117,9 @@ class WorldRenderer {
     }
 
     const group = new THREE.Group()
-    const rotateStep = isWall ? 2 : 4
-    group.rotation.set(0, -(Math.PI / rotateStep) * rotation, 0)
+    group.rotation.set(0, -THREE.MathUtils.degToRad(
+      rotation * (isWall ? 90 : 45 / 2)
+    ), 0)
     group.add(mesh)
     const y = isWall ? 4.5 / 16 + mesh.scale.y / 2 : (1 - (mesh.scale.y / 2))
     group.position.set(position.x + 0.5, position.y + y, position.z + 0.5)
