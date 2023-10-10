@@ -6,10 +6,10 @@ import { css } from '@emotion/css'
 import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
-import DeathScreen from './react/DeathScreen'
 import { contro } from './controls'
 import { activeModalStack, isGameActive, miscUiState } from './globalState'
 import { options, watchValue } from './optionsStorage'
+import DeathScreenProvider from './react/DeathScreenProvider'
 
 // todo
 useInterfaceState.setState({
@@ -17,7 +17,7 @@ useInterfaceState.setState({
   uiCustomization: {
     touchButtonSize: 40,
   },
-  updateCoord([coord, state]) {
+  updateCoord ([coord, state]) {
     const coordToAction = [
       ['z', -1, 'KeyW'],
       ['z', 1, 'KeyS'],
@@ -77,7 +77,7 @@ const TouchControls = () => {
   )
 }
 
-function useIsBotAvailable() {
+function useIsBotAvailable () {
   const stack = useSnapshot(activeModalStack)
 
   return isGameActive(false)
@@ -119,7 +119,7 @@ const App = () => {
   return <div>
     <Portal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
-      <DeathScreen />
+      <DeathScreenProvider />
     </Portal>
     <DisplayQr />
     <TouchControls />

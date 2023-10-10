@@ -1,7 +1,7 @@
 //@ts-check
-const { LitElement, html, css, unsafeCSS } = require('lit')
-const widgetsGui = require('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png')
-const { options } = require('../../optionsStorage')
+import { LitElement, html, css, unsafeCSS } from 'lit'
+import widgetsGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png'
+import { options } from '../../optionsStorage'
 
 let audioContext
 /** @type {Record<string, any>} */

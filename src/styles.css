@@ -12,11 +12,6 @@
   box-sizing: border-box;
 }
 
-#react-root {
-  z-index: 9;
-  position: fixed;
-}
-
 a {
   color: white;
 }
@@ -25,6 +20,30 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   height: 100vh;
   overflow: hidden;
+  --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png')
+}
+
+body {
+  overflow: hidden;
+  position: relative;
+  margin:0;
+  padding:0;
+  height: 100vh;
+  /* font-family: sans-serif; */
+  background: #333;
+  /* background: linear-gradient(#141e30, #243b55); */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  font-family: minecraft, mojangles, monospace;
+}
+
+#react-root {
+  z-index: 9;
+  position: fixed;
 }
 
 .dirt-bg {
@@ -51,34 +70,6 @@ html {
     src: url(mojangles.ttf);
 }
 
-body {
-  overflow: hidden;
-  position: relative;
-  margin:0;
-  padding:0;
-  height: 100vh;
-  font-family: sans-serif;
-  background: #333;
-  /* background: linear-gradient(#141e30, #243b55); */
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-#viewer-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-	height: 100%;
-	width: 100%;
-	font-size: 0;
-	margin: 0;
-	padding: 0;
-}
-
 #ui-root {
   position: fixed;
   top: 0;
@@ -94,7 +85,17 @@ body {
   image-rendering: -o-crisp-edges;
   image-rendering: pixelated;
   -ms-interpolation-mode: nearest-neighbor;
-  font-family: minecraft, mojangles, monospace;
+}
+
+#viewer-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+	height: 100%;
+	width: 100%;
+	font-size: 0;
+	margin: 0;
+	padding: 0;
 }
 
 @media only screen and (max-width: 971px) {
