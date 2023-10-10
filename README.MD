@@ -48,6 +48,9 @@ To open the console, press `F12`, or if you are on mobile, you can type `#debug`
 
 It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info.
 
+There is storybook for fast UI development. Run `pnpm storybook` to start it.
+There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
+
 However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:
 
 - `localStorage.debug = '*'` - Enables all debug messages!
