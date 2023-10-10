@@ -1,8 +1,9 @@
 .button {
+    --scale: 1;
     --txrV: 66px;
     position: relative;
     width: 200px;
-    height: 20px;
+    height: calc(20px * var(--scale));
     font-family: minecraft, mojangles, monospace;
     font-size: 10px;
     color: white;
@@ -33,16 +34,16 @@
   position: absolute;
   top: 0;
   width: 50%;
-  height: 20px;
+  height: calc(20px * var(--scale));
   background: var(--widgets-gui-atlas);
-  background-size: 256px;
-  background-position-y: calc(var(--txrV) * -1);
+  background-size: calc(256px * var(--scale));
+  background-position-y: calc(var(--txrV) * -1 * var(--scale));
   z-index: -1;
 }
 
 .button::before {
   left: 50%;
-  background-position-x: calc(-200px + 100%);
+  background-position-x: calc((-200px * var(--scale)) + 100%);
 }
 
 .button::after {
@@ -58,8 +59,8 @@
     font-size: 14px;
 }
 
-/* @media (pointer: coarse) {
+@media (pointer: coarse) {
     .button {
-        height: 30px;
+      --scale: 1.3;
     }
-} */
+}
