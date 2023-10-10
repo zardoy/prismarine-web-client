@@ -38,10 +38,10 @@ subscribe(activeModalStack, () => {
 export const customDisplayManageKeyword = 'custom'
 
 const defaultModalActions = {
-  show(modal: Modal) {
+  show (modal: Modal) {
     if (modal.elem) modal.elem.style.display = 'block'
   },
-  hide(modal: Modal) {
+  hide (modal: Modal) {
     if (modal.elem) modal.elem.style.display = 'none'
   }
 }

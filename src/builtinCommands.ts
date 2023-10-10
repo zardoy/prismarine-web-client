@@ -9,7 +9,7 @@ const notImplemented = () => {
   return 'Not implemented yet'
 }
 
-async function addFolderToZip(folderPath, zip, relativePath) {
+async function addFolderToZip (folderPath, zip, relativePath) {
   const entries = await fs.promises.readdir(folderPath)
 
   for (const entry of entries) {
@@ -66,21 +66,21 @@ const commands = [
   },
   {
     command: ['/publish', '/share'],
-    async invoke() {
+    async invoke () {
       const text = await openToWanAndCopyJoinLink(writeText)
       if (text) writeText(text)
     }
   },
   {
     command: ['/close'],
-    invoke() {
+    invoke () {
       const text = closeWan()
       if (text) writeText(text)
     }
   },
   {
     command: '/reset-world -y',
-    async invoke() {
+    async invoke () {
       if (fsState.inMemorySave) return
       // todo for testing purposes
       sessionStorage.oldWorldData = localStorage
@@ -91,7 +91,7 @@ const commands = [
   },
   {
     command: ['/save'],
-    invoke() {
+    invoke () {
       saveWorld()
     }
   }

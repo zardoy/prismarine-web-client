@@ -39,7 +39,7 @@ export default async () => {
   let downloadedBytes = 0
   const buffer = await new Response(
     new ReadableStream({
-      async start(controller) {
+      async start (controller) {
         const reader = response.body.getReader()
 
         // eslint-disable-next-line no-constant-condition

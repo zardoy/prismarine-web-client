@@ -16,7 +16,7 @@ export const resourcePackState = proxy({
   currentTexturesBlockStates: undefined as BlockStates | undefined,
 })
 
-function nextPowerOfTwo(n) {
+function nextPowerOfTwo (n) {
   if (n === 0) return 1
   n--
   n |= n >> 1

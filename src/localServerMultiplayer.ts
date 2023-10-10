@@ -5,13 +5,13 @@ import { resolveTimeout, setLoadingScreenStatus } from './utils'
 import { miscUiState } from './globalState'
 
 class CustomDuplex extends Duplex {
-  constructor(options, public writeAction) {
+  constructor (options, public writeAction) {
     super(options)
   }
 
-  _read() { }
+  _read () { }
 
-  _write(chunk, encoding, callback) {
+  _write (chunk, encoding, callback) {
     this.writeAction(chunk)
     callback()
   }

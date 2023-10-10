@@ -39,7 +39,7 @@ window.addEventListener('drop', async e => {
   }
 })
 
-async function handleDroppedFile(file: File) {
+async function handleDroppedFile (file: File) {
   if (file.name.endsWith('.zip')) {
     openWorldZip(file)
     return
