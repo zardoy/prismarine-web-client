@@ -22,11 +22,6 @@
     },
     "include": [
         "src",
-        "cypress",
-        "prismarine-viewer"
-    ],
-    "exclude": [
-        "**/node_modules/*",
-        "**/public/*",
+        "cypress"
     ]
 }
