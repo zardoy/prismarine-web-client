@@ -162,7 +162,6 @@ export const disconnect = async () => {
     // workaround bot.end doesn't end the socket and emit end event
     bot.end()
   }
-  miscUiState.gameLoaded = false
 }
 
 // doesn't support snapshots

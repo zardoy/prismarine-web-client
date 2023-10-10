@@ -114,8 +114,21 @@ export const miscUiState = proxy({
   singleplayer: false,
   flyingSquid: false,
   wanOpened: false,
+  /** wether game hud is shown (in playing state) */
   gameLoaded: false,
+  /** currently trying to load or loaded mc version, after all data is loaded */
+  loadedDataVersion: null as string | null,
 })
+
+export const resetStateAfterDisconnect = () => {
+  miscUiState.gameLoaded = false
+  miscUiState.loadedDataVersion = null
+  miscUiState.singleplayer = false
+  miscUiState.flyingSquid = false
+  miscUiState.wanOpened = false
+  miscUiState.currentDisplayQr = null
+  miscUiState.currentTouch = null
+}
 
 export const isGameActive = (foregroundCheck: boolean) => {
   if (foregroundCheck && activeModalStack.length) return false

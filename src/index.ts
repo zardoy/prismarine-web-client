@@ -56,7 +56,8 @@ import {
   insertActiveModalStack,
   isGameActive,
   miscUiState,
-  gameAdditionalState
+  gameAdditionalState,
+  resetStateAfterDisconnect
 } from './globalState'
 
 import {
@@ -191,7 +192,7 @@ async function main () {
   const menu = document.getElementById('play-screen')
   menu.addEventListener('connect', e => {
     const options = e.detail
-    connect(options)
+    void connect(options)
   })
   const connectSingleplayer = (serverOverrides = {}) => {
     void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
@@ -273,6 +274,7 @@ async function connect (connectOptions: {
       bot._client = undefined
       window.bot = bot = undefined
     }
+    resetStateAfterDisconnect()
     removeAllListeners()
   }
   const handleError = (err) => {
@@ -321,7 +323,7 @@ async function connect (connectOptions: {
   try {
     Object.assign(serverOptions, _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, serverOptions))
     serverOptions['view-distance'] = renderDistance
-    const downloadMcData = async (version) => {
+    const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
       try {
         await genTexturePackTextures(version)
@@ -334,6 +336,7 @@ async function connect (connectOptions: {
       }
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       viewer.setVersion(version)
+      miscUiState.loadedDataVersion = version
     }
 
     const downloadVersion = connectOptions.botVersion || (singeplayer ? serverOptions.version : undefined)
@@ -400,7 +403,7 @@ async function connect (connectOptions: {
     }) as unknown as typeof __type_bot
     window.bot = bot
     if (singeplayer || p2pMultiplayer) {
-      // p2pMultiplayer still uses the same flying-squid server
+      // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature
       bot.supportFeature = (feature) => {
         if (unsupportedLocalServerFeatures.includes(feature)) {
