@@ -7,6 +7,7 @@
     "rules": {
         "space-infix-ops": "error",
         "no-multi-spaces": "error",
+        "space-after-function-name": "error",
         "space-in-parens": [
             "error",
             "never"

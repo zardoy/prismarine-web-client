@@ -25,11 +25,11 @@ export const toNumber = (val) => {
 }
 
 export const pointerLock = {
-  get hasPointerLock() {
+  get hasPointerLock () {
     return document.pointerLockElement
   },
   justHitEscape: false,
-  async requestPointerLock() {
+  async requestPointerLock () {
     if (document.getElementById('hud').style.display === 'none' || activeModalStack.length || !document.documentElement.requestPointerLock || miscUiState.currentTouch) {
       return
     }
@@ -68,7 +68,7 @@ window.getScreenRefreshRate = getScreenRefreshRate
 /**
  * Allows to obtain the estimated Hz of the primary monitor in the system.
  */
-export async function getScreenRefreshRate(): Promise<number> {
+export async function getScreenRefreshRate (): Promise<number> {
   let requestId = null
   let callbackTriggered = false
   let resolve
@@ -119,7 +119,7 @@ export const isCypress = () => {
 }
 
 // https://github.com/PrismarineJS/node-minecraft-protocol/blob/cf1f67117d586b5e6e21f0d9602da12e9fcf46b6/src/server/login.js#L170
-function javaUUID(s: string) {
+function javaUUID (s: string) {
   const hash = crypto.createHash('md5')
   hash.update(s, 'utf8')
   const buffer = hash.digest()
@@ -128,7 +128,7 @@ function javaUUID(s: string) {
   return buffer
 }
 
-export function nameToMcOfflineUUID(name) {
+export function nameToMcOfflineUUID (name) {
   return (new UUID(javaUUID('OfflinePlayer:' + name))).toString()
 }
 
@@ -162,7 +162,6 @@ export const disconnect = async () => {
     // workaround bot.end doesn't end the socket and emit end event
     bot.end()
   }
-  bot._client.emit('end', 'You left the server')
   miscUiState.gameLoaded = false
 }
 
