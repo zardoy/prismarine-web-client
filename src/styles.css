@@ -1,3 +1,5 @@
+@import url(./screens.css);
+
 :root {
   --guiScaleFactor: 3;
   --guiScale: 3;
@@ -20,7 +22,8 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   height: 100vh;
   overflow: hidden;
-  --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png')
+  --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png');
+  color: white;
 }
 
 body {
@@ -46,11 +49,17 @@ body {
   position: fixed;
 }
 
+.text {
+  color: white;
+  font-size: 10px;
+  text-shadow: 1px 1px #222;
+}
+
 .dirt-bg {
   position: absolute;
   top: 0;
   left: 0;
-  background: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/options_background.png'), rgba(0, 0, 0, 0.7);
+  /* background: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/options_background.png'), rgba(0, 0, 0, 0.7); */
   background-size: 16px;
   background-repeat: repeat;
   width: 100%;
