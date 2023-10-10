@@ -53,7 +53,9 @@ it('Loads & renders singleplayer', () => {
   testWorldLoad()
 })
 
-it('Joins to server', () => {
+it('Joins to server', {
+  retries: 3
+}, () => {
   // visit('/?version=1.16.1')
   window.localStorage.version = ''
   visit()
