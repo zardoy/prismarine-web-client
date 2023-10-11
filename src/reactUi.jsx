@@ -7,9 +7,11 @@ import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
 import { contro } from './controls'
-import { activeModalStack, isGameActive, miscUiState } from './globalState'
+import { miscUiState } from './globalState'
 import { options, watchValue } from './optionsStorage'
 import DeathScreenProvider from './react/DeathScreenProvider'
+import OptionsRenderApp from './react/OptionsRenderApp'
+import MainMenuRenderApp from './react/MainMenuRenderApp'
 
 // todo
 useInterfaceState.setState({
@@ -77,12 +79,6 @@ const TouchControls = () => {
   )
 }
 
-function useIsBotAvailable () {
-  const stack = useSnapshot(activeModalStack)
-
-  return isGameActive(false)
-}
-
 const Portal = ({ children, to }) => {
   return createPortal(children, to)
 }
@@ -112,17 +108,27 @@ const DisplayQr = () => {
   </div>
 }
 
-const App = () => {
-  const isBotAvailable = useIsBotAvailable()
-  if (!isBotAvailable) return null
+const InGameUi = () => {
+  const { gameLoaded } = useSnapshot(miscUiState)
+  if (!gameLoaded) return
 
-  return <div>
+  return <>
     <Portal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
       <DeathScreenProvider />
     </Portal>
     <DisplayQr />
     <TouchControls />
+  </>
+}
+
+const App = () => {
+  return <div>
+    <InGameUi />
+    <Portal to={document.querySelector('#ui-root')}>
+      <OptionsRenderApp />
+      <MainMenuRenderApp />
+    </Portal>
   </div>
 }
 

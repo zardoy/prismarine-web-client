@@ -1,7 +1,4 @@
-import * as crypto from 'crypto'
-import UUID from 'uuid-1345'
-import { activeModalStack, hideModal, miscUiState, showModal } from './globalState'
-import { notification } from './menus/notification'
+import { activeModalStack, hideModal, miscUiState, notification, showModal } from './globalState'
 import { options } from './optionsStorage'
 import { saveWorld } from './builtinCommands'
 import { openWorldZip } from './browserfs'
@@ -118,20 +115,6 @@ export const isCypress = () => {
   return localStorage.cypress === 'true'
 }
 
-// https://github.com/PrismarineJS/node-minecraft-protocol/blob/cf1f67117d586b5e6e21f0d9602da12e9fcf46b6/src/server/login.js#L170
-function javaUUID (s: string) {
-  const hash = crypto.createHash('md5')
-  hash.update(s, 'utf8')
-  const buffer = hash.digest()
-  buffer[6] = (buffer[6] & 0x0f) | 0x30
-  buffer[8] = (buffer[8] & 0x3f) | 0x80
-  return buffer
-}
-
-export function nameToMcOfflineUUID (name) {
-  return (new UUID(javaUUID('OfflinePlayer:' + name))).toString()
-}
-
 export const setLoadingScreenStatus = function (status: string | undefined, isError = false, hideDots = false) {
   const loadingScreen = document.getElementById('loading-error-screen')
 
@@ -179,10 +162,10 @@ export const setRenderDistance = () => {
   }
   prevRenderDistance = options.renderDistance
 }
-export const reloadChunks = () => {
+export const reloadChunks = async () => {
   if (!worldView) return
   setRenderDistance()
-  worldView.updatePosition(bot.entity.position, true)
+  await worldView.updatePosition(bot.entity.position, true)
 }
 
 export const openFilePicker = (specificCase?: 'resourcepack') => {

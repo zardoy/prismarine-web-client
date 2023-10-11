@@ -5,7 +5,7 @@ import * as nbt from 'prismarine-nbt'
 import { proxy } from 'valtio'
 import { gzip } from 'node-gzip'
 import { options } from './optionsStorage'
-import { nameToMcOfflineUUID } from './utils'
+import { nameToMcOfflineUUID } from './flyingSquidUtils'
 import { forceCachedDataPaths } from './browserfs'
 
 const parseNbt = promisify(nbt.parse)
@@ -124,7 +124,7 @@ export const loadSave = async (root = '/world') => {
   }
 
   fsState.saveLoaded = true
-  document.querySelector('#title-screen').dispatchEvent(new CustomEvent('singleplayer', {
+  window.dispatchEvent(new CustomEvent('singleplayer', {
     // todo check gamemode level.dat data etc
     detail: {
       version,

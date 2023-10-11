@@ -6,7 +6,9 @@ import Button from './Button'
 const meta: Meta<typeof Screen> = {
   component: Screen,
   render: () => <Screen title='test'>
-    {Array.from({ length: 10 }).map((_, i) => <Button key={i}>test {i}</Button>)}
+    <div className="screen-items">
+      {Array.from({ length: 10 }).map((_, i) => <Button key={i} inScreen>test {i}</Button>)}
+    </div>
   </Screen>
 }
 

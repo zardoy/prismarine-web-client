@@ -1,49 +1,7 @@
 //@ts-check
 import { LitElement, html, css, unsafeCSS } from 'lit'
 import widgetsGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png'
-import { options } from '../../optionsStorage'
-
-let audioContext
-/** @type {Record<string, any>} */
-const sounds = {}
-
-// load as many resources on page load as possible instead on demand as user can disable internet connection after he thinks the page is loaded
-const loadingSounds = []
-const convertedSounds = []
-async function loadSound (path) {
-  loadingSounds.push(path)
-  const res = await window.fetch(path)
-  const data = await res.arrayBuffer()
-
-  sounds[path] = data
-  loadingSounds.splice(loadingSounds.indexOf(path), 1)
-}
-
-export async function playSound (path) {
-  audioContext ??= new window.AudioContext()
-
-  for (const [soundName, sound] of Object.entries(sounds)) {
-    if (convertedSounds.includes(soundName)) continue
-    sounds[soundName] = await audioContext.decodeAudioData(sound)
-    convertedSounds.push(soundName)
-  }
-
-  const volume = options.volume / 100
-
-  const soundBuffer = sounds[path]
-  if (!soundBuffer) {
-    console.warn(`Sound ${path} not loaded`)
-    return
-  }
-
-  const gainNode = audioContext.createGain()
-  const source = audioContext.createBufferSource()
-  source.buffer = soundBuffer
-  source.connect(gainNode)
-  gainNode.connect(audioContext.destination)
-  gainNode.gain.value = volume
-  source.start(0)
-}
+import { playSound, loadSound } from '../../basicSounds'
 
 class Button extends LitElement {
   static get styles () {

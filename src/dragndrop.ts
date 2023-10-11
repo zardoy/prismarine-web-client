@@ -1,8 +1,7 @@
 import { promisify } from 'util'
 import * as nbt from 'prismarine-nbt'
-import { showNotification } from './menus/notification'
 import { openWorldDirectory, openWorldZip } from './browserfs'
-import { isGameActive } from './globalState'
+import { isGameActive, showNotification } from './globalState'
 
 const parseNbt = promisify(nbt.parse)
 window.nbt = nbt

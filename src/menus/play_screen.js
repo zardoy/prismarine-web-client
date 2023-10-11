@@ -96,7 +96,6 @@ class PlayScreen extends LitElement {
       const getParam = (localStorageKey, qs = localStorageKey) => {
         const qsValue = qs ? params.get(qs) : undefined
         if (qsValue) {
-          document.getElementById('title-screen').style.display = 'none'
           this.style.display = 'block'
         }
         return qsValue || window.localStorage.getItem(localStorageKey)
@@ -195,7 +194,6 @@ class PlayScreen extends LitElement {
     const server = `${this.server}${this.serverport && `:${this.serverport}`}`
     const proxy = this.proxy && `${this.proxy}${this.proxyport && `:${this.proxyport}`}`
 
-    document.getElementById('title-screen').style.display = 'none'
     window.localStorage.setItem('username', this.username)
     window.localStorage.setItem('password', this.password)
     window.localStorage.setItem('server', server)

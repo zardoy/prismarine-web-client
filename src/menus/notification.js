@@ -2,23 +2,8 @@
 
 // create lit element
 const { LitElement, html, css } = require('lit')
-const { proxy, subscribe } = require('valtio/vanilla')
-
-// move to globalState?
-// rename current (non-stackable) notification to one-time (system) notification
-const initialNotification = {
-  show: false,
-  autoHide: true,
-  message: '',
-  type: 'info',
-}
-export const notification = proxy(initialNotification)
-
-export const showNotification = (/** @type {Partial<typeof notification>} */newNotification) => {
-  Object.assign(notification, { show: true, ...newNotification }, initialNotification)
-}
-
-window.notification = notification
+const { subscribe } = require('valtio')
+const { notification } = require('../globalState')
 
 class Notification extends LitElement {
   static get properties () {

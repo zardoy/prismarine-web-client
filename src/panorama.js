@@ -7,6 +7,7 @@ import { fromTexturePackPath, resourcePackState } from './texturePack'
 import { options } from './optionsStorage'
 
 let panoramaCubeMap
+let shouldDisplayPanorama = false
 let panoramaUsesResourePack = false
 let viewer
 
@@ -57,8 +58,7 @@ subscribeKey(resourcePackState, 'resourcePackInstalled', async () => {
 // Menu panorama background
 export async function addPanoramaCubeMap () {
   if (panoramaCubeMap) return
-  // remove all existing object in the viewer.scene
-  // viewer.scene.children = []
+  shouldDisplayPanorama = true
 
   let time = 0
   viewer.camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.05, 1000)
@@ -78,6 +78,8 @@ export async function addPanoramaCubeMap () {
     }))
   }
 
+  if (!shouldDisplayPanorama) return
+
   const panoramaBox = new THREE.Mesh(panorGeo, panorMaterials)
 
   panoramaBox.onBeforeRender = () => {
@@ -90,7 +92,8 @@ export async function addPanoramaCubeMap () {
   group.add(panoramaBox)
 
   const Entity = require('prismarine-viewer/viewer/lib/entity/Entity')
-  for (let i = 0; i < 42; i++) {
+  // should be rewritten entirely
+  for (let i = 0; i < 20; i++) {
     const m = new Entity('1.16.4', 'squid').mesh
     m.position.set(Math.random() * 30 - 15, Math.random() * 20 - 10, Math.random() * 10 - 17)
     m.rotation.set(0, Math.PI + Math.random(), -Math.PI / 4, 'ZYX')
@@ -112,4 +115,5 @@ export function removePanorama () {
   viewer.camera.updateProjectionMatrix()
   viewer.scene.remove(panoramaCubeMap)
   panoramaCubeMap = null
+  shouldDisplayPanorama = false
 }

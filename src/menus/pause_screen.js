@@ -2,12 +2,11 @@
 const { LitElement, html, css } = require('lit')
 const { subscribe } = require('valtio')
 const { subscribeKey } = require('valtio/utils')
-const { hideCurrentModal, showModal, miscUiState } = require('../globalState')
+const { hideCurrentModal, showModal, miscUiState, notification, openOptionsMenu } = require('../globalState')
 const { fsState } = require('../loadSave')
 const { saveWorld } = require('../builtinCommands')
 const { disconnect } = require('../utils')
 const { closeWan, openToWanAndCopyJoinLink, getJoinLink } = require('../localServerMultiplayer')
-const { notification } = require('./notification')
 const { openURL } = require('./components/common')
 
 class PauseScreen extends LitElement {
@@ -77,7 +76,7 @@ class PauseScreen extends LitElement {
           <pmui-button pmui-width="98px" pmui-label="GitHub" @pmui-click=${() => openURL(process.env.GITHUB_URL)}></pmui-button>
           <pmui-button pmui-width="98px" pmui-label="Discord" @pmui-click=${() => openURL('https://discord.gg/4Ucm684Fq3')}></pmui-button>
         </div>
-        <pmui-button pmui-width="204px" pmui-label="Options" @pmui-click=${() => showModal(document.getElementById('options-screen'))}></pmui-button>
+        <pmui-button pmui-width="204px" pmui-label="Options" @pmui-click=${() => openOptionsMenu('main')}></pmui-button>
         <!-- todo use qr icon (full pixelarticons package) -->
         <!-- todo also display copy link button when opened -->
         ${joinButton ? html`

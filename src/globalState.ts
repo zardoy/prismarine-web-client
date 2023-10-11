@@ -2,7 +2,7 @@
 
 import { proxy, ref, subscribe } from 'valtio'
 import { pointerLock } from './utils'
-import { options } from './optionsStorage'
+import { OptionsGroupType, options } from './optionsStorage'
 
 // todo: refactor structure with support of hideNext=false
 
@@ -27,8 +27,6 @@ subscribe(activeModalStack, () => {
   if (activeModalStack.length === 0) {
     if (isGameActive(false)) {
       void pointerLock.requestPointerLock()
-    } else {
-      showModal(document.getElementById('title-screen'))
     }
   } else {
     document.exitPointerLock?.()
@@ -94,6 +92,10 @@ export const hideCurrentModal = (_data = undefined, onHide = undefined) => {
   }
 }
 
+export const openOptionsMenu = (group: OptionsGroupType) => {
+  showModal({ reactType: `options-${group}` })
+}
+
 // ---
 
 export const currentContextMenu = proxy({ items: [] as ContextMenuItem[] | null, x: 0, y: 0 })
@@ -146,6 +148,19 @@ export const gameAdditionalState = proxy({
 
 window.gameAdditionalState = gameAdditionalState
 
+// rename current (non-stackable) notification to one-time (system) notification
+const initialNotification = {
+  show: false,
+  autoHide: true,
+  message: '',
+  type: 'info',
+}
+export const notification = proxy(initialNotification)
+
+export const showNotification = (/** @type {Partial<typeof notification>} */newNotification) => {
+  Object.assign(notification, { show: true, ...newNotification }, initialNotification)
+}
+
 const savePlayers = () => {
   if (!window.localServer) return
   for (const player of window.localServer.players) {
@@ -167,7 +182,7 @@ window.inspectPlayer = () => require('fs').promises.readFile('/world/playerdata/
 // todo move from global state
 window.addEventListener('beforeunload', (event) => {
   // todo-low maybe exclude chat?
-  if (!isGameActive(true) && activeModalStack.at(-1)?.elem.id !== 'chat') return
+  if (!isGameActive(true) && activeModalStack.at(-1)?.elem?.id !== 'chat') return
   if (sessionStorage.lastReload && !options.preventDevReloadWhilePlaying) return
   if (!options.closeConfirmation) return
 

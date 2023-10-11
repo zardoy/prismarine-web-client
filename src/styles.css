@@ -1,3 +1,5 @@
+@import url(./screens.css);
+
 :root {
   --guiScaleFactor: 3;
   --guiScale: 3;
@@ -21,6 +23,7 @@ html {
   height: 100vh;
   overflow: hidden;
   --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png');
+  --title-gui: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/title/minecraft.png');
   color: white;
 }
 
@@ -121,7 +124,7 @@ body {
   }
 }
 
-@media only screen and (max-width: 561px) {
+@media only screen and (max-width: 590px) {
   #ui-root {
     transform: scale(1);
     width: calc(100% / 1);

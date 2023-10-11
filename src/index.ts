@@ -21,11 +21,7 @@ import './menus/play_screen'
 import './menus/pause_screen'
 import './menus/loading_or_error_screen'
 import './menus/keybinds_screen'
-import './menus/options_screen'
-import './menus/advanced_options_screen'
-import { notification } from './menus/notification'
-import './menus/title_screen'
-import { initWithRenderer, statsEnd, statsStart } from './rightTopStats'
+import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -57,7 +53,8 @@ import {
   isGameActive,
   miscUiState,
   gameAdditionalState,
-  resetStateAfterDisconnect
+  resetStateAfterDisconnect,
+  notification
 } from './globalState'
 
 import {
@@ -197,7 +194,7 @@ async function main () {
   const connectSingleplayer = (serverOverrides = {}) => {
     void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
   }
-  document.querySelector('#title-screen').addEventListener('singleplayer', (e) => {
+  window.addEventListener('singleplayer', (e) => {
     //@ts-expect-error
     connectSingleplayer(e.detail)
   })
@@ -246,7 +243,7 @@ async function connect (connectOptions: {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singeplayer
   miscUiState.flyingSquid = singeplayer || p2pMultiplayer
-  const { renderDistance, maxMultiplayerRenderDistance } = options
+  const { renderDistance, maxMultiplayerRenderDistance = renderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
   const { username, password } = connectOptions
@@ -719,15 +716,14 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.code === 'F11') {
     e.preventDefault()
-    goFullscreen(true)
+    void goFullscreen(true)
   }
   if (e.code === 'KeyL' && e.altKey) {
     console.clear()
   }
 })
 
-addPanoramaCubeMap()
-showModal(document.getElementById('title-screen'))
+void addPanoramaCubeMap()
 void main()
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return

@@ -1,4 +1,4 @@
-import { playSound } from '../menus/components/button'
+import { loadSound, playSound } from '../basicSounds'
 import buttonCss from './button.module.css'
 
 // testing in storybook from deathscreen
@@ -7,15 +7,22 @@ interface Props extends React.ComponentProps<'button'> {
   label?: string
   icon?: string
   children?: React.ReactNode
+  inScreen?: boolean
 }
 
-export default ({ label, icon, children, ...args }: Props) => {
+void loadSound('button_click.mp3')
+
+export default ({ label, icon, children, inScreen, ...args }: Props) => {
   const onClick = (e) => {
     void playSound('button_click.mp3')
     args.onClick(e)
   }
+  if (inScreen) {
+    args.style ??= {}
+    args.style.width = 150
+  }
 
-  return <button className={buttonCss.button} onClick={onClick} {...args}>
+  return <button className={buttonCss.button} {...args} onClick={onClick}>
     {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}
     {label}
     {children}

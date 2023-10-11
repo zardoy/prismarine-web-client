@@ -47,6 +47,10 @@ declare module '*.css' {
     const css: string
     export default css
 }
+declare module '*.json' {
+    const json: any
+    export = json
+}
 declare module '*.png' {
     const png: string
     export default png

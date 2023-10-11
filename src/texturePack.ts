@@ -5,10 +5,10 @@ import type { Viewer } from 'prismarine-viewer/viewer/lib/viewer'
 import { subscribeKey } from 'valtio/utils'
 import { proxy, ref } from 'valtio'
 import blocksFileNames from '../generated/blocks.json'
-import { showNotification } from './menus/notification'
 import type { BlockStates } from './inventory'
 import { removeFileRecursiveAsync } from './browserfs'
 import { setLoadingScreenStatus } from './utils'
+import { showNotification } from './globalState'
 
 export const resourcePackState = proxy({
   resourcePackInstalled: false,
