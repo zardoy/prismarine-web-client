@@ -4,21 +4,35 @@ import { isCypress } from './utils'
 
 const stats = new Stats()
 const stats2 = new Stats()
+const statsGl = new StatsGl({ minimal: true })
 // in my case values are good: gpu: < 0.5, cpu < 0.15
-const statsGl = new StatsGl()
+
 stats2.showPanel(2)
+
+// prod or small screen
+const denseMode = process.env.NODE_ENV === 'production' || window.innerHeight < 500
 
 let total = 0
 const addStat = (dom, size = 80) => {
+  dom.style.position = 'absolute'
+  if (denseMode) dom.style.height = '12px'
+  dom.style.overflow = 'hidden'
   dom.style.left = ''
   dom.style.right = `${total}px`
   dom.style.width = '80px'
+  dom.style.zIndex = 1000
   document.body.appendChild(dom)
   total += size
 }
+const addStatsGlStat = (canvas) => {
+  const container = document.createElement('div')
+  canvas.style.position = 'static'
+  canvas.style.display = 'block'
+  container.appendChild(canvas)
+  addStat(container)
+}
 addStat(stats.dom)
 addStat(stats2.dom)
-addStat(statsGl.container)
 
 const hideStats = localStorage.hideStats || isCypress()
 if (hideStats) {
@@ -30,6 +44,10 @@ if (hideStats) {
 export const initWithRenderer = (canvas) => {
   if (hideStats) return
   statsGl.init(canvas)
+  if (statsGl.gpuPanel) {
+    addStatsGlStat(statsGl.gpuPanel.canvas)
+  }
+  addStatsGlStat(statsGl.msPanel.canvas)
   statsGl.container.style.display = 'flex'
   statsGl.container.style.justifyContent = 'flex-end'
   let i = 0
