@@ -53,6 +53,7 @@ class CustomChannelClient extends EventEmitter {
 
   end (reason) {
     this._endReason = reason
+    this.emit('end', this._endReason || 'unknown')
   }
 
   write (name, params) {
