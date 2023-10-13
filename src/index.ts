@@ -143,18 +143,23 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
 }
 renderFrame(performance.now())
 
-window.addEventListener('resize', () => {
+const resizeHandler = () => {
   const width = window.outerWidth
   const height = window.outerHeight
 
   viewer.camera.aspect = width / height
   viewer.camera.updateProjectionMatrix()
   renderer.setSize(width, height)
+}
+const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent)
+addEventListener('resize', (e) => {
+  if (isIos) {
+    // ios bug: resize event is fired before deminsion properties are updated
+    setTimeout(resizeHandler)
+  } else {
+    resizeHandler()
+  }
 })
-// window.addEventListener('load', (e) => {
-//   console.log(window.innerWidth, outerWidth, document.documentElement.offsetWidth)
-//   window.dispatchEvent(new Event('resize'))
-// })
 
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
