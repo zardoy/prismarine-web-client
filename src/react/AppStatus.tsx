@@ -51,7 +51,13 @@ export default () => {
   useDidUpdateEffect(() => {
     // todo play effect only when world successfully loaded
     if (!isOpen) {
-      document.querySelector('#viewer-canvas')['style'].animationName = 'dive-animation'
+      const divingElem: HTMLElement = document.querySelector('#viewer-canvas')
+      divingElem.style.animationName = 'dive-animation'
+      divingElem.parentElement.style.perspective = '1200px'
+      divingElem.onanimationend = () => {
+        divingElem.parentElement.style.perspective = ''
+        divingElem.onanimationend = null
+      }
     }
   }, [isOpen])
 

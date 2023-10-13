@@ -56,8 +56,6 @@ body {
   -ms-user-select: none;
   user-select: none;
   font-family: minecraft, mojangles, monospace;
-  /* for canvas transition */
-  perspective: 1200px;
 }
 
 #react-root {

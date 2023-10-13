@@ -144,10 +144,17 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
 renderFrame(performance.now())
 
 window.addEventListener('resize', () => {
-  viewer.camera.aspect = window.innerWidth / window.innerHeight
+  const width = window.outerWidth
+  const height = window.outerHeight
+
+  viewer.camera.aspect = width / height
   viewer.camera.updateProjectionMatrix()
-  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setSize(width, height)
 })
+// window.addEventListener('load', (e) => {
+//   console.log(window.innerWidth, outerWidth, document.documentElement.offsetWidth)
+//   window.dispatchEvent(new Event('resize'))
+// })
 
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')

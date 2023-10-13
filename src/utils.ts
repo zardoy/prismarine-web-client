@@ -166,7 +166,6 @@ let prevRenderDistance = options.renderDistance
 export const setRenderDistance = () => {
   worldView.viewDistance = options.renderDistance
   if (localServer) {
-    localServer.options['view-distance'] = options.renderDistance
     localServer.players[0].emit('playerChangeRenderDistance', options.renderDistance)
   }
   prevRenderDistance = options.renderDistance
@@ -194,9 +193,9 @@ export const openFilePicker = (specificCase?: 'resourcepack') => {
         if (!doContinue) return
       }
       if (specificCase === 'resourcepack') {
-        installTexturePack(file)
+        void installTexturePack(file)
       } else {
-        openWorldZip(file)
+        void openWorldZip(file)
       }
     })
     picker.hidden = true

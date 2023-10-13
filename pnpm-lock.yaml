@@ -63,7 +63,7 @@ importers:
         version: 4.18.2
       flying-squid:
         specifier: github:zardoy/space-squid#everything
-        version: github.com/zardoy/space-squid/458eee79e4ff20fccdff8027d3aae16161b9fb1c
+        version: github.com/zardoy/space-squid/acf7b6f8cbcc204007eed767eb52a527a85b3ab0
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -103,12 +103,18 @@ importers:
       react-dom:
         specifier: ^18.2.0
         version: 18.2.0(react@18.2.0)
+      react-transition-group:
+        specifier: ^4.4.5
+        version: 4.4.5(react-dom@18.2.0)(react@18.2.0)
       stats-gl:
         specifier: ^1.0.5
         version: 1.0.5
       stats.js:
         specifier: ^0.17.0
         version: 0.17.0
+      tippy.js:
+        specifier: ^6.3.7
+        version: 6.3.7
       title-case:
         specifier: 3.x
         version: 3.0.3
@@ -143,6 +149,9 @@ importers:
       '@types/lodash-es':
         specifier: ^4.17.9
         version: 4.17.9
+      '@types/react-transition-group':
+        specifier: ^4.4.7
+        version: 4.4.7
       '@types/stats.js':
         specifier: ^0.17.1
         version: 0.17.1
@@ -4770,6 +4779,12 @@ packages:
     dependencies:
       '@types/react': 18.2.20
 
+  /@types/react-transition-group@4.4.7:
+    resolution: {integrity: sha512-ICCyBl5mvyqYp8Qeq9B5G/fyBSRC0zx3XM3sCC6KkcMsNeAHqXBKkmat4GqdJET5jtYUpZXrxI5flve5qhi2Eg==}
+    dependencies:
+      '@types/react': 18.2.20
+    dev: true
+
   /@types/react@18.2.20:
     resolution: {integrity: sha512-WKNtmsLWJM/3D5mG4U84cysVY31ivmyw85dE84fOCk5Hx78wezB/XEjVPWl2JTZ5FkEeaTJf+VgUAUn3PE7Isw==}
     dependencies:
@@ -6996,6 +7011,13 @@ packages:
     dependencies:
       esutils: 2.0.3
     dev: true
+
+  /dom-helpers@5.2.1:
+    resolution: {integrity: sha512-nRCa7CK3VTrM2NmGkIy4cbK7IZlgBE/PYMn55rrXefr5xXDP0LdtfPnblFDoVdcAfslJ7or6iqAUnx0CCGIWQA==}
+    dependencies:
+      '@babel/runtime': 7.22.11
+      csstype: 3.1.2
+    dev: false
 
   /dom-serializer@2.0.0:
     resolution: {integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==}
@@ -11719,6 +11741,20 @@ packages:
       tslib: 2.6.2
     dev: true
 
+  /react-transition-group@4.4.5(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-pZcd1MCJoiKiBR2NRxeCRg13uCXbydPnmB4EOeRrY7480qNWO8IIgQG6zlDkm6uRMsURXPuKq0GWtiM59a5Q6g==}
+    peerDependencies:
+      react: ^18.2.0
+      react-dom: '>=16.6.0'
+    dependencies:
+      '@babel/runtime': 7.22.11
+      dom-helpers: 5.2.1
+      loose-envify: 1.4.0
+      prop-types: 15.8.1
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
   /react-universal-interface@0.6.2(react@18.2.0)(tslib@2.6.2):
     resolution: {integrity: sha512-dg8yXdcQmvgR13RIlZbTRQOoUrDciFVoSBZILwjE2LFISxZZ8loVJKAkuzswl5js8BHda79bIb2b84ehU8IjXw==}
     peerDependencies:
@@ -13069,6 +13105,12 @@ packages:
     resolution: {integrity: sha512-d2eda04AN/cPOR89F7Xv5bK/jrQEhmcLFe6HFldoeO9AJtps+fqEnh486vnT/8y4bw38pSyxDcTCAq+Ks2aJTg==}
     engines: {node: '>=14.0.0'}
     dev: true
+
+  /tippy.js@6.3.7:
+    resolution: {integrity: sha512-E1d3oP2emgJ9dRQZdf3Kkn0qJgI6ZLpyS5z6ZkY1DF3kaQaBsGZsndEpHwx+eC+tYM41HaSNvNtLx8tU57FzTQ==}
+    dependencies:
+      '@popperjs/core': 2.11.8
+    dev: false
 
   /title-case@3.0.3:
     resolution: {integrity: sha512-e1zGYRvbffpcHIrnuqT0Dh+gEJtDaxDSoG4JAIpq4oDFyooziLBIiYQv0GBT4FUAnUop5uZ1hiIAj7oAF6sOCA==}
@@ -14425,8 +14467,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  github.com/zardoy/space-squid/458eee79e4ff20fccdff8027d3aae16161b9fb1c:
-    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/458eee79e4ff20fccdff8027d3aae16161b9fb1c}
+  github.com/zardoy/space-squid/acf7b6f8cbcc204007eed767eb52a527a85b3ab0:
+    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/acf7b6f8cbcc204007eed767eb52a527a85b3ab0}
     name: flying-squid
     version: 1.5.0
     engines: {node: '>=8'}

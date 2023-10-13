@@ -38,7 +38,7 @@ export default ({ connectToServerAction, singleplayerAction, optionsAction, gith
 
 
   return (
-    <div>
+    <div className={styles.root}>
       <div className={styles['game-title']}>
         <div className={styles.minec}></div>
         <div className={styles.raft}></div>

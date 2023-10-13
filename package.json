@@ -53,8 +53,10 @@
     "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-transition-group": "^4.4.5",
     "stats-gl": "^1.0.5",
     "stats.js": "^0.17.0",
+    "tippy.js": "^6.3.7",
     "title-case": "3.x",
     "valtio": "^1.11.1",
     "workbox-build": "^7.0.0"
@@ -68,6 +70,7 @@
     "@storybook/web-components": "^7.4.6",
     "@storybook/web-components-vite": "^7.4.6",
     "@types/lodash-es": "^4.17.9",
+    "@types/react-transition-group": "^4.4.7",
     "@types/stats.js": "^0.17.1",
     "@types/three": "0.128.0",
     "@xmcl/installer": "^5.1.0",

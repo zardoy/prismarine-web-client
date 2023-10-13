@@ -1,6 +1,10 @@
+.root {
+    --top-offset: 30px;
+}
+
 .game-title {
-    position: absolute;
-    top: 30px;
+    position: fixed;
+    top: var(--top-offset);
     left: calc(50% - 137px);
 }
 
@@ -60,8 +64,8 @@
     display: flex;
     flex-direction: column;
     gap: 4px 0;
-    position: absolute;
-    top: calc(25% + 48px);
+    position: fixed;
+    top: calc(25% + var(--top-offset) + 18px);
     left: 50%;
     width: 200px;
     transform: translate(-50%);
@@ -93,4 +97,10 @@
 
 .product-description {
     padding-right: calc(env(safe-area-inset-right) / 2);
+}
+
+@media only screen and (max-height: 313px) {
+    .root {
+        --top-offset: 10px
+    }
 }
