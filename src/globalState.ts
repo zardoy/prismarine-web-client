@@ -6,6 +6,8 @@ import { OptionsGroupType, options } from './optionsStorage'
 
 // todo: refactor structure with support of hideNext=false
 
+const notHideableModalsWithoutForce = new Set(['app-status'])
+
 type Modal = ({ elem?: HTMLElement & Record<string, any> } & { reactType?: string })
 
 type ContextMenuItem = { callback; label }
@@ -69,7 +71,12 @@ export const showModal = (elem: (HTMLElement & Record<string, any>) | { reactTyp
 export const hideModal = (modal = activeModalStack.at(-1), data: any = undefined, options: { force?: boolean; restorePrevious?: boolean } = {}) => {
   const { force = false, restorePrevious = true } = options
   if (!modal) return
-  let cancel = modal.elem?.hide?.(data)
+  let cancel
+  if (modal.elem) {
+    cancel = modal.elem.hide?.(data)
+  } else if (modal.reactType) {
+    cancel = notHideableModalsWithoutForce.has(modal.reactType) ? !force : undefined
+  }
   if (force && cancel !== customDisplayManageKeyword) {
     cancel = undefined
   }

@@ -19,7 +19,6 @@ import './menus/components/bossbars_overlay'
 import './menus/hud'
 import './menus/play_screen'
 import './menus/pause_screen'
-import './menus/loading_or_error_screen'
 import './menus/keybinds_screen'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 
@@ -84,6 +83,7 @@ import CustomChannelClient from './customClient'
 import debug from 'debug'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
+import { appStatusState } from './react/AppStatus'
 
 window.debug = debug
 window.THREE = THREE
@@ -148,8 +148,6 @@ window.addEventListener('resize', () => {
   viewer.camera.updateProjectionMatrix()
   renderer.setSize(window.innerWidth, window.innerHeight)
 })
-
-const loadingScreen = document.getElementById('loading-error-screen')
 
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
@@ -284,7 +282,7 @@ async function connect (connectOptions: {
       if (e.code !== 'KeyR') return
       controller.abort()
       void connect(connectOptions)
-      loadingScreen.hasError = false
+      appStatusState.isError = false
     }, { signal: controller.signal })
     // #endregion
 
@@ -319,7 +317,6 @@ async function connect (connectOptions: {
   let localServer
   try {
     Object.assign(serverOptions, _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, serverOptions))
-    serverOptions['view-distance'] = renderDistance
     const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
       try {
@@ -363,9 +360,25 @@ async function connect (connectOptions: {
           localServer.once('pluginsReady', resolve)
         })
       }
+
+      localServer.on('newPlayer', (player) => {
+        // it's you!
+        player.on('loadingStatus', (newStatus) => {
+          console.log('loadingStatus')
+          setLoadingScreenStatus(newStatus, false, false, true)
+        })
+      })
     }
 
-    setLoadingScreenStatus('Connecting to server')
+    let initialLoadingText: string
+    if (singeplayer) {
+      initialLoadingText = 'Local server is still starting'
+    } else if (p2pMultiplayer) {
+      initialLoadingText = 'Connecting to peer'
+    } else {
+      initialLoadingText = 'Connecting to server'
+    }
+    setLoadingScreenStatus(initialLoadingText)
     bot = mineflayer.createBot({
       host: server.host,
       port: +server.port,
@@ -395,7 +408,7 @@ async function connect (connectOptions: {
           versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']++
         }
         await downloadMcData(client.version)
-        setLoadingScreenStatus('Connecting to server')
+        setLoadingScreenStatus(initialLoadingText)
       }
     }) as unknown as typeof __type_bot
     window.bot = bot
@@ -521,7 +534,7 @@ async function connect (connectOptions: {
     window.pathfinder = pathfinder
     window.debugMenu = debugMenu
 
-    initVR(bot, renderer, viewer)
+    void initVR(bot, renderer, viewer)
 
     postRenderFrameFn = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
@@ -538,7 +551,7 @@ async function connect (connectOptions: {
     // Link WorldDataEmitter and Viewer
     viewer.listen(worldView)
     worldView.listenToBot(bot)
-    worldView.init(bot.entity.position)
+    void worldView.init(bot.entity.position)
 
     dayCycle()
 
@@ -682,7 +695,7 @@ async function connect (connectOptions: {
     blockInteraction.init()
 
     errorAbortController.abort()
-    if (loadingScreen.hasError) return
+    if (appStatusState.isError) return
     setLoadingScreenStatus(undefined)
     miscUiState.gameLoaded = true
     void viewer.waitForChunksToRender().then(() => {

@@ -86,3 +86,11 @@
     text-shadow: 1px 1px #222;
     font-size: 10px;
 }
+
+.product-info {
+    padding-left: calc(env(safe-area-inset-left) / 2);
+}
+
+.product-description {
+    padding-right: calc(env(safe-area-inset-right) / 2);
+}

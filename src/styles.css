@@ -18,6 +18,19 @@ a {
   color: white;
 }
 
+/* todo remove when loading screen migrate to react */
+@keyframes dive-animation {
+  0% {
+    transform: translateZ(-150px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
+}
+
 html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   height: 100vh;
@@ -30,8 +43,8 @@ html {
 body {
   overflow: hidden;
   position: relative;
-  margin:0;
-  padding:0;
+  margin: 0;
+  padding: 0;
   height: 100vh;
   /* font-family: sans-serif; */
   background: #333;
@@ -43,6 +56,8 @@ body {
   -ms-user-select: none;
   user-select: none;
   font-family: minecraft, mojangles, monospace;
+  /* for canvas transition */
+  perspective: 1200px;
 }
 
 #react-root {
@@ -60,7 +75,7 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  /* background: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/options_background.png'), rgba(0, 0, 0, 0.7); */
+  background: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/options_background.png'), rgba(0, 0, 0, 0.7);
   background-size: 16px;
   background-repeat: repeat;
   width: 100%;
@@ -71,13 +86,13 @@ body {
 }
 
 @font-face {
-    font-family: minecraft;
-    src: url(minecraftia.woff);
+  font-family: minecraft;
+  src: url(minecraftia.woff);
 }
 
 @font-face {
-    font-family: mojangles;
-    src: url(mojangles.ttf);
+  font-family: mojangles;
+  src: url(mojangles.ttf);
 }
 
 #ui-root {
@@ -101,11 +116,26 @@ body {
   position: fixed;
   top: 0;
   left: 0;
-	height: 100%;
-	width: 100%;
-	font-size: 0;
-	margin: 0;
-	padding: 0;
+  height: 100%;
+  width: 100%;
+  font-size: 0;
+  margin: 0;
+  padding: 0;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes dive-animation {
+  0% {
+    transform: translateZ(-150px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
 }
 
 @media only screen and (max-width: 971px) {

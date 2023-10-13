@@ -12,6 +12,7 @@ import { options, watchValue } from './optionsStorage'
 import DeathScreenProvider from './react/DeathScreenProvider'
 import OptionsRenderApp from './react/OptionsRenderApp'
 import MainMenuRenderApp from './react/MainMenuRenderApp'
+import AppStatus from './react/AppStatus'
 
 // todo
 useInterfaceState.setState({
@@ -126,6 +127,7 @@ const App = () => {
   return <div>
     <InGameUi />
     <Portal to={document.querySelector('#ui-root')}>
+      <AppStatus />
       <OptionsRenderApp />
       <MainMenuRenderApp />
     </Portal>

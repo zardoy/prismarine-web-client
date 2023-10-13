@@ -114,7 +114,7 @@ class PlayScreen extends LitElement {
 
   render () {
     return html`
-      <div class="dirt-bg"></div>
+      <div class="backdrop"></div>
 
       <p class="title">Join a Server</p>
 

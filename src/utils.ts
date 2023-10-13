@@ -3,6 +3,7 @@ import { options } from './optionsStorage'
 import { saveWorld } from './builtinCommands'
 import { openWorldZip } from './browserfs'
 import { installTexturePack } from './texturePack'
+import { appStatusState } from './react/AppStatus'
 
 export const goFullscreen = async (doToggle = false) => {
   if (!document.fullscreenElement) {
@@ -115,25 +116,33 @@ export const isCypress = () => {
   return localStorage.cypress === 'true'
 }
 
-export const setLoadingScreenStatus = function (status: string | undefined, isError = false, hideDots = false) {
-  const loadingScreen = document.getElementById('loading-error-screen')
+let ourLastStatus = ''
+export const setLoadingScreenStatus = function (status: string | undefined | null, isError = false, hideDots = false, fromFlyingSquid = false) {
+  // null can come from flying squid, should restore our last status
+  if (status === null) {
+    status = ourLastStatus
+  } else if (!fromFlyingSquid) {
+    ourLastStatus = status
+  }
+  fromFlyingSquid = false
 
   if (status === undefined) {
-    loadingScreen.status = ''
-    hideModal({ elem: loadingScreen }, null, { force: true })
+    appStatusState.status = ''
+
+    hideModal({ reactType: 'app-status' }, { force: true })
     return
   }
 
   // todo update in component instead
-  showModal(loadingScreen)
-  if (loadingScreen.hasError) {
+  showModal({ reactType: 'app-status' })
+  if (appStatusState.isError) {
     miscUiState.gameLoaded = false
     return
   }
-  loadingScreen.hideDots = hideDots
-  loadingScreen.hasError = isError
-  loadingScreen.lastStatus = isError ? loadingScreen.status : ''
-  loadingScreen.status = status
+  appStatusState.hideDots = hideDots
+  appStatusState.isError = isError
+  appStatusState.lastStatus = isError ? appStatusState.status : ''
+  appStatusState.status = status
 }
 
 

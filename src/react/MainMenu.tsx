@@ -94,10 +94,11 @@ export default ({ connectToServerAction, singleplayerAction, optionsAction, gith
         <span
           title={`${versionTitle} (click to reload)`}
           onClick={refreshApp}
+          className={styles['product-info']}
         >
           Prismarine Web Client {versionStatus}
         </span>
-        <span>A Minecraft client in the browser!</span>
+        <span className={styles['product-description']}>A Minecraft client in the browser!</span>
       </div>
     </div>
   )

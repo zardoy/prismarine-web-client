@@ -1,3 +1,4 @@
+import { forwardRef } from 'react'
 import { loadSound, playSound } from '../basicSounds'
 import buttonCss from './button.module.css'
 
@@ -12,7 +13,7 @@ interface Props extends React.ComponentProps<'button'> {
 
 void loadSound('button_click.mp3')
 
-export default ({ label, icon, children, inScreen, ...args }: Props) => {
+export default forwardRef<HTMLButtonElement, Props>(({ label, icon, children, inScreen, ...args }, ref) => {
   const onClick = (e) => {
     void playSound('button_click.mp3')
     args.onClick(e)
@@ -22,9 +23,9 @@ export default ({ label, icon, children, inScreen, ...args }: Props) => {
     args.style.width = 150
   }
 
-  return <button className={buttonCss.button} {...args} onClick={onClick}>
+  return <button ref={ref} className={buttonCss.button} {...args} onClick={onClick}>
     {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}
     {label}
     {children}
   </button>
-}
+})

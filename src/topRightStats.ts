@@ -47,7 +47,7 @@ export const initWithRenderer = (canvas) => {
   if (statsGl.gpuPanel) {
     addStatsGlStat(statsGl.gpuPanel.canvas)
   }
-  addStatsGlStat(statsGl.msPanel.canvas)
+  // addStatsGlStat(statsGl.msPanel.canvas)
   statsGl.container.style.display = 'flex'
   statsGl.container.style.justifyContent = 'flex-end'
   let i = 0

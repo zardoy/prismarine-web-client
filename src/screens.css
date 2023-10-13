@@ -1,6 +1,7 @@
 /* screen styles eg main menu and options are screens */
 
-.title, .screen-title {
+.title,
+.screen-title {
     font-size: 10px;
     color: white;
     text-align: center;
@@ -27,7 +28,7 @@
 .screen-content {
     display: flex;
     flex-direction: column;
-    margin-top: 10px;
+    margin-top: 35px;
     /* todo I'm not sure about it */
     /* margin-top: calc(100% / 6 - 16px); */
     width: 310px;
