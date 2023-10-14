@@ -11,6 +11,7 @@ class Hotbar extends LitElement {
     return css`
       .hotbar {
         position: fixed;
+        /* todo use env(safe-area-inset-bottom) instead */
         bottom: ${unsafeCSS(isProbablyIphone() ? '40px' : '0')};
         left: 50%;
         transform: translate(-50%);

@@ -59,19 +59,19 @@ const TouchControls = () => {
   return (
     <div
       className={css`
-                position: fixed;
-                inset: 0;
-                height: 100%;
-                display: flex;
-                width: 100%;
-                justify-content: space-between;
-                align-items: flex-end;
-                pointer-events: none;
-                touch-action: none;
-                & > div {
-                    pointer-events: auto;
-                }
-            `}
+        position: fixed;
+        inset: 0;
+        height: 100%;
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: flex-end;
+        pointer-events: none;
+        touch-action: none;
+        & > div {
+            pointer-events: auto;
+        }
+    `}
     >
       <LeftTouchArea />
       <div />
