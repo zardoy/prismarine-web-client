@@ -144,8 +144,8 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
 renderFrame(performance.now())
 
 const resizeHandler = () => {
-  const width = window.outerWidth
-  const height = window.outerHeight
+  const width = window.innerWidth
+  const height = window.innerHeight
 
   viewer.camera.aspect = width / height
   viewer.camera.updateProjectionMatrix()
