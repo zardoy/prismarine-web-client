@@ -95,5 +95,6 @@
         "no-bitwise": "off",
         "unicorn/filename-case": "off",
         "max-depth": "off"
-    }
+    },
+    "root": true
 }
