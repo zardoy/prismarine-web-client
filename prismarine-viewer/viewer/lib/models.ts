@@ -245,6 +245,8 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
       if (neighbor) {
         if (cullIfIdentical && neighbor.type === block.type) continue
         if (!neighbor.transparent && neighbor.isCube) continue
+      } else {
+        continue
       }
     }
 

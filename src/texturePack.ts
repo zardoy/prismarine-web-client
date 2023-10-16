@@ -206,6 +206,11 @@ export const genTexturePackTextures = async (version: string) => {
 
   const imgSize = texSize * tileSize
 
+  const MAX_CANVAS_SIZE = 16_384
+  if (imgSize > MAX_CANVAS_SIZE) {
+    throw new Error(`Texture pack texture resolution is too big, max size is ${MAX_CANVAS_SIZE}x${MAX_CANVAS_SIZE}`)
+    // texSize = nextPowerOfTwo(Math.ceil(Math.sqrt(textureFiles.length / 2)))
+  }
   const canvas = document.createElement('canvas')
   canvas.width = imgSize
   canvas.height = imgSize

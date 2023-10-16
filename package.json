@@ -14,7 +14,8 @@
     "test-mc-server": "tsx cypress/minecraft-server.mjs",
     "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\"",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "watch-worker": "node prismarine-viewer/buildWorker.mjs -w"
   },
   "keywords": [
     "prismarine",
