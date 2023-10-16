@@ -129,7 +129,7 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
   if (status === undefined) {
     appStatusState.status = ''
 
-    hideModal({ reactType: 'app-status' }, { force: true })
+    hideModal({ reactType: 'app-status' }, {}, { force: true })
     return
   }
 

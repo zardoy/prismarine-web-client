@@ -65,7 +65,7 @@ export const updateTexturePackInstalledState = async () => {
   }
 }
 
-export const installTexturePack = async (file: File | ArrayBuffer) => {
+export const installTexturePack = async (file: File | ArrayBuffer, name = file['name']) => {
   try {
     await uninstallTexturePack()
   } catch (err) {
@@ -91,7 +91,7 @@ export const installTexturePack = async (file: File | ArrayBuffer) => {
     done++
     upStatus()
   }))
-  await fs.promises.writeFile(join(texturePackBasePath, 'name.txt'), file['name'] ?? '??', 'utf8')
+  await fs.promises.writeFile(join(texturePackBasePath, 'name.txt'), name ?? '??', 'utf8')
 
   if (viewer?.world.active) {
     await genTexturePackTextures(viewer.version)
@@ -100,6 +100,7 @@ export const installTexturePack = async (file: File | ArrayBuffer) => {
   showNotification({
     message: 'Texturepack installed!',
   })
+  await updateTexturePackInstalledState()
 }
 
 const existsAsync = async (path) => {
@@ -172,8 +173,8 @@ export const genTexturePackTextures = async (version: string) => {
   let blocksBasePath = '/userData/resourcePacks/default/assets/minecraft/textures/block'
   // todo not clear why this is needed
   const blocksBasePathAlt = '/userData/resourcePacks/default/assets/minecraft/textures/blocks'
-  const blocksGenereatedPath = `/userData/resourcePacks/default/${version}.png`
-  const genereatedPathData = `/userData/resourcePacks/default/${version}.json`
+  const blocksGeneratedPath = `/userData/resourcePacks/default/${version}.png`
+  const generatedPathData = `/userData/resourcePacks/default/${version}.json`
   if (!(await existsAsync(blocksBasePath))) {
     if (await existsAsync(blocksBasePathAlt)) {
       blocksBasePath = blocksBasePathAlt
@@ -181,8 +182,9 @@ export const genTexturePackTextures = async (version: string) => {
       return
     }
   }
-  if (await existsAsync(blocksGenereatedPath)) {
-    applyTexturePackData(version, JSON.parse(await fs.promises.readFile(genereatedPathData, 'utf8')), await fs.promises.readFile(blocksGenereatedPath, 'utf8'))
+  if (await existsAsync(blocksGeneratedPath)) {
+    // make sure we await it, so we set properties in world renderer and it won't try to load default textures
+    await applyTexturePackData(version, JSON.parse(await fs.promises.readFile(generatedPathData, 'utf8')), await fs.promises.readFile(blocksGeneratedPath, 'utf8'))
     return
   }
 
@@ -251,8 +253,8 @@ export const genTexturePackTextures = async (version: string) => {
   const newData: TextureResolvedData = {
     blockSize: tileSize,
   }
-  await fs.promises.writeFile(genereatedPathData, JSON.stringify(newData), 'utf8')
-  await fs.promises.writeFile(blocksGenereatedPath, blockDataUrl, 'utf8')
+  await fs.promises.writeFile(generatedPathData, JSON.stringify(newData), 'utf8')
+  await fs.promises.writeFile(blocksGeneratedPath, blockDataUrl, 'utf8')
   await applyTexturePackData(version, newData, blockDataUrl)
 
   // const a = document.createElement('a')
