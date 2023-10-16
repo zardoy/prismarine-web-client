@@ -7,6 +7,9 @@ declare const __type_bot: typeof bot
 declare const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer | undefined
 declare const worldView: import('prismarine-viewer/viewer/lib/worldDataEmitter').WorldDataEmitter | undefined
 declare const localServer: any
+/** all currently loaded mc data */
+declare const mcData: Record<string, any>
+declare const loadedData: import('minecraft-data').IndexedData
 
 declare interface Document {
     getElementById (id): any

@@ -1,6 +1,6 @@
 import { useSnapshot } from 'valtio'
 import { activeModalStack, hideCurrentModal } from '../globalState'
-import { OptionsGroupType } from '../optionsStorage'
+import { OptionsGroupType } from '../optionsGuiScheme'
 import OptionsGroup from './OptionsGroup'
 
 export default () => {

@@ -63,7 +63,7 @@ importers:
         version: 4.18.2
       flying-squid:
         specifier: github:zardoy/space-squid#everything
-        version: github.com/zardoy/space-squid/acf7b6f8cbcc204007eed767eb52a527a85b3ab0
+        version: github.com/zardoy/space-squid/bdf1e0859ad435bf722e5b7794b84a50b84c5c7f
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -211,7 +211,7 @@ importers:
         version: github.com/zardoy/minecraft-inventory-gui/c1331c91fb39bd562dc48eeb33321240d4870edd(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer#custom
-        version: github.com/zardoy/mineflayer/66e34da4a02381a6a45582afe0d3bfab6dba60c6
+        version: github.com/zardoy/mineflayer/e828c161aab120f2d926fba48de3b4d57c361710
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -14391,8 +14391,8 @@ packages:
       - encoding
       - supports-color
 
-  github.com/zardoy/mineflayer/66e34da4a02381a6a45582afe0d3bfab6dba60c6:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/66e34da4a02381a6a45582afe0d3bfab6dba60c6}
+  github.com/zardoy/mineflayer/e828c161aab120f2d926fba48de3b4d57c361710:
+    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/e828c161aab120f2d926fba48de3b4d57c361710}
     name: mineflayer
     version: 4.14.0
     engines: {node: '>=14'}
@@ -14467,8 +14467,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  github.com/zardoy/space-squid/acf7b6f8cbcc204007eed767eb52a527a85b3ab0:
-    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/acf7b6f8cbcc204007eed767eb52a527a85b3ab0}
+  github.com/zardoy/space-squid/bdf1e0859ad435bf722e5b7794b84a50b84c5c7f:
+    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/bdf1e0859ad435bf722e5b7794b84a50b84c5c7f}
     name: flying-squid
     version: 1.5.0
     engines: {node: '>=8'}

@@ -232,11 +232,12 @@ document.addEventListener('keydown', (e) => {
       if (localServer) {
         localServer.players[0].world.columns = {}
       }
-      reloadChunks()
+      void reloadChunks()
     }
     if (e.code === 'KeyG') {
       // todo make it work without reload
       options.showChunkBorders = !options.showChunkBorders
+      void reloadChunks()
     }
     return
   }

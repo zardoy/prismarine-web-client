@@ -2,7 +2,8 @@
 
 import { proxy, ref, subscribe } from 'valtio'
 import { pointerLock } from './utils'
-import { OptionsGroupType, options } from './optionsStorage'
+import { options } from './optionsStorage'
+import type { OptionsGroupType } from './optionsGuiScheme'
 
 // todo: refactor structure with support of hideNext=false
 

@@ -1,5 +1,6 @@
 import { titleCase } from 'title-case'
-import { OptionsGroupType, guiOptionsScheme, options } from '../optionsStorage'
+import { options } from '../optionsStorage'
+import { OptionsGroupType, guiOptionsScheme } from '../optionsGuiScheme'
 import OptionsItems, { OptionMeta } from './OptionsItems'
 
 const optionValueToType = (optionValue: any) => {

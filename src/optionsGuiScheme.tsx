@@ -1,73 +1,19 @@
-// todo implement async options storage
-
-import { proxy, subscribe } from 'valtio/vanilla'
-// weird webpack configuration bug: it cant import valtio/utils in this file
-import { subscribeKey } from 'valtio/utils'
 import { useState } from 'react'
 import { useSnapshot } from 'valtio'
-import { OptionMeta, OptionSlider } from './react/OptionsItems'
-import Button from './react/Button'
-import { openOptionsMenu } from './globalState'
+import { isGameActive, openOptionsMenu } from './globalState'
 import { openURL } from './menus/components/common'
+import { AppOptions, options } from './optionsStorage'
+import Button from './react/Button'
+import { OptionMeta } from './react/OptionsItems'
 import Slider from './react/Slider'
-import { getScreenRefreshRate } from './utils'
+import { getScreenRefreshRate, openFilePicker, setLoadingScreenStatus } from './utils'
+import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
+import { fsState } from './loadSave'
 
-const mergeAny: <T>(arg1: T, arg2: any) => T = Object.assign
-
-const defaultOptions = {
-  renderDistance: 4,
-  closeConfirmation: true,
-  autoFullScreen: false,
-  mouseRawInput: false,
-  autoExitFullscreen: false,
-  localUsername: 'wanderer',
-  mouseSensX: 50,
-  mouseSensY: 50 as number | true,
-  // mouseInvertX: false,
-  chatWidth: 320,
-  chatHeight: 180,
-  chatScale: 100,
-  volume: 50,
-  // fov: 70,
-  fov: 75,
-  guiScale: 3,
-  autoRequestCompletions: true,
-  touchButtonsSize: 40,
-  highPerformanceGpu: false,
-
-  showChunkBorders: false,
-  frameLimit: false as number | false,
-  alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
-  alwaysShowMobileControls: false,
-  maxMultiplayerRenderDistance: null as number | null,
-  excludeCommunicationDebugEvents: [],
-  preventDevReloadWhilePlaying: false,
-  numWorkers: 4,
-  localServerOptions: {} as any,
-  preferLoadReadonly: false,
-  disableLoadPrompts: false,
-  guestUsername: 'guest',
-  askGuestName: true,
-
-  // advanced bot options
-  autoRespawn: false
-}
-
-export type AppOptions = typeof defaultOptions
-
-export type OptionsGroupType = 'main' | 'render' | 'interface' | 'controls' | 'sound' | 'advanced'
-// todo refactor to separate file like optionsGUI.tsx
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [k in keyof AppOptions]?: Partial<OptionMeta> } & { custom?}>
 } = {
   render: [
-    {
-      renderDistance: {
-        unit: '',
-        min: 2,
-        max: 16
-      },
-    },
     {
       custom () {
         const frameLimitValue = useSnapshot(options).frameLimit
@@ -106,13 +52,20 @@ export const guiOptionsScheme: {
       }
     },
     {
-      custom () {
-        return <Button label='Interface...' onClick={() => openOptionsMenu('interface')} inScreen />
+      renderDistance: {
+        unit: '',
+        min: 2,
+        max: 16
       },
     },
     {
       custom () {
         return <Button label='Render...' onClick={() => openOptionsMenu('render')} inScreen />
+      },
+    },
+    {
+      custom () {
+        return <Button label='Interface...' onClick={() => openOptionsMenu('interface')} inScreen />
       },
     },
     {
@@ -123,6 +76,33 @@ export const guiOptionsScheme: {
     {
       custom () {
         return <Button label='Controls...' onClick={() => openOptionsMenu('controls')} inScreen />
+      },
+    },
+    // {
+    //   custom () {
+    //     return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
+    //   },
+    // },
+    {
+      custom () {
+        const { resourcePackInstalled } = useSnapshot(resourcePackState)
+        return <Button label={`Resource Pack... ${resourcePackInstalled ? 'ON' : 'OFF'}`} inScreen onClick={async () => {
+          if (resourcePackState.resourcePackInstalled) {
+            const resourcePackName = await getResourcePackName()
+            if (confirm(`Uninstall ${resourcePackName} resource pack?`)) {
+              // todo make hidable
+              setLoadingScreenStatus('Uninstalling texturepack...')
+              await uninstallTexturePack()
+              setLoadingScreenStatus(undefined)
+            }
+          } else {
+            if (!fsState.inMemorySave && isGameActive(false)) {
+              alert('Unable to install resource pack in loaded save for now')
+              return
+            }
+            openFilePicker('resourcepack')
+          }
+        }} />
       },
     }
   ],
@@ -148,12 +128,16 @@ export const guiOptionsScheme: {
       // keybindings
       mouseSensX: {},
       mouseSensY: {},
-      mouseRawInput: {},
+      mouseRawInput: {
+        tooltip: 'Wether to disable any mouse acceleration (MC does it by default). Most probably it is still supported only by Chrome.',
+        disabledReason: document.documentElement.requestPointerLock ? undefined : 'Your browser does not support pointer lock.',
+      },
       alwaysShowMobileControls: {
         text: 'Always Mobile Controls',
       },
       autoFullScreen: {
         tooltip: 'Auto Fullscreen allows you to use Ctrl+W and Escape having to wait/click on screen again.',
+        disabledReason: navigator['keyboard'] ? undefined : 'Your browser doesn\'t support keyboard lock API'
       },
       autoExitFullscreen: {
         tooltip: 'Exit fullscreen on escape (pause menu open). But note you can always do it with F11.',
@@ -164,45 +148,11 @@ export const guiOptionsScheme: {
     }
   ],
   sound: [
-    { volume: {} }
+    { volume: {} },
+    // { ignoreSilentSwitch: {} },
   ],
   advanced: [
 
   ],
 }
-
-export const options = proxy(
-  mergeAny(defaultOptions, JSON.parse(localStorage.options || '{}'))
-)
-
-window.options = window.settings = options
-
-subscribe(options, () => {
-  localStorage.options = JSON.stringify(options)
-})
-
-type WatchValue = <T extends Record<string, any>>(proxy: T, callback: (p: T) => void) => void
-
-export const watchValue: WatchValue = (proxy, callback) => {
-  const watchedProps = new Set<string>()
-  callback(new Proxy(proxy, {
-    get (target, p, receiver) {
-      watchedProps.add(p.toString())
-      return Reflect.get(target, p, receiver)
-    },
-  }))
-  for (const prop of watchedProps) {
-    subscribeKey(proxy, prop, () => {
-      callback(proxy)
-    })
-  }
-}
-
-watchValue(options, o => {
-  globalThis.excludeCommunicationDebugEvents = o.excludeCommunicationDebugEvents
-})
-
-export const useOptionValue = (setting, valueCallback) => {
-  valueCallback(setting)
-  subscribe(setting, valueCallback)
-}
+export type OptionsGroupType = 'main' | 'render' | 'interface' | 'controls' | 'sound' | 'advanced'
