@@ -7,7 +7,7 @@ import { subscribeKey } from 'valtio/utils'
 const mergeAny: <T>(arg1: T, arg2: any) => T = Object.assign
 
 const defaultOptions = {
-  renderDistance: 4,
+  renderDistance: 2,
   closeConfirmation: true,
   autoFullScreen: false,
   mouseRawInput: false,
