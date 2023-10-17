@@ -728,6 +728,7 @@ window.addEventListener('keydown', (e) => {
       }
     })
   } else if (pointerLock.hasPointerLock) {
+    document.exitPointerLock?.()
     if (options.autoExitFullscreen) {
       void document.exitFullscreen()
     }
