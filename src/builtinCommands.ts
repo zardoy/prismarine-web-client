@@ -4,6 +4,7 @@ import JSZip from 'jszip'
 import { fsState } from './loadSave'
 import { closeWan, openToWanAndCopyJoinLink } from './localServerMultiplayer'
 import { resetLocalStorageWorld } from './browserfs'
+import { saveServer } from './flyingSquidUtils'
 
 const notImplemented = () => {
   return 'Not implemented yet'
@@ -91,8 +92,8 @@ const commands = [
   },
   {
     command: ['/save'],
-    invoke () {
-      saveWorld()
+    async invoke () {
+      await saveServer()
     }
   }
 ]
@@ -104,18 +105,8 @@ export const tryHandleBuiltinCommand = (message) => {
 
   for (const command of commands) {
     if (command.command.includes(message)) {
-      command.invoke()
+      void command.invoke() // ignoring for now
       return true
     }
-  }
-}
-
-export const saveWorld = async () => {
-  for (const player of localServer.players) {
-    await player.save()
-  }
-  const worlds = [localServer.overworld]
-  for (const world of worlds) {
-    await world.storageProvider.close()
   }
 }

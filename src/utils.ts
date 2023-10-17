@@ -1,9 +1,9 @@
-import { activeModalStack, hideModal, miscUiState, notification, showModal } from './globalState'
+import { hideModal, isGameActive, miscUiState, notification, showModal } from './globalState'
 import { options } from './optionsStorage'
-import { saveWorld } from './builtinCommands'
 import { openWorldZip } from './browserfs'
 import { installTexturePack } from './texturePack'
 import { appStatusState } from './react/AppStatus'
+import { saveServer } from './flyingSquidUtils'
 
 export const goFullscreen = async (doToggle = false) => {
   if (!document.fullscreenElement) {
@@ -28,7 +28,7 @@ export const pointerLock = {
   },
   justHitEscape: false,
   async requestPointerLock () {
-    if (document.getElementById('hud').style.display === 'none' || activeModalStack.length || !document.documentElement.requestPointerLock || miscUiState.currentTouch) {
+    if (!isGameActive(true) || !document.documentElement.requestPointerLock || miscUiState.currentTouch) {
       return
     }
     if (options.autoFullScreen) {
@@ -154,12 +154,10 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
 
 export const disconnect = async () => {
   if (window.localServer) {
-    await saveWorld()
+    await saveServer()
     localServer.quit()
-  } else {
-    // workaround bot.end doesn't end the socket and emit end event
-    bot.end()
   }
+  bot.end('You left the server')
 }
 
 // doesn't support snapshots

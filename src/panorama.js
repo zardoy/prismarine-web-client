@@ -5,15 +5,11 @@ import fs from 'fs'
 import { subscribeKey } from 'valtio/utils'
 import { fromTexturePackPath, resourcePackState } from './texturePack'
 import { options } from './optionsStorage'
+import { miscUiState } from './globalState'
 
 let panoramaCubeMap
 let shouldDisplayPanorama = false
-let panoramaUsesResourePack = false
-let viewer
-
-export const initPanoramaOptions = (_viewer) => {
-  viewer = _viewer
-}
+let panoramaUsesResourcePack = false
 
 const panoramaFiles = [
   'panorama_1.png', // WS
@@ -27,11 +23,11 @@ const panoramaFiles = [
 const panoramaResourcePackPath = 'assets/minecraft/textures/gui/title/background'
 const possiblyLoadPanoramaFromResourcePack = async (file) => {
   let base64Texture
-  if (panoramaUsesResourePack) {
+  if (panoramaUsesResourcePack) {
     try {
       base64Texture = await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, file)), 'base64')
     } catch (err) {
-      panoramaUsesResourePack = false
+      panoramaUsesResourcePack = false
     }
   }
   if (base64Texture) return `data:image/png;base64,${base64Texture}`
@@ -41,23 +37,23 @@ const possiblyLoadPanoramaFromResourcePack = async (file) => {
 const updateResourcePackSupportPanorama = async () => {
   try {
     await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, panoramaFiles[0])), 'base64')
-    panoramaUsesResourePack = true
+    panoramaUsesResourcePack = true
   } catch (err) {
-    panoramaUsesResourePack = false
+    panoramaUsesResourcePack = false
   }
 }
 
 subscribeKey(resourcePackState, 'resourcePackInstalled', async () => {
-  const oldState = panoramaUsesResourePack
-  const newState = resourcePackState.resourcePackInstalled && (await updateResourcePackSupportPanorama(), panoramaUsesResourePack)
+  const oldState = panoramaUsesResourcePack
+  const newState = resourcePackState.resourcePackInstalled && (await updateResourcePackSupportPanorama(), panoramaUsesResourcePack)
   if (newState === oldState) return
   removePanorama()
-  addPanoramaCubeMap()
+  void addPanoramaCubeMap()
 })
 
 // Menu panorama background
 export async function addPanoramaCubeMap () {
-  if (panoramaCubeMap) return
+  if (panoramaCubeMap || miscUiState.loadedDataVersion) return
   shouldDisplayPanorama = true
 
   let time = 0

@@ -4,6 +4,7 @@ import { proxy, ref, subscribe } from 'valtio'
 import { pointerLock } from './utils'
 import { options } from './optionsStorage'
 import type { OptionsGroupType } from './optionsGuiScheme'
+import { saveServer } from './flyingSquidUtils'
 
 // todo: refactor structure with support of hideNext=false
 
@@ -169,20 +170,17 @@ export const showNotification = (/** @type {Partial<typeof notification>} */newN
   Object.assign(notification, { show: true, ...newNotification }, initialNotification)
 }
 
-const savePlayers = () => {
-  if (!window.localServer) return
-  for (const player of window.localServer.players) {
-    player.save()
-  }
-}
-
-setInterval(() => {
-  savePlayers()
-  // todo investigate unload failures instead
-}, 2000)
+// todo restore auto-save on interval for player data! (or implement it in flying squid since there is already auto-save for world)
 
 window.addEventListener('unload', (e) => {
-  savePlayers()
+  void saveServer()
+})
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') void saveServer()
+})
+document.addEventListener('blur', () => {
+  void saveServer()
 })
 
 window.inspectPlayer = () => require('fs').promises.readFile('/world/playerdata/9e487d23-2ffc-365a-b1f8-f38203f59233.dat').then(window.nbt.parse).then(console.log)

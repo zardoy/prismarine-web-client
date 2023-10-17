@@ -80,6 +80,8 @@ export default () => {
               appStatusState.isError = false
               resetState()
               miscUiState.gameLoaded = false
+              miscUiState.loadedDataVersion = undefined
+              window.loadedData = undefined
               if (activeModalStacks['main-menu']) {
                 insertActiveModalStack('main-menu')
               } else {

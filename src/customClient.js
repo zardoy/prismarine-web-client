@@ -53,7 +53,7 @@ class CustomChannelClient extends EventEmitter {
 
   end (reason) {
     this._endReason = reason
-    this.emit('end', this._endReason || 'unknown')
+    this.emit('end', this._endReason) // still emits on server side only, doesn't send anything to our client
   }
 
   write (name, params) {

@@ -26,14 +26,18 @@ export default () => {
       } else {
         options.localServerOptions.version ??= defaultLocalServerOptions.version
       }
-      window.dispatchEvent(new window.CustomEvent('singleplayer', {}))
+      window.dispatchEvent(new window.CustomEvent('singleplayer', {
+        detail: {
+          savingInterval: 0 // disable auto-saving because we use very slow sync fs
+        },
+      }))
     }}
     githubAction={() => openURL(process.env.GITHUB_URL)}
     optionsAction={() => openOptionsMenu('main')}
     discordAction={() => openURL('https://discord.gg/4Ucm684Fq3')}
     openFileAction={e => {
       if (!!window.showDirectoryPicker && !e.shiftKey) {
-        openWorldDirectory()
+        void openWorldDirectory()
       } else {
         openFilePicker()
       }

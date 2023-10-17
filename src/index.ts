@@ -67,7 +67,6 @@ import {
 import {
   removePanorama,
   addPanoramaCubeMap,
-  initPanoramaOptions
 } from './panorama'
 
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
@@ -110,7 +109,6 @@ viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
 watchOptionsAfterViewerInit()
-initPanoramaOptions(viewer)
 watchTexturepackInViewer(viewer)
 
 let renderInterval: number
@@ -331,6 +329,8 @@ async function connect (connectOptions: {
     Object.assign(serverOptions, _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, serverOptions))
     const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
+      await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
+      miscUiState.loadedDataVersion = version
       try {
         await genTexturePackTextures(version)
       } catch (err) {
@@ -340,9 +340,7 @@ async function connect (connectOptions: {
           throw err
         }
       }
-      await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       viewer.setVersion(version)
-      miscUiState.loadedDataVersion = version
     }
 
     const downloadVersion = connectOptions.botVersion || (singeplayer ? serverOptions.version : undefined)
