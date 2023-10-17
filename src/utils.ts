@@ -116,6 +116,12 @@ export const isCypress = () => {
   return localStorage.cypress === 'true'
 }
 
+export const isMajorVersionGreater = (ver1: string, ver2: string) => {
+  const [a1, b1] = ver1.split('.')
+  const [a2, b2] = ver2.split('.')
+  return +a1 > +a2 || (+a1 === +a2 && +b1 > +b2)
+}
+
 let ourLastStatus = ''
 export const setLoadingScreenStatus = function (status: string | undefined | null, isError = false, hideDots = false, fromFlyingSquid = false) {
   // null can come from flying squid, should restore our last status
