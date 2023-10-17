@@ -1,8 +1,7 @@
 import { promisify } from 'util'
 import * as nbt from 'prismarine-nbt'
-import { showNotification } from './menus/notification'
 import { openWorldDirectory, openWorldZip } from './browserfs'
-import { isGameActive } from './globalState'
+import { isGameActive, showNotification } from './globalState'
 
 const parseNbt = promisify(nbt.parse)
 window.nbt = nbt
@@ -39,14 +38,22 @@ window.addEventListener('drop', async e => {
   }
 })
 
-async function handleDroppedFile(file: File) {
+async function handleDroppedFile (file: File) {
   if (file.name.endsWith('.zip')) {
-    openWorldZip(file)
+    void openWorldZip(file)
+    return
+  }
+  // if (file.name.endsWith('.mca')) // TODO let's do something interesting with it: viewer?
+  if (file.name.endsWith('.rar')) {
+    alert('Rar files are not supported yet!')
     return
   }
 
   const buffer = await file.arrayBuffer()
-  const parsed = await parseNbt(Buffer.from(buffer))
+  const parsed = await parseNbt(Buffer.from(buffer)).catch((err) => {
+    alert('Couldn\'t parse nbt, ensure you are opening .dat or file (or .zip/folder with a world)')
+    throw err
+  })
   showNotification({
     message: `${file.name} data available in browser console`,
   })

@@ -5,14 +5,11 @@ import fs from 'fs'
 import { subscribeKey } from 'valtio/utils'
 import { fromTexturePackPath, resourcePackState } from './texturePack'
 import { options } from './optionsStorage'
+import { miscUiState } from './globalState'
 
 let panoramaCubeMap
-let panoramaUsesResourePack = false
-let viewer
-
-export const initPanoramaOptions = (_viewer) => {
-  viewer = _viewer
-}
+let shouldDisplayPanorama = false
+let panoramaUsesResourcePack = false
 
 const panoramaFiles = [
   'panorama_1.png', // WS
@@ -26,11 +23,11 @@ const panoramaFiles = [
 const panoramaResourcePackPath = 'assets/minecraft/textures/gui/title/background'
 const possiblyLoadPanoramaFromResourcePack = async (file) => {
   let base64Texture
-  if (panoramaUsesResourePack) {
+  if (panoramaUsesResourcePack) {
     try {
       base64Texture = await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, file)), 'base64')
     } catch (err) {
-      panoramaUsesResourePack = false
+      panoramaUsesResourcePack = false
     }
   }
   if (base64Texture) return `data:image/png;base64,${base64Texture}`
@@ -40,25 +37,24 @@ const possiblyLoadPanoramaFromResourcePack = async (file) => {
 const updateResourcePackSupportPanorama = async () => {
   try {
     await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, panoramaFiles[0])), 'base64')
-    panoramaUsesResourePack = true
+    panoramaUsesResourcePack = true
   } catch (err) {
-    panoramaUsesResourePack = false
+    panoramaUsesResourcePack = false
   }
 }
 
 subscribeKey(resourcePackState, 'resourcePackInstalled', async () => {
-  const oldState = panoramaUsesResourePack
-  const newState = resourcePackState.resourcePackInstalled && (await updateResourcePackSupportPanorama(), panoramaUsesResourePack)
+  const oldState = panoramaUsesResourcePack
+  const newState = resourcePackState.resourcePackInstalled && (await updateResourcePackSupportPanorama(), panoramaUsesResourcePack)
   if (newState === oldState) return
   removePanorama()
-  addPanoramaCubeMap()
+  void addPanoramaCubeMap()
 })
 
 // Menu panorama background
 export async function addPanoramaCubeMap () {
-  if (panoramaCubeMap) return
-  // remove all existing object in the viewer.scene
-  // viewer.scene.children = []
+  if (panoramaCubeMap || miscUiState.loadedDataVersion) return
+  shouldDisplayPanorama = true
 
   let time = 0
   viewer.camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.05, 1000)
@@ -78,6 +74,8 @@ export async function addPanoramaCubeMap () {
     }))
   }
 
+  if (!shouldDisplayPanorama) return
+
   const panoramaBox = new THREE.Mesh(panorGeo, panorMaterials)
 
   panoramaBox.onBeforeRender = () => {
@@ -90,7 +88,8 @@ export async function addPanoramaCubeMap () {
   group.add(panoramaBox)
 
   const Entity = require('prismarine-viewer/viewer/lib/entity/Entity')
-  for (let i = 0; i < 42; i++) {
+  // should be rewritten entirely
+  for (let i = 0; i < 20; i++) {
     const m = new Entity('1.16.4', 'squid').mesh
     m.position.set(Math.random() * 30 - 15, Math.random() * 20 - 10, Math.random() * 10 - 17)
     m.rotation.set(0, Math.PI + Math.random(), -Math.PI / 4, 'ZYX')
@@ -112,4 +111,5 @@ export function removePanorama () {
   viewer.camera.updateProjectionMatrix()
   viewer.scene.remove(panoramaCubeMap)
   panoramaCubeMap = null
+  shouldDisplayPanorama = false
 }

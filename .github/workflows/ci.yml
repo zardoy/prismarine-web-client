@@ -15,7 +15,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm check-build
       - run: nohup pnpm prod-start &
-      - run: nohup node cypress/minecraft-server.mjs &
+      - run: nohup pnpm test-mc-server &
       - uses: cypress-io/github-action@v5
         with:
           install: false

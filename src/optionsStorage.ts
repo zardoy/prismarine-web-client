@@ -7,7 +7,7 @@ import { subscribeKey } from 'valtio/utils'
 const mergeAny: <T>(arg1: T, arg2: any) => T = Object.assign
 
 const defaultOptions = {
-  renderDistance: 4,
+  renderDistance: 2,
   closeConfirmation: true,
   autoFullScreen: false,
   mouseRawInput: false,
@@ -31,11 +31,11 @@ const defaultOptions = {
   frameLimit: false as number | false,
   alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
   alwaysShowMobileControls: false,
-  maxMultiplayerRenderDistance: 6,
+  maxMultiplayerRenderDistance: null as number | null,
   excludeCommunicationDebugEvents: [],
   preventDevReloadWhilePlaying: false,
   numWorkers: 4,
-  localServerOptions: {},
+  localServerOptions: {} as any,
   preferLoadReadonly: false,
   disableLoadPrompts: false,
   guestUsername: 'guest',

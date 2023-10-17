@@ -1,7 +1,7 @@
 //@ts-check
 
 import { polyfillNode } from 'esbuild-plugin-polyfill-node'
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import * as fs from 'fs'
 import { filesize } from 'filesize'
 
@@ -52,7 +52,7 @@ const plugins = [
       build.onResolve({
         filter: /.*/,
       }, async ({ path, ...rest }) => {
-        if (['.woff', '.woff2', '.ttf'].some(ext => path.endsWith(ext))) {
+        if (['.woff', '.woff2', '.ttf'].some(ext => path.endsWith(ext)) || path.startsWith('extra-textures/')) {
           return {
             path,
             namespace: 'assets',
@@ -63,6 +63,7 @@ const plugins = [
 
       build.onEnd(async ({ metafile, outputFiles }) => {
         // write outputFiles
+        //@ts-ignore
         for (const file of outputFiles) {
           await fs.promises.writeFile(file.path, file.contents)
         }
@@ -89,7 +90,7 @@ const plugins = [
       }, async ({ resolveDir, path, importer, kind, pluginData }) => {
         if (pluginData?.__internal) return
         if (!resolveDir.startsWith(process.cwd())) {
-          const redirected = await build.resolve(path, { kind, importer, resolveDir: process.cwd(), pluginData: {__internal: true}, });
+          const redirected = await build.resolve(path, { kind, importer, resolveDir: process.cwd(), pluginData: { __internal: true }, })
           return redirected
         }
         // disallow imports from outside the root directory to ensure modules are resolved from node_modules of this workspace
@@ -109,7 +110,9 @@ const plugins = [
       build.onStart(() => {
         time = Date.now()
       })
-      build.onEnd(({ errors, outputFiles, metafile, warnings }) => {
+      build.onEnd(({ errors, outputFiles: _outputFiles, metafile, warnings }) => {
+        /** @type {any} */
+        const outputFiles = _outputFiles
         const elapsed = Date.now() - time
 
         if (errors.length) {
@@ -226,6 +229,31 @@ const plugins = [
           contents: resolvedFile.replace("require(`prismarine-chunk/src/pc/common/BitArray${noSpan ? 'NoSpan' : ''}`)", "noSpan ? require(`prismarine-chunk/src/pc/common/BitArray`) : require(`prismarine-chunk/src/pc/common/BitArrayNoSpan`)"),
           resolveDir,
           loader: 'js',
+        }
+      })
+    }
+  },
+  {
+    name: 'react-displayname',
+    setup (build) {
+      build.onLoad({
+        filter: /.tsx$/,
+      }, async ({ path }) => {
+        let file = await fs.promises.readFile(path, 'utf8')
+        const fileName = basename(path, '.tsx')
+        let replaced = false
+        const varName = `__${fileName}_COMPONENT`
+        file = file.replace(/export default /, () => {
+          replaced = true
+          return `const ${varName} = `
+        })
+        if (replaced) {
+          file += `;${varName}.displayName = '${fileName}';export default ${varName};`
+        }
+
+        return {
+          contents: file,
+          loader: 'tsx',
         }
       })
     }

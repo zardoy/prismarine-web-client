@@ -232,11 +232,12 @@ document.addEventListener('keydown', (e) => {
       if (localServer) {
         localServer.players[0].world.columns = {}
       }
-      reloadChunks()
+      void reloadChunks()
     }
     if (e.code === 'KeyG') {
       // todo make it work without reload
       options.showChunkBorders = !options.showChunkBorders
+      void reloadChunks()
     }
     return
   }
@@ -335,8 +336,10 @@ addEventListener('mousedown', async (e) => {
   if (e.button === 1) {
     const block = bot.blockAtCursor(5)
     if (!block) return
+    const itemId = loadedData.itemsByName[block.name]?.id
+    if (!itemId) return
     const Item = require('prismarine-item')(bot.version)
-    const item = new Item(block.type, 1, 0)
+    const item = new Item(itemId, 1, 0)
     await bot.creative.setInventorySlot(bot.inventory.hotbarStart + bot.quickBarSlot, item)
     bot.updateHeldItem()
   }

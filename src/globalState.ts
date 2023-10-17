@@ -3,8 +3,12 @@
 import { proxy, ref, subscribe } from 'valtio'
 import { pointerLock } from './utils'
 import { options } from './optionsStorage'
+import type { OptionsGroupType } from './optionsGuiScheme'
+import { saveServer } from './flyingSquidUtils'
 
 // todo: refactor structure with support of hideNext=false
+
+const notHideableModalsWithoutForce = new Set(['app-status'])
 
 type Modal = ({ elem?: HTMLElement & Record<string, any> } & { reactType?: string })
 
@@ -27,8 +31,6 @@ subscribe(activeModalStack, () => {
   if (activeModalStack.length === 0) {
     if (isGameActive(false)) {
       void pointerLock.requestPointerLock()
-    } else {
-      showModal(document.getElementById('title-screen'))
     }
   } else {
     document.exitPointerLock?.()
@@ -38,10 +40,10 @@ subscribe(activeModalStack, () => {
 export const customDisplayManageKeyword = 'custom'
 
 const defaultModalActions = {
-  show(modal: Modal) {
+  show (modal: Modal) {
     if (modal.elem) modal.elem.style.display = 'block'
   },
-  hide(modal: Modal) {
+  hide (modal: Modal) {
     if (modal.elem) modal.elem.style.display = 'none'
   }
 }
@@ -71,7 +73,12 @@ export const showModal = (elem: (HTMLElement & Record<string, any>) | { reactTyp
 export const hideModal = (modal = activeModalStack.at(-1), data: any = undefined, options: { force?: boolean; restorePrevious?: boolean } = {}) => {
   const { force = false, restorePrevious = true } = options
   if (!modal) return
-  let cancel = modal.elem?.hide?.(data)
+  let cancel
+  if (modal.elem) {
+    cancel = modal.elem.hide?.(data)
+  } else if (modal.reactType) {
+    cancel = notHideableModalsWithoutForce.has(modal.reactType) ? !force : undefined
+  }
   if (force && cancel !== customDisplayManageKeyword) {
     cancel = undefined
   }
@@ -94,6 +101,10 @@ export const hideCurrentModal = (_data = undefined, onHide = undefined) => {
   }
 }
 
+export const openOptionsMenu = (group: OptionsGroupType) => {
+  showModal({ reactType: `options-${group}` })
+}
+
 // ---
 
 export const currentContextMenu = proxy({ items: [] as ContextMenuItem[] | null, x: 0, y: 0 })
@@ -114,8 +125,21 @@ export const miscUiState = proxy({
   singleplayer: false,
   flyingSquid: false,
   wanOpened: false,
+  /** wether game hud is shown (in playing state) */
   gameLoaded: false,
+  /** currently trying to load or loaded mc version, after all data is loaded */
+  loadedDataVersion: null as string | null,
 })
+
+export const resetStateAfterDisconnect = () => {
+  miscUiState.gameLoaded = false
+  miscUiState.loadedDataVersion = null
+  miscUiState.singleplayer = false
+  miscUiState.flyingSquid = false
+  miscUiState.wanOpened = false
+  miscUiState.currentDisplayQr = null
+  miscUiState.currentTouch = null
+}
 
 export const isGameActive = (foregroundCheck: boolean) => {
   if (foregroundCheck && activeModalStack.length) return false
@@ -133,20 +157,30 @@ export const gameAdditionalState = proxy({
 
 window.gameAdditionalState = gameAdditionalState
 
-const savePlayers = () => {
-  if (!window.localServer) return
-  for (const player of window.localServer.players) {
-    player.save()
-  }
+// rename current (non-stackable) notification to one-time (system) notification
+const initialNotification = {
+  show: false,
+  autoHide: true,
+  message: '',
+  type: 'info',
+}
+export const notification = proxy(initialNotification)
+
+export const showNotification = (/** @type {Partial<typeof notification>} */newNotification) => {
+  Object.assign(notification, { show: true, ...newNotification }, initialNotification)
 }
 
-setInterval(() => {
-  savePlayers()
-  // todo investigate unload failures instead
-}, 2000)
+// todo restore auto-save on interval for player data! (or implement it in flying squid since there is already auto-save for world)
 
 window.addEventListener('unload', (e) => {
-  savePlayers()
+  void saveServer()
+})
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') void saveServer()
+})
+document.addEventListener('blur', () => {
+  void saveServer()
 })
 
 window.inspectPlayer = () => require('fs').promises.readFile('/world/playerdata/9e487d23-2ffc-365a-b1f8-f38203f59233.dat').then(window.nbt.parse).then(console.log)
@@ -154,7 +188,7 @@ window.inspectPlayer = () => require('fs').promises.readFile('/world/playerdata/
 // todo move from global state
 window.addEventListener('beforeunload', (event) => {
   // todo-low maybe exclude chat?
-  if (!isGameActive(true) && activeModalStack.at(-1)?.elem.id !== 'chat') return
+  if (!isGameActive(true) && activeModalStack.at(-1)?.elem?.id !== 'chat') return
   if (sessionStorage.lastReload && !options.preventDevReloadWhilePlaying) return
   if (!options.closeConfirmation) return
 

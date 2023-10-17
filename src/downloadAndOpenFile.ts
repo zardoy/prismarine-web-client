@@ -3,7 +3,7 @@ import { openWorldZip } from './browserfs'
 import { getResourcePackName, installTexturePack, resourcePackState, updateTexturePackInstalledState } from './texturePack'
 import { setLoadingScreenStatus } from './utils'
 
-const getConstantFilesize = (bytes: number) => {
+const getFixedFilesize = (bytes: number) => {
   return prettyBytes(bytes, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
@@ -18,7 +18,7 @@ export default async () => {
   if (texturepack) {
     await updateTexturePackInstalledState()
     if (resourcePackState.resourcePackInstalled) {
-      if (!confirm(`You are going to install a new texturepack which would override a current one: ${await getResourcePackName()} Continue?`)) return
+      if (!confirm(`You are going to install a new texturepack which would REPLACE a current one: ${await getResourcePackName()} Continue?`)) return
     }
   } else {
     const menu = document.getElementById('play-screen')
@@ -34,12 +34,12 @@ export default async () => {
     alert('Invalid map file')
   }
   const contentLength = +response.headers.get('Content-Length')
-  setLoadingScreenStatus(`Downloading ${downloadThing} ${name}: have to download ${getConstantFilesize(contentLength)}...`)
+  setLoadingScreenStatus(`Downloading ${downloadThing} ${name}: have to download ${getFixedFilesize(contentLength)}...`)
 
   let downloadedBytes = 0
   const buffer = await new Response(
     new ReadableStream({
-      async start(controller) {
+      async start (controller) {
         const reader = response.body.getReader()
 
         // eslint-disable-next-line no-constant-condition
@@ -58,7 +58,7 @@ export default async () => {
 
           // Update your progress bar or display the progress value as needed
           if (contentLength) {
-            setLoadingScreenStatus(`Download ${downloadThing} progress: ${Math.floor(progress)}% (${getConstantFilesize(downloadedBytes)} / ${getConstantFilesize(contentLength)}))`, false, true)
+            setLoadingScreenStatus(`Download ${downloadThing} progress: ${Math.floor(progress)}% (${getFixedFilesize(downloadedBytes)} / ${getFixedFilesize(contentLength)})`, false, true)
           }
 
           // Pass the received data to the controller
@@ -68,7 +68,8 @@ export default async () => {
     })
   ).arrayBuffer()
   if (texturepack) {
-    await installTexturePack(buffer)
+    const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-30)
+    await installTexturePack(buffer, name)
   } else {
     await openWorldZip(buffer)
   }

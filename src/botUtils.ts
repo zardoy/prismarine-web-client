@@ -14,7 +14,7 @@ export type MessageFormatPart = {
 type MessageInput = {
   text?: string
   translate?: string
-  with?: MessageInput[]
+  with?: Array<MessageInput | string>
   color?: string
   bold?: boolean
   italic?: boolean
@@ -24,10 +24,11 @@ type MessageInput = {
   extra?: MessageInput[]
 }
 
+// todo move to sign-renderer, replace with prismarine-chat
 export const formatMessage = (message: MessageInput) => {
   const msglist: MessageFormatPart[] = []
 
-  const readMsg = (msg) => {
+  const readMsg = (msg: MessageInput) => {
     const styles = {
       color: msg.color,
       bold: !!msg.bold,
@@ -55,15 +56,16 @@ export const formatMessage = (message: MessageInput) => {
 
           if (j + 1 < splitted.length) {
             if (msg.with[i]) {
-              if (typeof msg.with[i] === 'string') {
+              const msgWith = msg.with[i]
+              if (typeof msgWith === 'string') {
                 readMsg({
                   ...styles,
-                  text: msg.with[i]
+                  text: msgWith
                 })
               } else {
                 readMsg({
                   ...styles,
-                  ...msg.with[i]
+                  ...msgWith
                 })
               }
             }

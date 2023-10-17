@@ -22,14 +22,14 @@ browserfs.configure({
 }, (e) => {
   // todo disable singleplayer button
   if (e) throw e
-  updateTexturePackInstalledState()
+  void updateTexturePackInstalledState()
 })
 
 export const forceCachedDataPaths = {}
 
 //@ts-expect-error
 fs.promises = new Proxy(Object.fromEntries(['readFile', 'writeFile', 'stat', 'mkdir', 'rmdir', 'unlink', 'rename', /* 'copyFile',  */'readdir'].map(key => [key, promisify(fs[key])])), {
-  get(target, p: string, receiver) {
+  get (target, p: string, receiver) {
     if (!target[p]) throw new Error(`Not implemented fs.promises.${p}`)
     return (...args) => {
       // browser fs bug: if path doesn't start with / dirname will return . which would cause infinite loop, so we need to normalize paths
@@ -80,7 +80,7 @@ fs.promises.open = async (...args) => {
     // for debugging
     fd,
     filename: args[0],
-    async close() {
+    async close () {
       return new Promise<void>(resolve => {
         fs.close(fd, (err) => {
           if (err) {
@@ -111,21 +111,36 @@ const removeFileRecursiveSync = (path) => {
 
 window.removeFileRecursiveSync = removeFileRecursiveSync
 
-// todo it still doesnt clean the storage, need to debug
-export async function removeFileRecursiveAsync(path) {
-  const files = await fs.promises.readdir(path)
-  for (const file of files) {
-    const curPath = join(path, file)
-    const stats = await fs.promises.stat(curPath)
-    if (stats.isDirectory()) {
-      // Recurse
-      await removeFileRecursiveAsync(curPath)
-    } else {
-      // Delete file
-      await fs.promises.unlink(curPath)
-    }
+export async function removeFileRecursiveAsync (path) {
+  const errors = []
+  try {
+    const files = await fs.promises.readdir(path)
+
+    // Use Promise.all to parallelize file/directory removal
+    await Promise.all(files.map(async (file) => {
+      const curPath = join(path, file)
+      const stats = await fs.promises.stat(curPath)
+      if (stats.isDirectory()) {
+        // Recurse
+        await removeFileRecursiveAsync(curPath)
+      } else {
+        // Delete file
+        await fs.promises.unlink(curPath)
+      }
+    }))
+
+    // After removing all files/directories, remove the current directory
+    await fs.promises.rmdir(path)
+  } catch (error) {
+    errors.push([path, error])
   }
-  await fs.promises.rmdir(path)
+
+  if (errors.length) {
+    setTimeout(() => {
+      console.error(errors)
+      throw new Error(`Error removing directories/files: ${errors.map(([path, err]) => `${path}: ${err.message}`).join(', ')}`)
+    })
+  }
 }
 
 

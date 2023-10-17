@@ -110,7 +110,7 @@ export class WorldDataEmitter extends EventEmitter {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
     const dz = Math.abs(botZ - Math.floor(pos.z / 16))
-    if (dx < this.viewDistance && dz < this.viewDistance) {
+    if (dx <= this.viewDistance && dz <= this.viewDistance) {
       const column = await this.world.getColumnAt(pos['y'] ? pos as Vec3 : new Vec3(pos.x, 0, pos.z))
       if (column) {
         // todo optimize toJson data, make it clear why it is used
@@ -124,6 +124,9 @@ export class WorldDataEmitter extends EventEmitter {
         this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
+    } else {
+      // todo should not happend in singleplayer
+      console.log('skipped loading chunk', dx, dz, '>', this.viewDistance)
     }
   }
 

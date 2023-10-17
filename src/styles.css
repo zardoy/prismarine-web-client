@@ -1,3 +1,5 @@
+@import url(./screens.css);
+
 :root {
   --guiScaleFactor: 3;
   --guiScale: 3;
@@ -12,11 +14,6 @@
   box-sizing: border-box;
 }
 
-#react-root {
-  z-index: 9;
-  position: fixed;
-}
-
 a {
   color: white;
 }
@@ -25,6 +22,38 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   height: 100vh;
   overflow: hidden;
+  --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png');
+  --title-gui: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/title/minecraft.png');
+  color: white;
+}
+
+body {
+  overflow: hidden;
+  position: relative;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  /* font-family: sans-serif; */
+  background: #333;
+  /* background: linear-gradient(#141e30, #243b55); */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  font-family: minecraft, mojangles, monospace;
+}
+
+#react-root {
+  z-index: 9;
+  position: fixed;
+}
+
+.text {
+  color: white;
+  font-size: 10px;
+  text-shadow: 1px 1px #222;
 }
 
 .dirt-bg {
@@ -41,42 +70,22 @@ html {
   background-blend-mode: overlay;
 }
 
-@font-face {
-    font-family: minecraft;
-    src: url(minecraftia.woff);
+/* todo move from here */
+[data-name="TouchMovementArea"] {
+  /* padding-left: calc(env(safe-area-inset-left) / 2);
+  padding-right: calc(env(safe-area-inset-right) / 2);
+  padding-bottom: calc(env(safe-area-inset-bottom) / 2); */
+  padding: 25px;
 }
 
 @font-face {
-    font-family: mojangles;
-    src: url(mojangles.ttf);
+  font-family: minecraft;
+  src: url(minecraftia.woff);
 }
 
-body {
-  overflow: hidden;
-  position: relative;
-  margin:0;
-  padding:0;
-  height: 100vh;
-  font-family: sans-serif;
-  background: #333;
-  /* background: linear-gradient(#141e30, #243b55); */
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-#viewer-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
-	height: 100%;
-	width: 100%;
-	font-size: 0;
-	margin: 0;
-	padding: 0;
+@font-face {
+  font-family: mojangles;
+  src: url(mojangles.ttf);
 }
 
 #ui-root {
@@ -94,7 +103,32 @@ body {
   image-rendering: -o-crisp-edges;
   image-rendering: pixelated;
   -ms-interpolation-mode: nearest-neighbor;
-  font-family: minecraft, mojangles, monospace;
+}
+
+#viewer-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  font-size: 0;
+  margin: 0;
+  padding: 0;
+  animation-duration: 0.3s;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes dive-animation {
+  0% {
+    transform: translateZ(-150px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateZ(0);
+    opacity: 1;
+  }
 }
 
 @media only screen and (max-width: 971px) {
@@ -113,7 +147,7 @@ body {
   }
 }
 
-@media only screen and (max-width: 561px) {
+@media only screen and (max-width: 590px) {
   #ui-root {
     transform: scale(1);
     width: calc(100% / 1);

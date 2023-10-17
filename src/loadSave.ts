@@ -5,8 +5,9 @@ import * as nbt from 'prismarine-nbt'
 import { proxy } from 'valtio'
 import { gzip } from 'node-gzip'
 import { options } from './optionsStorage'
-import { nameToMcOfflineUUID } from './utils'
+import { nameToMcOfflineUUID } from './flyingSquidUtils'
 import { forceCachedDataPaths } from './browserfs'
+import { isMajorVersionGreater } from './utils'
 
 const parseNbt = promisify(nbt.parse)
 
@@ -60,8 +61,12 @@ export const loadSave = async (root = '/world') => {
       if (!newVersion) return
       version = newVersion
     }
-    if (!supportedVersions.includes(version)) {
-      version = prompt(`Version ${version} is not supported, supported versions ${supportedVersions.join(', ')}, what try to use instead?`, '1.16.1')
+    const lastSupportedVersion = supportedVersions.at(-1)
+    const firstSupportedVersion = supportedVersions[0]
+    const lowerBound = isMajorVersionGreater(firstSupportedVersion, version)
+    const upperBound = isMajorVersionGreater(version, lastSupportedVersion)
+    if (lowerBound || upperBound) {
+      version = prompt(`Version ${version} is not supported, supported versions are ${supportedVersions.join(', ')}, what try to use instead?`, lowerBound ? firstSupportedVersion : lastSupportedVersion)
       if (!version) return
     }
     if (levelDat.WorldGenSettings) {
@@ -124,7 +129,7 @@ export const loadSave = async (root = '/world') => {
   }
 
   fsState.saveLoaded = true
-  document.querySelector('#title-screen').dispatchEvent(new CustomEvent('singleplayer', {
+  window.dispatchEvent(new CustomEvent('singleplayer', {
     // todo check gamemode level.dat data etc
     detail: {
       version,

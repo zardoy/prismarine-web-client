@@ -19,13 +19,8 @@ import './menus/components/bossbars_overlay'
 import './menus/hud'
 import './menus/play_screen'
 import './menus/pause_screen'
-import './menus/loading_or_error_screen'
 import './menus/keybinds_screen'
-import './menus/options_screen'
-import './menus/advanced_options_screen'
-import { notification } from './menus/notification'
-import './menus/title_screen'
-import { initWithRenderer, statsEnd, statsStart } from './rightTopStats'
+import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -56,7 +51,9 @@ import {
   insertActiveModalStack,
   isGameActive,
   miscUiState,
-  gameAdditionalState
+  gameAdditionalState,
+  resetStateAfterDisconnect,
+  notification
 } from './globalState'
 
 import {
@@ -70,7 +67,6 @@ import {
 import {
   removePanorama,
   addPanoramaCubeMap,
-  initPanoramaOptions
 } from './panorama'
 
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
@@ -86,6 +82,7 @@ import CustomChannelClient from './customClient'
 import debug from 'debug'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
+import { appStatusState } from './react/AppStatus'
 
 window.debug = debug
 window.THREE = THREE
@@ -112,7 +109,6 @@ viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
 watchOptionsAfterViewerInit()
-initPanoramaOptions(viewer)
 watchTexturepackInViewer(viewer)
 
 let renderInterval: number
@@ -145,13 +141,23 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
 }
 renderFrame(performance.now())
 
-window.addEventListener('resize', () => {
-  viewer.camera.aspect = window.innerWidth / window.innerHeight
-  viewer.camera.updateProjectionMatrix()
-  renderer.setSize(window.innerWidth, window.innerHeight)
-})
+const resizeHandler = () => {
+  const width = window.innerWidth
+  const height = window.innerHeight
 
-const loadingScreen = document.getElementById('loading-error-screen')
+  viewer.camera.aspect = width / height
+  viewer.camera.updateProjectionMatrix()
+  renderer.setSize(width, height)
+}
+const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent)
+addEventListener('resize', (e) => {
+  if (isIos) {
+    // ios bug: resize event is fired before deminsion properties are updated
+    setTimeout(resizeHandler)
+  } else {
+    resizeHandler()
+  }
+})
 
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
@@ -191,12 +197,12 @@ async function main () {
   const menu = document.getElementById('play-screen')
   menu.addEventListener('connect', e => {
     const options = e.detail
-    connect(options)
+    void connect(options)
   })
   const connectSingleplayer = (serverOverrides = {}) => {
     void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
   }
-  document.querySelector('#title-screen').addEventListener('singleplayer', (e) => {
+  window.addEventListener('singleplayer', (e) => {
     //@ts-expect-error
     connectSingleplayer(e.detail)
   })
@@ -245,7 +251,7 @@ async function connect (connectOptions: {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singeplayer
   miscUiState.flyingSquid = singeplayer || p2pMultiplayer
-  const { renderDistance, maxMultiplayerRenderDistance } = options
+  const { renderDistance, maxMultiplayerRenderDistance = renderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
   const { username, password } = connectOptions
@@ -273,6 +279,7 @@ async function connect (connectOptions: {
       bot._client = undefined
       window.bot = bot = undefined
     }
+    resetStateAfterDisconnect()
     removeAllListeners()
   }
   const handleError = (err) => {
@@ -285,7 +292,7 @@ async function connect (connectOptions: {
       if (e.code !== 'KeyR') return
       controller.abort()
       void connect(connectOptions)
-      loadingScreen.hasError = false
+      appStatusState.isError = false
     }, { signal: controller.signal })
     // #endregion
 
@@ -320,9 +327,10 @@ async function connect (connectOptions: {
   let localServer
   try {
     Object.assign(serverOptions, _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, serverOptions))
-    serverOptions['view-distance'] = renderDistance
-    const downloadMcData = async (version) => {
+    const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
+      await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
+      miscUiState.loadedDataVersion = version
       try {
         await genTexturePackTextures(version)
       } catch (err) {
@@ -332,7 +340,6 @@ async function connect (connectOptions: {
           throw err
         }
       }
-      await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       viewer.setVersion(version)
     }
 
@@ -363,9 +370,25 @@ async function connect (connectOptions: {
           localServer.once('pluginsReady', resolve)
         })
       }
+
+      localServer.on('newPlayer', (player) => {
+        // it's you!
+        player.on('loadingStatus', (newStatus) => {
+          console.log('loadingStatus')
+          setLoadingScreenStatus(newStatus, false, false, true)
+        })
+      })
     }
 
-    setLoadingScreenStatus('Connecting to server')
+    let initialLoadingText: string
+    if (singeplayer) {
+      initialLoadingText = 'Local server is still starting'
+    } else if (p2pMultiplayer) {
+      initialLoadingText = 'Connecting to peer'
+    } else {
+      initialLoadingText = 'Connecting to server'
+    }
+    setLoadingScreenStatus(initialLoadingText)
     bot = mineflayer.createBot({
       host: server.host,
       port: +server.port,
@@ -395,12 +418,12 @@ async function connect (connectOptions: {
           versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']++
         }
         await downloadMcData(client.version)
-        setLoadingScreenStatus('Connecting to server')
+        setLoadingScreenStatus(initialLoadingText)
       }
     }) as unknown as typeof __type_bot
     window.bot = bot
     if (singeplayer || p2pMultiplayer) {
-      // p2pMultiplayer still uses the same flying-squid server
+      // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature
       bot.supportFeature = (feature) => {
         if (unsupportedLocalServerFeatures.includes(feature)) {
@@ -521,7 +544,7 @@ async function connect (connectOptions: {
     window.pathfinder = pathfinder
     window.debugMenu = debugMenu
 
-    initVR(bot, renderer, viewer)
+    void initVR(bot, renderer, viewer)
 
     postRenderFrameFn = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
@@ -538,7 +561,7 @@ async function connect (connectOptions: {
     // Link WorldDataEmitter and Viewer
     viewer.listen(worldView)
     worldView.listenToBot(bot)
-    worldView.init(bot.entity.position)
+    void worldView.init(bot.entity.position)
 
     dayCycle()
 
@@ -682,7 +705,7 @@ async function connect (connectOptions: {
     blockInteraction.init()
 
     errorAbortController.abort()
-    if (loadingScreen.hasError) return
+    if (appStatusState.isError) return
     setLoadingScreenStatus(undefined)
     miscUiState.gameLoaded = true
     void viewer.waitForChunksToRender().then(() => {
@@ -705,6 +728,7 @@ window.addEventListener('keydown', (e) => {
       }
     })
   } else if (pointerLock.hasPointerLock) {
+    document.exitPointerLock?.()
     if (options.autoExitFullscreen) {
       void document.exitFullscreen()
     }
@@ -716,15 +740,14 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.code === 'F11') {
     e.preventDefault()
-    goFullscreen(true)
+    void goFullscreen(true)
   }
   if (e.code === 'KeyL' && e.altKey) {
     console.clear()
   }
 })
 
-addPanoramaCubeMap()
-showModal(document.getElementById('title-screen'))
+void addPanoramaCubeMap()
 void main()
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return

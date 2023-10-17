@@ -1,11 +1,9 @@
-import * as crypto from 'crypto'
-import UUID from 'uuid-1345'
-import { activeModalStack, hideModal, miscUiState, showModal } from './globalState'
-import { notification } from './menus/notification'
+import { hideModal, isGameActive, miscUiState, notification, showModal } from './globalState'
 import { options } from './optionsStorage'
-import { saveWorld } from './builtinCommands'
 import { openWorldZip } from './browserfs'
 import { installTexturePack } from './texturePack'
+import { appStatusState } from './react/AppStatus'
+import { saveServer } from './flyingSquidUtils'
 
 export const goFullscreen = async (doToggle = false) => {
   if (!document.fullscreenElement) {
@@ -25,12 +23,12 @@ export const toNumber = (val) => {
 }
 
 export const pointerLock = {
-  get hasPointerLock() {
+  get hasPointerLock () {
     return document.pointerLockElement
   },
   justHitEscape: false,
-  async requestPointerLock() {
-    if (document.getElementById('hud').style.display === 'none' || activeModalStack.length || !document.documentElement.requestPointerLock || miscUiState.currentTouch) {
+  async requestPointerLock () {
+    if (!isGameActive(true) || !document.documentElement.requestPointerLock || miscUiState.currentTouch) {
       return
     }
     if (options.autoFullScreen) {
@@ -68,7 +66,7 @@ window.getScreenRefreshRate = getScreenRefreshRate
 /**
  * Allows to obtain the estimated Hz of the primary monitor in the system.
  */
-export async function getScreenRefreshRate(): Promise<number> {
+export async function getScreenRefreshRate (): Promise<number> {
   let requestId = null
   let callbackTriggered = false
   let resolve
@@ -118,52 +116,48 @@ export const isCypress = () => {
   return localStorage.cypress === 'true'
 }
 
-// https://github.com/PrismarineJS/node-minecraft-protocol/blob/cf1f67117d586b5e6e21f0d9602da12e9fcf46b6/src/server/login.js#L170
-function javaUUID(s: string) {
-  const hash = crypto.createHash('md5')
-  hash.update(s, 'utf8')
-  const buffer = hash.digest()
-  buffer[6] = (buffer[6] & 0x0f) | 0x30
-  buffer[8] = (buffer[8] & 0x3f) | 0x80
-  return buffer
+export const isMajorVersionGreater = (ver1: string, ver2: string) => {
+  const [a1, b1] = ver1.split('.')
+  const [a2, b2] = ver2.split('.')
+  return +a1 > +a2 || (+a1 === +a2 && +b1 > +b2)
 }
 
-export function nameToMcOfflineUUID(name) {
-  return (new UUID(javaUUID('OfflinePlayer:' + name))).toString()
-}
-
-export const setLoadingScreenStatus = function (status: string | undefined, isError = false, hideDots = false) {
-  const loadingScreen = document.getElementById('loading-error-screen')
+let ourLastStatus = ''
+export const setLoadingScreenStatus = function (status: string | undefined | null, isError = false, hideDots = false, fromFlyingSquid = false) {
+  // null can come from flying squid, should restore our last status
+  if (status === null) {
+    status = ourLastStatus
+  } else if (!fromFlyingSquid) {
+    ourLastStatus = status
+  }
+  fromFlyingSquid = false
 
   if (status === undefined) {
-    loadingScreen.status = ''
-    hideModal({ elem: loadingScreen }, null, { force: true })
+    appStatusState.status = ''
+
+    hideModal({ reactType: 'app-status' }, {}, { force: true })
     return
   }
 
   // todo update in component instead
-  showModal(loadingScreen)
-  if (loadingScreen.hasError) {
+  showModal({ reactType: 'app-status' })
+  if (appStatusState.isError) {
     miscUiState.gameLoaded = false
     return
   }
-  loadingScreen.hideDots = hideDots
-  loadingScreen.hasError = isError
-  loadingScreen.lastStatus = isError ? loadingScreen.status : ''
-  loadingScreen.status = status
+  appStatusState.hideDots = hideDots
+  appStatusState.isError = isError
+  appStatusState.lastStatus = isError ? appStatusState.status : ''
+  appStatusState.status = status
 }
 
 
 export const disconnect = async () => {
   if (window.localServer) {
-    await saveWorld()
+    await saveServer()
     localServer.quit()
-  } else {
-    // workaround bot.end doesn't end the socket and emit end event
-    bot.end()
   }
-  bot._client.emit('end', 'You left the server')
-  miscUiState.gameLoaded = false
+  bot.end('You left the server')
 }
 
 // doesn't support snapshots
@@ -176,15 +170,14 @@ let prevRenderDistance = options.renderDistance
 export const setRenderDistance = () => {
   worldView.viewDistance = options.renderDistance
   if (localServer) {
-    localServer.options['view-distance'] = options.renderDistance
     localServer.players[0].emit('playerChangeRenderDistance', options.renderDistance)
   }
   prevRenderDistance = options.renderDistance
 }
-export const reloadChunks = () => {
+export const reloadChunks = async () => {
   if (!worldView) return
   setRenderDistance()
-  worldView.updatePosition(bot.entity.position, true)
+  await worldView.updatePosition(bot.entity.position, true)
 }
 
 export const openFilePicker = (specificCase?: 'resourcepack') => {
@@ -204,9 +197,9 @@ export const openFilePicker = (specificCase?: 'resourcepack') => {
         if (!doContinue) return
       }
       if (specificCase === 'resourcepack') {
-        installTexturePack(file)
+        void installTexturePack(file)
       } else {
-        openWorldZip(file)
+        void openWorldZip(file)
       }
     })
     picker.hidden = true

@@ -12,7 +12,10 @@
     "prod-start": "node server.js",
     "postinstall": "node scripts/gen-texturepack-files.mjs",
     "test-mc-server": "tsx cypress/minecraft-server.mjs",
-    "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\""
+    "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\"",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "watch-worker": "node prismarine-viewer/buildWorker.mjs -w"
   },
   "keywords": [
     "prismarine",
@@ -51,13 +54,24 @@
     "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-transition-group": "^4.4.5",
     "stats-gl": "^1.0.5",
     "stats.js": "^0.17.0",
+    "tippy.js": "^6.3.7",
+    "title-case": "3.x",
     "valtio": "^1.11.1",
     "workbox-build": "^7.0.0"
   },
   "devDependencies": {
+    "@storybook/addon-essentials": "^7.4.6",
+    "@storybook/addon-links": "^7.4.6",
+    "@storybook/blocks": "^7.4.6",
+    "@storybook/react": "^7.4.6",
+    "@storybook/react-vite": "^7.4.6",
+    "@storybook/web-components": "^7.4.6",
+    "@storybook/web-components-vite": "^7.4.6",
     "@types/lodash-es": "^4.17.9",
+    "@types/react-transition-group": "^4.4.7",
     "@types/stats.js": "^0.17.1",
     "@types/three": "0.128.0",
     "@xmcl/installer": "^5.1.0",
@@ -86,6 +100,7 @@
     "prismarine-viewer": "link:prismarine-viewer",
     "process": "github:PrismarineJS/node-process",
     "rimraf": "^5.0.1",
+    "storybook": "^7.4.6",
     "stream-browserify": "^3.0.0",
     "three": "0.128.0",
     "timers-browserify": "^2.0.12",
@@ -100,7 +115,8 @@
       "prismarine-world": "github:zardoy/prismarine-world#next-era",
       "minecraft-data": "3.45.0",
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
-      "minecraft-protocol": "github:zardoy/minecraft-protocol#custom-client-extra"
+      "minecraft-protocol": "github:zardoy/minecraft-protocol#custom-client-extra",
+      "react": "^18.2.0"
     }
   }
 }

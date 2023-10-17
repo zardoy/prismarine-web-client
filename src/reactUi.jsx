@@ -6,10 +6,13 @@ import { css } from '@emotion/css'
 import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
-import DeathScreen from './react/DeathScreen'
 import { contro } from './controls'
-import { activeModalStack, isGameActive, miscUiState } from './globalState'
+import { miscUiState } from './globalState'
 import { options, watchValue } from './optionsStorage'
+import DeathScreenProvider from './react/DeathScreenProvider'
+import OptionsRenderApp from './react/OptionsRenderApp'
+import MainMenuRenderApp from './react/MainMenuRenderApp'
+import AppStatus from './react/AppStatus'
 
 // todo
 useInterfaceState.setState({
@@ -17,7 +20,7 @@ useInterfaceState.setState({
   uiCustomization: {
     touchButtonSize: 40,
   },
-  updateCoord([coord, state]) {
+  updateCoord ([coord, state]) {
     const coordToAction = [
       ['z', -1, 'KeyW'],
       ['z', 1, 'KeyS'],
@@ -56,31 +59,25 @@ const TouchControls = () => {
   return (
     <div
       className={css`
-                position: fixed;
-                inset: 0;
-                height: 100%;
-                display: flex;
-                width: 100%;
-                justify-content: space-between;
-                align-items: flex-end;
-                pointer-events: none;
-                touch-action: none;
-                & > div {
-                    pointer-events: auto;
-                }
-            `}
+        position: fixed;
+        inset: 0;
+        height: 100%;
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        align-items: flex-end;
+        pointer-events: none;
+        touch-action: none;
+        & > div {
+            pointer-events: auto;
+        }
+    `}
     >
       <LeftTouchArea />
       <div />
       <RightTouchArea />
     </div>
   )
-}
-
-function useIsBotAvailable() {
-  const stack = useSnapshot(activeModalStack)
-
-  return isGameActive(false)
 }
 
 const Portal = ({ children, to }) => {
@@ -112,17 +109,28 @@ const DisplayQr = () => {
   </div>
 }
 
-const App = () => {
-  const isBotAvailable = useIsBotAvailable()
-  if (!isBotAvailable) return null
+const InGameUi = () => {
+  const { gameLoaded } = useSnapshot(miscUiState)
+  if (!gameLoaded) return
 
-  return <div>
+  return <>
     <Portal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
-      <DeathScreen />
+      <DeathScreenProvider />
     </Portal>
     <DisplayQr />
     <TouchControls />
+  </>
+}
+
+const App = () => {
+  return <div>
+    <InGameUi />
+    <Portal to={document.querySelector('#ui-root')}>
+      <AppStatus />
+      <OptionsRenderApp />
+      <MainMenuRenderApp />
+    </Portal>
   </div>
 }
 
