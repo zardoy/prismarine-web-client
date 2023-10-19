@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { proxy, useSnapshot } from 'valtio'
 import { activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
 import { guessProblem } from '../guessProblem'
-import { addPanoramaCubeMap } from '../panorama'
 import { fsState } from '../loadSave'
 import { resetLocalStorageWorld } from '../browserfs'
 import styles from './loadingErrorScreen.module.css'
@@ -87,7 +86,6 @@ export default () => {
               } else {
                 hideModal(undefined, undefined, { force: true })
               }
-              void addPanoramaCubeMap()
             }}
             ></Button>
             <Button hidden={!(miscUiState.singleplayer && fsState.inMemorySave)} label="Reset world" onClick={() => {

@@ -208,10 +208,7 @@ async function main () {
   })
   const qs = new URLSearchParams(window.location.search)
   if (qs.get('singleplayer') === '1') {
-    // todo
-    setTimeout(() => {
       connectSingleplayer()
-    })
   }
 }
 
@@ -747,8 +744,10 @@ window.addEventListener('keydown', (e) => {
   }
 })
 
-void addPanoramaCubeMap()
-void main()
+watchValue(miscUiState, m => {
+  if (m.appLoaded) void main()
+})
+
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
 

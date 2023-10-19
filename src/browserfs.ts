@@ -9,6 +9,7 @@ import { options } from './optionsStorage'
 
 import { fsState, loadSave } from './loadSave'
 import { installTexturePack, updateTexturePackInstalledState } from './texturePack'
+import { miscUiState } from './globalState'
 
 browserfs.install(window)
 // todo migrate to StorageManager API for localsave as localstorage has only 5mb limit, when localstorage is fallback test limit warning on 4mb
@@ -19,10 +20,11 @@ const deafultMountablePoints = {
 browserfs.configure({
   fs: 'MountableFileSystem',
   options: deafultMountablePoints,
-}, (e) => {
+}, async (e) => {
   // todo disable singleplayer button
   if (e) throw e
-  void updateTexturePackInstalledState()
+  await updateTexturePackInstalledState()
+  miscUiState.appLoaded = true
 })
 
 export const forceCachedDataPaths = {}
