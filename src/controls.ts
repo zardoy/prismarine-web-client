@@ -7,7 +7,7 @@ import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal } from './globalState'
-import { reloadChunks } from './utils'
+import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 
 // doesnt seem to work for now
@@ -330,6 +330,7 @@ const toggleFly = () => {
 }
 // #endregion
 addEventListener('mousedown', async (e) => {
+  pointerLock.requestPointerLock()
   if (!bot) return
   // wheel click
   // todo support ctrl+wheel (+nbt)
@@ -344,3 +345,33 @@ addEventListener('mousedown', async (e) => {
     bot.updateHeldItem()
   }
 })
+
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'Escape') return
+  if (activeModalStack.length) {
+    hideCurrentModal(undefined, () => {
+      if (!activeModalStack.length) {
+        pointerLock.justHitEscape = true
+      }
+    })
+  } else if (pointerLock.hasPointerLock) {
+    document.exitPointerLock?.()
+    if (options.autoExitFullscreen) {
+      void document.exitFullscreen()
+    }
+  } else {
+    document.dispatchEvent(new Event('pointerlockchange'))
+  }
+})
+
+// #region experimental debug things
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'F11') {
+    e.preventDefault()
+    void goFullscreen(true)
+  }
+  if (e.code === 'KeyL' && e.altKey) {
+    console.clear()
+  }
+})
+// #endregion

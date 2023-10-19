@@ -45,9 +45,7 @@ import { versionsByMinecraftVersion } from 'minecraft-data'
 import { initVR } from './vr'
 import {
   activeModalStack,
-  showModal,
-  hideCurrentModal,
-  activeModalStacks,
+  showModal, activeModalStacks,
   insertActiveModalStack,
   isGameActive,
   miscUiState,
@@ -57,16 +55,14 @@ import {
 } from './globalState'
 
 import {
-  pointerLock,
-  goFullscreen, isCypress,
+  pointerLock, isCypress,
   toMajorVersion,
   setLoadingScreenStatus,
   setRenderDistance
 } from './utils'
 
 import {
-  removePanorama,
-  addPanoramaCubeMap,
+  removePanorama
 } from './panorama'
 
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
@@ -711,38 +707,6 @@ async function connect (connectOptions: {
     })
   })
 }
-
-window.addEventListener('mousedown', () => {
-  void pointerLock.requestPointerLock()
-})
-
-window.addEventListener('keydown', (e) => {
-  if (e.code !== 'Escape') return
-  if (activeModalStack.length) {
-    hideCurrentModal(undefined, () => {
-      if (!activeModalStack.length) {
-        pointerLock.justHitEscape = true
-      }
-    })
-  } else if (pointerLock.hasPointerLock) {
-    document.exitPointerLock?.()
-    if (options.autoExitFullscreen) {
-      void document.exitFullscreen()
-    }
-  } else {
-    document.dispatchEvent(new Event('pointerlockchange'))
-  }
-})
-
-window.addEventListener('keydown', (e) => {
-  if (e.code === 'F11') {
-    e.preventDefault()
-    void goFullscreen(true)
-  }
-  if (e.code === 'KeyL' && e.altKey) {
-    console.clear()
-  }
-})
 
 watchValue(miscUiState, m => {
   if (m.appLoaded) void main()
