@@ -26,8 +26,8 @@ importers:
         specifier: ^18.2.7
         version: 18.2.7
       '@types/wicg-file-system-access':
-        specifier: ^2020.9.6
-        version: 2020.9.6
+        specifier: ^2023.10.2
+        version: 2023.10.2
       '@zardoy/react-util':
         specifier: ^0.2.0
         version: 0.2.0(react-dom@18.2.0)(react@18.2.0)
@@ -63,7 +63,7 @@ importers:
         version: 4.18.2
       flying-squid:
         specifier: github:zardoy/space-squid#everything
-        version: github.com/zardoy/space-squid/93f0d264e225bb8526885a8caaa4c547af6fa6eb
+        version: github.com/zardoy/space-squid/de5f833af6359ba41a85bef10c0c578b3f70d21a
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -112,6 +112,9 @@ importers:
       stats.js:
         specifier: ^0.17.0
         version: 0.17.0
+      tabbable:
+        specifier: ^6.2.0
+        version: 6.2.0
       tippy.js:
         specifier: ^6.3.7
         version: 6.3.7
@@ -4855,8 +4858,8 @@ packages:
     resolution: {integrity: sha512-HVOsSRTQYx3zpVl0c0FBmmmcY/60BkQLzVnpE9M1aG4f2Z0aKlBWfj4XZ2zr++XNBfkQWYcwhGlmuu44RJPDqg==}
     dev: false
 
-  /@types/wicg-file-system-access@2020.9.6:
-    resolution: {integrity: sha512-6hogE75Hl2Ov/jgp8ZhDaGmIF/q3J07GtXf8nCJCwKTHq7971po5+DId7grft09zG7plBwpF6ZU0yx9Du4/e1A==}
+  /@types/wicg-file-system-access@2023.10.2:
+    resolution: {integrity: sha512-nSiK8qt0O7sQmDcW3HYfvya7GDoD6ipgdcUFzk3QN+UBIqXeNg38Nh6VnKv7EIPfkVETRiquyMskCbpxUzgX1Q==}
     dev: false
 
   /@types/yargs-parser@21.0.1:
@@ -10316,6 +10319,12 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  /mkdirp@2.1.6:
+    resolution: {integrity: sha512-+hEnITedc8LAtIP9u3HJDFIdcLV2vXP33sqLLIzkv1Db1zO/1OxbvYf0Y1OC/S/Qo5dxHXepofhmxL02PsKe+A==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dev: false
+
   /mlly@1.4.2:
     resolution: {integrity: sha512-i/Ykufi2t1EZ6NaPLdfnZk2AX8cs0d+mTzVKuPfqPKPatxLApaBoxJQ9x1/uckXtrS/U5oisPMDkNs0yQTaBRg==}
     dependencies:
@@ -10538,6 +10547,12 @@ packages:
     resolution: {integrity: sha512-Bvso6Zi9LY4otIZefYrscsUpo2mUpiAVIEmSZV2q41sP8tHZoert3Yu6zv4f/RXJqMNZQKCtnhDugIuCma23YA==}
     dependencies:
       asn1: 0.2.3
+
+  /node-rsa@1.1.1:
+    resolution: {integrity: sha512-Jd4cvbJMryN21r5HgxQOpMEqv+ooke/korixNNK3mGqfGJmy0M77WDDzo/05969+OkMy3XW1UuZsSmW9KQm7Fw==}
+    dependencies:
+      asn1: 0.2.6
+    dev: false
 
   /nopt@1.0.10:
     resolution: {integrity: sha512-NWmpvLSqUrgrAC9HCuxEvb+PSloHpqVu+FqcO4eeF2h5qYRhA7ev6KvelyQAKtegUbC6RypJnlEOhd8vloNKYg==}
@@ -12920,6 +12935,10 @@ packages:
     resolution: {integrity: sha512-AsS729u2RHUfEra9xJrE39peJcc2stq2+poBXX8bcM08Y6g9j/i/PUzwNQqkaJde7Ntg1TO7bSREbR5sdosQ+g==}
     dev: true
 
+  /tabbable@6.2.0:
+    resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
+    dev: false
+
   /tar-fs@2.1.1:
     resolution: {integrity: sha512-V0r2Y9scmbDRLCNex/+hYzvp/zyYjvFbHPNgVTKfQvVrb6guiE/fxP+XblDNR011utopbkex2nM4dHNV6GDsng==}
     dependencies:
@@ -14431,9 +14450,9 @@ packages:
       prismarine-nbt: 2.2.1
       prismarine-registry: 1.7.0
 
-  github.com/zardoy/prismarine-provider-anvil/49bf8150422301565b386110aaf3dec69e31c4cf(minecraft-data@3.45.0):
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/49bf8150422301565b386110aaf3dec69e31c4cf}
-    id: github.com/zardoy/prismarine-provider-anvil/49bf8150422301565b386110aaf3dec69e31c4cf
+  github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406(minecraft-data@3.45.0):
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/b250d93638a2e300a7d016cfd9e87162347e1406}
+    id: github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406
     name: prismarine-provider-anvil
     version: 2.7.0
     dependencies:
@@ -14467,8 +14486,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  github.com/zardoy/space-squid/93f0d264e225bb8526885a8caaa4c547af6fa6eb:
-    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/93f0d264e225bb8526885a8caaa4c547af6fa6eb}
+  github.com/zardoy/space-squid/de5f833af6359ba41a85bef10c0c578b3f70d21a:
+    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/de5f833af6359ba41a85bef10c0c578b3f70d21a}
     name: flying-squid
     version: 1.5.0
     engines: {node: '>=8'}
@@ -14484,14 +14503,16 @@ packages:
       long: 5.2.3
       minecraft-data: 3.45.0
       minecraft-protocol: github.com/zardoy/minecraft-protocol/8e61798aeae786db3ddd4bbd9e19b6e30bb2520c
+      mkdirp: 2.1.6
       moment: 2.29.4
       needle: 2.9.1
       node-gzip: 1.1.2
+      node-rsa: 1.1.1
       prismarine-chunk: 1.35.0(minecraft-data@3.45.0)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.2.1
-      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/49bf8150422301565b386110aaf3dec69e31c4cf(minecraft-data@3.45.0)
+      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406(minecraft-data@3.45.0)
       prismarine-windows: 2.8.0
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
       random-seed: 0.3.0
