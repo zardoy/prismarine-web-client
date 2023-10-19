@@ -367,7 +367,6 @@ async function connect (connectOptions: {
       localServer.on('newPlayer', (player) => {
         // it's you!
         player.on('loadingStatus', (newStatus) => {
-          console.log('loadingStatus')
           setLoadingScreenStatus(newStatus, false, false, true)
         })
       })
