@@ -9,6 +9,7 @@ import Slider from './react/Slider'
 import { getScreenRefreshRate, openFilePicker, setLoadingScreenStatus } from './utils'
 import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
 import { fsState } from './loadSave'
+import { resetLocalStorageWithoutWorld } from './browserfs'
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [k in keyof AppOptions]?: Partial<OptionMeta> } & { custom?}>
@@ -78,11 +79,11 @@ export const guiOptionsScheme: {
         return <Button label='Controls...' onClick={() => openOptionsMenu('controls')} inScreen />
       },
     },
-    // {
-    //   custom () {
-    //     return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
-    //   },
-    // },
+    {
+      custom () {
+        return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
+      },
+    },
     {
       custom () {
         const { resourcePackInstalled } = useSnapshot(resourcePackState)
@@ -152,7 +153,13 @@ export const guiOptionsScheme: {
     // { ignoreSilentSwitch: {} },
   ],
   advanced: [
-
+    {
+      custom () {
+        return <Button inScreen onClick={() => {
+          if (confirm('Are you sure you want to reset all settings?')) resetLocalStorageWithoutWorld()
+        }}>Reset all settings</Button>
+      },
+    }
   ],
 }
 export type OptionsGroupType = 'main' | 'render' | 'interface' | 'controls' | 'sound' | 'advanced'

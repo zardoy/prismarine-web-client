@@ -53,6 +53,10 @@ export const options = proxy(
 
 window.options = window.settings = options
 
+export const resetOptions = () => {
+  Object.assign(options, defaultOptions)
+}
+
 subscribe(options, () => {
   localStorage.options = JSON.stringify(options)
 })
