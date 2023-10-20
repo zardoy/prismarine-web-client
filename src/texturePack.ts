@@ -170,11 +170,11 @@ const getSizeFromImage = async (filePath: string) => {
 
 export const genTexturePackTextures = async (version: string) => {
   setCustomTexturePackData(undefined, undefined)
-  let blocksBasePath = '/userData/resourcePacks/default/assets/minecraft/textures/block'
+  let blocksBasePath = '/data/resourcePacks/default/assets/minecraft/textures/block'
   // todo not clear why this is needed
-  const blocksBasePathAlt = '/userData/resourcePacks/default/assets/minecraft/textures/blocks'
-  const blocksGeneratedPath = `/userData/resourcePacks/default/${version}.png`
-  const generatedPathData = `/userData/resourcePacks/default/${version}.json`
+  const blocksBasePathAlt = '/data/resourcePacks/default/assets/minecraft/textures/blocks'
+  const blocksGeneratedPath = `/data/resourcePacks/default/${version}.png`
+  const generatedPathData = `/data/resourcePacks/default/${version}.json`
   if (!(await existsAsync(blocksBasePath))) {
     if (await existsAsync(blocksBasePathAlt)) {
       blocksBasePath = blocksBasePathAlt

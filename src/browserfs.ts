@@ -15,7 +15,7 @@ browserfs.install(window)
 // todo migrate to StorageManager API for localsave as localstorage has only 5mb limit, when localstorage is fallback test limit warning on 4mb
 const deafultMountablePoints = {
   '/world': { fs: 'LocalStorage' },
-  '/userData': { fs: 'IndexedDB' },
+  '/data': { fs: 'IndexedDB' },
 }
 browserfs.configure({
   fs: 'MountableFileSystem',
