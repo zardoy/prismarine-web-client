@@ -71,17 +71,12 @@ export const guiOptionsScheme: {
     },
     {
       custom () {
-        return <Button label='Sound...' onClick={() => openOptionsMenu('sound')} inScreen />
-      },
-    },
-    {
-      custom () {
         return <Button label='Controls...' onClick={() => openOptionsMenu('controls')} inScreen />
       },
     },
     {
       custom () {
-        return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
+        return <Button label='Sound...' onClick={() => openOptionsMenu('sound')} inScreen />
       },
     },
     {
@@ -104,6 +99,11 @@ export const guiOptionsScheme: {
             openFilePicker('resourcepack')
           }
         }} />
+      },
+    },
+    {
+      custom () {
+        return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
       },
     }
   ],

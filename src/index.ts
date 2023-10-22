@@ -78,7 +78,7 @@ import CustomChannelClient from './customClient'
 import debug from 'debug'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
-import { appStatusState } from './react/AppStatus'
+import { appStatusState } from './react/AppStatusProvider'
 
 window.debug = debug
 window.THREE = THREE

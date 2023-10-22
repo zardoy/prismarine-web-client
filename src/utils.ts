@@ -2,7 +2,7 @@ import { hideModal, isGameActive, miscUiState, notification, showModal } from '.
 import { options } from './optionsStorage'
 import { openWorldZip } from './browserfs'
 import { installTexturePack } from './texturePack'
-import { appStatusState } from './react/AppStatus'
+import { appStatusState } from './react/AppStatusProvider'
 import { saveServer } from './flyingSquidUtils'
 
 export const goFullscreen = async (doToggle = false) => {

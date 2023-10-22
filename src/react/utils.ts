@@ -2,7 +2,7 @@ import { useSnapshot } from 'valtio'
 import { useEffect, useRef } from 'react'
 import { activeModalStack } from '../globalState'
 
-export const isModalActive = (modal: string) => {
+export const useIsModalActive = (modal: string) => {
   return useSnapshot(activeModalStack).at(-1)?.reactType === modal
 }
 
