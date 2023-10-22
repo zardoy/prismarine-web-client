@@ -26,6 +26,8 @@ const defaultOptions = {
   autoRequestCompletions: true,
   touchButtonsSize: 40,
   highPerformanceGpu: false,
+  /** @unstable */
+  disableAssets: false,
 
   showChunkBorders: false,
   frameLimit: false as number | false,
@@ -80,6 +82,10 @@ export const watchValue: WatchValue = (proxy, callback) => {
 
 watchValue(options, o => {
   globalThis.excludeCommunicationDebugEvents = o.excludeCommunicationDebugEvents
+})
+
+watchValue(options, o => {
+  document.body.classList.toggle('disable-assets', o.disableAssets)
 })
 
 export const useOptionValue = (setting, valueCallback) => {

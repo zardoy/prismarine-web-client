@@ -39,7 +39,7 @@ const mkdirRecursive = async (path) => {
   }
 }
 
-const texturePackBasePath = '/userData/resourcePacks/default'
+const texturePackBasePath = '/data/resourcePacks/default'
 export const uninstallTexturePack = async () => {
   await removeFileRecursiveAsync(texturePackBasePath)
   setCustomTexturePackData(undefined, undefined)

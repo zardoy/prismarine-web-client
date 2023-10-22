@@ -35,7 +35,7 @@
   top: 0;
   width: 50%;
   height: calc(20px * var(--scale));
-  background: var(--widgets-gui-atlas);
+  background: var(--widgets-gui-atlas), rgb(114, 114, 114);
   background-size: calc(256px * var(--scale));
   background-position-y: calc(var(--txrV) * -1 * var(--scale));
   z-index: -1;

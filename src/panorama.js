@@ -64,7 +64,7 @@ subscribeKey(miscUiState, 'loadedDataVersion', () => {
 // Menu panorama background
 // TODO-low use abort controller
 export async function addPanoramaCubeMap () {
-  if (panoramaCubeMap || miscUiState.loadedDataVersion) return
+  if (panoramaCubeMap || miscUiState.loadedDataVersion || options.disableAssets) return
   shouldDisplayPanorama = true
 
   let time = 0
