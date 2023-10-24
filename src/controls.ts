@@ -66,6 +66,7 @@ const setSprinting = (state: boolean) => {
 }
 
 contro.on('movementUpdate', ({ vector, gamepadIndex }) => {
+  miscUiState.usingGamepadInput = gamepadIndex !== undefined
   // gamepadIndex will be used for splitscreen in future
   const coordToAction = [
     ['z', -1, 'forward'],

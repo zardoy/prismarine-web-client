@@ -129,7 +129,8 @@ export const miscUiState = proxy({
   gameLoaded: false,
   /** currently trying to load or loaded mc version, after all data is loaded */
   loadedDataVersion: null as string | null,
-  appLoaded: false
+  appLoaded: false,
+  usingGamepadInput: false
 })
 
 export const resetStateAfterDisconnect = () => {

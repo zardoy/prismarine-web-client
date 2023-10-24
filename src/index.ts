@@ -660,6 +660,7 @@ async function connect (connectOptions: {
       if (Math.abs(x) < 0.18) x = 0
       if (Math.abs(z) < 0.18) z = 0
       onCameraMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
+      miscUiState.usingGamepadInput = true
     })
 
     const pointerUpHandler = (e: PointerEvent) => {

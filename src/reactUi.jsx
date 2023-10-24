@@ -54,8 +54,9 @@ watchValue(options, (o) => {
 const TouchControls = () => {
   // todo setting
   const usingTouch = useUsingTouch()
+  const { usingGamepadInput } = useSnapshot(miscUiState)
 
-  if (!usingTouch) return null
+  if (!usingTouch || usingGamepadInput) return null
   return (
     <div
       className={css`
