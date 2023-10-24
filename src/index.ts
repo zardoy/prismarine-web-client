@@ -115,6 +115,8 @@ watchValue(options, (o) => {
 let postRenderFrameFn = () => { }
 let delta = 0
 let lastTime = performance.now()
+let previousWindowWidth = window.innerWidth
+let previousWindowHeight = window.innerHeight
 const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
   window.requestAnimationFrame(renderFrame)
@@ -128,6 +130,12 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
     } else {
       return
     }
+  }
+  // ios bug: viewport dimensions are updated after the resize event
+  if (previousWindowWidth !== window.innerWidth || previousWindowHeight !== window.innerHeight) {
+    resizeHandler()
+    previousWindowWidth = window.innerWidth
+    previousWindowHeight = window.innerHeight
   }
   statsStart()
   viewer.update()
@@ -145,15 +153,6 @@ const resizeHandler = () => {
   viewer.camera.updateProjectionMatrix()
   renderer.setSize(width, height)
 }
-const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent)
-addEventListener('resize', (e) => {
-  if (isIos) {
-    // ios bug: resize event is fired before deminsion properties are updated
-    setTimeout(resizeHandler)
-  } else {
-    resizeHandler()
-  }
-})
 
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
