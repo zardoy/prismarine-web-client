@@ -37,7 +37,7 @@ import { WorldDataEmitter, Viewer } from 'prismarine-viewer/viewer'
 import pathfinder from 'mineflayer-pathfinder'
 import { Vec3 } from 'vec3'
 
-import blockInteraction from './blockInteraction'
+import worldInteractions from './worldInteractions'
 
 import * as THREE from 'three'
 import { versionsByMinecraftVersion } from 'minecraft-data'
@@ -161,9 +161,9 @@ let mouseMovePostHandle = (e) => { }
 let lastMouseMove: number
 let debugMenu
 const updateCursor = () => {
-  blockInteraction.update()
+  worldInteractions.update()
   debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
-  debugMenu.cursorBlock = blockInteraction.cursorBlock
+  debugMenu.cursorBlock = worldInteractions.cursorBlock
 }
 function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
@@ -671,7 +671,7 @@ async function connect (connectOptions: {
         virtualClickActive = false
       } else if (!capturedPointer.activateCameraMove && (Date.now() - capturedPointer.time < touchStartBreakingBlockMs)) {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 2 }))
-        blockInteraction.update()
+        worldInteractions.update()
         document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       }
       capturedPointer = undefined
@@ -693,7 +693,7 @@ async function connect (connectOptions: {
       hud.init(renderer, bot, server.host)
       hud.style.display = 'block'
     })
-    blockInteraction.init()
+    worldInteractions.init()
 
     errorAbortController.abort()
     if (appStatusState.isError) return

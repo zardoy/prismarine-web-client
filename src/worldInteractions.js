@@ -23,7 +23,7 @@ function getViewDirection (pitch, yaw) {
   return new Vec3(-snYaw * csPitch, snPitch, -csYaw * csPitch)
 }
 
-class BlockInteraction {
+class WorldInteraction {
   static instance = null
   /** @type {null | {blockPos,mesh}} */
   interactionLines = null
@@ -253,4 +253,4 @@ const getDataFromShape = (shape) => {
   return { position, width, height, depth }
 }
 
-export default new BlockInteraction()
+export default new WorldInteraction()
