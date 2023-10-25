@@ -5,6 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  diamond-square: github:zardoy/diamond-square
   prismarine-block: github:zardoy/prismarine-block#next-era
   prismarine-world: github:zardoy/prismarine-world#next-era
   minecraft-data: 3.45.0
@@ -211,7 +212,7 @@ importers:
         version: 1.0.0
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: github.com/zardoy/minecraft-inventory-gui/c1331c91fb39bd562dc48eeb33321240d4870edd(@types/react@18.2.20)(react@18.2.0)
+        version: github.com/zardoy/minecraft-inventory-gui/babb4669ac26b14ccf47505fb40d2590b6882c60(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer#custom
         version: github.com/zardoy/mineflayer/e828c161aab120f2d926fba48de3b4d57c361710
@@ -14368,6 +14369,17 @@ packages:
     version: 2.0.0-zardoy
     dependencies:
       async: 2.6.4
+    dev: false
+
+  github.com/zardoy/diamond-square/841ccd5345678b3b2a28d645eaf43da2991a5a7d:
+    resolution: {tarball: https://codeload.github.com/zardoy/diamond-square/tar.gz/841ccd5345678b3b2a28d645eaf43da2991a5a7d}
+    name: diamond-square
+    version: 1.3.0
+    dependencies:
+      minecraft-data: 3.45.0
+      prismarine-chunk: 1.35.0(minecraft-data@3.45.0)
+      random-seed: 0.3.0
+      vec3: 0.1.8
     dev: false
 
   github.com/zardoy/minecraft-inventory-gui/babb4669ac26b14ccf47505fb40d2590b6882c60(@types/react@18.2.20)(react@18.2.0):

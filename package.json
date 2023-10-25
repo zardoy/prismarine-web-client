@@ -113,6 +113,7 @@
   },
   "pnpm": {
     "overrides": {
+      "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
       "prismarine-world": "github:zardoy/prismarine-world#next-era",
       "minecraft-data": "3.45.0",
