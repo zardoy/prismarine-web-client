@@ -4,6 +4,7 @@ const { subscribeKey } = require('valtio/utils')
 const invsprite = require('../../invsprite.json')
 const { isGameActive, miscUiState, showModal } = require('../../globalState')
 
+const { openPlayerInventory, renderSlotExternal } = require('../../inventory')
 const { isProbablyIphone } = require('./common')
 
 class Hotbar extends LitElement {
@@ -57,7 +58,6 @@ class Hotbar extends LitElement {
         height: 32px;
         transform-origin: top left;
         transform: scale(0.5);
-        background-image: url('invsprite.png');
         background-size: 1024px auto;
       }
 
@@ -103,8 +103,6 @@ class Hotbar extends LitElement {
   static get properties () {
     return {
       activeItemName: { type: String },
-      bot: { type: Object },
-      viewerVersion: { type: String }
     }
   }
 
@@ -119,7 +117,7 @@ class Hotbar extends LitElement {
   updated (changedProperties) {
     if (changedProperties.has('bot')) {
       // inventory listener
-      this.bot.once('spawn', () => {
+      bot.once('spawn', () => {
         this.init()
       })
     }
@@ -132,7 +130,7 @@ class Hotbar extends LitElement {
     document.addEventListener('wheel', (e) => {
       if (!isGameActive(true)) return
       e.preventDefault()
-      const newSlot = ((this.bot.quickBarSlot + Math.sign(e.deltaY)) % 9 + 9) % 9
+      const newSlot = ((bot.quickBarSlot + Math.sign(e.deltaY)) % 9 + 9) % 9
       this.reloadHotbarSelected(newSlot)
     }, {
       passive: false,
@@ -145,38 +143,41 @@ class Hotbar extends LitElement {
       this.reloadHotbarSelected(numPressed - 1)
     })
 
-    this.bot.inventory.on('updateSlot', (slot, oldItem, newItem) => {
-      if (slot >= this.bot.inventory.hotbarStart + 9) return
-      if (slot < this.bot.inventory.hotbarStart) return
+    bot.inventory.on('updateSlot', (slot, oldItem, newItem) => {
+      if (slot >= bot.inventory.hotbarStart + 9) return
+      if (slot < bot.inventory.hotbarStart) return
 
-      const sprite = newItem ? invsprite[newItem.name] ?? { x: 0, y: 0 } : invsprite.air
-      const slotEl = this.shadowRoot.getElementById('hotbar-' + (slot - this.bot.inventory.hotbarStart))
-      const slotIcon = slotEl.children[0]
-      const slotStack = slotEl.children[1]
-      slotIcon.style['background-position-x'] = `-${sprite.x}px`
-      slotIcon.style['background-position-y'] = `-${sprite.y}px`
-      slotStack.textContent = newItem?.count > 1 ? newItem.count : ''
+      this.reloadHotbar(slot - bot.inventory.hotbarStart)
     })
   }
 
-  async reloadHotbar () {
+  reloadHotbar (onlySlot = undefined) {
     for (let i = 0; i < 9; i++) {
-      const item = this.bot.inventory.slots[this.bot.inventory.hotbarStart + i]
-      const sprite = item ? invsprite[item.name] ?? { x: 0, y: 0 } : invsprite.air
+      if (onlySlot !== undefined && onlySlot !== i) continue
+      const item = bot.inventory.slots[bot.inventory.hotbarStart + i]
       const slotEl = this.shadowRoot.getElementById('hotbar-' + i)
       const slotIcon = slotEl.children[0]
       const slotStack = slotEl.children[1]
-      slotIcon.style['background-position-x'] = `-${sprite.x}px`
-      slotIcon.style['background-position-y'] = `-${sprite.y}px`
+      const data = item ? renderSlotExternal(item) : { sprite: [invsprite.air.x, invsprite.air.y] }
+      if (data?.imageDataUrl) {
+        slotIcon.style['background-image'] = `url('${data.imageDataUrl}')`
+      } else {
+        slotIcon.style['background-image'] = `url('invsprite.png')`
+      }
+      if (data?.sprite) {
+        const [x, y] = data.sprite
+        slotIcon.style['background-position-x'] = `-${x}px`
+        slotIcon.style['background-position-y'] = `-${y}px`
+      }
       slotStack.textContent = item?.count > 1 ? item.count : ''
     }
   }
 
   async reloadHotbarSelected (slot) {
-    const item = this.bot.inventory.slots[this.bot.inventory.hotbarStart + slot]
+    const item = bot.inventory.slots[bot.inventory.hotbarStart + slot]
     const newLeftPos = (-1 + 20 * slot) + 'px'
     this.shadowRoot.getElementById('hotbar-selected').style.left = newLeftPos
-    this.bot.setQuickBarSlot(slot)
+    bot.setQuickBarSlot(slot)
     this.activeItemName = item?.displayName ?? ''
     const name = this.shadowRoot.getElementById('hotbar-item-name')
     name.classList.remove('hotbar-item-name-fader')
@@ -202,7 +203,7 @@ class Hotbar extends LitElement {
           </div>
         `)}
             ${miscUiState.currentTouch ? html`<div class="hotbar-item hotbar-more" @pointerdown=${() => {
-      showModal({ reactType: 'inventory' })
+      openPlayerInventory()
     }}>` : undefined}
           </div>
         </div>

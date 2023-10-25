@@ -188,23 +188,19 @@ function hideCurrentScreens () {
   insertActiveModalStack('', [])
 }
 
-async function main () {
+const connectSingleplayer = (serverOverrides = {}) => {
+  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
+}
+function listenGlobalEvents () {
   const menu = document.getElementById('play-screen')
   menu.addEventListener('connect', e => {
     const options = e.detail
     void connect(options)
   })
-  const connectSingleplayer = (serverOverrides = {}) => {
-    void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
-  }
   window.addEventListener('singleplayer', (e) => {
     //@ts-expect-error
     connectSingleplayer(e.detail)
   })
-  const qs = new URLSearchParams(window.location.search)
-  if (qs.get('singleplayer') === '1') {
-      connectSingleplayer()
-  }
 }
 
 let listeners = []
@@ -491,6 +487,7 @@ async function connect (connectOptions: {
 
   // don't use spawn event, player can be dead
   bot.once('health', () => {
+    miscUiState.gameLoaded = true
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
     const mcData = require('minecraft-data')(bot.version)
 
@@ -707,8 +704,14 @@ async function connect (connectOptions: {
   })
 }
 
-watchValue(miscUiState, m => {
-  if (m.appLoaded) void main()
+listenGlobalEvents()
+watchValue(miscUiState, () => {
+  if (miscUiState.appLoaded) { // fs ready
+    const qs = new URLSearchParams(window.location.search)
+    if (qs.get('singleplayer') === '1') {
+      connectSingleplayer()
+    }
+  }
 })
 
 downloadAndOpenFile().then((downloadAction) => {

@@ -137,7 +137,6 @@ class Hud extends LitElement {
     const xpLabel = this.shadowRoot.querySelector('#xp-label')
 
     this.bot = bot
-    hotbar.bot = bot
     debugMenu.bot = bot
 
     hotbar.init()

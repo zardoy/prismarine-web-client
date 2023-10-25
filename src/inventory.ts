@@ -1,67 +1,105 @@
 import { subscribe } from 'valtio'
 import { showInventory } from 'minecraft-inventory-gui/web/ext.mjs'
 import InventoryGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/inventory.png'
+import ChestLikeGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/shulker_box.png'
+import LargeChestLikeGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/generic_54.png'
+import FurnaceGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/furnace.png'
+import CraftingTableGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/crafting_table.png'
+import DispenserGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/dispenser.png'
+
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
 import { subscribeKey } from 'valtio/utils'
 import MinecraftData from 'minecraft-data'
 import { getVersion } from 'prismarine-viewer/viewer/lib/version'
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
+import itemsPng from 'prismarine-viewer/public/textures/items.png'
+import itemsLegacyPng from 'prismarine-viewer/public/textures/items-legacy.png'
+import _itemsAtlases from 'prismarine-viewer/public/textures/items.json'
+import type { ItemsAtlasesOutputJson } from 'prismarine-viewer/viewer/prepare/genItemsAtlas'
+import PrismarineBlockLoader from 'prismarine-block'
+import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
-import { activeModalStack, hideCurrentModal, miscUiState } from './globalState'
+import { options } from './optionsStorage'
 
-const loadedImages = new Map<string, HTMLImageElement>()
+const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
+const loadedImagesCache = new Map<string, HTMLImageElement>()
+const cleanLoadedImagesCache = () => {
+  loadedImagesCache.delete('blocks')
+}
 export type BlockStates = Record<string, null | {
-  variants: Record<string, Array<{
+  variants: Record<string, {
     model: {
-      textures: {
-        up: {
-          u
-          v
-          su
-          sv
+      elements: [{
+        faces: {
+          [face: string]: {
+            texture: {
+              u
+              v
+              su
+              sv
+            }
+          }
         }
-      }
+      }]
     }
-  }>>
+  }>
 }>
 
-let blockStates: BlockStates
-let lastInventory
-let mcData
-let version
+let lastWindow
+let version: string
+let PrismarineBlock: typeof PrismarineBlockLoader.Block
 
-subscribeKey(miscUiState, 'gameLoaded', async () => {
-  if (!miscUiState.gameLoaded) {
-    // loadedBlocksAtlas = null
-    return
-  }
-
-  // on game load
+export const onGameLoad = (onLoad) => {
   version = getVersion(bot.version)
-  blockStates = await fetch(`blocksStates/${version}.json`).then(async res => res.json())
-  getImage({ path: 'blocks' } as any)
-  getImage({ path: 'invsprite' } as any)
-  mcData = MinecraftData(version)
-})
+  getImage({ path: 'invsprite' })
+  getImage({ path: 'items' }, onLoad)
+  getImage({ path: 'items-legacy' })
+  PrismarineBlock = PrismarineBlockLoader(version)
 
-const findBlockStateTexturesAtlas = (name) => {
+  bot.on('windowOpen', (win) => {
+    if (implementedContainersGuiMap[win.type]) {
+      // todo also render title!
+      openWindow(implementedContainersGuiMap[win.type])
+    } else if (options.unimplementedContainers) {
+      openWindow('ChestWin')
+    } else {
+      // todo format
+      bot._client.emit('chat', {
+        message: JSON.stringify({
+          text: `[client error] cannot open unimplemented window ${win.id} (${win.type}). Items: ${win.slots.map(slot => slot?.name).join(', ')}`
+        })
+      })
+      bot.currentWindow['close']()
+    }
+  })
+}
+
+const findTextureInBlockStates = (name) => {
+  const blockStates: BlockStates = viewer.world.customBlockStatesData || viewer.world.downloadedBlockStatesData
   const vars = blockStates[name]?.variants
   if (!vars) return
-  const firstVar = Object.values(vars)[0]
-  if (!firstVar || !Array.isArray(firstVar)) return
-  return firstVar[0]?.model.textures
+  let firstVar = Object.values(vars)[0]
+  if (Array.isArray(firstVar)) firstVar = firstVar[0]
+  if (!firstVar) return
+  const elements = firstVar.model?.elements
+  if (elements?.length !== 1) return
+  return elements[0].faces
+}
+
+const svSuToCoordinates = (path: string, u, v, su, sv = su) => {
+  const img = getImage({ path })
+  if (!img.width) throw new Error(`Image ${path} is not loaded`)
+  return [u * img.width, v * img.height, su * img.width, sv * img.height]
 }
 
 const getBlockData = (name) => {
-  const blocksImg = loadedImages.get('blocks')
-  if (!blocksImg?.width) return
-
-  const data = findBlockStateTexturesAtlas(name)
+  const data = findTextureInBlockStates(name)
   if (!data) return
 
   const getSpriteBlockSide = (side) => {
-    const d = data[side]
+    const d = data[side]?.texture
     if (!d) return
-    const spriteSide = [d.u * blocksImg.width, d.v * blocksImg.height, d.su * blocksImg.width, d.sv * blocksImg.height]
+    const spriteSide = svSuToCoordinates('blocks', d.u, d.v, d.su, d.sv)
     const blockSideData = {
       slice: spriteSide,
       path: 'blocks'
@@ -77,8 +115,8 @@ const getBlockData = (name) => {
   }
 }
 
-const getItemSlice = (name) => {
-  const invspriteImg = loadedImages.get('invsprite')
+const getInvspriteSlice = (name) => {
+  const invspriteImg = loadedImagesCache.get('invsprite')
   if (!invspriteImg?.width) return
 
   const { x, y } = invspriteJson[name] ?? /* unknown item */ { x: 0, y: 0 }
@@ -86,68 +124,203 @@ const getItemSlice = (name) => {
   return sprite
 }
 
-const getImageSrc = (path) => {
+const getImageSrc = (path): string | HTMLImageElement => {
   switch (path) {
     case 'gui/container/inventory': return InventoryGui
-    case 'blocks': return globalThis.texturePackDataUrl || `textures/${version}.png`
+    case 'blocks': return viewer.world.customTexturesDataUrl || viewer.world.downloadedTextureImage
     case 'invsprite': return `invsprite.png`
+    case 'items': return itemsPng
+    case 'items-legacy': return itemsLegacyPng
+    case 'gui/container/dispenser': return DispenserGui
+    case 'gui/container/furnace': return FurnaceGui
+    case 'gui/container/crafting_table': return CraftingTableGui
+    case 'gui/container/shulker_box': return ChestLikeGui
+    case 'gui/container/generic_54': return LargeChestLikeGui
   }
   return Dirt
 }
 
-const getImage = ({ path, texture, blockData }) => {
+const getImage = ({ path = undefined, texture = undefined, blockData = undefined }, onLoad = () => {}) => {
   const loadPath = blockData ? 'blocks' : path ?? texture
-  if (!loadedImages.has(loadPath)) {
-    const image = new Image()
-    // image.onload(() => {})
-    image.src = getImageSrc(loadPath)
-    loadedImages.set(loadPath, image)
+  if (!loadedImagesCache.has(loadPath)) {
+    const imageSrc = getImageSrc(loadPath)
+    let image: HTMLImageElement
+    if (imageSrc instanceof Image) {
+      image = imageSrc
+    } else {
+      image = new Image()
+      image.src = imageSrc
+    }
+    image.onload = onLoad
+    loadedImagesCache.set(loadPath, image)
   }
-  return loadedImages.get(loadPath)
+  return loadedImagesCache.get(loadPath)
 }
 
-const upInventory = () => {
+const getItemVerToRender = (version: string, item: string, itemsMapSortedEntries: any[]) => {
+  const verNumber = versionToNumber(version)
+  for (const [itemsVer, items] of itemsMapSortedEntries) {
+    // 1.18 < 1.18.1
+    // 1.13 < 1.13.2
+    if (items.includes(item) && verNumber <= versionToNumber(itemsVer)) {
+      return itemsVer as string
+    }
+  }
+}
+
+const isFullBlock = (block: string) => {
+  const blockData = loadedData.blocksByName[block]
+  if (!blockData) return false
+  const pBlock = new PrismarineBlock(blockData.id, 0, 0)
+  if (pBlock.shapes?.length !== 1) return false
+  const shape = pBlock.shapes[0]!
+  return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
+}
+
+const renderSlot = (slot: import('prismarine-item').Item, skipBlock = false): { texture: string, blockData?, scale?: number, slice?: number[] } => {
+  const itemName = slot.name
+  const isItem = loadedData.itemsByName[itemName]
+  const fullBlock = isFullBlock(itemName)
+
+  if (isItem) {
+    const legacyItemVersion = getItemVerToRender(version, itemName, itemsAtlases.legacyMap)
+    const vuToSlice = ({ u, v }, size) => [...svSuToCoordinates('items', u, v, size).slice(0, 2), 16, 16] // item size is fixed
+    if (legacyItemVersion) {
+      const textureData = itemsAtlases.legacy.textures[`${legacyItemVersion}-${itemName}`]!
+      return {
+        texture: 'items-legacy',
+        slice: vuToSlice(textureData, itemsAtlases.legacy.size)
+      }
+    }
+    const textureData = itemsAtlases.latest.textures[itemName]
+    if (textureData) {
+      return {
+        texture: 'items',
+        slice: vuToSlice(textureData, itemsAtlases.latest.size)
+      }
+    }
+  }
+  if (fullBlock && !skipBlock) {
+    const blockData = getBlockData(itemName)
+    if (blockData) {
+      return {
+        texture: 'blocks',
+        blockData
+      }
+    }
+  }
+  const invspriteSlice = getInvspriteSlice(itemName)
+  if (invspriteSlice) {
+    return {
+      texture: 'invsprite',
+      scale: 0.5,
+      slice: invspriteSlice
+    }
+  }
+}
+
+export const renderSlotExternal = (slot) => {
+  const data = renderSlot(slot, true)
+  if (!data) return
+  return {
+    imageDataUrl: data.texture === 'invsprite' ? undefined : getImage({ path: data.texture }).src,
+    sprite: data.slice && data.texture !== 'invsprite' ? data.slice.map(x => x * 2) : data.slice
+  }
+}
+
+const upInventory = (inventory: boolean) => {
   // inv.pwindow.inv.slots[2].displayName = 'test'
   // inv.pwindow.inv.slots[2].blockData = getBlockData('dirt')
-  const customSlots = bot.inventory.slots.map(slot => {
+  const updateSlots = (inventory ? bot.inventory : bot.currentWindow).slots.map(slot => {
+    // todo stateid
     if (!slot) return
-    // const itemName = slot.name
-    // const isItem = mcData.itemsByName[itemName]
 
-    // try get block data first, but ideally we should also have atlas from atlas/ folder
-    const blockData = getBlockData(slot.name)
-    if (blockData) {
-      slot['texture'] = 'blocks'
-      slot['blockData'] = blockData
-    } else {
-      slot['texture'] = 'invsprite'
-      slot['scale'] = 0.5
-      slot['slice'] = getItemSlice(slot.name)
+    try {
+      const slotCustomProps = renderSlot(slot)
+      Object.assign(slot, slotCustomProps)
+    } catch (err) {
+      console.error(err)
     }
-
     return slot
   })
-  lastInventory.pwindow.setSlots(customSlots)
+  const customSlots = updateSlots
+  lastWindow.pwindow.setSlots(customSlots)
 }
 
-subscribe(activeModalStack, () => {
-  const inventoryOpened = activeModalStack.at(-1)?.reactType === 'inventory'
-  if (inventoryOpened) {
-    const inv = showInventory(undefined, getImage, {}, bot)
-    inv.canvas.style.zIndex = '10'
-    inv.canvas.style.position = 'fixed'
-    inv.canvas.style.inset = '0'
-    // todo scaling
-    inv.canvasManager.setScale(window.innerHeight < 480 ? 2 : window.innerHeight < 700 ? 3 : 4)
-    inv.canvasManager.onClose = () => {
-      hideCurrentModal()
-      inv.canvasManager.destroy()
+export const onModalClose = (callback: () => any) => {
+  const { length } = activeModalStack
+  const unsubscribe = subscribe(activeModalStack, () => {
+    if (activeModalStack.length < length) {
+      callback()
+      unsubscribe()
     }
+  })
+}
 
-    lastInventory = inv
-    upInventory()
-  } else if (lastInventory) {
-    lastInventory.destroy()
-    lastInventory = null
+const implementedContainersGuiMap = {
+  // todo allow arbitrary size instead!
+  'minecraft:generic_9x3': 'ChestWin',
+  'minecraft:generic_9x6': 'LargeChestWin',
+  'minecraft:generic_3x3': 'DropDispenseWin',
+  'minecraft:furnace': 'FurnaceWin',
+  'minecraft:smoker': 'FurnaceWin',
+  'minecraft:crafting': 'CraftingWin'
+}
+
+const openWindow = (type: string | undefined) => {
+  // if (activeModalStack.some(x => x.reactType?.includes?.('player_win:'))) {
+  if (activeModalStack.length) { // game is not in foreground, don't close current modal
+    if (type) bot.currentWindow['close']()
+    return
   }
-})
+  showModal({
+    reactType: `player_win:${type}`,
+  })
+  onModalClose(() => {
+    if (type !== undefined) bot.currentWindow['close']()
+    lastWindow.destroy()
+    lastWindow = null
+    destroyFn()
+  })
+  cleanLoadedImagesCache()
+  const inv = showInventory(type, getImage, {}, bot)
+  inv.canvas.style.zIndex = '10'
+  inv.canvas.style.position = 'fixed'
+  inv.canvas.style.inset = '0'
+  // todo scaling
+  inv.canvasManager.setScale(window.innerHeight < 480 ? 2 : window.innerHeight < 700 ? 3 : 4)
+
+  inv.canvasManager.onClose = () => {
+    hideCurrentModal()
+    inv.canvasManager.destroy()
+  }
+
+  lastWindow = inv
+  const upWindowItems = () => {
+    upInventory(type === undefined)
+  }
+  upWindowItems()
+
+  if (type === undefined) {
+    // player inventory
+    bot.inventory.on('updateSlot', upWindowItems)
+    destroyFn = () => {
+      bot.inventory.off('updateSlot', upWindowItems)
+    }
+  } else {
+    bot.on('windowClose', () => {
+      // todo hide up to the window itself!
+      hideCurrentModal()
+    })
+    //@ts-expect-error
+    bot.currentWindow.on('updateSlot', () => {
+      upWindowItems()
+    })
+  }
+}
+
+let destroyFn = () => { }
+
+export const openPlayerInventory = () => {
+  openWindow(undefined)
+}

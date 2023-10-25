@@ -6,9 +6,10 @@ import { proxy, subscribe } from 'valtio'
 import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
-import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal } from './globalState'
+import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
+import { openPlayerInventory } from './inventory'
 
 // doesnt seem to work for now
 const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
@@ -167,7 +168,7 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
 // im still not sure, maybe need to refactor to handle in inventory instead
 const alwaysHandledCommand = (command: Command) => {
   if (command === 'general.inventory') {
-    if (activeModalStack.at(-1)?.reactType === 'inventory') {
+    if (activeModalStack.at(-1)?.reactType?.startsWith?.('player_win:')) { // todo?
       hideCurrentModal()
     }
   }
@@ -199,7 +200,7 @@ contro.on('trigger', ({ command }) => {
     switch (command) {
       case 'general.inventory':
         document.exitPointerLock?.()
-        showModal({ reactType: 'inventory' })
+        openPlayerInventory()
         break
       case 'general.drop':
         if (bot.heldItem) bot.tossStack(bot.heldItem)

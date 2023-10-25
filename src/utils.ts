@@ -153,7 +153,7 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
 
 
 export const disconnect = async () => {
-  if (window.localServer) {
+  if (localServer) {
     await saveServer()
     localServer.quit()
   }

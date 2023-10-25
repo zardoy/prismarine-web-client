@@ -271,8 +271,8 @@ export const genTexturePackTextures = async (version: string) => {
 export const watchTexturepackInViewer = (viewer: Viewer) => {
   subscribeKey(resourcePackState, 'currentTexturesDataUrl', () => {
     console.log('applying resourcepack world data')
-    viewer.world.texturesDataUrl = resourcePackState.currentTexturesDataUrl
-    viewer.world.blockStatesData = resourcePackState.currentTexturesBlockStates
+    viewer.world.customTexturesDataUrl = resourcePackState.currentTexturesDataUrl
+    viewer.world.customBlockStatesData = resourcePackState.currentTexturesBlockStates
     if (!viewer?.world.active) return
     viewer.world.updateTexturesData()
   })

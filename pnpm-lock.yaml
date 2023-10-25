@@ -14370,9 +14370,9 @@ packages:
       async: 2.6.4
     dev: false
 
-  github.com/zardoy/minecraft-inventory-gui/c1331c91fb39bd562dc48eeb33321240d4870edd(@types/react@18.2.20)(react@18.2.0):
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c1331c91fb39bd562dc48eeb33321240d4870edd}
-    id: github.com/zardoy/minecraft-inventory-gui/c1331c91fb39bd562dc48eeb33321240d4870edd
+  github.com/zardoy/minecraft-inventory-gui/babb4669ac26b14ccf47505fb40d2590b6882c60(@types/react@18.2.20)(react@18.2.0):
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/babb4669ac26b14ccf47505fb40d2590b6882c60}
+    id: github.com/zardoy/minecraft-inventory-gui/babb4669ac26b14ccf47505fb40d2590b6882c60
     name: minecraft-inventory-gui
     version: 1.0.1
     dependencies:

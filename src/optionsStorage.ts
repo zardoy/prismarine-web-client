@@ -28,6 +28,7 @@ const defaultOptions = {
   highPerformanceGpu: false,
   /** @unstable */
   disableAssets: false,
+  unimplementedContainers: false,
 
   showChunkBorders: false,
   frameLimit: false as number | false,

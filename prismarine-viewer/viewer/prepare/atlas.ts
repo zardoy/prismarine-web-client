@@ -25,7 +25,7 @@ function readTexture (basePath, name) {
   return fs.readFileSync(path.join(basePath, name), 'base64')
 }
 
-type JsonAtlas = {
+export type JsonAtlas = {
   size: number,
   textures: {
     [file: string]: {
@@ -37,7 +37,7 @@ type JsonAtlas = {
   }
 }
 
-export const makeTextureAtlas = (input: string[], getInputData: (name) => {contents: string, tileWidthMult?: number}, tilesCount = input.length): {
+export const makeTextureAtlas = (input: string[], getInputData: (name) => {contents: string, tileWidthMult?: number}, tilesCount = input.length, suSvOptimize: 'remove' | null = null): {
   image: Buffer,
   canvas: Canvas,
   json: JsonAtlas
@@ -59,16 +59,32 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => {conte
     const y = Math.floor(pos / texSize) * tileSize
 
     const img = new Image()
-    const inputData = getInputData(input[i]);
+    const keyValue = input[i];
+    const inputData = getInputData(keyValue);
     img.src = inputData.contents
     const renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
     g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
 
-    const cleanName = input[i].split('.')[0]
-    texturesIndex[cleanName] = { u: x / imgSize, v: y / imgSize, su: suSv, sv: suSv }
+    const cleanName = keyValue.split('.').slice(0, -1).join('.') || keyValue
+    texturesIndex[cleanName] = {
+      u: x / imgSize,
+      v: y / imgSize,
+      ...suSvOptimize === 'remove' ? {} : {
+        su: suSv,
+        sv: suSv
+      }
+    }
   }
 
   return { image: canvas.toBuffer(), canvas, json: { size: suSv, textures: texturesIndex } }
+}
+
+export const writeCanvasStream = (canvas, path, onEnd) => {
+  const out = fs.createWriteStream(path)
+  const stream = (canvas as any).pngStream()
+  stream.on('data', (chunk) => out.write(chunk))
+  if (onEnd) stream.on('end', onEnd)
+  return stream
 }
 
 export function makeBlockTextureAtlas (mcAssets: McAssets) {
