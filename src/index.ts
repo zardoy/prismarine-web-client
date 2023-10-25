@@ -4,7 +4,7 @@ import './styles.css'
 import './globals'
 import 'iconify-icon'
 import './chat'
-import './inventory'
+import { onGameLoad } from './playerWindows'
 
 import './menus/components/button'
 import './menus/components/edit_box'
@@ -689,14 +689,15 @@ async function connect (connectOptions: {
 
     console.log('Done!')
 
-    hud.init(renderer, bot, server.host)
-    hud.style.display = 'block'
+    onGameLoad(() => {
+      hud.init(renderer, bot, server.host)
+      hud.style.display = 'block'
+    })
     blockInteraction.init()
 
     errorAbortController.abort()
     if (appStatusState.isError) return
     setLoadingScreenStatus(undefined)
-    miscUiState.gameLoaded = true
     void viewer.waitForChunksToRender().then(() => {
       console.log('All done and ready!')
       document.dispatchEvent(new Event('cypress-world-ready'))
@@ -705,8 +706,8 @@ async function connect (connectOptions: {
 }
 
 listenGlobalEvents()
-watchValue(miscUiState, () => {
-  if (miscUiState.appLoaded) { // fs ready
+watchValue(miscUiState, s => {
+  if (s.appLoaded) { // fs ready
     const qs = new URLSearchParams(window.location.search)
     if (qs.get('singleplayer') === '1') {
       connectSingleplayer()

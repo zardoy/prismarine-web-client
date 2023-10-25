@@ -9,7 +9,7 @@ import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
-import { openPlayerInventory } from './inventory'
+import { openPlayerInventory } from './playerWindows'
 
 // doesnt seem to work for now
 const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))

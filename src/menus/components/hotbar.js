@@ -4,7 +4,7 @@ const { subscribeKey } = require('valtio/utils')
 const invsprite = require('../../invsprite.json')
 const { isGameActive, miscUiState, showModal } = require('../../globalState')
 
-const { openPlayerInventory, renderSlotExternal } = require('../../inventory')
+const { openPlayerInventory, renderSlotExternal } = require('../../playerWindows')
 const { isProbablyIphone } = require('./common')
 
 class Hotbar extends LitElement {
