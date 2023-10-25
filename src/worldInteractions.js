@@ -162,6 +162,13 @@ class WorldInteraction {
       this.lastBlockPlaced = 0
     }
 
+    // Stop break
+    if ((!this.buttons[0] && this.lastButtons[0]) || cursorChanged) {
+      try {
+        bot.stopDigging() // this shouldnt throw anything...
+      } catch (e) { } // to be reworked in mineflayer, then remove the try here
+    }
+
     const onGround = bot.entity.onGround || bot.game.gameMode === 'creative'
     this.prevOnGround ??= onGround // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down
     // Start break
@@ -180,13 +187,6 @@ class WorldInteraction {
       this.lastDigged = Date.now()
     }
     this.prevOnGround = onGround
-
-    // Stop break
-    if (!this.buttons[0] && this.lastButtons[0]) {
-      try {
-        bot.stopDigging() // this shouldnt throw anything...
-      } catch (e) { } // to be reworked in mineflayer, then remove the try here
-    }
 
     // Show cursor
     if (cursorBlock) {
