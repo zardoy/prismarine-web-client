@@ -27,9 +27,18 @@ class BlockInteraction {
   static instance = null
   /** @type {null | {blockPos,mesh}} */
   interactionLines = null
+  prevBreakState
+  currentDigTime
+  prevOnGround
 
   init () {
     bot.on('physicsTick', () => { if (this.lastBlockPlaced < 4) this.lastBlockPlaced++ })
+    bot.on('diggingCompleted', () => {
+      this.breakStartTime = undefined
+    })
+    bot.on('diggingAborted', () => {
+      this.breakStartTime = undefined
+    })
 
     // Init state
     this.buttons = [false, false, false]
@@ -153,9 +162,16 @@ class BlockInteraction {
       this.lastBlockPlaced = 0
     }
 
+    const onGround = bot.entity.onGround || bot.game.gameMode === 'creative'
+    this.prevOnGround ??= onGround // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down
     // Start break
     // todo last check doesnt work as cursorChanged happens once (after that check is false)
-    if (cursorBlockDiggable && this.buttons[0] && (!this.lastButtons[0] || (cursorChanged && Date.now() - (this.lastDigged ?? 0) > 100))) {
+    if (
+      cursorBlockDiggable && this.buttons[0]
+      && (!this.lastButtons[0] || (cursorChanged && Date.now() - (this.lastDigged ?? 0) > 100) || onGround !== this.prevOnGround)
+      && onGround
+    ) {
+      this.currentDigTime = bot.digTime(cursorBlock)
       this.breakStartTime = performance.now()
       bot.dig(cursorBlock, 'ignore').catch((err) => {
         if (err.message === 'Digging aborted') return
@@ -163,6 +179,7 @@ class BlockInteraction {
       })
       this.lastDigged = Date.now()
     }
+    this.prevOnGround = onGround
 
     // Stop break
     if (!this.buttons[0] && this.lastButtons[0]) {
@@ -199,11 +216,19 @@ class BlockInteraction {
     }
 
     // Show break animation
-    if (cursorBlockDiggable && this.buttons[0]) {
+    if (this.breakStartTime && bot.game.gameMode !== 'creative') {
       const elapsed = performance.now() - this.breakStartTime
       const time = bot.digTime(cursorBlock)
+      if (time !== this.currentDigTime) {
+        console.warn('dig time changed! cancelling!', time, 'from', this.currentDigTime) // todo
+        try { bot.stopDigging() } catch { }
+      }
       const state = Math.floor((elapsed / time) * 10)
-      this.blockBreakMesh.material.map = this.breakTextures[state]
+      this.blockBreakMesh.material.map = this.breakTextures[state] ?? this.breakTextures.at(-1)
+      if (state !== this.prevBreakState) {
+        this.blockBreakMesh.material.needsUpdate = true
+      }
+      this.prevBreakState = state
       this.blockBreakMesh.visible = true
     } else {
       this.blockBreakMesh.visible = false
