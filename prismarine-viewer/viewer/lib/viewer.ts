@@ -20,8 +20,9 @@ export class Viewer {
   playerHeight: number
   isSneaking: boolean
   version: string
+  audioListener: THREE.AudioListener
 
-  constructor (public renderer: THREE.WebGLRenderer, numWorkers = undefined) {
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers = undefined) {
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('lightblue')
 
@@ -87,6 +88,32 @@ export class Viewer {
       new tweenJs.Tween(this.camera.position).to({ x: pos.x, y, z: pos.z }, 50).start()
     }
     this.camera.rotation.set(pitch, yaw, roll, 'ZYX')
+  }
+
+  playSound (position, name = 'cave1.ogg', volume = 0.5) {
+    if (!this.audioListener) {
+      this.audioListener = new THREE.AudioListener()
+      this.camera.add(this.audioListener)
+    }
+
+    const sound = new THREE.PositionalAudio(this.audioListener)
+
+    const audioLoader = new THREE.AudioLoader()
+    let start = Date.now()
+    audioLoader.load(name, (buffer) => {
+      if (Date.now() - start > 500) return
+      // play
+      sound.setBuffer(buffer)
+      sound.setRefDistance(20)
+      sound.setVolume(volume)
+      this.scene.add(sound)
+      sound.position.copy(position)
+      sound.play()
+      sound.onEnded = () => {
+        this.scene.remove(sound)
+        sound.disconnect()
+      }
+    })
   }
 
   // todo type

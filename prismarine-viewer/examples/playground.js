@@ -39,7 +39,8 @@ const params = {
     this.entity = ''
   },
   entityRotate: false,
-  camera: ''
+  camera: '',
+  playSound () {}
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -86,6 +87,7 @@ async function main () {
   gui.add(params, 'removeEntity')
   gui.add(params, 'entityRotate')
   gui.add(params, 'skip')
+  gui.add(params, 'playSound')
   gui.open(false)
   let folder = gui.addFolder('metadata')
 
@@ -305,5 +307,14 @@ async function main () {
     //   id: 'id', name: 'player', pos: center.offset(1, -2, 0), width: 1, height: 1, username: 'username'
     // })
   }, 1500)
+
+  params.playSound = () => {
+    viewer.playSound(center)
+  }
+  addEventListener('keydown', (e) => {
+    if (e.code === 'KeyE') {
+      params.playSound()
+    }
+  }, {capture: true})
 }
 main()
