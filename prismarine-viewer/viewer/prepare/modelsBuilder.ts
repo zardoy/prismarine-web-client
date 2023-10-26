@@ -162,7 +162,7 @@ function prepareModel (model: BlockModel, texturesJson) {
   const getFinalTexture = (originalBlockName) => {
     // texture name e.g. blocks/anvil_base
     const cleanBlockName = cleanupBlockName(originalBlockName);
-    return { ...texturesJson[cleanBlockName], __debugName: cleanBlockName }
+    return { ...texturesJson[cleanBlockName], /* __debugName: cleanBlockName */ }
   }
 
   const finalTextures = []
