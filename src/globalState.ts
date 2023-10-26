@@ -5,6 +5,7 @@ import { pointerLock } from './utils'
 import { options } from './optionsStorage'
 import type { OptionsGroupType } from './optionsGuiScheme'
 import { saveServer } from './flyingSquidUtils'
+import { fsState } from './loadSave'
 
 // todo: refactor structure with support of hideNext=false
 
@@ -141,6 +142,8 @@ export const resetStateAfterDisconnect = () => {
   miscUiState.wanOpened = false
   miscUiState.currentDisplayQr = null
   miscUiState.currentTouch = null
+
+  fsState.saveLoaded = false
 }
 
 export const isGameActive = (foregroundCheck: boolean) => {

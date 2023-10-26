@@ -63,7 +63,6 @@ export default ({ connectToServerAction, singleplayerAction, optionsAction, gith
           </Button>
 
           <Button
-            style={{ width: '20px' }}
             data-test-id='select-file-folder'
             icon='pixelarticons:folder'
             onClick={openFileAction}

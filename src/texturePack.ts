@@ -4,9 +4,10 @@ import JSZip from 'jszip'
 import type { Viewer } from 'prismarine-viewer/viewer/lib/viewer'
 import { subscribeKey } from 'valtio/utils'
 import { proxy, ref } from 'valtio'
+import { getVersion } from 'prismarine-viewer/viewer/lib/version'
 import blocksFileNames from '../generated/blocks.json'
 import type { BlockStates } from './playerWindows'
-import { removeFileRecursiveAsync } from './browserfs'
+import { copyFilesAsync, copyFilesAsyncWithProgress, mkdirRecursive, removeFileRecursiveAsync } from './browserfs'
 import { setLoadingScreenStatus } from './utils'
 import { showNotification } from './globalState'
 
@@ -25,18 +26,6 @@ function nextPowerOfTwo (n) {
   n |= n >> 8
   n |= n >> 16
   return n + 1
-}
-
-const mkdirRecursive = async (path) => {
-  const parts = path.split('/')
-  let current = ''
-  for (const part of parts) {
-    current += part + '/'
-    try {
-      await fs.promises.mkdir(current)
-    } catch (err) {
-    }
-  }
 }
 
 const texturePackBasePath = '/data/resourcePacks/default'
@@ -65,6 +54,12 @@ export const updateTexturePackInstalledState = async () => {
   }
 }
 
+export const installTexturePackFromHandle = async () => {
+  await mkdirRecursive(texturePackBasePath)
+  await copyFilesAsyncWithProgress('/world', texturePackBasePath)
+  await completeTexturePackInstall()
+}
+
 export const installTexturePack = async (file: File | ArrayBuffer, name = file['name']) => {
   try {
     await uninstallTexturePack()
@@ -91,6 +86,10 @@ export const installTexturePack = async (file: File | ArrayBuffer, name = file['
     done++
     upStatus()
   }))
+  await completeTexturePackInstall(name)
+}
+
+export const completeTexturePackInstall = async (name?: string) => {
   await fs.promises.writeFile(join(texturePackBasePath, 'name.txt'), name ?? '??', 'utf8')
 
   if (viewer?.world.active) {
@@ -120,7 +119,7 @@ type TextureResolvedData = {
 const arrEqual = (a: any[], b: any[]) => a.length === b.length && a.every((x) => b.includes(x))
 
 const applyTexturePackData = async (version: string, { blockSize }: TextureResolvedData, blocksUrlContent: string) => {
-  const result = await fetch(`blocksStates/${version}.json`)
+  const result = await fetch(`blocksStates/${getVersion(version)}.json`)
   const blockStates: BlockStates = await result.json()
   const factor = blockSize / 16
 
@@ -214,7 +213,7 @@ export const genTexturePackTextures = async (version: string) => {
   const canvas = document.createElement('canvas')
   canvas.width = imgSize
   canvas.height = imgSize
-  const src = `textures/${version}.png`
+  const src = `textures/${getVersion(version)}.png`
   const ctx = canvas.getContext('2d')
   ctx.imageSmoothingEnabled = false
   const img = new Image()

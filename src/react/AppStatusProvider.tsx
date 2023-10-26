@@ -55,14 +55,14 @@ export default () => {
           hideModal(undefined, undefined, { force: true })
         }
       } : undefined}
-      actionsSlot={
-        <Button hidden={!(miscUiState.singleplayer && fsState.inMemorySave)} label="Reset world" onClick={() => {
-          if (window.confirm('Are you sure you want to delete all local world content?')) {
-            resetLocalStorageWorld()
-            window.location.reload()
-          }
-        }} />
-      }
+      // actionsSlot={
+      //   <Button hidden={!(miscUiState.singleplayer && fsState.inMemorySave)} label="Reset world" onClick={() => {
+      //     if (window.confirm('Are you sure you want to delete all local world content?')) {
+      //       resetLocalStorageWorld()
+      //       window.location.reload()
+      //     }
+      //   }} />
+      // }
     />
   </DiveTransition>
 }

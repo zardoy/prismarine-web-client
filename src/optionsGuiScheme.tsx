@@ -92,10 +92,10 @@ export const guiOptionsScheme: {
               setLoadingScreenStatus(undefined)
             }
           } else {
-            if (!fsState.inMemorySave && isGameActive(false)) {
-              alert('Unable to install resource pack in loaded save for now')
-              return
-            }
+            // if (!fsState.inMemorySave && isGameActive(false)) {
+            //   alert('Unable to install resource pack in loaded save for now')
+            //   return
+            // }
             openFilePicker('resourcepack')
           }
         }} />

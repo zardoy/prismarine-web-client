@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { guessProblem } from '../guessProblem'
-import styles from './loadingErrorScreen.module.css'
+import styles from './appStatus.module.css'
 import Button from './Button'
 import Screen from './Screen'
 

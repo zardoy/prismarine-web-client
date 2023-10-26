@@ -16,12 +16,13 @@ export function nameToMcOfflineUUID (name) {
   return (new UUID(javaUUID('OfflinePlayer:' + name))).toString()
 }
 
+export async function savePlayers () {
+  await Promise.all(localServer.players.map(async player => player.save()))
+}
+
 // todo flying squid should expose save function instead
 export const saveServer = async () => {
   if (!localServer) return
   const worlds = [localServer.overworld] as Array<import('prismarine-world').world.World>
-  for (const player of localServer.players) {
-    player.save()
-  }
-  await Promise.all(worlds.map(async world => world.saveNow()))
+  await Promise.all([savePlayers(), ...worlds.map(async world => world.saveNow())])
 }

@@ -22,6 +22,10 @@ export default forwardRef<HTMLButtonElement, Props>(({ label, icon, children, in
     args.style ??= {}
     args.style.width = 150
   }
+  if (icon) {
+    args.style ??= {}
+    args.style.width = 20
+  }
 
   return <button ref={ref} className={buttonCss.button} {...args} onClick={onClick}>
     {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}

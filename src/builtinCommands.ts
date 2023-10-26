@@ -1,10 +1,11 @@
 import fs from 'fs'
 import { join } from 'path'
 import JSZip from 'jszip'
-import { fsState } from './loadSave'
+import { fsState, readLevelDat } from './loadSave'
 import { closeWan, openToWanAndCopyJoinLink } from './localServerMultiplayer'
-import { resetLocalStorageWorld } from './browserfs'
+import { copyFilesAsync, resetLocalStorageWorld, uniqueFileNameFromWorldName } from './browserfs'
 import { saveServer } from './flyingSquidUtils'
+import { setLoadingScreenStatus } from './utils'
 
 const notImplemented = () => {
   return 'Not implemented yet'
@@ -29,30 +30,51 @@ async function addFolderToZip (folderPath, zip, relativePath) {
   }
 }
 
+export const exportWorld = async (path: string, type: 'zip' | 'folder', zipName = 'world-prismarine-exported') => {
+  try {
+    if (type === 'zip') {
+      setLoadingScreenStatus('Generating zip, this may take a few minutes')
+      const zip = new JSZip()
+      await addFolderToZip(path, zip, '')
 
-// todo include in help
-const exportWorld = async () => {
-  // todo issue into chat warning if fs is writable!
-  const zip = new JSZip()
-  let { worldFolder } = localServer.options
-  if (!worldFolder.startsWith('/')) worldFolder = `/${worldFolder}`
-  await addFolderToZip(worldFolder, zip, '')
+      // Generate the ZIP archive content
+      const zipContent = await zip.generateAsync({ type: 'blob' })
 
-  // Generate the ZIP archive content
-  const zipContent = await zip.generateAsync({ type: 'blob' })
+      // Create a download link and trigger the download
+      const downloadLink = document.createElement('a')
+      downloadLink.href = URL.createObjectURL(zipContent)
+      // todo use loaded zip/folder name
+      downloadLink.download = `${zipName}.zip`
+      downloadLink.click()
 
-  // Create a download link and trigger the download
-  const downloadLink = document.createElement('a')
-  downloadLink.href = URL.createObjectURL(zipContent)
-  // todo use loaded zip/folder name
-  downloadLink.download = 'world-prismarine-exported.zip'
-  downloadLink.click()
-
-  // Clean up the URL object after download
-  URL.revokeObjectURL(downloadLink.href)
+      // Clean up the URL object after download
+      URL.revokeObjectURL(downloadLink.href)
+    } else {
+      setLoadingScreenStatus('Preparing export folder')
+      let dest = '/'
+      if ((await fs.promises.readdir('/export')).length) {
+        const { levelDat } = await readLevelDat(path)
+        dest = await uniqueFileNameFromWorldName(levelDat.LevelName, path)
+      }
+      setLoadingScreenStatus(`Copying files to ${dest} of selected folder`)
+      await copyFilesAsync(path, '/export' + dest)
+    }
+  } finally {
+    setLoadingScreenStatus(undefined)
+  }
 }
 
-window.exportWorld = exportWorld
+// todo include in help
+const exportLoadedWorld = async () => {
+  if (!fsState.isReadonly) {
+    await saveServer()
+  }
+  let { worldFolder } = localServer.options
+  if (!worldFolder.startsWith('/')) worldFolder = `/${worldFolder}`
+  await exportWorld(worldFolder, 'zip')
+}
+
+window.exportWorld = exportLoadedWorld
 
 const writeText = (text) => {
   bot._client.emit('chat', {
@@ -63,7 +85,7 @@ const writeText = (text) => {
 const commands = [
   {
     command: ['/download', '/export'],
-    invoke: exportWorld
+    invoke: exportLoadedWorld
   },
   {
     command: ['/publish', '/share'],

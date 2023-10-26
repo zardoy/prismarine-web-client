@@ -1,25 +1,24 @@
-//@ts-check
 import { join } from 'path'
 import { promisify } from 'util'
 import fs from 'fs'
+import sanitizeFilename from 'sanitize-filename'
 import { oneOf } from '@zardoy/utils'
-import JSZip from 'jszip'
 import * as browserfs from 'browserfs'
 import { options, resetOptions } from './optionsStorage'
 
 import { fsState, loadSave } from './loadSave'
-import { installTexturePack, updateTexturePackInstalledState } from './texturePack'
+import { installTexturePackFromHandle, updateTexturePackInstalledState } from './texturePack'
 import { miscUiState } from './globalState'
+import { setLoadingScreenStatus } from './utils'
 
 browserfs.install(window)
-// todo migrate to StorageManager API for localsave as localstorage has only 5mb limit, when localstorage is fallback test limit warning on 4mb
-const deafultMountablePoints = {
-  '/world': { fs: 'LocalStorage' },
+const defaultMountablePoints = {
+  '/world': { fs: 'LocalStorage' }, // will be removed in future
   '/data': { fs: 'IndexedDB' },
 }
 browserfs.configure({
   fs: 'MountableFileSystem',
-  options: deafultMountablePoints,
+  options: defaultMountablePoints,
 }, async (e) => {
   // todo disable singleplayer button
   if (e) throw e
@@ -71,7 +70,7 @@ fs.promises.open = async (...args) => {
         fs[x](fd, ...args, (err, bytesRead, buffer) => {
           if (err) throw err
           // todo if readonly probably there is no need to open at all (return some mocked version - check reload)?
-          if (x === 'write' && !fsState.isReadonly && fsState.syncFs) {
+          if (x === 'write' && !fsState.isReadonly) {
             // flush data, though alternatively we can rely on close in unload
             fs.fsync(fd, () => { })
           }
@@ -112,6 +111,69 @@ const removeFileRecursiveSync = (path) => {
 }
 
 window.removeFileRecursiveSync = removeFileRecursiveSync
+
+export const mkdirRecursive = async (path: string) => {
+  const parts = path.split('/')
+  let current = ''
+  for (const part of parts) {
+    current += part + '/'
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await fs.promises.mkdir(current)
+    } catch (err) {
+    }
+  }
+}
+
+export const uniqueFileNameFromWorldName = async (title: string, savePath: string) => {
+  const name = sanitizeFilename(title)
+  let resultPath: string
+  // getUniqueFolderName
+  let i = 0
+  let free = false
+  while (!free) {
+    try {
+      resultPath = `${savePath.replace(/\$/, '')}/${name}${i === 0 ? '' : `-${i}`}`
+      // eslint-disable-next-line no-await-in-loop
+      await fs.promises.stat(resultPath)
+      i++
+    } catch (err) {
+      free = true
+    }
+  }
+  return resultPath
+}
+
+export const mountExportFolder = async () => {
+  let handle: FileSystemDirectoryHandle
+  try {
+    handle = await showDirectoryPicker({
+      id: 'world-export',
+    })
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') return
+    throw err
+  }
+  if (!handle) return false
+  await new Promise<void>(resolve => {
+    browserfs.configure({
+      fs: 'MountableFileSystem',
+      options: {
+        ...defaultMountablePoints,
+        '/export': {
+          fs: 'FileSystemAccess',
+          options: {
+            handle
+          }
+        }
+      },
+    }, (e) => {
+      if (e) throw e
+      resolve()
+    })
+  })
+  return true
+}
 
 export async function removeFileRecursiveAsync (path) {
   const errors = []
@@ -154,7 +216,9 @@ export const openWorldDirectory = async (dragndropHandle?: FileSystemDirectoryHa
     _directoryHandle = dragndropHandle
   } else {
     try {
-      _directoryHandle = await window.showDirectoryPicker()
+      _directoryHandle = await window.showDirectoryPicker({
+        id: 'select-world', // important: this is used to remember user choice (start directory)
+      })
     } catch (err) {
       if (err instanceof DOMException && err.name === 'AbortError') return
       throw err
@@ -169,9 +233,9 @@ export const openWorldDirectory = async (dragndropHandle?: FileSystemDirectoryHa
   if (!doContinue) return
   await new Promise<void>(resolve => {
     browserfs.configure({
-      // todo
       fs: 'MountableFileSystem',
       options: {
+        ...defaultMountablePoints,
         '/world': {
           fs: 'FileSystemAccess',
           options: {
@@ -191,16 +255,17 @@ export const openWorldDirectory = async (dragndropHandle?: FileSystemDirectoryHa
   loadSave()
 }
 
-const tryToDetectResourcePack = async (file: File | ArrayBuffer) => {
+const tryToDetectResourcePack = async () => {
   const askInstall = async () => {
-    return alert('ATM You can install texturepacks only via options menu. WIll be fixed')
+    // todo investigate browserfs read errors
+    return alert('ATM You can install texturepacks only via options menu.')
     // if (confirm('Resource pack detected, do you want to install it?')) {
-    //   await installTexturePack(file)
+    //   await installTexturePackFromHandle()
     // }
   }
 
   if (fs.existsSync('/world/pack.mcmeta')) {
-    askInstall()
+    await askInstall()
     return true
   }
   // const jszip = new JSZip()
@@ -213,16 +278,66 @@ const tryToDetectResourcePack = async (file: File | ArrayBuffer) => {
   // loaded = null
 }
 
-export const possiblyCleanHandle = () => {
+export const possiblyCleanHandle = (callback = () => { }) => {
   if (!fsState.saveLoaded) {
     // todo clean handle
     browserfs.configure({
       fs: 'MountableFileSystem',
-      options: deafultMountablePoints,
+      options: defaultMountablePoints,
     }, (e) => {
+      callback()
       if (e) throw e
     })
   }
+}
+
+export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: string) => {
+  try {
+    setLoadingScreenStatus('Copying files...')
+    let filesCount = 0
+    const countFiles = async (path: string) => {
+      const files = await fs.promises.readdir(path)
+      await Promise.all(files.map(async (file) => {
+        const curPath = join(path, file)
+        const stats = await fs.promises.stat(curPath)
+        if (stats.isDirectory()) {
+          // Recurse
+          await countFiles(curPath)
+        } else {
+          filesCount++
+        }
+      }))
+    }
+    await countFiles(pathSrc)
+    let copied = 0
+    await copyFilesAsync(pathSrc, pathDest, (name) => {
+      copied++
+      setLoadingScreenStatus(`Copying files (${copied}/${filesCount}) ${name}...`)
+    })
+  } finally {
+    setLoadingScreenStatus(undefined)
+  }
+}
+
+export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopied?: (name) => void) => {
+  // query: can't use fs.copy! use fs.promises.writeFile and readFile
+  const files = await fs.promises.readdir(pathSrc)
+
+  // Use Promise.all to parallelize file/directory copying
+  await Promise.all(files.map(async (file) => {
+    const curPathSrc = join(pathSrc, file)
+    const curPathDest = join(pathDest, file)
+    const stats = await fs.promises.stat(curPathSrc)
+    if (stats.isDirectory()) {
+      // Recurse
+      await fs.promises.mkdir(curPathDest)
+      await copyFilesAsync(curPathSrc, curPathDest, fileCopied)
+    } else {
+      // Copy file
+      await fs.promises.writeFile(curPathDest, await fs.promises.readFile(curPathSrc))
+      fileCopied?.(file)
+    }
+  }))
 }
 
 // todo rename method
@@ -232,7 +347,7 @@ const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name']) 
       // todo
       fs: 'MountableFileSystem',
       options: {
-        ...deafultMountablePoints,
+        ...defaultMountablePoints,
         '/world': {
           fs: 'ZipFS',
           options: {
@@ -264,7 +379,7 @@ const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name']) 
     }
 
     if (availableWorlds.length === 0) {
-      if (await tryToDetectResourcePack(file)) return
+      if (await tryToDetectResourcePack()) return
       alert('No worlds found in the zip')
       return
     }

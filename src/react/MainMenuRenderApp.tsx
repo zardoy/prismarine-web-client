@@ -4,11 +4,8 @@ import { useSnapshot } from 'valtio'
 import { useEffect } from 'react'
 import { activeModalStack, miscUiState, openOptionsMenu, showModal } from '../globalState'
 import { openURL } from '../menus/components/common'
-import { fsState } from '../loadSave'
-import { options } from '../optionsStorage'
-import defaultLocalServerOptions from '../defaultLocalServerOptions'
-import { openFilePicker } from '../utils'
-import { openWorldDirectory } from '../browserfs'
+import { openFilePicker, setLoadingScreenStatus } from '../utils'
+import { copyFilesAsync, mkdirRecursive, openWorldDirectory, removeFileRecursiveAsync } from '../browserfs'
 import MainMenu from './MainMenu'
 
 // todo clean
@@ -28,21 +25,23 @@ export default () => {
     {(state) => <div style={{ transition: state === 'exiting' || disableAnimation ? '' : '100ms opacity ease-in', ...state === 'entered' ? { opacity: 1 } : { opacity: 0 } }}>
       <MainMenu
         connectToServerAction={() => showModal(document.getElementById('play-screen'))}
-        singleplayerAction={() => {
-          fsState.isReadonly = false
-          fsState.syncFs = true
-          fsState.inMemorySave = true
-          const notFirstTime = fs.existsSync('./world/level.dat')
-          if (notFirstTime && !options.localServerOptions.version) {
-            options.localServerOptions.version = '1.16.1' // legacy version
-          } else {
-            options.localServerOptions.version ??= defaultLocalServerOptions.version
+        singleplayerAction={async () => {
+          const oldFormatSave = fs.existsSync('./world/level.dat')
+          if (oldFormatSave) {
+            setLoadingScreenStatus('Migrating old save, don\'t close the page')
+            try {
+              await mkdirRecursive('/data/worlds/local')
+              await copyFilesAsync('/world/', '/data/worlds/local')
+              try {
+                await removeFileRecursiveAsync('/world/')
+              } catch (err) {
+                console.warn(err)
+              }
+            } finally {
+              setLoadingScreenStatus(undefined)
+            }
           }
-          window.dispatchEvent(new window.CustomEvent('singleplayer', {
-            detail: {
-              savingInterval: 0 // disable auto-saving because we use very slow sync fs
-            },
-          }))
+          showModal({ reactType: 'singleplayer' })
         }}
         githubAction={() => openURL(process.env.GITHUB_URL)}
         optionsAction={() => openOptionsMenu('main')}

@@ -26,7 +26,7 @@ import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
 import { contro } from './controls'
 import './dragndrop'
-import './browserfs'
+import { possiblyCleanHandle } from './browserfs'
 import './eruda'
 import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
@@ -48,9 +48,7 @@ import {
   showModal, activeModalStacks,
   insertActiveModalStack,
   isGameActive,
-  miscUiState,
-  gameAdditionalState,
-  resetStateAfterDisconnect,
+  miscUiState, resetStateAfterDisconnect,
   notification
 } from './globalState'
 
@@ -69,7 +67,6 @@ import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalS
 import serverOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
-import { subscribeKey } from 'valtio/utils'
 import _ from 'lodash-es'
 
 import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
@@ -80,12 +77,16 @@ import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
 import { appStatusState } from './react/AppStatusProvider'
 
+import { fsState } from './loadSave'
+import { watchFov } from './rendererUtils'
+
 window.debug = debug
 window.THREE = THREE
 
 // ACTUAL CODE
 
 void registerServiceWorker()
+watchFov()
 
 // Create three.js context, add to page
 const renderer = new THREE.WebGLRenderer({
@@ -188,7 +189,7 @@ function hideCurrentScreens () {
   insertActiveModalStack('', [])
 }
 
-const connectSingleplayer = (serverOverrides = {}) => {
+const loadSingleplayer = (serverOverrides = {}) => {
   void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
 }
 function listenGlobalEvents () {
@@ -199,7 +200,7 @@ function listenGlobalEvents () {
   })
   window.addEventListener('singleplayer', (e) => {
     //@ts-expect-error
-    connectSingleplayer(e.detail)
+    loadSingleplayer(e.detail)
   })
 }
 
@@ -235,10 +236,10 @@ async function connect (connectOptions: {
   document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
 
-  const singeplayer = connectOptions.singleplayer
+  const { singleplayer } = connectOptions
   const p2pMultiplayer = !!connectOptions.peerId
-  miscUiState.singleplayer = singeplayer
-  miscUiState.flyingSquid = singeplayer || p2pMultiplayer
+  miscUiState.singleplayer = singleplayer
+  miscUiState.flyingSquid = singleplayer || p2pMultiplayer
   const { renderDistance, maxMultiplayerRenderDistance = renderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
@@ -260,12 +261,17 @@ async function connect (connectOptions: {
     postRenderFrameFn = () => { }
     if (bot) {
       bot.end()
-      // ensure mineflayer plugins receive this even for cleanup
+      // ensure mineflayer plugins receive this event for cleanup
       bot.emit('end', '')
       bot.removeAllListeners()
       bot._client.removeAllListeners()
       bot._client = undefined
       window.bot = bot = undefined
+    }
+    if (singleplayer && !fsState.inMemorySave) {
+      possiblyCleanHandle(() => {
+        // todo: this is not enough, we need to wait for all async operations to finish
+      })
     }
     resetStateAfterDisconnect()
     removeAllListeners()
@@ -284,7 +290,7 @@ async function connect (connectOptions: {
     }, { signal: controller.signal })
     // #endregion
 
-    setLoadingScreenStatus(`Error encountered. Error message: ${err}`, true)
+    setLoadingScreenStatus(`Error encountered. ${err}`, true)
     destroyAll()
     if (isCypress()) throw err
   }
@@ -331,12 +337,12 @@ async function connect (connectOptions: {
       viewer.setVersion(version)
     }
 
-    const downloadVersion = connectOptions.botVersion || (singeplayer ? serverOptions.version : undefined)
+    const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
     if (downloadVersion) {
       await downloadMcData(downloadVersion)
     }
 
-    if (singeplayer) {
+    if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:
       // Note 1: here we have custom sync communication between server Client (flying-squid) and game client (mineflayer)
       // Note 2: custom Server class is used which simplifies communication & Client creation on it's side
@@ -368,7 +374,7 @@ async function connect (connectOptions: {
     }
 
     let initialLoadingText: string
-    if (singeplayer) {
+    if (singleplayer) {
       initialLoadingText = 'Local server is still starting'
     } else if (p2pMultiplayer) {
       initialLoadingText = 'Connecting to peer'
@@ -383,10 +389,10 @@ async function connect (connectOptions: {
       ...p2pMultiplayer ? {
         stream: await connectToPeer(connectOptions.peerId),
       } : {},
-      ...singeplayer || p2pMultiplayer ? {
+      ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
       } : {},
-      ...singeplayer ? {
+      ...singleplayer ? {
         version: serverOptions.version,
         connect () { },
         Client: CustomChannelClient as any,
@@ -409,7 +415,7 @@ async function connect (connectOptions: {
       }
     }) as unknown as typeof __type_bot
     window.bot = bot
-    if (singeplayer || p2pMultiplayer) {
+    if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature
       bot.supportFeature = (feature) => {
@@ -499,29 +505,8 @@ async function connect (connectOptions: {
 
     const center = bot.entity.position
 
-    const worldView = window.worldView = new WorldDataEmitter(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
+    const worldView = window.worldView = new WorldDataEmitter(bot.world, singleplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
     setRenderDistance()
-
-    const updateFov = () => {
-      let fovSetting = options.fov
-      // todo check values and add transition
-      if (bot.controlState.sprint && !bot.controlState.sneak) {
-        fovSetting += 5
-      }
-      if (gameAdditionalState.isFlying) {
-        fovSetting += 5
-      }
-      viewer.camera.fov = fovSetting
-      viewer.camera.updateProjectionMatrix()
-    }
-    updateFov()
-    subscribeKey(options, 'fov', updateFov)
-    subscribeKey(gameAdditionalState, 'isFlying', updateFov)
-    subscribeKey(gameAdditionalState, 'isSprinting', updateFov)
-    subscribeKey(gameAdditionalState, 'isSneaking', () => {
-      viewer.isSneaking = gameAdditionalState.isSneaking
-      viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
-    })
 
     bot.on('physicsTick', () => updateCursor())
 
@@ -710,7 +695,14 @@ watchValue(miscUiState, s => {
   if (s.appLoaded) { // fs ready
     const qs = new URLSearchParams(window.location.search)
     if (qs.get('singleplayer') === '1') {
-      connectSingleplayer()
+      loadSingleplayer({
+        worldFolder: undefined
+      })
+    }
+    if (qs.get('loadSave')) {
+      loadSingleplayer({
+        worldFolder: `/data/worlds/${qs.get('loadSave')}`
+      })
     }
   }
 })
