@@ -252,7 +252,7 @@ export const openWorldDirectory = async (dragndropHandle?: FileSystemDirectoryHa
   fsState.isReadonly = !writeAccess
   fsState.syncFs = false
   fsState.inMemorySave = false
-  loadSave()
+  await loadSave()
 }
 
 const tryToDetectResourcePack = async () => {

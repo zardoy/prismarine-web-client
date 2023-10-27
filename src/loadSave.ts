@@ -6,7 +6,9 @@ import { gzip } from 'node-gzip'
 import { options } from './optionsStorage'
 import { nameToMcOfflineUUID } from './flyingSquidUtils'
 import { forceCachedDataPaths } from './browserfs'
-import { isMajorVersionGreater } from './utils'
+import { disconnect, isMajorVersionGreater } from './utils'
+import { activeModalStack, hideModal, miscUiState } from './globalState'
+import { appStatusState } from './react/AppStatusProvider'
 
 // todo include name of opened handle (zip)!
 // additional fs metadata
@@ -37,7 +39,7 @@ export const readLevelDat = async (path) => {
   }
   const { parsed } = await nbt.parse(Buffer.from(levelDatContent))
   const levelDat: import('./mcTypes').LevelDat = nbt.simplify(parsed).Data
-  return { levelDat, parsedRaw: parsed }
+  return { levelDat, dataRaw: parsed.value.Data.value as Record<string, any> }
 }
 
 export const loadSave = async (root = '/world') => {
@@ -52,7 +54,7 @@ export const loadSave = async (root = '/world') => {
   // todo check jsHeapSizeLimit
 
   const warnings: string[] = []
-  const { levelDat, parsedRaw } = await readLevelDat(root)
+  const { levelDat, dataRaw } = await readLevelDat(root)
   if (levelDat === undefined) {
     if (fsState.isReadonly) {
       throw new Error('level.dat not found, ensure you are loading world folder')
@@ -97,17 +99,15 @@ export const loadSave = async (root = '/world') => {
 
     const playerUuid = nameToMcOfflineUUID(options.localUsername)
     const playerDatPath = `${root}/playerdata/${playerUuid}.dat`
-    try {
-      await fs.promises.stat(playerDatPath)
-    } catch (err) {
-      const playerDat = await gzip(nbt.writeUncompressed({ name: '', ...(parsedRaw.value.Data.value as Record<string, any>).Player }))
+    const playerDataOverride = dataRaw.Player
+    if (playerDataOverride) {
+      const playerDat = await gzip(nbt.writeUncompressed({ name: '', ...playerDataOverride }))
       if (fsState.isReadonly) {
         forceCachedDataPaths[playerDatPath] = playerDat
       } else {
         await fs.promises.writeFile(playerDatPath, playerDat)
       }
     }
-
   }
 
   if (warnings.length && !disablePrompts) {
@@ -131,9 +131,22 @@ export const loadSave = async (root = '/world') => {
     // }
   }
 
-  if (!fsState.isReadonly && !fsState.inMemorySave) {
+  if (!fsState.isReadonly && !fsState.inMemorySave && !disablePrompts) {
     // todo allow also to ctrl+s
     alert('Note: the world is saved only on /save or disconnect! Ensure you have backup!')
+  }
+
+  // todo fix these
+  if (miscUiState.gameLoaded) {
+    await disconnect()
+  }
+  // todo use general logic
+  if (activeModalStack.at(-1)?.reactType === 'app-status' && !appStatusState.isError) {
+    alert('Wait for operations to finish before loading a new world')
+    return
+  }
+  for (const _i of activeModalStack) {
+    hideModal(undefined, undefined, { force: true })
   }
 
   fsState.saveLoaded = true

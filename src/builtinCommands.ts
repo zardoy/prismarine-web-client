@@ -66,9 +66,7 @@ export const exportWorld = async (path: string, type: 'zip' | 'folder', zipName 
 
 // todo include in help
 const exportLoadedWorld = async () => {
-  if (!fsState.isReadonly) {
-    await saveServer()
-  }
+  await saveServer()
   let { worldFolder } = localServer.options
   if (!worldFolder.startsWith('/')) worldFolder = `/${worldFolder}`
   await exportWorld(worldFolder, 'zip')

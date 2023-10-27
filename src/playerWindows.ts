@@ -142,7 +142,9 @@ const getImageSrc = (path): string | HTMLImageElement => {
 
 const getImage = ({ path = undefined, texture = undefined, blockData = undefined }, onLoad = () => {}) => {
   const loadPath = blockData ? 'blocks' : path ?? texture
-  if (!loadedImagesCache.has(loadPath)) {
+  if (loadedImagesCache.has(loadPath)) {
+    onLoad()
+  } else {
     const imageSrc = getImageSrc(loadPath)
     let image: HTMLImageElement
     if (imageSrc instanceof Image) {

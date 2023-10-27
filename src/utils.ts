@@ -81,7 +81,7 @@ export async function getScreenRefreshRate (): Promise<number> {
       const fps = Math.floor(1000 * 10 / (DOMHighResTimeStamp - t0))
 
       if (!callbackTriggered) {
-        resolve(fps/* , DOMHighResTimeStampCollection */)
+        resolve(Math.max(fps, 1000)/* , DOMHighResTimeStampCollection */)
       }
 
       callbackTriggered = true
