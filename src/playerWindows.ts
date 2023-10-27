@@ -50,10 +50,15 @@ let version: string
 let PrismarineBlock: typeof PrismarineBlockLoader.Block
 
 export const onGameLoad = (onLoad) => {
+  let loaded = 0
+  const onImageLoaded = () => {
+    loaded++
+    if (loaded === 3) onLoad?.()
+  }
   version = getVersion(bot.version)
-  getImage({ path: 'invsprite' })
-  getImage({ path: 'items' }, onLoad)
-  getImage({ path: 'items-legacy' })
+  getImage({ path: 'invsprite' }, onImageLoaded)
+  getImage({ path: 'items' }, onImageLoaded)
+  getImage({ path: 'items-legacy' }, onImageLoaded)
   PrismarineBlock = PrismarineBlockLoader(version)
 
   bot.on('windowOpen', (win) => {

@@ -155,7 +155,7 @@ class Hotbar extends LitElement {
       } else {
         slotIcon.style['background-image'] = `url('invsprite.png')`
       }
-      const [x, y] = data.sprite ?? [0, 0]
+      const [x, y] = data?.sprite ?? [0, 0]
       slotIcon.style['background-position-x'] = `-${x}px`
       slotIcon.style['background-position-y'] = `-${y}px`
       slotStack.textContent = item?.count > 1 ? item.count : ''
