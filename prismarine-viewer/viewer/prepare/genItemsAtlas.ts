@@ -1,4 +1,3 @@
-//@ts-check
 import fs from 'fs'
 import McAssets from 'minecraft-assets'
 import { join } from 'path'
@@ -9,9 +8,6 @@ import { JsonAtlas, makeTextureAtlas, writeCanvasStream } from './atlas'
 import looksSame from 'looks-same' // ensure after canvas import
 import { Version as _Version } from 'minecraft-data'
 import { versionToNumber } from './utils'
-
-//@ts-ignore
-const Version = _Version
 
 // todo move it, remove it
 const legacyInvsprite = JSON.parse(fs.readFileSync(join(__dirname, '../../../src/invsprite.json'), 'utf8'))
@@ -30,51 +26,6 @@ function isCube (name) {
   return block.shapes?.length === 1 && shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
-const latestAssets = McAssets(latestMcAssetsVersion)
-const latestItems = fs.readdirSync(join(latestAssets.directory, 'items')).map(f => f.split('.')[0])
-
-// item - texture path
-const toAddTextures = {
-  fromBlocks: {} as Record<string, string>,
-  remapItems: {} as Record<string, string>, // todo
-}
-
-const getItemTextureOfBlock = (name: string) => {
-  const blockModel = latestAssets.blocksModels[name]
-  // const isPlainBlockDisplay = blockModel?.display?.gui?.rotation?.[0] === 0 && blockModel?.display?.gui?.rotation?.[1] === 0 && blockModel?.display?.gui?.rotation?.[2] === 0
-  // it seems that information about cross blocks is hardcoded
-  if (blockModel?.parent?.endsWith('block/cross')) {
-    toAddTextures.fromBlocks[name] = `blocks/${blockModel.textures.cross.split('/')[1]}`
-    return true
-  }
-
-  if (legacyInvsprite[name]) {
-    return true
-  }
-
-  if (fs.existsSync(join(latestAssets.directory, 'blocks', name + '.png'))) {
-    // very last resort
-    toAddTextures.fromBlocks[name] = `blocks/${name}`
-    return true
-  }
-  if (name.endsWith('_spawn_egg')) {
-    // todo also color
-    toAddTextures.fromBlocks[name] = `items/spawn_egg`
-  }
-}
-
-for (const item of mcData.itemsArray) {
-  if (latestItems.includes(item.name)) {
-    continue
-  }
-  // USE IN RUNTIME
-  if (isCube(item.name)) {
-    // console.log('cube', block.name)
-  } else if (!getItemTextureOfBlock(item.name)) {
-    console.warn('skipping item (not cube, no item texture)', item.name)
-  }
-}
-
 export type ItemsAtlasesOutputJson = {
   latest: JsonAtlas
   legacy: JsonAtlas
@@ -82,6 +33,51 @@ export type ItemsAtlasesOutputJson = {
 }
 
 export const generateItemsAtlases = async () => {
+  const latestAssets = McAssets(latestMcAssetsVersion)
+  const latestItems = fs.readdirSync(join(latestAssets.directory, 'items')).map(f => f.split('.')[0])
+
+  // item - texture path
+  const toAddTextures = {
+    fromBlocks: {} as Record<string, string>,
+    remapItems: {} as Record<string, string>, // todo
+  }
+
+  const getItemTextureOfBlock = (name: string) => {
+    const blockModel = latestAssets.blocksModels[name]
+    // const isPlainBlockDisplay = blockModel?.display?.gui?.rotation?.[0] === 0 && blockModel?.display?.gui?.rotation?.[1] === 0 && blockModel?.display?.gui?.rotation?.[2] === 0
+    // it seems that information about cross blocks is hardcoded
+    if (blockModel?.parent?.endsWith('block/cross')) {
+      toAddTextures.fromBlocks[name] = `blocks/${blockModel.textures.cross.split('/')[1]}`
+      return true
+    }
+
+    if (legacyInvsprite[name]) {
+      return true
+    }
+
+    if (fs.existsSync(join(latestAssets.directory, 'blocks', name + '.png'))) {
+      // very last resort
+      toAddTextures.fromBlocks[name] = `blocks/${name}`
+      return true
+    }
+    if (name.endsWith('_spawn_egg')) {
+      // todo also color
+      toAddTextures.fromBlocks[name] = `items/spawn_egg`
+    }
+  }
+
+  for (const item of mcData.itemsArray) {
+    if (latestItems.includes(item.name)) {
+      continue
+    }
+    // USE IN RUNTIME
+    if (isCube(item.name)) {
+      // console.log('cube', block.name)
+    } else if (!getItemTextureOfBlock(item.name)) {
+      console.warn('skipping item (not cube, no item texture)', item.name)
+    }
+  }
+
   let fullItemsMap = {} as Record<string, string[]>
 
   const itemsSizes = {}

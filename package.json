@@ -27,6 +27,7 @@
   "license": "MIT",
   "dependencies": {
     "@dimaka/interface": "0.0.3-alpha.0",
+    "@floating-ui/react": "^0.26.1",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/wicg-file-system-access": "^2023.10.2",
@@ -60,7 +61,6 @@
     "stats-gl": "^1.0.5",
     "stats.js": "^0.17.0",
     "tabbable": "^6.2.0",
-    "tippy.js": "^6.3.7",
     "title-case": "3.x",
     "valtio": "^1.11.1",
     "workbox-build": "^7.0.0"

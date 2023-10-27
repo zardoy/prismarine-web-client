@@ -51,7 +51,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       <div className={styles.menu}>
         <ButtonWithTooltip
           initialTooltip={{
-            content: 'Here you can connect to Java servers!',
+            content: 'Connect to Java servers!',
             placement: 'top',
           }}
           onClick={connectToServerAction}
@@ -66,6 +66,8 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
             data-test-id='singleplayer-button'
             initialTooltip={{
               content: 'Create worlds and play offline',
+              placement: 'left',
+              offset: -40
             }}
           >
             Singleplayer
@@ -76,7 +78,8 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
             icon='pixelarticons:folder'
             onClick={openFileAction}
             initialTooltip={{
-              content: 'Load any 1.8-1.16 Java world',
+              content: 'Load any 1.8-1.16 Java world' + (window.showDirectoryPicker ? '' : ' (zip)'),
+              placement: 'bottom-start',
             }}
           />
         </div>
@@ -88,7 +91,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
         <div className={styles['menu-row']}>
           <ButtonWithTooltip
             initialTooltip={{
-              content: 'Report bugs / request features',
+              content: 'Report bugs or request features!',
             }}
             style={{ width: '98px' }}
             onClick={githubAction}
@@ -116,7 +119,11 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       </div>
 
       {mapsProvider &&
-        <ButtonWithTooltip className={styles['maps-provider']} icon='pixelarticons:map' initialTooltip={{ content: 'Explore maps to play with from the provider!' }} />}
+        <ButtonWithTooltip
+          className={styles['maps-provider']}
+          icon='pixelarticons:map'
+          initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'right' }}
+        />}
     </div>
   )
 }

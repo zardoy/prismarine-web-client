@@ -81,7 +81,7 @@ export default () => {
       }
       if (action === 'export') {
         const selectedVariant =
-          showDirectoryPicker
+          window.showDirectoryPicker
             ? await showOptionsModal('Select export type', ['Select folder (recommended)', 'Download ZIP file'])
             : await showOptionsModal('Select export type', ['Download ZIP file'])
         if (!selectedVariant) return

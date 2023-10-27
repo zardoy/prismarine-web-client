@@ -1,4 +1,5 @@
 import { forwardRef } from 'react'
+import classNames from 'classnames'
 import { loadSound, playSound } from '../basicSounds'
 import buttonCss from './button.module.css'
 
@@ -27,7 +28,7 @@ export default forwardRef<HTMLButtonElement, Props>(({ label, icon, children, in
     args.style.width = 20
   }
 
-  return <button ref={ref} className={buttonCss.button} {...args} onClick={onClick}>
+  return <button ref={ref} {...args} className={classNames(buttonCss.button, args.className)} onClick={onClick}>
     {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}
     {label}
     {children}
