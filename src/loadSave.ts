@@ -7,7 +7,7 @@ import { options } from './optionsStorage'
 import { nameToMcOfflineUUID } from './flyingSquidUtils'
 import { forceCachedDataPaths } from './browserfs'
 import { disconnect, isMajorVersionGreater } from './utils'
-import { activeModalStack, hideModal, miscUiState } from './globalState'
+import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from './globalState'
 import { appStatusState } from './react/AppStatusProvider'
 
 // todo include name of opened handle (zip)!
@@ -140,14 +140,18 @@ export const loadSave = async (root = '/world') => {
   if (miscUiState.gameLoaded) {
     await disconnect()
   }
+  // todo reimplement
+  if (activeModalStacks['main-menu']) {
+    insertActiveModalStack('main-menu')
+  }
   // todo use general logic
-  if (activeModalStack.at(-1)?.reactType === 'app-status' && !appStatusState.isError) {
-    alert('Wait for operations to finish before loading a new world')
-    return
-  }
-  for (const _i of activeModalStack) {
-    hideModal(undefined, undefined, { force: true })
-  }
+  // if (activeModalStack.at(-1)?.reactType === 'app-status' && !appStatusState.isError) {
+  //   alert('Wait for operations to finish before loading a new world')
+  //   return
+  // }
+  // for (const _i of activeModalStack) {
+  //   hideModal(undefined, undefined, { force: true })
+  // }
 
   fsState.saveLoaded = true
   window.dispatchEvent(new CustomEvent('singleplayer', {
