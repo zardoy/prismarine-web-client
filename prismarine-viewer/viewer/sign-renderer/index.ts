@@ -81,7 +81,8 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
             text: string
         }[] = []
         let plainText = ''
-        const MAX_LENGTH = 15 // avoid abusing the signboard
+        // todo the text should be clipped based on it's render width (needs investigate)
+        const MAX_LENGTH = 50 // avoid abusing the signboard
         const renderText = (node: RenderNode) => {
             const { component } = node
             let { text } = component
