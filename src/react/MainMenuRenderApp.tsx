@@ -12,7 +12,7 @@ import MainMenu from './MainMenu'
 let disableAnimation = false
 export default () => {
   const haveModals = useSnapshot(activeModalStack).length
-  const { gameLoaded, appLoaded } = useSnapshot(miscUiState)
+  const { gameLoaded, appLoaded, appConfig } = useSnapshot(miscUiState)
 
   const noDisplay = haveModals || gameLoaded || !appLoaded
 
@@ -53,6 +53,7 @@ export default () => {
             openFilePicker()
           }
         }}
+        mapsProvider={appConfig.mapsProvider}
       />
     </div>}
   </Transition>

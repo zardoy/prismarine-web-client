@@ -11,6 +11,7 @@ interface Props {
   githubAction?: Action
   discordAction?: Action
   openFileAction?: Action
+  mapsProvider?: string
 }
 
 const refreshApp = async () => {
@@ -19,7 +20,7 @@ const refreshApp = async () => {
   window.location.reload()
 }
 
-export default ({ connectToServerAction, singleplayerAction, optionsAction, githubAction, discordAction, openFileAction }: Props) => {
+export default ({ connectToServerAction, mapsProvider, singleplayerAction, optionsAction, githubAction, discordAction, openFileAction }: Props) => {
   const [versionStatus, setVersionStatus] = useState('')
   const [versionTitle, setVersionTitle] = useState('')
 
@@ -99,6 +100,8 @@ export default ({ connectToServerAction, singleplayerAction, optionsAction, gith
         </span>
         <span className={styles['product-description']}>A Minecraft client in the browser!</span>
       </div>
+
+      {mapsProvider && <Button className={styles['maps-provider']} icon='pixelarticons:map' />}
     </div>
   )
 }

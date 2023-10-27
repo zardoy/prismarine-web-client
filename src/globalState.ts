@@ -120,6 +120,10 @@ export const showContextmenu = (items: ContextMenuItem[], { clientX, clientY }) 
 
 // ---
 
+type AppConfig = {
+  mapsProvider?: string
+}
+
 export const miscUiState = proxy({
   currentDisplayQr: null as string | null,
   currentTouch: null as boolean | null,
@@ -131,7 +135,8 @@ export const miscUiState = proxy({
   /** currently trying to load or loaded mc version, after all data is loaded */
   loadedDataVersion: null as string | null,
   appLoaded: false,
-  usingGamepadInput: false
+  usingGamepadInput: false,
+  appConfig: null as AppConfig | null
 })
 
 export const resetStateAfterDisconnect = () => {

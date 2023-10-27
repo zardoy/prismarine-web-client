@@ -3,7 +3,7 @@ const { LitElement, html, css } = require('lit')
 const mineflayer = require('mineflayer')
 const viewerSupportedVersions = require('prismarine-viewer/viewer/supportedVersions.json')
 const { versionsByMinecraftVersion } = require('minecraft-data')
-const { hideCurrentModal } = require('../globalState')
+const { hideCurrentModal, miscUiState } = require('../globalState')
 const { commonCss } = require('./components/common')
 
 const fullySupporedVersions = viewerSupportedVersions
@@ -91,6 +91,7 @@ class PlayScreen extends LitElement {
       console.error('Failed to load config.json', error)
       return {}
     }).then(config => {
+      miscUiState.appConfig = config
       const params = new URLSearchParams(window.location.search)
 
       const getParam = (localStorageKey, qs = localStorageKey) => {

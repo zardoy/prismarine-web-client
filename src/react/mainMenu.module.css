@@ -104,3 +104,9 @@
         --top-offset: 10px
     }
 }
+
+.maps-provider {
+    position: fixed;
+    top: 5px;
+    left: 5px;
+}
