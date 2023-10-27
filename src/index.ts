@@ -24,7 +24,7 @@ import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
-import { contro } from './controls'
+import { contro, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle } from './browserfs'
 import './eruda'
@@ -491,6 +491,8 @@ async function connect (connectOptions: {
     destroyAll()
     if (isCypress()) throw new Error(`disconnected: ${endReason}`)
   })
+
+  onBotCreate()
 
   bot.once('login', () => {
     // server is ok, add it to the history

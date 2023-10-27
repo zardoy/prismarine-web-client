@@ -309,30 +309,62 @@ const patchedSetControlState = (action, state) => {
   currentFlyVector.add(toAddVec)
 }
 
+const startFlying = (sendAbilities = true) => {
+  if (sendAbilities) {
+    bot._client.write('abilities', {
+      flags: 2,
+    })
+  }
+  // window.flyingSpeed will be removed
+  bot.physics['airborneAcceleration'] = window.flyingSpeed ?? 0.1 // todo use abilities
+  bot.entity.velocity = new Vec3(0, 0, 0)
+  bot.creative.startFlying()
+  startFlyLoop()
+}
+
+const endFlying = (sendAbilities = true) => {
+  if (sendAbilities) {
+    bot._client.write('abilities', {
+      flags: 0,
+    })
+  }
+  bot.physics['airborneAcceleration'] = standardAirborneAcceleration
+  bot.creative.stopFlying()
+  endFlyLoop?.()
+}
+
+let allowFlying = false
+
+export const onBotCreate = () => {
+  bot._client.on('abilities', ({ flags }) => {
+    allowFlying = !!(flags & 4)
+    if (flags & 2) { // flying
+      toggleFly(true, false)
+    } else {
+      toggleFly(false, false)
+    }
+  })
+}
+
 const standardAirborneAcceleration = 0.02
-const toggleFly = () => {
-  if (bot.game.gameMode !== 'creative' && bot.game.gameMode !== 'spectator') return
+const toggleFly = (newState = !isFlying(), sendAbilities?: boolean) => {
+  // if (bot.game.gameMode !== 'creative' && bot.game.gameMode !== 'spectator') return
+  if (!allowFlying) return
   if (bot.setControlState !== patchedSetControlState) {
     originalSetControlState = bot.setControlState
     bot.setControlState = patchedSetControlState
   }
 
-  if (isFlying()) {
-    bot.physics['airborneAcceleration'] = standardAirborneAcceleration
-    bot.creative.stopFlying()
-    endFlyLoop?.()
+  if (newState) {
+    startFlying(sendAbilities)
   } else {
-    // window.flyingSpeed will be removed
-    bot.physics['airborneAcceleration'] = window.flyingSpeed ?? 0.1
-    bot.entity.velocity = new Vec3(0, 0, 0)
-    bot.creative.startFlying()
-    startFlyLoop()
+    endFlying(sendAbilities)
   }
   gameAdditionalState.isFlying = isFlying()
 }
 // #endregion
 addEventListener('mousedown', async (e) => {
-  pointerLock.requestPointerLock()
+  void pointerLock.requestPointerLock()
   if (!bot) return
   // wheel click
   // todo support ctrl+wheel (+nbt)
