@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import styles from './mainMenu.module.css'
 import Button from './Button'
+import ButtonWithTooltip from './ButtonWithTooltip'
 
 type Action = (e: React.MouseEvent<HTMLButtonElement>) => void
 
@@ -48,25 +49,35 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       </div>
 
       <div className={styles.menu}>
-        <Button
+        <ButtonWithTooltip
+          initialTooltip={{
+            content: 'Here you can connect to Java servers!',
+            placement: 'top',
+          }}
           onClick={connectToServerAction}
           data-test-id='connect-screen-button'
         >
           Connect to server
-        </Button>
+        </ButtonWithTooltip>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Button
+          <ButtonWithTooltip
             style={{ width: 170 }}
             onClick={singleplayerAction}
             data-test-id='singleplayer-button'
+            initialTooltip={{
+              content: 'Create worlds and play offline',
+            }}
           >
             Singleplayer
-          </Button>
+          </ButtonWithTooltip>
 
-          <Button
+          <ButtonWithTooltip
             data-test-id='select-file-folder'
             icon='pixelarticons:folder'
             onClick={openFileAction}
+            initialTooltip={{
+              content: 'Load any 1.8-1.16 Java world',
+            }}
           />
         </div>
         <Button
@@ -75,12 +86,15 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
           Options
         </Button>
         <div className={styles['menu-row']}>
-          <Button
+          <ButtonWithTooltip
+            initialTooltip={{
+              content: 'Report bugs / request features',
+            }}
             style={{ width: '98px' }}
             onClick={githubAction}
           >
             GitHub
-          </Button>
+          </ButtonWithTooltip>
           <Button
             style={{ width: '98px' }}
             onClick={discordAction}
@@ -101,7 +115,8 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
         <span className={styles['product-description']}>A Minecraft client in the browser!</span>
       </div>
 
-      {mapsProvider && <Button className={styles['maps-provider']} icon='pixelarticons:map' />}
+      {mapsProvider &&
+        <ButtonWithTooltip className={styles['maps-provider']} icon='pixelarticons:map' initialTooltip={{ content: 'Explore maps to play with from the provider!' }} />}
     </div>
   )
 }
