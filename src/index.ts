@@ -31,6 +31,7 @@ import './eruda'
 import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
+import fs from 'fs'
 import net from 'net'
 import mineflayer from 'mineflayer'
 import { WorldDataEmitter, Viewer } from 'prismarine-viewer/viewer'
@@ -79,6 +80,7 @@ import { appStatusState } from './react/AppStatusProvider'
 
 import { fsState } from './loadSave'
 import { watchFov } from './rendererUtils'
+import { loadInMemorySave } from './react/SingleplayerProvider'
 
 window.debug = debug
 window.THREE = THREE
@@ -182,7 +184,15 @@ function onCameraMove (e) {
   updateCursor()
 }
 window.addEventListener('mousemove', onCameraMove, { capture: true })
-
+contro.on('stickMovement', ({ stick, vector }) => {
+  if (!isGameActive(true)) return
+  if (stick !== 'right') return
+  let { x, z } = vector
+  if (Math.abs(x) < 0.18) x = 0
+  if (Math.abs(z) < 0.18) z = 0
+  onCameraMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
+  miscUiState.usingGamepadInput = true
+})
 
 function hideCurrentScreens () {
   activeModalStacks['main-menu'] = [...activeModalStack]
@@ -566,22 +576,6 @@ async function connect (connectOptions: {
 
     registerListener(document, 'pointerlockchange', changeCallback, false)
 
-    let holdingTouch: { touch: Touch, elem: HTMLElement } | undefined
-    document.body.addEventListener('touchend', (e) => {
-      if (!isGameActive(true)) return
-      if (holdingTouch?.touch.identifier !== e.changedTouches[0].identifier) return
-      holdingTouch.elem.click()
-      holdingTouch = undefined
-    })
-    document.body.addEventListener('touchstart', (e) => {
-      if (!isGameActive(true)) return
-      e.preventDefault()
-      holdingTouch = {
-        touch: e.touches[0],
-        elem: e.composedPath()[0] as HTMLElement
-      }
-    }, { passive: false })
-
     const cameraControlEl = hud
 
     /** after what time of holding the finger start breaking the block */
@@ -636,15 +630,6 @@ async function connect (connectOptions: {
       capturedPointer.y = e.pageY
     }, { passive: false })
 
-    contro.on('stickMovement', ({ stick, vector }) => {
-      if (stick !== 'right') return
-      let { x, z } = vector
-      if (Math.abs(x) < 0.18) x = 0
-      if (Math.abs(z) < 0.18) z = 0
-      onCameraMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
-      miscUiState.usingGamepadInput = true
-    })
-
     const pointerUpHandler = (e: PointerEvent) => {
       if (e.pointerId === undefined || e.pointerId !== capturedPointer?.id) return
       clearTimeout(virtualClickTimeout)
@@ -674,7 +659,12 @@ async function connect (connectOptions: {
 
     console.log('Done!')
 
-    onGameLoad(() => {
+    onGameLoad(async () => {
+      if (!viewer.world.downloadedBlockStatesData && !viewer.world.customBlockStatesData) {
+        await new Promise<void>(resolve => {
+          viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', () => resolve())
+        })
+      }
       hud.init(renderer, bot, server.host)
       hud.style.display = 'block'
     })
@@ -691,7 +681,7 @@ async function connect (connectOptions: {
 }
 
 listenGlobalEvents()
-watchValue(miscUiState, s => {
+watchValue(miscUiState, async s => {
   if (s.appLoaded) { // fs ready
     const qs = new URLSearchParams(window.location.search)
     if (qs.get('singleplayer') === '1') {
@@ -700,12 +690,35 @@ watchValue(miscUiState, s => {
       })
     }
     if (qs.get('loadSave')) {
-      loadSingleplayer({
-        worldFolder: `/data/worlds/${qs.get('loadSave')}`
-      })
+      const savePath = `/data/worlds/${qs.get('loadSave')}`
+      try {
+        await fs.promises.stat(savePath)
+      } catch (err) {
+        alert(`Save ${savePath} not found`)
+        return
+      }
+      await loadInMemorySave(savePath)
     }
   }
 })
+
+// #region fire click event on touch as we disable default behaviors
+let activeTouch: { touch: Touch, elem: HTMLElement } | undefined
+document.body.addEventListener('touchend', (e) => {
+  if (!isGameActive(true)) return
+  if (activeTouch?.touch.identifier !== e.changedTouches[0].identifier) return
+  activeTouch.elem.click()
+  activeTouch = undefined
+})
+document.body.addEventListener('touchstart', (e) => {
+  if (!isGameActive(true)) return
+  e.preventDefault()
+  activeTouch = {
+    touch: e.touches[0],
+    elem: e.composedPath()[0] as HTMLElement
+  }
+}, { passive: false })
+// #endregion
 
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return

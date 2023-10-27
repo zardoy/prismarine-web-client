@@ -112,20 +112,6 @@ class Hotbar extends LitElement {
       this.requestUpdate()
     })
     this.activeItemName = ''
-  }
-
-  updated (changedProperties) {
-    if (changedProperties.has('bot')) {
-      // inventory listener
-      bot.once('spawn', () => {
-        this.init()
-      })
-    }
-  }
-
-  init () {
-    this.reloadHotbar()
-    this.reloadHotbarSelected(0)
 
     document.addEventListener('wheel', (e) => {
       if (!isGameActive(true)) return
@@ -142,6 +128,11 @@ class Hotbar extends LitElement {
       if (numPressed < 1 || numPressed > 9) return
       this.reloadHotbarSelected(numPressed - 1)
     })
+  }
+
+  init () {
+    this.reloadHotbar()
+    this.reloadHotbarSelected(0)
 
     bot.inventory.on('updateSlot', (slot, oldItem, newItem) => {
       if (slot >= bot.inventory.hotbarStart + 9) return
@@ -164,11 +155,9 @@ class Hotbar extends LitElement {
       } else {
         slotIcon.style['background-image'] = `url('invsprite.png')`
       }
-      if (data?.sprite) {
-        const [x, y] = data.sprite
-        slotIcon.style['background-position-x'] = `-${x}px`
-        slotIcon.style['background-position-y'] = `-${y}px`
-      }
+      const [x, y] = data.sprite ?? [0, 0]
+      slotIcon.style['background-position-x'] = `-${x}px`
+      slotIcon.style['background-position-y'] = `-${y}px`
       slotStack.textContent = item?.count > 1 ? item.count : ''
     }
   }

@@ -280,7 +280,7 @@ const startFlyLoop = () => {
   endFlyLoop?.()
 
   endFlyLoop = makeInterval(() => {
-    if (!window.bot) endFlyLoop()
+    if (!bot) endFlyLoop()
     bot.entity.position.add(currentFlyVector.clone().multiply(new Vec3(0, 0.5, 0)))
   }, 50)
 }

@@ -6,6 +6,8 @@ const { hideCurrentModal, showModal, miscUiState, notification, openOptionsMenu 
 const { fsState } = require('../loadSave')
 const { disconnect } = require('../utils')
 const { closeWan, openToWanAndCopyJoinLink, getJoinLink } = require('../localServerMultiplayer')
+const { uniqueFileNameFromWorldName, copyFilesAsyncWithProgress } = require('../browserfs')
+const { showOptionsModal } = require('../react/SelectOption')
 const { openURL } = require('./components/common')
 
 class PauseScreen extends LitElement {
@@ -60,12 +62,25 @@ class PauseScreen extends LitElement {
     subscribeKey(miscUiState, 'wanOpened', () => this.requestUpdate())
   }
 
+  async openWorldActions () {
+    if (fsState.inMemorySave || !miscUiState.singleplayer) {
+      return showOptionsModal('World actions...', [])
+    }
+    const action = await showOptionsModal('World actions...', ['Save to browser memory'])
+    if (action === 'Save to browser memory') {
+      const { worldFolder } = localServer.options
+      const savePath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
+      await copyFilesAsyncWithProgress(worldFolder, savePath)
+    }
+  }
+
   render () {
     const joinButton = miscUiState.singleplayer
     const isOpenedToWan = miscUiState.wanOpened
 
     return html`
       <div class="bg"></div>
+      <pmui-button style="position:fixed;left: 5px;top: 5px;" pmui-icon="pixelarticons:folder" pmui-width="20px" pmui-label="" @pmui-click=${async () => this.openWorldActions()}></pmui-button>
 
       <p class="title">Game Menu</p>
 

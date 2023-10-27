@@ -277,7 +277,8 @@ const openWindow = (type: string | undefined) => {
     reactType: `player_win:${type}`,
   })
   onModalClose(() => {
-    if (type !== undefined) bot.currentWindow['close']()
+    // might be already closed (event fired)
+    if (type !== undefined && bot.currentWindow) bot.currentWindow['close']()
     lastWindow.destroy()
     lastWindow = null
     destroyFn()

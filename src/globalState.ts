@@ -141,7 +141,6 @@ export const resetStateAfterDisconnect = () => {
   miscUiState.flyingSquid = false
   miscUiState.wanOpened = false
   miscUiState.currentDisplayQr = null
-  miscUiState.currentTouch = null
 
   fsState.saveLoaded = false
 }

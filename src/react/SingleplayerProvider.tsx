@@ -45,6 +45,14 @@ export const readWorlds = () => {
   })()
 }
 
+export const loadInMemorySave = async (worldPath: string) => {
+  fsState.saveLoaded = false
+  fsState.isReadonly = false
+  fsState.syncFs = false
+  fsState.inMemorySave = true
+  await loadSave(worldPath)
+}
+
 export default () => {
   const worlds = useSnapshot(worldsProxy).value as WorldProps[]
   const active = useIsModalActive('singleplayer')
@@ -61,11 +69,7 @@ export default () => {
     onWorldAction={async (action, worldName) => {
       const worldPath = `/data/worlds/${worldName}`
       if (action === 'load') {
-        fsState.saveLoaded = false
-        fsState.isReadonly = false
-        fsState.syncFs = false
-        fsState.inMemorySave = true
-        await loadSave(worldPath)
+        await loadInMemorySave(worldPath)
         return
       }
       if (action === 'delete') {

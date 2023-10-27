@@ -173,6 +173,8 @@ class WorldRenderer {
         if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
         return loadJSON(`blocksStates/${this.texturesVersion}.json`, (data) => {
           this.downloadedBlockStatesData = data
+          // todo
+          this.renderUpdateEmitter.emit('blockStatesDownloaded')
           resolve(data)
         })
       })

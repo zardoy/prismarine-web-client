@@ -18,7 +18,7 @@ export default async () => {
   if (texturepack) {
     await updateTexturePackInstalledState()
     if (resourcePackState.resourcePackInstalled) {
-      if (!confirm(`You are going to install a new texturepack which would REPLACE a current one: ${await getResourcePackName()} Continue?`)) return
+      if (!confirm(`You are going to install a new resource pack, which will REPLACE the current one: ${await getResourcePackName()} Continue?`)) return
     }
   } else {
     const menu = document.getElementById('play-screen')
