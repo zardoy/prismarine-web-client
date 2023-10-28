@@ -53,7 +53,7 @@ export default () => {
             openFilePicker()
           }
         }}
-        mapsProvider={appConfig.mapsProvider}
+        mapsProvider={appConfig?.mapsProvider}
       />
     </div>}
   </Transition>
