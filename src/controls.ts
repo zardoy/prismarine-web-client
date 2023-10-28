@@ -323,6 +323,7 @@ const startFlying = (sendAbilities = true) => {
 }
 
 const endFlying = (sendAbilities = true) => {
+  if (bot.physics.gravity !== 0) return
   if (sendAbilities) {
     bot._client.write('abilities', {
       flags: 0,
