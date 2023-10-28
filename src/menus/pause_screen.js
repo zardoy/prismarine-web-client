@@ -39,7 +39,7 @@ class PauseScreen extends LitElement {
         position: absolute;
         left: 50%;
         width: 204px;
-        top: calc(25% + 48px - 16px);
+        top: calc(48px);
         transform: translate(-50%);
       }
 
@@ -80,7 +80,8 @@ class PauseScreen extends LitElement {
 
     return html`
       <div class="bg"></div>
-      <pmui-button style="position:fixed;left: 5px;top: 5px;" pmui-icon="pixelarticons:folder" pmui-width="20px" pmui-label="" @pmui-click=${async () => this.openWorldActions()}></pmui-button>
+      <!-- todo uncomment when browserfs is fixed -->
+      <!--<pmui-button style="position:fixed;left: 5px;top: 5px;" pmui-icon="pixelarticons:folder" pmui-width="20px" pmui-label="" @pmui-click=${async () => this.openWorldActions()}></pmui-button>-->
 
       <p class="title">Game Menu</p>
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { openURL } from '../menus/components/common'
 import styles from './mainMenu.module.css'
 import Button from './Button'
 import ButtonWithTooltip from './ButtonWithTooltip'
@@ -20,6 +21,8 @@ const refreshApp = async () => {
   await registration.unregister()
   window.location.reload()
 }
+
+const httpsRegex = /^https?:\/\//
 
 export default ({ connectToServerAction, mapsProvider, singleplayerAction, optionsAction, githubAction, discordAction, openFileAction }: Props) => {
   const [versionStatus, setVersionStatus] = useState('')
@@ -123,6 +126,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
           className={styles['maps-provider']}
           icon='pixelarticons:map'
           initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'right' }}
+          onClick={() => openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider)}
         />}
     </div>
   )
