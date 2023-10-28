@@ -29,6 +29,7 @@ const defaultOptions = {
   /** @unstable */
   disableAssets: false,
   unimplementedContainers: false,
+  dayCycleAndLighting: true,
 
   showChunkBorders: false,
   frameLimit: false as number | false,

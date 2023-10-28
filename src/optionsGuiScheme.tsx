@@ -33,6 +33,7 @@ export const guiOptionsScheme: {
     },
     {
       highPerformanceGpu: {
+        // todo reimplement to gpu preference to allow use low-energy instead
         text: 'Use Dedicated GPU',
         // willHaveNoEffect: isIos
       },
@@ -41,7 +42,19 @@ export const guiOptionsScheme: {
       custom () {
         return <Button label='Guide: Disable VSync' onClick={() => openURL('https://gist.github.com/zardoy/6e5ce377d2b4c1e322e660973da069cd')} inScreen />
       },
-    }
+    },
+    {
+      custom () {
+        return <>
+          <div></div>
+          <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Experimental</span>
+          <div></div>
+        </>
+      },
+      dayCycleAndLighting: {
+        text: 'Day Cycle',
+      }
+    },
   ],
   main: [
     // renderDistance
