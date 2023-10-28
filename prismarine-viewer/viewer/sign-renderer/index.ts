@@ -56,8 +56,8 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
     ]
     const defaultColor = ('front_text' in blockEntity ? blockEntity.front_text.color : blockEntity.Color) || 'black'
     for (let [lineNum, text] of texts.slice(0, 4).entries()) {
-        // todo test mojangson parsing
-        const parsed = parseSafe(text ?? '""', 'sign text')
+        // todo: in pre flatenning it seems the format was not json
+        const parsed = text.startsWith('{') ? parseSafe(text ?? '""', 'sign text') : text
         if (!parsed || (typeof parsed !== 'object' && typeof parsed !== 'string')) continue
         // todo fix type
         const message = typeof parsed === 'string' ? fromFormattedString(parsed) : new PrismarineChat(parsed) as never
@@ -81,7 +81,8 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
             text: string
         }[] = []
         let plainText = ''
-        const MAX_LENGTH = 15 // avoid abusing the signboard
+        // todo the text should be clipped based on it's render width (needs investigate)
+        const MAX_LENGTH = 50 // avoid abusing the signboard
         const renderText = (node: RenderNode) => {
             const { component } = node
             let { text } = component

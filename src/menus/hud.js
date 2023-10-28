@@ -9,11 +9,6 @@ export const guiIcons1_17_1 = require('minecraft-assets/minecraft-assets/data/1.
 export const guiIcons1_16_4 = require('minecraft-assets/minecraft-assets/data/1.16.4/gui/icons.png')
 
 class Hud extends LitElement {
-  firstUpdated () {
-    this.isReady = true
-    window.dispatchEvent(new CustomEvent('hud-ready', { detail: this }))
-  }
-
   static get styles () {
     return css`
       :host {
@@ -111,6 +106,21 @@ class Hud extends LitElement {
     }
   }
 
+  firstUpdated () {
+    this.isReady = true
+    window.dispatchEvent(new CustomEvent('hud-ready', { detail: this }))
+
+    watchValue(options, (o) => {
+      miscUiState.currentTouch = o.alwaysShowMobileControls || isMobile()
+      this.showMobileControls(miscUiState.currentTouch)
+    })
+
+    watchValue(miscUiState, o => {
+      //@ts-expect-error
+      this.shadowRoot.host.style.display = o.gameLoaded ? 'block' : 'none'
+    })
+  }
+
   /**
    * @param {import('mineflayer').Bot} bot
    */
@@ -137,7 +147,6 @@ class Hud extends LitElement {
     const xpLabel = this.shadowRoot.querySelector('#xp-label')
 
     this.bot = bot
-    hotbar.bot = bot
     debugMenu.bot = bot
 
     hotbar.init()
@@ -192,11 +201,6 @@ class Hud extends LitElement {
 
     // TODO
     // breathbar.updateOxygen(bot.oxygenLevel ?? 20)
-
-    watchValue(options, (o) => {
-      miscUiState.currentTouch = o.alwaysShowMobileControls || isMobile()
-      this.showMobileControls(miscUiState.currentTouch)
-    })
   }
 
   /** @param {boolean} bl */

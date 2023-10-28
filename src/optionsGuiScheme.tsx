@@ -9,6 +9,7 @@ import Slider from './react/Slider'
 import { getScreenRefreshRate, openFilePicker, setLoadingScreenStatus } from './utils'
 import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
 import { fsState } from './loadSave'
+import { resetLocalStorageWithoutWorld } from './browserfs'
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [k in keyof AppOptions]?: Partial<OptionMeta> } & { custom?}>
@@ -32,6 +33,7 @@ export const guiOptionsScheme: {
     },
     {
       highPerformanceGpu: {
+        // todo reimplement to gpu preference to allow use low-energy instead
         text: 'Use Dedicated GPU',
         // willHaveNoEffect: isIos
       },
@@ -40,7 +42,19 @@ export const guiOptionsScheme: {
       custom () {
         return <Button label='Guide: Disable VSync' onClick={() => openURL('https://gist.github.com/zardoy/6e5ce377d2b4c1e322e660973da069cd')} inScreen />
       },
-    }
+    },
+    {
+      custom () {
+        return <>
+          <div></div>
+          <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Experimental</span>
+          <div></div>
+        </>
+      },
+      dayCycleAndLighting: {
+        text: 'Day Cycle',
+      }
+    },
   ],
   main: [
     // renderDistance
@@ -70,19 +84,14 @@ export const guiOptionsScheme: {
     },
     {
       custom () {
-        return <Button label='Sound...' onClick={() => openOptionsMenu('sound')} inScreen />
+        return <Button label='Controls...' onClick={() => openOptionsMenu('controls')} inScreen />
       },
     },
     {
       custom () {
-        return <Button label='Controls...' onClick={() => openOptionsMenu('controls')} inScreen />
+        return <Button label='Sound...' onClick={() => openOptionsMenu('sound')} inScreen />
       },
     },
-    // {
-    //   custom () {
-    //     return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
-    //   },
-    // },
     {
       custom () {
         const { resourcePackInstalled } = useSnapshot(resourcePackState)
@@ -96,13 +105,18 @@ export const guiOptionsScheme: {
               setLoadingScreenStatus(undefined)
             }
           } else {
-            if (!fsState.inMemorySave && isGameActive(false)) {
-              alert('Unable to install resource pack in loaded save for now')
-              return
-            }
+            // if (!fsState.inMemorySave && isGameActive(false)) {
+            //   alert('Unable to install resource pack in loaded save for now')
+            //   return
+            // }
             openFilePicker('resourcepack')
           }
         }} />
+      },
+    },
+    {
+      custom () {
+        return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
       },
     }
   ],
@@ -152,7 +166,13 @@ export const guiOptionsScheme: {
     // { ignoreSilentSwitch: {} },
   ],
   advanced: [
-
+    {
+      custom () {
+        return <Button inScreen onClick={() => {
+          if (confirm('Are you sure you want to reset all settings?')) resetLocalStorageWithoutWorld()
+        }}>Reset all settings</Button>
+      },
+    }
   ],
 }
 export type OptionsGroupType = 'main' | 'render' | 'interface' | 'controls' | 'sound' | 'advanced'

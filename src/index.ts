@@ -4,7 +4,7 @@ import './styles.css'
 import './globals'
 import 'iconify-icon'
 import './chat'
-import './inventory'
+import { onGameLoad } from './playerWindows'
 
 import './menus/components/button'
 import './menus/components/edit_box'
@@ -24,20 +24,21 @@ import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
-import { contro } from './controls'
+import { contro, onBotCreate } from './controls'
 import './dragndrop'
-import './browserfs'
+import { possiblyCleanHandle } from './browserfs'
 import './eruda'
 import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
+import fs from 'fs'
 import net from 'net'
 import mineflayer from 'mineflayer'
 import { WorldDataEmitter, Viewer } from 'prismarine-viewer/viewer'
 import pathfinder from 'mineflayer-pathfinder'
 import { Vec3 } from 'vec3'
 
-import blockInteraction from './blockInteraction'
+import worldInteractions from './worldInteractions'
 
 import * as THREE from 'three'
 import { versionsByMinecraftVersion } from 'minecraft-data'
@@ -45,35 +46,28 @@ import { versionsByMinecraftVersion } from 'minecraft-data'
 import { initVR } from './vr'
 import {
   activeModalStack,
-  showModal,
-  hideCurrentModal,
-  activeModalStacks,
+  showModal, activeModalStacks,
   insertActiveModalStack,
   isGameActive,
-  miscUiState,
-  gameAdditionalState,
-  resetStateAfterDisconnect,
+  miscUiState, resetStateAfterDisconnect,
   notification
 } from './globalState'
 
 import {
-  pointerLock,
-  goFullscreen, isCypress,
+  pointerLock, isCypress,
   toMajorVersion,
   setLoadingScreenStatus,
   setRenderDistance
 } from './utils'
 
 import {
-  removePanorama,
-  addPanoramaCubeMap,
+  removePanorama
 } from './panorama'
 
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
 import serverOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
-import { subscribeKey } from 'valtio/utils'
 import _ from 'lodash-es'
 
 import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
@@ -82,7 +76,11 @@ import CustomChannelClient from './customClient'
 import debug from 'debug'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
-import { appStatusState } from './react/AppStatus'
+import { appStatusState } from './react/AppStatusProvider'
+
+import { fsState } from './loadSave'
+import { watchFov } from './rendererUtils'
+import { loadInMemorySave } from './react/SingleplayerProvider'
 
 window.debug = debug
 window.THREE = THREE
@@ -90,6 +88,7 @@ window.THREE = THREE
 // ACTUAL CODE
 
 void registerServiceWorker()
+watchFov()
 
 // Create three.js context, add to page
 const renderer = new THREE.WebGLRenderer({
@@ -119,6 +118,8 @@ watchValue(options, (o) => {
 let postRenderFrameFn = () => { }
 let delta = 0
 let lastTime = performance.now()
+let previousWindowWidth = window.innerWidth
+let previousWindowHeight = window.innerHeight
 const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
   window.requestAnimationFrame(renderFrame)
@@ -132,6 +133,12 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
     } else {
       return
     }
+  }
+  // ios bug: viewport dimensions are updated after the resize event
+  if (previousWindowWidth !== window.innerWidth || previousWindowHeight !== window.innerHeight) {
+    resizeHandler()
+    previousWindowWidth = window.innerWidth
+    previousWindowHeight = window.innerHeight
   }
   statsStart()
   viewer.update()
@@ -149,15 +156,6 @@ const resizeHandler = () => {
   viewer.camera.updateProjectionMatrix()
   renderer.setSize(width, height)
 }
-const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent)
-addEventListener('resize', (e) => {
-  if (isIos) {
-    // ios bug: resize event is fired before deminsion properties are updated
-    setTimeout(resizeHandler)
-  } else {
-    resizeHandler()
-  }
-})
 
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
@@ -166,9 +164,9 @@ let mouseMovePostHandle = (e) => { }
 let lastMouseMove: number
 let debugMenu
 const updateCursor = () => {
-  blockInteraction.update()
+  worldInteractions.update()
   debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
-  debugMenu.cursorBlock = blockInteraction.cursorBlock
+  debugMenu.cursorBlock = worldInteractions.cursorBlock
 }
 function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
@@ -186,33 +184,34 @@ function onCameraMove (e) {
   updateCursor()
 }
 window.addEventListener('mousemove', onCameraMove, { capture: true })
-
+contro.on('stickMovement', ({ stick, vector }) => {
+  if (!isGameActive(true)) return
+  if (stick !== 'right') return
+  let { x, z } = vector
+  if (Math.abs(x) < 0.18) x = 0
+  if (Math.abs(z) < 0.18) z = 0
+  onCameraMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
+  miscUiState.usingGamepadInput = true
+})
 
 function hideCurrentScreens () {
   activeModalStacks['main-menu'] = [...activeModalStack]
   insertActiveModalStack('', [])
 }
 
-async function main () {
+const loadSingleplayer = (serverOverrides = {}) => {
+  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
+}
+function listenGlobalEvents () {
   const menu = document.getElementById('play-screen')
   menu.addEventListener('connect', e => {
     const options = e.detail
     void connect(options)
   })
-  const connectSingleplayer = (serverOverrides = {}) => {
-    void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
-  }
   window.addEventListener('singleplayer', (e) => {
     //@ts-expect-error
-    connectSingleplayer(e.detail)
+    loadSingleplayer(e.detail)
   })
-  const qs = new URLSearchParams(window.location.search)
-  if (qs.get('singleplayer') === '1') {
-    // todo
-    setTimeout(() => {
-      connectSingleplayer()
-    })
-  }
 }
 
 let listeners = []
@@ -247,10 +246,10 @@ async function connect (connectOptions: {
   document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
 
-  const singeplayer = connectOptions.singleplayer
+  const { singleplayer } = connectOptions
   const p2pMultiplayer = !!connectOptions.peerId
-  miscUiState.singleplayer = singeplayer
-  miscUiState.flyingSquid = singeplayer || p2pMultiplayer
+  miscUiState.singleplayer = singleplayer
+  miscUiState.flyingSquid = singleplayer || p2pMultiplayer
   const { renderDistance, maxMultiplayerRenderDistance = renderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
@@ -272,12 +271,17 @@ async function connect (connectOptions: {
     postRenderFrameFn = () => { }
     if (bot) {
       bot.end()
-      // ensure mineflayer plugins receive this even for cleanup
+      // ensure mineflayer plugins receive this event for cleanup
       bot.emit('end', '')
       bot.removeAllListeners()
       bot._client.removeAllListeners()
       bot._client = undefined
       window.bot = bot = undefined
+    }
+    if (singleplayer && !fsState.inMemorySave) {
+      possiblyCleanHandle(() => {
+        // todo: this is not enough, we need to wait for all async operations to finish
+      })
     }
     resetStateAfterDisconnect()
     removeAllListeners()
@@ -296,7 +300,7 @@ async function connect (connectOptions: {
     }, { signal: controller.signal })
     // #endregion
 
-    setLoadingScreenStatus(`Error encountered. Error message: ${err}`, true)
+    setLoadingScreenStatus(`Error encountered. ${err}`, true)
     destroyAll()
     if (isCypress()) throw err
   }
@@ -343,12 +347,12 @@ async function connect (connectOptions: {
       viewer.setVersion(version)
     }
 
-    const downloadVersion = connectOptions.botVersion || (singeplayer ? serverOptions.version : undefined)
+    const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
     if (downloadVersion) {
       await downloadMcData(downloadVersion)
     }
 
-    if (singeplayer) {
+    if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:
       // Note 1: here we have custom sync communication between server Client (flying-squid) and game client (mineflayer)
       // Note 2: custom Server class is used which simplifies communication & Client creation on it's side
@@ -374,14 +378,13 @@ async function connect (connectOptions: {
       localServer.on('newPlayer', (player) => {
         // it's you!
         player.on('loadingStatus', (newStatus) => {
-          console.log('loadingStatus')
           setLoadingScreenStatus(newStatus, false, false, true)
         })
       })
     }
 
     let initialLoadingText: string
-    if (singeplayer) {
+    if (singleplayer) {
       initialLoadingText = 'Local server is still starting'
     } else if (p2pMultiplayer) {
       initialLoadingText = 'Connecting to peer'
@@ -396,10 +399,10 @@ async function connect (connectOptions: {
       ...p2pMultiplayer ? {
         stream: await connectToPeer(connectOptions.peerId),
       } : {},
-      ...singeplayer || p2pMultiplayer ? {
+      ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
       } : {},
-      ...singeplayer ? {
+      ...singleplayer ? {
         version: serverOptions.version,
         connect () { },
         Client: CustomChannelClient as any,
@@ -422,7 +425,7 @@ async function connect (connectOptions: {
       }
     }) as unknown as typeof __type_bot
     window.bot = bot
-    if (singeplayer || p2pMultiplayer) {
+    if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature
       bot.supportFeature = (feature) => {
@@ -489,6 +492,8 @@ async function connect (connectOptions: {
     if (isCypress()) throw new Error(`disconnected: ${endReason}`)
   })
 
+  onBotCreate()
+
   bot.once('login', () => {
     // server is ok, add it to the history
     const serverHistory: string[] = JSON.parse(localStorage.getItem('serverHistory') || '[]')
@@ -500,6 +505,7 @@ async function connect (connectOptions: {
 
   // don't use spawn event, player can be dead
   bot.once('health', () => {
+    miscUiState.gameLoaded = true
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
     const mcData = require('minecraft-data')(bot.version)
 
@@ -511,29 +517,8 @@ async function connect (connectOptions: {
 
     const center = bot.entity.position
 
-    const worldView = window.worldView = new WorldDataEmitter(bot.world, singeplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
+    const worldView = window.worldView = new WorldDataEmitter(bot.world, singleplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
     setRenderDistance()
-
-    const updateFov = () => {
-      let fovSetting = options.fov
-      // todo check values and add transition
-      if (bot.controlState.sprint && !bot.controlState.sneak) {
-        fovSetting += 5
-      }
-      if (gameAdditionalState.isFlying) {
-        fovSetting += 5
-      }
-      viewer.camera.fov = fovSetting
-      viewer.camera.updateProjectionMatrix()
-    }
-    updateFov()
-    subscribeKey(options, 'fov', updateFov)
-    subscribeKey(gameAdditionalState, 'isFlying', updateFov)
-    subscribeKey(gameAdditionalState, 'isSprinting', updateFov)
-    subscribeKey(gameAdditionalState, 'isSneaking', () => {
-      viewer.isSneaking = gameAdditionalState.isSneaking
-      viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
-    })
 
     bot.on('physicsTick', () => updateCursor())
 
@@ -593,22 +578,6 @@ async function connect (connectOptions: {
 
     registerListener(document, 'pointerlockchange', changeCallback, false)
 
-    let holdingTouch: { touch: Touch, elem: HTMLElement } | undefined
-    document.body.addEventListener('touchend', (e) => {
-      if (!isGameActive(true)) return
-      if (holdingTouch?.touch.identifier !== e.changedTouches[0].identifier) return
-      holdingTouch.elem.click()
-      holdingTouch = undefined
-    })
-    document.body.addEventListener('touchstart', (e) => {
-      if (!isGameActive(true)) return
-      e.preventDefault()
-      holdingTouch = {
-        touch: e.touches[0],
-        elem: e.composedPath()[0] as HTMLElement
-      }
-    }, { passive: false })
-
     const cameraControlEl = hud
 
     /** after what time of holding the finger start breaking the block */
@@ -663,14 +632,6 @@ async function connect (connectOptions: {
       capturedPointer.y = e.pageY
     }, { passive: false })
 
-    contro.on('stickMovement', ({ stick, vector }) => {
-      if (stick !== 'right') return
-      let { x, z } = vector
-      if (Math.abs(x) < 0.18) x = 0
-      if (Math.abs(z) < 0.18) z = 0
-      onCameraMove({ movementX: x * 10, movementY: z * 10, type: 'touchmove' })
-    })
-
     const pointerUpHandler = (e: PointerEvent) => {
       if (e.pointerId === undefined || e.pointerId !== capturedPointer?.id) return
       clearTimeout(virtualClickTimeout)
@@ -682,7 +643,7 @@ async function connect (connectOptions: {
         virtualClickActive = false
       } else if (!capturedPointer.activateCameraMove && (Date.now() - capturedPointer.time < touchStartBreakingBlockMs)) {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 2 }))
-        blockInteraction.update()
+        worldInteractions.update()
         document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       }
       capturedPointer = undefined
@@ -700,14 +661,20 @@ async function connect (connectOptions: {
 
     console.log('Done!')
 
-    hud.init(renderer, bot, server.host)
-    hud.style.display = 'block'
-    blockInteraction.init()
+    onGameLoad(async () => {
+      if (!viewer.world.downloadedBlockStatesData && !viewer.world.customBlockStatesData) {
+        await new Promise<void>(resolve => {
+          viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', () => resolve())
+        })
+      }
+      hud.init(renderer, bot, server.host)
+      hud.style.display = 'block'
+    })
+    worldInteractions.init()
 
     errorAbortController.abort()
     if (appStatusState.isError) return
     setLoadingScreenStatus(undefined)
-    miscUiState.gameLoaded = true
     void viewer.waitForChunksToRender().then(() => {
       console.log('All done and ready!')
       document.dispatchEvent(new Event('cypress-world-ready'))
@@ -715,40 +682,46 @@ async function connect (connectOptions: {
   })
 }
 
-window.addEventListener('mousedown', () => {
-  void pointerLock.requestPointerLock()
-})
-
-window.addEventListener('keydown', (e) => {
-  if (e.code !== 'Escape') return
-  if (activeModalStack.length) {
-    hideCurrentModal(undefined, () => {
-      if (!activeModalStack.length) {
-        pointerLock.justHitEscape = true
-      }
-    })
-  } else if (pointerLock.hasPointerLock) {
-    document.exitPointerLock?.()
-    if (options.autoExitFullscreen) {
-      void document.exitFullscreen()
+listenGlobalEvents()
+watchValue(miscUiState, async s => {
+  if (s.appLoaded) { // fs ready
+    const qs = new URLSearchParams(window.location.search)
+    if (qs.get('singleplayer') === '1') {
+      loadSingleplayer({
+        worldFolder: undefined
+      })
     }
-  } else {
-    document.dispatchEvent(new Event('pointerlockchange'))
+    if (qs.get('loadSave')) {
+      const savePath = `/data/worlds/${qs.get('loadSave')}`
+      try {
+        await fs.promises.stat(savePath)
+      } catch (err) {
+        alert(`Save ${savePath} not found`)
+        return
+      }
+      await loadInMemorySave(savePath)
+    }
   }
 })
 
-window.addEventListener('keydown', (e) => {
-  if (e.code === 'F11') {
-    e.preventDefault()
-    void goFullscreen(true)
-  }
-  if (e.code === 'KeyL' && e.altKey) {
-    console.clear()
-  }
+// #region fire click event on touch as we disable default behaviors
+let activeTouch: { touch: Touch, elem: HTMLElement } | undefined
+document.body.addEventListener('touchend', (e) => {
+  if (!isGameActive(true)) return
+  if (activeTouch?.touch.identifier !== e.changedTouches[0].identifier) return
+  activeTouch.elem.click()
+  activeTouch = undefined
 })
+document.body.addEventListener('touchstart', (e) => {
+  if (!isGameActive(true)) return
+  e.preventDefault()
+  activeTouch = {
+    touch: e.touches[0],
+    elem: e.composedPath()[0] as HTMLElement
+  }
+}, { passive: false })
+// #endregion
 
-void addPanoramaCubeMap()
-void main()
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
 

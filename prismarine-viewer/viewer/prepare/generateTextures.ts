@@ -1,9 +1,10 @@
 import path from 'path'
-import { makeTextureAtlas } from './atlas'
+import { makeBlockTextureAtlas } from './atlas'
 import { McAssets, prepareBlocksStates } from './modelsBuilder'
 import mcAssets from 'minecraft-assets'
 import fs from 'fs-extra'
 import { prepareMoreGeneratedBlocks } from './moreGeneratedBlocks'
+import { generateItemsAtlases } from './genItemsAtlas'
 
 const publicPath = path.resolve(__dirname, '../../public')
 
@@ -19,17 +20,18 @@ fs.mkdirSync(blockStatesPath, { recursive: true })
 
 const warnings = new Set<string>()
 Promise.resolve().then(async () => {
+  generateItemsAtlases()
   console.time('generateTextures')
   for (const version of mcAssets.versions as typeof mcAssets['versions']) {
     // for debugging (e.g. when above is overridden)
     if (!mcAssets.versions.includes(version)) {
-      throw new Error(`Version ${version} is not supported by minecraft-assets, skipping...`)
+      throw new Error(`Version ${version} is not supported by minecraft-assets`)
     }
     const assets = mcAssets(version)
     const { warnings: _warnings } = await prepareMoreGeneratedBlocks(assets)
     _warnings.forEach(x => warnings.add(x))
     // #region texture atlas
-    const atlas = makeTextureAtlas(assets)
+    const atlas = makeBlockTextureAtlas(assets)
     const out = fs.createWriteStream(path.resolve(texturesPath, version + '.png'))
     const stream = (atlas.canvas as any).pngStream()
     stream.on('data', (chunk) => out.write(chunk))

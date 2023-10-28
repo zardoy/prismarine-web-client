@@ -107,13 +107,15 @@ const plugins = [
     setup (build) {
       let count = 0
       let time
+      let prevHash
       build.onStart(() => {
         time = Date.now()
       })
       build.onEnd(({ errors, outputFiles: _outputFiles, metafile, warnings }) => {
-        /** @type {any} */
+        /** @type {import('esbuild').OutputFile[]} */
         const outputFiles = _outputFiles
         const elapsed = Date.now() - time
+        outputFiles.find(outputFile => outputFile.path)
 
         if (errors.length) {
           connectedClients.forEach((res) => {
@@ -127,6 +129,11 @@ const plugins = [
         // fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
 
         const outputFile = outputFiles.find(x => x.path.endsWith('.js'))
+        if (outputFile.hash === prevHash) {
+          console.log('Ignoring reload as contents the same')
+          return
+        }
+        prevHash = outputFile.hash
         let outputText = outputFile.text
         //@ts-ignore
         if (['inline', 'both'].includes(build.initialOptions.sourcemap)) {

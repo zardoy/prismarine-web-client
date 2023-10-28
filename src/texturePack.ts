@@ -4,9 +4,10 @@ import JSZip from 'jszip'
 import type { Viewer } from 'prismarine-viewer/viewer/lib/viewer'
 import { subscribeKey } from 'valtio/utils'
 import { proxy, ref } from 'valtio'
+import { getVersion } from 'prismarine-viewer/viewer/lib/version'
 import blocksFileNames from '../generated/blocks.json'
-import type { BlockStates } from './inventory'
-import { removeFileRecursiveAsync } from './browserfs'
+import type { BlockStates } from './playerWindows'
+import { copyFilesAsync, copyFilesAsyncWithProgress, mkdirRecursive, removeFileRecursiveAsync } from './browserfs'
 import { setLoadingScreenStatus } from './utils'
 import { showNotification } from './globalState'
 
@@ -27,19 +28,7 @@ function nextPowerOfTwo (n) {
   return n + 1
 }
 
-const mkdirRecursive = async (path) => {
-  const parts = path.split('/')
-  let current = ''
-  for (const part of parts) {
-    current += part + '/'
-    try {
-      await fs.promises.mkdir(current)
-    } catch (err) {
-    }
-  }
-}
-
-const texturePackBasePath = '/userData/resourcePacks/default'
+const texturePackBasePath = '/data/resourcePacks/default'
 export const uninstallTexturePack = async () => {
   await removeFileRecursiveAsync(texturePackBasePath)
   setCustomTexturePackData(undefined, undefined)
@@ -63,6 +52,12 @@ export const updateTexturePackInstalledState = async () => {
     resourcePackState.resourcePackInstalled = await existsAsync(texturePackBasePath)
   } catch {
   }
+}
+
+export const installTexturePackFromHandle = async () => {
+  await mkdirRecursive(texturePackBasePath)
+  await copyFilesAsyncWithProgress('/world', texturePackBasePath)
+  await completeTexturePackInstall()
 }
 
 export const installTexturePack = async (file: File | ArrayBuffer, name = file['name']) => {
@@ -91,6 +86,10 @@ export const installTexturePack = async (file: File | ArrayBuffer, name = file['
     done++
     upStatus()
   }))
+  await completeTexturePackInstall(name)
+}
+
+export const completeTexturePackInstall = async (name?: string) => {
   await fs.promises.writeFile(join(texturePackBasePath, 'name.txt'), name ?? '??', 'utf8')
 
   if (viewer?.world.active) {
@@ -120,7 +119,7 @@ type TextureResolvedData = {
 const arrEqual = (a: any[], b: any[]) => a.length === b.length && a.every((x) => b.includes(x))
 
 const applyTexturePackData = async (version: string, { blockSize }: TextureResolvedData, blocksUrlContent: string) => {
-  const result = await fetch(`blocksStates/${version}.json`)
+  const result = await fetch(`blocksStates/${getVersion(version)}.json`)
   const blockStates: BlockStates = await result.json()
   const factor = blockSize / 16
 
@@ -170,11 +169,11 @@ const getSizeFromImage = async (filePath: string) => {
 
 export const genTexturePackTextures = async (version: string) => {
   setCustomTexturePackData(undefined, undefined)
-  let blocksBasePath = '/userData/resourcePacks/default/assets/minecraft/textures/block'
+  let blocksBasePath = '/data/resourcePacks/default/assets/minecraft/textures/block'
   // todo not clear why this is needed
-  const blocksBasePathAlt = '/userData/resourcePacks/default/assets/minecraft/textures/blocks'
-  const blocksGeneratedPath = `/userData/resourcePacks/default/${version}.png`
-  const generatedPathData = `/userData/resourcePacks/default/${version}.json`
+  const blocksBasePathAlt = '/data/resourcePacks/default/assets/minecraft/textures/blocks'
+  const blocksGeneratedPath = `/data/resourcePacks/default/${version}.png`
+  const generatedPathData = `/data/resourcePacks/default/${version}.json`
   if (!(await existsAsync(blocksBasePath))) {
     if (await existsAsync(blocksBasePathAlt)) {
       blocksBasePath = blocksBasePathAlt
@@ -214,7 +213,7 @@ export const genTexturePackTextures = async (version: string) => {
   const canvas = document.createElement('canvas')
   canvas.width = imgSize
   canvas.height = imgSize
-  const src = `textures/${version}.png`
+  const src = `textures/${getVersion(version)}.png`
   const ctx = canvas.getContext('2d')
   ctx.imageSmoothingEnabled = false
   const img = new Image()
@@ -271,8 +270,8 @@ export const genTexturePackTextures = async (version: string) => {
 export const watchTexturepackInViewer = (viewer: Viewer) => {
   subscribeKey(resourcePackState, 'currentTexturesDataUrl', () => {
     console.log('applying resourcepack world data')
-    viewer.world.texturesDataUrl = resourcePackState.currentTexturesDataUrl
-    viewer.world.blockStatesData = resourcePackState.currentTexturesBlockStates
+    viewer.world.customTexturesDataUrl = resourcePackState.currentTexturesDataUrl
+    viewer.world.customBlockStatesData = resourcePackState.currentTexturesBlockStates
     if (!viewer?.world.active) return
     viewer.world.updateTexturesData()
   })

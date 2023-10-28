@@ -4,12 +4,12 @@ import { join } from 'path'
 import fs from 'fs'
 import { subscribeKey } from 'valtio/utils'
 import { fromTexturePackPath, resourcePackState } from './texturePack'
-import { options } from './optionsStorage'
+import { options, watchValue } from './optionsStorage'
 import { miscUiState } from './globalState'
 
 let panoramaCubeMap
 let shouldDisplayPanorama = false
-let panoramaUsesResourcePack = false
+let panoramaUsesResourcePack = null
 
 const panoramaFiles = [
   'panorama_1.png', // WS
@@ -43,17 +43,28 @@ const updateResourcePackSupportPanorama = async () => {
   }
 }
 
-subscribeKey(resourcePackState, 'resourcePackInstalled', async () => {
-  const oldState = panoramaUsesResourcePack
-  const newState = resourcePackState.resourcePackInstalled && (await updateResourcePackSupportPanorama(), panoramaUsesResourcePack)
-  if (newState === oldState) return
-  removePanorama()
-  void addPanoramaCubeMap()
+watchValue(miscUiState, m => {
+  if (m.appLoaded) {
+    // Also adds panorama on app load here
+    watchValue(resourcePackState, async (s) => {
+      const oldState = panoramaUsesResourcePack
+      const newState = s.resourcePackInstalled && (await updateResourcePackSupportPanorama(), panoramaUsesResourcePack)
+      if (newState === oldState) return
+      removePanorama()
+      void addPanoramaCubeMap()
+    })
+  }
+})
+
+subscribeKey(miscUiState, 'loadedDataVersion', () => {
+  if (miscUiState.loadedDataVersion) removePanorama()
+  else void addPanoramaCubeMap()
 })
 
 // Menu panorama background
+// TODO-low use abort controller
 export async function addPanoramaCubeMap () {
-  if (panoramaCubeMap || miscUiState.loadedDataVersion) return
+  if (panoramaCubeMap || miscUiState.loadedDataVersion || options.disableAssets) return
   shouldDisplayPanorama = true
 
   let time = 0

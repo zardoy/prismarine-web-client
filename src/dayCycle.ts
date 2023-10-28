@@ -1,3 +1,5 @@
+import { options } from './optionsStorage'
+
 export default () => {
   bot.on('time', () => {
     // 0 morning
@@ -6,7 +8,7 @@ export default () => {
     const night = 17_843
     const morningStart = 22_300
     const morningEnd = 23_961
-    const timeProgress = bot.time.time
+    const timeProgress = options.dayCycleAndLighting ? bot.time.time : 0
 
     // todo check actual colors
     const dayColorRainy = { r: 111 / 255, g: 156 / 255, b: 236 / 255 }
@@ -20,13 +22,13 @@ export default () => {
     } else if (timeProgress < night) {
       const progressNorm = timeProgress - evening
       const progressMax = night - evening
-      int = progressNorm / progressMax
+      int = 1 - progressNorm / progressMax
     } else if (timeProgress < morningStart) {
       int = 0
     } else if (timeProgress < morningEnd) {
       const progressNorm = timeProgress - morningStart
       const progressMax = night - morningEnd
-      int = 1 - (progressNorm / progressMax)
+      int = progressNorm / progressMax
     }
     // todo need to think wisely how to set these values & also move directional light around!
     const colorInt = Math.max(int, 0.1)

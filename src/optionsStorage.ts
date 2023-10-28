@@ -26,6 +26,10 @@ const defaultOptions = {
   autoRequestCompletions: true,
   touchButtonsSize: 40,
   highPerformanceGpu: false,
+  /** @unstable */
+  disableAssets: false,
+  unimplementedContainers: false,
+  dayCycleAndLighting: true,
 
   showChunkBorders: false,
   frameLimit: false as number | false,
@@ -53,6 +57,10 @@ export const options = proxy(
 
 window.options = window.settings = options
 
+export const resetOptions = () => {
+  Object.assign(options, defaultOptions)
+}
+
 subscribe(options, () => {
   localStorage.options = JSON.stringify(options)
 })
@@ -76,6 +84,10 @@ export const watchValue: WatchValue = (proxy, callback) => {
 
 watchValue(options, o => {
   globalThis.excludeCommunicationDebugEvents = o.excludeCommunicationDebugEvents
+})
+
+watchValue(options, o => {
+  document.body.classList.toggle('disable-assets', o.disableAssets)
 })
 
 export const useOptionValue = (setting, valueCallback) => {

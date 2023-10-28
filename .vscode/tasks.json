@@ -1,0 +1,36 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "viewer-server",
+            "command": "live-server --port=9090",
+            "type": "shell",
+            "args": [],
+            "problemMatcher": [],
+            // set cwd
+            "options": {
+                "cwd": "${workspaceFolder}/prismarine-viewer/public/"
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
+        },
+        {
+            "label": "viewer-esbuild",
+            "type": "shell",
+            "command": "node prismarine-viewer/esbuild.mjs -w",
+            "problemMatcher": "$esbuild-watch",
+            "presentation": {
+                "reveal": "silent"
+            },
+        },
+        {
+            "label": "viewer server+esbuild",
+            "dependsOn": [
+                "viewer-server",
+                "viewer-esbuild"
+            ],
+            "dependsOrder": "parallel",
+        }
+    ]
+}

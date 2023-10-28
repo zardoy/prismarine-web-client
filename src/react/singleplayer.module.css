@@ -1,0 +1,44 @@
+.root {
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    /* take all available space */
+    flex: 1;
+    margin: 5px;
+    overflow: auto;
+    scrollbar-width: thin;
+}
+
+.world_root {
+    height: 40px;
+    width: 300px;
+    border: 1px solid transparent;
+    display: flex;
+    outline: none;
+}
+.world_info {
+    margin-left: 3px;
+    display: flex;
+    flex-direction: column;
+    font-size: 11px;
+}
+.world_image {
+    height: 100%;
+    filter: grayscale(1);
+    aspect-ratio: 1;
+}
+.world_root.world_focused {
+    border-color: white;
+}
+
+.title {
+    margin-top: 10px;
+}

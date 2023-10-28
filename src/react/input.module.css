@@ -1,0 +1,39 @@
+.container {
+    position: relative;
+        width: 200px;
+        height: 20px;
+        background: black;
+        border: 1px solid grey;
+        box-sizing: content-box;
+}
+
+.input {
+    position: relative;
+        outline: none;
+        border: none;
+        background: none;
+        left: 1px;
+        width: calc(100% - 2px);
+        height: 100%;
+        font-family: minecraft, mojangles, monospace;
+        font-size: 10px;
+        color: white;
+        text-shadow: 1px 1px #222;
+}
+
+.container:hover,
+      .container:focus-within {
+        border-color: white;
+      }
+
+      input::-webkit-outer-spin-button,
+      input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* Firefox */
+      input[type=number] {
+        appearance: textfield;
+        -moz-appearance: textfield;
+      }

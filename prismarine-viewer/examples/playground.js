@@ -94,7 +94,7 @@ async function main () {
   // const data = await fetch('smallhouse1.schem').then(r => r.arrayBuffer())
   // const schem = await Schematic.read(Buffer.from(data), version)
 
-  const viewDistance = 2
+  const viewDistance = 0
   const center = new Vec3(0, 90, 0)
 
   const World = WorldLoader(version)
@@ -132,7 +132,7 @@ async function main () {
 
   viewer.listen(worldView)
   // Load chunks
-  worldView.init(center)
+  await worldView.init(center)
   window['worldView'] = worldView
   window['viewer'] = viewer
 
@@ -155,13 +155,14 @@ async function main () {
   }
   const onUpdate = {
     block () {
+      folder.destroy()
+      const block = mcData.blocksByName[params.block]
+      if (!block) return
+      const props = new Block(block.id, 0, 0).getProperties()
       //@ts-ignore
       const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
-      folder.destroy()
-      if (!states) {
-        return
-      }
       folder = gui.addFolder('metadata')
+      if (states) {
       for (const state of states) {
         let defaultValue
         switch (state.type) {
@@ -186,6 +187,12 @@ async function main () {
           folder.add(blockProps, state.name, state.values)
         } else {
           folder.add(blockProps, state.name)
+          }
+        }
+      } else {
+        for (const [name, value] of Object.entries(props)) {
+          blockProps[name] = value
+          folder.add(blockProps, name)
         }
       }
       folder.open()
@@ -214,8 +221,13 @@ async function main () {
         child.updateDisplay()
       }
     } else {
+      try {
       //@ts-ignore
       block = Block.fromProperties(blockId ?? -1, blockProps, 0)
+      } catch (err) {
+        console.error(err)
+        block = Block.fromStateId(0, 0)
+      }
     }
 
     //@ts-ignore

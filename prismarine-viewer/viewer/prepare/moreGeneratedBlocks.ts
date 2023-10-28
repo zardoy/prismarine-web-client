@@ -7,7 +7,7 @@ import fs from 'fs'
 import { fileURLToPath } from 'url'
 
 // todo refactor
-const twoBlockTextures: string[] = []
+const twoTileTextures: string[] = []
 let currentImage: Jimp
 let currentBlockName: string
 let currentMcAssets: McAssets
@@ -228,8 +228,8 @@ const handleSign = async (dataBase: string, match: RegExpExecArray) => {
       ],
     }
   }
-  twoBlockTextures.push(blockTextures.face.texture)
-  twoBlockTextures.push(blockTextures.up.texture)
+  twoTileTextures.push(blockTextures.face.texture)
+  twoTileTextures.push(blockTextures.up.texture)
 }
 
 const chestModels = {
@@ -472,5 +472,5 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
 }
 
 export const getAdditionalTextures = () => {
-  return { generated: generatedImageTextures, twoBlockTextures }
+  return { generated: generatedImageTextures, twoTileTextures }
 }

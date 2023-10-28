@@ -15,6 +15,7 @@
     "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\"",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
+    "start-experiments": "vite --config experiments/vite.config.ts",
     "watch-worker": "node prismarine-viewer/buildWorker.mjs -w"
   },
   "keywords": [
@@ -26,9 +27,10 @@
   "license": "MIT",
   "dependencies": {
     "@dimaka/interface": "0.0.3-alpha.0",
+    "@floating-ui/react": "^0.26.1",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
-    "@types/wicg-file-system-access": "^2020.9.6",
+    "@types/wicg-file-system-access": "^2023.10.2",
     "@zardoy/react-util": "^0.2.0",
     "@zardoy/utils": "^0.0.11",
     "browserfs": "github:zardoy/browserfs#build",
@@ -55,9 +57,10 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-transition-group": "^4.4.5",
+    "sanitize-filename": "^1.6.3",
     "stats-gl": "^1.0.5",
     "stats.js": "^0.17.0",
-    "tippy.js": "^6.3.7",
+    "tabbable": "^6.2.0",
     "title-case": "3.x",
     "valtio": "^1.11.1",
     "workbox-build": "^7.0.0"
@@ -111,6 +114,7 @@
   },
   "pnpm": {
     "overrides": {
+      "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
       "prismarine-world": "github:zardoy/prismarine-world#next-era",
       "minecraft-data": "3.45.0",

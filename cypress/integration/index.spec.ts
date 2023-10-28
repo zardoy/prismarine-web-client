@@ -1,9 +1,9 @@
 /// <reference types="cypress" />
 import type { AppOptions } from '../../src/optionsStorage'
 
-const cleanVisit = () => {
+const cleanVisit = (url?) => {
   window.localStorage.clear()
-  visit()
+  visit(url)
 }
 
 const visit = (url = '/') => {
@@ -38,7 +38,7 @@ const setOptions = (options: Partial<AppOptions>) => {
 }
 
 it('Loads & renders singleplayer', () => {
-  cleanVisit()
+  cleanVisit('/?singleplayer=1')
   setOptions({
     localServerOptions: {
       generation: {
@@ -49,7 +49,6 @@ it('Loads & renders singleplayer', () => {
     },
     renderDistance: 2
   })
-  cy.get('[data-test-id="singleplayer-button"]', { includeShadowDom: true }).click()
   testWorldLoad()
 })
 

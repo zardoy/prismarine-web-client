@@ -6,9 +6,10 @@ import { proxy, subscribe } from 'valtio'
 import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
-import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal } from './globalState'
-import { reloadChunks } from './utils'
+import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
+import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
+import { openPlayerInventory } from './playerWindows'
 
 // doesnt seem to work for now
 const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
@@ -66,6 +67,7 @@ const setSprinting = (state: boolean) => {
 }
 
 contro.on('movementUpdate', ({ vector, gamepadIndex }) => {
+  miscUiState.usingGamepadInput = gamepadIndex !== undefined
   // gamepadIndex will be used for splitscreen in future
   const coordToAction = [
     ['z', -1, 'forward'],
@@ -166,7 +168,7 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
 // im still not sure, maybe need to refactor to handle in inventory instead
 const alwaysHandledCommand = (command: Command) => {
   if (command === 'general.inventory') {
-    if (activeModalStack.at(-1)?.reactType === 'inventory') {
+    if (activeModalStack.at(-1)?.reactType?.startsWith?.('player_win:')) { // todo?
       hideCurrentModal()
     }
   }
@@ -198,7 +200,7 @@ contro.on('trigger', ({ command }) => {
     switch (command) {
       case 'general.inventory':
         document.exitPointerLock?.()
-        showModal({ reactType: 'inventory' })
+        openPlayerInventory()
         break
       case 'general.drop':
         if (bot.heldItem) bot.tossStack(bot.heldItem)
@@ -278,7 +280,7 @@ const startFlyLoop = () => {
   endFlyLoop?.()
 
   endFlyLoop = makeInterval(() => {
-    if (!window.bot) endFlyLoop()
+    if (!bot) endFlyLoop()
     bot.entity.position.add(currentFlyVector.clone().multiply(new Vec3(0, 0.5, 0)))
   }, 50)
 }
@@ -307,29 +309,63 @@ const patchedSetControlState = (action, state) => {
   currentFlyVector.add(toAddVec)
 }
 
+const startFlying = (sendAbilities = true) => {
+  if (sendAbilities) {
+    bot._client.write('abilities', {
+      flags: 2,
+    })
+  }
+  // window.flyingSpeed will be removed
+  bot.physics['airborneAcceleration'] = window.flyingSpeed ?? 0.1 // todo use abilities
+  bot.entity.velocity = new Vec3(0, 0, 0)
+  bot.creative.startFlying()
+  startFlyLoop()
+}
+
+const endFlying = (sendAbilities = true) => {
+  if (bot.physics.gravity !== 0) return
+  if (sendAbilities) {
+    bot._client.write('abilities', {
+      flags: 0,
+    })
+  }
+  bot.physics['airborneAcceleration'] = standardAirborneAcceleration
+  bot.creative.stopFlying()
+  endFlyLoop?.()
+}
+
+let allowFlying = false
+
+export const onBotCreate = () => {
+  bot._client.on('abilities', ({ flags }) => {
+    allowFlying = !!(flags & 4)
+    if (flags & 2) { // flying
+      toggleFly(true, false)
+    } else {
+      toggleFly(false, false)
+    }
+  })
+}
+
 const standardAirborneAcceleration = 0.02
-const toggleFly = () => {
-  if (bot.game.gameMode !== 'creative' && bot.game.gameMode !== 'spectator') return
+const toggleFly = (newState = !isFlying(), sendAbilities?: boolean) => {
+  // if (bot.game.gameMode !== 'creative' && bot.game.gameMode !== 'spectator') return
+  if (!allowFlying) return
   if (bot.setControlState !== patchedSetControlState) {
     originalSetControlState = bot.setControlState
     bot.setControlState = patchedSetControlState
   }
 
-  if (isFlying()) {
-    bot.physics['airborneAcceleration'] = standardAirborneAcceleration
-    bot.creative.stopFlying()
-    endFlyLoop?.()
+  if (newState) {
+    startFlying(sendAbilities)
   } else {
-    // window.flyingSpeed will be removed
-    bot.physics['airborneAcceleration'] = window.flyingSpeed ?? 0.1
-    bot.entity.velocity = new Vec3(0, 0, 0)
-    bot.creative.startFlying()
-    startFlyLoop()
+    endFlying(sendAbilities)
   }
   gameAdditionalState.isFlying = isFlying()
 }
 // #endregion
 addEventListener('mousedown', async (e) => {
+  void pointerLock.requestPointerLock()
   if (!bot) return
   // wheel click
   // todo support ctrl+wheel (+nbt)
@@ -344,3 +380,33 @@ addEventListener('mousedown', async (e) => {
     bot.updateHeldItem()
   }
 })
+
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'Escape') return
+  if (activeModalStack.length) {
+    hideCurrentModal(undefined, () => {
+      if (!activeModalStack.length) {
+        pointerLock.justHitEscape = true
+      }
+    })
+  } else if (pointerLock.hasPointerLock) {
+    document.exitPointerLock?.()
+    if (options.autoExitFullscreen) {
+      void document.exitFullscreen()
+    }
+  } else {
+    document.dispatchEvent(new Event('pointerlockchange'))
+  }
+})
+
+// #region experimental debug things
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'F11') {
+    e.preventDefault()
+    void goFullscreen(true)
+  }
+  if (e.code === 'KeyL' && e.altKey) {
+    console.clear()
+  }
+})
+// #endregion

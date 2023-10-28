@@ -1,5 +1,4 @@
 import fs from 'fs'
-import { promisify } from 'util'
 import { supportedVersions } from 'flying-squid/src/lib/version'
 import * as nbt from 'prismarine-nbt'
 import { proxy } from 'valtio'
@@ -7,10 +6,11 @@ import { gzip } from 'node-gzip'
 import { options } from './optionsStorage'
 import { nameToMcOfflineUUID } from './flyingSquidUtils'
 import { forceCachedDataPaths } from './browserfs'
-import { isMajorVersionGreater } from './utils'
+import { disconnect, isMajorVersionGreater } from './utils'
+import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from './globalState'
+import { appStatusState } from './react/AppStatusProvider'
 
-const parseNbt = promisify(nbt.parse)
-
+// todo include name of opened handle (zip)!
 // additional fs metadata
 export const fsState = proxy({
   isReadonly: false,
@@ -21,6 +21,27 @@ export const fsState = proxy({
 
 const PROPOSE_BACKUP = true
 
+export function longArrayToNumber (longArray: number[]) {
+  const [high, low] = longArray
+  return (high << 32) + low
+}
+
+export const readLevelDat = async (path) => {
+  let levelDatContent
+  try {
+    // todo-low cache reading
+    levelDatContent = await fs.promises.readFile(`${path}/level.dat`)
+  } catch (err) {
+    if (err.code === 'ENOENT') {
+      return undefined
+    }
+    throw err
+  }
+  const { parsed } = await nbt.parse(Buffer.from(levelDatContent))
+  const levelDat: import('./mcTypes').LevelDat = nbt.simplify(parsed).Data
+  return { levelDat, dataRaw: parsed.value.Data.value as Record<string, any> }
+}
+
 export const loadSave = async (root = '/world') => {
   const disablePrompts = options.disableLoadPrompts
 
@@ -30,30 +51,21 @@ export const loadSave = async (root = '/world') => {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete forceCachedDataPaths[key]
   }
+  // todo check jsHeapSizeLimit
 
   const warnings: string[] = []
-  let levelDatContent
-  try {
-    // todo-low cache reading
-    levelDatContent = await fs.promises.readFile(`${root}/level.dat`)
-  } catch (err) {
-    if (err.code === 'ENOENT') {
-      if (fsState.isReadonly) {
-        throw new Error('level.dat not found, ensure you are loading world folder')
-      } else {
-        warnings.push('level.dat not found, world in current folder will be created')
-      }
+  const { levelDat, dataRaw } = await readLevelDat(root)
+  if (levelDat === undefined) {
+    if (fsState.isReadonly) {
+      throw new Error('level.dat not found, ensure you are loading world folder')
     } else {
-      throw err
+      warnings.push('level.dat not found, world in current folder will be created')
     }
   }
 
   let version: string | undefined
   let isFlat = false
-  if (levelDatContent) {
-    const parsedRaw = await parseNbt(Buffer.from(levelDatContent))
-    const levelDat: import('./mcTypes').LevelDat = nbt.simplify(parsedRaw).Data
-
+  if (levelDat) {
     const qs = new URLSearchParams(window.location.search)
     version = qs.get('mapVersion') ?? levelDat.Version?.Name
     if (!version) {
@@ -87,17 +99,15 @@ export const loadSave = async (root = '/world') => {
 
     const playerUuid = nameToMcOfflineUUID(options.localUsername)
     const playerDatPath = `${root}/playerdata/${playerUuid}.dat`
-    try {
-      await fs.promises.stat(playerDatPath)
-    } catch (err) {
-      const playerDat = await gzip(nbt.writeUncompressed({ name: '', ...(parsedRaw.value.Data.value as Record<string, any>).Player }))
+    const playerDataOverride = dataRaw.Player
+    if (playerDataOverride) {
+      const playerDat = await gzip(nbt.writeUncompressed({ name: '', ...playerDataOverride }))
       if (fsState.isReadonly) {
         forceCachedDataPaths[playerDatPath] = playerDat
       } else {
         await fs.promises.writeFile(playerDatPath, playerDat)
       }
     }
-
   }
 
   if (warnings.length && !disablePrompts) {
@@ -106,8 +116,6 @@ export const loadSave = async (root = '/world') => {
   }
 
   if (PROPOSE_BACKUP) {
-    // TODO-HIGH! enable after copyFile in browserfs is implemented
-
     // const doBackup = options.alwaysBackupWorldBeforeLoading ?? confirm('Do you want to backup your world files before loading it?')
     // // const doBackup = true
     // if (doBackup) {
@@ -123,10 +131,27 @@ export const loadSave = async (root = '/world') => {
     // }
   }
 
-  if (!fsState.isReadonly) {
+  if (!fsState.isReadonly && !fsState.inMemorySave && !disablePrompts) {
     // todo allow also to ctrl+s
-    alert('Note: the world is saved only on /save or disconnect! ENSURE YOU HAVE BACKUP!')
+    alert('Note: the world is saved only on /save or disconnect! Ensure you have backup!')
   }
+
+  // todo fix these
+  if (miscUiState.gameLoaded) {
+    await disconnect()
+  }
+  // todo reimplement
+  if (activeModalStacks['main-menu']) {
+    insertActiveModalStack('main-menu')
+  }
+  // todo use general logic
+  // if (activeModalStack.at(-1)?.reactType === 'app-status' && !appStatusState.isError) {
+  //   alert('Wait for operations to finish before loading a new world')
+  //   return
+  // }
+  // for (const _i of activeModalStack) {
+  //   hideModal(undefined, undefined, { force: true })
+  // }
 
   fsState.saveLoaded = true
   window.dispatchEvent(new CustomEvent('singleplayer', {

@@ -28,8 +28,10 @@ class WorldRenderer {
     this.loadedChunks = {}
     this.sectionsOutstanding = new Set()
     this.renderUpdateEmitter = new EventEmitter()
-    this.blockStatesData = undefined
-    this.texturesDataUrl = undefined
+    this.customBlockStatesData = undefined
+    this.customTexturesDataUrl = undefined
+    this.downloadedBlockStatesData = undefined
+    this.downloadedTextureImage = undefined
 
     this.material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
@@ -156,17 +158,25 @@ class WorldRenderer {
   }
 
   updateTexturesData () {
-    loadTexture(this.texturesDataUrl || `textures/${this.texturesVersion}.png`, texture => {
+    loadTexture(this.customTexturesDataUrl || `textures/${this.texturesVersion}.png`, texture => {
       texture.magFilter = THREE.NearestFilter
       texture.minFilter = THREE.NearestFilter
       texture.flipY = false
       this.material.map = texture
+      this.material.map.onUpdate = () => {
+        this.downloadedTextureImage = this.material.map.image
+      }
     })
 
     const loadBlockStates = async () => {
       return new Promise(resolve => {
-        if (this.blockStatesData) return resolve(this.blockStatesData)
-        return loadJSON(`blocksStates/${this.texturesVersion}.json`, resolve)
+        if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
+        return loadJSON(`blocksStates/${this.texturesVersion}.json`, (data) => {
+          this.downloadedBlockStatesData = data
+          // todo
+          this.renderUpdateEmitter.emit('blockStatesDownloaded')
+          resolve(data)
+        })
       })
     }
     loadBlockStates().then((blockStates) => {

@@ -5,6 +5,7 @@ import { pointerLock } from './utils'
 import { options } from './optionsStorage'
 import type { OptionsGroupType } from './optionsGuiScheme'
 import { saveServer } from './flyingSquidUtils'
+import { fsState } from './loadSave'
 
 // todo: refactor structure with support of hideNext=false
 
@@ -119,6 +120,10 @@ export const showContextmenu = (items: ContextMenuItem[], { clientX, clientY }) 
 
 // ---
 
+type AppConfig = {
+  mapsProvider?: string
+}
+
 export const miscUiState = proxy({
   currentDisplayQr: null as string | null,
   currentTouch: null as boolean | null,
@@ -129,6 +134,9 @@ export const miscUiState = proxy({
   gameLoaded: false,
   /** currently trying to load or loaded mc version, after all data is loaded */
   loadedDataVersion: null as string | null,
+  appLoaded: false,
+  usingGamepadInput: false,
+  appConfig: null as AppConfig | null
 })
 
 export const resetStateAfterDisconnect = () => {
@@ -138,7 +146,8 @@ export const resetStateAfterDisconnect = () => {
   miscUiState.flyingSquid = false
   miscUiState.wanOpened = false
   miscUiState.currentDisplayQr = null
-  miscUiState.currentTouch = null
+
+  fsState.saveLoaded = false
 }
 
 export const isGameActive = (foregroundCheck: boolean) => {

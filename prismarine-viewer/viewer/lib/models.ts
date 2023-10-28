@@ -393,14 +393,14 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         const block = world.getBlock(cursor)
         if (block.name.includes('sign')) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
-          const props = block.getProperties();
+          const props = block.getProperties()
           const facingRotationMap = {
             "north": 2,
             "south": 0,
             "west": 1,
             "east": 3
           }
-          const isWall = block.name.endsWith('wall_sign') || block.name.endsWith('hanging_sign');
+          const isWall = block.name.endsWith('wall_sign') || block.name.endsWith('hanging_sign')
           attr.signs[key] = {
             isWall,
             rotation: isWall ? facingRotationMap[props.facing] : +props.rotation
@@ -484,7 +484,7 @@ function parseProperties (properties) {
   return json
 }
 
-function matchProperties (block, properties) {
+function matchProperties (block, /* to match against */properties: Record<string, string | boolean>) {
   if (!properties) { return true }
 
   properties = parseProperties(properties)
@@ -493,17 +493,21 @@ function matchProperties (block, properties) {
     return properties.OR.some((or) => matchProperties(block, or))
   }
   for (const prop in blockProps) {
-    if (typeof properties[prop] === 'string' && !properties[prop].split('|').some((value) => value === blockProps[prop] + '')) {
+    if (properties[prop] === undefined) continue // unknown property, ignore
+    if (typeof properties[prop] !== 'string') properties[prop] = String(properties[prop])
+    if (!properties[prop].split('|').some((value) => value === String(blockProps[prop]))) {
       return false
     }
   }
   return true
 }
 
-function getModelVariants (block) {
+function getModelVariants (block: import('prismarine-block').Block) {
   // air, cave_air, void_air and so on...
-  if (block.name === 'air' || block.name.endsWith('_air')) return []
-  const state = blockStates[block.name] ?? blockStates.missing_texture
+  if (block.name === '' || block.name === 'air' || block.name.endsWith('_air')) return []
+  const matchedState = blockStates[block.name]
+  // if (!matchedState) currentWarnings.value.add(`Missing block ${block.name}`)
+  const state = matchedState ?? blockStates.missing_texture
   if (!state) return []
   if (state.variants) {
     for (const [properties, variant] of Object.entries(state.variants)) {
@@ -516,7 +520,7 @@ function getModelVariants (block) {
     const parts = state.multipart.filter(multipart => matchProperties(block, multipart.when))
     let variants = []
     for (const part of parts) {
-      variants = [...variants, ...Array.isArray(part.apply) ? part.apply : [part.apply]];
+      variants = [...variants, ...Array.isArray(part.apply) ? part.apply : [part.apply]]
     }
 
     return variants

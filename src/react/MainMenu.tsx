@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
+import { openURL } from '../menus/components/common'
 import styles from './mainMenu.module.css'
 import Button from './Button'
+import ButtonWithTooltip from './ButtonWithTooltip'
 
 type Action = (e: React.MouseEvent<HTMLButtonElement>) => void
 
@@ -11,6 +13,7 @@ interface Props {
   githubAction?: Action
   discordAction?: Action
   openFileAction?: Action
+  mapsProvider?: string
 }
 
 const refreshApp = async () => {
@@ -19,7 +22,9 @@ const refreshApp = async () => {
   window.location.reload()
 }
 
-export default ({ connectToServerAction, singleplayerAction, optionsAction, githubAction, discordAction, openFileAction }: Props) => {
+const httpsRegex = /^https?:\/\//
+
+export default ({ connectToServerAction, mapsProvider, singleplayerAction, optionsAction, githubAction, discordAction, openFileAction }: Props) => {
   const [versionStatus, setVersionStatus] = useState('')
   const [versionTitle, setVersionTitle] = useState('')
 
@@ -47,26 +52,38 @@ export default ({ connectToServerAction, singleplayerAction, optionsAction, gith
       </div>
 
       <div className={styles.menu}>
-        <Button
+        <ButtonWithTooltip
+          initialTooltip={{
+            content: 'Connect to Java servers!',
+            placement: 'top',
+          }}
           onClick={connectToServerAction}
           data-test-id='connect-screen-button'
         >
           Connect to server
-        </Button>
+        </ButtonWithTooltip>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Button
+          <ButtonWithTooltip
             style={{ width: 170 }}
             onClick={singleplayerAction}
             data-test-id='singleplayer-button'
+            initialTooltip={{
+              content: 'Create worlds and play offline',
+              placement: 'left',
+              offset: -40
+            }}
           >
             Singleplayer
-          </Button>
+          </ButtonWithTooltip>
 
-          <Button
-            style={{ width: '20px' }}
+          <ButtonWithTooltip
             data-test-id='select-file-folder'
             icon='pixelarticons:folder'
             onClick={openFileAction}
+            initialTooltip={{
+              content: 'Load any 1.8-1.16 Java world' + (window.showDirectoryPicker ? '' : ' (zip)'),
+              placement: 'bottom-start',
+            }}
           />
         </div>
         <Button
@@ -75,12 +92,15 @@ export default ({ connectToServerAction, singleplayerAction, optionsAction, gith
           Options
         </Button>
         <div className={styles['menu-row']}>
-          <Button
+          <ButtonWithTooltip
+            initialTooltip={{
+              content: 'Report bugs or request features!',
+            }}
             style={{ width: '98px' }}
             onClick={githubAction}
           >
             GitHub
-          </Button>
+          </ButtonWithTooltip>
           <Button
             style={{ width: '98px' }}
             onClick={discordAction}
@@ -100,6 +120,14 @@ export default ({ connectToServerAction, singleplayerAction, optionsAction, gith
         </span>
         <span className={styles['product-description']}>A Minecraft client in the browser!</span>
       </div>
+
+      {mapsProvider &&
+        <ButtonWithTooltip
+          className={styles['maps-provider']}
+          icon='pixelarticons:map'
+          initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'right' }}
+          onClick={() => openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider)}
+        />}
     </div>
   )
 }

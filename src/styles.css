@@ -22,9 +22,15 @@ html {
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   height: 100vh;
   overflow: hidden;
+  color: white;
+}
+body {
   --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png');
   --title-gui: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/title/minecraft.png');
-  color: white;
+}
+body.disable-assets {
+  --widgets-gui-atlas: none;
+  --title-gui: none;
 }
 
 body {
@@ -117,6 +123,10 @@ body {
   animation-duration: 0.3s;
   animation-timing-function: ease-in-out;
   animation-fill-mode: forwards;
+}
+
+.muted {
+  color: #999;
 }
 
 @keyframes dive-animation {

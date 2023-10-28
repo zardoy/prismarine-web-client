@@ -5,6 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  diamond-square: github:zardoy/diamond-square
   prismarine-block: github:zardoy/prismarine-block#next-era
   prismarine-world: github:zardoy/prismarine-world#next-era
   minecraft-data: 3.45.0
@@ -19,6 +20,9 @@ importers:
       '@dimaka/interface':
         specifier: 0.0.3-alpha.0
         version: 0.0.3-alpha.0(@babel/core@7.22.11)(@popperjs/core@2.11.8)(@types/react@18.2.20)(react-dom@18.2.0)(react@18.2.0)
+      '@floating-ui/react':
+        specifier: ^0.26.1
+        version: 0.26.1(react-dom@18.2.0)(react@18.2.0)
       '@types/react':
         specifier: ^18.2.20
         version: 18.2.20
@@ -26,8 +30,8 @@ importers:
         specifier: ^18.2.7
         version: 18.2.7
       '@types/wicg-file-system-access':
-        specifier: ^2020.9.6
-        version: 2020.9.6
+        specifier: ^2023.10.2
+        version: 2023.10.2
       '@zardoy/react-util':
         specifier: ^0.2.0
         version: 0.2.0(react-dom@18.2.0)(react@18.2.0)
@@ -63,7 +67,7 @@ importers:
         version: 4.18.2
       flying-squid:
         specifier: github:zardoy/space-squid#everything
-        version: github.com/zardoy/space-squid/93f0d264e225bb8526885a8caaa4c547af6fa6eb
+        version: github.com/zardoy/space-squid/aa59c32fa17c3dbb2c7c28cfb3655b4a7daf0489
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -106,15 +110,18 @@ importers:
       react-transition-group:
         specifier: ^4.4.5
         version: 4.4.5(react-dom@18.2.0)(react@18.2.0)
+      sanitize-filename:
+        specifier: ^1.6.3
+        version: 1.6.3
       stats-gl:
         specifier: ^1.0.5
         version: 1.0.5
       stats.js:
         specifier: ^0.17.0
         version: 0.17.0
-      tippy.js:
-        specifier: ^6.3.7
-        version: 6.3.7
+      tabbable:
+        specifier: ^6.2.0
+        version: 6.2.0
       title-case:
         specifier: 3.x
         version: 3.0.3
@@ -208,7 +215,7 @@ importers:
         version: 1.0.0
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: github.com/zardoy/minecraft-inventory-gui/c1331c91fb39bd562dc48eeb33321240d4870edd(@types/react@18.2.20)(react@18.2.0)
+        version: github.com/zardoy/minecraft-inventory-gui/69003692b3041d94a420a65c7d3cc1b37737e838(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer#custom
         version: github.com/zardoy/mineflayer/e828c161aab120f2d926fba48de3b4d57c361710
@@ -2294,14 +2301,12 @@ packages:
     resolution: {integrity: sha512-kK1h4m36DQ0UHGj5Ah4db7R0rHemTqqO0QLvUqi1/mUUp3LuAWbWxdxSIf/XsnH9VS6rRVPLJCncjRzUvyCLXg==}
     dependencies:
       '@floating-ui/utils': 0.1.6
-    dev: true
 
   /@floating-ui/dom@1.5.3:
     resolution: {integrity: sha512-ClAbQnEqJAKCJOEbbLo5IUlZHkNszqhuxS4fHAVxRPXPya6Ysf2G8KypnYcOTpx6I8xcgF9bbHb6g/2KpbV8qA==}
     dependencies:
       '@floating-ui/core': 1.5.0
       '@floating-ui/utils': 0.1.6
-    dev: true
 
   /@floating-ui/react-dom@2.0.2(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-5qhlDvjaLmAst/rKb3VdlCinwTF4EYMiVxuuc/HVUjs46W0zgtbMmAZ1UTsDrRTxRmUEzl92mOtWbeeXL26lSQ==}
@@ -2312,11 +2317,22 @@ packages:
       '@floating-ui/dom': 1.5.3
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
-    dev: true
+
+  /@floating-ui/react@0.26.1(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-5gyJIJ2tZOPMgmZ/vEcVhdmQiy75b7LPO71sYIiDsxGcZ4hxLuygQWCuT0YXHqppt//Eese+L6t5KnX/gZ3tVA==}
+    peerDependencies:
+      react: ^18.2.0
+      react-dom: '>=16.8.0'
+    dependencies:
+      '@floating-ui/react-dom': 2.0.2(react-dom@18.2.0)(react@18.2.0)
+      '@floating-ui/utils': 0.1.6
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+      tabbable: 6.2.0
+    dev: false
 
   /@floating-ui/utils@0.1.6:
     resolution: {integrity: sha512-OfX7E2oUDYxtBvsuS4e/jSn4Q9Qb6DzgeYtsAdkPZ47znpoNsMgZw0+tVijiv3uGNR6dgNlty6r9rzIzHjtd/A==}
-    dev: true
 
   /@humanwhocodes/config-array@0.11.11:
     resolution: {integrity: sha512-N2brEuAadi0CcdeMXUkhbZB84eskAc8MEX1By6qEchoVywSgXPIjou4rYsl0V3Hj0ZnuGycGCjdNgockbzeWNA==}
@@ -4855,8 +4871,8 @@ packages:
     resolution: {integrity: sha512-HVOsSRTQYx3zpVl0c0FBmmmcY/60BkQLzVnpE9M1aG4f2Z0aKlBWfj4XZ2zr++XNBfkQWYcwhGlmuu44RJPDqg==}
     dev: false
 
-  /@types/wicg-file-system-access@2020.9.6:
-    resolution: {integrity: sha512-6hogE75Hl2Ov/jgp8ZhDaGmIF/q3J07GtXf8nCJCwKTHq7971po5+DId7grft09zG7plBwpF6ZU0yx9Du4/e1A==}
+  /@types/wicg-file-system-access@2023.10.2:
+    resolution: {integrity: sha512-nSiK8qt0O7sQmDcW3HYfvya7GDoD6ipgdcUFzk3QN+UBIqXeNg38Nh6VnKv7EIPfkVETRiquyMskCbpxUzgX1Q==}
     dev: false
 
   /@types/yargs-parser@21.0.1:
@@ -6945,15 +6961,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: true
-
-  /diamond-square@1.2.0:
-    resolution: {integrity: sha512-8WKLWV8Bey1UWaDHDocry7JDzpTRBOx/iOktkCoCjmKYcpVFOihIoeeg9CG+n2WIIenRxtyne/DxzsR25bQwpQ==}
-    dependencies:
-      minecraft-data: 3.45.0
-      prismarine-chunk: 1.35.0(minecraft-data@3.45.0)
-      random-seed: 0.3.0
-      vec3: 0.1.8
-    dev: false
 
   /diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
@@ -10316,6 +10323,12 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  /mkdirp@2.1.6:
+    resolution: {integrity: sha512-+hEnITedc8LAtIP9u3HJDFIdcLV2vXP33sqLLIzkv1Db1zO/1OxbvYf0Y1OC/S/Qo5dxHXepofhmxL02PsKe+A==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dev: false
+
   /mlly@1.4.2:
     resolution: {integrity: sha512-i/Ykufi2t1EZ6NaPLdfnZk2AX8cs0d+mTzVKuPfqPKPatxLApaBoxJQ9x1/uckXtrS/U5oisPMDkNs0yQTaBRg==}
     dependencies:
@@ -10538,6 +10551,12 @@ packages:
     resolution: {integrity: sha512-Bvso6Zi9LY4otIZefYrscsUpo2mUpiAVIEmSZV2q41sP8tHZoert3Yu6zv4f/RXJqMNZQKCtnhDugIuCma23YA==}
     dependencies:
       asn1: 0.2.3
+
+  /node-rsa@1.1.1:
+    resolution: {integrity: sha512-Jd4cvbJMryN21r5HgxQOpMEqv+ooke/korixNNK3mGqfGJmy0M77WDDzo/05969+OkMy3XW1UuZsSmW9KQm7Fw==}
+    dependencies:
+      asn1: 0.2.6
+    dev: false
 
   /nopt@1.0.10:
     resolution: {integrity: sha512-NWmpvLSqUrgrAC9HCuxEvb+PSloHpqVu+FqcO4eeF2h5qYRhA7ev6KvelyQAKtegUbC6RypJnlEOhd8vloNKYg==}
@@ -12920,6 +12939,10 @@ packages:
     resolution: {integrity: sha512-AsS729u2RHUfEra9xJrE39peJcc2stq2+poBXX8bcM08Y6g9j/i/PUzwNQqkaJde7Ntg1TO7bSREbR5sdosQ+g==}
     dev: true
 
+  /tabbable@6.2.0:
+    resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
+    dev: false
+
   /tar-fs@2.1.1:
     resolution: {integrity: sha512-V0r2Y9scmbDRLCNex/+hYzvp/zyYjvFbHPNgVTKfQvVrb6guiE/fxP+XblDNR011utopbkex2nM4dHNV6GDsng==}
     dependencies:
@@ -13105,12 +13128,6 @@ packages:
     resolution: {integrity: sha512-d2eda04AN/cPOR89F7Xv5bK/jrQEhmcLFe6HFldoeO9AJtps+fqEnh486vnT/8y4bw38pSyxDcTCAq+Ks2aJTg==}
     engines: {node: '>=14.0.0'}
     dev: true
-
-  /tippy.js@6.3.7:
-    resolution: {integrity: sha512-E1d3oP2emgJ9dRQZdf3Kkn0qJgI6ZLpyS5z6ZkY1DF3kaQaBsGZsndEpHwx+eC+tYM41HaSNvNtLx8tU57FzTQ==}
-    dependencies:
-      '@popperjs/core': 2.11.8
-    dev: false
 
   /title-case@3.0.3:
     resolution: {integrity: sha512-e1zGYRvbffpcHIrnuqT0Dh+gEJtDaxDSoG4JAIpq4oDFyooziLBIiYQv0GBT4FUAnUop5uZ1hiIAj7oAF6sOCA==}
@@ -14351,9 +14368,20 @@ packages:
       async: 2.6.4
     dev: false
 
-  github.com/zardoy/minecraft-inventory-gui/c1331c91fb39bd562dc48eeb33321240d4870edd(@types/react@18.2.20)(react@18.2.0):
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c1331c91fb39bd562dc48eeb33321240d4870edd}
-    id: github.com/zardoy/minecraft-inventory-gui/c1331c91fb39bd562dc48eeb33321240d4870edd
+  github.com/zardoy/diamond-square/841ccd5345678b3b2a28d645eaf43da2991a5a7d:
+    resolution: {tarball: https://codeload.github.com/zardoy/diamond-square/tar.gz/841ccd5345678b3b2a28d645eaf43da2991a5a7d}
+    name: diamond-square
+    version: 1.3.0
+    dependencies:
+      minecraft-data: 3.45.0
+      prismarine-chunk: 1.35.0(minecraft-data@3.45.0)
+      random-seed: 0.3.0
+      vec3: 0.1.8
+    dev: false
+
+  github.com/zardoy/minecraft-inventory-gui/69003692b3041d94a420a65c7d3cc1b37737e838(@types/react@18.2.20)(react@18.2.0):
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/69003692b3041d94a420a65c7d3cc1b37737e838}
+    id: github.com/zardoy/minecraft-inventory-gui/69003692b3041d94a420a65c7d3cc1b37737e838
     name: minecraft-inventory-gui
     version: 1.0.1
     dependencies:
@@ -14431,9 +14459,9 @@ packages:
       prismarine-nbt: 2.2.1
       prismarine-registry: 1.7.0
 
-  github.com/zardoy/prismarine-provider-anvil/49bf8150422301565b386110aaf3dec69e31c4cf(minecraft-data@3.45.0):
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/49bf8150422301565b386110aaf3dec69e31c4cf}
-    id: github.com/zardoy/prismarine-provider-anvil/49bf8150422301565b386110aaf3dec69e31c4cf
+  github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406(minecraft-data@3.45.0):
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/b250d93638a2e300a7d016cfd9e87162347e1406}
+    id: github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406
     name: prismarine-provider-anvil
     version: 2.7.0
     dependencies:
@@ -14467,8 +14495,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  github.com/zardoy/space-squid/93f0d264e225bb8526885a8caaa4c547af6fa6eb:
-    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/93f0d264e225bb8526885a8caaa4c547af6fa6eb}
+  github.com/zardoy/space-squid/aa59c32fa17c3dbb2c7c28cfb3655b4a7daf0489:
+    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/aa59c32fa17c3dbb2c7c28cfb3655b4a7daf0489}
     name: flying-squid
     version: 1.5.0
     engines: {node: '>=8'}
@@ -14476,7 +14504,7 @@ packages:
     dependencies:
       change-case: 4.1.2
       colors: 1.4.0
-      diamond-square: 1.2.0
+      diamond-square: github.com/zardoy/diamond-square/841ccd5345678b3b2a28d645eaf43da2991a5a7d
       emit-then: 2.0.0
       event-promise: 0.0.1
       exit-hook: 2.2.1
@@ -14484,14 +14512,16 @@ packages:
       long: 5.2.3
       minecraft-data: 3.45.0
       minecraft-protocol: github.com/zardoy/minecraft-protocol/8e61798aeae786db3ddd4bbd9e19b6e30bb2520c
+      mkdirp: 2.1.6
       moment: 2.29.4
       needle: 2.9.1
       node-gzip: 1.1.2
+      node-rsa: 1.1.1
       prismarine-chunk: 1.35.0(minecraft-data@3.45.0)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.2.1
-      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/49bf8150422301565b386110aaf3dec69e31c4cf(minecraft-data@3.45.0)
+      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406(minecraft-data@3.45.0)
       prismarine-windows: 2.8.0
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
       random-seed: 0.3.0

@@ -2,7 +2,7 @@ import { hideModal, isGameActive, miscUiState, notification, showModal } from '.
 import { options } from './optionsStorage'
 import { openWorldZip } from './browserfs'
 import { installTexturePack } from './texturePack'
-import { appStatusState } from './react/AppStatus'
+import { appStatusState } from './react/AppStatusProvider'
 import { saveServer } from './flyingSquidUtils'
 
 export const goFullscreen = async (doToggle = false) => {
@@ -81,7 +81,7 @@ export async function getScreenRefreshRate (): Promise<number> {
       const fps = Math.floor(1000 * 10 / (DOMHighResTimeStamp - t0))
 
       if (!callbackTriggered) {
-        resolve(fps/* , DOMHighResTimeStampCollection */)
+        resolve(Math.max(fps, 1000)/* , DOMHighResTimeStampCollection */)
       }
 
       callbackTriggered = true
@@ -153,7 +153,7 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
 
 
 export const disconnect = async () => {
-  if (window.localServer) {
+  if (localServer) {
     await saveServer()
     localServer.quit()
   }

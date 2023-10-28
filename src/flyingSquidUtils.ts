@@ -1,5 +1,6 @@
 import * as crypto from 'crypto'
 import UUID from 'uuid-1345'
+import { fsState } from './loadSave'
 
 
 // https://github.com/PrismarineJS/node-minecraft-protocol/blob/cf1f67117d586b5e6e21f0d9602da12e9fcf46b6/src/server/login.js#L170
@@ -16,12 +17,13 @@ export function nameToMcOfflineUUID (name) {
   return (new UUID(javaUUID('OfflinePlayer:' + name))).toString()
 }
 
+export async function savePlayers () {
+  await localServer.savePlayersSingleplayer()
+}
+
 // todo flying squid should expose save function instead
 export const saveServer = async () => {
-  if (!localServer) return
+  if (!localServer || fsState.isReadonly) return
   const worlds = [localServer.overworld] as Array<import('prismarine-world').world.World>
-  for (const player of localServer.players) {
-    player.save()
-  }
-  await Promise.all(worlds.map(async world => world.saveNow()))
+  await Promise.all([savePlayers(), ...worlds.map(async world => world.saveNow())])
 }
