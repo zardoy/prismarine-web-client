@@ -14459,9 +14459,9 @@ packages:
       prismarine-nbt: 2.2.1
       prismarine-registry: 1.7.0
 
-  github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406(minecraft-data@3.45.0):
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/b250d93638a2e300a7d016cfd9e87162347e1406}
-    id: github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406
+  github.com/zardoy/prismarine-provider-anvil/44bb47f075f0d4788101a07f4d057ccdb765bed4(minecraft-data@3.45.0):
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/44bb47f075f0d4788101a07f4d057ccdb765bed4}
+    id: github.com/zardoy/prismarine-provider-anvil/44bb47f075f0d4788101a07f4d057ccdb765bed4
     name: prismarine-provider-anvil
     version: 2.7.0
     dependencies:
@@ -14521,7 +14521,7 @@ packages:
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.2.1
-      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/b250d93638a2e300a7d016cfd9e87162347e1406(minecraft-data@3.45.0)
+      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/44bb47f075f0d4788101a07f4d057ccdb765bed4(minecraft-data@3.45.0)
       prismarine-windows: 2.8.0
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
       random-seed: 0.3.0
