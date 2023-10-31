@@ -1,9 +1,9 @@
 import fs from 'fs'
 import { join } from 'path'
 import JSZip from 'jszip'
-import { fsState, readLevelDat } from './loadSave'
+import { readLevelDat } from './loadSave'
 import { closeWan, openToWanAndCopyJoinLink } from './localServerMultiplayer'
-import { copyFilesAsync, resetLocalStorageWorld, uniqueFileNameFromWorldName } from './browserfs'
+import { copyFilesAsync, uniqueFileNameFromWorldName } from './browserfs'
 import { saveServer } from './flyingSquidUtils'
 import { setLoadingScreenStatus } from './utils'
 
@@ -80,7 +80,11 @@ const writeText = (text) => {
   })
 }
 
-const commands = [
+const commands: Array<{
+  command: string[],
+  invoke (): Promise<void> | void
+  //@ts-format-ignore-region
+}> = [
   {
     command: ['/download', '/export'],
     invoke: exportLoadedWorld
@@ -100,23 +104,13 @@ const commands = [
     }
   },
   {
-    command: '/reset-world -y',
-    async invoke () {
-      if (fsState.inMemorySave) return
-      // todo for testing purposes
-      sessionStorage.oldWorldData = localStorage
-      console.log('World removed. Old data saved to sessionStorage.oldData')
-      localServer.quit()
-      resetLocalStorageWorld()
-    }
-  },
-  {
     command: ['/save'],
     async invoke () {
       await saveServer()
     }
   }
 ]
+//@ts-format-ignore-endregion
 
 export const getBuiltinCommandsList = () => commands.flatMap(command => command.command)
 
