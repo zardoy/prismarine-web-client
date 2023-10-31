@@ -35,8 +35,11 @@ export default () => {
               try {
                 await removeFileRecursiveAsync('/world/')
               } catch (err) {
-                console.warn(err)
+                console.error(err)
               }
+            } catch (err) {
+              console.warn(err)
+              alert('Failed to migrate world from localStorage')
             } finally {
               setLoadingScreenStatus(undefined)
             }

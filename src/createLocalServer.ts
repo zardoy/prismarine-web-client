@@ -1,9 +1,8 @@
 //@ts-check
 import mcServer from 'flying-squid'
-import serverOptions from './defaultLocalServerOptions'
 import { LocalServer } from './customServer'
 
-export const startLocalServer = () => {
+export const startLocalServer = (serverOptions) => {
   const passOptions = { ...serverOptions, Server: LocalServer }
   const server = mcServer.createMCServer(passOptions)
   server.formatMessage = (message) => `[server] ${message}`

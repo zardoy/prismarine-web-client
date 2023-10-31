@@ -65,7 +65,7 @@ import {
 } from './panorama'
 
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
-import serverOptions from './defaultLocalServerOptions'
+import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
 import _ from 'lodash-es'
@@ -330,7 +330,7 @@ async function connect (connectOptions: {
 
   let localServer
   try {
-    Object.assign(serverOptions, _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, serverOptions))
+    const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
@@ -365,7 +365,7 @@ async function connect (connectOptions: {
       // flying-squid: 'login' -> player.login -> now sends 'login' event to the client (handled in many plugins in mineflayer) -> then 'update_health' is sent which emits 'spawn' in mineflayer
 
       setLoadingScreenStatus('Starting local server')
-      localServer = window.localServer = startLocalServer()
+      localServer = window.localServer = startLocalServer(serverOptions)
       // todo need just to call quit if started
       // loadingScreen.maybeRecoverable = false
       // init world, todo: do it for any async plugins
