@@ -53,7 +53,7 @@ export const exportWorld = async (path: string, type: 'zip' | 'folder', zipName 
       setLoadingScreenStatus('Preparing export folder')
       let dest = '/'
       if ((await fs.promises.readdir('/export')).length) {
-        const { levelDat } = await readLevelDat(path)
+        const { levelDat } = (await readLevelDat(path))!
         dest = await uniqueFileNameFromWorldName(levelDat.LevelName, path)
       }
       setLoadingScreenStatus(`Copying files to ${dest} of selected folder`)

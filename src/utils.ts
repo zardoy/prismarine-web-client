@@ -67,20 +67,20 @@ window.getScreenRefreshRate = getScreenRefreshRate
  * Allows to obtain the estimated Hz of the primary monitor in the system.
  */
 export async function getScreenRefreshRate (): Promise<number> {
-  let requestId = null
+  let requestId = null as number | null
   let callbackTriggered = false
   let resolve
 
-  const DOMHighResTimeStampCollection = []
+  const DOMHighResTimeStampCollection = [] as number[]
 
   const triggerAnimation = (DOMHighResTimeStamp) => {
     DOMHighResTimeStampCollection.unshift(DOMHighResTimeStamp)
 
     if (DOMHighResTimeStampCollection.length > 10) {
-      const t0 = DOMHighResTimeStampCollection.pop()
+      const t0 = DOMHighResTimeStampCollection.pop()!
       const fps = Math.floor(1000 * 10 / (DOMHighResTimeStamp - t0))
 
-      if (!callbackTriggered) {
+      if (!callbackTriggered || fps > 1000) {
         resolve(Math.max(fps, 1000)/* , DOMHighResTimeStampCollection */)
       }
 
@@ -93,7 +93,7 @@ export async function getScreenRefreshRate (): Promise<number> {
   window.requestAnimationFrame(triggerAnimation)
 
   window.setTimeout(() => {
-    window.cancelAnimationFrame(requestId)
+    window.cancelAnimationFrame(requestId!)
     requestId = null
   }, 500)
 
@@ -122,7 +122,7 @@ export const isMajorVersionGreater = (ver1: string, ver2: string) => {
   return +a1 > +a2 || (+a1 === +a2 && +b1 > +b2)
 }
 
-let ourLastStatus = ''
+let ourLastStatus: string | undefined = ''
 export const setLoadingScreenStatus = function (status: string | undefined | null, isError = false, hideDots = false, fromFlyingSquid = false) {
   // null can come from flying squid, should restore our last status
   if (status === null) {
@@ -168,6 +168,7 @@ export const toMajorVersion = (version) => {
 
 let prevRenderDistance = options.renderDistance
 export const setRenderDistance = () => {
+  assertDefined(worldView)
   worldView.viewDistance = options.renderDistance
   if (localServer) {
     localServer.players[0].emit('playerChangeRenderDistance', options.renderDistance)
@@ -182,14 +183,14 @@ export const reloadChunks = async () => {
 
 export const openFilePicker = (specificCase?: 'resourcepack') => {
   // create and show input picker
-  let picker: HTMLInputElement = document.body.querySelector('input#file-zip-picker')
+  let picker: HTMLInputElement = document.body.querySelector('input#file-zip-picker')!
   if (!picker) {
     picker = document.createElement('input')
     picker.type = 'file'
     picker.accept = '.zip'
 
     picker.addEventListener('change', () => {
-      const file = picker.files[0]
+      const file = picker.files?.[0]
       picker.value = ''
       if (!file) return
       if (!file.name.endsWith('.zip')) {
@@ -216,4 +217,12 @@ export const resolveTimeout = async (promise, timeout = 10_000) => {
       reject(new Error('timeout'))
     }, timeout)
   })
+}
+
+export function assertDefined<T> (x: T | undefined): asserts x is T {
+  if (!x) throw new Error('Assertion failed. Something is not available')
+}
+
+export const haveDirectoryPicker = () => {
+  return !!window.showDirectoryPicker
 }

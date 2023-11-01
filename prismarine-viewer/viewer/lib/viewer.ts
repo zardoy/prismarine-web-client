@@ -21,7 +21,7 @@ export class Viewer {
   isSneaking: boolean
   version: string
 
-  constructor (public renderer: THREE.WebGLRenderer, numWorkers = undefined) {
+  constructor (public renderer: THREE.WebGLRenderer, numWorkers?: number) {
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('lightblue')
 
@@ -80,7 +80,7 @@ export class Viewer {
     this.primitives.update(p)
   }
 
-  setFirstPersonCamera (pos: Vec3, yaw: number, pitch: number, roll = 0) {
+  setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number, roll = 0) {
     if (pos) {
       let y = pos.y + this.playerHeight
       if (this.isSneaking) y -= 0.3

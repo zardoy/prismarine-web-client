@@ -110,7 +110,7 @@ viewer.entities.entitiesOptions = {
 watchOptionsAfterViewerInit()
 watchTexturepackInViewer(viewer)
 
-let renderInterval: number
+let renderInterval: number | false
 watchValue(options, (o) => {
   renderInterval = o.frameLimit && 1000 / o.frameLimit
 })
@@ -214,7 +214,7 @@ function listenGlobalEvents () {
   })
 }
 
-let listeners = []
+let listeners = [] as Array<{ target, event, callback }>
 // only for dom listeners (no removeAllListeners)
 // todo refactor them out of connect fn instead
 const registerListener: import('./utilsTs').RegisterListener = (target, event, callback) => {
@@ -241,7 +241,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
 }
 
 async function connect (connectOptions: {
-  server?: string; singleplayer?: any; username?: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
+  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
 }) {
   document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
@@ -261,7 +261,7 @@ async function connect (connectOptions: {
   setLoadingScreenStatus('Logging in')
 
   let ended = false
-  let bot: typeof __type_bot
+  let bot!: typeof __type_bot
   const destroyAll = () => {
     if (ended) return
     ended = true
@@ -275,7 +275,9 @@ async function connect (connectOptions: {
       bot.emit('end', '')
       bot.removeAllListeners()
       bot._client.removeAllListeners()
+      //@ts-expect-error TODO?
       bot._client = undefined
+      //@ts-expect-error
       window.bot = bot = undefined
     }
     if (singleplayer && !fsState.inMemorySave) {
@@ -394,10 +396,10 @@ async function connect (connectOptions: {
     setLoadingScreenStatus(initialLoadingText)
     bot = mineflayer.createBot({
       host: server.host,
-      port: +server.port,
+      port: server.port ? +server.port : undefined,
       version: connectOptions.botVersion || false,
       ...p2pMultiplayer ? {
-        stream: await connectToPeer(connectOptions.peerId),
+        stream: await connectToPeer(connectOptions.peerId!),
       } : {},
       ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
@@ -495,6 +497,7 @@ async function connect (connectOptions: {
   onBotCreate()
 
   bot.once('login', () => {
+    if (!connectOptions.server) return
     // server is ok, add it to the history
     const serverHistory: string[] = JSON.parse(localStorage.getItem('serverHistory') || '[]')
     serverHistory.unshift(connectOptions.server)
@@ -517,7 +520,7 @@ async function connect (connectOptions: {
 
     const center = bot.entity.position
 
-    const worldView = window.worldView = new WorldDataEmitter(bot.world, singleplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
+    const worldView = window.worldView = new WorldDataEmitter(bot.world, singleplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance!), center)
     setRenderDistance()
 
     bot.on('physicsTick', () => updateCursor())
@@ -537,9 +540,9 @@ async function connect (connectOptions: {
 
     try {
       const gl = renderer.getContext()
-      debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)
+      debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
     } catch (err) {
-      console.error(err)
+      console.warn(err)
       debugMenu.rendererDevice = '???'
     }
 
@@ -554,7 +557,7 @@ async function connect (connectOptions: {
     function botPosition () {
       // this might cause lag, but not sure
       viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
-      worldView.updatePosition(bot.entity.position)
+      void worldView.updatePosition(bot.entity.position)
     }
     bot.on('move', botPosition)
     botPosition()
@@ -585,7 +588,7 @@ async function connect (connectOptions: {
     let virtualClickActive = false
     let virtualClickTimeout
     let screenTouches = 0
-    let capturedPointer: { id; x; y; sourceX; sourceY; activateCameraMove; time } | null
+    let capturedPointer: { id; x; y; sourceX; sourceY; activateCameraMove; time } | undefined
     registerListener(document, 'pointerdown', (e) => {
       const clickedEl = e.composedPath()[0]
       if (!isGameActive(true) || !miscUiState.currentTouch || clickedEl !== cameraControlEl || e.pointerId === undefined) {
@@ -731,7 +734,7 @@ downloadAndOpenFile().then((downloadAction) => {
     const peerId = qs.get('connectPeer')
     const version = qs.get('peerVersion')
     if (peerId) {
-      let username = options.guestUsername
+      let username: string | null = options.guestUsername
       if (options.askGuestName) username = prompt('Enter your username', username)
       if (!username) return
       options.guestUsername = username

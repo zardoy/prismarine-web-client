@@ -35,6 +35,7 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
     return formatter.format(-minutes, 'minute')
   }, [lastPlayed])
   const sizeFormatted = useMemo(() => {
+    if (!size) return
     return filesize(size)
   }, [size])
 
@@ -43,7 +44,7 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
       e.preventDefault()
       onInteraction?.(e.code === 'Enter' ? 'enter' : 'space')
     }
-  }} onDoubleClick={() => onInteraction('enter')}>
+  }} onDoubleClick={() => onInteraction?.('enter')}>
     <img className={styles.world_image} src={missingWorldPreview} />
     <div className={styles.world_info}>
       <div className={styles.world_title} title='level.dat world name'>{title}</div>
@@ -61,7 +62,7 @@ interface Props {
 
 export default ({ worldData, onGeneralAction, onWorldAction }: Props) => {
   const containerRef = useRef<any>()
-  const firstButton = useRef<HTMLButtonElement>()
+  const firstButton = useRef<HTMLButtonElement>(null!)
 
   useTypedEventListener(window, 'keydown', (e) => {
     if (e.code === 'ArrowDown' || e.code === 'ArrowUp') {

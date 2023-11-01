@@ -4,8 +4,8 @@ let audioContext: AudioContext
 const sounds: Record<string, any> = {}
 
 // load as many resources on page load as possible instead on demand as user can disable internet connection after he thinks the page is loaded
-const loadingSounds = []
-const convertedSounds = []
+const loadingSounds = [] as string[]
+const convertedSounds = [] as string[]
 export async function loadSound (path: string) {
   if (loadingSounds.includes(path)) return
   loadingSounds.push(path)

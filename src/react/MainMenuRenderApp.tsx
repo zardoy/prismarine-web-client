@@ -46,7 +46,7 @@ export default () => {
           }
           showModal({ reactType: 'singleplayer' })
         }}
-        githubAction={() => openURL(process.env.GITHUB_URL)}
+        githubAction={() => openURL(process.env.GITHUB_URL!)}
         optionsAction={() => openOptionsMenu('main')}
         discordAction={() => openURL('https://discord.gg/4Ucm684Fq3')}
         openFileAction={e => {

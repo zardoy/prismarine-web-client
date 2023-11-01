@@ -229,6 +229,7 @@ class ChatBox extends LitElement {
     }
 
     notification.show = false
+    // @ts-expect-error
     const chat = this.shadowRoot.getElementById('chat-messages')
     /** @type {HTMLInputElement} */
     // @ts-expect-error
@@ -258,10 +259,12 @@ class ChatBox extends LitElement {
    * @param {import('minecraft-protocol').Client} client
    */
   init (client) {
+    // @ts-expect-error
     const chat = this.shadowRoot.getElementById('chat-messages')
     /** @type {HTMLInputElement} */
     // @ts-expect-error
     const chatInput = this.shadowRoot.getElementById('chatinput')
+    /** @type {any} */
     this.chatInput = chatInput
 
     // Show chat
@@ -330,6 +333,7 @@ class ChatBox extends LitElement {
         fading: false,
         faded: false
       }]
+      /** @type {any} */
       const message = this.messages.at(-1)
 
       chat.scrollTop = chat.scrollHeight // Stay bottom of the list
@@ -358,6 +362,7 @@ class ChatBox extends LitElement {
       const completeValue = this.getCompleteValue()
       this.completePadText = completeValue === '/' ? '' : completeValue
       if (this.completeRequestValue === completeValue) {
+        /** @type {any} */
         const lastWord = chatInput.value.split(' ').at(-1)
         this.completionItems = this.completionItemsSource.filter(i => {
           const compareableParts = i.split(/[_:]/)
@@ -425,6 +430,7 @@ class ChatBox extends LitElement {
     }
 
     /** @type {string[]} */
+    // @ts-expect-error
     const applyStyles = [
       color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${getColorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : messageFormatStylesMap.white,
       italic && messageFormatStylesMap.italic,
@@ -458,6 +464,7 @@ class ChatBox extends LitElement {
   }
 
   updateInputValue (value) {
+    /** @type {any} */
     const { chatInput } = this
     chatInput.value = value
     chatInput.dispatchEvent(new Event('input'))

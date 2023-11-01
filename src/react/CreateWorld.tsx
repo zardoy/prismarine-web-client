@@ -22,7 +22,7 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
   useEffect(() => {
     creatingWorldState.version = defaultVersion
     void navigator.storage.estimate().then(({ quota, usage }) => {
-      setQuota(`Storage usage: ${filesize(usage)} / ${filesize(quota)}`)
+      setQuota(`Storage usage: ${usage === undefined ? '?' : filesize(usage)} / ${quota ? filesize(quota) : '?'}`)
     })
   }, [])
 

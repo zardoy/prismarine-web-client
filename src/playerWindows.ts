@@ -20,6 +20,7 @@ import PrismarineBlockLoader from 'prismarine-block'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
+import { assertDefined } from './utils'
 
 const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
 const loadedImagesCache = new Map<string, HTMLImageElement>()
@@ -74,12 +75,13 @@ export const onGameLoad = (onLoad) => {
           text: `[client error] cannot open unimplemented window ${win.id} (${win.type}). Items: ${win.slots.map(slot => slot?.name).join(', ')}`
         })
       })
-      bot.currentWindow['close']()
+      bot.currentWindow?.['close']()
     }
   })
 }
 
 const findTextureInBlockStates = (name) => {
+  assertDefined(viewer)
   const blockStates: BlockStates = viewer.world.customBlockStatesData || viewer.world.downloadedBlockStatesData
   const vars = blockStates[name]?.variants
   if (!vars) return
@@ -92,7 +94,7 @@ const findTextureInBlockStates = (name) => {
 }
 
 const svSuToCoordinates = (path: string, u, v, su, sv = su) => {
-  const img = getImage({ path })
+  const img = getImage({ path })!
   if (!img.width) throw new Error(`Image ${path} is not loaded`)
   return [u * img.width, v * img.height, su * img.width, sv * img.height]
 }
@@ -130,6 +132,7 @@ const getInvspriteSlice = (name) => {
 }
 
 const getImageSrc = (path): string | HTMLImageElement => {
+  assertDefined(viewer)
   switch (path) {
     case 'gui/container/inventory': return InventoryGui
     case 'blocks': return viewer.world.customTexturesDataUrl || viewer.world.downloadedTextureImage
@@ -145,8 +148,9 @@ const getImageSrc = (path): string | HTMLImageElement => {
   return Dirt
 }
 
-const getImage = ({ path = undefined, texture = undefined, blockData = undefined }, onLoad = () => {}) => {
-  const loadPath = blockData ? 'blocks' : path ?? texture
+const getImage = ({ path = undefined as string | undefined, texture = undefined as string | undefined, blockData = undefined as any }, onLoad = () => {}) => {
+  if (!path && !texture) throw new Error('Either pass path or texture')
+  const loadPath = (blockData ? 'blocks' : path ?? texture)!
   if (loadedImagesCache.has(loadPath)) {
     onLoad()
   } else {
@@ -184,7 +188,7 @@ const isFullBlock = (block: string) => {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
-const renderSlot = (slot: import('prismarine-item').Item, skipBlock = false): { texture: string, blockData?, scale?: number, slice?: number[] } => {
+const renderSlot = (slot: import('prismarine-item').Item, skipBlock = false): { texture: string, blockData?, scale?: number, slice?: number[] } | undefined => {
   const itemName = slot.name
   const isItem = loadedData.itemsByName[itemName]
   const fullBlock = isFullBlock(itemName)
@@ -230,7 +234,7 @@ export const renderSlotExternal = (slot) => {
   const data = renderSlot(slot, true)
   if (!data) return
   return {
-    imageDataUrl: data.texture === 'invsprite' ? undefined : getImage({ path: data.texture }).src,
+    imageDataUrl: data.texture === 'invsprite' ? undefined : getImage({ path: data.texture })?.src,
     sprite: data.slice && data.texture !== 'invsprite' ? data.slice.map(x => x * 2) : data.slice
   }
 }
@@ -238,7 +242,7 @@ export const renderSlotExternal = (slot) => {
 const upInventory = (inventory: boolean) => {
   // inv.pwindow.inv.slots[2].displayName = 'test'
   // inv.pwindow.inv.slots[2].blockData = getBlockData('dirt')
-  const updateSlots = (inventory ? bot.inventory : bot.currentWindow).slots.map(slot => {
+  const updateSlots = (inventory ? bot.inventory : bot.currentWindow)!.slots.map(slot => {
     // todo stateid
     if (!slot) return
 
@@ -277,7 +281,7 @@ const implementedContainersGuiMap = {
 const openWindow = (type: string | undefined) => {
   // if (activeModalStack.some(x => x.reactType?.includes?.('player_win:'))) {
   if (activeModalStack.length) { // game is not in foreground, don't close current modal
-    if (type) bot.currentWindow['close']()
+    if (type) bot.currentWindow?.['close']()
     return
   }
   showModal({

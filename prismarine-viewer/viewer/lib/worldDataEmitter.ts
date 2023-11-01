@@ -158,6 +158,7 @@ export class WorldDataEmitter extends EventEmitter {
       const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => {
         const pos = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
         if (!this.loadedChunks[`${pos.x},${pos.z}`]) return pos
+        return undefined!
       }).filter(Boolean)
       this.lastPos.update(pos)
       await this._loadChunks(positions)

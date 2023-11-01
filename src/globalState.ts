@@ -96,7 +96,7 @@ export const hideModal = (modal = activeModalStack.at(-1), data: any = undefined
   }
 }
 
-export const hideCurrentModal = (_data = undefined, onHide = undefined) => {
+export const hideCurrentModal = (_data?, onHide?: () => void) => {
   if (hideModal(undefined, undefined)) {
     onHide?.()
   }

@@ -7,7 +7,7 @@ const getFixedFilesize = (bytes: number) => {
   return prettyBytes(bytes, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-export default async () => {
+const inner = async () => {
   const qs = new URLSearchParams(window.location.search)
   let mapUrl = qs.get('map')
   const texturepack = qs.get('texturepack')
@@ -33,13 +33,15 @@ export default async () => {
   if (!contentType || !contentType.startsWith('application/zip')) {
     alert('Invalid map file')
   }
-  const contentLength = +response.headers.get('Content-Length')
-  setLoadingScreenStatus(`Downloading ${downloadThing} ${name}: have to download ${getFixedFilesize(contentLength)}...`)
+  const contentLengthStr = response.headers?.get('Content-Length')
+  const contentLength = contentLengthStr && +contentLengthStr
+  setLoadingScreenStatus(`Downloading ${downloadThing} ${name}: have to download ${contentLength && getFixedFilesize(contentLength)}...`)
 
   let downloadedBytes = 0
   const buffer = await new Response(
     new ReadableStream({
       async start (controller) {
+        if (!response.body) throw new Error('Server returned no response!')
         const reader = response.body.getReader()
 
         // eslint-disable-next-line no-constant-condition
@@ -54,12 +56,9 @@ export default async () => {
           downloadedBytes += value.byteLength
 
           // Calculate download progress as a percentage
-          const progress = (downloadedBytes / contentLength) * 100
+          const progress = contentLength ? (downloadedBytes / contentLength) * 100 : undefined
+          setLoadingScreenStatus(`Download ${downloadThing} progress: ${progress === undefined ? '?' : Math.floor(progress)}% (${getFixedFilesize(downloadedBytes)} / ${contentLength && getFixedFilesize(contentLength)})`, false, true)
 
-          // Update your progress bar or display the progress value as needed
-          if (contentLength) {
-            setLoadingScreenStatus(`Download ${downloadThing} progress: ${Math.floor(progress)}% (${getFixedFilesize(downloadedBytes)} / ${getFixedFilesize(contentLength)})`, false, true)
-          }
 
           // Pass the received data to the controller
           controller.enqueue(value)
@@ -72,5 +71,14 @@ export default async () => {
     await installTexturePack(buffer, name)
   } else {
     await openWorldZip(buffer)
+  }
+}
+
+export default async () => {
+  try {
+    return await inner()
+  } catch (err) {
+    setLoadingScreenStatus(`Failed to download. Either refresh page or remove mapUrl param from URL. Reason: ${err.message}`)
+    return true
   }
 }

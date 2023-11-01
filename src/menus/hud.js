@@ -1,4 +1,3 @@
-//@ts-check
 const { LitElement, html, css, unsafeCSS } = require('lit')
 const { showModal, miscUiState } = require('../globalState')
 const { options, watchValue } = require('../optionsStorage')

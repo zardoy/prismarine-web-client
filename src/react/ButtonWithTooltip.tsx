@@ -21,6 +21,7 @@ export default ({ initialTooltip, ...args }: Props) => {
   useEffect(() => {
     let timeout
     function hide () {
+      if (!localStorageKey) return
       localStorage[localStorageKey] = 'false'
       setShowTooltips(false)
     }

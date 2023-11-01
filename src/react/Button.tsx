@@ -17,7 +17,7 @@ void loadSound('button_click.mp3')
 export default forwardRef<HTMLButtonElement, Props>(({ label, icon, children, inScreen, ...args }, ref) => {
   const onClick = (e) => {
     void playSound('button_click.mp3')
-    args.onClick(e)
+    args.onClick?.(e)
   }
   if (inScreen) {
     args.style ??= {}

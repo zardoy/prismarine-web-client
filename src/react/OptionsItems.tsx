@@ -30,12 +30,12 @@ export type OptionMeta = GeneralItem & ({
 })
 
 export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'toggle' }> }) => {
-  const optionValue = useSnapshot(options)[item.id]
+  const optionValue = useSnapshot(options)[item.id!]
 
   return <Button
     label={`${item.text}: ${optionValue ? 'ON' : 'OFF'}`}
     onClick={() => {
-      options[item.id] = !options[item.id]
+      options[item.id!] = !options[item.id!]
     }}
     title={item.disabledReason ? `${item.disabledReason} | ${item.tooltip}` : item.tooltip}
     disabled={!!item.disabledReason}
@@ -46,15 +46,15 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
 }
 
 export const OptionSlider = ({ item }: { item: Extract<OptionMeta, { type: 'slider' }> }) => {
-  const optionValue = useSnapshot(options)[item.id]
+  const optionValue = useSnapshot(options)[item.id!]
 
   const valueDisplay = useMemo(() => {
     if (item.valueText) return item.valueText(optionValue)
     return undefined // default display
   }, [optionValue])
 
-  return <Slider label={item.text} value={options[item.id]} min={item.min} max={item.max} updateValue={(value) => {
-    options[item.id] = value
+  return <Slider label={item.text!} value={options[item.id!]} min={item.min} max={item.max} updateValue={(value) => {
+    options[item.id!] = value
   }} unit={item.unit} valueDisplay={valueDisplay} updateOnDragEnd={item.delayApply} />
 }
 

@@ -29,8 +29,8 @@ export const contro = new ControMax({
       prevHotbarSlot: [null, 'Right Bumper'],
       attackDestroy: [null, 'Right Trigger'],
       interactPlace: [null, 'Left Trigger'],
-      chat: [['KeyT', 'Enter'], null],
-      command: ['Slash', null],
+      chat: [['KeyT', 'Enter']],
+      command: ['Slash'],
     },
     ui: {
       back: [null/* 'Escape' */, 'B'],
@@ -81,7 +81,8 @@ contro.on('movementUpdate', ({ vector, gamepadIndex }) => {
     if (v === undefined || Math.abs(v) < 0.3) continue
     // todo use raw values eg for slow movement
     const mappedValue = v < 0 ? -1 : 1
-    const foundAction = coordToAction.find(([c, mapV]) => c === coord && mapV === mappedValue)?.[2]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+    const foundAction = coordToAction.find(([c, mapV]) => c === coord && mapV === mappedValue)?.[2]!
     newState[foundAction] = true
   }
 
@@ -223,13 +224,14 @@ contro.on('release', ({ command }) => {
 
 const hardcodedPressedKeys = new Set<string>()
 document.addEventListener('keydown', (e) => {
+  if (!isGameActive(false)) return
   if (hardcodedPressedKeys.has('F3')) {
     // reload chunks
     if (e.code === 'KeyA') {
       //@ts-expect-error
       const loadedChunks = Object.entries(worldView.loadedChunks).filter(([, v]) => v).map(([key]) => key.split(',').map(Number))
       for (const [x, z] of loadedChunks) {
-        worldView.unloadChunk({ x, z })
+        worldView!.unloadChunk({ x, z })
       }
       if (localServer) {
         localServer.players[0].world.columns = {}
@@ -280,7 +282,11 @@ const startFlyLoop = () => {
   endFlyLoop?.()
 
   endFlyLoop = makeInterval(() => {
-    if (!bot) endFlyLoop()
+    if (!bot) {
+      endFlyLoop?.()
+      return
+    }
+
     bot.entity.position.add(currentFlyVector.clone().multiply(new Vec3(0, 0.5, 0)))
   }, 50)
 }

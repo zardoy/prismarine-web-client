@@ -15,6 +15,7 @@ watchValue(options, o => {
 
 export const watchOptionsAfterViewerInit = () => {
   watchValue(options, o => {
+    if (!viewer) return
     viewer.world.showChunkBorders = o.showChunkBorders
   })
 }

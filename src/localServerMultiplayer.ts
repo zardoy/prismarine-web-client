@@ -29,7 +29,7 @@ export const getJoinLink = () => {
 
 const copyJoinLink = async () => {
   miscUiState.wanOpened = true
-  const joinLink = getJoinLink()
+  const joinLink = getJoinLink()!
   if (navigator.clipboard) {
     await navigator.clipboard.writeText(joinLink)
   } else {
