@@ -1,57 +1,54 @@
-//@ts-check
-const THREE = require('three')
-const { Vec3 } = require('vec3')
-const { loadTexture, loadJSON } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
-const { EventEmitter } = require('events')
-const mcDataRaw = require('minecraft-data/data.js')
-const nbt = require('prismarine-nbt')
-const { dynamicMcDataFiles } = require('../../buildWorkerConfig.mjs')
-const { dispose3 } = require('./dispose')
-const { toMajor } = require('./version.js')
-const PrismarineChatLoader = require('prismarine-chat')
-const { renderSign } = require('../sign-renderer/')
+import * as THREE from 'three'
+import { Vec3 } from 'vec3'
+import { loadTexture, loadJSON } from './utils'
+import { EventEmitter } from 'events'
+import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
+import nbt from 'prismarine-nbt'
+import { dynamicMcDataFiles } from '../../buildWorkerConfig.mjs'
+import { dispose3 } from './dispose'
+import { toMajor } from './version.js'
+import PrismarineChatLoader from 'prismarine-chat'
+import { renderSign } from '../sign-renderer/'
 
 function mod (x, n) {
   return ((x % n) + n) % n
 }
 
 class WorldRenderer {
-  constructor (scene, numWorkers = 4) {
-    this.blockEntities = {}
-    this.worldConfig = { minY: 0, worldHeight: 256 }
-    this.sectionObjects = {}
-    this.showChunkBorders = false
-    this.active = false
-    this.version = undefined
-    /** @type {THREE.Scene} */
-    this.scene = scene
-    this.loadedChunks = {}
-    this.sectionsOutstanding = new Set()
-    this.renderUpdateEmitter = new EventEmitter()
-    this.customBlockStatesData = undefined
-    this.customTexturesDataUrl = undefined
-    this.downloadedBlockStatesData = undefined
-    this.downloadedTextureImage = undefined
+  worldConfig = { minY: 0, worldHeight: 256 }
+  material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
-    this.material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
+  blockEntities = {}
+  sectionObjects: Record<string, THREE.Object3D> = {}
+  showChunkBorders = false
+  active = false
+  version = undefined as string | undefined
+  loadedChunks = {}
+  sectionsOutstanding = new Set()
+  renderUpdateEmitter = new EventEmitter()
+  customBlockStatesData = undefined as any
+  customTexturesDataUrl = undefined as string | undefined
+  downloadedBlockStatesData = undefined as any
+  downloadedTextureImage = undefined as any
+  workers: any[] = []
 
-    this.workers = []
+  texturesVersion?: string
+  constructor (public scene: THREE.Scene, numWorkers = 4) {
+    // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
       let src = __dirname
       if (typeof window === 'undefined') src += '/worker.js'
       else src = 'worker.js'
 
-      /** @type {any} */
-      const worker = new Worker(src)
+      const worker: any = new Worker(src)
       worker.onmessage = async ({ data }) => {
         if (!this.active) return
         await new Promise(resolve => {
           setTimeout(resolve, 0)
         })
         if (data.type === 'geometry') {
-          /** @type {THREE.Object3D} */
-          let object = this.sectionObjects[data.key]
+          let object: THREE.Object3D = this.sectionObjects[data.key]
           if (object) {
             this.scene.remove(object)
             dispose3(object)
@@ -97,9 +94,8 @@ class WorldRenderer {
     }
   }
 
-  renderSign (/** @type {Vec3} */position, /** @type {number} */rotation, isWall, blockEntity) {
-    // @ts-ignore
-    const PrismarineChat = PrismarineChatLoader(this.version)
+  renderSign (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
+    const PrismarineChat = PrismarineChatLoader(this.version!)
     const canvas = renderSign(blockEntity, PrismarineChat)
     const tex = new THREE.Texture(canvas)
     tex.magFilter = THREE.NearestFilter
@@ -158,13 +154,13 @@ class WorldRenderer {
   }
 
   updateTexturesData () {
-    loadTexture(this.customTexturesDataUrl || `textures/${this.texturesVersion}.png`, texture => {
+    loadTexture(this.customTexturesDataUrl || `textures/${this.texturesVersion}.png`, (texture: import('three').Texture) => {
       texture.magFilter = THREE.NearestFilter
       texture.minFilter = THREE.NearestFilter
       texture.flipY = false
       this.material.map = texture
       this.material.map.onUpdate = () => {
-        this.downloadedTextureImage = this.material.map.image
+        this.downloadedTextureImage = this.material.map!.image
       }
     })
 
@@ -243,7 +239,7 @@ class WorldRenderer {
   // Listen for chunk rendering updates emitted if a worker finished a render and resolve if the number
   // of sections not rendered are 0
   async waitForChunksToRender () {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       if ([...this.sectionsOutstanding].length === 0) {
         resolve()
         return

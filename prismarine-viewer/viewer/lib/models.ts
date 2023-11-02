@@ -1,9 +1,9 @@
-//@ts-nocheck
 import { Vec3 } from 'vec3'
 import { BlockStatesOutput } from '../prepare/modelsBuilder'
 import { World } from './world'
+import { Block } from 'prismarine-block'
 
-const tints = {}
+const tints: any = {}
 let blockStates: BlockStatesOutput
 
 const tintsData = require('esbuild-data').tints
@@ -173,7 +173,7 @@ function vecsub3 (a, b) {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 }
 
-function matmul3 (matrix, vector) {
+function matmul3 (matrix, vector): [number, number, number] {
   if (!matrix) return vector
   return [
     matrix[0][0] * vector[0] + matrix[0][1] * vector[1] + matrix[0][2] * vector[2],
@@ -232,7 +232,7 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
-function renderElement (world, cursor, element, doAO, attr, globalMatrix, globalShift, block, biome) {
+function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
   for (const face in element.faces) {
@@ -393,7 +393,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         const block = world.getBlock(cursor)
         if (block.name.includes('sign')) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
-          const props = block.getProperties()
+          const props: any = block.getProperties()
           const facingRotationMap = {
             "north": 2,
             "south": 0,
@@ -465,10 +465,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   delete attr.t_colors
   delete attr.t_uvs
 
-  attr.positions = new Float32Array(attr.positions)
-  attr.normals = new Float32Array(attr.normals)
-  attr.colors = new Float32Array(attr.colors)
-  attr.uvs = new Float32Array(attr.uvs)
+  attr.positions = new Float32Array(attr.positions) as any
+  attr.normals = new Float32Array(attr.normals) as any
+  attr.colors = new Float32Array(attr.colors) as any
+  attr.uvs = new Float32Array(attr.uvs) as any
 
   return attr
 }
@@ -484,7 +484,7 @@ function parseProperties (properties) {
   return json
 }
 
-function matchProperties (block, /* to match against */properties: Record<string, string | boolean>) {
+function matchProperties (block, /* to match against */properties: Record<string, string | boolean> & {OR}) {
   if (!properties) { return true }
 
   properties = parseProperties(properties)
@@ -495,7 +495,7 @@ function matchProperties (block, /* to match against */properties: Record<string
   for (const prop in blockProps) {
     if (properties[prop] === undefined) continue // unknown property, ignore
     if (typeof properties[prop] !== 'string') properties[prop] = String(properties[prop])
-    if (!properties[prop].split('|').some((value) => value === String(blockProps[prop]))) {
+    if ((!properties[prop] as unknown as string).split('|').some((value) => value === String(blockProps[prop]))) {
       return false
     }
   }
@@ -504,14 +504,16 @@ function matchProperties (block, /* to match against */properties: Record<string
 
 function getModelVariants (block: import('prismarine-block').Block) {
   // air, cave_air, void_air and so on...
+  // full list of invisible & special blocks https://minecraft.wiki/w/Model#Blocks_and_fluids
   if (block.name === '' || block.name === 'air' || block.name.endsWith('_air')) return []
+  if (block.name === 'barrier') return []
   const matchedState = blockStates[block.name]
   // if (!matchedState) currentWarnings.value.add(`Missing block ${block.name}`)
   const state = matchedState ?? blockStates.missing_texture
   if (!state) return []
   if (state.variants) {
     for (const [properties, variant] of Object.entries(state.variants)) {
-      if (!matchProperties(block, properties)) continue
+      if (!matchProperties(block, properties as any)) continue
       if (variant instanceof Array) return [variant[0]]
       return [variant]
     }

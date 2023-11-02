@@ -25,7 +25,7 @@ const availableVersions = fs.readdirSync(mcDataPath).map(ver => ver.replace('.js
 /** @type {import('esbuild').BuildOptions} */
 const buildOptions = {
   bundle: true,
-  entryPoints: [join(__dirname, './examples/playground.js')],
+  entryPoints: [join(__dirname, './examples/playground.ts')],
   // target: ['es2020'],
   // logLevel: 'debug',
   logLevel: 'info',
@@ -64,6 +64,7 @@ const buildOptions = {
           }
         })
         build.onEnd((e) => {
+          if (e.errors.length) return
           fs.writeFileSync(join(__dirname, 'public/metafile.json'), JSON.stringify(e.metafile), 'utf8')
         })
       }
