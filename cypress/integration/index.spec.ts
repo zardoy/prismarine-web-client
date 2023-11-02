@@ -2,7 +2,7 @@
 import type { AppOptions } from '../../src/optionsStorage'
 
 const cleanVisit = (url?) => {
-  window.localStorage.clear()
+  cy.clearLocalStorage()
   visit(url)
 }
 
