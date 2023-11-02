@@ -36,6 +36,7 @@ useInterfaceState.setState({
     const actionAndState = state === 0 ? coordToAction.filter(([axis]) => axis === coord) : coordToAction.find(([axis, value]) => axis === coord && value === state)
     if (!bot) return
     if (state === 0) {
+      // @ts-expect-error
       for (const action of actionAndState) {
         contro.pressedKeyOrButtonChanged({ code: action[2] }, false)
       }

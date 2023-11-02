@@ -214,7 +214,7 @@ export const genTexturePackTextures = async (version: string) => {
   canvas.width = imgSize
   canvas.height = imgSize
   const src = `textures/${getVersion(version)}.png`
-  const ctx = canvas.getContext('2d')
+  const ctx = canvas.getContext('2d')!
   ctx.imageSmoothingEnabled = false
   const img = new Image()
   img.src = src
@@ -227,10 +227,12 @@ export const genTexturePackTextures = async (version: string) => {
     const y = Math.floor(i / texSize) * tileSize
     const xOrig = (i % texSize) * originalTileSize
     const yOrig = Math.floor(i / texSize) * originalTileSize
-    let imgCustom: HTMLImageElement
+    let imgCustom!: HTMLImageElement
     try {
       const fileBase64 = await fs.promises.readFile(join(blocksBasePath, fileName), 'base64')
       const _imgCustom = new Image()
+      // I think it can crash otherwise
+      // eslint-disable-next-line no-await-in-loop
       await new Promise<void>(resolve => {
         _imgCustom.addEventListener('load', () => {
           imgCustom = _imgCustom

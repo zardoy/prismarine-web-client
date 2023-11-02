@@ -14,7 +14,7 @@ function mod (x, n) {
   return ((x % n) + n) % n
 }
 
-class WorldRenderer {
+export class WorldRenderer {
   worldConfig = { minY: 0, worldHeight: 256 }
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
@@ -255,5 +255,3 @@ class WorldRenderer {
     })
   }
 }
-
-module.exports = { WorldRenderer }

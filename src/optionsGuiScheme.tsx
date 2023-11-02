@@ -21,8 +21,8 @@ export const guiOptionsScheme: {
         const [frameLimitMax, setFrameLimitMax] = useState(null as number | null)
 
         return <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Slider style={{ width: 130 }} label='Frame Limit' disabledReason={frameLimitMax ? undefined : 'press lock button first'} unit={frameLimitValue ? 'fps' : ''} valueDisplay={frameLimitValue || 'VSync'} value={frameLimitValue || frameLimitMax + 1} min={20} max={frameLimitMax + 1} updateValue={(newVal) => {
-            options.frameLimit = newVal > frameLimitMax ? false : newVal
+          <Slider style={{ width: 130 }} label='Frame Limit' disabledReason={frameLimitMax ? undefined : 'press lock button first'} unit={frameLimitValue ? 'fps' : ''} valueDisplay={frameLimitValue || 'VSync'} value={frameLimitValue || frameLimitMax! + 1} min={20} max={frameLimitMax! + 1} updateValue={(newVal) => {
+            options.frameLimit = newVal > frameLimitMax! ? false : newVal
           }} />
           <Button style={{ width: 20 }} icon='pixelarticons:lock-open' onClick={async () => {
             const rate = await getScreenRefreshRate()
@@ -144,7 +144,8 @@ export const guiOptionsScheme: {
       mouseSensY: {},
       mouseRawInput: {
         tooltip: 'Wether to disable any mouse acceleration (MC does it by default). Most probably it is still supported only by Chrome.',
-        disabledReason: document.documentElement.requestPointerLock ? undefined : 'Your browser does not support pointer lock.',
+        // eslint-disable-next-line no-extra-boolean-cast
+        disabledReason: Boolean(document.documentElement.requestPointerLock) ? undefined : 'Your browser does not support pointer lock.',
       },
       alwaysShowMobileControls: {
         text: 'Always Mobile Controls',
