@@ -340,9 +340,9 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         const side2 = world.getBlock(cursor.offset(...side2Dir))
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
-        const side1Block = (side1 && side1.isCube) ? 1 : 0
-        const side2Block = (side2 && side2.isCube) ? 1 : 0
-        const cornerBlock = (corner && corner.isCube) ? 1 : 0
+        const side1Block = world.shouldMakeAo(side1) ? 1 : 0
+        const side2Block = world.shouldMakeAo(side2) ? 1 : 0
+        const cornerBlock = world.shouldMakeAo(corner) ? 1 : 0
 
         // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
 

@@ -85,4 +85,8 @@ export class World {
     block.biome = this.biomeCache[column.getBiome(locInChunk)]
     return block
   }
+
+  shouldMakeAo (block: WorldBlock | null) {
+    return block?.isCube && block.name !== 'barrier'
+  }
 }
