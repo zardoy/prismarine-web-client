@@ -3,13 +3,14 @@
 import { join } from 'path'
 import fs from 'fs'
 import { subscribeKey } from 'valtio/utils'
+import Entity from 'prismarine-viewer/viewer/lib/entity/Entity'
 import { fromTexturePackPath, resourcePackState } from './texturePack'
 import { options, watchValue } from './optionsStorage'
 import { miscUiState } from './globalState'
 
 let panoramaCubeMap
 let shouldDisplayPanorama = false
-let panoramaUsesResourcePack = null
+let panoramaUsesResourcePack = null as boolean | null
 
 const panoramaFiles = [
   'panorama_1.png', // WS
@@ -75,7 +76,7 @@ export async function addPanoramaCubeMap () {
   const panorGeo = new THREE.BoxGeometry(1000, 1000, 1000)
 
   const loader = new THREE.TextureLoader()
-  const panorMaterials = []
+  const panorMaterials = [] as THREE.MeshBasicMaterial[]
   await updateResourcePackSupportPanorama()
   for (const file of panoramaFiles) {
     panorMaterials.push(new THREE.MeshBasicMaterial({
@@ -98,10 +99,9 @@ export async function addPanoramaCubeMap () {
   const group = new THREE.Object3D()
   group.add(panoramaBox)
 
-  const Entity = require('prismarine-viewer/viewer/lib/entity/Entity')
   // should be rewritten entirely
   for (let i = 0; i < 20; i++) {
-    const m = new Entity('1.16.4', 'squid').mesh
+    const m = new Entity('1.16.4', 'squid').mesh!
     m.position.set(Math.random() * 30 - 15, Math.random() * 20 - 10, Math.random() * 10 - 17)
     m.rotation.set(0, Math.PI + Math.random(), -Math.PI / 4, 'ZYX')
     const v = Math.random() * 0.01

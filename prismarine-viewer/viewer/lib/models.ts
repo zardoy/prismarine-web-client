@@ -114,7 +114,7 @@ function getLiquidRenderHeight (world, block, type) {
 }
 
 function renderLiquid (world, cursor, texture, type, biome, water, attr) {
-  const heights = []
+  const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
       heights.push(getLiquidRenderHeight(world, world.getBlock(cursor.offset(x, 0, z)), type))
@@ -286,8 +286,8 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     const uvcs = Math.cos(r * Math.PI / 180)
     const uvsn = -Math.sin(r * Math.PI / 180)
 
-    let localMatrix = null
-    let localShift = null
+    let localMatrix = null as any
+    let localShift = null as any
 
     if (element.rotation) {
       localMatrix = buildRotationMatrix(
@@ -304,7 +304,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
       )
     }
 
-    const aos = []
+    const aos: number[] = []
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
@@ -384,13 +384,13 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     indices: [],
     // todo this can be removed here
     signs: {}
-  }
+  } as Record<string, any>
 
   const cursor = new Vec3(0, 0, 0)
   for (cursor.y = sy; cursor.y < sy + 16; cursor.y++) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
-        const block = world.getBlock(cursor)
+        const block = world.getBlock(cursor)!
         if (block.name.includes('sign')) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
@@ -419,8 +419,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           } else if (block.name === 'lava') {
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
           } else {
-            let globalMatrix = null
-            let globalShift = null
+            let globalMatrix = null as any
+            let globalShift = null as any
 
             for (const axis of ['x', 'y', 'z']) {
               if (axis in variant) {
@@ -520,7 +520,7 @@ function getModelVariants (block: import('prismarine-block').Block) {
   }
   if (state.multipart) {
     const parts = state.multipart.filter(multipart => matchProperties(block, multipart.when))
-    let variants = []
+    let variants = [] as any[]
     for (const part of parts) {
       variants = [...variants, ...Array.isArray(part.apply) ? part.apply : [part.apply]]
     }

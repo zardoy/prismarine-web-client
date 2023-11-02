@@ -4,7 +4,7 @@ declare const THREE: typeof import('three')
 // todo make optional
 declare const bot: Omit<import('mineflayer').Bot, 'world'> & { world: import('prismarine-world').world.WorldSync }
 declare const __type_bot: typeof bot
-declare const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer | undefined
+declare const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer
 declare const worldView: import('prismarine-viewer/viewer/lib/worldDataEmitter').WorldDataEmitter | undefined
 declare const localServer: any
 /** all currently loaded mc data */
