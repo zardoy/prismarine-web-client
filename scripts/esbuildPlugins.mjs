@@ -89,15 +89,18 @@ const plugins = [
         filter: /.+/,
       }, async ({ resolveDir, path, importer, kind, pluginData }) => {
         if (pluginData?.__internal) return
-        if (!resolveDir.startsWith(process.cwd())) {
-          const redirected = await build.resolve(path, { kind, importer, resolveDir: process.cwd(), pluginData: { __internal: true }, })
+        // not ideal as packages can have different version, on the other hand we should not have multiple versions of the same package of developing deps
+        const packageName = path.startsWith('@') ? path.split('/', 2).join('/') : path.split('/', 1)[0]
+        const localPackageToReuse = join('node_modules', packageName)
+        if (!resolveDir.startsWith(process.cwd()) && ['./', '../'].every(x => !path.startsWith(x)) && fs.existsSync(localPackageToReuse)) {
+          const redirected = await build.resolve(path, { kind: 'import-statement', resolveDir: process.cwd(), pluginData: { __internal: true }, })
           return redirected
         }
         // disallow imports from outside the root directory to ensure modules are resolved from node_modules of this workspace
-        if ([resolveDir, path].some(x => x.includes('node_modules')) && !resolveDir.startsWith(process.cwd())) {
-          // why? ensure workspace dependency versions are used (we have overrides and need to dedupe so it doesn't grow in size)
-          throw new Error(`Restricted package import from outside the root directory: ${resolveDir}`)
-        }
+        // if ([resolveDir, path].some(x => x.includes('node_modules')) && !resolveDir.startsWith(process.cwd())) {
+        //   // why? ensure workspace dependency versions are used (we have overrides and need to dedupe so it doesn't grow in size)
+        //   throw new Error(`Restricted package import from outside the root directory: ${resolveDir}`)
+        // }
         return undefined
       })
     }
@@ -113,6 +116,7 @@ const plugins = [
       })
       build.onEnd(({ errors, outputFiles: _outputFiles, metafile, warnings }) => {
         /** @type {import('esbuild').OutputFile[]} */
+        // @ts-ignore
         const outputFiles = _outputFiles
         const elapsed = Date.now() - time
         outputFiles.find(outputFile => outputFile.path)
@@ -128,6 +132,8 @@ const plugins = [
         // write metafile to disk if needed to analyze
         // fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
 
+        /** @type {import('esbuild').OutputFile} */
+        //@ts-ignore
         const outputFile = outputFiles.find(x => x.path.endsWith('.js'))
         if (outputFile.hash === prevHash) {
           console.log('Ignoring reload as contents the same')

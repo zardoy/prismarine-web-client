@@ -484,7 +484,7 @@ function parseProperties (properties) {
   return json
 }
 
-function matchProperties (block, /* to match against */properties: Record<string, string | boolean> & {OR}) {
+function matchProperties (block, /* to match against */properties: Record<string, string | boolean> & { OR }) {
   if (!properties) { return true }
 
   properties = parseProperties(properties)
@@ -495,7 +495,7 @@ function matchProperties (block, /* to match against */properties: Record<string
   for (const prop in blockProps) {
     if (properties[prop] === undefined) continue // unknown property, ignore
     if (typeof properties[prop] !== 'string') properties[prop] = String(properties[prop])
-    if ((!properties[prop] as unknown as string).split('|').some((value) => value === String(blockProps[prop]))) {
+    if (!(properties[prop] as string).split('|').some((value) => value === String(blockProps[prop]))) {
       return false
     }
   }

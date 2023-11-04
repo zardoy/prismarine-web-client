@@ -61,7 +61,7 @@ export type McAssets = {
 
 export type BlockStatesOutput = {
   // states: {
-  // [blockName: string]: ResolvedModel
+  [blockName: string]: any/* ResolvedModel */
   // }
   // defaults: {
   //   su: number
