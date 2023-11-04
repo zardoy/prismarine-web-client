@@ -173,6 +173,7 @@ export const setRenderDistance = () => {
   bot.setSettings({
     viewDistance: renderDistance
   })
+  worldView.viewDistance = renderDistance
   prevRenderDistance = renderDistance
 }
 export const reloadChunks = async () => {
