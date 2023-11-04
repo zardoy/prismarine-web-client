@@ -31,6 +31,7 @@ export const contro = new ControMax({
       interactPlace: [null, 'Left Trigger'],
       chat: [['KeyT', 'Enter']],
       command: ['Slash'],
+      selectItem: ['KeyH'] // default will be removed
     },
     ui: {
       back: [null/* 'Escape' */, 'B'],
@@ -95,7 +96,7 @@ contro.on('movementUpdate', ({ vector, gamepadIndex }) => {
     if (key === 'forward') {
       // todo workaround: need to refactor
       if (action) {
-        contro.emit('trigger', { command: 'general.forward' } as any)
+        void contro.emit('trigger', { command: 'general.forward' } as any)
       } else {
         setSprinting(false)
       }
@@ -211,6 +212,9 @@ contro.on('trigger', ({ command }) => {
         break
       case 'general.command':
         document.getElementById('hud').shadowRoot.getElementById('chat').enableChat('/')
+        break
+      case 'general.selectItem':
+        void selectItem()
         break
     }
   }
@@ -370,20 +374,25 @@ const toggleFly = (newState = !isFlying(), sendAbilities?: boolean) => {
   gameAdditionalState.isFlying = isFlying()
 }
 // #endregion
+
+const selectItem = async () => {
+  const block = bot.blockAtCursor(5)
+  if (!block) return
+  const itemId = loadedData.itemsByName[block.name]?.id
+  if (!itemId) return
+  const Item = require('prismarine-item')(bot.version)
+  const item = new Item(itemId, 1, 0)
+  await bot.creative.setInventorySlot(bot.inventory.hotbarStart + bot.quickBarSlot, item)
+  bot.updateHeldItem()
+}
+
 addEventListener('mousedown', async (e) => {
   void pointerLock.requestPointerLock()
   if (!bot) return
   // wheel click
   // todo support ctrl+wheel (+nbt)
   if (e.button === 1) {
-    const block = bot.blockAtCursor(5)
-    if (!block) return
-    const itemId = loadedData.itemsByName[block.name]?.id
-    if (!itemId) return
-    const Item = require('prismarine-item')(bot.version)
-    const item = new Item(itemId, 1, 0)
-    await bot.creative.setInventorySlot(bot.inventory.hotbarStart + bot.quickBarSlot, item)
-    bot.updateHeldItem()
+    await selectItem()
   }
 })
 
