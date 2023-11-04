@@ -5,6 +5,8 @@ class DebugOverlay extends LitElement {
     return css`
       .debug-left-side,
       .debug-right-side {
+        padding-left: calc(env(safe-area-inset-left) / 2);
+        padding-right: calc(env(safe-area-inset-right) / 2);
         position: absolute;
         display: flex;
         flex-direction: column;
@@ -18,7 +20,7 @@ class DebugOverlay extends LitElement {
       }
 
       .debug-right-side {
-        top: 1px;
+        top: 5px;
         right: 1px;
         /* limit renderer long text width */
         width: 50%;

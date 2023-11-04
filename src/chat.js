@@ -18,9 +18,11 @@ import { getColorShadow, messageFormatStylesMap } from './react/MessageFormatted
 class ChatBox extends LitElement {
   static get styles () {
     return css`
-        .chat-wrapper {
+        div.chat-wrapper { /* increase specificity */
             position: fixed;
             z-index: 10;
+            padding-left: calc(env(safe-area-inset-left) / 2);
+            padding-right: calc(env(safe-area-inset-right, 4px) / 2);
         }
 
         .chat-messages-wrapper {
@@ -99,6 +101,9 @@ class ChatBox extends LitElement {
 
         .input-mobile {
           top: 1px;
+        }
+        .input-mobile #chatinput {
+          height: 20px;
         }
 
         .display-mobile {

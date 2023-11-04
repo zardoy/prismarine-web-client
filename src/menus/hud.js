@@ -24,7 +24,7 @@ class Hud extends LitElement {
         width: 16px;
         height: 16px;
         background: url('${unsafeCSS(guiIcons1_17_1)}');
-        background-size: 256px;
+        background-size: calc(256px * var(--crosshair-scale));
         position: fixed;
         top: 50%;
         left: 50%;
@@ -71,33 +71,35 @@ class Hud extends LitElement {
         top: 0;
         left: 50%;
         transform: translate(-50%);
-        gap: 0 1px;
+        gap: 0 5px;
         z-index: 20;
       }
 
       .pause-btn,
       .chat-btn {
+        --scale: 1.3;
         border: none;
-        outline: none;
-        width: 16px;
-        height: 16px;
-        scale: 1.2;
+        outline: 0.5px solid white;
+        width: calc(14px * var(--scale));
+        height: calc(14px * var(--scale));
         background-image: url('extra-textures/gui.png');
-        background-size: 256px;
-        background-position-x: -201px;
-        background-position-y: -64px;
+        background-size: calc(256px * var(--scale));
+        background-position-x: calc(var(--scale) * -202px);
+        background-position-y: calc(var(--scale) * -66px);
       }
 
       .chat-btn {
-        background-position-y: -82px;
+        background-position-y: calc(var(--scale) * -84px);
       }
       .debug-btn {
         background: #9c8c86;
         font-size: 8px;
         /* todo make other buttons centered */
-        margin-right: 5px;
+        /* margin-right: 5px; */
         color: white;
         font-family: minecraft, mojangles, monospace;
+        padding: 4px 6px;
+        outline: 0.5px solid white;
       }
     `
   }
@@ -212,21 +214,22 @@ class Hud extends LitElement {
 
   render () {
     return html`
+      <!-- ios note: just don't use <button> -->
       <div class="mobile-top-btns" id="mobile-top">
-        <button class="debug-btn" @pointerdown=${(e) => {
+        <div class="debug-btn" @pointerdown=${(e) => {
       window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
-    }}>S</button>
-        <button class="debug-btn" @pointerdown=${(e) => {
+    }}>S</div>
+        <div class="debug-btn" @pointerdown=${(e) => {
       this.shadowRoot.getElementById('debug-overlay').showOverlay = !this.shadowRoot.getElementById('debug-overlay').showOverlay
-    }}>F3</button>
-        <button class="chat-btn" @pointerdown=${(e) => {
+    }}>F3</div>
+        <div class="chat-btn" @pointerdown=${(e) => {
       e.stopPropagation()
       this.shadowRoot.querySelector('#chat').enableChat()
-    }}></button>
-        <button class="pause-btn" @pointerdown=${(e) => {
+    }}></div>
+        <div class="pause-btn" @pointerdown=${(e) => {
       e.stopPropagation()
       showModal(document.getElementById('pause-screen'))
-    }}></button>
+    }}></div>
       </div>
 
       <pmui-debug-overlay id="debug-overlay"></pmui-debug-overlay>
