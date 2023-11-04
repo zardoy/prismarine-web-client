@@ -6,7 +6,7 @@ declare const bot: Omit<import('mineflayer').Bot, 'world'> & { world: import('pr
 declare const __type_bot: typeof bot
 declare const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer
 declare const worldView: import('prismarine-viewer/viewer/lib/worldDataEmitter').WorldDataEmitter | undefined
-declare const localServer: any
+declare const localServer: import('flying-squid/dist/types').FullServer & { options } | undefined
 /** all currently loaded mc data */
 declare const mcData: Record<string, any>
 declare const loadedData: import('minecraft-data').IndexedData
