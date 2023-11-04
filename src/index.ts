@@ -4,6 +4,7 @@ import './styles.css'
 import './globals'
 import 'iconify-icon'
 import './chat'
+import './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
 
 import './menus/components/button'
@@ -21,6 +22,7 @@ import './menus/play_screen'
 import './menus/pause_screen'
 import './menus/keybinds_screen'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
+import PrismarineBlock from 'prismarine-block'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -41,7 +43,7 @@ import { Vec3 } from 'vec3'
 import worldInteractions from './worldInteractions'
 
 import * as THREE from 'three'
-import { versionsByMinecraftVersion } from 'minecraft-data'
+import MinecraftData, { versionsByMinecraftVersion } from 'minecraft-data'
 
 import { initVR } from './vr'
 import {
@@ -250,7 +252,7 @@ async function connect (connectOptions: {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singleplayer
   miscUiState.flyingSquid = singleplayer || p2pMultiplayer
-  const { renderDistance, maxMultiplayerRenderDistance = renderDistance } = options
+  const { renderDistance: renderDistanceSingleplayer, maxMultiplayerRenderDistance = renderDistanceSingleplayer } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
   const { username, password } = connectOptions
@@ -266,7 +268,7 @@ async function connect (connectOptions: {
     if (ended) return
     ended = true
     viewer.resetAll()
-    window.localServer = undefined
+    localServer = window.localServer = window.server = undefined
 
     postRenderFrameFn = () => { }
     if (bot) {
@@ -330,6 +332,7 @@ async function connect (connectOptions: {
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
 
+  const renderDistance = singleplayer ? renderDistanceSingleplayer : Math.min(renderDistanceSingleplayer, maxMultiplayerRenderDistance!)
   let localServer
   try {
     const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
@@ -367,7 +370,7 @@ async function connect (connectOptions: {
       // flying-squid: 'login' -> player.login -> now sends 'login' event to the client (handled in many plugins in mineflayer) -> then 'update_health' is sent which emits 'spawn' in mineflayer
 
       setLoadingScreenStatus('Starting local server')
-      localServer = window.localServer = startLocalServer(serverOptions)
+      localServer = window.localServer = window.server = startLocalServer(serverOptions)
       // todo need just to call quit if started
       // loadingScreen.maybeRecoverable = false
       // init world, todo: do it for any async plugins
@@ -411,7 +414,7 @@ async function connect (connectOptions: {
       } : {},
       username,
       password,
-      viewDistance: 'tiny',
+      viewDistance: renderDistance,
       checkTimeoutInterval: 240 * 1000,
       noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
@@ -496,6 +499,12 @@ async function connect (connectOptions: {
 
   onBotCreate()
 
+  const mcData = MinecraftData(bot.version)
+  window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
+  window.loadedData = mcData
+  window.Vec3 = Vec3
+  window.pathfinder = pathfinder
+
   bot.once('login', () => {
     if (!connectOptions.server) return
     // server is ok, add it to the history
@@ -510,26 +519,19 @@ async function connect (connectOptions: {
   bot.once('health', () => {
     miscUiState.gameLoaded = true
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
-    const mcData = require('minecraft-data')(bot.version)
 
     setLoadingScreenStatus('Placing blocks (starting viewer)')
 
     console.log('bot spawned - starting viewer')
 
-    const { version } = bot
-
     const center = bot.entity.position
 
-    const worldView = window.worldView = new WorldDataEmitter(bot.world, singleplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance!), center)
-    setRenderDistance()
+    const worldView = window.worldView = new WorldDataEmitter(bot.world, renderDistance, center)
 
     bot.on('physicsTick', () => updateCursor())
 
     const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
 
-    window.loadedData = mcData
-    window.Vec3 = Vec3
-    window.pathfinder = pathfinder
     window.debugMenu = debugMenu
 
     void initVR(bot, renderer, viewer)

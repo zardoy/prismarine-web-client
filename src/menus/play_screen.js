@@ -1,13 +1,11 @@
 //@ts-check
 const { LitElement, html, css } = require('lit')
-const mineflayer = require('mineflayer')
 const viewerSupportedVersions = require('prismarine-viewer/viewer/supportedVersions.json')
-const { versionsByMinecraftVersion } = require('minecraft-data')
 const { hideCurrentModal, miscUiState } = require('../globalState')
+const { default: supportedVersions } = require('../supportedVersions.mjs')
 const { commonCss } = require('./components/common')
 
 const fullySupporedVersions = viewerSupportedVersions
-const partiallySupportVersions = mineflayer.supportedVersions
 
 class PlayScreen extends LitElement {
   static get styles () {
@@ -176,7 +174,7 @@ class PlayScreen extends LitElement {
             pmui-id="botversion"
             pmui-value="${this.version}"
             pmui-inputmode="decimal"
-            state="${this.version && (fullySupporedVersions.includes(/** @type {any} */(this.version)) ? '' : Object.keys(versionsByMinecraftVersion.pc).includes(this.version) ? 'warning' : 'invalid')}"
+            state="${this.version && (fullySupporedVersions.includes(/** @type {any} */(this.version)) ? '' : supportedVersions.includes(this.version) ? 'warning' : 'invalid')}"
             .autocompleteValues=${fullySupporedVersions}
             @input=${e => { this.version = e.target.value = e.target.value.replaceAll(',', '.') }}
           ></pmui-editbox>

@@ -10,7 +10,7 @@
     "test:cypress": "cypress run",
     "test:e2e": "start-test http-get://localhost:8080 test:cypress",
     "prod-start": "node server.js",
-    "postinstall": "node scripts/gen-texturepack-files.mjs",
+    "postinstall": "node scripts/gen-texturepack-files.mjs && tsx scripts/optimizeBlockCollisions.ts",
     "test-mc-server": "tsx cypress/minecraft-server.mjs",
     "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\"",
     "storybook": "storybook dev -p 6006",

@@ -169,11 +169,11 @@ export const toMajorVersion = (version) => {
 let prevRenderDistance = options.renderDistance
 export const setRenderDistance = () => {
   assertDefined(worldView)
-  worldView.viewDistance = options.renderDistance
-  if (localServer) {
-    localServer.players[0].emit('playerChangeRenderDistance', options.renderDistance)
-  }
-  prevRenderDistance = options.renderDistance
+  const { renderDistance } = options
+  bot.setSettings({
+    viewDistance: renderDistance
+  })
+  prevRenderDistance = renderDistance
 }
 export const reloadChunks = async () => {
   if (!worldView) return
