@@ -8,7 +8,6 @@
         "start": "vite"
     },
     "dependencies": {
-        "@xmcl/text-component": "^2.1.2",
         "vite": "^4.4.9"
     }
 }

@@ -499,12 +499,6 @@ async function connect (connectOptions: {
 
   onBotCreate()
 
-  const mcData = MinecraftData(bot.version)
-  window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
-  window.loadedData = mcData
-  window.Vec3 = Vec3
-  window.pathfinder = pathfinder
-
   bot.once('login', () => {
     if (!connectOptions.server) return
     // server is ok, add it to the history
@@ -517,6 +511,12 @@ async function connect (connectOptions: {
 
   // don't use spawn event, player can be dead
   bot.once('health', () => {
+    const mcData = MinecraftData(bot.version)
+    window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
+    window.loadedData = mcData
+    window.Vec3 = Vec3
+    window.pathfinder = pathfinder
+
     miscUiState.gameLoaded = true
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
 

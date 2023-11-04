@@ -150,6 +150,7 @@ class Hotbar extends LitElement {
       const slotIcon = slotEl.children[0]
       const slotStack = slotEl.children[1]
       const data = item ? renderSlotExternal(item) : { sprite: [invsprite.air.x, invsprite.air.y] }
+      if (item) item.displayName = data?.displayName ?? item.displayName
       if (data?.imageDataUrl) {
         slotIcon.style['background-image'] = `url('${data.imageDataUrl}')`
       } else {
@@ -167,6 +168,7 @@ class Hotbar extends LitElement {
     const newLeftPos = (-1 + 20 * slot) + 'px'
     this.shadowRoot.getElementById('hotbar-selected').style.left = newLeftPos
     bot.setQuickBarSlot(slot)
+    // todo highlight on item type change
     this.activeItemName = item?.displayName ?? ''
     const name = this.shadowRoot.getElementById('hotbar-item-name')
     name.classList.remove('hotbar-item-name-fader')

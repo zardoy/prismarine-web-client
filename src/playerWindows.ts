@@ -17,6 +17,9 @@ import itemsLegacyPng from 'prismarine-viewer/public/textures/items-legacy.png'
 import _itemsAtlases from 'prismarine-viewer/public/textures/items.json'
 import type { ItemsAtlasesOutputJson } from 'prismarine-viewer/viewer/prepare/genItemsAtlas'
 import PrismarineBlockLoader from 'prismarine-block'
+import { flat } from '@xmcl/text-component'
+import mojangson from 'mojangson'
+import nbt from 'prismarine-nbt'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
@@ -148,7 +151,7 @@ const getImageSrc = (path): string | HTMLImageElement => {
   return Dirt
 }
 
-const getImage = ({ path = undefined as string | undefined, texture = undefined as string | undefined, blockData = undefined as any }, onLoad = () => {}) => {
+const getImage = ({ path = undefined as string | undefined, texture = undefined as string | undefined, blockData = undefined as any }, onLoad = () => { }) => {
   if (!path && !texture) throw new Error('Either pass path or texture')
   const loadPath = (blockData ? 'blocks' : path ?? texture)!
   if (loadedImagesCache.has(loadPath)) {
@@ -230,12 +233,29 @@ const renderSlot = (slot: import('prismarine-item').Item, skipBlock = false): { 
   }
 }
 
+type JsonString = string
+type PossibleItemProps = {
+  Damage?: number
+  display?: { Name?: JsonString } // {"text":"Knife","color":"white","italic":"true"}
+}
+export const getItemName = (item: import('prismarine-item').Item) => {
+  if (!item.nbt) return
+  const itemNbt: PossibleItemProps = nbt.simplify(item.nbt)
+  const customName = itemNbt.display?.Name
+  if (!customName) return
+  const parsed = mojangson.simplify(mojangson.parse(customName))
+  // todo display damage and full text renderer from sign renderer
+  const text = flat(parsed).map(x => x.text)
+  return text
+}
+
 export const renderSlotExternal = (slot) => {
   const data = renderSlot(slot, true)
   if (!data) return
   return {
     imageDataUrl: data.texture === 'invsprite' ? undefined : getImage({ path: data.texture })?.src,
-    sprite: data.slice && data.texture !== 'invsprite' ? data.slice.map(x => x * 2) : data.slice
+    sprite: data.slice && data.texture !== 'invsprite' ? data.slice.map(x => x * 2) : data.slice,
+    displayName: getItemName(slot) ?? slot.displayName,
   }
 }
 
@@ -248,7 +268,7 @@ const upInventory = (inventory: boolean) => {
 
     try {
       const slotCustomProps = renderSlot(slot)
-      Object.assign(slot, slotCustomProps)
+      Object.assign(slot, { ...slotCustomProps, displayName: getItemName(slot) ?? slot.displayName })
     } catch (err) {
       console.error(err)
     }
