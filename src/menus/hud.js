@@ -79,11 +79,12 @@ class Hud extends LitElement {
       .chat-btn {
         border: none;
         outline: none;
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
+        scale: 1.2;
         background-image: url('extra-textures/gui.png');
         background-size: 256px;
-        background-position-x: -200px;
+        background-position-x: -201px;
         background-position-y: -64px;
       }
 
@@ -95,6 +96,8 @@ class Hud extends LitElement {
         font-size: 8px;
         /* todo make other buttons centered */
         margin-right: 5px;
+        color: white;
+        font-family: minecraft, mojangles, monospace;
       }
     `
   }
@@ -212,7 +215,7 @@ class Hud extends LitElement {
       <div class="mobile-top-btns" id="mobile-top">
         <button class="debug-btn" @pointerdown=${(e) => {
       window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
-    }}>Select</button>
+    }}>S</button>
         <button class="debug-btn" @pointerdown=${(e) => {
       this.shadowRoot.getElementById('debug-overlay').showOverlay = !this.shadowRoot.getElementById('debug-overlay').showOverlay
     }}>F3</button>

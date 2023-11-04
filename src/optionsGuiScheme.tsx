@@ -159,6 +159,13 @@ export const guiOptionsScheme: {
       },
       touchButtonsSize: {
         min: 40
+      },
+      touchButtonsOpacity: {
+        min: 10,
+        max: 90
+      },
+      touchButtonsPosition: {
+        max: 80
       }
     }
   ],

@@ -25,6 +25,8 @@ const defaultOptions = {
   guiScale: 3,
   autoRequestCompletions: true,
   touchButtonsSize: 40,
+  touchButtonsOpacity: 80,
+  touchButtonsPosition: 12,
   highPerformanceGpu: false,
   /** @unstable */
   disableAssets: false,
@@ -88,6 +90,12 @@ watchValue(options, o => {
 
 watchValue(options, o => {
   document.body.classList.toggle('disable-assets', o.disableAssets)
+})
+watchValue(options, o => {
+  document.body.style.setProperty('--touch-movement-buttons-opacity', (o.touchButtonsOpacity / 100).toString())
+})
+watchValue(options, o => {
+  document.body.style.setProperty('--touch-movement-buttons-position', (o.touchButtonsPosition * 2) + 'px')
 })
 
 export const useOptionValue = (setting, valueCallback) => {

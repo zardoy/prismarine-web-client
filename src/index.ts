@@ -596,7 +596,8 @@ async function connect (connectOptions: {
       }
       screenTouches++
       if (screenTouches === 3) {
-        window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
+        // todo needs fixing!
+        // window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
       }
       if (capturedPointer) {
         return

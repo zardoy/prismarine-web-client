@@ -24,10 +24,12 @@ html {
   overflow: hidden;
   color: white;
 }
+
 body {
   --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png');
   --title-gui: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/title/minecraft.png');
 }
+
 body.disable-assets {
   --widgets-gui-atlas: none;
   --title-gui: none;
@@ -81,7 +83,17 @@ body {
   /* padding-left: calc(env(safe-area-inset-left) / 2);
   padding-right: calc(env(safe-area-inset-right) / 2);
   padding-bottom: calc(env(safe-area-inset-bottom) / 2); */
-  padding: 25px;
+  margin: calc(var(--touch-movement-buttons-position) * 2);
+  --border: none;
+}
+
+[data-name="TouchMovementArea"]:first-child {
+  --border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+[data-name="MovementButton"] {
+  opacity: var(--touch-movement-buttons-opacity);
+  border: var(--border);
 }
 
 @font-face {
