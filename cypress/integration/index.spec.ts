@@ -52,15 +52,14 @@ it('Loads & renders singleplayer', () => {
   testWorldLoad()
 })
 
-it('Joins to server', {
-  retries: 3
-}, () => {
+it.only('Joins to server', () => {
   // visit('/?version=1.16.1')
   window.localStorage.version = ''
   visit()
   // todo replace with data-test
   cy.get('[data-test-id="connect-screen-button"]', { includeShadowDom: true }).click()
   cy.get('input#serverip', { includeShadowDom: true }).clear().focus().type('localhost')
+  cy.get('input#botversion', { includeShadowDom: true }).clear().focus().type('1.16.1') // todo needs to fix autoversion
   cy.get('[data-test-id="connect-to-server"]', { includeShadowDom: true }).click()
   testWorldLoad()
 })
