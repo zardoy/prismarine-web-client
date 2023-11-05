@@ -10,12 +10,12 @@ type SignBlockEntity = {
     Text4?: string
 } | {
     // todo
-    is_waxed: 0 | 1
+    is_waxed?: 0 | 1
     front_text: {
-        // todo
-        // has_glowing_text: 0 | 1
         color: string
         messages: string[]
+        // todo
+        has_glowing_text?: 0 | 1
     }
     // todo
     // back_text: {}
@@ -48,7 +48,7 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
 
     ctxHook(ctx)
 
-    const texts = 'is_waxed' in blockEntity ? /* > 1.20 */ blockEntity.front_text.messages : [
+    const texts = 'front_text' in blockEntity ? /* > 1.20 */ blockEntity.front_text.messages : [
         blockEntity.Text1,
         blockEntity.Text2,
         blockEntity.Text3,

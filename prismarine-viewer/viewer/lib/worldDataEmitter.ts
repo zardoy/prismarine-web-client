@@ -125,8 +125,7 @@ export class WorldDataEmitter extends EventEmitter {
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
     } else {
-      // todo should not happend in singleplayer
-      console.log('skipped loading chunk', dx, dz, '>', this.viewDistance)
+      console.debug('skipped loading chunk', dx, dz, '>', this.viewDistance)
     }
   }
 

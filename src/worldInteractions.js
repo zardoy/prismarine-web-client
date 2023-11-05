@@ -25,7 +25,7 @@ function getViewDirection (pitch, yaw) {
 }
 
 class WorldInteraction {
-  static instance = null
+  static instance = null // todo implement
   /** @type {null | {blockPos,mesh}} */
   interactionLines = null
   prevBreakState

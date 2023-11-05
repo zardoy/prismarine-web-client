@@ -499,8 +499,10 @@ async function connect (connectOptions: {
   onBotCreate()
 
   bot.once('login', () => {
-    if (!connectOptions.server) return
+    worldInteractions.init()
+
     // server is ok, add it to the history
+    if (!connectOptions.server) return
     const serverHistory: string[] = JSON.parse(localStorage.getItem('serverHistory') || '[]')
     serverHistory.unshift(connectOptions.server)
     localStorage.setItem('serverHistory', JSON.stringify([...new Set(serverHistory)]))
@@ -675,7 +677,6 @@ async function connect (connectOptions: {
       hud.init(renderer, bot, server.host)
       hud.style.display = 'block'
     })
-    worldInteractions.init()
 
     errorAbortController.abort()
     if (appStatusState.isError) return

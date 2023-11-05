@@ -155,7 +155,7 @@ class Hud extends LitElement {
 
     hotbar.init()
     chat.init(bot._client)
-    playerList.init(bot, host)
+    playerList.init(host)
 
     bot.on('entityHurt', (entity) => {
       if (entity !== bot.entity) return
