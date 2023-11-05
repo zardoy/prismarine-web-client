@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useSnapshot } from 'valtio'
-import { isGameActive, openOptionsMenu } from './globalState'
+import { miscUiState, openOptionsMenu } from './globalState'
 import { openURL } from './menus/components/common'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
-import { OptionMeta } from './react/OptionsItems'
+import { OptionMeta, OptionSlider } from './react/OptionsItems'
 import Slider from './react/Slider'
 import { getScreenRefreshRate, openFilePicker, setLoadingScreenStatus } from './utils'
 import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
-import { fsState } from './loadSave'
 import { resetLocalStorageWithoutWorld } from './browserfs'
 
 export const guiOptionsScheme: {
@@ -57,7 +56,6 @@ export const guiOptionsScheme: {
     },
   ],
   main: [
-    // renderDistance
     {
       fov: {
         min: 30,
@@ -66,10 +64,17 @@ export const guiOptionsScheme: {
       }
     },
     {
-      renderDistance: {
-        unit: '',
-        min: 1,
-        max: 16
+      custom () {
+        const sp = miscUiState.singleplayer || !miscUiState.gameLoaded
+        const id = sp ? 'renderDistance' : 'multiplayerRenderDistance' // cant be changed when settings are open
+        return <OptionSlider item={{
+          type: 'slider',
+          id,
+          text: 'Render Distance',
+          unit: '',
+          max: sp ? 16 : 12,
+          min: 1
+        }} />
       },
     },
     {

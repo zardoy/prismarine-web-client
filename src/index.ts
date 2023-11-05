@@ -251,7 +251,7 @@ async function connect (connectOptions: {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singleplayer
   miscUiState.flyingSquid = singleplayer || p2pMultiplayer
-  const { renderDistance: renderDistanceSingleplayer, maxMultiplayerRenderDistance = renderDistanceSingleplayer } = options
+  const { renderDistance: renderDistanceSingleplayer, multiplayerRenderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
   const { username, password } = connectOptions
@@ -331,7 +331,7 @@ async function connect (connectOptions: {
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
 
-  const renderDistance = singleplayer ? renderDistanceSingleplayer : Math.min(renderDistanceSingleplayer, maxMultiplayerRenderDistance!)
+  const renderDistance = singleplayer ? renderDistanceSingleplayer : multiplayerRenderDistance
   let localServer
   try {
     const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)

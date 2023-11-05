@@ -8,6 +8,7 @@ const mergeAny: <T>(arg1: T, arg2: any) => T = Object.assign
 
 const defaultOptions = {
   renderDistance: 2,
+  multiplayerRenderDistance: 2,
   closeConfirmation: true,
   autoFullScreen: false,
   mouseRawInput: false,
@@ -37,7 +38,6 @@ const defaultOptions = {
   frameLimit: false as number | false,
   alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
   alwaysShowMobileControls: false,
-  maxMultiplayerRenderDistance: null as number | null,
   excludeCommunicationDebugEvents: [],
   preventDevReloadWhilePlaying: false,
   numWorkers: 4,

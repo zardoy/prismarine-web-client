@@ -169,7 +169,8 @@ export const toMajorVersion = (version) => {
 let prevRenderDistance = options.renderDistance
 export const setRenderDistance = () => {
   assertDefined(worldView)
-  const { renderDistance } = options
+  const { renderDistance: singleplayerRenderDistance, multiplayerRenderDistance } = options
+  const renderDistance = miscUiState.singleplayer ? singleplayerRenderDistance : multiplayerRenderDistance
   bot.setSettings({
     viewDistance: renderDistance
   })
