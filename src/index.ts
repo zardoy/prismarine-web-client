@@ -9,7 +9,6 @@ import { onGameLoad } from './playerWindows'
 
 import './menus/components/button'
 import './menus/components/edit_box'
-import './menus/components/slider'
 import './menus/components/hotbar'
 import './menus/components/health_bar'
 import './menus/components/food_bar'

@@ -18,7 +18,7 @@ export function nameToMcOfflineUUID (name) {
 }
 
 export async function savePlayers () {
-  await localServer.savePlayersSingleplayer()
+  await localServer!.savePlayersSingleplayer()
 }
 
 // todo flying squid should expose save function instead

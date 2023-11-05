@@ -68,6 +68,7 @@ class PauseScreen extends LitElement {
     }
     const action = await showOptionsModal('World actions...', ['Save to browser memory'])
     if (action === 'Save to browser memory') {
+      //@ts-expect-error
       const { worldFolder } = localServer.options
       const savePath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
       await copyFilesAsyncWithProgress(worldFolder, savePath)

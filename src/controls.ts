@@ -238,6 +238,7 @@ document.addEventListener('keydown', (e) => {
         worldView!.unloadChunk({ x, z })
       }
       if (localServer) {
+        //@ts-expect-error not sure why it is private... maybe revisit api?
         localServer.players[0].world.columns = {}
       }
       void reloadChunks()
