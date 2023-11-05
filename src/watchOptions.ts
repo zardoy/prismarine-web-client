@@ -5,6 +5,7 @@ import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
 
 subscribeKey(options, 'renderDistance', reloadChunks)
+subscribeKey(options, 'multiplayerRenderDistance', reloadChunks)
 
 watchValue(options, o => {
   document.documentElement.style.setProperty('--chatScale', `${o.chatScale / 100}`)
@@ -15,6 +16,7 @@ watchValue(options, o => {
 
 export const watchOptionsAfterViewerInit = () => {
   watchValue(options, o => {
+    if (!viewer) return
     viewer.world.showChunkBorders = o.showChunkBorders
   })
 }

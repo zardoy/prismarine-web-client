@@ -57,6 +57,7 @@ fs.promises = new Proxy(Object.fromEntries(['readFile', 'writeFile', 'stat', 'mk
 })
 //@ts-expect-error
 fs.promises.open = async (...args) => {
+  //@ts-expect-error
   const fd = await promisify(fs.open)(...args)
   return {
     ...Object.fromEntries(['read', 'write', 'close'].map(x => [x, async (...args) => {
@@ -127,7 +128,7 @@ export const mkdirRecursive = async (path: string) => {
 
 export const uniqueFileNameFromWorldName = async (title: string, savePath: string) => {
   const name = sanitizeFilename(title)
-  let resultPath: string
+  let resultPath!: string
   // getUniqueFolderName
   let i = 0
   let free = false
@@ -176,7 +177,7 @@ export const mountExportFolder = async () => {
 }
 
 export async function removeFileRecursiveAsync (path) {
-  const errors = []
+  const errors = [] as Array<[string, Error]>
   try {
     const files = await fs.promises.readdir(path)
 

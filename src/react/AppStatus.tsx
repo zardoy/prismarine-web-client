@@ -4,7 +4,7 @@ import styles from './appStatus.module.css'
 import Button from './Button'
 import Screen from './Screen'
 
-export default ({ status, isError, hideDots = false, lastStatus = '', backAction = undefined, actionsSlot = undefined }) => {
+export default ({ status, isError, hideDots = false, lastStatus = '', backAction = undefined as undefined | (() => void), actionsSlot = undefined }) => {
   const [loadingDots, setLoadingDots] = useState('')
 
   useEffect(() => {

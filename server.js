@@ -14,14 +14,26 @@ const app = express()
 const isProd = process.argv.includes('--prod')
 app.use(compression())
 app.use(netApi({ allowOrigin: '*' }))
-let lastVersion = ''
-app.post('/lastVersion', (req, res) => {
-  res.send(lastVersion.toString())
-})
 if (!isProd) {
   app.use('/blocksStates', express.static(path.join(__dirname, './prismarine-viewer/public/blocksStates')))
   app.use('/textures', express.static(path.join(__dirname, './prismarine-viewer/public/textures')))
 }
+// patch config
+app.get('/config.json', (req, res, next) => {
+  // read original file config
+  let config = {}
+  try {
+    config = require('./config.json')
+  } catch {
+    try {
+      config = require('./dist/config.json')
+    } catch { }
+  }
+  res.json({
+    ...config,
+    'defaultProxy': '', // use current url (this server)
+  })
+})
 app.use(express.static(path.join(__dirname, './dist')))
 
 const portArg = process.argv.indexOf('--port')

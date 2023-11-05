@@ -34,7 +34,7 @@ window.addEventListener('drop', async e => {
       await openWorldDirectory(filehandle)
     }
   } else {
-    await handleDroppedFile(item.getAsFile())
+    await handleDroppedFile(item.getAsFile()!)
   }
 })
 

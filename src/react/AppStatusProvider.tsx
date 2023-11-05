@@ -27,11 +27,11 @@ export default () => {
   useDidUpdateEffect(() => {
     // todo play effect only when world successfully loaded
     if (!isOpen) {
-      const divingElem: HTMLElement = document.querySelector('#viewer-canvas')
+      const divingElem: HTMLElement = document.querySelector('#viewer-canvas')!
       divingElem.style.animationName = 'dive-animation'
-      divingElem.parentElement.style.perspective = '1200px'
+      divingElem.parentElement!.style.perspective = '1200px'
       divingElem.onanimationend = () => {
-        divingElem.parentElement.style.perspective = ''
+        divingElem.parentElement!.style.perspective = ''
         divingElem.onanimationend = null
       }
     }
@@ -47,7 +47,7 @@ export default () => {
         appStatusState.isError = false
         resetState()
         miscUiState.gameLoaded = false
-        miscUiState.loadedDataVersion = undefined
+        miscUiState.loadedDataVersion = null
         window.loadedData = undefined
         if (activeModalStacks['main-menu']) {
           insertActiveModalStack('main-menu')

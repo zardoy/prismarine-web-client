@@ -2,7 +2,6 @@
 import mcServer from 'flying-squid'
 import defaultOptions from 'flying-squid/config/default-settings.json' assert { type: 'json' }
 
-/** @type {import('minecraft-protocol').ServerOptions & Record<string ,any>} */
 const serverOptions = {
   ...defaultOptions,
   'online-mode': false,

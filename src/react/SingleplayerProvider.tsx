@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { fsState, loadSave, longArrayToNumber, readLevelDat } from '../loadSave'
 import { mountExportFolder, removeFileRecursiveAsync } from '../browserfs'
 import { hideCurrentModal, showModal } from '../globalState'
-import { setLoadingScreenStatus } from '../utils'
+import { haveDirectoryPicker, setLoadingScreenStatus } from '../utils'
 import { exportWorld } from '../builtinCommands'
 import Singleplayer, { WorldProps } from './Singleplayer'
 import { useIsModalActive } from './utils'
@@ -17,7 +17,7 @@ export const readWorlds = () => {
     try {
       const worlds = await fs.promises.readdir(`/data/worlds`)
       worldsProxy.value = (await Promise.allSettled(worlds.map(async (world) => {
-        const { levelDat } = await readLevelDat(`/data/worlds/${world}`)
+        const { levelDat } = (await readLevelDat(`/data/worlds/${world}`))!
         let size = 0
         // todo use whole dir size
         for (const region of await fs.promises.readdir(`/data/worlds/${world}/region`)) {
@@ -28,7 +28,7 @@ export const readWorlds = () => {
           name: world,
           title: levelDat.LevelName,
           lastPlayed: levelDat.LastPlayed && longArrayToNumber(levelDat.LastPlayed),
-          detail: `${levelDat.Version.Name ?? 'unknown version'}, ${world}`,
+          detail: `${levelDat.Version?.Name ?? 'unknown version'}, ${world}`,
           size,
         } satisfies WorldProps
       }))).filter(x => {
@@ -81,7 +81,7 @@ export default () => {
       }
       if (action === 'export') {
         const selectedVariant =
-          window.showDirectoryPicker
+          haveDirectoryPicker()
             ? await showOptionsModal('Select export type', ['Select folder (recommended)', 'Download ZIP file'])
             : await showOptionsModal('Select export type', ['Download ZIP file'])
         if (!selectedVariant) return

@@ -99,12 +99,18 @@ class PlayerListOverlay extends LitElement {
     this.players = {}
   }
 
-  init (bot, ip) {
+  init (ip) {
     const playerList = this.shadowRoot.querySelector('#playerlist-container')
 
     this.isOpen = false
     this.players = bot.players
-    this.clientId = bot.player.uuid
+    if (bot.player) {
+      this.clientId = bot.player.uuid
+    } else {
+      bot._client.on('player_info', () => {
+        this.clientId = bot.player?.uuid
+      })
+    }
     this.serverIP = ip
 
     this.requestUpdate()

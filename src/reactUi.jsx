@@ -7,7 +7,7 @@ import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
 import { contro } from './controls'
-import { miscUiState } from './globalState'
+import { activeModalStack, miscUiState } from './globalState'
 import { options, watchValue } from './optionsStorage'
 import DeathScreenProvider from './react/DeathScreenProvider'
 import OptionsRenderApp from './react/OptionsRenderApp'
@@ -36,6 +36,7 @@ useInterfaceState.setState({
     const actionAndState = state === 0 ? coordToAction.filter(([axis]) => axis === coord) : coordToAction.find(([axis, value]) => axis === coord && value === state)
     if (!bot) return
     if (state === 0) {
+      // @ts-expect-error
       for (const action of actionAndState) {
         contro.pressedKeyOrButtonChanged({ code: action[2] }, false)
       }
@@ -58,10 +59,12 @@ const TouchControls = () => {
   // todo setting
   const usingTouch = useUsingTouch()
   const { usingGamepadInput } = useSnapshot(miscUiState)
+  const modals = useSnapshot(activeModalStack)
 
   if (!usingTouch || usingGamepadInput) return null
   return (
     <div
+      style={{ zIndex: modals.length ? 7 : 8 }}
       className={css`
         position: fixed;
         inset: 0;
@@ -123,7 +126,10 @@ const InGameUi = () => {
       <DeathScreenProvider />
     </Portal>
     <DisplayQr />
-    <TouchControls />
+    <Portal to={document.body}>
+      {/* becaues of z-index */}
+      <TouchControls />
+    </Portal>
   </>
 }
 

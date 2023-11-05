@@ -8,6 +8,7 @@ const mergeAny: <T>(arg1: T, arg2: any) => T = Object.assign
 
 const defaultOptions = {
   renderDistance: 2,
+  multiplayerRenderDistance: 2,
   closeConfirmation: true,
   autoFullScreen: false,
   mouseRawInput: false,
@@ -25,6 +26,8 @@ const defaultOptions = {
   guiScale: 3,
   autoRequestCompletions: true,
   touchButtonsSize: 40,
+  touchButtonsOpacity: 80,
+  touchButtonsPosition: 12,
   highPerformanceGpu: false,
   /** @unstable */
   disableAssets: false,
@@ -35,7 +38,6 @@ const defaultOptions = {
   frameLimit: false as number | false,
   alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
   alwaysShowMobileControls: false,
-  maxMultiplayerRenderDistance: null as number | null,
   excludeCommunicationDebugEvents: [],
   preventDevReloadWhilePlaying: false,
   numWorkers: 4,
@@ -88,6 +90,12 @@ watchValue(options, o => {
 
 watchValue(options, o => {
   document.body.classList.toggle('disable-assets', o.disableAssets)
+})
+watchValue(options, o => {
+  document.body.style.setProperty('--touch-movement-buttons-opacity', (o.touchButtonsOpacity / 100).toString())
+})
+watchValue(options, o => {
+  document.body.style.setProperty('--touch-movement-buttons-position', (o.touchButtonsPosition * 2) + 'px')
 })
 
 export const useOptionValue = (setting, valueCallback) => {

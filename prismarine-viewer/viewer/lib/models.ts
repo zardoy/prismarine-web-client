@@ -1,9 +1,9 @@
-//@ts-nocheck
 import { Vec3 } from 'vec3'
 import { BlockStatesOutput } from '../prepare/modelsBuilder'
 import { World } from './world'
+import { Block } from 'prismarine-block'
 
-const tints = {}
+const tints: any = {}
 let blockStates: BlockStatesOutput
 
 const tintsData = require('esbuild-data').tints
@@ -114,7 +114,7 @@ function getLiquidRenderHeight (world, block, type) {
 }
 
 function renderLiquid (world, cursor, texture, type, biome, water, attr) {
-  const heights = []
+  const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
       heights.push(getLiquidRenderHeight(world, world.getBlock(cursor.offset(x, 0, z)), type))
@@ -173,7 +173,7 @@ function vecsub3 (a, b) {
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 }
 
-function matmul3 (matrix, vector) {
+function matmul3 (matrix, vector): [number, number, number] {
   if (!matrix) return vector
   return [
     matrix[0][0] * vector[0] + matrix[0][1] * vector[1] + matrix[0][2] * vector[2],
@@ -232,7 +232,7 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
-function renderElement (world, cursor, element, doAO, attr, globalMatrix, globalShift, block, biome) {
+function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
   for (const face in element.faces) {
@@ -286,8 +286,8 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
     const uvcs = Math.cos(r * Math.PI / 180)
     const uvsn = -Math.sin(r * Math.PI / 180)
 
-    let localMatrix = null
-    let localShift = null
+    let localMatrix = null as any
+    let localShift = null as any
 
     if (element.rotation) {
       localMatrix = buildRotationMatrix(
@@ -304,7 +304,7 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
       )
     }
 
-    const aos = []
+    const aos: number[] = []
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
@@ -340,9 +340,9 @@ function renderElement (world, cursor, element, doAO, attr, globalMatrix, global
         const side2 = world.getBlock(cursor.offset(...side2Dir))
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
-        const side1Block = (side1 && side1.isCube) ? 1 : 0
-        const side2Block = (side2 && side2.isCube) ? 1 : 0
-        const cornerBlock = (corner && corner.isCube) ? 1 : 0
+        const side1Block = world.shouldMakeAo(side1) ? 1 : 0
+        const side2Block = world.shouldMakeAo(side2) ? 1 : 0
+        const cornerBlock = world.shouldMakeAo(corner) ? 1 : 0
 
         // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
 
@@ -384,16 +384,16 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     indices: [],
     // todo this can be removed here
     signs: {}
-  }
+  } as Record<string, any>
 
   const cursor = new Vec3(0, 0, 0)
   for (cursor.y = sy; cursor.y < sy + 16; cursor.y++) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
-        const block = world.getBlock(cursor)
+        const block = world.getBlock(cursor)!
         if (block.name.includes('sign')) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
-          const props = block.getProperties()
+          const props: any = block.getProperties()
           const facingRotationMap = {
             "north": 2,
             "south": 0,
@@ -419,8 +419,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           } else if (block.name === 'lava') {
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
           } else {
-            let globalMatrix = null
-            let globalShift = null
+            let globalMatrix = null as any
+            let globalShift = null as any
 
             for (const axis of ['x', 'y', 'z']) {
               if (axis in variant) {
@@ -465,10 +465,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   delete attr.t_colors
   delete attr.t_uvs
 
-  attr.positions = new Float32Array(attr.positions)
-  attr.normals = new Float32Array(attr.normals)
-  attr.colors = new Float32Array(attr.colors)
-  attr.uvs = new Float32Array(attr.uvs)
+  attr.positions = new Float32Array(attr.positions) as any
+  attr.normals = new Float32Array(attr.normals) as any
+  attr.colors = new Float32Array(attr.colors) as any
+  attr.uvs = new Float32Array(attr.uvs) as any
 
   return attr
 }
@@ -484,7 +484,7 @@ function parseProperties (properties) {
   return json
 }
 
-function matchProperties (block, /* to match against */properties: Record<string, string | boolean>) {
+function matchProperties (block, /* to match against */properties: Record<string, string | boolean> & { OR }) {
   if (!properties) { return true }
 
   properties = parseProperties(properties)
@@ -495,7 +495,7 @@ function matchProperties (block, /* to match against */properties: Record<string
   for (const prop in blockProps) {
     if (properties[prop] === undefined) continue // unknown property, ignore
     if (typeof properties[prop] !== 'string') properties[prop] = String(properties[prop])
-    if (!properties[prop].split('|').some((value) => value === String(blockProps[prop]))) {
+    if (!(properties[prop] as string).split('|').some((value) => value === String(blockProps[prop]))) {
       return false
     }
   }
@@ -504,21 +504,23 @@ function matchProperties (block, /* to match against */properties: Record<string
 
 function getModelVariants (block: import('prismarine-block').Block) {
   // air, cave_air, void_air and so on...
+  // full list of invisible & special blocks https://minecraft.wiki/w/Model#Blocks_and_fluids
   if (block.name === '' || block.name === 'air' || block.name.endsWith('_air')) return []
+  if (block.name === 'barrier') return []
   const matchedState = blockStates[block.name]
   // if (!matchedState) currentWarnings.value.add(`Missing block ${block.name}`)
   const state = matchedState ?? blockStates.missing_texture
   if (!state) return []
   if (state.variants) {
     for (const [properties, variant] of Object.entries(state.variants)) {
-      if (!matchProperties(block, properties)) continue
+      if (!matchProperties(block, properties as any)) continue
       if (variant instanceof Array) return [variant[0]]
       return [variant]
     }
   }
   if (state.multipart) {
     const parts = state.multipart.filter(multipart => matchProperties(block, multipart.when))
-    let variants = []
+    let variants = [] as any[]
     for (const part of parts) {
       variants = [...variants, ...Array.isArray(part.apply) ? part.apply : [part.apply]]
     }

@@ -1,7 +1,9 @@
 import { options } from './optionsStorage'
+import { assertDefined } from './utils'
 
 export default () => {
   bot.on('time', () => {
+    assertDefined(viewer)
     // 0 morning
     const dayTotal = 24_000
     const evening = 12_542

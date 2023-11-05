@@ -23,13 +23,13 @@ export const getJoinLink = () => {
   if (!peerInstance) return
   const url = new URL(window.location.href)
   url.searchParams.set('connectPeer', peerInstance.id)
-  url.searchParams.set('peerVersion', localServer.options.version)
+  url.searchParams.set('peerVersion', localServer!.options.version)
   return url.toString()
 }
 
 const copyJoinLink = async () => {
   miscUiState.wanOpened = true
-  const joinLink = getJoinLink()
+  const joinLink = getJoinLink()!
   if (navigator.clipboard) {
     await navigator.clipboard.writeText(joinLink)
   } else {

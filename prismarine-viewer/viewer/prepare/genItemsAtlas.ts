@@ -13,7 +13,7 @@ import { versionToNumber } from './utils'
 const legacyInvsprite = JSON.parse(fs.readFileSync(join(__dirname, '../../../src/invsprite.json'), 'utf8'))
 
 //@ts-ignore
-const latestMcAssetsVersion = McAssets.versions.at(-1)
+const latestMcAssetsVersion = McAssets.versions.at(-1)!
 // const latestVersion = minecraftDataLoader.supportedVersions.pc.at(-1)
 const mcData = minecraftDataLoader(latestMcAssetsVersion)
 const PBlock = BlockLoader(latestMcAssetsVersion)

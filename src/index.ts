@@ -4,11 +4,11 @@ import './styles.css'
 import './globals'
 import 'iconify-icon'
 import './chat'
+import './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
 
 import './menus/components/button'
 import './menus/components/edit_box'
-import './menus/components/slider'
 import './menus/components/hotbar'
 import './menus/components/health_bar'
 import './menus/components/food_bar'
@@ -21,6 +21,7 @@ import './menus/play_screen'
 import './menus/pause_screen'
 import './menus/keybinds_screen'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
+import PrismarineBlock from 'prismarine-block'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -41,7 +42,7 @@ import { Vec3 } from 'vec3'
 import worldInteractions from './worldInteractions'
 
 import * as THREE from 'three'
-import { versionsByMinecraftVersion } from 'minecraft-data'
+import MinecraftData, { versionsByMinecraftVersion } from 'minecraft-data'
 
 import { initVR } from './vr'
 import {
@@ -65,7 +66,7 @@ import {
 } from './panorama'
 
 import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalServer'
-import serverOptions from './defaultLocalServerOptions'
+import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
 import _ from 'lodash-es'
@@ -110,7 +111,7 @@ viewer.entities.entitiesOptions = {
 watchOptionsAfterViewerInit()
 watchTexturepackInViewer(viewer)
 
-let renderInterval: number
+let renderInterval: number | false
 watchValue(options, (o) => {
   renderInterval = o.frameLimit && 1000 / o.frameLimit
 })
@@ -214,7 +215,7 @@ function listenGlobalEvents () {
   })
 }
 
-let listeners = []
+let listeners = [] as Array<{ target, event, callback }>
 // only for dom listeners (no removeAllListeners)
 // todo refactor them out of connect fn instead
 const registerListener: import('./utilsTs').RegisterListener = (target, event, callback) => {
@@ -241,7 +242,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
 }
 
 async function connect (connectOptions: {
-  server?: string; singleplayer?: any; username?: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
+  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
 }) {
   document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
@@ -250,7 +251,7 @@ async function connect (connectOptions: {
   const p2pMultiplayer = !!connectOptions.peerId
   miscUiState.singleplayer = singleplayer
   miscUiState.flyingSquid = singleplayer || p2pMultiplayer
-  const { renderDistance, maxMultiplayerRenderDistance = renderDistance } = options
+  const { renderDistance: renderDistanceSingleplayer, multiplayerRenderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
   const { username, password } = connectOptions
@@ -261,12 +262,12 @@ async function connect (connectOptions: {
   setLoadingScreenStatus('Logging in')
 
   let ended = false
-  let bot: typeof __type_bot
+  let bot!: typeof __type_bot
   const destroyAll = () => {
     if (ended) return
     ended = true
     viewer.resetAll()
-    window.localServer = undefined
+    localServer = window.localServer = window.server = undefined
 
     postRenderFrameFn = () => { }
     if (bot) {
@@ -275,7 +276,9 @@ async function connect (connectOptions: {
       bot.emit('end', '')
       bot.removeAllListeners()
       bot._client.removeAllListeners()
+      //@ts-expect-error TODO?
       bot._client = undefined
+      //@ts-expect-error
       window.bot = bot = undefined
     }
     if (singleplayer && !fsState.inMemorySave) {
@@ -328,9 +331,10 @@ async function connect (connectOptions: {
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
 
+  const renderDistance = singleplayer ? renderDistanceSingleplayer : multiplayerRenderDistance
   let localServer
   try {
-    Object.assign(serverOptions, _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, serverOptions))
+    const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
@@ -365,7 +369,7 @@ async function connect (connectOptions: {
       // flying-squid: 'login' -> player.login -> now sends 'login' event to the client (handled in many plugins in mineflayer) -> then 'update_health' is sent which emits 'spawn' in mineflayer
 
       setLoadingScreenStatus('Starting local server')
-      localServer = window.localServer = startLocalServer()
+      localServer = window.localServer = window.server = startLocalServer(serverOptions)
       // todo need just to call quit if started
       // loadingScreen.maybeRecoverable = false
       // init world, todo: do it for any async plugins
@@ -394,10 +398,10 @@ async function connect (connectOptions: {
     setLoadingScreenStatus(initialLoadingText)
     bot = mineflayer.createBot({
       host: server.host,
-      port: +server.port,
+      port: server.port ? +server.port : undefined,
       version: connectOptions.botVersion || false,
       ...p2pMultiplayer ? {
-        stream: await connectToPeer(connectOptions.peerId),
+        stream: await connectToPeer(connectOptions.peerId!),
       } : {},
       ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
@@ -409,7 +413,7 @@ async function connect (connectOptions: {
       } : {},
       username,
       password,
-      viewDistance: 'tiny',
+      viewDistance: renderDistance,
       checkTimeoutInterval: 240 * 1000,
       noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
@@ -495,7 +499,10 @@ async function connect (connectOptions: {
   onBotCreate()
 
   bot.once('login', () => {
+    worldInteractions.init()
+
     // server is ok, add it to the history
+    if (!connectOptions.server) return
     const serverHistory: string[] = JSON.parse(localStorage.getItem('serverHistory') || '[]')
     serverHistory.unshift(connectOptions.server)
     localStorage.setItem('serverHistory', JSON.stringify([...new Set(serverHistory)]))
@@ -505,28 +512,27 @@ async function connect (connectOptions: {
 
   // don't use spawn event, player can be dead
   bot.once('health', () => {
+    const mcData = MinecraftData(bot.version)
+    window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
+    window.loadedData = mcData
+    window.Vec3 = Vec3
+    window.pathfinder = pathfinder
+
     miscUiState.gameLoaded = true
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
-    const mcData = require('minecraft-data')(bot.version)
 
     setLoadingScreenStatus('Placing blocks (starting viewer)')
 
     console.log('bot spawned - starting viewer')
 
-    const { version } = bot
-
     const center = bot.entity.position
 
-    const worldView = window.worldView = new WorldDataEmitter(bot.world, singleplayer ? renderDistance : Math.min(renderDistance, maxMultiplayerRenderDistance), center)
-    setRenderDistance()
+    const worldView = window.worldView = new WorldDataEmitter(bot.world, renderDistance, center)
 
     bot.on('physicsTick', () => updateCursor())
 
     const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
 
-    window.loadedData = mcData
-    window.Vec3 = Vec3
-    window.pathfinder = pathfinder
     window.debugMenu = debugMenu
 
     void initVR(bot, renderer, viewer)
@@ -537,9 +543,9 @@ async function connect (connectOptions: {
 
     try {
       const gl = renderer.getContext()
-      debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL)
+      debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
     } catch (err) {
-      console.error(err)
+      console.warn(err)
       debugMenu.rendererDevice = '???'
     }
 
@@ -554,7 +560,7 @@ async function connect (connectOptions: {
     function botPosition () {
       // this might cause lag, but not sure
       viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
-      worldView.updatePosition(bot.entity.position)
+      void worldView.updatePosition(bot.entity.position)
     }
     bot.on('move', botPosition)
     botPosition()
@@ -585,7 +591,7 @@ async function connect (connectOptions: {
     let virtualClickActive = false
     let virtualClickTimeout
     let screenTouches = 0
-    let capturedPointer: { id; x; y; sourceX; sourceY; activateCameraMove; time } | null
+    let capturedPointer: { id; x; y; sourceX; sourceY; activateCameraMove; time } | undefined
     registerListener(document, 'pointerdown', (e) => {
       const clickedEl = e.composedPath()[0]
       if (!isGameActive(true) || !miscUiState.currentTouch || clickedEl !== cameraControlEl || e.pointerId === undefined) {
@@ -593,7 +599,8 @@ async function connect (connectOptions: {
       }
       screenTouches++
       if (screenTouches === 3) {
-        window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
+        // todo needs fixing!
+        // window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
       }
       if (capturedPointer) {
         return
@@ -670,7 +677,6 @@ async function connect (connectOptions: {
       hud.init(renderer, bot, server.host)
       hud.style.display = 'block'
     })
-    worldInteractions.init()
 
     errorAbortController.abort()
     if (appStatusState.isError) return
@@ -731,7 +737,7 @@ downloadAndOpenFile().then((downloadAction) => {
     const peerId = qs.get('connectPeer')
     const version = qs.get('peerVersion')
     if (peerId) {
-      let username = options.guestUsername
+      let username: string | null = options.guestUsername
       if (options.askGuestName) username = prompt('Enter your username', username)
       if (!username) return
       options.guestUsername = username

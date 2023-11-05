@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useSnapshot } from 'valtio'
-import { isGameActive, openOptionsMenu } from './globalState'
+import { miscUiState, openOptionsMenu } from './globalState'
 import { openURL } from './menus/components/common'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
-import { OptionMeta } from './react/OptionsItems'
+import { OptionMeta, OptionSlider } from './react/OptionsItems'
 import Slider from './react/Slider'
 import { getScreenRefreshRate, openFilePicker, setLoadingScreenStatus } from './utils'
 import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
-import { fsState } from './loadSave'
 import { resetLocalStorageWithoutWorld } from './browserfs'
 
 export const guiOptionsScheme: {
@@ -21,8 +20,8 @@ export const guiOptionsScheme: {
         const [frameLimitMax, setFrameLimitMax] = useState(null as number | null)
 
         return <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Slider style={{ width: 130 }} label='Frame Limit' disabledReason={frameLimitMax ? undefined : 'press lock button first'} unit={frameLimitValue ? 'fps' : ''} valueDisplay={frameLimitValue || 'VSync'} value={frameLimitValue || frameLimitMax + 1} min={20} max={frameLimitMax + 1} updateValue={(newVal) => {
-            options.frameLimit = newVal > frameLimitMax ? false : newVal
+          <Slider style={{ width: 130 }} label='Frame Limit' disabledReason={frameLimitMax ? undefined : 'press lock button first'} unit={frameLimitValue ? 'fps' : ''} valueDisplay={frameLimitValue || 'VSync'} value={frameLimitValue || frameLimitMax! + 1} min={20} max={frameLimitMax! + 1} updateValue={(newVal) => {
+            options.frameLimit = newVal > frameLimitMax! ? false : newVal
           }} />
           <Button style={{ width: 20 }} icon='pixelarticons:lock-open' onClick={async () => {
             const rate = await getScreenRefreshRate()
@@ -57,7 +56,6 @@ export const guiOptionsScheme: {
     },
   ],
   main: [
-    // renderDistance
     {
       fov: {
         min: 30,
@@ -66,10 +64,17 @@ export const guiOptionsScheme: {
       }
     },
     {
-      renderDistance: {
-        unit: '',
-        min: 1,
-        max: 16
+      custom () {
+        const sp = miscUiState.singleplayer || !miscUiState.gameLoaded
+        const id = sp ? 'renderDistance' : 'multiplayerRenderDistance' // cant be changed when settings are open
+        return <OptionSlider item={{
+          type: 'slider',
+          id,
+          text: 'Render Distance',
+          unit: '',
+          max: sp ? 16 : 12,
+          min: 1
+        }} />
       },
     },
     {
@@ -144,7 +149,8 @@ export const guiOptionsScheme: {
       mouseSensY: {},
       mouseRawInput: {
         tooltip: 'Wether to disable any mouse acceleration (MC does it by default). Most probably it is still supported only by Chrome.',
-        disabledReason: document.documentElement.requestPointerLock ? undefined : 'Your browser does not support pointer lock.',
+        // eslint-disable-next-line no-extra-boolean-cast
+        disabledReason: Boolean(document.documentElement.requestPointerLock) ? undefined : 'Your browser does not support pointer lock.',
       },
       alwaysShowMobileControls: {
         text: 'Always Mobile Controls',
@@ -158,6 +164,13 @@ export const guiOptionsScheme: {
       },
       touchButtonsSize: {
         min: 40
+      },
+      touchButtonsOpacity: {
+        min: 10,
+        max: 90
+      },
+      touchButtonsPosition: {
+        max: 80
       }
     }
   ],

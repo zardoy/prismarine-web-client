@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { openURL } from '../menus/components/common'
+import { haveDirectoryPicker } from '../utils'
 import styles from './mainMenu.module.css'
 import Button from './Button'
 import ButtonWithTooltip from './ButtonWithTooltip'
@@ -18,7 +19,7 @@ interface Props {
 
 const refreshApp = async () => {
   const registration = await navigator.serviceWorker.getRegistration()
-  await registration.unregister()
+  await registration?.unregister()
   window.location.reload()
 }
 
@@ -81,7 +82,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
             icon='pixelarticons:folder'
             onClick={openFileAction}
             initialTooltip={{
-              content: 'Load any 1.8-1.16 Java world' + (window.showDirectoryPicker ? '' : ' (zip)'),
+              content: 'Load any 1.8-1.16 Java world' + (haveDirectoryPicker() ? '' : ' (zip)'),
               placement: 'bottom-start',
             }}
           />

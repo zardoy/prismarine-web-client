@@ -39,7 +39,7 @@ export const readLevelDat = async (path) => {
   }
   const { parsed } = await nbt.parse(Buffer.from(levelDatContent))
   const levelDat: import('./mcTypes').LevelDat = nbt.simplify(parsed).Data
-  return { levelDat, dataRaw: parsed.value.Data.value as Record<string, any> }
+  return { levelDat, dataRaw: parsed.value.Data!.value as Record<string, any> }
 }
 
 export const loadSave = async (root = '/world') => {
@@ -54,7 +54,7 @@ export const loadSave = async (root = '/world') => {
   // todo check jsHeapSizeLimit
 
   const warnings: string[] = []
-  const { levelDat, dataRaw } = await readLevelDat(root)
+  const { levelDat, dataRaw } = (await readLevelDat(root))!
   if (levelDat === undefined) {
     if (fsState.isReadonly) {
       throw new Error('level.dat not found, ensure you are loading world folder')
@@ -63,7 +63,7 @@ export const loadSave = async (root = '/world') => {
     }
   }
 
-  let version: string | undefined
+  let version: string | undefined | null
   let isFlat = false
   if (levelDat) {
     const qs = new URLSearchParams(window.location.search)
@@ -73,7 +73,7 @@ export const loadSave = async (root = '/world') => {
       if (!newVersion) return
       version = newVersion
     }
-    const lastSupportedVersion = supportedVersions.at(-1)
+    const lastSupportedVersion = supportedVersions.at(-1)!
     const firstSupportedVersion = supportedVersions[0]
     const lowerBound = isMajorVersionGreater(firstSupportedVersion, version)
     const upperBound = isMajorVersionGreater(version, lastSupportedVersion)

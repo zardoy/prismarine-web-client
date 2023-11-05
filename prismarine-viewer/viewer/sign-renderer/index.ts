@@ -10,12 +10,12 @@ type SignBlockEntity = {
     Text4?: string
 } | {
     // todo
-    is_waxed: 0 | 1
+    is_waxed?: 0 | 1
     front_text: {
-        // todo
-        // has_glowing_text: 0 | 1
         color: string
         messages: string[]
+        // todo
+        has_glowing_text?: 0 | 1
     }
     // todo
     // back_text: {}
@@ -48,7 +48,7 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
 
     ctxHook(ctx)
 
-    const texts = 'is_waxed' in blockEntity ? /* > 1.20 */ blockEntity.front_text.messages : [
+    const texts = 'front_text' in blockEntity ? /* > 1.20 */ blockEntity.front_text.messages : [
         blockEntity.Text1,
         blockEntity.Text2,
         blockEntity.Text3,
@@ -57,7 +57,7 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
     const defaultColor = ('front_text' in blockEntity ? blockEntity.front_text.color : blockEntity.Color) || 'black'
     for (let [lineNum, text] of texts.slice(0, 4).entries()) {
         // todo: in pre flatenning it seems the format was not json
-        const parsed = text.startsWith('{') ? parseSafe(text ?? '""', 'sign text') : text
+        const parsed = text?.startsWith('{') ? parseSafe(text ?? '""', 'sign text') : text
         if (!parsed || (typeof parsed !== 'object' && typeof parsed !== 'string')) continue
         // todo fix type
         const message = typeof parsed === 'string' ? fromFormattedString(parsed) : new PrismarineChat(parsed) as never

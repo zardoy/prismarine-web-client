@@ -29,8 +29,9 @@ export const contro = new ControMax({
       prevHotbarSlot: [null, 'Right Bumper'],
       attackDestroy: [null, 'Right Trigger'],
       interactPlace: [null, 'Left Trigger'],
-      chat: [['KeyT', 'Enter'], null],
-      command: ['Slash', null],
+      chat: [['KeyT', 'Enter']],
+      command: ['Slash'],
+      selectItem: ['KeyH'] // default will be removed
     },
     ui: {
       back: [null/* 'Escape' */, 'B'],
@@ -81,7 +82,8 @@ contro.on('movementUpdate', ({ vector, gamepadIndex }) => {
     if (v === undefined || Math.abs(v) < 0.3) continue
     // todo use raw values eg for slow movement
     const mappedValue = v < 0 ? -1 : 1
-    const foundAction = coordToAction.find(([c, mapV]) => c === coord && mapV === mappedValue)?.[2]
+    // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
+    const foundAction = coordToAction.find(([c, mapV]) => c === coord && mapV === mappedValue)?.[2]!
     newState[foundAction] = true
   }
 
@@ -94,7 +96,7 @@ contro.on('movementUpdate', ({ vector, gamepadIndex }) => {
     if (key === 'forward') {
       // todo workaround: need to refactor
       if (action) {
-        contro.emit('trigger', { command: 'general.forward' } as any)
+        void contro.emit('trigger', { command: 'general.forward' } as any)
       } else {
         setSprinting(false)
       }
@@ -211,6 +213,9 @@ contro.on('trigger', ({ command }) => {
       case 'general.command':
         document.getElementById('hud').shadowRoot.getElementById('chat').enableChat('/')
         break
+      case 'general.selectItem':
+        void selectItem()
+        break
     }
   }
 })
@@ -223,15 +228,17 @@ contro.on('release', ({ command }) => {
 
 const hardcodedPressedKeys = new Set<string>()
 document.addEventListener('keydown', (e) => {
+  if (!isGameActive(false)) return
   if (hardcodedPressedKeys.has('F3')) {
     // reload chunks
     if (e.code === 'KeyA') {
       //@ts-expect-error
       const loadedChunks = Object.entries(worldView.loadedChunks).filter(([, v]) => v).map(([key]) => key.split(',').map(Number))
       for (const [x, z] of loadedChunks) {
-        worldView.unloadChunk({ x, z })
+        worldView!.unloadChunk({ x, z })
       }
       if (localServer) {
+        //@ts-expect-error not sure why it is private... maybe revisit api?
         localServer.players[0].world.columns = {}
       }
       void reloadChunks()
@@ -280,7 +287,11 @@ const startFlyLoop = () => {
   endFlyLoop?.()
 
   endFlyLoop = makeInterval(() => {
-    if (!bot) endFlyLoop()
+    if (!bot) {
+      endFlyLoop?.()
+      return
+    }
+
     bot.entity.position.add(currentFlyVector.clone().multiply(new Vec3(0, 0.5, 0)))
   }, 50)
 }
@@ -364,20 +375,25 @@ const toggleFly = (newState = !isFlying(), sendAbilities?: boolean) => {
   gameAdditionalState.isFlying = isFlying()
 }
 // #endregion
+
+const selectItem = async () => {
+  const block = bot.blockAtCursor(5)
+  if (!block) return
+  const itemId = loadedData.itemsByName[block.name]?.id
+  if (!itemId) return
+  const Item = require('prismarine-item')(bot.version)
+  const item = new Item(itemId, 1, 0)
+  await bot.creative.setInventorySlot(bot.inventory.hotbarStart + bot.quickBarSlot, item)
+  bot.updateHeldItem()
+}
+
 addEventListener('mousedown', async (e) => {
   void pointerLock.requestPointerLock()
   if (!bot) return
   // wheel click
   // todo support ctrl+wheel (+nbt)
   if (e.button === 1) {
-    const block = bot.blockAtCursor(5)
-    if (!block) return
-    const itemId = loadedData.itemsByName[block.name]?.id
-    if (!itemId) return
-    const Item = require('prismarine-item')(bot.version)
-    const item = new Item(itemId, 1, 0)
-    await bot.creative.setInventorySlot(bot.inventory.hotbarStart + bot.quickBarSlot, item)
-    bot.updateHeldItem()
+    await selectItem()
   }
 })
 

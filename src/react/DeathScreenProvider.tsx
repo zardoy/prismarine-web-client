@@ -5,12 +5,13 @@ import { MessageFormatPart, formatMessage } from '../botUtils'
 import { showModal, hideModal, activeModalStack } from '../globalState'
 import { options } from '../optionsStorage'
 import DeathScreen from './DeathScreen'
+import { useIsModalActive } from './utils'
 
 const dieReasonProxy = proxy({ value: null as MessageFormatPart[] | null })
 
 export default () => {
   const { value: dieReasonMessage } = useSnapshot(dieReasonProxy)
-  const activeModals = useSnapshot(activeModalStack)
+  const isModalActive = useIsModalActive('death-screen')
 
   useEffect(() => {
     type DeathEvent = {
@@ -52,7 +53,7 @@ export default () => {
     }
   }, [dieReasonMessage])
 
-  if (!dieReasonMessage || options.autoRespawn || activeModals.length) return null
+  if (!isModalActive || !dieReasonMessage || options.autoRespawn) return null
 
   return <DeathScreen
     dieReasonMessage={dieReasonMessage}
@@ -60,7 +61,7 @@ export default () => {
       bot._client.write('client_command', bot.supportFeature('respawnIsPayload') ? { payload: 0 } : { actionId: 0 })
     }}
     disconnectCallback={() => {
-      disconnect()
+      void disconnect()
     }}
   />
 }

@@ -19,8 +19,6 @@
   },
   "dependencies": {
     "@tweenjs/tween.js": "^20.0.3",
-    "three-stdlib": "^2.26.11",
-    "tsx": "^3.13.0",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "canvas": "^2.11.2",
@@ -30,6 +28,7 @@
     "looks-same": "^8.2.3",
     "minecraft-wrap": "^1.3.0",
     "minecrafthawkeye": "^1.3.6",
+    "node-canvas-webgl": "^0.3.0",
     "prismarine-block": "^1.7.3",
     "prismarine-chunk": "^1.22.0",
     "prismarine-schematic": "^1.2.0",
@@ -37,8 +36,9 @@
     "process": "^0.11.10",
     "socket.io": "^4.0.0",
     "socket.io-client": "^4.0.0",
+    "three-stdlib": "^2.26.11",
     "three.meshline": "^1.3.0",
-    "vec3": "^0.1.7",
-    "node-canvas-webgl": "^0.3.0"
+    "tsx": "^3.13.0",
+    "vec3": "^0.1.7"
   }
 }

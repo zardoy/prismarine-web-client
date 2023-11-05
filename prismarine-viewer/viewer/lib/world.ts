@@ -1,5 +1,7 @@
-const Chunks = require('prismarine-chunk')
-const mcData = require('minecraft-data')
+import Chunks from 'prismarine-chunk'
+import mcData from 'minecraft-data'
+import { Block } from "prismarine-block"
+import { Vec3 } from 'vec3'
 
 function columnKey (x, z) {
   return `${x},${z}`
@@ -18,11 +20,20 @@ function isCube (shapes) {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
-class World {
+export type WorldBlock = Block & {
+  variant?: any
+  // todo
+  isCube: boolean
+}
+
+export class World {
+  Chunk: any/* import('prismarine-chunk/types/index').PCChunk */
+  columns = {}
+  blockCache = {}
+  biomeCache: { [id: number]: mcData.Biome }
+
   constructor (version) {
     this.Chunk = Chunks(version)
-    this.columns = {}
-    this.blockCache = {}
     this.biomeCache = mcData(version).biomes
   }
 
@@ -40,7 +51,7 @@ class World {
     return this.columns[columnKey(x, z)]
   }
 
-  setBlockStateId (pos, stateId) {
+  setBlockStateId (pos: Vec3, stateId) {
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
 
     const column = this.columns[key]
@@ -52,7 +63,7 @@ class World {
     return true
   }
 
-  getBlock (pos) {
+  getBlock (pos: Vec3): WorldBlock | null {
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
 
     const column = this.columns[key]
@@ -72,8 +83,11 @@ class World {
     const block = this.blockCache[stateId]
     block.position = loc
     block.biome = this.biomeCache[column.getBiome(locInChunk)]
+    if (block.name === 'redstone_ore') block.transparent = false
     return block
   }
-}
 
-module.exports = { World }
+  shouldMakeAo (block: WorldBlock | null) {
+    return block?.isCube && block.name !== 'barrier'
+  }
+}

@@ -68,6 +68,7 @@ class PauseScreen extends LitElement {
     }
     const action = await showOptionsModal('World actions...', ['Save to browser memory'])
     if (action === 'Save to browser memory') {
+      //@ts-expect-error
       const { worldFolder } = localServer.options
       const savePath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
       await copyFilesAsyncWithProgress(worldFolder, savePath)
@@ -88,7 +89,9 @@ class PauseScreen extends LitElement {
       <main>
         <pmui-button pmui-width="204px" pmui-label="Back to Game" @pmui-click=${this.onReturnPress}></pmui-button>
         <div class="row">
-          <pmui-button pmui-width="98px" pmui-label="GitHub" @pmui-click=${() => openURL(process.env.GITHUB_URL)}></pmui-button>
+          <pmui-button pmui-width="98px" pmui-label="GitHub" @pmui-click=${() => openURL(
+      // @ts-expect-error
+      process.env.GITHUB_URL)}></pmui-button>
           <pmui-button pmui-width="98px" pmui-label="Discord" @pmui-click=${() => openURL('https://discord.gg/4Ucm684Fq3')}></pmui-button>
         </div>
         <pmui-button pmui-width="204px" pmui-label="Options" @pmui-click=${() => openOptionsMenu('main')}></pmui-button>
@@ -101,8 +104,8 @@ class PauseScreen extends LitElement {
           </div>
         ` : ''}
         <pmui-button pmui-width="204px" pmui-label="${localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect'}" @pmui-click=${async () => {
-      disconnect()
-    }}></pmui-button>
+        disconnect()
+      }}></pmui-button>
       </main>
     `
   }
@@ -117,6 +120,7 @@ class PauseScreen extends LitElement {
     }
     if (qr) {
       const joinLink = getJoinLink()
+      //@ts-expect-error
       miscUiState.currentDisplayQr = joinLink
 
     }

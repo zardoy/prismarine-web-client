@@ -1,20 +1,15 @@
-//@ts-check
-/* global THREE, fetch */
-const _ = require('lodash')
-const { WorldDataEmitter, Viewer, MapControls } = require('../viewer')
-const { Vec3 } = require('vec3')
-const { Schematic } = require('prismarine-schematic')
-const BlockLoader = require('prismarine-block')
-/** @type {import('prismarine-chunk')['default']} */
-//@ts-ignore
-const ChunkLoader = require('prismarine-chunk')
-/** @type {import('prismarine-world')['default']} */
-//@ts-ignore
-const WorldLoader = require('prismarine-world')
-const THREE = require('three')
-const { GUI } = require('lil-gui')
-const { toMajor } = require('../viewer/lib/version')
-const { loadScript } = require('../viewer/lib/utils')
+import _ from 'lodash'
+import { WorldDataEmitter, Viewer, MapControls } from '../viewer'
+import { Vec3 } from 'vec3'
+import { Schematic } from 'prismarine-schematic'
+import BlockLoader from 'prismarine-block'
+import ChunkLoader from 'prismarine-chunk'
+import WorldLoader from 'prismarine-world'
+import * as THREE from 'three'
+import { GUI } from 'lil-gui'
+import { toMajor } from '../viewer/lib/version'
+import { loadScript } from '../viewer/lib/utils'
+
 globalThis.THREE = THREE
 //@ts-ignore
 require('three/examples/js/controls/OrbitControls')
@@ -138,7 +133,7 @@ async function main () {
 
 
   //@ts-ignore
-  const controls = new THREE.OrbitControls(viewer.camera, renderer.domElement)
+  const controls = new globalThis.THREE.OrbitControls(viewer.camera, renderer.domElement)
   controls.target.set(center.x + 0.5, center.y + 0.5, center.z + 0.5)
 
   const cameraPos = center.offset(2, 2, 2)
@@ -209,15 +204,12 @@ async function main () {
 
   const applyChanges = (metadataUpdate = false) => {
     const blockId = getBlock()?.id
-    /** @type {BlockLoader.Block} */
-    let block
+    let block: BlockLoader.Block
     if (metadataUpdate) {
       block = new Block(blockId, 0, params.metadata)
       Object.assign(blockProps, block.getProperties())
       for (const _child of folder.children) {
-        /** @type {import('lil-gui').Controller} */
-        //@ts-ignore
-        const child = _child
+        const child = _child as import('lil-gui').Controller
         child.updateDisplay()
       }
     } else {

@@ -14,6 +14,7 @@ import destroyStage9 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/de
 
 import { Vec3 } from 'vec3'
 import { isGameActive } from './globalState'
+import { assertDefined } from './utils'
 
 function getViewDirection (pitch, yaw) {
   const csPitch = Math.cos(pitch)
@@ -24,14 +25,25 @@ function getViewDirection (pitch, yaw) {
 }
 
 class WorldInteraction {
-  static instance = null
+  static instance = null // todo implement
   /** @type {null | {blockPos,mesh}} */
   interactionLines = null
   prevBreakState
   currentDigTime
   prevOnGround
+  /** @type {number} */
+  lastBlockPlaced
+  buttons = [false, false, false]
+  lastButtons = [false, false, false]
+  /** @type {number | undefined} */
+  breakStartTime = 0
+  /** @type {import('prismarine-block').Block | null} */
+  cursorBlock = null
+  /** @type {THREE.Mesh} */
+  blockBreakMesh
 
   init () {
+    assertDefined(viewer)
     bot.on('physicsTick', () => { if (this.lastBlockPlaced < 4) this.lastBlockPlaced++ })
     bot.on('diggingCompleted', () => {
       this.breakStartTime = undefined
@@ -39,12 +51,6 @@ class WorldInteraction {
     bot.on('diggingAborted', () => {
       this.breakStartTime = undefined
     })
-
-    // Init state
-    this.buttons = [false, false, false]
-    this.lastButtons = [false, false, false]
-    this.breakStartTime = 0
-    this.cursorBlock = null
 
     const loader = new THREE.TextureLoader()
     this.breakTextures = []
@@ -114,16 +120,21 @@ class WorldInteraction {
     })
   }
 
-  updateBlockInteractionLines (/** @type {Vec3 | null} */blockPos, /** @type {{position, width, height, depth}[]} */shapePositions = undefined) {
+  updateBlockInteractionLines (/** @type {Vec3 | null} */blockPos, /** @type {{position, width, height, depth}[] | undefined} */shapePositions = undefined) {
+    assertDefined(viewer)
+    if (blockPos && this.interactionLines && blockPos.equals(this.interactionLines.blockPos)) {
+      return
+    }
     if (this.interactionLines !== null) {
       viewer.scene.remove(this.interactionLines.mesh)
       this.interactionLines = null
     }
-    if (blockPos === null || (this.interactionLines && blockPos.equals(this.interactionLines.blockPos))) {
+    if (blockPos === null) {
       return
     }
 
     const group = new THREE.Group()
+    //@ts-expect-error
     for (const { position, width, height, depth } of shapePositions) {
       const geometry = new THREE.BoxGeometry(1.001 * width, 1.001 * height, 1.001 * depth)
       const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: 0 }))
@@ -139,7 +150,7 @@ class WorldInteraction {
   update () {
     const cursorBlock = bot.blockAtCursor(5)
     let cursorBlockDiggable = cursorBlock
-    if (!bot.canDigBlock(cursorBlock) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
+    if (cursorBlock && !bot.canDigBlock(cursorBlock) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
 
     let cursorChanged = !cursorBlock !== !this.cursorBlock
     if (cursorBlock && this.cursorBlock) {
@@ -178,9 +189,9 @@ class WorldInteraction {
       && (!this.lastButtons[0] || (cursorChanged && Date.now() - (this.lastDigged ?? 0) > 100) || onGround !== this.prevOnGround)
       && onGround
     ) {
-      this.currentDigTime = bot.digTime(cursorBlock)
+      this.currentDigTime = bot.digTime(cursorBlockDiggable)
       this.breakStartTime = performance.now()
-      bot.dig(cursorBlock, 'ignore').catch((err) => {
+      bot.dig(cursorBlockDiggable, 'ignore').catch((err) => {
         if (err.message === 'Digging aborted') return
         throw err
       })
@@ -216,16 +227,18 @@ class WorldInteraction {
     }
 
     // Show break animation
-    if (this.breakStartTime && bot.game.gameMode !== 'creative') {
+    if (cursorBlockDiggable && this.breakStartTime && bot.game.gameMode !== 'creative') {
       const elapsed = performance.now() - this.breakStartTime
-      const time = bot.digTime(cursorBlock)
+      const time = bot.digTime(cursorBlockDiggable)
       if (time !== this.currentDigTime) {
         console.warn('dig time changed! cancelling!', time, 'from', this.currentDigTime) // todo
         try { bot.stopDigging() } catch { }
       }
       const state = Math.floor((elapsed / time) * 10)
+      //@ts-expect-error
       this.blockBreakMesh.material.map = this.breakTextures[state] ?? this.breakTextures.at(-1)
       if (state !== this.prevBreakState) {
+        //@ts-expect-error
         this.blockBreakMesh.material.needsUpdate = true
       }
       this.prevBreakState = state

@@ -9,8 +9,7 @@ export default () => {
   const activeCreate = useIsModalActive('create-world')
   const activeCustomize = useIsModalActive('customize-world')
   if (activeCreate) {
-    const ignoredVersionsRegex = /(^0\.30c$)|w|-pre|-rc/
-    const versions = supportedVersions.filter(x => !ignoredVersionsRegex.test(x)).map(x => {
+    const versions = supportedVersions.map(x => {
       return {
         version: x,
         label: x === defaultLocalServerOptions.version ? `${x} (available offline)` : x
