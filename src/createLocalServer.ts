@@ -1,10 +1,10 @@
-//@ts-check
-import { createMCServer } from 'flying-squid/src'
 import { LocalServer } from './customServer'
+
+const { createMCServer } = require('flying-squid/src')
 
 export const startLocalServer = (serverOptions) => {
   const passOptions = { ...serverOptions, Server: LocalServer }
-  const server = createMCServer(passOptions) as NonNullable<typeof localServer>
+  const server: NonNullable<typeof localServer> = createMCServer(passOptions)
   server.formatMessage = (message) => `[server] ${message}`
   server.options = passOptions
   server.looseProtocolMode = true
