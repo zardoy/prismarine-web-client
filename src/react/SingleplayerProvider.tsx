@@ -16,19 +16,20 @@ export const readWorlds = () => {
   (async () => {
     try {
       const worlds = await fs.promises.readdir(`/data/worlds`)
-      worldsProxy.value = (await Promise.allSettled(worlds.map(async (world) => {
-        const { levelDat } = (await readLevelDat(`/data/worlds/${world}`))!
+      worldsProxy.value = (await Promise.allSettled(worlds.map(async (folder) => {
+        const { levelDat } = (await readLevelDat(`/data/worlds/${folder}`))!
         let size = 0
         // todo use whole dir size
-        for (const region of await fs.promises.readdir(`/data/worlds/${world}/region`)) {
-          const stat = await fs.promises.stat(`/data/worlds/${world}/region/${region}`)
+        for (const region of await fs.promises.readdir(`/data/worlds/${folder}/region`)) {
+          const stat = await fs.promises.stat(`/data/worlds/${folder}/region/${region}`)
           size += stat.size
         }
+        const levelName = levelDat.LevelName as string | undefined
         return {
-          name: world,
-          title: levelDat.LevelName,
+          name: folder,
+          title: levelName ?? folder,
           lastPlayed: levelDat.LastPlayed && longArrayToNumber(levelDat.LastPlayed),
-          detail: `${levelDat.Version?.Name ?? 'unknown version'}, ${world}`,
+          detail: `${levelDat.Version?.Name ?? 'unknown version'}, ${folder}`,
           size,
         } satisfies WorldProps
       }))).filter(x => {
