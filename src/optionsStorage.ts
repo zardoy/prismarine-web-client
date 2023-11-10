@@ -4,8 +4,6 @@ import { proxy, subscribe } from 'valtio/vanilla'
 // weird webpack configuration bug: it cant import valtio/utils in this file
 import { subscribeKey } from 'valtio/utils'
 
-const mergeAny: <T>(arg1: T, arg2: any) => T = Object.assign
-
 const defaultOptions = {
   renderDistance: 2,
   multiplayerRenderDistance: 2,
@@ -53,15 +51,22 @@ const defaultOptions = {
 
 export type AppOptions = typeof defaultOptions
 
-export const options = proxy(
-  mergeAny(defaultOptions, JSON.parse(localStorage.options || '{}'))
-)
+export const options: AppOptions = proxy({
+  ...defaultOptions,
+  ...JSON.parse(localStorage.options || '{}')
+})
 
 window.options = window.settings = options
 
 export const resetOptions = () => {
   Object.assign(options, defaultOptions)
 }
+
+Object.defineProperty(window, 'debugChangedOptions', {
+  get () {
+    return Object.fromEntries(Object.entries(options).filter(([key, v]) => defaultOptions[key] !== v))
+  },
+})
 
 subscribe(options, () => {
   localStorage.options = JSON.stringify(options)

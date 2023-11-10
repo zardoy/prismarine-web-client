@@ -9,6 +9,7 @@ import { dispose3 } from './dispose'
 import { toMajor } from './version.js'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
+import { chunkPos } from './simpleUtils'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -33,6 +34,7 @@ export class WorldRenderer {
   workers: any[] = []
 
   texturesVersion?: string
+
   constructor (public scene: THREE.Scene, numWorkers = 4) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
@@ -180,6 +182,15 @@ export class WorldRenderer {
         worker.postMessage({ type: 'blockStates', json: blockStates })
       }
     })
+  }
+
+  getLoadedChunksRelative (pos: Vec3) {
+    const [currentX, currentZ] = chunkPos(pos)
+    return Object.fromEntries(Object.entries(this.sectionObjects).map(([key, o]) => {
+      const [xRaw, yRaw, zRaw] = key.split(',').map(Number)
+      const [x, z] = chunkPos({x: xRaw, z: zRaw})
+      return [`${x - currentX},${z - currentZ}`, o]
+    }))
   }
 
   addColumn (x, z, chunk) {

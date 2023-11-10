@@ -105,6 +105,11 @@ document.body.appendChild(renderer.domElement)
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
+Object.defineProperty(window, 'debugSceneChunks', {
+  get () {
+    return viewer.world.getLoadedChunksRelative(bot.entity.position)
+  },
+})
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
