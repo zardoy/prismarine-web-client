@@ -110,7 +110,8 @@ async function initVR () {
     // bot.entity.yaw = Math.atan2(-d.x, -d.z)
     // bot.entity.pitch = Math.asin(d.y)
 
-    bot.physics.stepHeight = 1
+    // todo ?
+    // bot.physics.stepHeight = 1
 
     viewer.update()
     viewer.render()
