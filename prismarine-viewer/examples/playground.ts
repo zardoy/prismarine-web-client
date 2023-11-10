@@ -90,19 +90,18 @@ async function main () {
   // const schem = await Schematic.read(Buffer.from(data), version)
 
   const viewDistance = 0
-  const center = new Vec3(0, 90, 0)
+  const targetPos = new Vec3(2, 90, 2)
 
   const World = WorldLoader(version)
 
   // const diamondSquare = require('diamond-square')({ version, seed: Math.floor(Math.random() * Math.pow(2, 31)) })
 
-  const targetPos = center
   //@ts-ignore
   const chunk1 = new Chunk()
   //@ts-ignore
   const chunk2 = new Chunk()
-  chunk1.setBlockStateId(center, 34)
-  chunk2.setBlockStateId(center.offset(1, 0, 0), 34)
+  chunk1.setBlockStateId(targetPos, 34)
+  chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
   const world = new World((chunkX, chunkZ) => {
     // if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
@@ -113,7 +112,7 @@ async function main () {
 
   // await schem.paste(world, new Vec3(0, 60, 0))
 
-  const worldView = new WorldDataEmitter(world, viewDistance, center)
+  const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
 
   // Create three.js context, add to page
   const renderer = new THREE.WebGLRenderer()
@@ -127,20 +126,20 @@ async function main () {
 
   viewer.listen(worldView)
   // Load chunks
-  await worldView.init(center)
+  await worldView.init(targetPos)
   window['worldView'] = worldView
   window['viewer'] = viewer
 
 
   //@ts-ignore
   const controls = new globalThis.THREE.OrbitControls(viewer.camera, renderer.domElement)
-  controls.target.set(center.x + 0.5, center.y + 0.5, center.z + 0.5)
+  controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
-  const cameraPos = center.offset(2, 2, 2)
+  const cameraPos = targetPos.offset(2, 2, 2)
   const pitch = THREE.MathUtils.degToRad(-45)
   const yaw = THREE.MathUtils.degToRad(45)
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-  viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
+  viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
   viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
   controls.update()
 
