@@ -582,6 +582,7 @@ async function connect (connectOptions: {
 
     function changeCallback () {
       notification.show = false
+      if (renderer.xr.isPresenting) return // todo
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
         showModal(pauseMenu)
       }
