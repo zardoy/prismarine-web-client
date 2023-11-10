@@ -1,13 +1,11 @@
-/* global THREE */
-
 const { VRButton } = require('three/examples/jsm/webxr/VRButton.js')
 const { GLTFLoader } = require('three/examples/jsm/loaders/GLTFLoader.js')
 const { XRControllerModelFactory } = require('three/examples/jsm/webxr/XRControllerModelFactory.js')
-const TWEEN = require('@tweenjs/tween.js')
 
-async function initVR (bot, renderer, viewer) {
+async function initVR () {
+  const { renderer } = viewer
   if (!('xr' in navigator)) return
-  const isSupported = await navigator.xr.isSessionSupported('immersive-vr')
+  const isSupported = await navigator.xr.isSessionSupported('immersive-vr') && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState
   if (!isSupported) return
 
   // VR
@@ -34,14 +32,10 @@ async function initVR (bot, renderer, viewer) {
   })
   controller2.add(hand2)
 
-  viewer.setFirstPersonCamera = function (pos, yaw, pitch) {
-    if (pos) new TWEEN.Tween(user.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
-    user.rotation.set(pitch, yaw, 0, 'ZYX')
-  }
-
   let rotSnapReset = true
   let yawOffset = 0
   renderer.setAnimationLoop(() => {
+    if (!renderer.xr.isPresenting) return
     if (hand1.xrInputSource && hand2.xrInputSource) {
       hand1.xAxis = hand1.xrInputSource.gamepad.axes[2]
       hand1.yAxis = hand1.xrInputSource.gamepad.axes[3]
@@ -76,9 +70,14 @@ async function initVR (bot, renderer, viewer) {
     bot.setControlState('right', hand2.xAxis < -0.5)
     bot.setControlState('left', hand2.xAxis > 0.5)
 
-    TWEEN.update()
     viewer.update()
-    renderer.render(viewer.scene, viewer.camera)
+    viewer.render()
+  })
+  renderer.xr.addEventListener('sessionstart', () => {
+    viewer.cameraObjectOverride = user
+  })
+  renderer.xr.addEventListener('sessionend', () => {
+    viewer.cameraObjectOverride = undefined
   })
 }
 

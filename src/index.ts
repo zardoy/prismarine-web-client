@@ -129,7 +129,7 @@ let previousWindowHeight = window.innerHeight
 const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
   window.requestAnimationFrame(renderFrame)
-  if (window.stopRender) return
+  if (window.stopRender || renderer.xr.isPresenting) return
   if (renderInterval) {
     delta += time - lastTime
     lastTime = time
@@ -540,7 +540,7 @@ async function connect (connectOptions: {
 
     window.debugMenu = debugMenu
 
-    void initVR(bot, renderer, viewer)
+    void initVR()
 
     postRenderFrameFn = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)

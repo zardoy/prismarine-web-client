@@ -20,6 +20,7 @@ export class Viewer {
   playerHeight: number
   isSneaking: boolean
   version: string
+  cameraObjectOverride?: THREE.Object3D // for xr
 
   constructor (public renderer: THREE.WebGLRenderer, numWorkers?: number) {
     this.scene = new THREE.Scene()
@@ -81,12 +82,13 @@ export class Viewer {
   }
 
   setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number, roll = 0) {
+    const cam = this.cameraObjectOverride || this.camera
     if (pos) {
       let y = pos.y + this.playerHeight
       if (this.isSneaking) y -= 0.3
-      new tweenJs.Tween(this.camera.position).to({ x: pos.x, y, z: pos.z }, 50).start()
+      new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
     }
-    this.camera.rotation.set(pitch, yaw, roll, 'ZYX')
+    cam.rotation.set(pitch, yaw, roll, 'ZYX')
   }
 
   // todo type
