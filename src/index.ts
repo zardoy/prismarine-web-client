@@ -726,9 +726,18 @@ document.body.addEventListener('touchend', (e) => {
 document.body.addEventListener('touchstart', (e) => {
   if (!isGameActive(true)) return
   e.preventDefault()
+  let firstClickable // todo remove composedPath and this workaround when lit-element is fully dropped
+  const path = e.composedPath() as Array<{click?: () => void}>
+  for (const elem of path) {
+    if (elem.click) {
+      firstClickable = elem
+      break
+    }
+  }
+  if (!firstClickable) return
   activeTouch = {
     touch: e.touches[0],
-    elem: e.composedPath()[0] as HTMLElement
+    elem: firstClickable
   }
 }, { passive: false })
 // #endregion
