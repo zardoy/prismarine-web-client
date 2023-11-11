@@ -718,11 +718,15 @@ watchValue(miscUiState, async s => {
 })
 
 // #region fire click event on touch as we disable default behaviors
-let activeTouch: { touch: Touch, elem: HTMLElement } | undefined
+let activeTouch: { touch: Touch, elem: HTMLElement, start: number } | undefined
 document.body.addEventListener('touchend', (e) => {
   if (!isGameActive(true)) return
   if (activeTouch?.touch.identifier !== e.changedTouches[0].identifier) return
-  activeTouch.elem.click()
+  if (Date.now() - activeTouch.start > 500) {
+    activeTouch.elem.dispatchEvent(new Event('longtouch', { bubbles: true }))
+  } else {
+    activeTouch.elem.click()
+  }
   activeTouch = undefined
 })
 document.body.addEventListener('touchstart', (e) => {
@@ -739,7 +743,8 @@ document.body.addEventListener('touchstart', (e) => {
   if (!firstClickable) return
   activeTouch = {
     touch: e.touches[0],
-    elem: firstClickable
+    elem: firstClickable,
+    start: Date.now(),
   }
 }, { passive: false })
 // #endregion
