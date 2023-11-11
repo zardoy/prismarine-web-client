@@ -16,6 +16,7 @@ import SingleplayerProvider from './react/SingleplayerProvider'
 import CreateWorldProvider from './react/CreateWorldProvider'
 import AppStatusProvider from './react/AppStatusProvider'
 import SelectOption from './react/SelectOption'
+import EnterFullscreenButton from './react/EnterFullscreenButton'
 
 // todo
 useInterfaceState.setState({
@@ -135,6 +136,7 @@ const InGameUi = () => {
 
 const App = () => {
   return <div>
+    <EnterFullscreenButton />
     <InGameUi />
     <Portal to={document.querySelector('#ui-root')}>
       <SingleplayerProvider />

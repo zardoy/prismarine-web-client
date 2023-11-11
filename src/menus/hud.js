@@ -1,3 +1,6 @@
+import { f3Keybinds } from '../controls'
+import { showOptionsModal } from '../react/SelectOption'
+
 const { LitElement, html, css, unsafeCSS } = require('lit')
 const { showModal, miscUiState } = require('../globalState')
 const { options, watchValue } = require('../optionsStorage')
@@ -219,7 +222,12 @@ class Hud extends LitElement {
         <div class="debug-btn" @pointerdown=${(e) => {
       window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
     }}>S</div>
-        <div class="debug-btn" @pointerdown=${(e) => {
+        <div class="debug-btn" @longtouch=${async () => {
+      const select = await showOptionsModal('', f3Keybinds.filter(f3Keybind => f3Keybind.mobileTitle).map(f3Keybind => f3Keybind.mobileTitle))
+      if (!select) return
+      const f3Keybind = f3Keybinds.find(f3Keybind => f3Keybind.mobileTitle === select)
+      f3Keybind.action()
+    }} @pointerdown=${(e) => {
       this.shadowRoot.getElementById('debug-overlay').showOverlay = !this.shadowRoot.getElementById('debug-overlay').showOverlay
     }}>F3</div>
         <div class="chat-btn" @pointerdown=${(e) => {

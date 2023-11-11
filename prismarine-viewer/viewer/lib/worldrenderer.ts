@@ -9,6 +9,7 @@ import { dispose3 } from './dispose'
 import { toMajor } from './version.js'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
+import { chunkPos } from './simpleUtils'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -31,8 +32,10 @@ export class WorldRenderer {
   downloadedBlockStatesData = undefined as any
   downloadedTextureImage = undefined as any
   workers: any[] = []
+  viewerPosition?: Vec3
 
   texturesVersion?: string
+
   constructor (public scene: THREE.Scene, numWorkers = 4) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
@@ -67,13 +70,16 @@ export class WorldRenderer {
 
           const mesh = new THREE.Mesh(geometry, this.material)
           mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
+          mesh.name = 'mesh'
           object = new THREE.Group()
           object.add(mesh)
-          if (this.showChunkBorders) {
-            const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
-            object.add(boxHelper)
+          const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
+          boxHelper.name = 'helper'
+          object.add(boxHelper)
+          if (!this.showChunkBorders) {
+            boxHelper.visible = false
           }
-          // should not it compute once
+          // should not compute it once
           if (Object.keys(data.geometry.signs).length) {
             for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
               const [x, y, z] = posKey.split(',')
@@ -83,6 +89,7 @@ export class WorldRenderer {
             }
           }
           this.sectionObjects[data.key] = object
+          this.updatePosDataChunk(data.key)
           this.scene.add(object)
         } else if (data.type === 'sectionFinished') {
           this.sectionsOutstanding.delete(data.key)
@@ -91,6 +98,26 @@ export class WorldRenderer {
       }
       if (worker.on) worker.on('message', (data) => { worker.onmessage({ data }) })
       this.workers.push(worker)
+    }
+  }
+
+  /**
+   * Optionally update data that are depedendent on the viewer position
+   */
+  updatePosDataChunk (key: string) {
+    if (!this.viewerPosition) return
+    const [x, y, z] = key.split(',').map(x => Math.floor(+x / 16))
+    const [xPlayer, yPlayer, zPlayer] = this.viewerPosition.toArray().map(x => Math.floor(x / 16))
+    // sum of distances: x + y + z
+    const chunkDistance = Math.abs(x - xPlayer) + Math.abs(y - yPlayer) + Math.abs(z - zPlayer)
+    const section = this.sectionObjects[key].children.find(child => child.name === 'mesh')!
+    section.renderOrder = 500 - chunkDistance
+  }
+
+  updateViewerPosition (pos: Vec3) {
+    this.viewerPosition = pos
+    for (const key of Object.keys(this.sectionObjects)) {
+      this.updatePosDataChunk(key)
     }
   }
 
@@ -122,6 +149,17 @@ export class WorldRenderer {
     const y = isWall ? 4.5 / 16 + mesh.scale.y / 2 : (1 - (mesh.scale.y / 2))
     group.position.set(position.x + 0.5, position.y + y, position.z + 0.5)
     return group
+  }
+
+  updateShowChunksBorder (value: boolean) {
+    this.showChunkBorders = value
+    for (const object of Object.values(this.sectionObjects)) {
+      for (const child of object.children) {
+        if (child.name === 'helper') {
+          child.visible = value;
+        }
+      }
+    }
   }
 
   resetWorld () {
@@ -180,6 +218,15 @@ export class WorldRenderer {
         worker.postMessage({ type: 'blockStates', json: blockStates })
       }
     })
+  }
+
+  getLoadedChunksRelative (pos: Vec3) {
+    const [currentX, currentZ] = chunkPos(pos)
+    return Object.fromEntries(Object.entries(this.sectionObjects).map(([key, o]) => {
+      const [xRaw, yRaw, zRaw] = key.split(',').map(Number)
+      const [x, z] = chunkPos({x: xRaw, z: zRaw})
+      return [`${x - currentX},${z - currentZ}`, o]
+    }))
   }
 
   addColumn (x, z, chunk) {

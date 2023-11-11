@@ -57,7 +57,8 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
     const defaultColor = ('front_text' in blockEntity ? blockEntity.front_text.color : blockEntity.Color) || 'black'
     for (let [lineNum, text] of texts.slice(0, 4).entries()) {
         // todo: in pre flatenning it seems the format was not json
-        const parsed = text?.startsWith('{') ? parseSafe(text ?? '""', 'sign text') : text
+        if (text === 'null') continue
+        const parsed = text?.startsWith('{') || text?.startsWith('"') ? parseSafe(text ?? '""', 'sign text') : text
         if (!parsed || (typeof parsed !== 'object' && typeof parsed !== 'string')) continue
         // todo fix type
         const message = typeof parsed === 'string' ? fromFormattedString(parsed) : new PrismarineChat(parsed) as never

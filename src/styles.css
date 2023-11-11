@@ -64,6 +64,12 @@ body {
   text-shadow: 1px 1px #222;
 }
 
+#VRButton {
+  background: rgba(0, 0, 0, 0.3) !important;
+  opacity: 0.7 !important;
+  position: fixed !important;
+}
+
 .dirt-bg {
   position: absolute;
   top: 0;

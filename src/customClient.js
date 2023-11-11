@@ -62,6 +62,7 @@ class CustomChannelClient extends EventEmitter {
       debug(params)
     }
 
+    this.emit('writePacket', name, params)
     customCommunication.sendData.call(this, { name, params, state: this.state })
   }
 

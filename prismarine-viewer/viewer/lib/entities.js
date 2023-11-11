@@ -38,6 +38,7 @@ function getEntityMesh (entity, scene, options) {
         tex.needsUpdate = true
         const spriteMat = new THREE.SpriteMaterial({ map: tex })
         const sprite = new THREE.Sprite(spriteMat)
+        sprite.renderOrder = 1000
         sprite.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
         sprite.position.y += entity.height + 0.6
 

@@ -17,6 +17,10 @@ export async function loadSound (path: string) {
 }
 
 export async function playSound (path) {
+  const volume = options.volume / 100
+
+  if (!volume) return
+
   audioContext ??= new window.AudioContext()
 
   for (const [soundName, sound] of Object.entries(sounds)) {
@@ -24,8 +28,6 @@ export async function playSound (path) {
     sounds[soundName] = await audioContext.decodeAudioData(sound)
     convertedSounds.push(soundName)
   }
-
-  const volume = options.volume / 100
 
   const soundBuffer = sounds[path]
   if (!soundBuffer) {

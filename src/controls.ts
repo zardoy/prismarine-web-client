@@ -226,12 +226,10 @@ contro.on('release', ({ command }) => {
 
 // hard-coded keybindings
 
-const hardcodedPressedKeys = new Set<string>()
-document.addEventListener('keydown', (e) => {
-  if (!isGameActive(false)) return
-  if (hardcodedPressedKeys.has('F3')) {
-    // reload chunks
-    if (e.code === 'KeyA') {
+export const f3Keybinds = [
+  {
+    key: 'KeyA',
+    action () {
       //@ts-expect-error
       const loadedChunks = Object.entries(worldView.loadedChunks).filter(([, v]) => v).map(([key]) => key.split(',').map(Number))
       for (const [x, z] of loadedChunks) {
@@ -242,12 +240,25 @@ document.addEventListener('keydown', (e) => {
         localServer.players[0].world.columns = {}
       }
       void reloadChunks()
-    }
-    if (e.code === 'KeyG') {
-      // todo make it work without reload
+    },
+    mobileTitle: 'Reload chunks',
+  },
+  {
+    key: 'KeyG',
+    action () {
       options.showChunkBorders = !options.showChunkBorders
-      void reloadChunks()
-    }
+      viewer.world.updateShowChunksBorder(options.showChunkBorders)
+    },
+    mobileTitle: 'Toggle chunk borders',
+  }
+]
+
+const hardcodedPressedKeys = new Set<string>()
+document.addEventListener('keydown', (e) => {
+  if (!isGameActive(false)) return
+  if (hardcodedPressedKeys.has('F3')) {
+    const keybind = f3Keybinds.find((v) => v.key === e.code)
+    if (keybind) keybind.action()
     return
   }
 
@@ -388,6 +399,7 @@ const selectItem = async () => {
 }
 
 addEventListener('mousedown', async (e) => {
+  if ((e.target as HTMLElement).matches?.('#VRButton')) return
   void pointerLock.requestPointerLock()
   if (!bot) return
   // wheel click

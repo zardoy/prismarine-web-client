@@ -18,7 +18,7 @@ export class WorldDataEmitter extends EventEmitter {
   private eventListeners: Record<string, any> = {};
   private emitter: WorldDataEmitter
 
-  constructor (public world: import('prismarine-world').world.World | typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
+  constructor(public world: import('prismarine-world').world.World | typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
     this.loadedChunks = {}
     this.lastPos = new Vec3(0, 0, 0).update(position)
@@ -91,6 +91,7 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async init (pos: Vec3) {
+    this.emitter.emit('chunkPosUpdate', { pos })
     const [botX, botZ] = chunkPos(pos)
 
     const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => new Vec3((botX + x) * 16, 0, (botZ + z) * 16))
@@ -138,6 +139,7 @@ export class WorldDataEmitter extends EventEmitter {
     const [lastX, lastZ] = chunkPos(this.lastPos)
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {
+      this.emitter.emit('chunkPosUpdate', { pos })
       const newView = new ViewRect(botX, botZ, this.viewDistance)
       const chunksToUnload: Vec3[] = []
       for (const coords of Object.keys(this.loadedChunks)) {

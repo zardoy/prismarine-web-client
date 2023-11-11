@@ -105,6 +105,11 @@ document.body.appendChild(renderer.domElement)
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
+Object.defineProperty(window, 'debugSceneChunks', {
+  get () {
+    return viewer.world.getLoadedChunksRelative(bot.entity.position)
+  },
+})
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
@@ -124,7 +129,7 @@ let previousWindowHeight = window.innerHeight
 const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
   window.requestAnimationFrame(renderFrame)
-  if (window.stopRender) return
+  if (window.stopRender || renderer.xr.isPresenting) return
   if (renderInterval) {
     delta += time - lastTime
     lastTime = time
@@ -200,8 +205,8 @@ function hideCurrentScreens () {
   insertActiveModalStack('', [])
 }
 
-const loadSingleplayer = (serverOverrides = {}) => {
-  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
+const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
+  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides, serverOverridesFlat: flattenedServerOverrides })
 }
 function listenGlobalEvents () {
   const menu = document.getElementById('play-screen')
@@ -242,7 +247,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
 }
 
 async function connect (connectOptions: {
-  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
+  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string
 }) {
   document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
@@ -335,6 +340,7 @@ async function connect (connectOptions: {
   let localServer
   try {
     const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
+    Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
@@ -535,7 +541,7 @@ async function connect (connectOptions: {
 
     window.debugMenu = debugMenu
 
-    void initVR(bot, renderer, viewer)
+    void initVR()
 
     postRenderFrameFn = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
@@ -577,6 +583,7 @@ async function connect (connectOptions: {
 
     function changeCallback () {
       notification.show = false
+      if (renderer.xr.isPresenting) return // todo
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
         showModal(pauseMenu)
       }
@@ -693,7 +700,7 @@ watchValue(miscUiState, async s => {
   if (s.appLoaded) { // fs ready
     const qs = new URLSearchParams(window.location.search)
     if (qs.get('singleplayer') === '1') {
-      loadSingleplayer({
+      loadSingleplayer({}, {
         worldFolder: undefined
       })
     }
@@ -711,19 +718,33 @@ watchValue(miscUiState, async s => {
 })
 
 // #region fire click event on touch as we disable default behaviors
-let activeTouch: { touch: Touch, elem: HTMLElement } | undefined
+let activeTouch: { touch: Touch, elem: HTMLElement, start: number } | undefined
 document.body.addEventListener('touchend', (e) => {
   if (!isGameActive(true)) return
   if (activeTouch?.touch.identifier !== e.changedTouches[0].identifier) return
-  activeTouch.elem.click()
+  if (Date.now() - activeTouch.start > 500) {
+    activeTouch.elem.dispatchEvent(new Event('longtouch', { bubbles: true }))
+  } else {
+    activeTouch.elem.click()
+  }
   activeTouch = undefined
 })
 document.body.addEventListener('touchstart', (e) => {
   if (!isGameActive(true)) return
   e.preventDefault()
+  let firstClickable // todo remove composedPath and this workaround when lit-element is fully dropped
+  const path = e.composedPath() as Array<{ click?: () => void }>
+  for (const elem of path) {
+    if (elem.click) {
+      firstClickable = elem
+      break
+    }
+  }
+  if (!firstClickable) return
   activeTouch = {
     touch: e.touches[0],
-    elem: e.composedPath()[0] as HTMLElement
+    elem: firstClickable,
+    start: Date.now(),
   }
 }, { passive: false })
 // #endregion

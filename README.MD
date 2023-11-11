@@ -53,11 +53,14 @@ There is world renderer playground ([link](https://mcon.vercel.app/playground.ht
 
 However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:
 
-- `localStorage.debug = '*'` - Enables all debug messages!
+- `localStorage.debug = '*'` - Enables all debug messages! Warning: this will start all packets spam.
+Instead I recommend setting `options.debugLogNotFrequentPackets`. Also you can use `debugTopPackets` (with JSON.stringify) to see what packets were received/sent by name
 
 - `bot` - Mineflayer bot instance. See Mineflayer documentation for more.
 - `viewer` - Three.js viewer instance, basically does all the rendering.
 - `viewer.world.sectionObjects` - Object with all active chunk sections (geometries) in the world. Each chunk section is a Three.js mesh or group.
+- `debugSceneChunks` - The same as above, but relative to current bot position (e.g. 0,0 is the current chunk).
+- `debugChangedOptions` - See what options are changed. Don't change options here.
 - `localServer` - Only for singleplayer mode/host. Flying Squid server instance, see it's documentation for more.
 - `localServer.overworld.storageProvider.regions` - See ALL LOADED region files with all raw data.
 
@@ -70,7 +73,7 @@ You can also drag and drop any .dat file into the browser window to see it's con
 - `F3` - Toggle debug overlay
 - `F3 + A` - Reload all chunks (these that are loaded from the server)
 <!-- <!-- - `F3 + N` - Restart local server (basically resets the world!) -->
-- `F3 + G` - Toggle chunk sections (geometries) border visibility (aka Three.js geometry helpers) - most probably need to reload chunks after toggling
+- `F3 + G` - Toggle chunk sections (geometries) border visibility (aka Three.js geometry helpers)
 
 ### Notable Things that Power this Project
 

@@ -3,7 +3,7 @@ import { openWorldZip } from './browserfs'
 import { getResourcePackName, installTexturePack, resourcePackState, updateTexturePackInstalledState } from './texturePack'
 import { setLoadingScreenStatus } from './utils'
 
-const getFixedFilesize = (bytes: number) => {
+export const getFixedFilesize = (bytes: number) => {
   return prettyBytes(bytes, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 

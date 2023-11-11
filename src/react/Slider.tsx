@@ -22,7 +22,7 @@ const Slider: React.FC<Props> = ({
   width,
   value: valueProp,
   valueDisplay,
-  min = 1,
+  min = 0,
   max = 100,
   disabledReason,
 
