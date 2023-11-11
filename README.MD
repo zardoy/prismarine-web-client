@@ -72,7 +72,7 @@ You can also drag and drop any .dat file into the browser window to see it's con
 - `F3` - Toggle debug overlay
 - `F3 + A` - Reload all chunks (these that are loaded from the server)
 <!-- <!-- - `F3 + N` - Restart local server (basically resets the world!) -->
-- `F3 + G` - Toggle chunk sections (geometries) border visibility (aka Three.js geometry helpers) - most probably need to reload chunks after toggling
+- `F3 + G` - Toggle chunk sections (geometries) border visibility (aka Three.js geometry helpers)
 
 ### Notable Things that Power this Project
 

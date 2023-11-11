@@ -244,9 +244,8 @@ document.addEventListener('keydown', (e) => {
       void reloadChunks()
     }
     if (e.code === 'KeyG') {
-      // todo make it work without reload
       options.showChunkBorders = !options.showChunkBorders
-      void reloadChunks()
+      viewer.world.updateShowChunksBorder(options.showChunkBorders)
     }
     return
   }

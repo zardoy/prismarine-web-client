@@ -118,6 +118,10 @@ export class Viewer {
       this.setBlockStateId(new Vec3(pos.x, pos.y, pos.z), stateId)
     })
 
+    emitter.on('chunkPosUpdate', ({ pos }) => {
+      this.world.updateViewerPosition(pos)
+    })
+
     emitter.emit('listening')
 
     this.domElement.addEventListener('pointerdown', (evt) => {
