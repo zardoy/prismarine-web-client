@@ -22,6 +22,9 @@ let peerInstance: Peer | undefined
 export const getJoinLink = () => {
   if (!peerInstance) return
   const url = new URL(window.location.href)
+  for (const key of url.searchParams.keys()) {
+    url.searchParams.delete(key)
+  }
   url.searchParams.set('connectPeer', peerInstance.id)
   url.searchParams.set('peerVersion', localServer!.options.version)
   return url.toString()
