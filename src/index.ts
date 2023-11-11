@@ -205,8 +205,8 @@ function hideCurrentScreens () {
   insertActiveModalStack('', [])
 }
 
-const loadSingleplayer = (serverOverrides = {}) => {
-  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides })
+const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
+  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides, serverOverridesFlat: flattenedServerOverrides })
 }
 function listenGlobalEvents () {
   const menu = document.getElementById('play-screen')
@@ -247,7 +247,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
 }
 
 async function connect (connectOptions: {
-  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; peerId?: string
+  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string
 }) {
   document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
@@ -340,6 +340,7 @@ async function connect (connectOptions: {
   let localServer
   try {
     const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
+    Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
@@ -699,7 +700,7 @@ watchValue(miscUiState, async s => {
   if (s.appLoaded) { // fs ready
     const qs = new URLSearchParams(window.location.search)
     if (qs.get('singleplayer') === '1') {
-      loadSingleplayer({
+      loadSingleplayer({}, {
         worldFolder: undefined
       })
     }
@@ -728,7 +729,7 @@ document.body.addEventListener('touchstart', (e) => {
   if (!isGameActive(true)) return
   e.preventDefault()
   let firstClickable // todo remove composedPath and this workaround when lit-element is fully dropped
-  const path = e.composedPath() as Array<{click?: () => void}>
+  const path = e.composedPath() as Array<{ click?: () => void }>
   for (const elem of path) {
     if (elem.click) {
       firstClickable = elem
