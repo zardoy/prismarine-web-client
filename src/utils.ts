@@ -155,8 +155,9 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
 export const disconnect = async () => {
   if (localServer) {
     await saveServer()
-    localServer.quit()
+    void localServer.quit() // todo investigate we should await
   }
+  window.history.replaceState({}, '', `${window.location.pathname}`) // remove qs
   bot.end('You left the server')
 }
 

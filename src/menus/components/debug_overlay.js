@@ -1,4 +1,8 @@
 const { LitElement, html, css } = require('lit')
+const { subscribeKey } = require('valtio/utils')
+const { miscUiState } = require('../../globalState')
+const { options } = require('../../optionsStorage')
+const { getFixedFilesize } = require('../../downloadAndOpenFile')
 
 class DebugOverlay extends LitElement {
   static get styles () {
@@ -55,7 +59,8 @@ class DebugOverlay extends LitElement {
       cursorBlock: { type: Object },
       rendererDevice: { type: String },
       bot: { type: Object },
-      customEntries: { type: Object }
+      customEntries: { type: Object },
+      packetsString: { type: String }
     }
   }
 
@@ -63,6 +68,7 @@ class DebugOverlay extends LitElement {
     super()
     this.showOverlay = false
     this.customEntries = {}
+    this.packetsString = ''
   }
 
   firstUpdated () {
@@ -71,6 +77,118 @@ class DebugOverlay extends LitElement {
         this.showOverlay = !this.showOverlay
         e.preventDefault()
       }
+    })
+
+    let receivedTotal = 0
+    let received = {
+      count: 0,
+      size: 0
+    }
+    let sent = {
+      count: 0,
+      size: 0
+    }
+    const packetsCountByNamePerSec = {
+      received: {},
+      sent: {}
+    }
+    const hardcodedListOfDebugPacketsToIgnore = {
+      received: [
+        'entity_velocity',
+        'sound_effect',
+        'rel_entity_move',
+        'entity_head_rotation',
+        'entity_metadata',
+        'entity_move_look',
+        'teams',
+        'entity_teleport',
+        'entity_look',
+        'ping',
+        'entity_update_attributes',
+        'player_info',
+        'update_time',
+        'animation',
+        'entity_equipment',
+        'entity_destroy',
+        'named_entity_spawn',
+        'update_light',
+        'set_slot',
+        'block_break_animation',
+        'map_chunk',
+        'spawn_entity',
+        'world_particles',
+        'keep_alive',
+        'chat',
+        'playerlist_header'
+      ],
+      sent: [
+        'pong',
+        'position',
+        'look',
+        'keep_alive',
+        'position_look'
+      ]
+    } // todo cleanup?
+    const ignoredPackets = new Set('')
+    Object.defineProperty(window, 'debugTopPackets', {
+      get () {
+        return Object.fromEntries(Object.entries(packetsCountByName).map(([s, packets]) => [s, Object.fromEntries(Object.entries(packets).sort(([, n1], [, n2]) => {
+          return n2 - n1
+        }))]))
+      }
+    })
+    setInterval(() => {
+      this.packetsString = `↓ ${received.count} (${(received.size / 1024).toFixed(2)} KB/s, ${getFixedFilesize(receivedTotal)}) ↑ ${sent.count}`
+      received = {
+        count: 0,
+        size: 0
+      }
+      sent = {
+        count: 0,
+        size: 0
+      }
+      packetsCountByNamePerSec.received = {}
+      packetsCountByNamePerSec.sent = {}
+    }, 1000)
+    const packetsCountByName = {
+      received: {},
+      sent: {}
+    }
+
+    const managePackets = (type, name, data) => {
+      packetsCountByName[type][name] ??= 0
+      packetsCountByName[type][name]++
+      if (options.debugLogNotFrequentPackets && !ignoredPackets.has(name) || hardcodedListOfDebugPacketsToIgnore[type].includes(name)) {
+        packetsCountByNamePerSec[type][name] ??= 0
+        packetsCountByNamePerSec[type][name]++
+        if (packetsCountByNamePerSec[type][name] > 5 || packetsCountByName[type][name] > 100) { // todo think of tracking the count within 10s
+          console.info(`[packet ${name} was ${type} too frequent] Ignoring...`)
+          ignoredPackets.add(name)
+        } else {
+          console.info(`[packet ${type}] ${name} ${JSON.stringify(data, null, 2)}`)
+        }
+      }
+    }
+
+    subscribeKey(miscUiState, 'gameLoaded', () => {
+      if (!miscUiState.gameLoaded) return
+      packetsCountByName.received = {}
+      packetsCountByName.sent = {}
+      const readPacket = (data, { name }, _buf, fullBuffer) => {
+        if (fullBuffer) {
+          const size = fullBuffer.byteLength
+          receivedTotal += size
+          received.size += size
+        }
+        received.count++
+        managePackets('received', name, data)
+      }
+      bot._client.on('packet', readPacket)
+      bot._client.on('packet_name', (name, data) => readPacket(data, { name })) // custom client
+      bot._client.on('writePacket', (name, data) => {
+        sent.count++
+        managePackets('sent', name, data)
+      })
     })
   }
 
@@ -128,6 +246,7 @@ class DebugOverlay extends LitElement {
         <div class="empty"></div>
         <p>XYZ: ${pos.x.toFixed(3)} / ${pos.y.toFixed(3)} / ${pos.z.toFixed(3)}</p>
         <p>Chunk: ${Math.floor(pos.x % 16)} ~ ${Math.floor(pos.z % 16)} in ${Math.floor(pos.x / 16)} ~ ${Math.floor(pos.z / 16)}</p>
+        <p>Packets: ${this.packetsString}</p>
         <p>Facing (viewer): ${rot[0].toFixed(3)} ${rot[1].toFixed(3)}</p>
         <p>Facing (minecraft): ${quadsDescription[minecraftQuad]} (${minecraftYaw.toFixed(1)} ${(rot[1] * -180 / Math.PI).toFixed(1)})</p>
         <p>Light: ${skyL} (${skyL} sky)</p>

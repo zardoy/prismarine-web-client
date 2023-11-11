@@ -157,30 +157,30 @@ async function main () {
       const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
       folder = gui.addFolder('metadata')
       if (states) {
-      for (const state of states) {
-        let defaultValue
-        switch (state.type) {
-          case 'enum':
-            defaultValue = state.values[0]
-            break
-          case 'bool':
-            defaultValue = false
-            break
-          case 'int':
-            defaultValue = 0
-            break
-          case 'direction':
-            defaultValue = 'north'
-            break
+        for (const state of states) {
+          let defaultValue
+          switch (state.type) {
+            case 'enum':
+              defaultValue = state.values[0]
+              break
+            case 'bool':
+              defaultValue = false
+              break
+            case 'int':
+              defaultValue = 0
+              break
+            case 'direction':
+              defaultValue = 'north'
+              break
 
-          default:
-            continue
-        }
-        blockProps[state.name] = defaultValue
-        if (state.type === 'enum') {
-          folder.add(blockProps, state.name, state.values)
-        } else {
-          folder.add(blockProps, state.name)
+            default:
+              continue
+          }
+          blockProps[state.name] = defaultValue
+          if (state.type === 'enum') {
+            folder.add(blockProps, state.name, state.values)
+          } else {
+            folder.add(blockProps, state.name)
           }
         }
       } else {
@@ -213,8 +213,8 @@ async function main () {
       }
     } else {
       try {
-      //@ts-ignore
-      block = Block.fromProperties(blockId ?? -1, blockProps, 0)
+        //@ts-ignore
+        block = Block.fromProperties(blockId ?? -1, blockProps, 0)
       } catch (err) {
         console.error(err)
         block = Block.fromStateId(0, 0)

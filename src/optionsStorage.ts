@@ -29,6 +29,8 @@ const defaultOptions = {
   highPerformanceGpu: false,
   /** @unstable */
   disableAssets: false,
+  /** @unstable */
+  debugLogNotFrequentPackets: false,
   unimplementedContainers: false,
   dayCycleAndLighting: true,
 

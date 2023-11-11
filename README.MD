@@ -54,6 +54,7 @@ There is world renderer playground ([link](https://mcon.vercel.app/playground.ht
 However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:
 
 - `localStorage.debug = '*'` - Enables all debug messages! Warning: this will start all packets spam.
+Instead I recommend setting `options.debugLogNotFrequentPackets`. Also you can use `debugTopPackets` (with JSON.stringify) to see what packets were received/sent by name
 
 - `bot` - Mineflayer bot instance. See Mineflayer documentation for more.
 - `viewer` - Three.js viewer instance, basically does all the rendering.
