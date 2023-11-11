@@ -30,8 +30,8 @@ export default () => {
         console.error(err)
       }
     })
-    bot.on('death', () => {
-      if (dieReasonProxy.value) return
+    bot.on('health', () => { // bot.isAlive can be already false so can't use death event (respawn packet)
+      if (dieReasonProxy.value || bot.health > 0) return
       dieReasonProxy.value = []
     })
 
