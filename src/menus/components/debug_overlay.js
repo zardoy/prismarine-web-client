@@ -119,7 +119,9 @@ class DebugOverlay extends LitElement {
         'world_particles',
         'keep_alive',
         'chat',
-        'playerlist_header'
+        'playerlist_header',
+        'scoreboard_objective',
+        'scoreboard_score'
       ],
       sent: [
         'pong',
@@ -158,14 +160,14 @@ class DebugOverlay extends LitElement {
     const managePackets = (type, name, data) => {
       packetsCountByName[type][name] ??= 0
       packetsCountByName[type][name]++
-      if (options.debugLogNotFrequentPackets && !ignoredPackets.has(name) || hardcodedListOfDebugPacketsToIgnore[type].includes(name)) {
+      if (options.debugLogNotFrequentPackets && !ignoredPackets.has(name) && !hardcodedListOfDebugPacketsToIgnore[type].includes(name)) {
         packetsCountByNamePerSec[type][name] ??= 0
         packetsCountByNamePerSec[type][name]++
         if (packetsCountByNamePerSec[type][name] > 5 || packetsCountByName[type][name] > 100) { // todo think of tracking the count within 10s
           console.info(`[packet ${name} was ${type} too frequent] Ignoring...`)
           ignoredPackets.add(name)
         } else {
-          console.info(`[packet ${type}] ${name} ${JSON.stringify(data, null, 2)}`)
+          console.info(`[packet ${type}] ${name}`, /* ${JSON.stringify(data, null, 2)}` */ data)
         }
       }
     }
