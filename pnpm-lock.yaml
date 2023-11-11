@@ -14750,8 +14750,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  github.com/zardoy/space-squid/9d72f865da99bcc55db2c5071754f61a5d935c73:
-    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/9d72f865da99bcc55db2c5071754f61a5d935c73}
+  github.com/zardoy/space-squid/a639714c26e2252b34be833f64f23d9f45f136de:
+    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/a639714c26e2252b34be833f64f23d9f45f136de}
     name: flying-squid
     version: 0.0.0-dev
     engines: {node: '>=8'}
