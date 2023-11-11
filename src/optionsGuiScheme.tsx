@@ -123,6 +123,11 @@ export const guiOptionsScheme: {
       custom () {
         return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
       },
+    },
+    {
+      custom () {
+        return <Button label='VR...' onClick={() => openOptionsMenu('VR')} inScreen />
+      },
     }
   ],
   interface: [
@@ -178,6 +183,16 @@ export const guiOptionsScheme: {
     { volume: {} },
     // { ignoreSilentSwitch: {} },
   ],
+  VR: [
+    {
+      custom () {
+        return <>
+          <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>VR currently has basic support</span>
+          <div />
+        </>
+      },
+    }
+  ],
   advanced: [
     {
       custom () {
@@ -188,4 +203,4 @@ export const guiOptionsScheme: {
     }
   ],
 }
-export type OptionsGroupType = 'main' | 'render' | 'interface' | 'controls' | 'sound' | 'advanced'
+export type OptionsGroupType = 'main' | 'render' | 'interface' | 'controls' | 'sound' | 'advanced' | 'VR'
