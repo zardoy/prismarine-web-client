@@ -387,6 +387,7 @@ const selectItem = async () => {
 }
 
 addEventListener('mousedown', async (e) => {
+  if ((e.target as HTMLElement).matches?.('#VRButton')) return
   void pointerLock.requestPointerLock()
   if (!bot) return
   // wheel click
