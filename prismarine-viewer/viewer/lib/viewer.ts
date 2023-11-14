@@ -21,10 +21,12 @@ export class Viewer {
   isSneaking: boolean
   version: string
   cameraObjectOverride?: THREE.Object3D // for xr
+  /** default sky color */
+  skyColour = new THREE.Color('lightblue')
 
-  constructor (public renderer: THREE.WebGLRenderer, numWorkers?: number) {
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number) {
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color('lightblue')
+    this.scene.background = this.skyColour
 
     this.ambientLight = new THREE.AmbientLight(0xcc_cc_cc)
     this.scene.add(this.ambientLight)
@@ -50,6 +52,11 @@ export class Viewer {
     this.world.resetWorld()
     this.entities.clear()
     this.primitives.clear()
+
+    this.scene.background = this.skyColour
+    this.ambientLight.intensity = 1
+    this.directionalLight.intensity = 1
+    this.directionalLight.position.set(1, 1, 0.5).normalize()
   }
 
   setVersion (userVersion: string) {
@@ -79,6 +86,61 @@ export class Viewer {
 
   updatePrimitive (p) {
     this.primitives.update(p)
+  }
+
+  updateTimecycleLighting (timeOfDay, moonPhase, isRaining) {
+    if (timeOfDay === undefined) { return }
+    const lightIntensity = this.calculateIntensity(timeOfDay)
+    const newSkyColor = `#${this.darkenSkyColour(lightIntensity, isRaining).padStart(6, '0')}`
+
+    function timeToRads (time) {
+      return time * (Math.PI / 12000)
+    }
+
+    // Update colours
+    this.scene.background = new THREE.Color(newSkyColor)
+    const newAmbientIntensity = Math.min(0.43, lightIntensity * 0.75) + (0.04 - (moonPhase / 100))
+    const newDirectionalIntensity = Math.min(0.63, lightIntensity) + (0.06 - (moonPhase / 100))
+    this.ambientLight.intensity = newAmbientIntensity
+    this.directionalLight.intensity = newDirectionalIntensity
+    this.directionalLight.position.set(
+      Math.cos(timeToRads(timeOfDay)),
+      Math.sin(timeToRads(timeOfDay)),
+      0.2
+    ).normalize()
+  }
+
+  calculateIntensity (currentTicks) {
+    const transitionStart = 12000
+    const transitionEnd = 18000
+    const timeInDay = (currentTicks % 24000)
+    let lightIntensity: number
+
+    if (timeInDay < transitionStart) {
+      lightIntensity = 1.0
+    } else if (timeInDay < transitionEnd) {
+      lightIntensity = 1 - (timeInDay - transitionStart) / (transitionEnd - transitionStart)
+    } else {
+      lightIntensity = (timeInDay - transitionEnd) / (24000 - transitionEnd)
+    }
+
+    return lightIntensity
+  }
+
+  /** Darken by factor (0 to black, 0.5 half as bright, 1 unchanged) */
+  darkenSkyColour (factor: number, isRaining) {
+    const skyColour = this.skyColour.getHex()
+    let r = (skyColour & 0x00_00_FF);
+    let g = ((skyColour >> 8) & 0x00_FF);
+    let b = (skyColour >> 16);
+    if (isRaining) {
+      r = 111 / 255
+      g = 156 / 255
+      b = 236 / 255
+    }
+    return (Math.round(r * factor) |
+      (Math.round(g * factor) << 8) |
+      (Math.round(b * factor) << 16)).toString(16)
   }
 
   setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number, roll = 0) {
@@ -120,6 +182,10 @@ export class Viewer {
 
     emitter.on('chunkPosUpdate', ({ pos }) => {
       this.world.updateViewerPosition(pos)
+    })
+
+    emitter.on('timecycleUpdate', ({ timeOfDay, moonPhase, isRaining }) => {
+      this.updateTimecycleLighting(timeOfDay, moonPhase, isRaining)
     })
 
     emitter.emit('listening')

@@ -560,8 +560,6 @@ async function connect (connectOptions: {
     worldView.listenToBot(bot)
     void worldView.init(bot.entity.position)
 
-    dayCycle()
-
     // Bot position callback
     function botPosition () {
       // this might cause lag, but not sure

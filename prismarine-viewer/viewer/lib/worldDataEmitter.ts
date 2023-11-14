@@ -4,6 +4,7 @@ import { chunkPos } from './simpleUtils'
 import { generateSpiralMatrix, ViewRect } from 'flying-squid/src/utils'
 import { Vec3 } from 'vec3'
 import { EventEmitter } from 'events'
+import { BotEvents } from 'mineflayer'
 
 export type ChunkPosKey = string
 type ChunkPos = { x: number, z: number }
@@ -54,8 +55,11 @@ export class WorldDataEmitter extends EventEmitter {
       blockUpdate: (oldBlock: any, newBlock: any) => {
         const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
-      }
-    }
+      },
+      time: () => {
+        this.emitter.emit('timecycleUpdate', { timeOfDay: bot.time.timeOfDay, moonPhase: bot.time.moonPhase, isRaining: bot.isRaining })
+      },
+    } satisfies Partial<BotEvents>
 
     this.emitter.on('listening', () => {
       this.emitter.emit('blockEntities', new Proxy({}, {
