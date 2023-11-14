@@ -127,7 +127,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
           className={styles['maps-provider']}
           icon='pixelarticons:map'
           initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'right' }}
-          onClick={() => openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider)}
+          onClick={() => openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider, false)}
         />}
     </div>
   )
