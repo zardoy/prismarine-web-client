@@ -33,7 +33,6 @@
     overflow: auto;
     /* todo I'm not sure about it */
     /* margin-top: calc(100% / 6 - 16px); */
-    width: 310px;
     align-items: center;
 
     gap: 10px;
