@@ -1,5 +1,5 @@
-import { forwardRef } from 'react'
 import classNames from 'classnames'
+import { FC, Ref } from 'react'
 import { loadSound, playSound } from '../basicSounds'
 import buttonCss from './button.module.css'
 
@@ -10,11 +10,12 @@ interface Props extends React.ComponentProps<'button'> {
   icon?: string
   children?: React.ReactNode
   inScreen?: boolean
+  rootRef?: Ref<HTMLButtonElement>
 }
 
 void loadSound('button_click.mp3')
 
-export default forwardRef<HTMLButtonElement, Props>(({ label, icon, children, inScreen, ...args }, ref) => {
+export default (({ label, icon, children, inScreen, rootRef, ...args }) => {
   const onClick = (e) => {
     void playSound('button_click.mp3')
     args.onClick?.(e)
@@ -28,9 +29,9 @@ export default forwardRef<HTMLButtonElement, Props>(({ label, icon, children, in
     args.style.width = 20
   }
 
-  return <button ref={ref} {...args} className={classNames(buttonCss.button, args.className)} onClick={onClick}>
+  return <button ref={rootRef} {...args} className={classNames(buttonCss.button, args.className)} onClick={onClick}>
     {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}
     {label}
     {children}
   </button>
-})
+}) satisfies FC<Props>
