@@ -114,6 +114,10 @@ class EditBox extends LitElement {
         type: Boolean,
         attribute: 'pmui-required'
       },
+      placeholder: {
+        type: String,
+        attribute: 'pmui-placeholder'
+      },
       state: {
         type: String,
         attribute: true
@@ -144,6 +148,7 @@ class EditBox extends LitElement {
           autocomplete="off"
           autocapitalize="off"
           value="${this.value}"
+          placeholder=${ifDefined(this.placeholder || undefined)}
           list=${ifDefined(this.autocompleteValues ? `${this.id}-list` : undefined)}
           inputmode=${ifDefined(this.inputMode || undefined)}
           @input=${({ target: { value } }) => { this.value = this.inputMode === 'decimal' ? value.replaceAll(',', '.') : value }}

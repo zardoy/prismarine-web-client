@@ -30,7 +30,8 @@ function getUsernameTexture(username, { fontFamily = 'sans-serif' }) {
 function getEntityMesh (entity, scene, options) {
   if (entity.name) {
     try {
-      const e = new Entity('1.16.4', entity.name, scene)
+      // https://github.com/PrismarineJS/prismarine-viewer/pull/410
+      const e = new Entity('1.16.4', entity.name.toLowerCase(), scene)
 
       if (entity.username !== undefined) {
         const canvas = getUsernameTexture(entity.username, options)

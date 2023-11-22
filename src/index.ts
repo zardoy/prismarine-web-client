@@ -126,6 +126,8 @@ let delta = 0
 let lastTime = performance.now()
 let previousWindowWidth = window.innerWidth
 let previousWindowHeight = window.innerHeight
+let max = 0
+let rendered = 0
 const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
   window.requestAnimationFrame(renderFrame)
@@ -149,10 +151,18 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
   statsStart()
   viewer.update()
   renderer.render(viewer.scene, viewer.camera)
+  rendered++
   postRenderFrameFn()
   statsEnd()
 }
 renderFrame(performance.now())
+setInterval(() => {
+  if (max > 0) {
+    viewer.world.droppedFpsPercentage = rendered / max
+  }
+  max = Math.max(rendered, max)
+  rendered = 0
+}, 1000)
 
 const resizeHandler = () => {
   const width = window.innerWidth
@@ -564,6 +574,7 @@ async function connect (connectOptions: {
 
     // Bot position callback
     function botPosition () {
+      viewer.world.lastCamUpdate = Date.now()
       // this might cause lag, but not sure
       viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
       void worldView.updatePosition(bot.entity.position)
@@ -576,6 +587,7 @@ async function connect (connectOptions: {
     const maxPitch = 0.5 * Math.PI
     const minPitch = -0.5 * Math.PI
     mouseMovePostHandle = ({ x, y }) => {
+      viewer.world.lastCamUpdate = Date.now()
       bot.entity.pitch -= y
       bot.entity.pitch = Math.max(minPitch, Math.min(maxPitch, bot.entity.pitch))
       bot.entity.yaw -= x

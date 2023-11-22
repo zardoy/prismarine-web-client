@@ -33,10 +33,15 @@ export class WorldRenderer {
   downloadedTextureImage = undefined as any
   workers: any[] = []
   viewerPosition?: Vec3
+  lastCamUpdate = 0
+  droppedFpsPercentage = 0
+  initialChunksLoad = true
 
   texturesVersion?: string
 
-  constructor (public scene: THREE.Scene, numWorkers = 4) {
+  promisesQueue = [] as Promise<any>[]
+
+  constructor(public scene: THREE.Scene, numWorkers = 4) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
@@ -59,7 +64,21 @@ export class WorldRenderer {
           }
 
           const chunkCoords = data.key.split(',')
-          if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length) return
+          if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length || !this.active) return
+
+          if (!this.initialChunksLoad) {
+            const newPromise = new Promise(resolve => {
+              if (this.droppedFpsPercentage > 0.5) {
+                setTimeout(resolve, 1000 / 50 * this.droppedFpsPercentage)
+              } else {
+                setTimeout(resolve)
+              }
+            })
+            this.promisesQueue.push(newPromise)
+            for (const promise of this.promisesQueue) {
+              await promise
+            }
+          }
 
           const geometry = new THREE.BufferGeometry()
           geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
@@ -156,7 +175,7 @@ export class WorldRenderer {
     for (const object of Object.values(this.sectionObjects)) {
       for (const child of object.children) {
         if (child.name === 'helper') {
-          child.visible = value;
+          child.visible = value
         }
       }
     }
@@ -224,12 +243,13 @@ export class WorldRenderer {
     const [currentX, currentZ] = chunkPos(pos)
     return Object.fromEntries(Object.entries(this.sectionObjects).map(([key, o]) => {
       const [xRaw, yRaw, zRaw] = key.split(',').map(Number)
-      const [x, z] = chunkPos({x: xRaw, z: zRaw})
+      const [x, z] = chunkPos({ x: xRaw, z: zRaw })
       return [`${x - currentX},${z - currentZ}`, o]
     }))
   }
 
   addColumn (x, z, chunk) {
+    this.initialChunksLoad = false
     this.loadedChunks[`${x},${z}`] = true
     for (const worker of this.workers) {
       worker.postMessage({ type: 'chunk', x, z, chunk })

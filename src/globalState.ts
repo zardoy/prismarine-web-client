@@ -120,7 +120,12 @@ export const showContextmenu = (items: ContextMenuItem[], { clientX, clientY }) 
 
 // ---
 
-type AppConfig = {
+export type AppConfig = {
+  defaultHost?: string
+  defaultHostSave?: string
+  defaultProxy?: string
+  defaultProxySave?: string
+  defaultVersion?: string
   mapsProvider?: string
 }
 

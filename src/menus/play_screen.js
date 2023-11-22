@@ -70,8 +70,10 @@ class PlayScreen extends LitElement {
   static get properties () {
     return {
       server: { type: String },
+      serverImplicit: { type: String },
       serverport: { type: Number },
       proxy: { type: String },
+      proxyImplicit: { type: String },
       proxyport: { type: Number },
       username: { type: String },
       password: { type: String },
@@ -84,11 +86,17 @@ class PlayScreen extends LitElement {
     this.version = ''
     this.serverport = ''
     this.proxyport = ''
+    this.server = ''
+    this.proxy = ''
+    this.username = ''
+    this.password = ''
+    this.serverImplicit = ''
+    this.proxyImplicit = ''
     // todo set them sooner add indicator
     void window.fetch('config.json').then(async res => res.json()).then(c => c, (error) => {
-      console.error('Failed to load config.json', error)
+      console.warn('Failed to load optional config.json', error)
       return {}
-    }).then(config => {
+    }).then(async (/** @type {import('../globalState').AppConfig} */config) => {
       miscUiState.appConfig = config
       const params = new URLSearchParams(window.location.search)
 
@@ -100,9 +108,34 @@ class PlayScreen extends LitElement {
         return qsValue || window.localStorage.getItem(localStorageKey)
       }
 
-      this.server = getParam('server', 'ip') ?? config.defaultHost
-      this.proxy = getParam('proxy') ?? config.defaultProxy
-      this.version = getParam('version') || (window.localStorage.getItem('version') ?? config.defaultVersion)
+      if (config.defaultHost === '<from-proxy>' || config.defaultHostSave === '<from-proxy>') {
+        let proxy = config.defaultProxy || config.defaultProxySave || params.get('proxy')
+        const cleanUrl = url => url.replaceAll(/(https?:\/\/|\/$)/g, '')
+        if (proxy && cleanUrl(proxy) !== cleanUrl(location.origin + location.pathname)) {
+          if (!proxy.startsWith('http')) proxy = 'https://' + proxy
+          const proxyConfig = await fetch(proxy + '/config.json').then(async res => res.json()).then(c => c, (error) => {
+            console.warn(`Failed to load config.json from proxy ${proxy}`, error)
+            return {}
+          })
+          if (config.defaultHost === '<from-proxy>' && proxyConfig.defaultHost) {
+            config.defaultHost = proxyConfig.defaultHost
+          } else {
+            config.defaultHost = ''
+          }
+          if (config.defaultHostSave === '<from-proxy>' && proxyConfig.defaultHostSave) {
+            config.defaultHostSave = proxyConfig.defaultHostSave
+          } else {
+            config.defaultHostSave = ''
+          }
+        }
+        this.server = this.serverImplicit
+      }
+
+      this.serverImplicit = config.defaultHost ?? ''
+      this.proxyImplicit = config.defaultProxy ?? ''
+      this.server = getParam('server', 'ip') ?? config.defaultHostSave ?? ''
+      this.proxy = getParam('proxy') ?? config.defaultProxySave ?? ''
+      this.version = getParam('version') || (window.localStorage.getItem('version') ?? config.defaultVersion ?? '')
       this.username = getParam('username') || 'pviewer' + (Math.floor(Math.random() * 1000))
       this.password = getParam('password') || ''
       if (process.env.NODE_ENV === 'development' && params.get('reconnect') && this.server && this.username) {
@@ -125,7 +158,8 @@ class PlayScreen extends LitElement {
             pmui-id="serverip"
             pmui-value="${this.server}"
             pmui-type="url"
-            pmui-required="true"
+            pmui-required="${this.serverImplicit === ''}}"
+            pmui-placeholder="${this.serverImplicit}"
             .autocompleteValues=${JSON.parse(localStorage.getItem('serverHistory') || '[]')}
             @input=${e => { this.server = e.target.value }}
           ></pmui-editbox>
@@ -135,6 +169,7 @@ class PlayScreen extends LitElement {
             pmui-id="port"
             pmui-value="${this.serverport}"
             pmui-type="number"
+            pmui-placeholder="25565"
             @input=${e => { this.serverport = e.target.value }}
             ></pmui-editbox>
         </div>
@@ -144,7 +179,8 @@ class PlayScreen extends LitElement {
             pmui-label="Proxy IP"
             pmui-id="proxy"
             pmui-value="${this.proxy}"
-            pmui-required=${/* TODO derive from config? */false}
+            pmui-required="${this.proxyImplicit === ''}}"
+            pmui-placeholder="${this.proxyImplicit}"
             pmui-type="url"
             @input=${e => { this.proxy = e.target.value }}
           ></pmui-editbox>
@@ -190,8 +226,8 @@ class PlayScreen extends LitElement {
   }
 
   onConnectPress () {
-    const server = `${this.server}${this.serverport && `:${this.serverport}`}`
-    const proxy = this.proxy && `${this.proxy}${this.proxyport && `:${this.proxyport}`}`
+    const server = this.server ? `${this.server}${this.serverport && `:${this.serverport}`}` : this.serverImplicit
+    const proxy = this.proxy ? `${this.proxy}${this.proxyport && `:${this.proxyport}`}` : this.proxyImplicit
 
     window.localStorage.setItem('username', this.username)
     window.localStorage.setItem('password', this.password)

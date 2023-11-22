@@ -44,8 +44,12 @@ function isProbablyIphone () {
 /**
  * @param {string} url
  */
-function openURL (url) {
-  window.open(url, '_blank', 'noopener,noreferrer')
+function openURL (url, newTab = true) {
+  if (newTab) {
+    window.open(url, '_blank', 'noopener,noreferrer')
+  } else {
+    window.open(url)
+  }
 }
 
 export {
