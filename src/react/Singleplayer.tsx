@@ -98,7 +98,7 @@ export default ({ worldData, onGeneralAction, onWorldAction }: Props) => {
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 400 }}>
         <div>
-          <Button ref={firstButton} disabled={!focusedWorld} onClick={() => onWorldAction('load', focusedWorld)}>LOAD WORLD</Button>
+          <Button rootRef={firstButton} disabled={!focusedWorld} onClick={() => onWorldAction('load', focusedWorld)}>LOAD WORLD</Button>
           <Button onClick={() => onGeneralAction('create')}>Create New World</Button>
         </div>
         <div>

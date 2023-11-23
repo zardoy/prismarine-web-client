@@ -205,7 +205,17 @@ contro.on('trigger', ({ command }) => {
         openPlayerInventory()
         break
       case 'general.drop':
-        if (bot.heldItem) bot.tossStack(bot.heldItem)
+        // if (bot.heldItem/* && ctrl */) bot.tossStack(bot.heldItem)
+        bot._client.write('block_dig', {
+          'status': 4,
+          'location': {
+            'x': 0,
+            'z': 0,
+            'y': 0
+          },
+          'face': 0,
+          sequence: 0
+        })
         break
       case 'general.chat':
         document.getElementById('hud').shadowRoot.getElementById('chat').enableChat()
@@ -234,6 +244,12 @@ export const f3Keybinds = [
       const loadedChunks = Object.entries(worldView.loadedChunks).filter(([, v]) => v).map(([key]) => key.split(',').map(Number))
       for (const [x, z] of loadedChunks) {
         worldView!.unloadChunk({ x, z })
+      }
+      for (const child of viewer.scene.children) {
+        if (child.name === 'chunk') { // should not happen
+          viewer.scene.remove(child)
+          console.warn('forcefully removed chunk from scene')
+        }
       }
       if (localServer) {
         //@ts-expect-error not sure why it is private... maybe revisit api?

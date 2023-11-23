@@ -36,6 +36,7 @@ export class WorldRenderer {
   lastCamUpdate = 0
   droppedFpsPercentage = 0
   initialChunksLoad = true
+  enableChunksLoadDelay = false
 
   texturesVersion?: string
 
@@ -66,19 +67,19 @@ export class WorldRenderer {
           const chunkCoords = data.key.split(',')
           if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length || !this.active) return
 
-          if (!this.initialChunksLoad) {
-            const newPromise = new Promise(resolve => {
-              if (this.droppedFpsPercentage > 0.5) {
-                setTimeout(resolve, 1000 / 50 * this.droppedFpsPercentage)
-              } else {
-                setTimeout(resolve)
-              }
-            })
-            this.promisesQueue.push(newPromise)
-            for (const promise of this.promisesQueue) {
-              await promise
-            }
-          }
+          // if (!this.initialChunksLoad && this.enableChunksLoadDelay) {
+          //   const newPromise = new Promise(resolve => {
+          //     if (this.droppedFpsPercentage > 0.5) {
+          //       setTimeout(resolve, 1000 / 50 * this.droppedFpsPercentage)
+          //     } else {
+          //       setTimeout(resolve)
+          //     }
+          //   })
+          //   this.promisesQueue.push(newPromise)
+          //   for (const promise of this.promisesQueue) {
+          //     await promise
+          //   }
+          // }
 
           const geometry = new THREE.BufferGeometry()
           geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
@@ -95,6 +96,7 @@ export class WorldRenderer {
           const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
           boxHelper.name = 'helper'
           object.add(boxHelper)
+          object.name = 'chunk'
           if (!this.showChunkBorders) {
             boxHelper.visible = false
           }
