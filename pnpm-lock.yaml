@@ -97,7 +97,7 @@ importers:
         version: 3.48.0
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
-        version: github.com/zardoy/prismarinejs-net-browserify/f88123ad4f4407ac21fc435b11c561742825d0a7
+        version: github.com/zardoy/prismarinejs-net-browserify/7d827dba61bd2f9ac9a6086fe2079a0fccadd070
       node-gzip:
         specifier: ^1.1.2
         version: 1.1.2
@@ -14736,8 +14736,8 @@ packages:
     dependencies:
       vec3: 0.1.8
 
-  github.com/zardoy/prismarinejs-net-browserify/f88123ad4f4407ac21fc435b11c561742825d0a7:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/f88123ad4f4407ac21fc435b11c561742825d0a7}
+  github.com/zardoy/prismarinejs-net-browserify/7d827dba61bd2f9ac9a6086fe2079a0fccadd070:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/7d827dba61bd2f9ac9a6086fe2079a0fccadd070}
     name: net-browserify
     version: 0.2.4
     dependencies:
