@@ -4,7 +4,7 @@ const { subscribe } = require('valtio')
 const { subscribeKey } = require('valtio/utils')
 const { hideCurrentModal, showModal, miscUiState, notification, openOptionsMenu } = require('../globalState')
 const { fsState } = require('../loadSave')
-const { disconnect } = require('../utils')
+const { disconnect, openGithub } = require('../utils')
 const { closeWan, openToWanAndCopyJoinLink, getJoinLink } = require('../localServerMultiplayer')
 const { uniqueFileNameFromWorldName, copyFilesAsyncWithProgress } = require('../browserfs')
 const { showOptionsModal } = require('../react/SelectOption')
@@ -89,9 +89,7 @@ class PauseScreen extends LitElement {
       <main>
         <pmui-button pmui-width="204px" pmui-label="Back to Game" @pmui-click=${this.onReturnPress}></pmui-button>
         <div class="row">
-          <pmui-button pmui-width="98px" pmui-label="GitHub" @pmui-click=${() => openURL(
-      // @ts-expect-error
-      process.env.GITHUB_URL)}></pmui-button>
+          <pmui-button pmui-width="98px" pmui-label="GitHub" @pmui-click=${() => openGithub()}></pmui-button>
           <pmui-button pmui-width="98px" pmui-label="Discord" @pmui-click=${() => openURL('https://discord.gg/4Ucm684Fq3')}></pmui-button>
         </div>
         <pmui-button pmui-width="204px" pmui-label="Options" @pmui-click=${() => openOptionsMenu('main')}></pmui-button>
@@ -104,8 +102,8 @@ class PauseScreen extends LitElement {
           </div>
         ` : ''}
         <pmui-button pmui-width="204px" pmui-label="${localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect'}" @pmui-click=${async () => {
-        disconnect()
-      }}></pmui-button>
+      disconnect()
+    }}></pmui-button>
       </main>
     `
   }

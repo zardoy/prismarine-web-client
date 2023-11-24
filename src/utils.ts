@@ -213,6 +213,10 @@ export const openFilePicker = (specificCase?: 'resourcepack') => {
   picker.click()
 }
 
+export const openGithub = () => {
+  window.open(process.env.GITHUB_URL, '_blank')
+}
+
 export const resolveTimeout = async (promise, timeout = 10_000) => {
   return new Promise((resolve, reject) => {
     promise.then(resolve, reject)
