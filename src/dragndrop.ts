@@ -1,9 +1,13 @@
 import { promisify } from 'util'
+import fs from 'fs'
 import * as nbt from 'prismarine-nbt'
+import RegionFile from 'prismarine-provider-anvil/src/region'
+import { versions } from 'minecraft-data'
 import { openWorldDirectory, openWorldZip } from './browserfs'
 import { isGameActive, showNotification } from './globalState'
 
 const parseNbt = promisify(nbt.parse)
+const simplifyNbt = nbt.simplify
 window.nbt = nbt
 
 // todo display drop zone
@@ -46,6 +50,48 @@ async function handleDroppedFile (file: File) {
   // if (file.name.endsWith('.mca')) // TODO let's do something interesting with it: viewer?
   if (file.name.endsWith('.rar')) {
     alert('Rar files are not supported yet!')
+    return
+  }
+  if (file.name.endsWith('.mca')) {
+    const tempPath = '/data/temp.mca'
+    try {
+      await fs.promises.writeFile(tempPath, Buffer.from(await file.arrayBuffer()))
+      const region = new RegionFile(tempPath)
+      await region.initialize()
+      const chunks: Record<string, any> = {}
+      console.log('Reading chunks...')
+      console.log(chunks)
+      let versionDetected = false
+      for (const [i, _] of Array.from({ length: 32 }).entries()) {
+        for (const [k, _] of Array.from({ length: 32 }).entries()) {
+          const nbt = await region.read(i, k)
+          chunks[`${i},${k}`] = nbt
+          if (nbt && !versionDetected) {
+            const simplified = simplifyNbt(nbt)
+            const version = versions.pc.find(x => x['dataVersion'] === simplified.DataVersion)?.minecraftVersion
+            console.log('Detected version', version ?? 'unknown')
+            versionDetected = true
+          }
+        }
+      }
+      Object.defineProperty(chunks, 'simplified', {
+        get () {
+          const mapped = {}
+          for (const [i, _] of Array.from({ length: 32 }).entries()) {
+            for (const [k, _] of Array.from({ length: 32 }).entries()) {
+              const key = `${i},${k}`
+              const chunk = chunks[key]
+              if (!chunk) continue
+              mapped[key] = simplifyNbt(chunk)
+            }
+          }
+          return mapped
+        },
+      })
+      console.log('Done!', chunks)
+    } finally {
+      await fs.promises.unlink(tempPath)
+    }
     return
   }
 
