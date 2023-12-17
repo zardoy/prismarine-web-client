@@ -4,7 +4,7 @@ import { useSnapshot } from 'valtio'
 import { useEffect } from 'react'
 import { activeModalStack, miscUiState, openOptionsMenu, showModal } from '../globalState'
 import { openURL } from '../menus/components/common'
-import { openFilePicker, setLoadingScreenStatus } from '../utils'
+import { openFilePicker, openGithub, setLoadingScreenStatus } from '../utils'
 import { copyFilesAsync, mkdirRecursive, openWorldDirectory, removeFileRecursiveAsync } from '../browserfs'
 import MainMenu from './MainMenu'
 
@@ -46,7 +46,7 @@ export default () => {
           }
           showModal({ reactType: 'singleplayer' })
         }}
-        githubAction={() => openURL(process.env.GITHUB_URL!)}
+        githubAction={() => openGithub()}
         optionsAction={() => openOptionsMenu('main')}
         discordAction={() => openURL('https://discord.gg/4Ucm684Fq3')}
         openFileAction={e => {
