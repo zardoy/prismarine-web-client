@@ -1,4 +1,5 @@
 import { proxy, useSnapshot } from 'valtio'
+import { useEffect } from 'react'
 import { activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
 import { resetLocalStorageWorld } from '../browserfs'
 import { fsState } from '../loadSave'
@@ -19,6 +20,10 @@ const resetState = () => {
   Object.assign(appStatusState, initialState)
 }
 
+export const lastConnectOptions = {
+  value: null as any | null
+}
+
 export default () => {
   const { isError, lastStatus, maybeRecoverable, status, hideDots } = useSnapshot(appStatusState)
 
@@ -37,10 +42,21 @@ export default () => {
     }
   }, [isOpen])
 
+  useEffect(() => {
+    window.addEventListener('keyup', (e) => {
+      if (!isOpen) return
+      if (e.code !== 'KeyR' || !lastConnectOptions.value) return
+      window.dispatchEvent(new window.CustomEvent('connect', {
+        detail: lastConnectOptions.value
+      }))
+      appStatusState.isError = false
+    }, {})
+  }, [])
+
   return <DiveTransition open={isOpen}>
     <AppStatus
       status={status}
-      isError={isError}
+      isError={isError || appStatusState.status === ''} // display back button if status is empty as probably our app is errored
       hideDots={hideDots}
       lastStatus={lastStatus}
       backAction={maybeRecoverable ? () => {
@@ -55,14 +71,14 @@ export default () => {
           hideModal(undefined, undefined, { force: true })
         }
       } : undefined}
-      // actionsSlot={
-      //   <Button hidden={!(miscUiState.singleplayer && fsState.inMemorySave)} label="Reset world" onClick={() => {
-      //     if (window.confirm('Are you sure you want to delete all local world content?')) {
-      //       resetLocalStorageWorld()
-      //       window.location.reload()
-      //     }
-      //   }} />
-      // }
+    // actionsSlot={
+    //   <Button hidden={!(miscUiState.singleplayer && fsState.inMemorySave)} label="Reset world" onClick={() => {
+    //     if (window.confirm('Are you sure you want to delete all local world content?')) {
+    //       resetLocalStorageWorld()
+    //       window.location.reload()
+    //     }
+    //   }} />
+    // }
     />
   </DiveTransition>
 }

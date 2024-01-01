@@ -1,6 +1,6 @@
 import Stats from 'stats.js'
 import StatsGl from 'stats-gl'
-import { isCypress } from './utils'
+import { isCypress } from './standaloneUtils'
 
 const stats = new Stats()
 const stats2 = new Stats()

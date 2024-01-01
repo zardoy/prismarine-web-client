@@ -55,11 +55,11 @@ import {
 } from './globalState'
 
 import {
-  pointerLock, isCypress,
+  pointerLock,
   toMajorVersion,
-  setLoadingScreenStatus,
-  setRenderDistance
+  setLoadingScreenStatus
 } from './utils'
+import { isCypress } from './standaloneUtils'
 
 import {
   removePanorama
@@ -77,7 +77,7 @@ import CustomChannelClient from './customClient'
 import debug from 'debug'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
-import { appStatusState } from './react/AppStatusProvider'
+import { appStatusState, lastConnectOptions } from './react/AppStatusProvider'
 
 import { fsState } from './loadSave'
 import { watchFov } from './rendererUtils'
@@ -219,14 +219,12 @@ const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) =
   void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides, serverOverridesFlat: flattenedServerOverrides })
 }
 function listenGlobalEvents () {
-  const menu = document.getElementById('play-screen')
-  menu.addEventListener('connect', e => {
-    const options = e.detail
+  window.addEventListener('connect', e => {
+    const options = (e as CustomEvent).detail
     void connect(options)
   })
   window.addEventListener('singleplayer', (e) => {
-    //@ts-expect-error
-    loadSingleplayer(e.detail)
+    loadSingleplayer((e as CustomEvent).detail)
   })
 }
 
@@ -259,6 +257,8 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
 async function connect (connectOptions: {
   server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string
 }) {
+  if (miscUiState.gameLoaded) return
+  lastConnectOptions.value = connectOptions
   document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
 
@@ -307,16 +307,6 @@ async function connect (connectOptions: {
   const handleError = (err) => {
     errorAbortController.abort()
     console.log('Encountered error!', err)
-
-    // #region rejoin key
-    const controller = new AbortController()
-    window.addEventListener('keyup', (e) => {
-      if (e.code !== 'KeyR') return
-      controller.abort()
-      void connect(connectOptions)
-      appStatusState.isError = false
-    }, { signal: controller.signal })
-    // #endregion
 
     setLoadingScreenStatus(`Error encountered. ${err}`, true)
     destroyAll()
