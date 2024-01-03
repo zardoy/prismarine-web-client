@@ -10,7 +10,7 @@ export default () => {
     const night = 17_843
     const morningStart = 22_300
     const morningEnd = 23_961
-    const timeProgress = options.dayCycleAndLighting ? bot.time.time : 0
+    const timeProgress = options.dayCycleAndLighting ? bot.time.timeOfDay : 0
 
     // todo check actual colors
     const dayColorRainy = { r: 111 / 255, g: 156 / 255, b: 236 / 255 }
