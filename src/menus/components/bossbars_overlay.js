@@ -69,8 +69,8 @@ class BossBar extends LitElement {
   }
 
   setTitle (bar) {
-    if (bar._title.text) this.title = bar._title.text
-    else this.title = translations[this._title.translate] || 'Unknown Entity'
+    if (bar._title.text) this.title = bar.title.text
+    else this.title = translations[bar.title.translate] || 'Unknown Entity'
   }
 
   setColor (bar) {
