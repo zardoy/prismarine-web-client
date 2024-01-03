@@ -48,7 +48,8 @@ const defaultOptions = {
   askGuestName: true,
 
   // advanced bot options
-  autoRespawn: false
+  autoRespawn: false,
+  mutedSounds: [] as string[]
 }
 
 export type AppOptions = typeof defaultOptions

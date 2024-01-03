@@ -1,6 +1,6 @@
 import { proxy, useSnapshot } from 'valtio'
 import { useEffect } from 'react'
-import { activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
+import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
 import { resetLocalStorageWorld } from '../browserfs'
 import { fsState } from '../loadSave'
 import AppStatus from './AppStatus'
@@ -43,14 +43,18 @@ export default () => {
   }, [isOpen])
 
   useEffect(() => {
+    const controller = new AbortController()
     window.addEventListener('keyup', (e) => {
-      if (!isOpen) return
+      if (activeModalStack.at(-1)?.reactType !== 'app-status') return
       if (e.code !== 'KeyR' || !lastConnectOptions.value) return
       window.dispatchEvent(new window.CustomEvent('connect', {
         detail: lastConnectOptions.value
       }))
       appStatusState.isError = false
-    }, {})
+    }, {
+      signal: controller.signal
+    })
+    return () => controller.abort()
   }, [])
 
   return <DiveTransition open={isOpen}>

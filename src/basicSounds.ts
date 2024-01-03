@@ -7,7 +7,7 @@ const sounds: Record<string, any> = {}
 const loadingSounds = [] as string[]
 const convertedSounds = [] as string[]
 export async function loadSound (path: string) {
-  if (loadingSounds.includes(path)) return
+  if (loadingSounds.includes(path)) return true
   loadingSounds.push(path)
   const res = await window.fetch(path)
   const data = await res.arrayBuffer()
@@ -16,8 +16,19 @@ export async function loadSound (path: string) {
   loadingSounds.splice(loadingSounds.indexOf(path), 1)
 }
 
-export async function playSound (path) {
-  const volume = options.volume / 100
+export const loadOrPlaySound = async (url, soundVolume = 1) => {
+  const soundBuffer = sounds[url]
+  if (!soundBuffer) {
+    const start = Date.now()
+    const cancelled = await loadSound(url)
+    if (cancelled || Date.now() - start > 500) return
+  }
+
+  await playSound(url)
+}
+
+export async function playSound (url, soundVolume = 1) {
+  const volume = soundVolume * (options.volume / 100)
 
   if (!volume) return
 
@@ -29,9 +40,9 @@ export async function playSound (path) {
     convertedSounds.push(soundName)
   }
 
-  const soundBuffer = sounds[path]
+  const soundBuffer = sounds[url]
   if (!soundBuffer) {
-    console.warn(`Sound ${path} not loaded`)
+    console.warn(`Sound ${url} not loaded yet`)
     return
   }
 

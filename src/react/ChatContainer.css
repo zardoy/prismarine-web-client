@@ -64,6 +64,7 @@ div.chat-wrapper { /* increase specificity */
 /* unsupported by firefox */
 ::-webkit-scrollbar {
     width: 5px;
+    height: 5px;
     background-color: rgb(24, 24, 24);
 }
 ::-webkit-scrollbar-thumb {

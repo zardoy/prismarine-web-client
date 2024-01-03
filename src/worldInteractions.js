@@ -195,6 +195,7 @@ class WorldInteraction {
         if (err.message === 'Digging aborted') return
         throw err
       })
+      customEvents.emit('digStart')
       this.lastDigged = Date.now()
     }
     this.prevOnGround = onGround

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useSnapshot } from 'valtio'
-import { miscUiState, openOptionsMenu } from './globalState'
+import { miscUiState, openOptionsMenu, showModal } from './globalState'
 import { openURL } from './menus/components/common'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
@@ -181,6 +181,11 @@ export const guiOptionsScheme: {
   ],
   sound: [
     { volume: {} },
+    {
+      custom () {
+        return <Button label='Sound Muffler' onClick={() => showModal({ reactType: 'sound-muffler' })} inScreen />
+      },
+    }
     // { ignoreSilentSwitch: {} },
   ],
   VR: [

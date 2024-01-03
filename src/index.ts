@@ -82,8 +82,13 @@ import { fsState } from './loadSave'
 import { watchFov } from './rendererUtils'
 import { loadInMemorySave } from './react/SingleplayerProvider'
 
+// side effects
+import { downloadSoundsIfNeeded } from './soundSystem'
+import EventEmitter from 'events'
+
 window.debug = debug
 window.THREE = THREE
+window.customEvents = new EventEmitter()
 
 // ACTUAL CODE
 
@@ -342,6 +347,7 @@ async function connect (connectOptions: {
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
       setLoadingScreenStatus(`Downloading data for ${version}`)
+      await downloadSoundsIfNeeded()
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       miscUiState.loadedDataVersion = version
       try {

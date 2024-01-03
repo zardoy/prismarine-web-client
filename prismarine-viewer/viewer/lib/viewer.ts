@@ -21,8 +21,9 @@ export class Viewer {
   isSneaking: boolean
   version: string
   cameraObjectOverride?: THREE.Object3D // for xr
+  audioListener: THREE.AudioListener
 
-  constructor (public renderer: THREE.WebGLRenderer, numWorkers?: number) {
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number) {
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('lightblue')
 
@@ -89,6 +90,33 @@ export class Viewer {
       new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
     }
     cam.rotation.set(pitch, yaw, roll, 'ZYX')
+  }
+
+  playSound (position: Vec3, path: string, volume = 1) {
+    if (!this.audioListener) {
+      this.audioListener = new THREE.AudioListener()
+      this.camera.add(this.audioListener)
+    }
+
+    const sound = new THREE.PositionalAudio(this.audioListener)
+
+    const audioLoader = new THREE.AudioLoader()
+    let start = Date.now()
+    audioLoader.loadAsync(path).then((buffer) => {
+      if (Date.now() - start > 500) return
+      // play
+      sound.setBuffer(buffer)
+      sound.setRefDistance(20)
+      sound.setVolume(volume)
+      this.scene.add(sound)
+      // set sound position
+      sound.position.set(position.x, position.y, position.z)
+      sound.play()
+      sound.onEnded = () => {
+        this.scene.remove(sound)
+        sound.disconnect()
+      }
+    })
   }
 
   // todo type
