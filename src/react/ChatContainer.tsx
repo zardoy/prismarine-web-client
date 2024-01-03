@@ -4,7 +4,7 @@ import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
 
-type Message = {
+export type Message = {
   parts: MessageFormatPart[],
   id: number
   fading?: boolean

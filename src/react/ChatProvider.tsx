@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Message } from '../chat'
 import { formatMessage } from '../botUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
 import { hideCurrentModal } from '../globalState'
 import { options } from '../optionsStorage'
-import ChatComponent, { fadeMessage } from './ChatContainer'
+import ChatComponent, { Message, fadeMessage } from './ChatContainer'
 import { useIsModalActive } from './utils'
 
 export default () => {

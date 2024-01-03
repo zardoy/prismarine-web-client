@@ -3,7 +3,6 @@ import './importsWorkaround'
 import './styles.css'
 import './globals'
 import 'iconify-icon'
-import './chat'
 import './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
 
