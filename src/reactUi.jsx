@@ -17,6 +17,7 @@ import CreateWorldProvider from './react/CreateWorldProvider'
 import AppStatusProvider from './react/AppStatusProvider'
 import SelectOption from './react/SelectOption'
 import EnterFullscreenButton from './react/EnterFullscreenButton'
+import ChatProvider from './react/ChatProvider'
 
 // todo
 useInterfaceState.setState({
@@ -125,6 +126,7 @@ const InGameUi = () => {
     <Portal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
       <DeathScreenProvider />
+      <ChatProvider />
     </Portal>
     <DisplayQr />
     <Portal to={document.body}>

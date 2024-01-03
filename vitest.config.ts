@@ -4,7 +4,8 @@ export default defineConfig({
   root: 'prismarine-viewer/viewer',
   test: {
     include: [
-      '**/*.test.ts'
+      '../../src/botUtils.test.ts',
+      'sign-renderer/tests.test.ts'
     ],
   },
 })

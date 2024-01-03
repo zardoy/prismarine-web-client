@@ -1,5 +1,7 @@
 // this should actually be moved to mineflayer / prismarine-viewer
 
+import { fromFormattedString } from '@xmcl/text-component'
+
 export type MessageFormatPart = {
   text: string
   color?: string
@@ -10,7 +12,6 @@ export type MessageFormatPart = {
   obfuscated?: boolean
 }
 
-// dont edit these typings manually
 type MessageInput = {
   text?: string
   translate?: string
@@ -22,11 +23,12 @@ type MessageInput = {
   strikethrough?: boolean
   obfuscated?: boolean
   extra?: MessageInput[]
+  json?: any
 }
 
 // todo move to sign-renderer, replace with prismarine-chat
 export const formatMessage = (message: MessageInput) => {
-  const msglist: MessageFormatPart[] = []
+  let msglist: MessageFormatPart[] = []
 
   const readMsg = (msg: MessageInput) => {
     const styles = {
@@ -89,6 +91,17 @@ export const formatMessage = (message: MessageInput) => {
   }
 
   readMsg(message)
+
+  const flat = (msg) => {
+    return [msg, msg.extra?.flatMap(flat) ?? []]
+  }
+
+  msglist = msglist.map(msg => {
+    // normalize §
+    if (!msg.text.includes('§')) return msg
+    const newMsg = fromFormattedString(msg.text)
+    return flat(newMsg)
+  }).flat(Infinity)
 
   return msglist
 }
