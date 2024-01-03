@@ -4,6 +4,8 @@ A true Minecraft client running in your browser! A port of the original game to 
 
 This project is a work in progress, but I consider it to be usable. If you encounter any bugs or usability issues, please report them!
 
+You can try this out at [mcraft.fun](https://mcraft.fun/), [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy.
+
 ### Big Features
 
 - Connect to any offline server* (it's possible because of proxy servers, see below)
@@ -14,8 +16,6 @@ This project is a work in progress, but I consider it to be usable. If you encou
 - First-class touch (mobile) & controller support
 - Resource pack support
 - even even more!
-
-There are a lot
 
 ### World Loading
 
