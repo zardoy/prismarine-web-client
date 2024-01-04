@@ -50,7 +50,7 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
   }, initialTimeout ? 5000 : 0)
 }
 
-const ChatComponent = ({ messages, touch, opacity, fetchCompletionItems, opened, interceptMessage, onClose }: Props) => {
+export default ({ messages, touch, opacity, fetchCompletionItems, opened, interceptMessage, onClose }: Props) => {
   const [sendHistory, _setSendHistory] = useState(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 
   const [completePadText, setCompletePadText] = useState('')
@@ -80,7 +80,7 @@ const ChatComponent = ({ messages, touch, opacity, fetchCompletionItems, opened,
 
   const updateInputValue = (newValue: string) => {
     chatInput.current.value = newValue
-    chatInput.current.dispatchEvent(new Event('input'))
+    onMainInputChange()
     setTimeout(() => {
       chatInput.current.setSelectionRange(newValue.length, newValue.length)
     }, 0)
@@ -115,10 +115,15 @@ const ChatComponent = ({ messages, touch, opacity, fetchCompletionItems, opened,
       updateInputValue(initialChatOpenValue.value)
       initialChatOpenValue.value = ''
       chatInput.current.focus()
-      resetCompletionItems()
     }
     if (!opened) {
       chatMessages.current.scrollTop = chatMessages.current.scrollHeight
+    }
+  }, [opened])
+
+  useMemo(() => {
+    if (opened) {
+      resetCompletionItems()
     }
   }, [opened])
 
@@ -175,6 +180,18 @@ const ChatComponent = ({ messages, touch, opacity, fetchCompletionItems, opened,
     setCompletionItems(newCompleteItems)
   }
 
+  const onMainInputChange = () => {
+    const completeValue = getCompleteValue()
+    setCompletePadText(completeValue === '/' ? '' : completeValue)
+    if (completeRequestValue.current === completeValue) {
+      updateFilteredCompleteItems(completionItemsSource)
+      return
+    }
+    if (completeValue === '/') {
+      void fetchCompletions(true)
+    }
+  }
+
   return (
     <>
       <div className={`chat-wrapper chat-messages-wrapper ${touch ? 'display-mobile' : ''}`} hidden={isCypress()}>
@@ -205,7 +222,7 @@ const ChatComponent = ({ messages, touch, opacity, fetchCompletionItems, opened,
             spellCheck={false}
             autoComplete="off"
             onFocus={() => auxInputFocus('ArrowUp')}
-            onChange={() => {}}
+            onChange={() => { }}
           />
           <input
             defaultValue=''
@@ -216,17 +233,7 @@ const ChatComponent = ({ messages, touch, opacity, fetchCompletionItems, opened,
             spellCheck={false}
             autoComplete="off"
             aria-autocomplete="both"
-            onChange={({ target: { value } }) => {
-              const completeValue = getCompleteValue()
-              setCompletePadText(completeValue === '/' ? '' : completeValue)
-              if (completeRequestValue.current === completeValue) {
-                updateFilteredCompleteItems(completionItemsSource)
-                return
-              }
-              if (completeValue === '/') {
-                void fetchCompletions(true)
-              }
-            }}
+            onChange={onMainInputChange}
             onKeyDown={(e) => {
               if (e.code === 'ArrowUp') {
                 if (chatHistoryPos.current === 0) return
@@ -267,12 +274,10 @@ const ChatComponent = ({ messages, touch, opacity, fetchCompletionItems, opened,
             spellCheck={false}
             autoComplete="off"
             onFocus={() => auxInputFocus('ArrowDown')}
-            onChange={() => {}}
+            onChange={() => { }}
           />
         </div>
       </div>
     </>
   )
 }
-
-export default ChatComponent

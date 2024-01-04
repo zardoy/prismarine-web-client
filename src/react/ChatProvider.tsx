@@ -3,7 +3,7 @@ import { formatMessage } from '../botUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
 import { hideCurrentModal } from '../globalState'
 import { options } from '../optionsStorage'
-import ChatComponent, { Message, fadeMessage } from './ChatContainer'
+import ChatContainer, { Message, fadeMessage } from './ChatContainer'
 import { useIsModalActive } from './utils'
 
 export default () => {
@@ -23,16 +23,15 @@ export default () => {
           faded: false,
         }
         fadeMessage(newMessage, true, () => {
+          // eslint-disable-next-line max-nested-callbacks
           setMessages(m => [...m])
         })
         return [...m, newMessage].slice(-messagesLimit)
       })
-
-      // todo update scrollbottom
     })
   }, [])
 
-  return <ChatComponent
+  return <ChatContainer
     messages={messages}
     opened={isChatActive}
     interceptMessage={(message) => {
