@@ -189,7 +189,6 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
 
   registerEvents()
 
-  console.log(getVersionedSound('1.13', 'mob/fox/spit1', Object.entries(soundsLegacyMap)))
   // 1.20+ soundEffectHeard is broken atm
   // bot._client.on('packet', (data, { name }, buffer) => {
   //   if (name === 'sound_effect') {
