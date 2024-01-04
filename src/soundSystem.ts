@@ -8,6 +8,7 @@ import { options } from './optionsStorage'
 import { loadOrPlaySound } from './basicSounds'
 
 subscribeKey(miscUiState, 'gameLoaded', async () => {
+  if (!miscUiState.gameLoaded) return
   const soundsLegacyMap = window.allSoundsVersionedMap as Record<string, string[]>
   const allSoundsMap = window.allSoundsMap as Record<string, Record<string, string>>
   const allSoundsMeta = window.allSoundsMeta as { format: string, baseUrl: string }
@@ -182,7 +183,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
     })
     bot.on('diggingCompleted', async () => {
       if (diggingBlock) {
-        await playBlockBreak(diggingBlock.name)
+        await playBlockBreak(diggingBlock.name, diggingBlock.position)
       }
     })
   }
