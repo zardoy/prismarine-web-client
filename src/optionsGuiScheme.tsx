@@ -11,7 +11,7 @@ import { getResourcePackName, resourcePackState, uninstallTexturePack } from './
 import { resetLocalStorageWithoutWorld } from './browserfs'
 
 export const guiOptionsScheme: {
-  [t in OptionsGroupType]: Array<{ [k in keyof AppOptions]?: Partial<OptionMeta> } & { custom?}>
+  [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom?}>
 } = {
   render: [
     {
@@ -31,10 +31,11 @@ export const guiOptionsScheme: {
       }
     },
     {
-      highPerformanceGpu: {
+      gpuPreference: {
         // todo reimplement to gpu preference to allow use low-energy instead
-        text: 'Use Dedicated GPU',
+        text: 'GPU Preference',
         // willHaveNoEffect: isIos
+        values: [['default', 'Auto'], ['high-performance', 'Dedicated'], ['low-power', 'Low Power']]
       },
     },
     {

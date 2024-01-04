@@ -26,7 +26,7 @@ const defaultOptions = {
   touchButtonsSize: 40,
   touchButtonsOpacity: 80,
   touchButtonsPosition: 12,
-  highPerformanceGpu: false,
+  gpuPreference: 'default' as 'default' | 'high-performance' | 'low-power',
   /** @unstable */
   disableAssets: false,
   /** @unstable */
@@ -52,11 +52,19 @@ const defaultOptions = {
   mutedSounds: [] as string[]
 }
 
+const migrateOptions = (options) => {
+  if (options.highPerformanceGpu) {
+    options.gpuPreference = 'high-performance'
+    delete options.highPerformanceGpu
+  }
+  return options
+}
+
 export type AppOptions = typeof defaultOptions
 
 export const options: AppOptions = proxy({
   ...defaultOptions,
-  ...JSON.parse(localStorage.options || '{}')
+  ...migrateOptions(JSON.parse(localStorage.options || '{}'))
 })
 
 window.options = window.settings = options

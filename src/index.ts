@@ -97,7 +97,7 @@ watchFov()
 
 // Create three.js context, add to page
 const renderer = new THREE.WebGLRenderer({
-  powerPreference: options.highPerformanceGpu ? 'high-performance' : 'default',
+  powerPreference: options.gpuPreference,
 })
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
