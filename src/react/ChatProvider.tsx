@@ -15,15 +15,17 @@ export default () => {
     bot.addListener('message', (jsonMsg, position) => {
       const parts = formatMessage(jsonMsg)
 
-      const lastId = messages.at(-1)?.id ?? 0
-      const newMessage: Message = {
-        parts,
-        id: lastId + 1,
-        faded: false,
-      }
-      setMessages([...messages, newMessage].slice(-messagesLimit))
-      fadeMessage(newMessage, true, () => {
-        setMessages([...messages])
+      setMessages(m => {
+        const lastId = messages.at(-1)?.id ?? 0
+        const newMessage: Message = {
+          parts,
+          id: lastId + 1,
+          faded: false,
+        }
+        fadeMessage(newMessage, true, () => {
+          setMessages(m => [...m])
+        })
+        return [...m, newMessage].slice(-messagesLimit)
       })
 
       // todo update scrollbottom
