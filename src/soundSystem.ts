@@ -53,7 +53,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
     const isMuted = options.mutedSounds.includes(soundKey)
     if (position) {
       if (!isMuted) {
-        viewer.playSound(position, url, soundVolume * volume * (options.volume / 100))
+        viewer.playSound(position, url, soundVolume * Math.max(Math.min(volume, 1), 0) * (options.volume / 100))
       }
       if (getDistance(bot.entity.position, position) < 16) {
         lastPlayedSounds.lastServerPlayed[soundKey] ??= { count: 0, last: 0 }
@@ -176,6 +176,30 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
       if (effectId === 2002 || effectId === 2003 || effectId === 2007) {
         await playHardcodedSound('block.glass.break', position, 1, 1)
       }
+      if (effectId === 1004) {
+        // firework shoot
+        await playHardcodedSound('entity.firework_rocket.launch', position, 1, 1)
+      }
+      if (effectId === 1006 || effectId === 1007 || effectId === 1014) {
+        // wooden door open/close
+        await playHardcodedSound('block.wooden_door.open', position, 1, 1)
+      }
+      if (effectId === 1002) {
+        // dispenser shoot
+        await playHardcodedSound('block.dispenser.dispense', position, 1, 1)
+      }
+      if (effectId === 1024) {
+        // wither shoot
+        await playHardcodedSound('entity.wither.shoot', position, 1, 1)
+      }
+      if (effectId === 1031) {
+        // anvil land
+        await playHardcodedSound('block.anvil.land', position, 1, 1)
+      }
+      if (effectId === 1010) {
+        console.log('play record', data)
+      }
+      // todo add support for all current world events
     })
     let diggingBlock: Block | null = null
     customEvents.on('digStart', () => {
