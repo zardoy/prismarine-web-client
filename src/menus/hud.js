@@ -157,7 +157,6 @@ class Hud extends LitElement {
     debugMenu.bot = bot
 
     hotbar.init()
-    chat.init(bot._client)
     playerList.init(host)
 
     bot.on('entityHurt', (entity) => {
@@ -244,7 +243,6 @@ class Hud extends LitElement {
       <pmui-playerlist-overlay id="playerlist-overlay"></pmui-playerlist-overlay>
       <pmui-bossbars-overlay id="bossbars-overlay"></pmui-bossbars-overlay>
       <div class="crosshair"></div>
-      <chat-box id="chat"></chat-box>
       <!--<pmui-breathbar id="breath-bar"></pmui-breathbar>-->
       <pmui-healthbar id="health-bar"></pmui-healthbar>
       <pmui-foodbar id="food-bar"></pmui-foodbar>

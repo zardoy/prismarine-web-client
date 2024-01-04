@@ -180,7 +180,7 @@ const initialNotification = {
 }
 export const notification = proxy(initialNotification)
 
-export const showNotification = (/** @type {Partial<typeof notification>} */newNotification) => {
+export const showNotification = (newNotification: Partial<typeof notification>) => {
   Object.assign(notification, { show: true, ...newNotification }, initialNotification)
 }
 

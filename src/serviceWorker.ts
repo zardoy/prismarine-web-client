@@ -1,4 +1,4 @@
-import { isCypress } from './utils'
+import { isCypress } from './standaloneUtils'
 
 export const registerServiceWorker = async () => {
   if (!('serviceWorker' in navigator)) return

@@ -10,6 +10,10 @@ declare const localServer: import('flying-squid/dist/types').FullServer & { opti
 /** all currently loaded mc data */
 declare const mcData: Record<string, any>
 declare const loadedData: import('minecraft-data').IndexedData
+declare const customEvents: import('typed-emitter').default<{
+    singleplayer (): void
+    digStart()
+}>
 
 declare interface Document {
     getElementById (id): any

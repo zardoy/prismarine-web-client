@@ -4,7 +4,7 @@
   "description": "A minecraft client running in a browser",
   "scripts": {
     "start": "node scripts/build.js copyFilesDev && node scripts/prepareData.mjs && node esbuild.mjs --watch",
-    "start-watch-script": "nodemon -w esbuild.mjs esbuild.mjs",
+    "start-watch-script": "nodemon -w esbuild.mjs --watch",
     "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod",
     "check-build": "tsc && pnpm test-unit && pnpm build",
     "test:cypress": "cypress run",

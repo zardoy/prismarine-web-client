@@ -1,5 +1,6 @@
 import { proxy, useSnapshot } from 'valtio'
-import { activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
+import { useEffect } from 'react'
+import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
 import { resetLocalStorageWorld } from '../browserfs'
 import { fsState } from '../loadSave'
 import AppStatus from './AppStatus'
@@ -17,6 +18,10 @@ const initialState = {
 export const appStatusState = proxy(initialState)
 const resetState = () => {
   Object.assign(appStatusState, initialState)
+}
+
+export const lastConnectOptions = {
+  value: null as any | null
 }
 
 export default () => {
@@ -37,10 +42,25 @@ export default () => {
     }
   }, [isOpen])
 
+  useEffect(() => {
+    const controller = new AbortController()
+    window.addEventListener('keyup', (e) => {
+      if (activeModalStack.at(-1)?.reactType !== 'app-status') return
+      if (e.code !== 'KeyR' || !lastConnectOptions.value) return
+      window.dispatchEvent(new window.CustomEvent('connect', {
+        detail: lastConnectOptions.value
+      }))
+      appStatusState.isError = false
+    }, {
+      signal: controller.signal
+    })
+    return () => controller.abort()
+  }, [])
+
   return <DiveTransition open={isOpen}>
     <AppStatus
       status={status}
-      isError={isError}
+      isError={isError || appStatusState.status === ''} // display back button if status is empty as probably our app is errored
       hideDots={hideDots}
       lastStatus={lastStatus}
       backAction={maybeRecoverable ? () => {
@@ -55,14 +75,14 @@ export default () => {
           hideModal(undefined, undefined, { force: true })
         }
       } : undefined}
-      // actionsSlot={
-      //   <Button hidden={!(miscUiState.singleplayer && fsState.inMemorySave)} label="Reset world" onClick={() => {
-      //     if (window.confirm('Are you sure you want to delete all local world content?')) {
-      //       resetLocalStorageWorld()
-      //       window.location.reload()
-      //     }
-      //   }} />
-      // }
+    // actionsSlot={
+    //   <Button hidden={!(miscUiState.singleplayer && fsState.inMemorySave)} label="Reset world" onClick={() => {
+    //     if (window.confirm('Are you sure you want to delete all local world content?')) {
+    //       resetLocalStorageWorld()
+    //       window.location.reload()
+    //     }
+    //   }} />
+    // }
     />
   </DiveTransition>
 }

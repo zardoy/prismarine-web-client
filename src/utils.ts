@@ -112,10 +112,6 @@ export const getGamemodeNumber = (bot) => {
   }
 }
 
-export const isCypress = () => {
-  return localStorage.cypress === 'true'
-}
-
 export const isMajorVersionGreater = (ver1: string, ver2: string) => {
   const [a1, b1] = ver1.split('.')
   const [a2, b2] = ver2.split('.')

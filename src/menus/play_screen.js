@@ -211,7 +211,7 @@ class PlayScreen extends LitElement {
             pmui-value="${this.version}"
             pmui-inputmode="decimal"
             state="${this.version && (fullySupporedVersions.includes(/** @type {any} */(this.version)) ? '' : supportedVersions.includes(this.version) ? 'warning' : 'invalid')}"
-            .autocompleteValues=${fullySupporedVersions}
+            .autocompleteValues=${supportedVersions}
             @input=${e => { this.version = e.target.value = e.target.value.replaceAll(',', '.') }}
           ></pmui-editbox>
         </div>
@@ -235,7 +235,7 @@ class PlayScreen extends LitElement {
     window.localStorage.setItem('proxy', proxy)
     window.localStorage.setItem('version', this.version)
 
-    this.dispatchEvent(new window.CustomEvent('connect', {
+    window.dispatchEvent(new window.CustomEvent('connect', {
       detail: {
         server,
         proxy,

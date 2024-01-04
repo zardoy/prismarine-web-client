@@ -17,6 +17,8 @@ app.use(netApi({ allowOrigin: '*' }))
 if (!isProd) {
   app.use('/blocksStates', express.static(path.join(__dirname, './prismarine-viewer/public/blocksStates')))
   app.use('/textures', express.static(path.join(__dirname, './prismarine-viewer/public/textures')))
+
+  app.use('/sounds', express.static(path.join(__dirname, './generated/sounds/')))
 }
 // patch config
 app.get('/config.json', (req, res, next) => {

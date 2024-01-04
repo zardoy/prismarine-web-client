@@ -1,6 +1,7 @@
+import { ComponentProps } from 'react'
 import { MessageFormatPart } from '../botUtils'
 
-const MessagePart = ({ part }: { part: MessageFormatPart }) => {
+export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & ComponentProps<'span'>) => {
   const { color, italic, bold, underlined, strikethrough, text } = part
 
   const applyStyles = [
@@ -12,7 +13,7 @@ const MessagePart = ({ part }: { part: MessageFormatPart }) => {
     strikethrough && messageFormatStylesMap.strikethrough
   ].filter(Boolean)
 
-  return <span style={parseInlineStyle(applyStyles.join(' '))}>{text}</span>
+  return <span style={parseInlineStyle(applyStyles.join(' '))} {...props}>{text}</span>
 }
 
 export default ({ parts }: { parts: readonly MessageFormatPart[] }) => {

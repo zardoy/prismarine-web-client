@@ -10,6 +10,7 @@ import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCur
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './playerWindows'
+import { initialChatOpenValue } from './react/ChatContainer'
 
 // doesnt seem to work for now
 const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
@@ -218,10 +219,11 @@ contro.on('trigger', ({ command }) => {
         })
         break
       case 'general.chat':
-        document.getElementById('hud').shadowRoot.getElementById('chat').enableChat()
+        showModal({ reactType: 'chat' })
         break
       case 'general.command':
-        document.getElementById('hud').shadowRoot.getElementById('chat').enableChat('/')
+        initialChatOpenValue.value = '/'
+        showModal({ reactType: 'chat' })
         break
       case 'general.selectItem':
         void selectItem()
