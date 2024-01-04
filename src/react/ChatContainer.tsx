@@ -3,6 +3,7 @@ import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
+import { useUsingTouch } from '@dimaka/interface'
 
 export type Message = {
   parts: MessageFormatPart[],
@@ -51,6 +52,8 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
 }
 
 export default ({ messages, touch, opacity, fetchCompletionItems, opened, interceptMessage, onClose }: Props) => {
+  const usingTouch = useUsingTouch()
+
   const [sendHistory, _setSendHistory] = useState(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 
   const [completePadText, setCompletePadText] = useState('')
@@ -114,7 +117,9 @@ export default ({ messages, touch, opacity, fetchCompletionItems, opened, interc
       chatHistoryPos.current = messages.length
       updateInputValue(initialChatOpenValue.value)
       initialChatOpenValue.value = ''
-      chatInput.current.focus()
+      if (!usingTouch) {
+        chatInput.current.focus()
+      }
     }
     if (!opened) {
       chatMessages.current.scrollTop = chatMessages.current.scrollHeight
