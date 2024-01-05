@@ -433,7 +433,7 @@ async function connect (connectOptions: {
         // todo keep in sync with esbuild preload, expose cache ideally
         if (client.version === '1.20.1') {
           // ignore cache hit
-          versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']++
+          versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']!++
         }
         await downloadMcData(client.version)
         setLoadingScreenStatus(initialLoadingText)

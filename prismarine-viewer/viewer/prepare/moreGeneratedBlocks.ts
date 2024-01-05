@@ -437,7 +437,6 @@ export const tryHandleBlockEntity = async (dataBase, blockName) => {
 
 export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
   const mcData = minecraftData(mcAssets.version)
-  //@ts-expect-error
   isPreFlattening = !mcData.supportFeature('blockStateId')
   const allTheBlocks = mcData.blocksArray.map(x => x.name)
 
