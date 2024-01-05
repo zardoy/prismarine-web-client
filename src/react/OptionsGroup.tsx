@@ -3,8 +3,8 @@ import { options } from '../optionsStorage'
 import { OptionsGroupType, guiOptionsScheme } from '../optionsGuiScheme'
 import OptionsItems, { OptionMeta } from './OptionsItems'
 
-const optionValueToType = (optionValue: any) => {
-  if (typeof optionValue === 'boolean') return 'toggle'
+const optionValueToType = (optionValue: any, item: OptionMeta) => {
+  if (typeof optionValue === 'boolean' || item.values) return 'toggle'
   if (typeof optionValue === 'number') return 'slider'
   if (typeof optionValue === 'string') return 'element'
 }
@@ -14,7 +14,7 @@ const finalItemsScheme: Record<keyof typeof guiOptionsScheme, OptionMeta[]> = Ob
     return Object.entries(optionsObj).map(([optionKey, metaMerge]) => {
       const optionValue = options[optionKey]
 
-      const type = optionValueToType(optionValue)
+      const type = optionValueToType(optionValue, metaMerge)
       const meta: OptionMeta = {
         id: optionKey === 'custom' ? undefined : optionKey,
         type,

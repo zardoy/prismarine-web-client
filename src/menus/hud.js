@@ -2,7 +2,7 @@ import { f3Keybinds } from '../controls'
 import { showOptionsModal } from '../react/SelectOption'
 
 const { LitElement, html, css, unsafeCSS } = require('lit')
-const { showModal, miscUiState } = require('../globalState')
+const { showModal, miscUiState, activeModalStack, hideCurrentModal } = require('../globalState')
 const { options, watchValue } = require('../optionsStorage')
 const { getGamemodeNumber } = require('../utils')
 const { isMobile } = require('./components/common')
@@ -231,7 +231,11 @@ class Hud extends LitElement {
     }}>F3</div>
         <div class="chat-btn" @pointerdown=${(e) => {
       e.stopPropagation()
-      this.shadowRoot.querySelector('#chat').enableChat()
+      if (activeModalStack.at(-1)?.reactType === 'chat') {
+        hideCurrentModal()
+      } else {
+        showModal({ reactType: 'chat' })
+      }
     }}></div>
         <div class="pause-btn" @pointerdown=${(e) => {
       e.stopPropagation()

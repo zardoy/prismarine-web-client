@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { useEffect, useState } from 'react'
-import Chat, { fadeMessage } from './ChatContainer'
+import Chat, { fadeMessage, initialChatOpenValue } from './ChatContainer'
 import Button from './Button'
 
 const meta: Meta<typeof Chat> = {
@@ -9,6 +9,25 @@ const meta: Meta<typeof Chat> = {
   render (args) {
     const [messages, setMessages] = useState(args.messages)
     const [autoSpam, setAutoSpam] = useState(false)
+    const [open, setOpen] = useState(args.opened)
+
+    useEffect(() => {
+      const abortController = new AbortController()
+      addEventListener('keyup', (e) => {
+        if (e.code === 'KeyY') {
+          initialChatOpenValue.value = '/'
+          setOpen(true)
+          e.stopImmediatePropagation()
+        }
+        if (e.code === 'Escape') {
+          setOpen(false)
+          e.stopImmediatePropagation()
+        }
+      }, {
+        signal: abortController.signal,
+      })
+      return () => abortController.abort()
+    })
 
     useEffect(() => {
       setMessages(args.messages)
@@ -46,7 +65,16 @@ const meta: Meta<typeof Chat> = {
     }
 
     return <div>
-      <Chat {...args} messages={messages} />
+      <Chat {...args} opened={open} messages={messages} onClose={() => setOpen(false)} fetchCompletionItems={async (triggerType, value) => {
+        console.log('fetchCompletionItems')
+        await new Promise(resolve => {
+          setTimeout(resolve, 700)
+        })
+        let items = ['test', ...Array.from({ length: 50 }).map((_, i) => `minecraft:hello${i}`)]
+        if (value === '/') items = items.map(item => `/${item}`)
+        return items
+      }} />
+      <Button onClick={() => setOpen(s => !s)}>Open: {open ? 'on' : 'off'}</Button>
       <Button onClick={() => fadeMessages()}>Fade</Button>
       <Button onClick={() => setAutoSpam(s => !s)}>Auto Spam: {autoSpam ? 'on' : 'off'}</Button>
       <Button onClick={() => setMessages(args.messages)}>Clear</Button>
@@ -114,15 +142,6 @@ export const Primary: Story = {
       ],
       id: 0,
     }],
-    opened: false,
-    async fetchCompletionItems (triggerType, value) {
-      console.log('fetchCompletionItems')
-      await new Promise(resolve => {
-        setTimeout(resolve, 700)
-      })
-      let items = ['test', ...Array.from({ length: 50 }).map((_, i) => `minecraft:hello${i}`)]
-      if (value === '/') items = items.map(item => `/${item}`)
-      return items
-    },
-  },
+    // opened: false,
+  }
 }

@@ -7,15 +7,16 @@ import Button from './Button'
 import Slider from './Slider'
 import Screen from './Screen'
 
-type GeneralItem = {
+type GeneralItem<T extends string | number | boolean> = {
   id?: string
   text?: string,
   disabledReason?: string,
   tooltip?: string
   willHaveNoEffect?: boolean
+  values?: Array<T | [T, string]>
 }
 
-export type OptionMeta = GeneralItem & ({
+export type OptionMeta<T = any> = GeneralItem<T & string> & ({
   type: 'toggle',
 } | {
   type: 'slider'
@@ -32,10 +33,45 @@ export type OptionMeta = GeneralItem & ({
 export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'toggle' }> }) => {
   const optionValue = useSnapshot(options)[item.id!]
 
+  const valuesTitlesMap = useMemo(() => {
+    if (!item.values) {
+      return {
+        true: 'ON',
+        false: 'OFF',
+      }
+    }
+    return Object.fromEntries(item.values.map((value) => {
+      if (typeof value === 'string') {
+        return [value, titleCase(noCase(value))]
+      } else {
+        return [value[0], value[1]]
+      }
+    }))
+  }, [item.values])
+
   return <Button
-    label={`${item.text}: ${optionValue ? 'ON' : 'OFF'}`}
+    label={`${item.text}: ${valuesTitlesMap[optionValue]}`}
     onClick={() => {
-      options[item.id!] = !options[item.id!]
+      const { values } = item
+      if (values) {
+        const getOptionValue = (arrItem) => {
+          if (typeof arrItem === 'string') {
+            return arrItem
+          } else {
+            return arrItem[0]
+          }
+        }
+        const currentIndex = values.findIndex((value) => {
+          return getOptionValue(value) === optionValue
+        })
+        if (currentIndex === -1) {
+          options[item.id!] = getOptionValue(values[0])
+        } else {
+          options[item.id!] = getOptionValue(values[(currentIndex + 1) % values.length])
+        }
+      } else {
+        options[item.id!] = !options[item.id!]
+      }
     }}
     title={item.disabledReason ? `${item.disabledReason} | ${item.tooltip}` : item.tooltip}
     disabled={!!item.disabledReason}
