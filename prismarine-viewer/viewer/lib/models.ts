@@ -6,7 +6,12 @@ import { Block } from 'prismarine-block'
 const tints: any = {}
 let blockStates: BlockStatesOutput
 
-const tintsData = require('esbuild-data').tints
+let tintsData
+try {
+  tintsData = require('esbuild-data').tints
+} catch (err) {
+  tintsData = require("minecraft-data/minecraft-data/data/pc/1.16.2/tints.json")
+}
 for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
 }
@@ -391,7 +396,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
-        if (block.name.includes('sign')) {
+        if (block.name.includes('_sign')) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
           const facingRotationMap = {

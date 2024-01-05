@@ -13,6 +13,7 @@ import destroyStage8 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/de
 import destroyStage9 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_9.png'
 
 import { Vec3 } from 'vec3'
+import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
 import { isGameActive } from './globalState'
 import { assertDefined } from './utils'
 
@@ -25,33 +26,22 @@ function getViewDirection (pitch, yaw) {
 }
 
 class WorldInteraction {
-  static instance = null // todo implement
-  /** @type {null | {blockPos,mesh}} */
-  interactionLines = null
+  ready = false
+  interactionLines: null | { blockPos; mesh } = null
   prevBreakState
   currentDigTime
   prevOnGround
-  /** @type {number} */
-  lastBlockPlaced
+  lastBlockPlaced: number
   buttons = [false, false, false]
   lastButtons = [false, false, false]
-  /** @type {number | undefined} */
-  breakStartTime = 0
-  /** @type {import('prismarine-block').Block | null} */
-  cursorBlock = null
-  /** @type {THREE.Mesh} */
-  blockBreakMesh
+  breakStartTime: number | undefined = 0
+  cursorBlock: import('prismarine-block').Block | null = null
+  blockBreakMesh: THREE.Mesh
+  breakTextures: THREE.Texture[]
+  lastDigged: number
+  lineMaterial: LineMaterial
 
-  init () {
-    assertDefined(viewer)
-    bot.on('physicsTick', () => { if (this.lastBlockPlaced < 4) this.lastBlockPlaced++ })
-    bot.on('diggingCompleted', () => {
-      this.breakStartTime = undefined
-    })
-    bot.on('diggingAborted', () => {
-      this.breakStartTime = undefined
-    })
-
+  oneTimeInit () {
     const loader = new THREE.TextureLoader()
     this.breakTextures = []
     const destroyStagesImages = [
@@ -118,9 +108,32 @@ class WorldInteraction {
         bot.attack(entity)
       }
     })
+
+    beforeRenderFrame.push(() => {
+      if (this.lineMaterial) {
+        const { renderer } = viewer
+        this.lineMaterial.resolution.set(renderer.domElement.width, renderer.domElement.height)
+        this.lineMaterial.dashOffset = performance.now() / 750
+      }
+    })
   }
 
-  updateBlockInteractionLines (/** @type {Vec3 | null} */blockPos, /** @type {{position, width, height, depth}[] | undefined} */shapePositions = undefined) {
+  initBot () {
+    if (!this.ready) {
+      this.ready = true
+      this.oneTimeInit()
+    }
+    assertDefined(viewer)
+    bot.on('physicsTick', () => { if (this.lastBlockPlaced < 4) this.lastBlockPlaced++ })
+    bot.on('diggingCompleted', () => {
+      this.breakStartTime = undefined
+    })
+    bot.on('diggingAborted', () => {
+      this.breakStartTime = undefined
+    })
+  }
+
+  updateBlockInteractionLines (blockPos: Vec3 | null, shapePositions?: Array<{ position; width; height; depth }>) {
     assertDefined(viewer)
     if (blockPos && this.interactionLines && blockPos.equals(this.interactionLines.blockPos)) {
       return
@@ -136,11 +149,22 @@ class WorldInteraction {
     const group = new THREE.Group()
     //@ts-expect-error
     for (const { position, width, height, depth } of shapePositions) {
-      const geometry = new THREE.BoxGeometry(1.001 * width, 1.001 * height, 1.001 * depth)
-      const mesh = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), new THREE.LineBasicMaterial({ color: 0 }))
+      const scale = [1.0001 * width, 1.0001 * height, 1.0001 * depth] as const
+      const geometry = new THREE.BoxGeometry(...scale)
+      const lines = new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(geometry))
+      const inSelect = true
+      this.lineMaterial ??= new LineMaterial({
+        color: inSelect ? 0x40_80_ff : 0x00_00_00,
+        linewidth: 8,
+        dashed: true,
+        dashSize: 5,
+      })
+      const wireframe = new Wireframe(lines, this.lineMaterial)
       const pos = blockPos.plus(position)
-      mesh.position.set(pos.x, pos.y, pos.z)
-      group.add(mesh)
+      wireframe.position.set(pos.x, pos.y, pos.z)
+      wireframe.computeLineDistances()
+      wireframe.scale.set(...scale)
+      group.add(wireframe)
     }
     viewer.scene.add(group)
     this.interactionLines = { blockPos, mesh: group }

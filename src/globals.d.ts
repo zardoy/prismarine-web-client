@@ -12,8 +12,9 @@ declare const mcData: Record<string, any>
 declare const loadedData: import('minecraft-data').IndexedData
 declare const customEvents: import('typed-emitter').default<{
     singleplayer (): void
-    digStart()
+    digStart ()
 }>
+declare const beforeRenderFrame: Array<() => void>
 
 declare interface Document {
     getElementById (id): any

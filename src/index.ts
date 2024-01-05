@@ -89,6 +89,7 @@ import EventEmitter from 'events'
 window.debug = debug
 window.THREE = THREE
 window.customEvents = new EventEmitter()
+window.beforeRenderFrame = []
 
 // ACTUAL CODE
 
@@ -134,6 +135,7 @@ let max = 0
 let rendered = 0
 const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
+  for (const fn of beforeRenderFrame) fn()
   window.requestAnimationFrame(renderFrame)
   if (window.stopRender || renderer.xr.isPresenting) return
   if (renderInterval) {
@@ -510,7 +512,7 @@ async function connect (connectOptions: {
   onBotCreate()
 
   bot.once('login', () => {
-    worldInteractions.init()
+    worldInteractions.initBot()
 
     // server is ok, add it to the history
     if (!connectOptions.server) return
