@@ -27,7 +27,6 @@ const MessageLine = ({ message }) => {
 
 type Props = {
   messages: Message[]
-  touch?: boolean
   opacity?: number
   opened?: boolean
   onClose?: () => void
@@ -51,7 +50,7 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
   }, initialTimeout ? 5000 : 0)
 }
 
-export default ({ messages, touch, opacity, fetchCompletionItems, opened, interceptMessage, onClose }: Props) => {
+export default ({ messages, opacity = 1, fetchCompletionItems, opened, interceptMessage, onClose }: Props) => {
   const usingTouch = useUsingTouch()
 
   const [sendHistory, _setSendHistory] = useState(JSON.parse(window.sessionStorage.chatHistory || '[]'))
@@ -62,7 +61,7 @@ export default ({ messages, touch, opacity, fetchCompletionItems, opened, interc
   const [completionItems, setCompletionItems] = useState([] as string[])
 
   const chatInput = useRef<HTMLInputElement>(null!)
-  const chatMessages = useRef<HTMLDivElement>(null!)
+  const chatMessages = useRef<HTMLDivElement>(null)
   const openedChatWasAtBottom = useRef(false)
   const chatHistoryPos = useRef(0)
   const inputCurrentlyEnteredValue = useRef('')
@@ -121,7 +120,7 @@ export default ({ messages, touch, opacity, fetchCompletionItems, opened, interc
         chatInput.current.focus()
       }
     }
-    if (!opened) {
+    if (!opened && chatMessages.current) {
       chatMessages.current.scrollTop = chatMessages.current.scrollHeight
     }
   }, [opened])
@@ -133,7 +132,7 @@ export default ({ messages, touch, opacity, fetchCompletionItems, opened, interc
   }, [opened])
 
   useEffect(() => {
-    if (!opened || (opened && openedChatWasAtBottom.current)) {
+    if ((!opened || (opened && openedChatWasAtBottom.current)) && chatMessages.current) {
       openedChatWasAtBottom.current = false
       // stay at bottom on messages changes
       chatMessages.current.scrollTop = chatMessages.current.scrollHeight
@@ -199,15 +198,15 @@ export default ({ messages, touch, opacity, fetchCompletionItems, opened, interc
 
   return (
     <>
-      <div className={`chat-wrapper chat-messages-wrapper ${touch ? 'display-mobile' : ''}`} hidden={isCypress()}>
-        <div ref={chatMessages} className={`chat ${opened ? 'opened' : ''}`} id="chat-messages" style={{ opacity }}>
+      <div className={`chat-wrapper chat-messages-wrapper ${usingTouch ? 'display-mobile' : ''}`} hidden={isCypress()}>
+        {opacity && <div ref={chatMessages} className={`chat ${opened ? 'opened' : ''}`} id="chat-messages" style={{ opacity }}>
           {messages.map((m) => (
             <MessageLine key={m.id} message={m} />
           ))}
-        </div>
+        </div>}
       </div>
 
-      <div className={`chat-wrapper chat-input-wrapper ${touch ? 'input-mobile' : ''}`} hidden={!opened}>
+      <div className={`chat-wrapper chat-input-wrapper ${usingTouch ? 'input-mobile' : ''}`} hidden={!opened}>
         <div className="chat-input">
           {completionItems?.length ? (
             <div className="chat-completions">

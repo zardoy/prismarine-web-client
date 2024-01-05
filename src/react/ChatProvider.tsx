@@ -9,7 +9,7 @@ import { useIsModalActive } from './utils'
 export default () => {
   const [messages, setMessages] = useState([] as Message[])
   const isChatActive = useIsModalActive('chat')
-  const messagesLimit = 200
+  const { messagesLimit, chatOpacity, chatOpacityOpened } = options
 
   useEffect(() => {
     bot.addListener('message', (jsonMsg, position) => {
@@ -32,6 +32,7 @@ export default () => {
   }, [])
 
   return <ChatContainer
+    opacity={(isChatActive ? chatOpacityOpened : chatOpacity) / 100}
     messages={messages}
     opened={isChatActive}
     interceptMessage={(message) => {

@@ -1,4 +1,5 @@
 import { options } from './optionsStorage'
+import { isCypress } from './standaloneUtils'
 
 let audioContext: AudioContext
 const sounds: Record<string, any> = {}
@@ -10,6 +11,12 @@ export async function loadSound (path: string) {
   if (loadingSounds.includes(path)) return true
   loadingSounds.push(path)
   const res = await window.fetch(path)
+  if (!res.ok) {
+    const error = `Failed to load sound ${path}`
+    if (isCypress()) throw new Error(error)
+    else console.warn(error)
+    return
+  }
   const data = await res.arrayBuffer()
 
   sounds[path] = data

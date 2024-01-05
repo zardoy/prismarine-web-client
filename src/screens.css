@@ -23,6 +23,7 @@
     inset: 0;
     display: flex;
     justify-content: center;
+    z-index: 12;
 }
 
 .screen-content {

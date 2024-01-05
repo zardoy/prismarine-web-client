@@ -196,7 +196,7 @@ function onCameraMove (e) {
   if (now - lastMouseMove < 4) return
   lastMouseMove = now
   let { mouseSensX, mouseSensY } = options
-  if (mouseSensY === true) mouseSensY = mouseSensX
+  if (mouseSensY === -1) mouseSensY = mouseSensX
   mouseMovePostHandle({
     x: e.movementX * mouseSensX * 0.0001,
     y: e.movementY * mouseSensY * 0.0001
