@@ -1,6 +1,7 @@
 import minecraftData from 'minecraft-data'
+import minecraftAssets from 'minecraft-assets'
 
-const latestData = minecraftData(minecraftData.supportedVersions.pc.at(-1))
+const latestData = minecraftData('1.20.2')
 
 // dont touch, these are the ones that are already full box
 const fullBoxInteractionShapes = [
@@ -16,7 +17,18 @@ const fullBoxInteractionShapes = [
   'nether_portal',
   'tall_grass',
   'lilac',
+  'cobweb'
 ]
+
+const ignoreStates = [
+  'rail',
+  'powered_rail',
+  'activator_rail',
+  'detector_rail',
+  'mangrove_propagule'
+]
+
+// const
 
 // to fix
 const fullBoxInteractionShapesTemp = [
@@ -52,11 +64,11 @@ const fullBoxInteractionShapesTemp = [
   'white_wall_banner',
 ]
 
+const shapes = latestData.blockCollisionShapes;
 const fullShape = shapes.shapes[1]
 const outputJson = {}
 
 const isNonInteractive = block => block.name.includes('air') || block.name.includes('water') || block.name.includes('lava') || block.name.includes('void')
-const shapes = latestData.blockCollisionShapes;
 const interestedBlocks = latestData.blocksArray.filter(block => {
   const shapeId = shapes.blocks[block.name]
   // console.log('shapeId', shapeId, block.name)
@@ -72,7 +84,56 @@ const interestedBlocks = latestData.blocksArray.filter(block => {
   return true
 }).map(d => d.name)
 
-console.log(interestedBlocks)
+const { blocksStates, blocksModels } = minecraftAssets(latestData.version.minecraftVersion)
+
+// const addShapeIf = {
+//   redstone: [
+//     ['east', 'up', shape]
+//   ]
+// }
+
+const needBlocks = []
+const needBlocksVariants = []
+
+const groupedBlocksRules = {
+  button: block => block.includes('button'),
+  pressure_plate: block => block.includes('pressure_plate'),
+  sign: block => block.includes('_sign'),
+  sapling: block => block.includes('_sapling'),
+}
+const groupedBlocksOutput = {}
+
+outer: for (const interestedBlock of interestedBlocks) {
+  for (const [block, func] of Object.entries(groupedBlocksRules)) {
+    if (func(interestedBlock)) {
+      groupedBlocksOutput[block] ??= []
+      groupedBlocksOutput[block].push(interestedBlock)
+      continue outer
+    }
+  }
+
+  const {variants} = blocksStates[interestedBlock]
+  if (!variants) {
+    //
+    continue
+  }
+  if (Object.keys(variants).length === 1) {
+    needBlocks.push(interestedBlock)
+    continue
+  }
+  let vars = []
+  Object.keys(variants).forEach(variant => {
+    if (variant !== '') vars.push(variant)
+  })
+  needBlocksVariants.push({
+    block: interestedBlock,
+    variants: vars
+  })
+}
+
+console.log(needBlocks)
+
+// console.log(interestedBlocks.includes('lever'))
 
 // read latest block states
 
