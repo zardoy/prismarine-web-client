@@ -1,9 +1,9 @@
+import { useUsingTouch } from '@dimaka/interface'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
-import { useUsingTouch } from '@dimaka/interface'
 
 export type Message = {
   parts: MessageFormatPart[],
