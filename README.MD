@@ -66,7 +66,11 @@ Instead I recommend setting `options.debugLogNotFrequentPackets`. Also you can u
 
 - `nbt.simplify(someNbt)` - Simplifies nbt data, so it's easier to read.
 
-You can also drag and drop any .dat file into the browser window to see it's contents in the console.
+The most useful thing in devtools is the watch expression. You can add any expression there and it will be re-evaluated in real time. For example, you can add `viewer.camera.position` to see the camera position and so on.
+
+<img src="./docs-assets/watch-expr.png" alt="Watch expression" width="480"/>
+
+You can also drag and drop any .dat or .mca (region files) into the browser window to see it's contents in the console.
 
 ### F3 Keybindings
 
