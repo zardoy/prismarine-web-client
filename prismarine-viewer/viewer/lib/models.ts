@@ -489,7 +489,7 @@ function parseProperties (properties) {
   return json
 }
 
-function matchProperties (block, /* to match against */properties: Record<string, string | boolean> & { OR }) {
+function matchProperties (block: Block, /* to match against */properties: Record<string, string | boolean> & { OR }) {
   if (!properties) { return true }
 
   properties = parseProperties(properties)
