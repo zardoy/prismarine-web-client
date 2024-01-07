@@ -32,9 +32,8 @@ export const guiOptionsScheme: {
     },
     {
       gpuPreference: {
-        // todo reimplement to gpu preference to allow use low-energy instead
         text: 'GPU Preference',
-        // willHaveNoEffect: isIos
+        tooltip: 'You will need to reload the page for this to take effect.',
         values: [['default', 'Auto'], ['high-performance', 'Dedicated'], ['low-power', 'Low Power']]
       },
     },
@@ -146,13 +145,22 @@ export const guiOptionsScheme: {
         max: 180,
         unit: 'px',
       },
+      chatOpacity: {
+      },
+      chatOpacityOpened: {
+      },
     }
   ],
   controls: [
     {
       // keybindings
       mouseSensX: {},
-      mouseSensY: {},
+      mouseSensY: {
+        min: -1,
+        valueText (value) {
+          return value === -1 ? 'Same as X' : `${value}`
+        },
+      },
       mouseRawInput: {
         tooltip: 'Wether to disable any mouse acceleration (MC does it by default). Most probably it is still supported only by Chrome.',
         // eslint-disable-next-line no-extra-boolean-cast

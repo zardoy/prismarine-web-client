@@ -1,9 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { useEffect, useState } from 'react'
+import { formatMessage } from '../botUtils'
 import Chat, { fadeMessage, initialChatOpenValue } from './ChatContainer'
 import Button from './Button'
 
+window.spamMessage = window.spamMessage ?? ''
+window.loadedData = {
+  language: {}
+}
 const meta: Meta<typeof Chat> = {
   component: Chat,
   render (args) {
@@ -36,18 +41,20 @@ const meta: Meta<typeof Chat> = {
     useEffect(() => {
       if (!autoSpam) return
       const action = () => {
-        setMessages([
-          ...messages,
+        const newMessageParts = window.spamMessage ? formatMessage(window.spamMessage) : [
+          {
+            text: 'tes',
+          },
+          {
+            text: 't',
+          }
+        ]
+
+        setMessages(m => [
+          ...m,
           ...Array.from({ length: 10 }).map((_, i) => ({
-            id: (messages.at(-1)?.id ?? 0) + i + 1,
-            parts: [
-              {
-                text: 'tes',
-              },
-              {
-                text: 't',
-              }
-            ],
+            id: (m.at(-1)?.id ?? 0) + i + 1,
+            parts: newMessageParts,
           } satisfies typeof args.messages[number]))
         ])
       }
@@ -65,6 +72,7 @@ const meta: Meta<typeof Chat> = {
     }
 
     return <div>
+      <div style={{ fontSize: 6, userSelect: 'auto', color: 'gray' }}>Hint: you can capture needed message with <code>bot.on('message', console.log)</code>, copy object, and assign it here to <code>window.spamMessage</code> variable (but ensure the correct frame window is selected in devtools)</div>
       <Chat {...args} opened={open} messages={messages} onClose={() => setOpen(false)} fetchCompletionItems={async (triggerType, value) => {
         console.log('fetchCompletionItems')
         await new Promise(resolve => {
@@ -77,7 +85,7 @@ const meta: Meta<typeof Chat> = {
       <Button onClick={() => setOpen(s => !s)}>Open: {open ? 'on' : 'off'}</Button>
       <Button onClick={() => fadeMessages()}>Fade</Button>
       <Button onClick={() => setAutoSpam(s => !s)}>Auto Spam: {autoSpam ? 'on' : 'off'}</Button>
-      <Button onClick={() => setMessages(args.messages)}>Clear</Button>
+      <Button onClick={() => setMessages(args.messages)}>Reset</Button>
     </div>
   },
 }

@@ -13,11 +13,14 @@ const defaultOptions = {
   autoExitFullscreen: false,
   localUsername: 'wanderer',
   mouseSensX: 50,
-  mouseSensY: 50 as number | true,
+  mouseSensY: -1,
   // mouseInvertX: false,
   chatWidth: 320,
   chatHeight: 180,
   chatScale: 100,
+  chatOpacity: 100,
+  chatOpacityOpened: 100,
+  messagesLimit: 200,
   volume: 50,
   // fov: 70,
   fov: 75,
@@ -46,6 +49,8 @@ const defaultOptions = {
   disableLoadPrompts: false,
   guestUsername: 'guest',
   askGuestName: true,
+  /** Actually might be useful */
+  showCursorBlockInSpectator: false,
 
   // advanced bot options
   autoRespawn: false,

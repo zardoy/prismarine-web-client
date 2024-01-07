@@ -39,13 +39,14 @@ export function getColorShadow (hex, dim = 0.25) {
   return `#${f(r)}${f(g)}${f(b)}`
 }
 
-function parseInlineStyle (style: string): Record<string, any> {
-  const template = document.createElement('template')
-  template.setAttribute('style', style)
-  return Object.fromEntries(Object.entries(template.style)
-    .filter(([key]) => !/^\d+$/.test(key))
-    .filter(([, value]) => Boolean(value))
-    .map(([key, value]) => [key, value]))
+export function parseInlineStyle (style: string): Record<string, any> {
+  const obj: Record<string, any> = {}
+  for (const rule of style.split(';')) {
+    const [prop, value] = rule.split(':')
+    const cssInJsProp = prop.trim().replaceAll(/-./g, (x) => x.toUpperCase()[1])
+    obj[cssInJsProp] = value.trim()
+  }
+  return obj
 }
 
 export const messageFormatStylesMap = {

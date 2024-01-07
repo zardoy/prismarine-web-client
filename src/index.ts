@@ -4,6 +4,7 @@ import './styles.css'
 import './globals'
 import 'iconify-icon'
 import './getCollisionShapes'
+import './devtools'
 import { onGameLoad } from './playerWindows'
 
 import './menus/components/button'
@@ -85,10 +86,13 @@ import { loadInMemorySave } from './react/SingleplayerProvider'
 // side effects
 import { downloadSoundsIfNeeded } from './soundSystem'
 import EventEmitter from 'events'
+import outputInteractionShapesJson from './interactionShapesGenerated.json'
+window.interactionShapes = outputInteractionShapesJson
 
 window.debug = debug
 window.THREE = THREE
 window.customEvents = new EventEmitter()
+window.beforeRenderFrame = []
 
 // ACTUAL CODE
 
@@ -134,6 +138,7 @@ let max = 0
 let rendered = 0
 const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
+  for (const fn of beforeRenderFrame) fn()
   window.requestAnimationFrame(renderFrame)
   if (window.stopRender || renderer.xr.isPresenting) return
   if (renderInterval) {
@@ -196,7 +201,7 @@ function onCameraMove (e) {
   if (now - lastMouseMove < 4) return
   lastMouseMove = now
   let { mouseSensX, mouseSensY } = options
-  if (mouseSensY === true) mouseSensY = mouseSensX
+  if (mouseSensY === -1) mouseSensY = mouseSensX
   mouseMovePostHandle({
     x: e.movementX * mouseSensX * 0.0001,
     y: e.movementY * mouseSensY * 0.0001
@@ -433,7 +438,7 @@ async function connect (connectOptions: {
         // todo keep in sync with esbuild preload, expose cache ideally
         if (client.version === '1.20.1') {
           // ignore cache hit
-          versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']++
+          versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']!++
         }
         await downloadMcData(client.version)
         setLoadingScreenStatus(initialLoadingText)
@@ -510,7 +515,7 @@ async function connect (connectOptions: {
   onBotCreate()
 
   bot.once('login', () => {
-    worldInteractions.init()
+    worldInteractions.initBot()
 
     // server is ok, add it to the history
     if (!connectOptions.server) return
@@ -530,6 +535,7 @@ async function connect (connectOptions: {
     window.pathfinder = pathfinder
 
     miscUiState.gameLoaded = true
+    customEvents.emit('gameLoaded')
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
 
     setLoadingScreenStatus('Placing blocks (starting viewer)')

@@ -50,7 +50,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
     // todo test versionedSound
     const url = allSoundsMeta.baseUrl.replace(/\/$/, '') + (versionedSound ? `/${versionedSound}` : '') + '/minecraft/sounds/' + soundName + '.' + allSoundsMeta.format
     const soundKey = soundIdToName[+soundId] ?? soundId
-    const isMuted = options.mutedSounds.includes(soundKey)
+    const isMuted = options.mutedSounds.includes(soundKey) || options.volume === 0
     if (position) {
       if (!isMuted) {
         viewer.playSound(position, url, soundVolume * Math.max(Math.min(volume, 1), 0) * (options.volume / 100))
@@ -165,7 +165,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
     bot.on('move', () => {
       void movementHappening()
     })
-    bot._client.on('world_event', async ({ effectId, location, data, global:disablePosVolume }) => {
+    bot._client.on('world_event', async ({ effectId, location, data, global: disablePosVolume }) => {
       const position = disablePosVolume ? undefined : new Vec3(location.x, location.y, location.z)
       if (effectId === 2001) {
         // break event
@@ -245,7 +245,7 @@ export const downloadSoundsIfNeeded = async () => {
 
 export const lastPlayedSounds = {
   lastClientPlayed: [] as string[],
-  lastServerPlayed: {} as Record<string, {count: number, last: number}>,
+  lastServerPlayed: {} as Record<string, { count: number, last: number }>,
 }
 
 const getDistance = (pos1: Vec3, pos2: Vec3) => {

@@ -2,6 +2,9 @@ import Chunks from 'prismarine-chunk'
 import mcData from 'minecraft-data'
 import { Block } from "prismarine-block"
 import { Vec3 } from 'vec3'
+import moreBlockDataGeneratedJson from './moreBlockDataGenerated.json'
+
+const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
 function columnKey (x, z) {
   return `${x},${z}`
@@ -88,6 +91,6 @@ export class World {
   }
 
   shouldMakeAo (block: WorldBlock | null) {
-    return block?.isCube && block.name !== 'barrier'
+    return block?.isCube && !ignoreAoBlocks.includes(block.name)
   }
 }
