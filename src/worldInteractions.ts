@@ -16,6 +16,7 @@ import { Vec3 } from 'vec3'
 import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
 import { isGameActive } from './globalState'
 import { assertDefined } from './utils'
+import { options } from './optionsStorage'
 
 function getViewDirection (pitch, yaw) {
   const csPitch = Math.cos(pitch)
@@ -131,6 +132,19 @@ class WorldInteraction {
     bot.on('diggingAborted', () => {
       this.breakStartTime = undefined
     })
+
+    const upLineMaterial = () => {
+      const inCreative = bot.game.gameMode === 'creative'
+      this.lineMaterial = new LineMaterial({
+        color: inCreative ? 0x40_80_ff : 0x00_00_00,
+        linewidth: viewer.renderer.getPixelRatio() * 2,
+        // dashed: true,
+        // dashSize: 5,
+      })
+    }
+    upLineMaterial()
+    // todo use gamemode update only
+    bot.on('game', upLineMaterial)
   }
 
   updateBlockInteractionLines (blockPos: Vec3 | null, shapePositions?: Array<{ position; width; height; depth }>) {
@@ -147,23 +161,14 @@ class WorldInteraction {
     }
 
     const group = new THREE.Group()
-    //@ts-expect-error
-    for (const { position, width, height, depth } of shapePositions) {
+    for (const { position, width, height, depth } of shapePositions ?? []) {
       const scale = [1.0001 * width, 1.0001 * height, 1.0001 * depth] as const
       const geometry = new THREE.BoxGeometry(...scale)
       const lines = new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(geometry))
-      const inSelect = true
-      this.lineMaterial ??= new LineMaterial({
-        color: inSelect ? 0x40_80_ff : 0x00_00_00,
-        linewidth: 8,
-        dashed: true,
-        dashSize: 5,
-      })
       const wireframe = new Wireframe(lines, this.lineMaterial)
       const pos = blockPos.plus(position)
       wireframe.position.set(pos.x, pos.y, pos.z)
       wireframe.computeLineDistances()
-      wireframe.scale.set(...scale)
       group.add(wireframe)
     }
     viewer.scene.add(group)
@@ -172,7 +177,8 @@ class WorldInteraction {
 
   // todo this shouldnt be done in the render loop, migrate the code to dom events to avoid delays on lags
   update () {
-    const cursorBlock = bot.blockAtCursor(5)
+    const inSpectator = bot.game.gameMode === 'spectator'
+    const cursorBlock = inSpectator && !options.showCursorBlockInSpectator ? null : bot.blockAtCursor(5)
     let cursorBlockDiggable = cursorBlock
     if (cursorBlock && !bot.canDigBlock(cursorBlock) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
 

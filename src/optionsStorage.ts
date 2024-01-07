@@ -49,6 +49,8 @@ const defaultOptions = {
   disableLoadPrompts: false,
   guestUsername: 'guest',
   askGuestName: true,
+  /** Actually might be useful */
+  showCursorBlockInSpectator: false,
 
   // advanced bot options
   autoRespawn: false,
