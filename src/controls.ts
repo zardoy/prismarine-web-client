@@ -11,6 +11,7 @@ import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './playerWindows'
 import { initialChatOpenValue } from './react/ChatContainer'
+import { fsState } from './loadSave'
 
 // doesnt seem to work for now
 const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
@@ -37,6 +38,9 @@ export const contro = new ControMax({
     ui: {
       back: [null/* 'Escape' */, 'B'],
       click: [null, 'A'],
+    },
+    advanced: {
+      lockUrl: ['KeyY'],
     }
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
@@ -229,6 +233,24 @@ contro.on('trigger', ({ command }) => {
         void selectItem()
         break
     }
+  }
+  if (command === 'advanced.lockUrl') {
+    let newQs = ''
+    if (fsState.saveLoaded) {
+      const save = localServer!.options.worldFolder.split('/').at(-1)
+      newQs = `loadSave=${save}`
+    } else if (process.env.NODE_ENV === 'development') {
+      newQs = `reconnect=1`
+    } else {
+      const qs = new URLSearchParams()
+      const { server, version } = localStorage
+      qs.set('server', server)
+      if (version) qs.set('version', version)
+      newQs = String(qs.toString())
+    }
+
+    window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
+    // return
   }
 })
 
