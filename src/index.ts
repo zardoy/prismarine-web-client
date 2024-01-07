@@ -535,6 +535,7 @@ async function connect (connectOptions: {
     window.pathfinder = pathfinder
 
     miscUiState.gameLoaded = true
+    customEvents.emit('gameLoaded')
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
 
     setLoadingScreenStatus('Placing blocks (starting viewer)')
