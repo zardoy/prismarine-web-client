@@ -30,7 +30,7 @@ type Props = {
   opacity?: number
   opened?: boolean
   onClose?: () => void
-  interceptMessage?: (message: string) => boolean
+  sendMessage?: (message: string) => boolean | void
   fetchCompletionItems?: (triggerKind: 'implicit' | 'explicit', completeValue: string, fullValue: string, abortController?: AbortController) => Promise<string[] | void>
   // width?: number
 }
@@ -50,10 +50,10 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
   }, initialTimeout ? 5000 : 0)
 }
 
-export default ({ messages, opacity = 1, fetchCompletionItems, opened, interceptMessage, onClose }: Props) => {
+export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose }: Props) => {
   const usingTouch = useUsingTouch()
 
-  const [sendHistory, _setSendHistory] = useState(JSON.parse(window.sessionStorage.chatHistory || '[]'))
+  const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 
   const [completePadText, setCompletePadText] = useState('')
   const completeRequestValue = useRef('')
@@ -63,12 +63,13 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, intercept
   const chatInput = useRef<HTMLInputElement>(null!)
   const chatMessages = useRef<HTMLDivElement>(null)
   const openedChatWasAtBottom = useRef(false)
-  const chatHistoryPos = useRef(0)
+  const chatHistoryPos = useRef(sendHistoryRef.current.length)
   const inputCurrentlyEnteredValue = useRef('')
 
   const setSendHistory = (newHistory: string[]) => {
-    _setSendHistory(newHistory)
+    sendHistoryRef.current = newHistory
     window.sessionStorage.chatHistory = JSON.stringify(newHistory)
+    chatHistoryPos.current = newHistory.length
   }
 
   const acceptComplete = (item: string) => {
@@ -90,20 +91,6 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, intercept
 
   useEffect(() => {
     // todo focus input on any keypress except tab
-
-    chatInput.current.addEventListener('keypress', e => {
-      if (e.code === 'Enter') {
-        const message = chatInput.current.value
-        if (message) {
-          setSendHistory([...sendHistory, message])
-          const handled = interceptMessage?.(message)
-          if (!handled) {
-            bot.chat(message)
-          }
-        }
-        onClose?.()
-      }
-    })
   }, [])
 
   const resetCompletionItems = () => {
@@ -113,7 +100,6 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, intercept
 
   useEffect(() => {
     if (opened) {
-      chatHistoryPos.current = messages.length
       updateInputValue(initialChatOpenValue.value)
       initialChatOpenValue.value = ''
       if (!usingTouch) {
@@ -241,15 +227,15 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, intercept
             onKeyDown={(e) => {
               if (e.code === 'ArrowUp') {
                 if (chatHistoryPos.current === 0) return
-                if (chatHistoryPos.current === sendHistory.length) { // started navigating history
+                if (chatHistoryPos.current === sendHistoryRef.current.length) { // started navigating history
                   inputCurrentlyEnteredValue.current = e.currentTarget.value
                 }
                 chatHistoryPos.current--
-                updateInputValue(sendHistory[chatHistoryPos.current] || '')
+                updateInputValue(sendHistoryRef.current[chatHistoryPos.current] || '')
               } else if (e.code === 'ArrowDown') {
-                if (chatHistoryPos.current === sendHistory.length) return
+                if (chatHistoryPos.current === sendHistoryRef.current.length) return
                 chatHistoryPos.current++
-                updateInputValue(sendHistory[chatHistoryPos.current] || inputCurrentlyEnteredValue || '')
+                updateInputValue(sendHistoryRef.current[chatHistoryPos.current] || inputCurrentlyEnteredValue.current || '')
               }
               if (e.code === 'Tab') {
                 if (completionItemsSource.length) {
@@ -266,6 +252,16 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, intercept
                 if (chatInput.current.value.startsWith('/')) {
                   // alternative we could just simply use keyup, but only with keydown we can display suggestions popup as soon as possible
                   void fetchCompletions(true, getCompleteValue(getDefaultCompleteValue() + ' '))
+                }
+              }
+              if (e.code === 'Enter') {
+                const message = chatInput.current.value
+                if (message) {
+                  setSendHistory([...sendHistoryRef.current, message])
+                  const result = sendMessage?.(message)
+                  if (result !== false) {
+                    onClose?.()
+                  }
                 }
               }
             }}

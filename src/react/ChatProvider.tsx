@@ -35,9 +35,11 @@ export default () => {
     opacity={(isChatActive ? chatOpacityOpened : chatOpacity) / 100}
     messages={messages}
     opened={isChatActive}
-    interceptMessage={(message) => {
+    sendMessage={(message) => {
       const builtinHandled = tryHandleBuiltinCommand(message)
-      return !!builtinHandled
+      if (!builtinHandled) {
+        bot.chat(message)
+      }
     }}
     onClose={() => {
       hideCurrentModal()
