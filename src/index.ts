@@ -3,8 +3,8 @@ import './importsWorkaround'
 import './styles.css'
 import './globals'
 import 'iconify-icon'
-import './getCollisionShapes'
 import './devtools'
+import initCollisionShapes from './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
 
 import './menus/components/button'
@@ -86,8 +86,6 @@ import { loadInMemorySave } from './react/SingleplayerProvider'
 // side effects
 import { downloadSoundsIfNeeded } from './soundSystem'
 import EventEmitter from 'events'
-import outputInteractionShapesJson from './interactionShapesGenerated.json'
-window.interactionShapes = outputInteractionShapesJson
 
 window.debug = debug
 window.THREE = THREE
@@ -98,6 +96,7 @@ window.beforeRenderFrame = []
 
 void registerServiceWorker()
 watchFov()
+initCollisionShapes()
 
 // Create three.js context, add to page
 const renderer = new THREE.WebGLRenderer({

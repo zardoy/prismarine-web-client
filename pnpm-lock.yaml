@@ -73,7 +73,7 @@ importers:
         version: 4.18.2
       flying-squid:
         specifier: github:zardoy/space-squid#everything
-        version: github.com/zardoy/space-squid/9d72f865da99bcc55db2c5071754f61a5d935c73
+        version: github.com/zardoy/space-squid/bfa999d18930f71a3fc2dabf3170a5b9af67a608
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -14988,8 +14988,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  github.com/zardoy/space-squid/9d72f865da99bcc55db2c5071754f61a5d935c73:
-    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/9d72f865da99bcc55db2c5071754f61a5d935c73}
+  github.com/zardoy/space-squid/bfa999d18930f71a3fc2dabf3170a5b9af67a608:
+    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/bfa999d18930f71a3fc2dabf3170a5b9af67a608}
     name: flying-squid
     version: 0.0.0-dev
     engines: {node: '>=8'}
