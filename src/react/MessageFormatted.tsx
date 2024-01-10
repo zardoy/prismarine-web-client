@@ -1,8 +1,63 @@
 import { ComponentProps } from 'react'
+import { render } from '@xmcl/text-component'
+import { noCase } from 'change-case'
 import { MessageFormatPart } from '../botUtils'
+import { openURL } from '../menus/components/common'
+import { chatInputValueGlobal } from './ChatContainer'
+
+const hoverItemToText = (hoverEvent: MessageFormatPart['hoverEvent']) => {
+  if (!hoverEvent) return undefined
+  const contents = hoverEvent['contents'] ?? hoverEvent.value
+  if (typeof contents === 'string') return contents
+  // if (hoverEvent.action === 'show_text') {
+  //   return contents
+  // }
+  if (hoverEvent.action === 'show_item') {
+    return contents.id
+  }
+  if (hoverEvent.action === 'show_entity') {
+    let str = noCase(contents.type.replace('minecraft:', ''))
+    if (contents.name) str += `: ${contents.name.text}`
+    return str
+  }
+}
+
+const clickEventToProps = (clickEvent: MessageFormatPart['clickEvent']) => {
+  if (!clickEvent) return
+  if (clickEvent.action === 'run_command' || clickEvent.action === 'suggest_command') {
+    return {
+      onClick () {
+        chatInputValueGlobal.value = clickEvent.value
+      }
+    }
+  }
+  if (clickEvent.action === 'open_url') {
+    return {
+      onClick () {
+        const confirm = window.confirm(`Open ${clickEvent.value}?`)
+        if (confirm) {
+          openURL(clickEvent.value)
+        }
+      }
+    }
+  }
+  //@ts-expect-error todo
+  if (clickEvent.action === 'copy_to_clipboard') {
+    return {
+      onClick () {
+        navigator.clipboard.writeText(clickEvent.value)
+      }
+    }
+  }
+}
 
 export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & ComponentProps<'span'>) => {
-  const { color, italic, bold, underlined, strikethrough, text } = part
+
+  const { color, italic, bold, underlined, strikethrough, text, clickEvent, hoverEvent, obfuscated } = part
+
+  const clickProps = clickEventToProps(clickEvent)
+  const hoverMessageRaw = hoverItemToText(hoverEvent)
+  const hoverItemText = hoverMessageRaw && typeof hoverMessageRaw !== 'string' ? render(hoverMessageRaw).children.map(child => child.component.text).join('') : hoverMessageRaw
 
   const applyStyles = [
     color ? colorF(color.toLowerCase()) + `; text-shadow: 1px 1px 0px ${getColorShadow(colorF(color.toLowerCase()).replace('color:', ''))}` : messageFormatStylesMap.white,
@@ -10,10 +65,11 @@ export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & Co
     bold && messageFormatStylesMap.bold,
     italic && messageFormatStylesMap.italic,
     underlined && messageFormatStylesMap.underlined,
-    strikethrough && messageFormatStylesMap.strikethrough
+    strikethrough && messageFormatStylesMap.strikethrough,
+    obfuscated && messageFormatStylesMap.obfuscated
   ].filter(Boolean)
 
-  return <span style={parseInlineStyle(applyStyles.join(' '))} {...props}>{text}</span>
+  return <span title={hoverItemText} style={parseInlineStyle(applyStyles.join(' '))} {...clickProps} {...props}>{text}</span>
 }
 
 export default ({ parts }: { parts: readonly MessageFormatPart[] }) => {
@@ -69,5 +125,6 @@ export const messageFormatStylesMap = {
   bold: 'font-weight:900',
   strikethrough: 'text-decoration:line-through',
   underlined: 'text-decoration:underline',
-  italic: 'font-style:italic'
+  italic: 'font-style:italic',
+  obfuscated: 'color: #222326;background-color: #222326;'
 }

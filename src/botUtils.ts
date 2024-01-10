@@ -1,8 +1,8 @@
 // this should actually be moved to mineflayer / prismarine-viewer
 
-import { fromFormattedString } from '@xmcl/text-component'
+import { fromFormattedString, TextComponent } from '@xmcl/text-component'
 
-export type MessageFormatPart = {
+export type MessageFormatPart = Pick<TextComponent, 'hoverEvent' | 'clickEvent'> & {
   text: string
   color?: string
   bold?: boolean

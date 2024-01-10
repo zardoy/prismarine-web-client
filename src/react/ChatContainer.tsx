@@ -4,6 +4,7 @@ import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
+import { proxy, subscribe } from 'valtio'
 
 export type Message = {
   parts: MessageFormatPart[],
@@ -12,7 +13,7 @@ export type Message = {
   faded?: boolean
 }
 
-const MessageLine = ({ message }) => {
+const MessageLine = ({ message }: {message: Message}) => {
   const classes = {
     'chat-message-fadeout': message.fading,
     'chat-message-fade': message.fading,
@@ -35,9 +36,9 @@ type Props = {
   // width?: number
 }
 
-export const initialChatOpenValue = {
+export const chatInputValueGlobal = proxy({
   value: ''
-}
+})
 
 export const fadeMessage = (message: Message, initialTimeout: boolean, requestUpdate: () => void) => {
   setTimeout(() => {
@@ -100,11 +101,18 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
 
   useEffect(() => {
     if (opened) {
-      updateInputValue(initialChatOpenValue.value)
-      initialChatOpenValue.value = ''
+      updateInputValue(chatInputValueGlobal.value)
+      chatInputValueGlobal.value = ''
       if (!usingTouch) {
         chatInput.current.focus()
       }
+      const unsubscribe = subscribe(chatInputValueGlobal, () => {
+        if (!chatInputValueGlobal.value) return
+        updateInputValue(chatInputValueGlobal.value)
+        chatInputValueGlobal.value = ''
+        chatInput.current.focus()
+      })
+      return unsubscribe
     }
     if (!opened && chatMessages.current) {
       chatMessages.current.scrollTop = chatMessages.current.scrollHeight

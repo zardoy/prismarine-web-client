@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 
 import { useEffect, useState } from 'react'
 import { formatMessage } from '../botUtils'
-import Chat, { fadeMessage, initialChatOpenValue } from './ChatContainer'
+import Chat, { fadeMessage, chatInputValueGlobal } from './ChatContainer'
 import Button from './Button'
 
 window.spamMessage = window.spamMessage ?? ''
@@ -20,7 +20,7 @@ const meta: Meta<typeof Chat> = {
       const abortController = new AbortController()
       addEventListener('keyup', (e) => {
         if (e.code === 'KeyY') {
-          initialChatOpenValue.value = '/'
+          chatInputValueGlobal.value = '/'
           setOpen(true)
           e.stopImmediatePropagation()
         }
