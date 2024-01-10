@@ -92,7 +92,8 @@ exports.getSwAdditionalEntries = () => {
 }
 
 exports.moveStorybookFiles = () => {
-    fs.renameSync('storybook-static', 'dist/storybook')
+    fsExtra.moveSync('storybook-static', 'dist/storybook', {overwrite: true,})
+    fsExtra.copySync('dist/storybook', '.vercel/output/static/storybook')
 }
 
 const fn = require.main === module && exports[process.argv[2]]
