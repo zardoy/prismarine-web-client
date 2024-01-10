@@ -226,8 +226,8 @@ importers:
         specifier: github:zardoy/minecraft-inventory-gui#next
         version: github.com/zardoy/minecraft-inventory-gui/69003692b3041d94a420a65c7d3cc1b37737e838(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
-        specifier: github:zardoy/mineflayer#custom
-        version: github.com/zardoy/mineflayer/e828c161aab120f2d926fba48de3b4d57c361710
+        specifier: github:PrismarineJS/mineflayer
+        version: github.com/PrismarineJS/mineflayer/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -14846,6 +14846,34 @@ packages:
       react: 18.2.0
     dev: false
 
+  github.com/PrismarineJS/mineflayer/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d:
+    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d}
+    name: mineflayer
+    version: 4.17.0
+    engines: {node: '>=18'}
+    dependencies:
+      minecraft-data: 3.58.0
+      minecraft-protocol: github.com/zardoy/minecraft-protocol/436e0f2945d82408cfd1eb4262535c205bcba8d0
+      prismarine-biome: 1.3.0(minecraft-data@3.58.0)(prismarine-registry@1.7.0)
+      prismarine-block: github.com/zardoy/prismarine-block/00cd810ca6853024b2e73ff0d405d1b1e397defc
+      prismarine-chat: 1.9.1
+      prismarine-chunk: 1.35.0(minecraft-data@3.58.0)
+      prismarine-entity: 2.3.1
+      prismarine-item: 1.14.0
+      prismarine-nbt: 2.2.1
+      prismarine-physics: 1.8.0
+      prismarine-recipe: 1.3.1(prismarine-registry@1.7.0)
+      prismarine-registry: 1.7.0
+      prismarine-windows: 2.8.0
+      prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
+      protodef: 1.15.0
+      typed-emitter: 1.4.0
+      vec3: 0.1.8
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+    dev: true
+
   github.com/PrismarineJS/node-process/380d0b4f4c86f1b65b216c311bf00431f314e88e:
     resolution: {tarball: https://codeload.github.com/PrismarineJS/node-process/tar.gz/380d0b4f4c86f1b65b216c311bf00431f314e88e}
     name: process
@@ -14911,34 +14939,6 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
-
-  github.com/zardoy/mineflayer/e828c161aab120f2d926fba48de3b4d57c361710:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/e828c161aab120f2d926fba48de3b4d57c361710}
-    name: mineflayer
-    version: 4.14.0
-    engines: {node: '>=14'}
-    dependencies:
-      minecraft-data: 3.58.0
-      minecraft-protocol: github.com/zardoy/minecraft-protocol/436e0f2945d82408cfd1eb4262535c205bcba8d0
-      prismarine-biome: 1.3.0(minecraft-data@3.58.0)(prismarine-registry@1.7.0)
-      prismarine-block: github.com/zardoy/prismarine-block/00cd810ca6853024b2e73ff0d405d1b1e397defc
-      prismarine-chat: 1.9.1
-      prismarine-chunk: 1.35.0(minecraft-data@3.58.0)
-      prismarine-entity: 2.3.1
-      prismarine-item: 1.14.0
-      prismarine-nbt: 2.2.1
-      prismarine-physics: 1.8.0
-      prismarine-recipe: 1.3.1(prismarine-registry@1.7.0)
-      prismarine-registry: 1.7.0
-      prismarine-windows: 2.8.0
-      prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
-      protodef: 1.15.0
-      typed-emitter: 1.4.0
-      vec3: 0.1.8
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-    dev: true
 
   github.com/zardoy/prismarine-block/00cd810ca6853024b2e73ff0d405d1b1e397defc:
     resolution: {tarball: https://codeload.github.com/zardoy/prismarine-block/tar.gz/00cd810ca6853024b2e73ff0d405d1b1e397defc}
