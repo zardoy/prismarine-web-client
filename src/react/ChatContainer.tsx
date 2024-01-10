@@ -1,10 +1,10 @@
 import { useUsingTouch } from '@dimaka/interface'
+import { proxy, subscribe } from 'valtio'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
-import { proxy, subscribe } from 'valtio'
 
 export type Message = {
   parts: MessageFormatPart[],
