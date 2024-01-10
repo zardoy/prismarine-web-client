@@ -187,20 +187,34 @@ class WorldInteraction {
       cursorChanged = !cursorBlock.position.equals(this.cursorBlock.position)
     }
 
-    // Place / interact
-    if (cursorBlock && this.buttons[2] && this.lastBlockPlaced >= 4) {
-      const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
-      //@ts-expect-error
-      const delta = cursorBlock.intersect.minus(cursorBlock.position)
+    // Place / interact / activate
+    if (this.buttons[2] && this.lastBlockPlaced >= 4) {
+      const activate = bot.heldItem && ['egg', 'fishing_rod', 'firework_rocket',
+        'fire_charge', 'snowball', 'ender_pearl', 'experience_bottle', 'potion',
+        'glass_bottle', 'bucket', 'water_bucket', 'lava_bucket', 'milk_bucket',
+        'minecart', 'boat', 'tnt_minecart', 'chest_minecart', 'hopper_minecart',
+        'command_block_minecart', 'armor_stand', 'lead', 'name_tag',
+        //
+        'writable_book', 'written_book', 'compass', 'clock', 'filled_map', 'empty_map',
+        'shears', 'carrot_on_a_stick', 'warped_fungus_on_a_stick',
+        'spawn_egg', 'trident', 'crossbow', 'elytra', 'shield', 'turtle_helmet',
+      ].includes(bot.heldItem.name)
+      if (cursorBlock && !activate) {
+        const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
+        //@ts-expect-error
+        const delta = cursorBlock.intersect.minus(cursorBlock.position)
 
-      // workaround so blocks can be activated with empty hand
-      const oldHeldItem = bot.heldItem
-      //@ts-expect-error
-      bot.heldItem = true
-      //@ts-expect-error
-      bot._placeBlockWithOptions(cursorBlock, vecArray[cursorBlock.face], { delta, forceLook: 'ignore' }).catch(console.warn)
-      bot.heldItem = oldHeldItem
-      this.lastBlockPlaced = 0
+        if (bot.heldItem) {
+          //@ts-expect-error todo
+          bot._placeBlockWithOptions(cursorBlock, vecArray[cursorBlock.face], { delta, forceLook: 'ignore' }).catch(console.warn)
+        } else {
+          //@ts-expect-error
+          bot.activateBlock(cursorBlock, vecArray[cursorBlock.face], delta).catch(console.warn)
+        }
+        this.lastBlockPlaced = 0
+      } else {
+        bot.activateItem() // todo offhand
+      }
     }
 
     // Stop break
@@ -215,18 +229,26 @@ class WorldInteraction {
     // Start break
     // todo last check doesnt work as cursorChanged happens once (after that check is false)
     if (
-      cursorBlockDiggable && this.buttons[0]
-      && (!this.lastButtons[0] || (cursorChanged && Date.now() - (this.lastDigged ?? 0) > 100) || onGround !== this.prevOnGround)
-      && onGround
+      this.buttons[0]
     ) {
-      this.currentDigTime = bot.digTime(cursorBlockDiggable)
-      this.breakStartTime = performance.now()
-      bot.dig(cursorBlockDiggable, 'ignore').catch((err) => {
-        if (err.message === 'Digging aborted') return
-        throw err
-      })
-      customEvents.emit('digStart')
-      this.lastDigged = Date.now()
+      if (cursorBlockDiggable
+        && (!this.lastButtons[0] || (cursorChanged && Date.now() - (this.lastDigged ?? 0) > 100) || onGround !== this.prevOnGround)
+        && onGround) {
+        this.currentDigTime = bot.digTime(cursorBlockDiggable)
+        this.breakStartTime = performance.now()
+        const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
+        bot.dig(
+          //@ts-expect-error
+          cursorBlockDiggable, 'ignore', vecArray[cursorBlockDiggable.face]
+        ).catch((err) => {
+          if (err.message === 'Digging aborted') return
+          throw err
+        })
+        customEvents.emit('digStart')
+        this.lastDigged = Date.now()
+      } else {
+        bot.swingArm('right')
+      }
     }
     this.prevOnGround = onGround
 
