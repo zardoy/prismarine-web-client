@@ -187,6 +187,9 @@ export const showNotification = (newNotification: Partial<typeof notification>) 
 // todo restore auto-save on interval for player data! (or implement it in flying squid since there is already auto-save for world)
 
 window.addEventListener('unload', (e) => {
+  if (!window.justReloaded) {
+    sessionStorage.justReloaded = false
+  }
   void saveServer()
 })
 
@@ -201,6 +204,10 @@ window.inspectPlayer = () => require('fs').promises.readFile('/world/playerdata/
 
 // todo move from global state
 window.addEventListener('beforeunload', (event) => {
+  if (!window.justReloaded) {
+    sessionStorage.justReloaded = false
+  }
+
   // todo-low maybe exclude chat?
   if (!isGameActive(true) && activeModalStack.at(-1)?.elem?.id !== 'chat') return
   if (sessionStorage.lastReload && !options.preventDevReloadWhilePlaying) return

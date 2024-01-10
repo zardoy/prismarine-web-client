@@ -4,7 +4,7 @@ import MessageFormatted from './MessageFormatted'
 import Button from './Button'
 
 type Props = {
-  dieReasonMessage: readonly MessageFormatPart[]
+  dieReasonMessage: MessageFormatPart[]
   respawnCallback: () => void
   disconnectCallback: () => void
 }

@@ -10,7 +10,7 @@ import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCur
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './playerWindows'
-import { initialChatOpenValue } from './react/ChatContainer'
+import { chatInputValueGlobal } from './react/ChatContainer'
 import { fsState } from './loadSave'
 
 // doesnt seem to work for now
@@ -226,7 +226,7 @@ contro.on('trigger', ({ command }) => {
         showModal({ reactType: 'chat' })
         break
       case 'general.command':
-        initialChatOpenValue.value = '/'
+        chatInputValueGlobal.value = '/'
         showModal({ reactType: 'chat' })
         break
       case 'general.selectItem':

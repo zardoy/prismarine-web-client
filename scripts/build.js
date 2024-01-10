@@ -91,6 +91,10 @@ exports.getSwAdditionalEntries = () => {
     return output
 }
 
+exports.moveStorybookFiles = () => {
+    fs.renameSync('storybook-static', 'dist/storybook')
+}
+
 const fn = require.main === module && exports[process.argv[2]]
 
 if (fn) {

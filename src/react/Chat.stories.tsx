@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 
 import { useEffect, useState } from 'react'
 import { formatMessage } from '../botUtils'
-import Chat, { fadeMessage, initialChatOpenValue } from './ChatContainer'
+import Chat, { fadeMessage, chatInputValueGlobal } from './ChatContainer'
 import Button from './Button'
 
 window.spamMessage = window.spamMessage ?? ''
@@ -20,7 +20,7 @@ const meta: Meta<typeof Chat> = {
       const abortController = new AbortController()
       addEventListener('keyup', (e) => {
         if (e.code === 'KeyY') {
-          initialChatOpenValue.value = '/'
+          chatInputValueGlobal.value = '/'
           setOpen(true)
           e.stopImmediatePropagation()
         }
@@ -103,7 +103,6 @@ export const Primary: Story = {
           'underlined': false,
           'strikethrough': false,
           'obfuscated': false,
-          //@ts-expect-error
           'json': {
             'insertion': 'pviewer672',
             'clickEvent': {
@@ -129,6 +128,7 @@ export const Primary: Story = {
           },
           'hoverEvent': {
             'action': 'show_entity',
+            //@ts-expect-error
             'contents': {
               'type': 'minecraft:player',
               'id': 'ecd0eeb1-625e-3fea-b16e-cb449dcfa434',

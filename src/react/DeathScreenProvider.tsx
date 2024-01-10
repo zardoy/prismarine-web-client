@@ -56,7 +56,7 @@ export default () => {
   if (!isModalActive || !dieReasonMessage || options.autoRespawn) return null
 
   return <DeathScreen
-    dieReasonMessage={dieReasonMessage}
+    dieReasonMessage={dieReasonMessage as MessageFormatPart[]}
     respawnCallback={() => {
       bot._client.write('client_command', bot.supportFeature('respawnIsPayload') ? { payload: 0 } : { actionId: 0 })
     }}

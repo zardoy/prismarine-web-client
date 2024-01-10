@@ -20,6 +20,8 @@ interface Props {
 const refreshApp = async () => {
   const registration = await navigator.serviceWorker.getRegistration()
   await registration?.unregister()
+  window.justReloaded = true
+  sessionStorage.justReloaded = true
   window.location.reload()
 }
 
@@ -36,7 +38,13 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       fetch('./version.txt').then(async (f) => {
         if (f.status === 404) return
         const contents = await f.text()
-        setVersionStatus(`(${contents === process.env.BUILD_VERSION ? 'latest' : 'new version available'})`)
+        const isLatest = contents === process.env.BUILD_VERSION
+        if (!isLatest && sessionStorage.justReloaded) {
+          // try to force bypass cache
+          location.search = '?update=true'
+        }
+        sessionStorage.justReloaded = false
+        setVersionStatus(`(${isLatest ? 'latest' : 'new version available'})`)
         setVersionTitle(`Loaded: ${process.env.BUILD_VERSION}. Remote: ${contents}`)
       }, () => { })
     }
@@ -114,7 +122,10 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       <div className={styles['bottom-info']}>
         <span
           title={`${versionTitle} (click to reload)`}
-          onClick={refreshApp}
+          onClick={async () => {
+            setVersionStatus('(reloading)')
+            await refreshApp()
+          }}
           className={styles['product-info']}
         >
           Prismarine Web Client {versionStatus}

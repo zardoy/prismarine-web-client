@@ -433,6 +433,7 @@ async function connect (connectOptions: {
       noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
       respawn: options.autoRespawn,
+      maxCatchupTicks: 0,
       async versionSelectedHook (client) {
         // todo keep in sync with esbuild preload, expose cache ideally
         if (client.version === '1.20.1') {
@@ -447,12 +448,12 @@ async function connect (connectOptions: {
     if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature
-      bot.supportFeature = (feature) => {
+      bot.supportFeature = ((feature) => {
         if (unsupportedLocalServerFeatures.includes(feature)) {
           return false
         }
         return _supportFeature(feature)
-      }
+      }) as typeof bot.supportFeature
 
       bot.emit('inject_allowed')
       bot._client.emit('connect')
