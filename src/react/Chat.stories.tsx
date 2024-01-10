@@ -103,7 +103,6 @@ export const Primary: Story = {
           'underlined': false,
           'strikethrough': false,
           'obfuscated': false,
-          //@ts-expect-error
           'json': {
             'insertion': 'pviewer672',
             'clickEvent': {
@@ -129,6 +128,7 @@ export const Primary: Story = {
           },
           'hoverEvent': {
             'action': 'show_entity',
+            //@ts-expect-error
             'contents': {
               'type': 'minecraft:player',
               'id': 'ecd0eeb1-625e-3fea-b16e-cb449dcfa434',
