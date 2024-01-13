@@ -96,5 +96,16 @@
         "unicorn/filename-case": "off",
         "max-depth": "off"
     },
+    "overrides": [
+        {
+            "files": ["packages/**/*"],
+            "rules": {
+                "semi": [
+                    "error",
+                    "always"
+                ]
+            }
+        }
+    ],
     "root": true
 }

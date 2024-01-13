@@ -91,8 +91,7 @@ exports.getSwAdditionalEntries = () => {
     return output
 }
 
-exports.moveStorybookFiles = () => {
-    fsExtra.moveSync('storybook-static', 'dist/storybook', {overwrite: true,})
+exports.copyStorybookFiles = () => {
     fsExtra.copySync('dist/storybook', '.vercel/output/static/storybook')
 }
 
