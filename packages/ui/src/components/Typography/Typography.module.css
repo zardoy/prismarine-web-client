@@ -1,0 +1,230 @@
+.rootNormalize {
+  margin: 0;
+  padding: 0;
+  display: block;
+}
+
+.rootItalic {
+  font-style: italic;
+}
+
+.root b,
+.rootBold.rootBold.rootBold {
+  font-weight: var(--ui_font_weight_bold);
+}
+
+.rootBlack {
+  color: var(--ui_color_black);
+}
+
+.rootShadow.rootBlack {
+  text-shadow: var(--ui_color_shadow_black);
+}
+
+.rootDarkBlue {
+  color: var(--ui_color_dark_blue);
+}
+
+.rootShadow.rootDarkBlue {
+  text-shadow: var(--ui_color_shadow_dark_blue);
+}
+
+.rootDarkGreen {
+  color: var(--ui_color_dark_green);
+}
+
+.rootShadow.rootDarkGreen {
+  text-shadow: var(--ui_color_shadow_dark_green);
+}
+
+.rootDarkAqua {
+  color: var(--ui_color_dark_aqua);
+}
+
+.rootShadow.rootDarkAqua {
+  text-shadow: var(--ui_color_shadow_dark_aqua);
+}
+
+.rootDarkRed {
+  color: var(--ui_color_dark_red);
+}
+
+.rootShadow.rootDarkRed {
+  text-shadow: var(--ui_color_shadow_dark_red);
+}
+
+.rootDarkPurple {
+  color: var(--ui_color_dark_purple);
+}
+
+.rootShadow.rootDarkPurple {
+  text-shadow: var(--ui_color_shadow_dark_purple);
+}
+
+.rootGold {
+  color: var(--ui_color_gold);
+}
+
+.rootShadow.rootGold {
+  text-shadow: var(--ui_color_shadow_gold);
+}
+
+.rootGray {
+  color: var(--ui_color_gray);
+}
+
+.rootShadow.rootGray {
+  text-shadow: var(--ui_color_shadow_dark_gray);
+}
+
+.rootDarkGray {
+  color: var(--ui_color_dark_gray);
+}
+
+.rootShadow.rootDarkGray {
+  text-shadow: var(--ui_color_shadow_dark_gray);
+}
+
+.rootBlue {
+  color: var(--ui_color_blue);
+}
+
+.rootShadow.rootBlue {
+  text-shadow: var(--ui_color_shadow_blue);
+}
+
+.rootGreen {
+  color: var(--ui_color_green);
+}
+
+.rootShadow.rootGreen {
+  text-shadow: var(--ui_color_shadow_green);
+}
+
+.rootAqua {
+  color: var(--ui_color_aqua);
+}
+
+.rootShadow.rootAqua {
+  text-shadow: var(--ui_color_shadow_aqua);
+}
+
+.rootRed {
+  color: var(--ui_color_red);
+}
+
+.rootShadow.rootRed {
+  text-shadow: var(--ui_color_shadow_red);
+}
+
+.rootLightPurple {
+  color: var(--ui_color_light_purple);
+}
+
+.rootShadow.rootLightPurple {
+  text-shadow: var(--ui_color_shadow_light_purple);
+}
+
+.rootYellow {
+  color: var(--ui_color_yellow);
+}
+
+.rootShadow.rootYellow {
+  text-shadow: var(--ui_color_shadow_yellow);
+}
+
+.rootWhite {
+  color: var(--ui_color_white);
+}
+
+.rootShadow.rootWhite {
+  text-shadow: var(--ui_color_shadow_white);
+}
+
+.rootMinecoinGold {
+  color: var(--ui_color_minecoin_gold);
+}
+
+.rootShadow.rootMinecoinGold {
+  text-shadow: var(--ui_color_shadow_minecoin_gold);
+}
+
+.rootMaterialQuartz {
+  color: var(--ui_color_material_quartz);
+}
+
+.rootShadow.rootMaterialQuartz {
+  text-shadow: var(--ui_color_shadow_material_quartz);
+}
+
+.rootMaterialIron {
+  color: var(--ui_color_material_iron);
+}
+
+.rootShadow.rootMaterialIron {
+  text-shadow: var(--ui_color_shadow_material_iron);
+}
+
+.rootMaterialNetherite {
+  color: var(--ui_color_material_netherite);
+}
+
+.rootShadow.rootMaterialNetherite {
+  text-shadow: var(--ui_color_shadow_material_netherite);
+}
+
+.rootMaterialRedstone {
+  color: var(--ui_color_material_redstone);
+}
+
+.rootShadow.rootMaterialRedstone {
+  text-shadow: var(--ui_color_shadow_material_redstone);
+}
+
+.rootMaterialCopper {
+  color: var(--ui_color_material_copper);
+}
+
+.rootShadow.rootMaterialCopper {
+  text-shadow: var(--ui_color_shadow_material_copper);
+}
+
+.rootMaterialGold {
+  color: var(--ui_color_material_gold);
+}
+
+.rootShadow.rootMaterialGold {
+  text-shadow: var(--ui_color_shadow_material_gold);
+}
+
+.rootMaterialEmerald {
+  color: var(--ui_color_material_emerald);
+}
+
+.rootShadow.rootMaterialEmerald {
+  text-shadow: var(--ui_color_shadow_material_emerald);
+}
+
+.rootMaterialDiamond {
+  color: var(--ui_color_material_diamond);
+}
+
+.rootShadow.rootMaterialDiamond {
+  text-shadow: var(--ui_color_shadow_material_diamond);
+}
+
+.rootMaterialLapis {
+  color: var(--ui_color_material_lapis);
+}
+
+.rootShadow.rootMaterialLapis {
+  text-shadow: var(--ui_color_shadow_material_lapis);
+}
+
+.rootMaterialAmethyst {
+  color: var(--ui_color_material_amethyst);
+}
+
+.rootShadow.rootMaterialAmethyst {
+  text-shadow: var(--ui_color_shadow_material_amethyst);
+}
