@@ -190,6 +190,7 @@ async function main () {
         setTimeout(resolve, 0)
       })
       if (onlyCurrent) {
+        viewer.render()
         onWorldUpdate()
       } else {
         // will be called on every render update
