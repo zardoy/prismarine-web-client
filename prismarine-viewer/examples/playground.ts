@@ -9,6 +9,7 @@ import * as THREE from 'three'
 import { GUI } from 'lil-gui'
 import { toMajor } from '../viewer/lib/version'
 import { loadScript } from '../viewer/lib/utils'
+import JSZip from 'jszip'
 
 globalThis.THREE = THREE
 //@ts-ignore
@@ -34,7 +35,9 @@ const params = {
     this.entity = ''
   },
   entityRotate: false,
-  camera: ''
+  camera: '',
+  playSound () { },
+  blockIsomorphicRenderBundle () { }
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -51,6 +54,8 @@ const setQs = () => {
   }
   window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
 }
+
+let ignoreResize = false
 
 async function main () {
   const { version } = params
@@ -74,13 +79,15 @@ async function main () {
   window['loadedData'] = mcData
 
   gui.add(params, 'version', globalThis.includedVersions)
-  gui.add(params, 'block', mcData.blocksArray.map(b => b.name))
+  gui.add(params, 'block', mcData.blocksArray.map(b => b.name).sort((a, b) => a.localeCompare(b)))
   const metadataGui = gui.add(params, 'metadata')
   gui.add(params, 'supportBlock')
   gui.add(params, 'entity', mcData.entitiesArray.map(b => b.name)).listen()
   gui.add(params, 'removeEntity')
   gui.add(params, 'entityRotate')
   gui.add(params, 'skip')
+  gui.add(params, 'playSound')
+  gui.add(params, 'blockIsomorphicRenderBundle')
   gui.open(false)
   let folder = gui.addFolder('metadata')
 
@@ -115,13 +122,13 @@ async function main () {
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
 
   // Create three.js context, add to page
-  const renderer = new THREE.WebGLRenderer()
+  const renderer = new THREE.WebGLRenderer({ alpha: true, ...localStorage['renderer'] })
   renderer.setPixelRatio(window.devicePixelRatio || 1)
   renderer.setSize(window.innerWidth, window.innerHeight)
   document.body.appendChild(renderer.domElement)
 
   // Create viewer
-  const viewer = new Viewer(renderer)
+  const viewer = new Viewer(renderer, 1)
   viewer.setVersion(version)
 
   viewer.listen(worldView)
@@ -129,6 +136,147 @@ async function main () {
   await worldView.init(targetPos)
   window['worldView'] = worldView
   window['viewer'] = viewer
+
+  params.blockIsomorphicRenderBundle = () => {
+    const canvas = renderer.domElement
+    const onlyCurrent = !confirm('Ok - render all blocks, Cancel - render only current one')
+    const sizeRaw = prompt('Size', '512')
+    if (!sizeRaw) return
+    const size = parseInt(sizeRaw)
+    // const size = 512
+
+    ignoreResize = true
+    canvas.width = size
+    canvas.height = size
+    renderer.setSize(size, size)
+
+    //@ts-ignore
+    viewer.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 10)
+    viewer.scene.background = null
+
+    const rad = THREE.MathUtils.degToRad(-120)
+    viewer.directionalLight.position.set(
+      Math.cos(rad),
+      Math.sin(rad),
+      0.2
+    ).normalize()
+    viewer.directionalLight.intensity = 1
+
+    const cameraPos = targetPos.offset(2, 2, 2)
+    const pitch = THREE.MathUtils.degToRad(-30)
+    const yaw = THREE.MathUtils.degToRad(45)
+    viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+    // viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
+    viewer.camera.position.set(cameraPos.x + 1, cameraPos.y + 0.5, cameraPos.z + 1)
+
+    const allBlocks = mcData.blocksArray.map(b => b.name)
+    // const allBlocks = ['stone', 'warped_slab']
+
+    let blockCount = 1
+    let blockName = allBlocks[0]
+
+    const updateBlock = () => {
+
+      //@ts-ignore
+      // viewer.setBlockStateId(targetPos, mcData.blocksByName[blockName].minStateId)
+      params.block = blockName
+      // todo cleanup (introduce getDefaultState)
+      onUpdate.block()
+      applyChanges(false, true)
+    }
+    viewer.waitForChunksToRender().then(async () => {
+      // wait for next macro task
+      await new Promise(resolve => {
+        setTimeout(resolve, 0)
+      })
+      if (onlyCurrent) {
+        onWorldUpdate()
+      } else {
+        // will be called on every render update
+        viewer.world.renderUpdateEmitter.addListener('update', onWorldUpdate)
+        updateBlock()
+      }
+    })
+
+    const zip = new JSZip()
+    zip.file('description.txt', 'Generated with prismarine-viewer')
+
+    const end = async () => {
+      // download zip file
+
+      const a = document.createElement('a')
+      const blob = await zip.generateAsync({ type: 'blob' })
+      const dataUrlZip = URL.createObjectURL(blob)
+      a.href = dataUrlZip
+      a.download = 'blocks_render.zip'
+      a.click()
+      URL.revokeObjectURL(dataUrlZip)
+      console.log('end')
+
+      viewer.world.renderUpdateEmitter.removeListener('update', onWorldUpdate)
+    }
+
+    async function onWorldUpdate () {
+      // await new Promise(resolve => {
+      //   setTimeout(resolve, 50)
+      // })
+      const dataUrl = canvas.toDataURL('image/png')
+
+      zip.file(`${blockName}.png`, dataUrl.split(',')[1], { base64: true })
+
+      if (onlyCurrent) {
+        end()
+      } else {
+        nextBlock()
+      }
+    }
+    const nextBlock = async () => {
+      blockName = allBlocks[blockCount++]
+      console.log(allBlocks.length, '/', blockCount, blockName)
+      if (blockCount % 5 === 0) {
+        await new Promise(resolve => {
+          setTimeout(resolve, 100)
+        })
+      }
+      if (blockName) {
+        updateBlock()
+      } else {
+        end()
+      }
+    }
+  }
+
+  // const jsonData = await fetch('https://bluecolored.de/bluemap/maps/overworld/tiles/0/x-2/2/z1/6.json?584662').then(r => r.json())
+
+  // const uniforms = {
+  //   distance: { value: 0 },
+  //   sunlightStrength: { value: 1 },
+  //   ambientLight: { value: 0 },
+  //   skyColor: { value: new THREE.Color(0.5, 0.5, 1) },
+  //   voidColor: { value: new THREE.Color(0, 0, 0) },
+  //   hiresTileMap: {
+  //     value: {
+  //       map: null,
+  //       size: 100,
+  //       scale: new THREE.Vector2(1, 1),
+  //       translate: new THREE.Vector2(),
+  //       pos: new THREE.Vector2(),
+  //     }
+  //   }
+
+  // }
+
+  // const shader1 = new THREE.ShaderMaterial({
+  //   uniforms: uniforms,
+  //   vertexShader: [0, 0, 0, 0],
+  //   fragmentShader: fragmentShader,
+  //   transparent: false,
+  //   depthWrite: true,
+  //   depthTest: true,
+  //   vertexColors: true,
+  //   side: THREE.FrontSide,
+  //   wireframe: false
+  // })
 
 
   //@ts-ignore
@@ -147,6 +295,7 @@ async function main () {
   const getBlock = () => {
     return mcData.blocksByName[params.block || 'air']
   }
+
   const onUpdate = {
     block () {
       folder.destroy()
@@ -201,7 +350,7 @@ async function main () {
   }
 
 
-  const applyChanges = (metadataUpdate = false) => {
+  const applyChanges = (metadataUpdate = false, skipQs = false) => {
     const blockId = getBlock()?.id
     let block: BlockLoader.Block
     if (metadataUpdate) {
@@ -226,8 +375,10 @@ async function main () {
     console.log('up', block.stateId)
     params.metadata = block.metadata
     metadataGui.updateDisplay()
-    viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
-    setQs()
+    // viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
+    if (!skipQs) {
+      setQs()
+    }
   }
   gui.onChange(({ property }) => {
     if (property === 'camera') return
@@ -243,6 +394,9 @@ async function main () {
     }
     applyChanges(true)
     gui.openAnimated()
+    // worldView.emit('entity', {
+    //   id: 'id', name: 'player', pos: targetPos.offset(1, -2, 0), width: 1, height: 1, username: 'username'
+    // })
   })
 
   // Browser animation loop
@@ -277,6 +431,7 @@ async function main () {
   // #endregion
 
   window.onresize = () => {
+    if (ignoreResize) return
     // const vec3 = new THREE.Vector3()
     // vec3.set(-1, -1, -1).unproject(viewer.camera)
     // console.log(vec3)
@@ -290,6 +445,15 @@ async function main () {
     animate()
   }
   window.dispatchEvent(new Event('resize'))
+
+  params.playSound = () => {
+    viewer.playSound(targetPos, 'button_click.mp3')
+  }
+  addEventListener('keydown', (e) => {
+    if (e.code === 'KeyE') {
+      params.playSound()
+    }
+  }, { capture: true })
 
   setTimeout(() => {
     // worldView.emit('entity', {

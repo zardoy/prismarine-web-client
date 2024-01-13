@@ -11,6 +11,8 @@ const allowedBundleFiles = ['legacy', 'versions', 'protocolVersions', 'features'
 
 const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)))
 
+const watch = process.argv.includes('-w')
+
 /** @type {import('esbuild').BuildOptions} */
 const buildOptions = {
   bundle: true,
@@ -21,9 +23,9 @@ const buildOptions = {
   entryPoints: [path.join(__dirname, './viewer/lib/worker.js')],
   minify: true,
   logLevel: 'info',
-  drop: [
+  drop: watch ? [
     'debugger'
-  ],
+  ] : [],
   sourcemap: 'linked',
   write: false,
   metafile: true,
