@@ -1,0 +1,5 @@
+@import './base.css';
+
+:root [data-theme-java] {
+  --ui_color_shadow_gold: #2a2a00;
+}

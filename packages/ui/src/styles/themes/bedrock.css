@@ -1,0 +1,5 @@
+@import './base.css';
+
+:root [data-theme-bedrock] {
+  --ui_color_shadow_gold: #402a00;
+}
