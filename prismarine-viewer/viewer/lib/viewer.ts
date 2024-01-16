@@ -6,8 +6,6 @@ import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { getVersion } from './version'
 
-// new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial())
-
 export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
@@ -17,13 +15,24 @@ export class Viewer {
   entities: Entities
   primitives: Primitives
   domElement: HTMLCanvasElement
-  playerHeight: number
-  isSneaking: boolean
+  playerHeight = 1.62
+  isSneaking = false
   version: string
   cameraObjectOverride?: THREE.Object3D // for xr
   audioListener: THREE.AudioListener
+  renderingUntilNoUpdates = false
+  processEntityOverrides = (e, overrides) => overrides
 
   constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number) {
+    this.resetScene()
+    this.world = new WorldRenderer(this.scene, numWorkers)
+    this.entities = new Entities(this.scene)
+    this.primitives = new Primitives(this.scene, this.camera)
+
+    this.domElement = renderer.domElement
+  }
+
+  resetScene () {
     this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('lightblue')
 
@@ -35,19 +44,12 @@ export class Viewer {
     this.directionalLight.castShadow = true
     this.scene.add(this.directionalLight)
 
-    const size = renderer.getSize(new THREE.Vector2())
+    const size = this.renderer.getSize(new THREE.Vector2())
     this.camera = new THREE.PerspectiveCamera(75, size.x / size.y, 0.1, 1000)
-
-    this.world = new WorldRenderer(this.scene, numWorkers)
-    this.entities = new Entities(this.scene)
-    this.primitives = new Primitives(this.scene, this.camera)
-
-    this.domElement = renderer.domElement
-    this.playerHeight = 1.6
-    this.isSneaking = false
   }
 
   resetAll () {
+    this.resetScene()
     this.world.resetWorld()
     this.entities.clear()
     this.primitives.clear()
