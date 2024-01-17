@@ -121,6 +121,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
 
   useMemo(() => {
     if (opened) {
+      completeRequestValue.current = ''
       resetCompletionItems()
     }
   }, [opened])
@@ -169,11 +170,11 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
   }
 
   const updateFilteredCompleteItems = (sourceItems: string[]) => {
-    const newCompleteItems = sourceItems.filter(i => {
+    const newCompleteItems = sourceItems.filter(item => {
       // this regex is imporatnt is it controls the word matching
-      const compareableParts = i.split(/[_:]/)
+      const compareableParts = item.split(/[_:]/)
       const lastWord = chatInput.current.value.slice(0, chatInput.current.selectionEnd ?? chatInput.current.value.length).split(' ').at(-1)!
-      return compareableParts.some(compareablePart => compareablePart.startsWith(lastWord))
+      return [item, ...compareableParts].some(compareablePart => compareablePart.startsWith(lastWord))
     })
     setCompletionItems(newCompleteItems)
   }
@@ -185,9 +186,16 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
       updateFilteredCompleteItems(completionItemsSource)
       return
     }
-    if (completeValue === '/') {
+
+    if (completeValue.startsWith('/')) {
       void fetchCompletions(true)
+    } else {
+      resetCompletionItems()
     }
+    completeRequestValue.current = completeValue
+    // if (completeValue === '/') {
+    //   void fetchCompletions(true)
+    // }
   }
 
   return (

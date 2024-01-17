@@ -46,7 +46,8 @@ div.chat-wrapper {
 
 .input-mobile .chat-completions {
   transform: none;
-  top: 15px;
+  top: 100%;
+  padding-left: 0;
   /* input height */
 }
 
@@ -95,6 +96,7 @@ div.chat-wrapper {
 
 .input-mobile {
   top: 15px;
+  position: absolute;
 }
 
 .input-mobile #chatinput {

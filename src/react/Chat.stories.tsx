@@ -76,7 +76,7 @@ const meta: Meta<typeof Chat> = {
       <Chat {...args} opened={open} messages={messages} onClose={() => setOpen(false)} fetchCompletionItems={async (triggerType, value) => {
         console.log('fetchCompletionItems')
         await new Promise(resolve => {
-          setTimeout(resolve, 700)
+          setTimeout(resolve, 0)
         })
         let items = ['test', ...Array.from({ length: 50 }).map((_, i) => `minecraft:hello${i}`)]
         if (value === '/') items = items.map(item => `/${item}`)
