@@ -74,6 +74,7 @@ export class Entities extends EventEmitter {
     this.scene = scene
     this.entities = {}
     this.entitiesOptions = {}
+    this.debugMode = 'none'
   }
 
   clear () {
@@ -82,6 +83,18 @@ export class Entities extends EventEmitter {
       dispose3(mesh)
     }
     this.entities = {}
+  }
+
+  setDebugMode (mode, /** @type {THREE.Object3D?} */entity = null) {
+    this.debugMode = mode
+    for (const mesh of entity ? [entity] : Object.values(this.entities)) {
+      const boxHelper = mesh.children.find(c => c.name === 'debug')
+      boxHelper.visible = false
+      if (this.debugMode === 'basic') {
+        boxHelper.visible = true
+      }
+      // todo advanced
+    }
   }
 
   updatePlayerSkin (entityId, skinUrl, capeUrl = undefined) {
@@ -163,9 +176,11 @@ export class Entities extends EventEmitter {
         mesh = getEntityMesh(entity, this.scene, this.entitiesOptions, overrides)
       }
       if (!mesh) return
+      mesh.name = 'mesh'
       // set initial position so there are no weird jumps update after
       group.position.set(entity.pos.x, entity.pos.y, entity.pos.z)
 
+      // todo use width and height instead
       const boxHelper = new THREE.BoxHelper(mesh,
         entity.type === 'hostile' ? 0xff0000 :
           entity.type === 'mob' ? 0x00ff00 :
@@ -174,6 +189,7 @@ export class Entities extends EventEmitter {
       )
       group.add(mesh)
       group.add(boxHelper)
+      boxHelper.visible = false
       this.scene.add(group)
 
       this.entities[entity.id] = group
@@ -183,6 +199,7 @@ export class Entities extends EventEmitter {
       if (entity.name === 'player') {
         this.updatePlayerSkin(entity.id, stevePng)
       }
+      this.setDebugMode(this.debugMode, group)
     }
 
     const e = this.entities[entity.id]

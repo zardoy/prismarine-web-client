@@ -132,6 +132,7 @@ async function main () {
 
   // Create viewer
   const viewer = new Viewer(renderer, 1)
+  viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
 
   viewer.listen(worldView)

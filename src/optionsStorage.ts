@@ -36,8 +36,9 @@ const defaultOptions = {
   debugLogNotFrequentPackets: false,
   unimplementedContainers: false,
   dayCycleAndLighting: true,
+  loadPlayerSkins: true,
 
-  showChunkBorders: false,
+  showChunkBorders: false, // todo rename option
   frameLimit: false as number | false,
   alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
   alwaysShowMobileControls: false,
