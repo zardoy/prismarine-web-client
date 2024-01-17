@@ -144,6 +144,10 @@ importers:
       workbox-build:
         specifier: ^7.0.0
         version: 7.0.0
+    optionalDependencies:
+      systeminformation:
+        specifier: ^5.21.22
+        version: 5.21.22
     devDependencies:
       '@storybook/addon-essentials':
         specifier: ^7.4.6
@@ -13416,6 +13420,15 @@ packages:
   /synchronous-promise@2.0.17:
     resolution: {integrity: sha512-AsS729u2RHUfEra9xJrE39peJcc2stq2+poBXX8bcM08Y6g9j/i/PUzwNQqkaJde7Ntg1TO7bSREbR5sdosQ+g==}
     dev: true
+
+  /systeminformation@5.21.22:
+    resolution: {integrity: sha512-gNHloAJSyS+sKWkwvmvozZ1eHrdVTEsynWMTY6lvLGBB70gflkBQFw8drXXr1oEXY84+Vr9tOOrN8xHZLJSycA==}
+    engines: {node: '>=8.0.0'}
+    os: [darwin, linux, win32, freebsd, openbsd, netbsd, sunos, android]
+    hasBin: true
+    requiresBuild: true
+    dev: false
+    optional: true
 
   /tabbable@6.2.0:
     resolution: {integrity: sha512-Cat63mxsVJlzYvN51JmVXIgNoUokrIaT2zLclCXjRd8boZ0004U4KCs/sToJ75C6sdlByWxpYnb5Boif1VSFew==}
