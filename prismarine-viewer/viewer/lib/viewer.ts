@@ -5,6 +5,7 @@ import { WorldRenderer } from './worldrenderer'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { getVersion } from './version'
+import EventEmitter from 'events'
 
 export class Viewer {
   scene: THREE.Scene
@@ -77,7 +78,15 @@ export class Viewer {
   }
 
   updateEntity (e) {
-    this.entities.update(e)
+    this.entities.update(e, this.processEntityOverrides(e, {
+      rotation: {
+        head: {
+          x: e.headPitch ?? e.pitch,
+          y: e.headYaw,
+          z: 0
+        }
+      }
+    }))
   }
 
   updatePrimitive (p) {
@@ -122,7 +131,7 @@ export class Viewer {
   }
 
   // todo type
-  listen (emitter) {
+  listen (emitter: EventEmitter) {
     emitter.on('entity', (e) => {
       this.updateEntity(e)
     })
@@ -154,7 +163,7 @@ export class Viewer {
 
     emitter.emit('listening')
 
-    this.domElement.addEventListener('pointerdown', (evt) => {
+    this.domElement.addEventListener?.('pointerdown', (evt) => {
       const raycaster = new THREE.Raycaster()
       const mouse = new THREE.Vector2()
       mouse.x = (evt.clientX / this.domElement.clientWidth) * 2 - 1

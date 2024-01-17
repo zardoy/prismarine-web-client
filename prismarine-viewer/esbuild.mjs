@@ -50,6 +50,9 @@ const buildOptions = {
   },
   inject: [],
   metafile: true,
+  loader: {
+    '.png': 'dataurl',
+  },
   plugins: [
     {
       name: 'minecraft-data',

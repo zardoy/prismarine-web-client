@@ -4,6 +4,7 @@ import './styles.css'
 import './globals'
 import 'iconify-icon'
 import './devtools'
+import './entities'
 import initCollisionShapes from './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
 
@@ -43,6 +44,8 @@ import worldInteractions from './worldInteractions'
 
 import * as THREE from 'three'
 import MinecraftData, { versionsByMinecraftVersion } from 'minecraft-data'
+import debug from 'debug'
+import _ from 'lodash-es'
 
 import { initVR } from './vr'
 import {
@@ -69,12 +72,9 @@ import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalS
 import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
-import _ from 'lodash-es'
-
 import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
 import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
-import debug from 'debug'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
 import { appStatusState, lastConnectOptions } from './react/AppStatusProvider'
@@ -85,11 +85,9 @@ import { loadInMemorySave } from './react/SingleplayerProvider'
 
 // side effects
 import { downloadSoundsIfNeeded } from './soundSystem'
-import EventEmitter from 'events'
 
 window.debug = debug
 window.THREE = THREE
-window.customEvents = new EventEmitter()
 window.beforeRenderFrame = []
 
 // ACTUAL CODE

@@ -23,7 +23,7 @@ const buildOptions = {
   entryPoints: [path.join(__dirname, './viewer/lib/worker.js')],
   minify: true,
   logLevel: 'info',
-  drop: watch ? [
+  drop: !watch ? [
     'debugger'
   ] : [],
   sourcemap: 'linked',
@@ -121,7 +121,7 @@ const buildOptions = {
   ],
 }
 
-if (process.argv.includes('-w')) {
+if (watch) {
   const ctx = await context(buildOptions)
   await ctx.watch()
 } else {
