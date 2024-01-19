@@ -6,6 +6,7 @@ import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { getVersion } from './version'
 import EventEmitter from 'events'
+import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
 
 export class Viewer {
   scene: THREE.Scene
@@ -23,14 +24,44 @@ export class Viewer {
   audioListener: THREE.AudioListener
   renderingUntilNoUpdates = false
   processEntityOverrides = (e, overrides) => overrides
+  composer?: EffectComposer
+  fxaaPass: ShaderPass
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number) {
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = true) {
     this.resetScene()
+    if (this.enableFXAA) {
+      let renderTarget
+      if (this.renderer.capabilities.isWebGL2) {
+        // Use float precision depth if possible
+        // see https://github.com/bs-community/skinview3d/issues/111
+        renderTarget = new THREE.WebGLRenderTarget(0, 0, {
+          depthTexture: new THREE.DepthTexture(0, 0, THREE.FloatType),
+        })
+      }
+      this.composer = new EffectComposer(this.renderer, renderTarget)
+      const renderPass = new RenderPass(this.scene, this.camera)
+      this.composer.addPass(renderPass)
+      this.fxaaPass = new ShaderPass(FXAAShader)
+      this.composer.addPass(this.fxaaPass)
+      this.updateComposerSize()
+    }
     this.world = new WorldRenderer(this.scene, numWorkers)
     this.entities = new Entities(this.scene)
     this.primitives = new Primitives(this.scene, this.camera)
 
     this.domElement = renderer.domElement
+  }
+
+  // todo
+  private updateComposerSize (): void {
+    if (!this.composer) return
+    const { width, height } = this.renderer.getSize(new THREE.Vector2())
+    this.composer.setSize(width, height)
+    // todo auto-update
+    const pixelRatio = this.renderer.getPixelRatio()
+    this.composer.setPixelRatio(pixelRatio)
+    this.fxaaPass.material.uniforms["resolution"].value.x = 1 / (width * pixelRatio)
+    this.fxaaPass.material.uniforms["resolution"].value.y = 1 / (height * pixelRatio)
   }
 
   resetScene () {
@@ -179,6 +210,11 @@ export class Viewer {
   }
 
   render () {
+    if (this.composer) {
+      this.composer.render()
+    } else {
+      this.renderer.render(this.scene, this.camera)
+    }
     this.entities.render()
   }
 
