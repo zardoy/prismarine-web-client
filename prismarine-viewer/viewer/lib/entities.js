@@ -5,7 +5,8 @@ const TWEEN = require('@tweenjs/tween.js')
 const Entity = require('./entity/Entity')
 const { dispose3 } = require('./dispose')
 const EventEmitter = require('events')
-import { PlayerObject } from 'skinview3d'
+import { PlayerObject, PlayerAnimation, IdleAnimation } from 'skinview3d'
+import { ArmSwing } from './entity/animations'
 import { loadSkinToCanvas, loadEarsToCanvasFromSkin, inferModelType, loadCapeToCanvas, loadImage } from 'skinview-utils'
 // todo replace with url
 import stevePng from 'minecraft-assets/minecraft-assets/data/1.20.2/entity/player/wide/steve.png'
@@ -75,6 +76,8 @@ export class Entities extends EventEmitter {
     this.entities = {}
     this.entitiesOptions = {}
     this.debugMode = 'none'
+    this.onSkinUpdate = () => {}
+    this.clock = new THREE.Clock()
   }
 
   clear () {
@@ -97,15 +100,34 @@ export class Entities extends EventEmitter {
     }
   }
 
-  updatePlayerSkin (entityId, skinUrl, capeUrl = undefined) {
-    const getPlayerObject = () => {
-      /** @type {PlayerObject} */
-      return this.entities[entityId]?.playerObject
+  render () {
+		const dt = this.clock.getDelta();
+    for (const entityId of Object.keys(this.entities)) {
+      const playerObject = this.getPlayerObject(entityId)
+      if (playerObject?.animation) {
+        playerObject.animation.update(playerObject, dt)
+      }
     }
-    let playerObject = getPlayerObject()
+  }
+
+  getPlayerObject (entityId) {
+    /** @type {(PlayerObject & { animation?: PlayerAnimation }) | undefined} */
+    const playerObject = this.entities[entityId]?.playerObject
+    return playerObject
+  }
+
+  // true means use default skin url
+  updatePlayerSkin (entityId, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
+    let playerObject = this.getPlayerObject(entityId)
     if (!playerObject) return
+    const username = this.entities[entityId].username
+    // or https://mulv.vercel.app/
+    if (skinUrl === true) {
+      skinUrl = `https://mulv.tycrek.dev/api/lookup?username=${username}&type=skin`
+      if (!username) return
+    }
     loadImage(skinUrl).then((image) => {
-      playerObject = getPlayerObject()
+      playerObject = this.getPlayerObject(entityId)
       if (!playerObject) return
       const skinCanvas = document.createElement('canvas')
       loadSkinToCanvas(skinCanvas, image)
@@ -118,18 +140,26 @@ export class Entities extends EventEmitter {
       playerObject.skin.modelType = inferModelType(skinCanvas)
 
       const earsCanvas = document.createElement('canvas')
-      loadEarsToCanvasFromSkin(earsCanvas, skinCanvas)
-      const earsTexture = new THREE.CanvasTexture(earsCanvas)
-      earsTexture.magFilter = THREE.NearestFilter
-      earsTexture.minFilter = THREE.NearestFilter
-      earsTexture.needsUpdate = true
-      //@ts-ignore
-      playerObject.ears.map = earsTexture
+      loadEarsToCanvasFromSkin(earsCanvas, image)
+      if (!isCanvasBlank(earsCanvas)) {
+        const earsTexture = new THREE.CanvasTexture(earsCanvas)
+        earsTexture.magFilter = THREE.NearestFilter
+        earsTexture.minFilter = THREE.NearestFilter
+        earsTexture.needsUpdate = true
+        //@ts-ignore
+        playerObject.ears.map = earsTexture
+        playerObject.ears.visible = true;
+      } else {
+        playerObject.ears.map = null
+        playerObject.ears.visible = false;
+      }
+      this.onSkinUpdate?.()
     })
 
     if (capeUrl) {
+      if (capeUrl === true) capeUrl = `https://mulv.tycrek.dev/api/lookup?username=${username}&type=cape`
       loadImage(capeUrl).then((capeImage) => {
-        playerObject = getPlayerObject()
+        playerObject = this.getPlayerObject(entityId)
         if (!playerObject) return
         const capeCanvas = document.createElement('canvas')
         loadCapeToCanvas(capeCanvas, capeImage)
@@ -142,7 +172,11 @@ export class Entities extends EventEmitter {
         playerObject.cape.map = capeTexture
         //@ts-ignore
         playerObject.elytra.map = capeTexture
-        playerObject.skin.rotation.y = Math.PI
+        this.onSkinUpdate?.()
+
+        if (!playerObject.backEquipment) {
+          playerObject.backEquipment = 'cape'
+        }
       })
     } else {
       playerObject.backEquipment = null
@@ -152,6 +186,12 @@ export class Entities extends EventEmitter {
       }
       playerObject.cape.map = null
     }
+
+    function isCanvasBlank(canvas) {
+      return !canvas.getContext('2d')
+        .getImageData(0, 0, canvas.width, canvas.height).data
+        .some(channel => channel !== 0);
+    }
   }
 
   update (/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
@@ -160,6 +200,7 @@ export class Entities extends EventEmitter {
       let mesh
       if (entity.name === 'player') {
         const wrapper = new THREE.Group()
+        /** @type {PlayerObject & { animation?: PlayerAnimation }} */
         const playerObject = new PlayerObject()
         playerObject.position.set(0, 16, 0)
 
@@ -172,6 +213,12 @@ export class Entities extends EventEmitter {
         group.playerObject = playerObject
         wrapper.rotation.set(0, Math.PI, 0)
         mesh = wrapper
+        playerObject.animation = new IdleAnimation()
+        // setTimeout(() => {
+        //   playerObject.animation.switchAnimationCallback = () => {
+        //     playerObject.animation = new IdleAnimation()
+        //   }
+        // }, 1000)
       } else {
         mesh = getEntityMesh(entity, this.scene, this.entitiesOptions, overrides)
       }
@@ -187,6 +234,7 @@ export class Entities extends EventEmitter {
             entity.type === "player" ? 0x0000ff :
               0xffa500
       )
+      boxHelper.name = 'debug'
       group.add(mesh)
       group.add(boxHelper)
       boxHelper.visible = false
@@ -203,6 +251,10 @@ export class Entities extends EventEmitter {
     }
 
     const e = this.entities[entity.id]
+
+    if (entity.username) {
+      e.username = entity.username
+    }
 
     if (e.playerObject && overrides?.rotation?.head) {
       /** @type {PlayerObject} */

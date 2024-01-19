@@ -179,7 +179,7 @@ export class Viewer {
   }
 
   render () {
-    this.renderer.render(this.scene, this.camera)
+    this.entities.render()
   }
 
   async waitForChunksToRender () {

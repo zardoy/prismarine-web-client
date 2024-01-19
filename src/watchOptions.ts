@@ -18,5 +18,6 @@ export const watchOptionsAfterViewerInit = () => {
   watchValue(options, o => {
     if (!viewer) return
     viewer.world.showChunkBorders = o.showChunkBorders
+    viewer.entities.setDebugMode(o.showChunkBorders ? 'basic' : 'none')
   })
 }

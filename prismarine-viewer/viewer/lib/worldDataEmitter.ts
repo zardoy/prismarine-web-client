@@ -4,6 +4,7 @@ import { chunkPos } from './simpleUtils'
 import { generateSpiralMatrix, ViewRect } from 'flying-squid/src/utils'
 import { Vec3 } from 'vec3'
 import { EventEmitter } from 'events'
+import { BotEvents } from 'mineflayer'
 
 export type ChunkPosKey = string
 type ChunkPos = { x: number, z: number }
@@ -36,14 +37,20 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   listenToBot (bot: typeof __type_bot) {
+    const emitEntity = (e) => {
+      if (!e || e === bot.entity) return
+      this.emitter.emit('entity', { ...e, pos: e.position, username: e.username })
+    }
+
     this.eventListeners[bot.username] = {
       // 'move': botPosition,
       entitySpawn: (e: any) => {
-        if (e === bot.entity) return
-        this.emitter.emit('entity', { id: e.id, name: e.name, pos: e.position, width: e.width, height: e.height, username: e.username })
+        emitEntity(e)
+      },
+      entityUpdate: (e: any) => {
       },
       entityMoved: (e: any) => {
-        this.emitter.emit('entity', { id: e.id, pos: e.position, pitch: e.pitch, yaw: e.yaw })
+        emitEntity(e)
       },
       entityGone: (e: any) => {
         this.emitter.emit('entity', { id: e.id, delete: true })
@@ -54,8 +61,8 @@ export class WorldDataEmitter extends EventEmitter {
       blockUpdate: (oldBlock: any, newBlock: any) => {
         const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
-      }
-    }
+      },
+    } satisfies Partial<BotEvents>
 
     this.emitter.on('listening', () => {
       this.emitter.emit('blockEntities', new Proxy({}, {
@@ -77,9 +84,7 @@ export class WorldDataEmitter extends EventEmitter {
 
     for (const id in bot.entities) {
       const e = bot.entities[id]
-      if (e && e !== bot.entity) {
-        this.emitter.emit('entity', { id: e.id, name: e.name, pos: e.position, width: e.width, height: e.height, username: e.username })
-      }
+      emitEntity(e)
     }
   }
 

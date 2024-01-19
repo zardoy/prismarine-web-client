@@ -1,58 +1,55 @@
 import { Entity } from 'prismarine-entity'
 import { TextureLoader } from 'three'
+import { IdleAnimation, RunningAnimation, WalkingAnimation } from 'skinview3d'
 import { options, watchValue } from './optionsStorage'
 
 customEvents.on('gameLoaded', () => {
   const enableSkeletonHelpers = localStorage.enableSkeletonHelpers ?? false
   const entityData = (e: Entity) => {
     if (!e.username) return
-    // const firstRender = !!window.debugEntityMetadata
     window.debugEntityMetadata ??= {}
     window.debugEntityMetadata[e.username] = e
-  }
-
-  const entityFirstRendered = (e) => {
-    const mesh = viewer.entities.entities[e.id]
-    if (!mesh) throw new Error('mesh still not loaded')
-    // const visitChildren = (obj) => {
-    //   if (!Array.isArray(obj?.children)) return
-    //   const { children, isSkeletonHelper } = obj
-    //   if (isSkeletonHelper && enableSkeletonHelpers) {
-    //     obj.visible = true
-    //   }
-    //   if (e.type === 'player' && e.username) {
-    //     if (obj.name === 'geometry_default') {
-    //       console.log('request', e.uuid)
-    //       new TextureLoader().load(`https://mulv.tycrek.dev/api/lookup?username=${e.username}&type=skin`, (texture) => {
-    //         texture.magFilter = THREE.NearestFilter
-    //         texture.minFilter = THREE.NearestFilter
-    //         texture.flipY = false
-    //         texture.wrapS = THREE.RepeatWrapping
-    //         texture.wrapT = THREE.RepeatWrapping
-    //         obj.material.map = texture
-    //       })
-    //     }
-    //     if (obj.name === 'geometry_cape') {
-    //       // todo
-    //     }
-    //   }
-    //   for (const child of children) {
-    //     if (typeof child === 'object') visitChildren(child)
-    //   }
-    // }
-    // visitChildren(mesh)
-    if (mesh.playerObject && options.loadPlayerSkins) {
-      viewer.entities.updatePlayerSkin(e.id, `https://mulv.tycrek.dev/api/lookup?username=${e.username}&type=skin`)
+    // todo entity spawn timing issue, check perf
+    if (e.type === 'player') {
+      if (viewer.entities.entities[e.id]) {
+        const { playerObject } = viewer.entities.entities[e.id]
+        playerObject.backEquipment = e.equipment.some((item) => item.name === 'elytra') ? 'elytra' : 'cape'
+        // todo
+        const WALKING_SPEED = 0.1
+        const SPRINTING_SPEED = 0.15
+        const isWalking = e.velocity.x > WALKING_SPEED || e.velocity.z > WALKING_SPEED
+        const isSprinting = e.velocity.x > SPRINTING_SPEED || e.velocity.z > SPRINTING_SPEED
+        // todo switch
+        playerObject.animation = isSprinting ? RunningAnimation : isWalking ? WalkingAnimation : IdleAnimation
+      }
     }
   }
 
-  window.debugSkin = () => {
-    const entity = Object.values(bot.entities).find((e) => e.type === 'player' && bot.entity !== e)
-    if (!entity) return
-    entityFirstRendered(entity)
+  const loadedSkinEntityIds = new Set<number>()
+
+  const playerRenderSkin = (e: Entity) => {
+    const mesh = viewer.entities.entities[e.id]
+    if (!mesh) return
+    if (!mesh.playerObject || !options.loadPlayerSkins) return
+    const MAX_DISTANCE_SKIN_LOAD = 64
+    const distance = e.position.distanceTo(bot.entity.position)
+    if (distance < MAX_DISTANCE_SKIN_LOAD && distance < (bot.settings.viewDistance as number) * 16) {
+      if (viewer.entities.entities[e.id]) {
+        if (loadedSkinEntityIds.has(e.id)) return
+        loadedSkinEntityIds.add(e.id)
+        viewer.entities.updatePlayerSkin(e.id, true, true)
+      }
+    }
   }
 
-  viewer.entities.addListener('add', entityFirstRendered)
+  bot.on('entityMoved', (e) => {
+    playerRenderSkin(e)
+  })
+
+  viewer.entities.addListener('add', (e) => {
+    if (!viewer.entities.entities[e.id]) throw new Error('mesh still not loaded')
+    playerRenderSkin(e)
+  })
 
   for (const entity of Object.values(bot.entities)) {
     if (entity !== bot.entity) {
@@ -62,6 +59,7 @@ customEvents.on('gameLoaded', () => {
 
   bot.on('entitySpawn', entityData)
   bot.on('entityUpdate', entityData)
+  bot.on('entityEquip', entityData)
 
   watchValue(options, o => {
     viewer.entities.setDebugMode(o.showChunkBorders ? 'basic' : 'none')

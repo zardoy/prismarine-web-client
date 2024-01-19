@@ -60,6 +60,8 @@ const setQs = () => {
 let ignoreResize = false
 
 async function main () {
+  let continuousRender = false
+
   const { version } = params
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
@@ -134,6 +136,10 @@ async function main () {
   const viewer = new Viewer(renderer, 1)
   viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
+  viewer.entities.onSkinUpdate = () => {
+    viewer.update()
+    viewer.render()
+  }
 
   viewer.listen(worldView)
   // Load chunks
@@ -306,7 +312,7 @@ async function main () {
     viewer.entities.clear()
     if (!params.entity) return
     worldView.emit('entity', {
-      id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: 'username', yaw: Math.PI, pitch: 0
+      id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
     })
     const enableSkeletonDebug = (obj) => {
       const {children, isSkeletonHelper} = obj
@@ -371,8 +377,12 @@ async function main () {
       metadataFolder.open()
     },
     entity () {
+      continuousRender = params.entity === 'player'
       entityUpdateShared()
       if (!params.entity) return
+      if (params.entity === 'player') {
+        viewer.entities.updatePlayerSkin('id', true, true)
+      }
 
       Entity.getStaticData(params.entity)
       entityRotationFolder.destroy()
@@ -464,6 +474,14 @@ async function main () {
     animate()
   })
   // #endregion
+
+  const continuousUpdate = () => {
+    if (continuousRender) {
+      animate()
+    }
+    requestAnimationFrame(continuousUpdate)
+  }
+  continuousUpdate()
 
   window.onresize = () => {
     if (ignoreResize) return
