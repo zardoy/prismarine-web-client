@@ -28,7 +28,6 @@
     "looks-same": "^8.2.3",
     "minecraft-wrap": "^1.3.0",
     "minecrafthawkeye": "^1.3.6",
-    "node-canvas-webgl": "^0.3.0",
     "prismarine-block": "^1.7.3",
     "prismarine-chunk": "^1.22.0",
     "prismarine-schematic": "^1.2.0",
@@ -40,5 +39,8 @@
     "three.meshline": "^1.3.0",
     "tsx": "^4.7.0",
     "vec3": "^0.1.7"
+  },
+  "optionalDependencies": {
+    "node-canvas-webgl": "^0.3.0"
   }
 }
