@@ -12,6 +12,9 @@ customEvents.on('gameLoaded', () => {
     if (viewer.entities.entities[e.id]?.playerObject) {
       const { playerObject } = viewer.entities.entities[e.id]
       playerObject.backEquipment = e.equipment.some((item) => item?.name === 'elytra') ? 'elytra' : 'cape'
+      if (playerObject.cape.map === null) {
+        playerObject.cape.visible = false
+      }
       // todo (easy, important) elytra flying animation
       // todo cleanup states
       const WALKING_SPEED = 0.1
