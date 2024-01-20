@@ -29,6 +29,7 @@ export class Viewer {
   renderPass: RenderPass
 
   constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
+    this.scene = new THREE.Scene()
     this.resetScene()
     if (this.enableFXAA) {
       this.enableFxaaScene()
@@ -40,43 +41,14 @@ export class Viewer {
     this.domElement = renderer.domElement
   }
 
-  enableFxaaScene () {
-    let renderTarget
-    if (this.renderer.capabilities.isWebGL2) {
-      // Use float precision depth if possible
-      // see https://github.com/bs-community/skinview3d/issues/111
-      renderTarget = new THREE.WebGLRenderTarget(0, 0, {
-        depthTexture: new THREE.DepthTexture(0, 0, THREE.FloatType),
-      })
-    }
-    this.composer = new EffectComposer(this.renderer, renderTarget)
-    this.renderPass = new RenderPass(this.scene, this.camera)
-    this.composer.addPass(this.renderPass)
-    this.fxaaPass = new ShaderPass(FXAAShader)
-    this.composer.addPass(this.fxaaPass)
-    this.updateComposerSize()
-    this.enableFXAA = true
-  }
-
-  // todo
-  updateComposerSize (): void {
-    if (!this.composer) return
-    const { width, height } = this.renderer.getSize(new THREE.Vector2())
-    this.composer.setSize(width, height)
-    // todo auto-update
-    const pixelRatio = this.renderer.getPixelRatio()
-    this.composer.setPixelRatio(pixelRatio)
-    this.fxaaPass.material.uniforms["resolution"].value.x = 1 / (width * pixelRatio)
-    this.fxaaPass.material.uniforms["resolution"].value.y = 1 / (height * pixelRatio)
-  }
-
   resetScene () {
-    this.scene = new THREE.Scene()
     this.scene.background = new THREE.Color('lightblue')
 
+    if (this.ambientLight) this.scene.remove(this.ambientLight)
     this.ambientLight = new THREE.AmbientLight(0xcc_cc_cc)
     this.scene.add(this.ambientLight)
 
+    if (this.directionalLight) this.scene.remove(this.directionalLight)
     this.directionalLight = new THREE.DirectionalLight(0xff_ff_ff, 0.5)
     this.directionalLight.position.set(1, 1, 0.5).normalize()
     this.directionalLight.castShadow = true
@@ -227,5 +199,35 @@ export class Viewer {
 
   async waitForChunksToRender () {
     await this.world.waitForChunksToRender()
+  }
+
+  enableFxaaScene () {
+    let renderTarget
+    if (this.renderer.capabilities.isWebGL2) {
+      // Use float precision depth if possible
+      // see https://github.com/bs-community/skinview3d/issues/111
+      renderTarget = new THREE.WebGLRenderTarget(0, 0, {
+        depthTexture: new THREE.DepthTexture(0, 0, THREE.FloatType),
+      })
+    }
+    this.composer = new EffectComposer(this.renderer, renderTarget)
+    this.renderPass = new RenderPass(this.scene, this.camera)
+    this.composer.addPass(this.renderPass)
+    this.fxaaPass = new ShaderPass(FXAAShader)
+    this.composer.addPass(this.fxaaPass)
+    this.updateComposerSize()
+    this.enableFXAA = true
+  }
+
+  // todo
+  updateComposerSize (): void {
+    if (!this.composer) return
+    const { width, height } = this.renderer.getSize(new THREE.Vector2())
+    this.composer.setSize(width, height)
+    // todo auto-update
+    const pixelRatio = this.renderer.getPixelRatio()
+    this.composer.setPixelRatio(pixelRatio)
+    this.fxaaPass.material.uniforms["resolution"].value.x = 1 / (width * pixelRatio)
+    this.fxaaPass.material.uniforms["resolution"].value.y = 1 / (height * pixelRatio)
   }
 }
