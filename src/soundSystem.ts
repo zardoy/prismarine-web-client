@@ -55,7 +55,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
       if (!isMuted) {
         viewer.playSound(position, url, soundVolume * Math.max(Math.min(volume, 1), 0) * (options.volume / 100))
       }
-      if (getDistance(bot.entity.position, position) < 16) {
+      if (getDistance(bot.entity.position, position) < 4 * 16) {
         lastPlayedSounds.lastServerPlayed[soundKey] ??= { count: 0, last: 0 }
         lastPlayedSounds.lastServerPlayed[soundKey].count++
         lastPlayedSounds.lastServerPlayed[soundKey].last = Date.now()
