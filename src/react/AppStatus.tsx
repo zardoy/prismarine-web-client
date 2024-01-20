@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
-import { guessProblem } from '../guessProblem'
 import styles from './appStatus.module.css'
 import Button from './Button'
 import Screen from './Screen'
 
-export default ({ status, isError, hideDots = false, lastStatus = '', backAction = undefined as undefined | (() => void), actionsSlot = undefined }) => {
+export default ({ status, isError, hideDots = false, lastStatus = '', backAction = undefined as undefined | (() => void), description = '', actionsSlot = undefined }) => {
   const [loadingDots, setLoadingDots] = useState('')
 
   useEffect(() => {
@@ -33,7 +32,7 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
         <>
           {status}
           {isError || hideDots ? '' : loadingDots}
-          <p className={styles['potential-problem']}>{isError ? guessProblem(status) : ''}</p>
+          <p className={styles['potential-problem']}>{description}</p>
           <p className={styles['last-status']}>{lastStatus ? `Last status: ${lastStatus}` : lastStatus}</p>
         </>
       }

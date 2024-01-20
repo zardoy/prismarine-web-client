@@ -235,6 +235,7 @@ function listenGlobalEvents () {
 }
 
 let listeners = [] as Array<{ target, event, callback }>
+let cleanupFunctions = [] as Array<() => void>
 // only for dom listeners (no removeAllListeners)
 // todo refactor them out of connect fn instead
 const registerListener: import('./utilsTs').RegisterListener = (target, event, callback) => {
@@ -245,6 +246,10 @@ const removeAllListeners = () => {
   for (const { target, event, callback } of listeners) {
     target.removeEventListener(event, callback)
   }
+  for (const cleanupFunction of cleanupFunctions) {
+    cleanupFunction()
+  }
+  cleanupFunctions = []
   listeners = []
 }
 
@@ -310,11 +315,18 @@ async function connect (connectOptions: {
     resetStateAfterDisconnect()
     removeAllListeners()
   }
+  const onPossibleErrorDisconnect = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    if (lastPacket && bot?._client && bot._client.state !== 'play') {
+      appStatusState.descriptionHint = `Last Server Packet: ${lastPacket}`
+    }
+  }
   const handleError = (err) => {
     errorAbortController.abort()
     console.log('Encountered error!', err)
 
     setLoadingScreenStatus(`Error encountered. ${err}`, true)
+    onPossibleErrorDisconnect()
     destroyAll()
     if (isCypress()) throw err
   }
@@ -487,7 +499,7 @@ async function connect (connectOptions: {
   }
   if (!bot) return
 
-  const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on other side, check console.') }, 20_000) : undefined
+  const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
   hud.preload(bot)
 
   // bot.on('inject_allowed', () => {
@@ -502,10 +514,23 @@ async function connect (connectOptions: {
     destroyAll()
   })
 
+  let lastPacket
+  const packetBeforePlay = (_, __, ___, fullBuffer) => {
+    lastPacket = fullBuffer.toString()
+  }
+  bot._client.on('packet', packetBeforePlay)
+  const playStateSwitch = (newState) => {
+    if (newState === 'play') {
+      bot._client.removeListener('packet', packetBeforePlay)
+    }
+  }
+  bot._client.on('state', playStateSwitch)
+
   bot.on('end', (endReason) => {
     if (ended) return
     console.log('disconnected for', endReason)
     setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
+    onPossibleErrorDisconnect()
     destroyAll()
     if (isCypress()) throw new Error(`disconnected: ${endReason}`)
   })

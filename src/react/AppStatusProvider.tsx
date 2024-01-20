@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
 import { resetLocalStorageWorld } from '../browserfs'
 import { fsState } from '../loadSave'
+import { guessProblem } from '../guessProblem'
 import AppStatus from './AppStatus'
 import DiveTransition from './DiveTransition'
 import { useDidUpdateEffect, useIsModalActive } from './utils'
@@ -12,6 +13,7 @@ const initialState = {
   status: '',
   lastStatus: '',
   maybeRecoverable: true,
+  descriptionHint: '',
   isError: false,
   hideDots: false,
 }
@@ -25,7 +27,7 @@ export const lastConnectOptions = {
 }
 
 export default () => {
-  const { isError, lastStatus, maybeRecoverable, status, hideDots } = useSnapshot(appStatusState)
+  const { isError, lastStatus, maybeRecoverable, status, hideDots, descriptionHint } = useSnapshot(appStatusState)
 
   const isOpen = useIsModalActive('app-status')
 
@@ -47,10 +49,10 @@ export default () => {
     window.addEventListener('keyup', (e) => {
       if (activeModalStack.at(-1)?.reactType !== 'app-status') return
       if (e.code !== 'KeyR' || !lastConnectOptions.value) return
+      resetState()
       window.dispatchEvent(new window.CustomEvent('connect', {
         detail: lastConnectOptions.value
       }))
-      appStatusState.isError = false
     }, {
       signal: controller.signal
     })
@@ -63,8 +65,8 @@ export default () => {
       isError={isError || appStatusState.status === ''} // display back button if status is empty as probably our app is errored
       hideDots={hideDots}
       lastStatus={lastStatus}
+      description={(isError ? guessProblem(status) : '') || descriptionHint}
       backAction={maybeRecoverable ? () => {
-        appStatusState.isError = false
         resetState()
         miscUiState.gameLoaded = false
         miscUiState.loadedDataVersion = null
