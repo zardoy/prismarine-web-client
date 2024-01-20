@@ -7,6 +7,10 @@ const path = require('path')
 const cors = require('cors')
 const https = require('https')
 const fs = require('fs')
+let siModule
+try {
+  siModule = require('systeminformation')
+} catch (err) { }
 
 // Create our app
 const app = express()
@@ -44,8 +48,21 @@ const port = (require.main === module ? process.argv[2] : portArg !== -1 ? proce
 // Start the server
 const server = isProd ?
   undefined :
-  app.listen(port, function () {
+  app.listen(port, async function () {
     console.log('Server listening on port ' + server.address().port)
+    if (siModule) {
+      const _interfaces = await siModule.networkInterfaces()
+      const interfaces = Array.isArray(_interfaces) ? _interfaces : [_interfaces]
+      let netInterface = interfaces.find(int => int.default)
+      if (!netInterface) {
+        netInterface = interfaces.find(int => !int.virtual) ?? interfaces[0]
+        console.warn('Failed to get the default network interface, searching for fallback')
+      }
+      if (netInterface) {
+        const address = netInterface.ip4
+        console.log(`You can access the server on http://localhost:8080 or http://${address}:${port}`)
+      }
+    }
   })
 
 module.exports = { app }

@@ -62,6 +62,7 @@
     "react-dom": "^18.2.0",
     "react-transition-group": "^4.4.5",
     "sanitize-filename": "^1.6.3",
+    "skinview3d": "^3.0.1",
     "stats-gl": "^1.0.5",
     "stats.js": "^0.17.0",
     "tabbable": "^6.2.0",
@@ -116,8 +117,12 @@
     "vitest": "^0.34.6",
     "yaml": "^2.3.2"
   },
+  "optionalDependencies": {
+    "systeminformation": "^5.21.22"
+  },
   "pnpm": {
     "overrides": {
+      "three": "0.128.0",
       "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
       "prismarine-world": "github:zardoy/prismarine-world#next-era",

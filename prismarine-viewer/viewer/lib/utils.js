@@ -48,7 +48,8 @@ export const loadScript = async function (/** @type {string} */scriptSrc) {
     })
 
     scriptElement.onerror = (error) => {
-      reject(error)
+      reject(new Error(error.message))
+      scriptElement.remove()
     }
 
     document.head.appendChild(scriptElement)

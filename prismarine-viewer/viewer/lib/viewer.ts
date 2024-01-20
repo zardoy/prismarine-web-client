@@ -5,8 +5,8 @@ import { WorldRenderer } from './worldrenderer'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { getVersion } from './version'
-
-// new THREE.Points(new THREE.BufferGeometry(), new THREE.PointsMaterial())
+import EventEmitter from 'events'
+import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
 
 export class Viewer {
   scene: THREE.Scene
@@ -17,37 +17,49 @@ export class Viewer {
   entities: Entities
   primitives: Primitives
   domElement: HTMLCanvasElement
-  playerHeight: number
-  isSneaking: boolean
+  playerHeight = 1.62
+  isSneaking = false
   version: string
   cameraObjectOverride?: THREE.Object3D // for xr
   audioListener: THREE.AudioListener
+  renderingUntilNoUpdates = false
+  processEntityOverrides = (e, overrides) => overrides
+  composer?: EffectComposer
+  fxaaPass: ShaderPass
+  renderPass: RenderPass
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number) {
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color('lightblue')
-
-    this.ambientLight = new THREE.AmbientLight(0xcc_cc_cc)
-    this.scene.add(this.ambientLight)
-
-    this.directionalLight = new THREE.DirectionalLight(0xff_ff_ff, 0.5)
-    this.directionalLight.position.set(1, 1, 0.5).normalize()
-    this.directionalLight.castShadow = true
-    this.scene.add(this.directionalLight)
-
-    const size = renderer.getSize(new THREE.Vector2())
-    this.camera = new THREE.PerspectiveCamera(75, size.x / size.y, 0.1, 1000)
-
+    this.resetScene()
+    if (this.enableFXAA) {
+      this.enableFxaaScene()
+    }
     this.world = new WorldRenderer(this.scene, numWorkers)
     this.entities = new Entities(this.scene)
     this.primitives = new Primitives(this.scene, this.camera)
 
     this.domElement = renderer.domElement
-    this.playerHeight = 1.6
-    this.isSneaking = false
+  }
+
+  resetScene () {
+    this.scene.background = new THREE.Color('lightblue')
+
+    if (this.ambientLight) this.scene.remove(this.ambientLight)
+    this.ambientLight = new THREE.AmbientLight(0xcc_cc_cc)
+    this.scene.add(this.ambientLight)
+
+    if (this.directionalLight) this.scene.remove(this.directionalLight)
+    this.directionalLight = new THREE.DirectionalLight(0xff_ff_ff, 0.5)
+    this.directionalLight.position.set(1, 1, 0.5).normalize()
+    this.directionalLight.castShadow = true
+    this.scene.add(this.directionalLight)
+
+    const size = this.renderer.getSize(new THREE.Vector2())
+    this.camera = new THREE.PerspectiveCamera(75, size.x / size.y, 0.1, 1000)
   }
 
   resetAll () {
+    this.resetScene()
     this.world.resetWorld()
     this.entities.clear()
     this.primitives.clear()
@@ -75,7 +87,15 @@ export class Viewer {
   }
 
   updateEntity (e) {
-    this.entities.update(e)
+    this.entities.update(e, this.processEntityOverrides(e, {
+      rotation: {
+        head: {
+          x: e.headPitch ?? e.pitch,
+          y: e.headYaw,
+          z: 0
+        }
+      }
+    }))
   }
 
   updatePrimitive (p) {
@@ -120,7 +140,7 @@ export class Viewer {
   }
 
   // todo type
-  listen (emitter) {
+  listen (emitter: EventEmitter) {
     emitter.on('entity', (e) => {
       this.updateEntity(e)
     })
@@ -152,7 +172,7 @@ export class Viewer {
 
     emitter.emit('listening')
 
-    this.domElement.addEventListener('pointerdown', (evt) => {
+    this.domElement.addEventListener?.('pointerdown', (evt) => {
       const raycaster = new THREE.Raycaster()
       const mouse = new THREE.Vector2()
       mouse.x = (evt.clientX / this.domElement.clientWidth) * 2 - 1
@@ -168,10 +188,46 @@ export class Viewer {
   }
 
   render () {
-    this.renderer.render(this.scene, this.camera)
+    if (this.composer) {
+      this.renderPass.camera = this.camera
+      this.composer.render()
+    } else {
+      this.renderer.render(this.scene, this.camera)
+    }
+    this.entities.render()
   }
 
   async waitForChunksToRender () {
     await this.world.waitForChunksToRender()
+  }
+
+  enableFxaaScene () {
+    let renderTarget
+    if (this.renderer.capabilities.isWebGL2) {
+      // Use float precision depth if possible
+      // see https://github.com/bs-community/skinview3d/issues/111
+      renderTarget = new THREE.WebGLRenderTarget(0, 0, {
+        depthTexture: new THREE.DepthTexture(0, 0, THREE.FloatType),
+      })
+    }
+    this.composer = new EffectComposer(this.renderer, renderTarget)
+    this.renderPass = new RenderPass(this.scene, this.camera)
+    this.composer.addPass(this.renderPass)
+    this.fxaaPass = new ShaderPass(FXAAShader)
+    this.composer.addPass(this.fxaaPass)
+    this.updateComposerSize()
+    this.enableFXAA = true
+  }
+
+  // todo
+  updateComposerSize (): void {
+    if (!this.composer) return
+    const { width, height } = this.renderer.getSize(new THREE.Vector2())
+    this.composer.setSize(width, height)
+    // todo auto-update
+    const pixelRatio = this.renderer.getPixelRatio()
+    this.composer.setPixelRatio(pixelRatio)
+    this.fxaaPass.material.uniforms["resolution"].value.x = 1 / (width * pixelRatio)
+    this.fxaaPass.material.uniforms["resolution"].value.y = 1 / (height * pixelRatio)
   }
 }

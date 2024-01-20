@@ -294,7 +294,7 @@ export const possiblyCleanHandle = (callback = () => { }) => {
 
 export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: string) => {
   try {
-    setLoadingScreenStatus('Copying files...')
+    setLoadingScreenStatus('Copying files')
     let filesCount = 0
     const countFiles = async (path: string) => {
       const files = await fs.promises.readdir(path)

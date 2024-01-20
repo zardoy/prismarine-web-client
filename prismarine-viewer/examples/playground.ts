@@ -10,6 +10,8 @@ import { GUI } from 'lil-gui'
 import { toMajor } from '../viewer/lib/version'
 import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
+import { TWEEN_DURATION } from '../viewer/lib/entities'
+import Entity from '../viewer/lib/entity/Entity'
 
 globalThis.THREE = THREE
 //@ts-ignore
@@ -58,6 +60,8 @@ const setQs = () => {
 let ignoreResize = false
 
 async function main () {
+  let continuousRender = false
+
   const { version } = params
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
@@ -82,14 +86,15 @@ async function main () {
   gui.add(params, 'block', mcData.blocksArray.map(b => b.name).sort((a, b) => a.localeCompare(b)))
   const metadataGui = gui.add(params, 'metadata')
   gui.add(params, 'supportBlock')
-  gui.add(params, 'entity', mcData.entitiesArray.map(b => b.name)).listen()
+  gui.add(params, 'entity', mcData.entitiesArray.map(b => b.name).sort((a, b) => a.localeCompare(b))).listen()
   gui.add(params, 'removeEntity')
   gui.add(params, 'entityRotate')
   gui.add(params, 'skip')
   gui.add(params, 'playSound')
   gui.add(params, 'blockIsomorphicRenderBundle')
   gui.open(false)
-  let folder = gui.addFolder('metadata')
+  let metadataFolder = gui.addFolder('metadata')
+  // let entityRotationFolder = gui.addFolder('entity metadata')
 
   const Chunk = ChunkLoader(version)
   const Block = BlockLoader(version)
@@ -129,7 +134,12 @@ async function main () {
 
   // Create viewer
   const viewer = new Viewer(renderer, 1)
+  viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
+  viewer.entities.onSkinUpdate = () => {
+    viewer.update()
+    viewer.render()
+  }
 
   viewer.listen(worldView)
   // Load chunks
@@ -293,19 +303,44 @@ async function main () {
   controls.update()
 
   let blockProps = {}
+  let entityOverrides = {}
   const getBlock = () => {
     return mcData.blocksByName[params.block || 'air']
   }
 
+  const entityUpdateShared = () => {
+    viewer.entities.clear()
+    if (!params.entity) return
+    worldView.emit('entity', {
+      id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
+    })
+    const enableSkeletonDebug = (obj) => {
+      const {children, isSkeletonHelper} = obj
+      if (!Array.isArray(children)) return
+      if (isSkeletonHelper) {
+        obj.visible = true
+        return
+      }
+      for (const child of children) {
+        if (typeof child === 'object') enableSkeletonDebug(child)
+      }
+    }
+    enableSkeletonDebug(viewer.entities.entities['id'])
+    setTimeout(() => {
+      viewer.update()
+      viewer.render()
+    }, TWEEN_DURATION)
+  }
+
   const onUpdate = {
     block () {
-      folder.destroy()
+      metadataFolder.destroy()
       const block = mcData.blocksByName[params.block]
       if (!block) return
       const props = new Block(block.id, 0, 0).getProperties()
       //@ts-ignore
       const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
-      folder = gui.addFolder('metadata')
+      metadataFolder = gui.addFolder('metadata')
       if (states) {
         for (const state of states) {
           let defaultValue
@@ -328,25 +363,41 @@ async function main () {
           }
           blockProps[state.name] = defaultValue
           if (state.type === 'enum') {
-            folder.add(blockProps, state.name, state.values)
+            metadataFolder.add(blockProps, state.name, state.values)
           } else {
-            folder.add(blockProps, state.name)
+            metadataFolder.add(blockProps, state.name)
           }
         }
       } else {
         for (const [name, value] of Object.entries(props)) {
           blockProps[name] = value
-          folder.add(blockProps, name)
+          metadataFolder.add(blockProps, name)
         }
       }
-      folder.open()
+      metadataFolder.open()
     },
     entity () {
-      viewer.entities.clear()
+      continuousRender = params.entity === 'player'
+      entityUpdateShared()
       if (!params.entity) return
-      worldView.emit('entity', {
-        id: 'id', name: params.entity, pos: targetPos.offset(0, 1, 0), width: 1, height: 1, username: 'username'
-      })
+      if (params.entity === 'player') {
+        viewer.entities.updatePlayerSkin('id', viewer.entities.entities.id.username, true, true)
+        viewer.entities.playAnimation('id', 'running')
+      }
+      // let prev = false
+      // setInterval(() => {
+      //   viewer.entities.playAnimation('id', prev ? 'running' : 'idle')
+      //   prev = !prev
+      // }, 1000)
+
+      Entity.getStaticData(params.entity)
+      // entityRotationFolder.destroy()
+      // entityRotationFolder = gui.addFolder('entity metadata')
+      // entityRotationFolder.add(params, 'entityRotate')
+      // entityRotationFolder.open()
+    },
+    supportBlock () {
+      viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     }
   }
 
@@ -357,7 +408,7 @@ async function main () {
     if (metadataUpdate) {
       block = new Block(blockId, 0, params.metadata)
       Object.assign(blockProps, block.getProperties())
-      for (const _child of folder.children) {
+      for (const _child of metadataFolder.children) {
         const child = _child as import('lil-gui').Controller
         child.updateDisplay()
       }
@@ -373,18 +424,21 @@ async function main () {
 
     //@ts-ignore
     viewer.setBlockStateId(targetPos, block.stateId)
-    console.log('up', block.stateId)
+    console.log('up stateId', block.stateId)
     params.metadata = block.metadata
     metadataGui.updateDisplay()
-    // viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     if (!skipQs) {
       setQs()
     }
   }
-  gui.onChange(({ property }) => {
-    if (property === 'camera') return
-    onUpdate[property]?.()
-    applyChanges(property === 'metadata')
+  gui.onChange(({ property, object }) => {
+    if (object === params) {
+      if (property === 'camera') return
+      onUpdate[property]?.()
+      applyChanges(property === 'metadata')
+    } else {
+      applyChanges()
+    }
   })
   viewer.waitForChunksToRender().then(async () => {
     await new Promise(resolve => {
@@ -395,12 +449,8 @@ async function main () {
     }
     applyChanges(true)
     gui.openAnimated()
-    // worldView.emit('entity', {
-    //   id: 'id', name: 'player', pos: targetPos.offset(1, -2, 0), width: 1, height: 1, username: 'username'
-    // })
   })
 
-  // Browser animation loop
   const animate = () => {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
@@ -431,6 +481,14 @@ async function main () {
   })
   // #endregion
 
+  const continuousUpdate = () => {
+    if (continuousRender) {
+      animate()
+    }
+    requestAnimationFrame(continuousUpdate)
+  }
+  continuousUpdate()
+
   window.onresize = () => {
     if (ignoreResize) return
     // const vec3 = new THREE.Vector3()
@@ -455,11 +513,5 @@ async function main () {
       params.playSound()
     }
   }, { capture: true })
-
-  setTimeout(() => {
-    // worldView.emit('entity', {
-    //   id: 'id', name: 'player', pos: center.offset(1, -2, 0), width: 1, height: 1, username: 'username'
-    // })
-  }, 1500)
 }
 main()

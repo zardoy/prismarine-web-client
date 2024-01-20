@@ -77,7 +77,9 @@ You can also drag and drop any .dat or .mca (region files) into the browser wind
 - `F3` - Toggle debug overlay
 - `F3 + A` - Reload all chunks (these that are loaded from the server)
 <!-- <!-- - `F3 + N` - Restart local server (basically resets the world!) -->
-- `F3 + G` - Toggle chunk sections (geometries) border visibility (aka Three.js geometry helpers)
+- `F3 + G` - Toggle chunk sections (geometries) border visibility + entities outline (aka Three.js geometry helpers)
+
+world chunks have a *yellow* border, hostile mobs have a *red* outline, passive mobs have a *green* outline, players have a *blue* outline.
 
 ### Notable Things that Power this Project
 

@@ -83,27 +83,7 @@ class WorldInteraction {
       if (!isGameActive(true)) return
       this.buttons[e.button] = true
 
-      const entity = bot.nearestEntity((e) => {
-        if (e.position.distanceTo(bot.entity.position) <= (bot.game.gameMode === 'creative' ? 5 : 3)) {
-          const dir = getViewDirection(bot.entity.pitch, bot.entity.yaw)
-          const { width, height } = e
-          const { x: eX, y: eY, z: eZ } = e.position
-          const { x: bX, y: bY, z: bZ } = bot.entity.position
-          const box = new THREE.Box3(
-            new THREE.Vector3(eX - width / 2, eY, eZ - width / 2),
-            new THREE.Vector3(eX + width / 2, eY + height, eZ + width / 2)
-          )
-
-          const r = new THREE.Raycaster(
-            new THREE.Vector3(bX, bY + 1.52, bZ),
-            new THREE.Vector3(dir.x, dir.y, dir.z)
-          )
-          const int = r.ray.intersectBox(box, new THREE.Vector3(eX, eY, eZ))
-          return int !== null
-        }
-
-        return false
-      })
+      const entity = getEntityCursor()
 
       if (entity) {
         bot.attack(entity)
@@ -135,9 +115,10 @@ class WorldInteraction {
 
     const upLineMaterial = () => {
       const inCreative = bot.game.gameMode === 'creative'
+      const pixelRatio = viewer.renderer.getPixelRatio()
       this.lineMaterial = new LineMaterial({
         color: inCreative ? 0x40_80_ff : 0x00_00_00,
-        linewidth: viewer.renderer.getPixelRatio() * 2,
+        linewidth: Math.max(pixelRatio * 0.7, 1) * 2,
         // dashed: true,
         // dashSize: 5,
       })
@@ -317,6 +298,31 @@ const getDataFromShape = (shape) => {
   const centerZ = (shape[5] + shape[2]) / 2
   const position = new Vec3(centerX, centerY, centerZ)
   return { position, width, height, depth }
+}
+
+export const getEntityCursor = () => {
+  const entity = bot.nearestEntity((e) => {
+    if (e.position.distanceTo(bot.entity.position) <= (bot.game.gameMode === 'creative' ? 5 : 3)) {
+      const dir = getViewDirection(bot.entity.pitch, bot.entity.yaw)
+      const { width, height } = e
+      const { x: eX, y: eY, z: eZ } = e.position
+      const { x: bX, y: bY, z: bZ } = bot.entity.position
+      const box = new THREE.Box3(
+        new THREE.Vector3(eX - width / 2, eY, eZ - width / 2),
+        new THREE.Vector3(eX + width / 2, eY + height, eZ + width / 2)
+      )
+
+      const r = new THREE.Raycaster(
+        new THREE.Vector3(bX, bY + 1.52, bZ),
+        new THREE.Vector3(dir.x, dir.y, dir.z)
+      )
+      const int = r.ray.intersectBox(box, new THREE.Vector3(eX, eY, eZ))
+      return int !== null
+    }
+
+    return false
+  })
+  return entity
 }
 
 export default new WorldInteraction()

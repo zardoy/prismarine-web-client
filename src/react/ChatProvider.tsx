@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { formatMessage } from '../botUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
 import { hideCurrentModal } from '../globalState'
@@ -10,16 +10,17 @@ export default () => {
   const [messages, setMessages] = useState([] as Message[])
   const isChatActive = useIsModalActive('chat')
   const { messagesLimit, chatOpacity, chatOpacityOpened } = options
+  const lastMessageId = useRef(0)
 
   useEffect(() => {
     bot.addListener('message', (jsonMsg, position) => {
       const parts = formatMessage(jsonMsg)
 
       setMessages(m => {
-        const lastId = messages.at(-1)?.id ?? 0
+        lastMessageId.current++
         const newMessage: Message = {
           parts,
-          id: lastId + 1,
+          id: lastMessageId.current,
           faded: false,
         }
         fadeMessage(newMessage, true, () => {

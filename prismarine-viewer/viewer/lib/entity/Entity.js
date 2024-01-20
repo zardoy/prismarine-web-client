@@ -1,3 +1,4 @@
+//@ts-check
 /* global THREE */
 
 const entities = require('./entities.json')
@@ -128,7 +129,7 @@ function addCube (attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
   }
 }
 
-function getMesh (texture, jsonModel) {
+function getMesh (texture, jsonModel, overrides = {}) {
   const bones = {}
 
   const geoData = {
@@ -156,6 +157,12 @@ function getMesh (texture, jsonModel) {
       bone.rotation.y = -jsonBone.rotation[1] * Math.PI / 180
       bone.rotation.z = -jsonBone.rotation[2] * Math.PI / 180
     }
+    if (overrides.rotation?.[jsonBone.name]) {
+      bone.rotation.x -= (overrides.rotation[jsonBone.name].x ?? 0) * Math.PI / 180
+      bone.rotation.y -= (overrides.rotation[jsonBone.name].y ?? 0) * Math.PI / 180
+      bone.rotation.z -= (overrides.rotation[jsonBone.name].z ?? 0) * Math.PI / 180
+    }
+    bone.name = `bone_${jsonBone.name}`
     bones[jsonBone.name] = bone
 
     if (jsonBone.cubes) {
@@ -169,7 +176,9 @@ function getMesh (texture, jsonModel) {
   const rootBones = []
   for (const jsonBone of jsonModel.bones) {
     if (jsonBone.parent) bones[jsonBone.parent].add(bones[jsonBone.name])
-    else rootBones.push(bones[jsonBone.name])
+    else {
+      rootBones.push(bones[jsonBone.name])
+    }
   }
 
   const skeleton = new THREE.Skeleton(Object.values(bones))
@@ -189,6 +198,10 @@ function getMesh (texture, jsonModel) {
   mesh.scale.set(1 / 16, 1 / 16, 1 / 16)
 
   loadTexture(texture, texture => {
+    if (material.map) {
+      // texture is already loaded
+      return
+    }
     texture.magFilter = THREE.NearestFilter
     texture.minFilter = THREE.NearestFilter
     texture.flipY = false
@@ -208,14 +221,17 @@ const entitiesMap = {
 
 // const unknownEntitiesSet = new Set()
 
-class Entity {
-  constructor (version, type, scene) {
-    let mappedValue = entitiesMap[type]
-    // todo is it okay?
-    if (mappedValue === null) return
-    else if (mappedValue) type = mappedValue
+const getEntity = (name) => {
+  let mappedValue = entitiesMap[name]
+  if (mappedValue) name = mappedValue
 
-    const e = entities[type]
+  return entities[name]
+}
+
+class Entity {
+  constructor (version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
+    const e = getEntity(type)
+
     if (!e) {
       // if (unknownEntitiesSet.has(type)) throw new Error('ignore...')
       // unknownEntitiesSet.add(type)
@@ -224,14 +240,26 @@ class Entity {
 
     this.mesh = new THREE.Object3D()
     for (const [name, jsonModel] of Object.entries(e.geometry)) {
-      const texture = e.textures[name]
+      const texture = overrides.textures?.[name] ?? e.textures[name]
       if (!texture) continue
       // console.log(JSON.stringify(jsonModel, null, 2))
-      const mesh = getMesh(texture.replace('textures', 'textures/' + version) + '.png', jsonModel)
-      /* const skeletonHelper = new THREE.SkeletonHelper( mesh )
-      skeletonHelper.material.linewidth = 2
-      scene.add( skeletonHelper ) */
+      const mesh = getMesh(texture.replace('textures', 'textures/' + version) + '.png', jsonModel, overrides)
+      mesh.name = `geometry_${name}`
       this.mesh.add(mesh)
+
+      const skeletonHelper = new THREE.SkeletonHelper(mesh)
+      //@ts-ignore
+      skeletonHelper.material.linewidth = 2
+      skeletonHelper.visible = false
+      this.mesh.add(skeletonHelper)
+    }
+  }
+
+  static getStaticData (name) {
+    const e = getEntity(name)
+    if (!e) throw new Error(`Unknown entity ${name}`)
+    return {
+      boneNames: Object.values(e.geometry).flatMap(x => x.name)
     }
   }
 }

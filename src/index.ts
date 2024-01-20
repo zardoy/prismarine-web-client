@@ -4,6 +4,7 @@ import './styles.css'
 import './globals'
 import 'iconify-icon'
 import './devtools'
+import './entities'
 import initCollisionShapes from './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
 
@@ -43,6 +44,8 @@ import worldInteractions from './worldInteractions'
 
 import * as THREE from 'three'
 import MinecraftData, { versionsByMinecraftVersion } from 'minecraft-data'
+import debug from 'debug'
+import _ from 'lodash-es'
 
 import { initVR } from './vr'
 import {
@@ -69,12 +72,9 @@ import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalS
 import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
-import _ from 'lodash-es'
-
 import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
 import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
-import debug from 'debug'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
 import { appStatusState, lastConnectOptions } from './react/AppStatusProvider'
@@ -85,11 +85,9 @@ import { loadInMemorySave } from './react/SingleplayerProvider'
 
 // side effects
 import { downloadSoundsIfNeeded } from './soundSystem'
-import EventEmitter from 'events'
 
 window.debug = debug
 window.THREE = THREE
-window.customEvents = new EventEmitter()
 window.beforeRenderFrame = []
 
 // ACTUAL CODE
@@ -158,7 +156,7 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
   }
   statsStart()
   viewer.update()
-  renderer.render(viewer.scene, viewer.camera)
+  viewer.render()
   rendered++
   postRenderFrameFn()
   statsEnd()
@@ -179,6 +177,10 @@ const resizeHandler = () => {
   viewer.camera.aspect = width / height
   viewer.camera.updateProjectionMatrix()
   renderer.setSize(width, height)
+
+  if (viewer.composer) {
+    viewer.updateComposerSize()
+  }
 }
 
 const hud = document.getElementById('hud')
@@ -237,6 +239,7 @@ function listenGlobalEvents () {
 }
 
 let listeners = [] as Array<{ target, event, callback }>
+let cleanupFunctions = [] as Array<() => void>
 // only for dom listeners (no removeAllListeners)
 // todo refactor them out of connect fn instead
 const registerListener: import('./utilsTs').RegisterListener = (target, event, callback) => {
@@ -247,6 +250,10 @@ const removeAllListeners = () => {
   for (const { target, event, callback } of listeners) {
     target.removeEventListener(event, callback)
   }
+  for (const cleanupFunction of cleanupFunctions) {
+    cleanupFunction()
+  }
+  cleanupFunctions = []
   listeners = []
 }
 
@@ -312,11 +319,18 @@ async function connect (connectOptions: {
     resetStateAfterDisconnect()
     removeAllListeners()
   }
+  const onPossibleErrorDisconnect = () => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
+    if (lastPacket && bot?._client && bot._client.state !== 'play') {
+      appStatusState.descriptionHint = `Last Server Packet: ${lastPacket}`
+    }
+  }
   const handleError = (err) => {
     errorAbortController.abort()
     console.log('Encountered error!', err)
 
     setLoadingScreenStatus(`Error encountered. ${err}`, true)
+    onPossibleErrorDisconnect()
     destroyAll()
     if (isCypress()) throw err
   }
@@ -489,7 +503,7 @@ async function connect (connectOptions: {
   }
   if (!bot) return
 
-  const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on other side, check console.') }, 20_000) : undefined
+  const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
   hud.preload(bot)
 
   // bot.on('inject_allowed', () => {
@@ -504,10 +518,23 @@ async function connect (connectOptions: {
     destroyAll()
   })
 
+  let lastPacket
+  const packetBeforePlay = (_, __, ___, fullBuffer) => {
+    lastPacket = fullBuffer.toString()
+  }
+  bot._client.on('packet', packetBeforePlay)
+  const playStateSwitch = (newState) => {
+    if (newState === 'play') {
+      bot._client.removeListener('packet', packetBeforePlay)
+    }
+  }
+  bot._client.on('state', playStateSwitch)
+
   bot.on('end', (endReason) => {
     if (ended) return
     console.log('disconnected for', endReason)
     setLoadingScreenStatus(`You have been disconnected from the server. End reason: ${endReason}`, true)
+    onPossibleErrorDisconnect()
     destroyAll()
     if (isCypress()) throw new Error(`disconnected: ${endReason}`)
   })
