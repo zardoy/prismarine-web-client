@@ -156,7 +156,7 @@ const renderFrame = (time: DOMHighResTimeStamp) => {
   }
   statsStart()
   viewer.update()
-  renderer.render(viewer.scene, viewer.camera)
+  viewer.render()
   rendered++
   postRenderFrameFn()
   statsEnd()
@@ -177,6 +177,10 @@ const resizeHandler = () => {
   viewer.camera.aspect = width / height
   viewer.camera.updateProjectionMatrix()
   renderer.setSize(width, height)
+
+  if (viewer.composer) {
+    viewer.updateComposerSize()
+  }
 }
 
 const hud = document.getElementById('hud')

@@ -94,7 +94,7 @@ async function main () {
   gui.add(params, 'blockIsomorphicRenderBundle')
   gui.open(false)
   let metadataFolder = gui.addFolder('metadata')
-  let entityRotationFolder = gui.addFolder('entity rotation')
+  // let entityRotationFolder = gui.addFolder('entity metadata')
 
   const Chunk = ChunkLoader(version)
   const Block = BlockLoader(version)
@@ -381,14 +381,20 @@ async function main () {
       entityUpdateShared()
       if (!params.entity) return
       if (params.entity === 'player') {
-        viewer.entities.updatePlayerSkin('id', true, true)
+        viewer.entities.updatePlayerSkin('id', viewer.entities.entities.id.username, true, true)
+        viewer.entities.playAnimation('id', 'running')
       }
+      // let prev = false
+      // setInterval(() => {
+      //   viewer.entities.playAnimation('id', prev ? 'running' : 'idle')
+      //   prev = !prev
+      // }, 1000)
 
       Entity.getStaticData(params.entity)
-      entityRotationFolder.destroy()
-      entityRotationFolder = gui.addFolder('entity rotation')
-      entityRotationFolder.add(params, 'entityRotate')
-      entityRotationFolder.open()
+      // entityRotationFolder.destroy()
+      // entityRotationFolder = gui.addFolder('entity metadata')
+      // entityRotationFolder.add(params, 'entityRotate')
+      // entityRotationFolder.open()
     },
     supportBlock () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)

@@ -20,4 +20,13 @@ export const watchOptionsAfterViewerInit = () => {
     viewer.world.showChunkBorders = o.showChunkBorders
     viewer.entities.setDebugMode(o.showChunkBorders ? 'basic' : 'none')
   })
+
+  watchValue(options, o => {
+    if (o.antiAliasing) {
+      viewer.enableFxaaScene()
+    } else {
+      viewer.enableFXAA = false
+      viewer.composer = undefined
+    }
+  })
 }

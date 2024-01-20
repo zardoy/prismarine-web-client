@@ -245,12 +245,13 @@ class Entity {
       // console.log(JSON.stringify(jsonModel, null, 2))
       const mesh = getMesh(texture.replace('textures', 'textures/' + version) + '.png', jsonModel, overrides)
       mesh.name = `geometry_${name}`
+      this.mesh.add(mesh)
+
       const skeletonHelper = new THREE.SkeletonHelper(mesh)
       //@ts-ignore
       skeletonHelper.material.linewidth = 2
-      this.mesh.add(skeletonHelper)
       skeletonHelper.visible = false
-      this.mesh.add(mesh)
+      this.mesh.add(skeletonHelper)
     }
   }
 

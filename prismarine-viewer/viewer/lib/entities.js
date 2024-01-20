@@ -5,11 +5,13 @@ const TWEEN = require('@tweenjs/tween.js')
 const Entity = require('./entity/Entity')
 const { dispose3 } = require('./dispose')
 const EventEmitter = require('events')
-import { PlayerObject, PlayerAnimation, IdleAnimation } from 'skinview3d'
-import { ArmSwing } from './entity/animations'
+import { PlayerObject, PlayerAnimation } from 'skinview3d'
 import { loadSkinToCanvas, loadEarsToCanvasFromSkin, inferModelType, loadCapeToCanvas, loadImage } from 'skinview-utils'
 // todo replace with url
 import stevePng from 'minecraft-assets/minecraft-assets/data/1.20.2/entity/player/wide/steve.png'
+import { WalkingGeneralSwing } from './entity/animations'
+import { NameTagObject } from 'skinview3d/libs/nametag'
+import { fromFormattedString } from '@xmcl/text-component'
 
 export const TWEEN_DURATION = 50 // todo should be 100
 
@@ -76,7 +78,7 @@ export class Entities extends EventEmitter {
     this.entities = {}
     this.entitiesOptions = {}
     this.debugMode = 'none'
-    this.onSkinUpdate = () => {}
+    this.onSkinUpdate = () => { }
     this.clock = new THREE.Clock()
   }
 
@@ -101,7 +103,7 @@ export class Entities extends EventEmitter {
   }
 
   render () {
-		const dt = this.clock.getDelta();
+    const dt = this.clock.getDelta()
     for (const entityId of Object.keys(this.entities)) {
       const playerObject = this.getPlayerObject(entityId)
       if (playerObject?.animation) {
@@ -117,10 +119,10 @@ export class Entities extends EventEmitter {
   }
 
   // true means use default skin url
-  updatePlayerSkin (entityId, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
+  updatePlayerSkin (entityId, username, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
     let playerObject = this.getPlayerObject(entityId)
     if (!playerObject) return
-    const username = this.entities[entityId].username
+    // const username = this.entities[entityId].username
     // or https://mulv.vercel.app/
     if (skinUrl === true) {
       skinUrl = `https://mulv.tycrek.dev/api/lookup?username=${username}&type=skin`
@@ -148,37 +150,41 @@ export class Entities extends EventEmitter {
         earsTexture.needsUpdate = true
         //@ts-ignore
         playerObject.ears.map = earsTexture
-        playerObject.ears.visible = true;
+        playerObject.ears.visible = true
       } else {
         playerObject.ears.map = null
-        playerObject.ears.visible = false;
+        playerObject.ears.visible = false
       }
       this.onSkinUpdate?.()
+      if (capeUrl) {
+        if (capeUrl === true) capeUrl = `https://mulv.tycrek.dev/api/lookup?username=${username}&type=cape`
+        loadImage(capeUrl).then((capeImage) => {
+          playerObject = this.getPlayerObject(entityId)
+          if (!playerObject) return
+          const capeCanvas = document.createElement('canvas')
+          loadCapeToCanvas(capeCanvas, capeImage)
+
+          const capeTexture = new THREE.CanvasTexture(capeCanvas)
+          capeTexture.magFilter = THREE.NearestFilter
+          capeTexture.minFilter = THREE.NearestFilter
+          capeTexture.needsUpdate = true
+          //@ts-ignore
+          playerObject.cape.map = capeTexture
+          playerObject.cape.visible = true
+          //@ts-ignore
+          playerObject.elytra.map = capeTexture
+          this.onSkinUpdate?.()
+
+          if (!playerObject.backEquipment) {
+            playerObject.backEquipment = 'cape'
+          }
+        })
+      }
     })
 
-    if (capeUrl) {
-      if (capeUrl === true) capeUrl = `https://mulv.tycrek.dev/api/lookup?username=${username}&type=cape`
-      loadImage(capeUrl).then((capeImage) => {
-        playerObject = this.getPlayerObject(entityId)
-        if (!playerObject) return
-        const capeCanvas = document.createElement('canvas')
-        loadCapeToCanvas(capeCanvas, capeImage)
 
-        const capeTexture = new THREE.CanvasTexture(capeCanvas)
-        capeTexture.magFilter = THREE.NearestFilter
-        capeTexture.minFilter = THREE.NearestFilter
-        capeTexture.needsUpdate = true
-        //@ts-ignore
-        playerObject.cape.map = capeTexture
-        //@ts-ignore
-        playerObject.elytra.map = capeTexture
-        this.onSkinUpdate?.()
-
-        if (!playerObject.backEquipment) {
-          playerObject.backEquipment = 'cape'
-        }
-      })
-    } else {
+    playerObject.cape.visible = false
+    if (!capeUrl) {
       playerObject.backEquipment = null
       playerObject.elytra.map = null
       if (playerObject.cape.map) {
@@ -187,18 +193,39 @@ export class Entities extends EventEmitter {
       playerObject.cape.map = null
     }
 
-    function isCanvasBlank(canvas) {
+    function isCanvasBlank (canvas) {
       return !canvas.getContext('2d')
         .getImageData(0, 0, canvas.width, canvas.height).data
-        .some(channel => channel !== 0);
+        .some(channel => channel !== 0)
     }
   }
 
+  playAnimation (entityPlayerId, /** @type {'walking' | 'running' | 'oneSwing' | 'idle'} */animation) {
+    const playerObject = this.getPlayerObject(entityPlayerId)
+    if (!playerObject) return
+
+    if (animation === 'oneSwing') {
+      if (!(playerObject.animation instanceof WalkingGeneralSwing)) throw new Error('Expected WalkingGeneralSwing')
+      playerObject.animation.swingArm()
+      return
+    }
+
+    if (playerObject.animation instanceof WalkingGeneralSwing) {
+      playerObject.animation.switchAnimationCallback = () => {
+        if (!(playerObject.animation instanceof WalkingGeneralSwing)) throw new Error('Expected WalkingGeneralSwing')
+        playerObject.animation.isMoving = animation !== 'idle'
+        playerObject.animation.isRunning = animation === 'running'
+      }
+    }
+
+  }
+
   update (/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
-    if (!this.entities[entity.id]) {
+    if (!this.entities[entity.id] && !entity.delete) {
       const group = new THREE.Group()
       let mesh
       if (entity.name === 'player') {
+        // CREATE NEW PLAYER ENTITY
         const wrapper = new THREE.Group()
         /** @type {PlayerObject & { animation?: PlayerAnimation }} */
         const playerObject = new PlayerObject()
@@ -209,16 +236,25 @@ export class Entities extends EventEmitter {
         const scale = 1 / 16
         wrapper.scale.set(scale, scale, scale)
 
+        if (entity.username) {
+          // todo proper colors
+          const nameTag = new NameTagObject(fromFormattedString(entity.username).text, {
+            font: `48px ${this.entitiesOptions.fontFamily}`,
+          })
+          nameTag.position.y = playerObject.position.y + playerObject.scale.y * 16 + 3
+          nameTag.renderOrder = 1000
+
+          //@ts-ignore
+          wrapper.add(nameTag)
+        }
+
         //@ts-ignore
         group.playerObject = playerObject
         wrapper.rotation.set(0, Math.PI, 0)
         mesh = wrapper
-        playerObject.animation = new IdleAnimation()
-        // setTimeout(() => {
-        //   playerObject.animation.switchAnimationCallback = () => {
-        //     playerObject.animation = new IdleAnimation()
-        //   }
-        // }, 1000)
+        playerObject.animation = new WalkingGeneralSwing()
+        //@ts-ignore
+        playerObject.animation.isMoving = false
       } else {
         mesh = getEntityMesh(entity, this.scene, this.entitiesOptions, overrides)
       }
@@ -245,18 +281,19 @@ export class Entities extends EventEmitter {
       this.emit('add', entity)
 
       if (entity.name === 'player') {
-        this.updatePlayerSkin(entity.id, stevePng)
+        this.updatePlayerSkin(entity.id, '', stevePng)
       }
       this.setDebugMode(this.debugMode, group)
     }
 
+    // this can be undefined in case where packet entity_destroy was sent twice (so it was already deleted)
     const e = this.entities[entity.id]
 
     if (entity.username) {
       e.username = entity.username
     }
 
-    if (e.playerObject && overrides?.rotation?.head) {
+    if (e?.playerObject && overrides?.rotation?.head) {
       /** @type {PlayerObject} */
       const playerObject = e.playerObject
       const headRotationDiff = overrides.rotation.head.y ? overrides.rotation.head.y - entity.yaw : 0
@@ -264,7 +301,7 @@ export class Entities extends EventEmitter {
       playerObject.skin.head.rotation.x = overrides.rotation.head.x ? - overrides.rotation.head.x : 0
     }
 
-    if (entity.delete) {
+    if (entity.delete && e) {
       this.emit('remove', entity)
       this.scene.remove(e)
       dispose3(e)

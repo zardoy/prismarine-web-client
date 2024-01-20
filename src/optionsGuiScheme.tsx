@@ -52,7 +52,8 @@ export const guiOptionsScheme: {
       },
       dayCycleAndLighting: {
         text: 'Day Cycle',
-      }
+      },
+      antiAliasing: {},
     },
   ],
   main: [

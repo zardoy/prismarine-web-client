@@ -26,24 +26,12 @@ export class Viewer {
   processEntityOverrides = (e, overrides) => overrides
   composer?: EffectComposer
   fxaaPass: ShaderPass
+  renderPass: RenderPass
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = true) {
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
     this.resetScene()
     if (this.enableFXAA) {
-      let renderTarget
-      if (this.renderer.capabilities.isWebGL2) {
-        // Use float precision depth if possible
-        // see https://github.com/bs-community/skinview3d/issues/111
-        renderTarget = new THREE.WebGLRenderTarget(0, 0, {
-          depthTexture: new THREE.DepthTexture(0, 0, THREE.FloatType),
-        })
-      }
-      this.composer = new EffectComposer(this.renderer, renderTarget)
-      const renderPass = new RenderPass(this.scene, this.camera)
-      this.composer.addPass(renderPass)
-      this.fxaaPass = new ShaderPass(FXAAShader)
-      this.composer.addPass(this.fxaaPass)
-      this.updateComposerSize()
+      this.enableFxaaScene()
     }
     this.world = new WorldRenderer(this.scene, numWorkers)
     this.entities = new Entities(this.scene)
@@ -52,8 +40,26 @@ export class Viewer {
     this.domElement = renderer.domElement
   }
 
+  enableFxaaScene () {
+    let renderTarget
+    if (this.renderer.capabilities.isWebGL2) {
+      // Use float precision depth if possible
+      // see https://github.com/bs-community/skinview3d/issues/111
+      renderTarget = new THREE.WebGLRenderTarget(0, 0, {
+        depthTexture: new THREE.DepthTexture(0, 0, THREE.FloatType),
+      })
+    }
+    this.composer = new EffectComposer(this.renderer, renderTarget)
+    this.renderPass = new RenderPass(this.scene, this.camera)
+    this.composer.addPass(this.renderPass)
+    this.fxaaPass = new ShaderPass(FXAAShader)
+    this.composer.addPass(this.fxaaPass)
+    this.updateComposerSize()
+    this.enableFXAA = true
+  }
+
   // todo
-  private updateComposerSize (): void {
+  updateComposerSize (): void {
     if (!this.composer) return
     const { width, height } = this.renderer.getSize(new THREE.Vector2())
     this.composer.setSize(width, height)
@@ -211,6 +217,7 @@ export class Viewer {
 
   render () {
     if (this.composer) {
+      this.renderPass.camera = this.camera
       this.composer.render()
     } else {
       this.renderer.render(this.scene, this.camera)
