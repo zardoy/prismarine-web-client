@@ -1,0 +1,63 @@
+:root {
+  --ui_font_size_text: 10px;
+
+  --ui_font_weight_bold: 900;
+
+  --ui_color_black: #000000;
+  --ui_color_dark_blue: #0000aa;
+  --ui_color_dark_green: #00aa00;
+  --ui_color_dark_aqua: #00aaaa;
+  --ui_color_dark_red: #aa0000;
+  --ui_color_dark_purple: #aa00aa;
+  --ui_color_gold: #ffaa00;
+  --ui_color_gray: #aaaaaa;
+  --ui_color_dark_gray: #555555;
+  --ui_color_blue: #5555ff;
+  --ui_color_green: #55ff55;
+  --ui_color_aqua: #55ffff;
+  --ui_color_red: #ff5555;
+  --ui_color_light_purple: #ff55ff;
+  --ui_color_yellow: #ffff55;
+  --ui_color_white: #ffffff;
+
+  --ui_color_shadow_black: #000000;
+  --ui_color_shadow_dark_blue: #00002a;
+  --ui_color_shadow_dark_green: #002a00;
+  --ui_color_shadow_dark_aqua: #002a2a;
+  --ui_color_shadow_dark_red: #2a0000;
+  --ui_color_shadow_dark_purple: #2a002a;
+  --ui_color_shadow_gray: #2a2a2a;
+  --ui_color_shadow_dark_gray: #151515;
+  --ui_color_shadow_blue: #15153f;
+  --ui_color_shadow_green: #153f15;
+  --ui_color_shadow_aqua: #153f3f;
+  --ui_color_shadow_red: #3f1515;
+  --ui_color_shadow_light_purple: #3f153f;
+  --ui_color_shadow_yellow: #3f3f15;
+  --ui_color_shadow_white: #3f3f3f;
+
+  /* Bedrock Edition */
+  --ui_color_minecoin_gold: #ddd605;
+  --ui_color_material_quartz: #e3d4d1;
+  --ui_color_material_iron: #cecaca;
+  --ui_color_material_netherite: #443a3b;
+  --ui_color_material_redstone: #971607;
+  --ui_color_material_copper: #b4684d;
+  --ui_color_material_gold: #deb12d;
+  --ui_color_material_emerald: #47a036;
+  --ui_color_material_diamond: #2cbaa8;
+  --ui_color_material_lapis: #21497b;
+  --ui_color_material_amethyst: #9a5cc6;
+
+  --ui_color_shadow_minecoin_gold: #373501;
+  --ui_color_shadow_material_quartz: #383534;
+  --ui_color_shadow_material_iron: #333232;
+  --ui_color_shadow_material_netherite: #110e0e;
+  --ui_color_shadow_material_redstone: #250501;
+  --ui_color_shadow_material_copper: #2d1a13;
+  --ui_color_shadow_material_gold: #372c0b;
+  --ui_color_shadow_material_emerald: #04280d;
+  --ui_color_shadow_material_diamond: #0b2e2a;
+  --ui_color_shadow_material_lapis: #08121e;
+  --ui_color_shadow_material_amethyst: #261731;
+}

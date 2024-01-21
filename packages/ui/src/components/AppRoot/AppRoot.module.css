@@ -1,0 +1,6 @@
+.root {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  font-family: minecraft, mojangles, monospace;
+}
