@@ -7,6 +7,7 @@ import './devtools'
 import './entities'
 import initCollisionShapes from './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
+import { supportedVersions } from 'minecraft-protocol'
 
 import './menus/components/button'
 import './menus/components/edit_box'
@@ -364,6 +365,12 @@ async function connect (connectOptions: {
     const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
+      // todo expose cache
+      const lastVersion = supportedVersions.at(-1)
+      if (version === lastVersion) {
+        // ignore cache hit
+        versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
+      }
       setLoadingScreenStatus(`Downloading data for ${version}`)
       await downloadSoundsIfNeeded()
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
@@ -449,11 +456,6 @@ async function connect (connectOptions: {
       respawn: options.autoRespawn,
       maxCatchupTicks: 0,
       async versionSelectedHook (client) {
-        // todo keep in sync with esbuild preload, expose cache ideally
-        if (client.version === '1.20.1') {
-          // ignore cache hit
-          versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']!++
-        }
         await downloadMcData(client.version)
         setLoadingScreenStatus(initialLoadingText)
       }
@@ -555,6 +557,7 @@ async function connect (connectOptions: {
 
   // don't use spawn event, player can be dead
   bot.once('health', () => {
+    errorAbortController.abort()
     const mcData = MinecraftData(bot.version)
     window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
     window.loadedData = mcData
@@ -725,7 +728,6 @@ async function connect (connectOptions: {
       hud.style.display = 'block'
     })
 
-    errorAbortController.abort()
     if (appStatusState.isError) return
     setLoadingScreenStatus(undefined)
     void viewer.waitForChunksToRender().then(() => {

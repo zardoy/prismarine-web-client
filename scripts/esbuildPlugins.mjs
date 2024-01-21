@@ -4,6 +4,10 @@ import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 import { join, dirname, basename } from 'path'
 import * as fs from 'fs'
 import { filesize } from 'filesize'
+import MCProtocol from 'minecraft-protocol'
+import MCData from 'minecraft-data'
+
+const { supportedVersions } = MCProtocol
 
 const prod = process.argv.includes('--prod')
 let connectedClients = []
@@ -23,15 +27,14 @@ const plugins = [
       build.onLoad({
         filter: /minecraft-data[\/\\]data.js$/,
       }, (args) => {
+        const version = supportedVersions.at(-1);
+        const data = MCData(version)
         const defaultVersionsObj = {
           // default protocol data, needed for auto-version
-          "1.20.1": {
-            version: {
-              "minecraftVersion": "1.20.1",
-              "version": 763,
-              "majorVersion": "1.20"
-            },
-            protocol: JSON.parse(fs.readFileSync(join(args.path, '..', 'minecraft-data/data/pc/1.20/protocol.json'), 'utf8')),
+          [version]: {
+            version: data.version,
+            // protocol: JSON.parse(fs.readFileSync(join(args.path, '..', 'minecraft-data/data/pc/1.20/protocol.json'), 'utf8')),
+            protocol: data.protocol,
           }
         }
         return {
