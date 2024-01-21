@@ -1,4 +1,4 @@
-import { adoptBlockOrItemNamesFromLatest } from 'flying-squid/src/blockRenames'
+import { adoptBlockOrItemNamesFromLatest } from 'flying-squid/dist/blockRenames'
 import collisionShapesInit from '../generated/latestBlockCollisionsShapes.json'
 import outputInteractionShapesJson from './interactionShapesGenerated.json'
 

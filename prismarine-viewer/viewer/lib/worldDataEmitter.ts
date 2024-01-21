@@ -1,7 +1,7 @@
 import { chunkPos } from './simpleUtils'
 
 // todo refactor into its own commons module
-import { generateSpiralMatrix, ViewRect } from 'flying-squid/src/utils'
+import { generateSpiralMatrix, ViewRect } from 'flying-squid/dist/utils'
 import { Vec3 } from 'vec3'
 import { EventEmitter } from 'events'
 import { BotEvents } from 'mineflayer'

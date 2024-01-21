@@ -1,6 +1,6 @@
 import { LocalServer } from './customServer'
 
-const { createMCServer } = require('flying-squid/src')
+const { createMCServer } = require('flying-squid/dist')
 
 export const startLocalServer = (serverOptions) => {
   const passOptions = { ...serverOptions, Server: LocalServer }
