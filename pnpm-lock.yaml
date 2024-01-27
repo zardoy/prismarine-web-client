@@ -73,8 +73,8 @@ importers:
         specifier: ^4.18.2
         version: 4.18.2
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.3
-        version: /@zardoy/flying-squid@0.0.3
+        specifier: npm:@zardoy/flying-squid@^0.0.4
+        version: /@zardoy/flying-squid@0.0.4
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -235,7 +235,7 @@ importers:
         version: github.com/zardoy/minecraft-inventory-gui/69003692b3041d94a420a65c7d3cc1b37737e838(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:PrismarineJS/mineflayer
-        version: github.com/PrismarineJS/mineflayer/298d4425424f94907c5602bfd6011ee6030b5ae2
+        version: github.com/PrismarineJS/mineflayer/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -5155,7 +5155,7 @@ packages:
     resolution: {integrity: sha512-Km7XAtUIduROw7QPgvcft0lIupeG8a8rdKL8RiSyKvlE7dYY31fEn41HVuQsRFDuROA8tA4K2UVL+WdfFmErBA==}
     requiresBuild: true
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 20.8.10
     optional: true
 
   /@typescript-eslint/eslint-plugin@6.1.0(@typescript-eslint/parser@6.7.3)(eslint@8.50.0)(typescript@5.2.2):
@@ -5490,8 +5490,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@zardoy/flying-squid@0.0.3:
-    resolution: {integrity: sha512-nMsIg3B2XOg8eR+pCmMr8tEWr9mM8uetop9IKfw/VFTDYKuD8fAqStasFWpqQAEZNZ2obrWfyKmdr0dC2MpdeQ==}
+  /@zardoy/flying-squid@0.0.4:
+    resolution: {integrity: sha512-HxJ8fl+hKUj3HPJkN+gB0U/mDXc2hTY8kyR07OeYTrXk/3K97MOMFL5Q7S61Ux6cY8QoRgCAFj1uz7phWFeImg==}
     engines: {node: '>=8'}
     hasBin: true
     dependencies:
@@ -11808,7 +11808,7 @@ packages:
     dependencies:
       mojangson: 2.0.4
       prismarine-item: 1.14.0
-      prismarine-nbt: 2.2.1
+      prismarine-nbt: 2.5.0
       prismarine-registry: 1.7.0
 
   /prismarine-chunk@1.35.0(minecraft-data@3.58.0):
@@ -11837,7 +11837,7 @@ packages:
   /prismarine-item@1.14.0:
     resolution: {integrity: sha512-udQHYGJ05klFe8Kkc0TOmwoXj5Xl1ZPgHVoMbGUAFB9exN4TFxEa1A39vkSYhxP5Et9PNufQQvFBFVom0nXikA==}
     dependencies:
-      prismarine-nbt: 2.2.1
+      prismarine-nbt: 2.5.0
       prismarine-registry: 1.7.0
 
   /prismarine-nbt@2.2.1:
@@ -11854,7 +11854,7 @@ packages:
     resolution: {integrity: sha512-gbM+S+bmVtOKVv+Z0WGaHMeEeBHISIDsRDRlv8sr0dex3ZJRhuq8djA02CBreguXtI18ZKh6q3TSj2qDr45NHA==}
     dependencies:
       minecraft-data: 3.58.0
-      prismarine-nbt: 2.2.1
+      prismarine-nbt: 2.5.0
       vec3: 0.1.8
     dev: true
 
@@ -11879,7 +11879,7 @@ packages:
     resolution: {integrity: sha512-yyva0FpWI078nNeMhx8ekVza5uUTYhEv+C+ADu3wUQXiG8qhXkvrf0uzsnhTgZL8BLdsi2axgCEiKw9qSKIuxQ==}
     dependencies:
       minecraft-data: 3.58.0
-      prismarine-nbt: 2.2.1
+      prismarine-nbt: 2.5.0
 
   /prismarine-schematic@1.2.3:
     resolution: {integrity: sha512-Mwpn43vEHhm3aw3cPhJjWqztkW+nX+QLajDHlTask8lEOTGl1WmpvFja4iwiws4GIvaC8x0Foptf4uvDsnjrAg==}
@@ -14006,6 +14006,7 @@ packages:
 
   /undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
+    requiresBuild: true
 
   /undici@5.25.4:
     resolution: {integrity: sha512-450yJxT29qKMf3aoudzFpIciqpx6Pji3hEWaXqXmanbXF58LTAGCKxcJjxMXWu3iG+Mudgo3ZUfDB6YDFd/dAw==}
@@ -15026,8 +15027,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  github.com/PrismarineJS/mineflayer/298d4425424f94907c5602bfd6011ee6030b5ae2:
-    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/298d4425424f94907c5602bfd6011ee6030b5ae2}
+  github.com/PrismarineJS/mineflayer/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d:
+    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d}
     name: mineflayer
     version: 4.17.0
     engines: {node: '>=18'}
