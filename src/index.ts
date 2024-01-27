@@ -520,7 +520,7 @@ async function connect (connectOptions: {
     destroyAll()
   })
 
-  let lastPacket
+  let lastPacket = undefined as string | undefined
   const packetBeforePlay = (_, __, ___, fullBuffer) => {
     lastPacket = fullBuffer.toString()
   }
