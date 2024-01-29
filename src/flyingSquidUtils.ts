@@ -18,12 +18,14 @@ export function nameToMcOfflineUUID (name) {
 }
 
 export async function savePlayers () {
+  //@ts-expect-error TODO
   await localServer!.savePlayersSingleplayer()
 }
 
 // todo flying squid should expose save function instead
 export const saveServer = async () => {
   if (!localServer || fsState.isReadonly) return
-  const worlds = [localServer.overworld] as Array<import('prismarine-world').world.World>
+  // todo
+  const worlds = [(localServer as any).overworld] as Array<import('prismarine-world').world.World>
   await Promise.all([savePlayers(), ...worlds.map(async world => world.saveNow())])
 }
