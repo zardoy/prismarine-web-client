@@ -555,8 +555,9 @@ async function connect (connectOptions: {
     setLoadingScreenStatus('Loading world')
   })
 
+  const spawnEarlier = true
   // don't use spawn event, player can be dead
-  bot.once('health', () => {
+  bot.once(spawnEarlier ? 'forcedMove' : 'health', () => {
     errorAbortController.abort()
     const mcData = MinecraftData(bot.version)
     window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
