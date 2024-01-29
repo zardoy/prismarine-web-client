@@ -235,7 +235,7 @@ importers:
         version: github.com/zardoy/minecraft-inventory-gui/69003692b3041d94a420a65c7d3cc1b37737e838(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:PrismarineJS/mineflayer
-        version: github.com/PrismarineJS/mineflayer/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d
+        version: github.com/PrismarineJS/mineflayer/cc98f1307e3ab48477d2a9ff29da4447f42b30bc
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -15027,8 +15027,8 @@ packages:
       react: 18.2.0
     dev: false
 
-  github.com/PrismarineJS/mineflayer/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d:
-    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/5c71edf48bb2f2dfa16cddb9af5baa0c4d55cf0d}
+  github.com/PrismarineJS/mineflayer/cc98f1307e3ab48477d2a9ff29da4447f42b30bc:
+    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/cc98f1307e3ab48477d2a9ff29da4447f42b30bc}
     name: mineflayer
     version: 4.17.0
     engines: {node: '>=18'}
