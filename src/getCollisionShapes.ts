@@ -22,6 +22,7 @@ export default () => {
       ...outputInteractionShapesJson,
       ...Object.fromEntries(Object.entries(outputInteractionShapesJson).map(([block, shape], i) => [renamedBlocksInteraction[i], shape]))
     }
+    interactionShapes[''] = interactionShapes['air']
     // todo make earlier
     window.interactionShapes = interactionShapes
   })

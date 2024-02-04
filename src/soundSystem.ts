@@ -140,6 +140,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
 
   let lastStepSound = 0
   const movementHappening = async () => {
+    if (!bot.player) return // no info yet
     const VELOCITY_THRESHOLD = 0.1
     const { x, z, y } = bot.player.entity.velocity
     if (bot.entity.onGround && Math.abs(x) < VELOCITY_THRESHOLD && (Math.abs(z) > VELOCITY_THRESHOLD || Math.abs(y) > VELOCITY_THRESHOLD)) {

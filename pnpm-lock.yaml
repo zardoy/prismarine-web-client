@@ -73,8 +73,8 @@ importers:
         specifier: ^4.18.2
         version: 4.18.2
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.4
-        version: /@zardoy/flying-squid@0.0.4
+        specifier: npm:@zardoy/flying-squid@^0.0.5
+        version: /@zardoy/flying-squid@0.0.5
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -5490,8 +5490,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@zardoy/flying-squid@0.0.4:
-    resolution: {integrity: sha512-HxJ8fl+hKUj3HPJkN+gB0U/mDXc2hTY8kyR07OeYTrXk/3K97MOMFL5Q7S61Ux6cY8QoRgCAFj1uz7phWFeImg==}
+  /@zardoy/flying-squid@0.0.5:
+    resolution: {integrity: sha512-c9tWJ7lnGgnLAonM1/o36Myz2hhNb+aa5VuNMtyhMYWvuiSXnec7tZFHRQ8FKBot6fku3tSK4TGPs7Fwh3qMpw==}
     engines: {node: '>=8'}
     hasBin: true
     dependencies:
