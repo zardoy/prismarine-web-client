@@ -5497,7 +5497,7 @@ packages:
     dependencies:
       change-case: 4.1.2
       colors: 1.4.0
-      diamond-square: github.com/zardoy/diamond-square/94d1cf761fc2de8c3a24a75e4bec434ec4365f73
+      diamond-square: github.com/zardoy/diamond-square/789d7090748ddcae22bb89908db15ba448bdfbb0
       emit-then: 2.0.0
       event-promise: 0.0.1
       exit-hook: 2.2.1
@@ -15070,8 +15070,8 @@ packages:
       async: 2.6.4
     dev: false
 
-  github.com/zardoy/diamond-square/94d1cf761fc2de8c3a24a75e4bec434ec4365f73:
-    resolution: {tarball: https://codeload.github.com/zardoy/diamond-square/tar.gz/94d1cf761fc2de8c3a24a75e4bec434ec4365f73}
+  github.com/zardoy/diamond-square/789d7090748ddcae22bb89908db15ba448bdfbb0:
+    resolution: {tarball: https://codeload.github.com/zardoy/diamond-square/tar.gz/789d7090748ddcae22bb89908db15ba448bdfbb0}
     name: diamond-square
     version: 1.3.0
     dependencies:
