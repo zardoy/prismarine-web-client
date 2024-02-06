@@ -792,6 +792,16 @@ document.body.addEventListener('touchstart', (e) => {
 }, { passive: false })
 // #endregion
 
+void window.fetch('config.json').then(async res => res.json()).then(c => c, (error) => {
+  console.warn('Failed to load optional app config.json', error)
+  return {}
+}).then((config) => {
+  miscUiState.appConfig = config
+})
+
+// eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+; (document.querySelector('.initial-loader') as HTMLElement).style.opacity = '0'
+
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
 

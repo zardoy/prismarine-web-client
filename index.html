@@ -4,7 +4,7 @@
     <script>
       window.startLoad = Date.now()
     </script>
-    <script type="module">
+    <script type="module" async>
       const checkLoadEruda = () => {
         if (window.location.hash === '#dev') {
           // todo precache (check offline)?
@@ -19,7 +19,40 @@
           checkLoadEruda()
         })
       })
+      const loadingDiv = `
+      <div class="initial-loader" style="position: fixed;transition:opacity 0.2s;inset: 0;background:black;display: flex;justify-content: center;align-items: center;font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', Arial, Helvetica, sans-serif;gap: 15px;" ontransitionend="this.remove()">
+    <div>
+        <img src="./loading-bg.jpg" alt="Prismarine Web Client" style="position:fixed;inset:0;width:100%;height:100%;z-index: -2;object-fit: cover;filter: blur(3px);">
+        <div style="position: fixed;inset: 0;z-index: -1;background-color: rgba(0, 0, 0, 0.8);"></div>
+    </div>
+    <div>
+        <div style="font-size: calc(var(--font-size) * 1.8);color: lightgray;">Loading...</div>
+        <div style="font-size: var(--font-size);color: rgb(176, 176, 176);">A true Minecraft client in your browser!</div>
+    </div>
+</div>
+`
+      const loadingDivElem = document.createElement('div')
+      loadingDivElem.innerHTML = loadingDiv
+      document.documentElement.appendChild(loadingDivElem)
     </script>
+    <style>
+      html {
+        background: black;
+      }
+      .initial-loader {
+          --font-size: 20px;
+      }
+      @media screen and (min-width: 550px) {
+          .initial-loader {
+              --font-size: 30px;
+          }
+      }
+      @media screen and (min-width: 950px) {
+          .initial-loader {
+              --font-size: 50px;
+          }
+      }
+    </style>
     <title>Prismarine Web Client</title>
     <link rel="stylesheet" href="index.css">
     <link rel="favicon" href="favicon.ico">
