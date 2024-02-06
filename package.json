@@ -29,6 +29,7 @@
   "dependencies": {
     "@dimaka/interface": "0.0.3-alpha.0",
     "@floating-ui/react": "^0.26.1",
+    "@mui/base": "5.0.0-beta.34",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/wicg-file-system-access": "^2023.10.2",
@@ -45,7 +46,7 @@
     "esbuild": "^0.19.3",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.5",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.6",
     "fs-extra": "^11.1.1",
     "iconify-icon": "^1.0.8",
     "jszip": "^3.10.1",
