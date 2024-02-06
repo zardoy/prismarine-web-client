@@ -85,7 +85,7 @@ export class World {
 
     const block = this.blockCache[stateId]
     block.position = loc
-    block.biome = this.biomeCache[column.getBiome(locInChunk)]
+    block.biome = this.biomeCache[column.getBiome(locInChunk)] ?? this.biomeCache[1] ?? this.biomeCache[0]
     if (block.name === 'redstone_ore') block.transparent = false
     return block
   }
