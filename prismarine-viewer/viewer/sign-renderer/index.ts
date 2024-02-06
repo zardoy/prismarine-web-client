@@ -33,20 +33,26 @@ const parseSafe = (text: string, task: string) => {
 }
 
 export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof ChatMessage, ctxHook = (ctx) => { }) => {
-    const canvas = document.createElement('canvas')
-
     const factor = 50
     const signboardY = [16, 9]
     const heightOffset = signboardY[0] - signboardY[1]
     const heightScalar = heightOffset / 16
 
-    canvas.width = 16 * factor
-    canvas.height = heightOffset * factor
+    let canvas: HTMLCanvasElement | undefined
+    let _ctx: CanvasRenderingContext2D | null = null
+    const getCtx = () => {
+        if (_ctx) return _ctx
+        canvas = document.createElement('canvas')
 
-    const ctx = canvas.getContext('2d')!
-    ctx.imageSmoothingEnabled = false
+        canvas.width = 16 * factor
+        canvas.height = heightOffset * factor
 
-    ctxHook(ctx)
+        _ctx = canvas.getContext('2d')!
+        _ctx.imageSmoothingEnabled = false
+
+        ctxHook(_ctx)
+        return _ctx
+    }
 
     const texts = 'front_text' in blockEntity ? /* > 1.20 */ blockEntity.front_text.messages : [
         blockEntity.Text1,
@@ -104,8 +110,13 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
                 if (stop) return false
             }
         }
+
         renderText(rendered)
 
+        // skip rendering empty lines (and possible signs)
+        if (!plainText.trim()) continue
+
+        const ctx = getCtx()
         const fontSize = 1.6 * factor;
         ctx.font = `${fontSize}px mojangles`
         const textWidth = ctx.measureText(plainText).width
@@ -115,7 +126,7 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
             // todo strikeStyle, underlineStyle
             ctx.fillStyle = fillStyle
             ctx.font = `${fontStyle} ${fontSize}px mojangles`
-            ctx.fillText(text, (canvas.width - textWidth) / 2 + renderedWidth, fontSize * (lineNum + 1))
+            ctx.fillText(text, (canvas!.width - textWidth) / 2 + renderedWidth, fontSize * (lineNum + 1))
             renderedWidth += ctx.measureText(text).width // todo isn't the font is monospace?
         }
     }

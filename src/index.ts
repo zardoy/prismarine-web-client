@@ -371,6 +371,10 @@ async function connect (connectOptions: {
         // ignore cache hit
         versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
       }
+      if (!document.fonts.check('1em mojangles')) {
+        // todo instead re-render signs on load
+        await document.fonts.load('1em mojangles').catch(() => { })
+      }
       setLoadingScreenStatus(`Downloading data for ${version}`)
       await downloadSoundsIfNeeded()
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
@@ -555,7 +559,7 @@ async function connect (connectOptions: {
     setLoadingScreenStatus('Loading world')
   })
 
-  const spawnEarlier = true
+  const spawnEarlier = !singleplayer && !p2pMultiplayer
   // don't use spawn event, player can be dead
   bot.once(spawnEarlier ? 'forcedMove' : 'health', () => {
     errorAbortController.abort()
@@ -797,10 +801,10 @@ void window.fetch('config.json').then(async res => res.json()).then(c => c, (err
   return {}
 }).then((config) => {
   miscUiState.appConfig = config
-})
+});
 
 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-; (document.querySelector('.initial-loader') as HTMLElement).style.opacity = '0'
+(document.querySelector('.initial-loader') as HTMLElement).style.opacity = '0'
 
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return

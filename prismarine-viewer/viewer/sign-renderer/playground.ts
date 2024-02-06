@@ -23,4 +23,8 @@ const canvas = renderSign(blockEntity, PrismarineChat, (ctx) => {
   ctx.drawImage(img, 0, 0, ctx.canvas.width, ctx.canvas.height)
 })
 
-document.body.appendChild(canvas)
+if (canvas) {
+  document.body.appendChild(canvas)
+} else {
+  console.log('Render skipped')
+}

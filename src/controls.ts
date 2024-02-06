@@ -12,6 +12,8 @@ import { options } from './optionsStorage'
 import { openPlayerInventory } from './playerWindows'
 import { chatInputValueGlobal } from './react/ChatContainer'
 import { fsState } from './loadSave'
+import { showOptionsModal } from './react/SelectOption'
+import widgets from './react/widgets'
 
 // doesnt seem to work for now
 const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
@@ -290,6 +292,17 @@ export const f3Keybinds = [
       viewer.world.updateShowChunksBorder(options.showChunkBorders)
     },
     mobileTitle: 'Toggle chunk borders',
+  },
+  {
+    key: 'KeyT',
+    async action () {
+      // waypoints
+      const widgetNames = widgets.map(widget => widget.name)
+      const widget = await showOptionsModal('Open Widget', widgetNames)
+      if (!widget) return
+      showModal({ reactType: `widget-${widget}` })
+    },
+    mobileTitle: 'Open Widget'
   }
 ]
 
