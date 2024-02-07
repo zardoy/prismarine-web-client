@@ -33,7 +33,9 @@ const parseSafe = (text: string, task: string) => {
 }
 
 export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof ChatMessage, ctxHook = (ctx) => { }) => {
-    const factor = 50
+    // todo don't use texture rendering, investigate the font rendering when possible
+    // or increase factor when needed
+    const factor = 40
     const signboardY = [16, 9]
     const heightOffset = signboardY[0] - signboardY[1]
     const heightScalar = heightOffset / 16
