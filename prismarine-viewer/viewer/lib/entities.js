@@ -80,6 +80,7 @@ export class Entities extends EventEmitter {
     this.debugMode = 'none'
     this.onSkinUpdate = () => { }
     this.clock = new THREE.Clock()
+    this.visible = true
   }
 
   clear () {
@@ -99,6 +100,13 @@ export class Entities extends EventEmitter {
         boxHelper.visible = true
       }
       // todo advanced
+    }
+  }
+
+  setVisible(visible, /** @type {THREE.Object3D?} */entity = null) {
+    this.visible = visible
+    for (const mesh of entity ? [entity] : Object.values(this.entities)) {
+      mesh.visible = visible
     }
   }
 
@@ -284,6 +292,7 @@ export class Entities extends EventEmitter {
         this.updatePlayerSkin(entity.id, '', stevePng)
       }
       this.setDebugMode(this.debugMode, group)
+      this.setVisible(this.visible, group)
     }
 
     // this can be undefined in case where packet entity_destroy was sent twice (so it was already deleted)

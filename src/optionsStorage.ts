@@ -53,6 +53,7 @@ const defaultOptions = {
   askGuestName: true,
   /** Actually might be useful */
   showCursorBlockInSpectator: false,
+  renderEntities: true,
 
   // advanced bot options
   autoRespawn: false,

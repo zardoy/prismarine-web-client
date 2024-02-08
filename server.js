@@ -60,7 +60,7 @@ const server = isProd ?
       }
       if (netInterface) {
         const address = netInterface.ip4
-        console.log(`You can access the server on http://localhost:8080 or http://${address}:${port}`)
+        console.log(`You can access the server on http://localhost:${port} or http://${address}:${port}`)
       }
     }
   })

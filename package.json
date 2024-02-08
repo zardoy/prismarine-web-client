@@ -29,6 +29,7 @@
   "dependencies": {
     "@dimaka/interface": "0.0.3-alpha.0",
     "@floating-ui/react": "^0.26.1",
+    "@mui/base": "5.0.0-beta.34",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/wicg-file-system-access": "^2023.10.2",
@@ -45,14 +46,14 @@
     "esbuild": "^0.19.3",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
-    "flying-squid": "github:zardoy/space-squid#everything",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.9",
     "fs-extra": "^11.1.1",
     "iconify-icon": "^1.0.8",
     "jszip": "^3.10.1",
     "lit": "^2.8.0",
     "lodash-es": "^4.17.21",
     "minecraft-assets": "^1.12.2",
-    "minecraft-data": "3.58.0",
+    "minecraft-data": "3.60.0",
     "net-browserify": "github:zardoy/prismarinejs-net-browserify",
     "node-gzip": "^1.1.2",
     "peerjs": "^1.5.0",
@@ -126,9 +127,9 @@
       "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
       "prismarine-world": "github:zardoy/prismarine-world#next-era",
-      "minecraft-data": "3.58.0",
+      "minecraft-data": "3.60.0",
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
-      "minecraft-protocol": "github:zardoy/minecraft-protocol#custom-client-extra",
+      "minecraft-protocol": "github:zardoy/minecraft-protocol#everything",
       "react": "^18.2.0"
     }
   }

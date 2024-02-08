@@ -1,8 +1,8 @@
 //@ts-check
 const { LitElement, html, css } = require('lit')
 const viewerSupportedVersions = require('prismarine-viewer/viewer/supportedVersions.json')
+const { supportedVersions } = require('minecraft-protocol')
 const { hideCurrentModal, miscUiState } = require('../globalState')
-const { default: supportedVersions } = require('../supportedVersions.mjs')
 const { commonCss } = require('./components/common')
 
 const fullySupporedVersions = viewerSupportedVersions

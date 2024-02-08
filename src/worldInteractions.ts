@@ -189,8 +189,14 @@ class WorldInteraction {
           //@ts-expect-error todo
           bot._placeBlockWithOptions(cursorBlock, vecArray[cursorBlock.face], { delta, forceLook: 'ignore' }).catch(console.warn)
         } else {
+          // https://discord.com/channels/413438066984747026/413438150594265099/1198724637572477098
+          const oldLookAt = bot.lookAt
           //@ts-expect-error
-          bot.activateBlock(cursorBlock, vecArray[cursorBlock.face], delta).catch(console.warn)
+          bot.lookAt = (pos) => { }
+          //@ts-expect-error
+          bot.activateBlock(cursorBlock, vecArray[cursorBlock.face], delta).finally(() => {
+            bot.lookAt = oldLookAt
+          }).catch(console.warn)
         }
         this.lastBlockPlaced = 0
       } else {

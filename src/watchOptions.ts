@@ -29,4 +29,8 @@ export const watchOptionsAfterViewerInit = () => {
       viewer.composer = undefined
     }
   })
+
+  watchValue(options, o => {
+    viewer.entities.setVisible(o.renderEntities)
+  })
 }

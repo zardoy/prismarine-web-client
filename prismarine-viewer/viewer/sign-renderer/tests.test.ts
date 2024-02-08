@@ -23,7 +23,7 @@ global.document = {
 const render = (entity) => {
   ctxTexts = []
   renderSign(entity, PrismarineChat)
-  return ctxTexts.map(({ text, y }) => [y / 80, text])
+  return ctxTexts.map(({ text, y }) => [y / 64, text])
 }
 
 test('sign renderer', () => {
@@ -48,18 +48,6 @@ test('sign renderer', () => {
       [
         1,
         "Tools",
-      ],
-      [
-        2,
-        "",
-      ],
-      [
-        3,
-        "",
-      ],
-      [
-        4,
-        "",
       ],
     ]
   `)

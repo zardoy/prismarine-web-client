@@ -1,4 +1,4 @@
-import { supportedVersions } from 'flying-squid/src/lib/version'
+import { supportedVersions } from 'flying-squid/dist/lib/version'
 import { hideCurrentModal, showModal } from '../globalState'
 import defaultLocalServerOptions from '../defaultLocalServerOptions'
 import { mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'

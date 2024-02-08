@@ -6,6 +6,10 @@ export const useIsModalActive = (modal: string) => {
   return useSnapshot(activeModalStack).at(-1)?.reactType === modal
 }
 
+export const useIsWidgetActive = (name: string) => {
+  return useIsModalActive(`widget-${name}`)
+}
+
 export function useDidUpdateEffect (fn, inputs) {
   const isMountingRef = useRef(false)
 

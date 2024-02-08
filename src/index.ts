@@ -7,6 +7,7 @@ import './devtools'
 import './entities'
 import initCollisionShapes from './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
+import { supportedVersions } from 'minecraft-protocol'
 
 import './menus/components/button'
 import './menus/components/edit_box'
@@ -364,6 +365,16 @@ async function connect (connectOptions: {
     const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
+      // todo expose cache
+      const lastVersion = supportedVersions.at(-1)
+      if (version === lastVersion) {
+        // ignore cache hit
+        versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
+      }
+      if (!document.fonts.check('1em mojangles')) {
+        // todo instead re-render signs on load
+        await document.fonts.load('1em mojangles').catch(() => { })
+      }
       setLoadingScreenStatus(`Downloading data for ${version}`)
       await downloadSoundsIfNeeded()
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
@@ -449,11 +460,6 @@ async function connect (connectOptions: {
       respawn: options.autoRespawn,
       maxCatchupTicks: 0,
       async versionSelectedHook (client) {
-        // todo keep in sync with esbuild preload, expose cache ideally
-        if (client.version === '1.20.1') {
-          // ignore cache hit
-          versionsByMinecraftVersion.pc['1.20.1']!['dataVersion']!++
-        }
         await downloadMcData(client.version)
         setLoadingScreenStatus(initialLoadingText)
       }
@@ -518,7 +524,7 @@ async function connect (connectOptions: {
     destroyAll()
   })
 
-  let lastPacket
+  let lastPacket = undefined as string | undefined
   const packetBeforePlay = (_, __, ___, fullBuffer) => {
     lastPacket = fullBuffer.toString()
   }
@@ -553,8 +559,10 @@ async function connect (connectOptions: {
     setLoadingScreenStatus('Loading world')
   })
 
+  const spawnEarlier = !singleplayer && !p2pMultiplayer
   // don't use spawn event, player can be dead
-  bot.once('health', () => {
+  bot.once(spawnEarlier ? 'forcedMove' : 'health', () => {
+    errorAbortController.abort()
     const mcData = MinecraftData(bot.version)
     window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
     window.loadedData = mcData
@@ -725,7 +733,6 @@ async function connect (connectOptions: {
       hud.style.display = 'block'
     })
 
-    errorAbortController.abort()
     if (appStatusState.isError) return
     setLoadingScreenStatus(undefined)
     void viewer.waitForChunksToRender().then(() => {
@@ -789,6 +796,13 @@ document.body.addEventListener('touchstart', (e) => {
 }, { passive: false })
 // #endregion
 
+void window.fetch('config.json').then(async res => res.json()).then(c => c, (error) => {
+  console.warn('Failed to load optional app config.json', error)
+  return {}
+}).then((config) => {
+  miscUiState.appConfig = config
+})
+
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
 
@@ -814,3 +828,10 @@ downloadAndOpenFile().then((downloadAction) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)
 })
+
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+const initialLoader = document.querySelector('.initial-loader') as HTMLElement | null
+if (initialLoader) {
+  initialLoader.style.opacity = '0'
+  window.pageLoaded = true
+}

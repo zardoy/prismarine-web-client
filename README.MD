@@ -1,5 +1,7 @@
 # Minecraft Web Client
 
+![banner](./docs-assets/banner.jpg)
+
 A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
 
 This project is a work in progress, but I consider it to be usable. If you encounter any bugs or usability issues, please report them!

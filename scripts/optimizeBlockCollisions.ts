@@ -47,6 +47,7 @@ for (const version of [...supportedVersions].reverse()) {
   if (fs.existsSync(dataPath)) {
     console.log('using blockCollisionShapes of version', version)
     const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'))
+    data.version = version
     processData(data)
     fs.writeFileSync('./generated/latestBlockCollisionsShapes.json', JSON.stringify(data), 'utf8')
     break

@@ -7,7 +7,7 @@ import Button from './Button'
 import styles from './createWorld.module.css'
 
 // const worldTypes = ['default', 'flat', 'largeBiomes', 'amplified', 'customized', 'buffet', 'debug_all_block_states']
-const worldTypes = ['plains', 'flat'/* , 'void' */]
+const worldTypes = ['default', 'flat'/* , 'void' */]
 
 export const creatingWorldState = proxy({
   title: '',

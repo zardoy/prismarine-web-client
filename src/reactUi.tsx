@@ -16,6 +16,8 @@ import EnterFullscreenButton from './react/EnterFullscreenButton'
 import ChatProvider from './react/ChatProvider'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
+import widgets from './react/widgets'
+import { useIsWidgetActive } from './react/utils'
 
 const Portal = ({ children, to }) => {
   return createPortal(children, to)
@@ -65,11 +67,23 @@ const InGameUi = () => {
   </>
 }
 
+const AllWidgets = () => {
+  return widgets.map(widget => <WidgetDisplay key={widget.name} name={widget.name} Component={widget.default} />)
+}
+
+const WidgetDisplay = ({ name, Component }) => {
+  const isWidgetActive = useIsWidgetActive(name)
+  if (!isWidgetActive) return null
+
+  return <Component />
+}
+
 const App = () => {
   return <div>
     <EnterFullscreenButton />
     <InGameUi />
     <Portal to={document.querySelector('#ui-root')}>
+      <AllWidgets />
       <SingleplayerProvider />
       <CreateWorldProvider />
       <AppStatusProvider />

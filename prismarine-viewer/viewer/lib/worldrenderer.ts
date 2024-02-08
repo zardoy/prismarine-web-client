@@ -24,6 +24,7 @@ export class WorldRenderer {
   showChunkBorders = false
   active = false
   version = undefined as string | undefined
+  chunkTextures = new Map<string, { [pos: string]: THREE.Texture }>()
   loadedChunks = {}
   sectionsOutstanding = new Set()
   renderUpdateEmitter = new EventEmitter()
@@ -106,7 +107,9 @@ export class WorldRenderer {
               const [x, y, z] = posKey.split(',')
               const signBlockEntity = this.blockEntities[posKey]
               if (!signBlockEntity) continue
-              object.add(this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity)))
+              const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity));
+              if (!sign) continue
+              object.add(sign)
             }
           }
           this.sectionObjects[data.key] = object
@@ -142,13 +145,43 @@ export class WorldRenderer {
     }
   }
 
-  renderSign (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
+  signsCache = new Map<string, any>()
+
+  getSignTexture (position: Vec3, blockEntity, backSide = false) {
+    const chunk = chunkPos(position)
+    let textures = this.chunkTextures.get(`${chunk[0]},${chunk[1]}`)
+    if (!textures) {
+      textures = {}
+      this.chunkTextures.set(`${chunk[0]},${chunk[1]}`, textures)
+    }
+    const texturekey = `${position.x},${position.y},${position.z}`;
+    // todo investigate bug and remove this so don't need to clean in section dirty
+    if (textures[texturekey]) return textures[texturekey]
+
     const PrismarineChat = PrismarineChatLoader(this.version!)
     const canvas = renderSign(blockEntity, PrismarineChat)
+    if (!canvas) return
     const tex = new THREE.Texture(canvas)
     tex.magFilter = THREE.NearestFilter
     tex.minFilter = THREE.NearestFilter
     tex.needsUpdate = true
+    textures[texturekey] = tex
+    return tex
+  }
+
+  renderSign (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
+    const tex = this.getSignTexture(position, blockEntity)
+
+    if (!tex) return
+
+    // todo implement
+    // const key = JSON.stringify({ position, rotation, isWall })
+    // if (this.signsCache.has(key)) {
+    //   console.log('cached', key)
+    // } else {
+    //   this.signsCache.set(key, tex)
+    // }
+
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, }))
     mesh.renderOrder = 999
 
@@ -266,7 +299,17 @@ export class WorldRenderer {
     }
   }
 
+  cleanChunkTextures (x, z) {
+    const textures = this.chunkTextures.get(`${Math.floor(x / 16)},${Math.floor(z / 16)}`) ?? {}
+    for (const key of Object.keys(textures)) {
+      textures[key].dispose()
+      delete textures[key]
+    }
+  }
+
   removeColumn (x, z) {
+    this.cleanChunkTextures(x, z)
+
     delete this.loadedChunks[`${x},${z}`]
     for (const worker of this.workers) {
       worker.postMessage({ type: 'unloadChunk', x, z })
@@ -297,6 +340,7 @@ export class WorldRenderer {
   }
 
   setSectionDirty (pos, value = true) {
+    this.cleanChunkTextures(pos.x, pos.z) // todo don't do this!
     // Dispatch sections to workers based on position
     // This guarantees uniformity accross workers and that a given section
     // is always dispatched to the same worker
