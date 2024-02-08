@@ -801,10 +801,7 @@ void window.fetch('config.json').then(async res => res.json()).then(c => c, (err
   return {}
 }).then((config) => {
   miscUiState.appConfig = config
-});
-
-// eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-(document.querySelector('.initial-loader') as HTMLElement).style.opacity = '0'
+})
 
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
@@ -831,3 +828,10 @@ downloadAndOpenFile().then((downloadAction) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)
 })
+
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+const initialLoader = document.querySelector('.initial-loader') as HTMLElement | null
+if (initialLoader) {
+  initialLoader.style.opacity = '0'
+  window.pageLoaded = true
+}
