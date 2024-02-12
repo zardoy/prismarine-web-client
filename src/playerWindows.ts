@@ -9,7 +9,7 @@ import DispenserGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/cont
 
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
 import { subscribeKey } from 'valtio/utils'
-import MinecraftData from 'minecraft-data'
+import MinecraftData, { RecipeItem } from 'minecraft-data'
 import { getVersion } from 'prismarine-viewer/viewer/lib/version'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import itemsPng from 'prismarine-viewer/public/textures/items.png'
@@ -20,6 +20,8 @@ import PrismarineBlockLoader from 'prismarine-block'
 import { flat } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import nbt from 'prismarine-nbt'
+import { splitEvery, equals } from 'rambda'
+import PItem, { Item } from 'prismarine-item'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
@@ -53,6 +55,7 @@ let lastWindow
 /** bot version */
 let version: string
 let PrismarineBlock: typeof PrismarineBlockLoader.Block
+let PrismarineItem: typeof Item
 
 export const onGameLoad = (onLoad) => {
   let loaded = 0
@@ -65,6 +68,7 @@ export const onGameLoad = (onLoad) => {
   getImage({ path: 'items' }, onImageLoaded)
   getImage({ path: 'items-legacy' }, onImageLoaded)
   PrismarineBlock = PrismarineBlockLoader(version)
+  PrismarineItem = PItem(version)
 
   bot.on('windowOpen', (win) => {
     if (implementedContainersGuiMap[win.type]) {
@@ -76,12 +80,35 @@ export const onGameLoad = (onLoad) => {
       // todo format
       bot._client.emit('chat', {
         message: JSON.stringify({
-          text: `[client error] cannot open unimplemented window ${win.id} (${win.type}). Items: ${win.slots.map(slot => slot?.name).join(', ')}`
+          text: `[client error] cannot open unimplemented window ${win.id} (${win.type}). Slots: ${win.slots.map(item => getItemName(item) ?? '(empty)').join(', ')}`
         })
       })
       bot.currentWindow?.['close']()
     }
   })
+
+  bot.inventory.on('updateSlot', ((_oldSlot, oldItem, newItem) => {
+    const oldSlot = _oldSlot as number
+    if (!miscUiState.singleplayer) return
+    const { craftingResultSlot } = bot.inventory
+    if (oldSlot === craftingResultSlot && oldItem && !newItem) {
+      for (let i = 1; i < 5; i++) {
+        const count = bot.inventory.slots[i]?.count
+        if (count && count > 1) {
+          const slot = bot.inventory.slots[i]!
+          slot.count--
+          void bot.creative.setInventorySlot(i, slot)
+        } else {
+          void bot.creative.setInventorySlot(i, null)
+        }
+      }
+      return
+    }
+    const craftingSlots = bot.inventory.slots.slice(1, 5)
+    const resultingItem = getResultingRecipe(craftingSlots, 2)
+    if (!resultingItem) return
+    void bot.creative.setInventorySlot(craftingResultSlot, resultingItem)
+  }) as any)
 }
 
 const findTextureInBlockStates = (name) => {
@@ -239,8 +266,8 @@ type PossibleItemProps = {
   Damage?: number
   display?: { Name?: JsonString } // {"text":"Knife","color":"white","italic":"true"}
 }
-export const getItemName = (item: import('prismarine-item').Item) => {
-  if (!item.nbt) return
+export const getItemName = (item: import('prismarine-item').Item | null) => {
+  if (!item?.nbt) return
   const itemNbt: PossibleItemProps = nbt.simplify(item.nbt)
   const customName = itemNbt.display?.Name
   if (!customName) return
@@ -356,4 +383,50 @@ let destroyFn = () => { }
 
 export const openPlayerInventory = () => {
   openWindow(undefined)
+}
+
+const getResultingRecipe = (slots: Array<Item | null>, gridRows: number) => {
+  const inputSlotsItems = slots.map(blockSlot => blockSlot?.type)
+  let currentShape = splitEvery(gridRows, inputSlotsItems as Array<number | undefined | null>)
+  // todo rewrite with candidates search
+  if (currentShape.length > 1) {
+    // eslint-disable-next-line @typescript-eslint/no-for-in-array
+    for (const slotX in currentShape[0]) {
+      if (currentShape[0][slotX] !== undefined) {
+        for (const [otherY] of Array.from({ length: gridRows }).entries()) {
+          if (currentShape[otherY]?.[slotX] === undefined) {
+            currentShape[otherY]![slotX] = null
+          }
+        }
+      }
+    }
+  }
+  currentShape = currentShape.map(arr => arr.filter(x => x !== undefined)).filter(x => x.length !== 0)
+
+  // todo rewrite
+  // eslint-disable-next-line @typescript-eslint/require-array-sort-compare
+  const slotsIngredients = [...inputSlotsItems].sort().filter(item => item !== undefined)
+  type Result = RecipeItem | undefined
+  let shapelessResult: Result
+  let shapeResult: Result
+  outer: for (const [id, recipeVariants] of Object.entries(loadedData.recipes)) {
+    for (const recipeVariant of recipeVariants) {
+      if ('inShape' in recipeVariant && equals(currentShape, recipeVariant.inShape as number[][])) {
+        shapeResult = recipeVariant.result!
+        break outer
+      }
+      if ('ingredients' in recipeVariant && equals(slotsIngredients, recipeVariant.ingredients?.sort() as number[])) {
+        shapelessResult = recipeVariant.result
+        break outer
+      }
+    }
+  }
+  const result = shapeResult ?? shapelessResult
+  if (!result) return
+  const id = typeof result === 'number' ? result : Array.isArray(result) ? result[0] : result.id
+  if (!id) return
+  const count = (typeof result === 'number' ? undefined : Array.isArray(result) ? result[1] : result.count) ?? 1
+  const metadata = typeof result === 'object' && !Array.isArray(result) ? result.metadata : undefined
+  const item = new PrismarineItem(id, count, metadata)
+  return item
 }
