@@ -83,6 +83,20 @@ You can also drag and drop any .dat or .mca (region files) into the browser wind
 
 world chunks have a *yellow* border, hostile mobs have a *red* outline, passive mobs have a *green* outline, players have a *blue* outline.
 
+### Query Parameters
+
+Press `Y` to set query parameters to url of your current game state.
+
+- `?server=<server_address>` - Display connect screen to the server on load
+- `?username=<username>` - Set the username on load
+- `?proxy=<proxy_address>` - Set the proxy server address on load
+- `?version=<version>` - Set the version on load
+- `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
+<!-- - `?password=<password>` - Set the password on load -->
+- `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
+- `?singleplayer=1` - Create empty world on load. Nothing will be saved
+- `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
+
 ### Notable Things that Power this Project
 
 - [Mineflayer](https://github.com/PrismarineJS/mineflayer) - Handles all client-side communications with the server (including the builtin one) - forked
