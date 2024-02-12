@@ -51,6 +51,7 @@ body {
   -ms-user-select: none;
   user-select: none;
   font-family: minecraft, mojangles, monospace;
+  z-index: -5;
 }
 
 #react-root {

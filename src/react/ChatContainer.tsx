@@ -13,7 +13,7 @@ export type Message = {
   faded?: boolean
 }
 
-const MessageLine = ({ message }: {message: Message}) => {
+const MessageLine = ({ message }: { message: Message }) => {
   const classes = {
     'chat-message-fadeout': message.fading,
     'chat-message-fade': message.fading,
@@ -205,7 +205,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
           {messages.map((m) => (
             <MessageLine key={m.id} message={m} />
           ))}
-        </div>}
+        </div> || undefined}
       </div>
 
       <div className={`chat-wrapper chat-input-wrapper ${usingTouch ? 'input-mobile' : ''}`} hidden={!opened}>
