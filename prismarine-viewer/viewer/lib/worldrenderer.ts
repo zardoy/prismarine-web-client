@@ -94,6 +94,7 @@ export class WorldRenderer {
           mesh.name = 'mesh'
           object = new THREE.Group()
           object.add(mesh)
+          mesh.occlusionTest = true
           const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
           boxHelper.name = 'helper'
           object.add(boxHelper)
@@ -114,6 +115,7 @@ export class WorldRenderer {
           }
           this.sectionObjects[data.key] = object
           this.updatePosDataChunk(data.key)
+          object.occlusionTest = true
           this.scene.add(object)
         } else if (data.type === 'sectionFinished') {
           this.sectionsOutstanding.delete(data.key)

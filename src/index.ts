@@ -24,6 +24,7 @@ import './menus/pause_screen'
 import './menus/keybinds_screen'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
+import WebGpuRenderer from 'THREE/examples/jsm/renderers/webgpu/WebGPURenderer.js'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -98,9 +99,11 @@ watchFov()
 initCollisionShapes()
 
 // Create three.js context, add to page
-const renderer = new THREE.WebGLRenderer({
-  powerPreference: options.gpuPreference,
-})
+const renderer = new WebGpuRenderer({
+  forceWebGL: true,
+  // powerPreference: options.gpuPreference === 'default' ? undefined : options.gpuPreference,
+  // alpha: true,
+}) as any
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
 renderer.setPixelRatio(window.devicePixelRatio || 1) // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable

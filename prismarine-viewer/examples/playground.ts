@@ -12,10 +12,15 @@ import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
+// import * as _THREE from 'three-latest'
+import { render } from './scene1'
+import WebGpuRendererJs from 'THREE/examples/jsm/renderers/webgpu/WebGPURenderer.js'
 
+// const THREE = _THREE as typeof import('three')
 globalThis.THREE = THREE
 //@ts-ignore
-require('three/examples/js/controls/OrbitControls')
+// require('three/examples/js/controls/OrbitControls')
+import { OrbitControls } from 'three-stdlib'
 
 const gui = new GUI()
 
@@ -60,6 +65,7 @@ const setQs = () => {
 let ignoreResize = false
 
 async function main () {
+  //  = await import('THREE/examples/jsm/renderers/webgpu/WebGPURenderer.js')
   let continuousRender = false
 
   const { version } = params
@@ -127,7 +133,9 @@ async function main () {
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
 
   // Create three.js context, add to page
-  const renderer = new THREE.WebGLRenderer({ alpha: true, ...localStorage['renderer'] })
+  const renderer = new WebGpuRendererJs({
+    ...localStorage['renderer']
+  })
   renderer.setPixelRatio(window.devicePixelRatio || 1)
   renderer.setSize(window.innerWidth, window.innerHeight)
   document.body.appendChild(renderer.domElement)
@@ -144,8 +152,17 @@ async function main () {
   viewer.listen(worldView)
   // Load chunks
   await worldView.init(targetPos)
+  // render(viewer.scene)
   window['worldView'] = worldView
   window['viewer'] = viewer
+
+  const box = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+  )
+  box.occlusionTest = true
+  box.position.set(0, 90, 1)
+  viewer.world.scene.add(box)
 
   params.blockIsomorphicRenderBundle = () => {
     const canvas = renderer.domElement
@@ -291,7 +308,7 @@ async function main () {
 
 
   //@ts-ignore
-  const controls = new globalThis.THREE.OrbitControls(viewer.camera, renderer.domElement)
+  const controls = new OrbitControls(viewer.camera, renderer.domElement)
   controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
   const cameraPos = targetPos.offset(2, 2, 2)
@@ -315,7 +332,7 @@ async function main () {
       id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
     })
     const enableSkeletonDebug = (obj) => {
-      const {children, isSkeletonHelper} = obj
+      const { children, isSkeletonHelper } = obj
       if (!Array.isArray(children)) return
       if (isSkeletonHelper) {
         obj.visible = true
