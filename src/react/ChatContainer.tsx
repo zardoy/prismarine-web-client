@@ -5,6 +5,7 @@ import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
+import { isIos } from './utils'
 
 export type Message = {
   parts: MessageFormatPart[],
@@ -231,7 +232,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
               }
             }
           }}>
-            <input
+            {isIos && <input
               value=''
               type="text"
               className="chat-mobile-hidden"
@@ -240,7 +241,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
               autoComplete="off"
               onFocus={() => auxInputFocus('ArrowUp')}
               onChange={() => { }}
-            />
+            />}
             <input
               defaultValue=''
               ref={chatInput}
@@ -283,7 +284,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
                 }
               }}
             />
-            <input
+            {isIos && <input
               value=''
               type="text"
               className="chat-mobile-hidden"
@@ -292,7 +293,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
               autoComplete="off"
               onFocus={() => auxInputFocus('ArrowDown')}
               onChange={() => { }}
-            />
+            />}
             <button type='submit' style={{ visibility: 'hidden' }} />
           </form>
         </div>

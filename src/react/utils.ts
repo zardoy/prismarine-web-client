@@ -1,5 +1,6 @@
 import { useSnapshot } from 'valtio'
 import { useEffect, useRef } from 'react'
+import { UAParser } from 'ua-parser-js'
 import { activeModalStack } from '../globalState'
 
 export const useIsModalActive = (modal: string) => {
@@ -25,3 +26,7 @@ export function useDidUpdateEffect (fn, inputs) {
     }
   }, inputs)
 }
+
+export const ua = new UAParser(navigator.userAgent)
+
+export const isIos = ua.getOS().name === 'iOS'
