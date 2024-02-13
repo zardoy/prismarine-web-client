@@ -109,6 +109,16 @@ export const onGameLoad = (onLoad) => {
     if (!resultingItem) return
     void bot.creative.setInventorySlot(craftingResultSlot, resultingItem)
   }) as any)
+
+  bot.on('windowClose', () => {
+    // todo hide up to the window itself!
+    hideCurrentModal()
+  })
+
+  customEvents.on('search', (q) => {
+    if (!lastWindow) return
+    upJei(q)
+  })
 }
 
 const findTextureInBlockStates = (name) => {
@@ -219,7 +229,8 @@ const isFullBlock = (block: string) => {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
-const renderSlot = (slot: import('prismarine-item').Item, skipBlock = false): { texture: string, blockData?, scale?: number, slice?: number[] } | undefined => {
+type RenderSlot = Pick<import('prismarine-item').Item, 'name' | 'displayName'>
+const renderSlot = (slot: RenderSlot, skipBlock = false): { texture: string, blockData?, scale?: number, slice?: number[] } | undefined => {
   const itemName = slot.name
   const isItem = loadedData.itemsByName[itemName]
   const fullBlock = isFullBlock(itemName)
@@ -287,22 +298,25 @@ export const renderSlotExternal = (slot) => {
   }
 }
 
-const upInventory = (inventory: boolean) => {
-  // inv.pwindow.inv.slots[2].displayName = 'test'
-  // inv.pwindow.inv.slots[2].blockData = getBlockData('dirt')
-  const updateSlots = (inventory ? bot.inventory : bot.currentWindow)!.slots.map(slot => {
+const mapSlots = (slots: Array<RenderSlot | Item | null>) => {
+  return slots.map(slot => {
     // todo stateid
     if (!slot) return
 
     try {
       const slotCustomProps = renderSlot(slot)
-      Object.assign(slot, { ...slotCustomProps, displayName: getItemName(slot) ?? slot.displayName })
+      Object.assign(slot, { ...slotCustomProps, displayName: ('nbt' in slot ? getItemName(slot) : undefined) ?? slot.displayName })
     } catch (err) {
       console.error(err)
     }
     return slot
   })
-  const customSlots = updateSlots
+}
+
+const upInventory = (isInventory: boolean) => {
+  // inv.pwindow.inv.slots[2].displayName = 'test'
+  // inv.pwindow.inv.slots[2].blockData = getBlockData('dirt')
+  const customSlots = mapSlots((isInventory ? bot.inventory : bot.currentWindow)!.slots)
   lastWindow.pwindow.setSlots(customSlots)
 }
 
@@ -326,6 +340,18 @@ const implementedContainersGuiMap = {
   'minecraft:crafting': 'CraftingWin'
 }
 
+const upJei = (search: string) => {
+  search = search.toLowerCase()
+  // todo fix pre flat
+  const matchedSlots = loadedData.blocksArray.map(x => {
+    if (!x.defaultState || !x.displayName.toLowerCase().includes(search)) return null!
+    // todo
+    const block = PrismarineBlock.fromStateId(x.defaultState, 0)
+    return block
+  }).filter(Boolean)
+  lastWindow.pwindow.win.jeiSlots = mapSlots(matchedSlots)
+}
+
 const openWindow = (type: string | undefined) => {
   // if (activeModalStack.some(x => x.reactType?.includes?.('player_win:'))) {
   if (activeModalStack.length) { // game is not in foreground, don't close current modal
@@ -340,6 +366,7 @@ const openWindow = (type: string | undefined) => {
     if (type !== undefined && bot.currentWindow) bot.currentWindow['close']()
     lastWindow.destroy()
     lastWindow = null
+    miscUiState.displaySearchInput = false
     destroyFn()
   })
   cleanLoadedImagesCache()
@@ -361,6 +388,31 @@ const openWindow = (type: string | undefined) => {
   }
   upWindowItems()
 
+  lastWindow.pwindow.touch = miscUiState.currentTouch
+  lastWindow.pwindow.onJeiClick = (slotItem) => {
+    // slotItem is the slot from mapSlots
+    const itemId = loadedData.itemsByName[slotItem.name]?.id
+    if (!itemId) {
+      console.error(`Item for block ${slotItem.name} not found`)
+      return
+    }
+    const item = new PrismarineItem(itemId, 1, slotItem.metadata)
+    const freeSlot = bot.inventory.firstEmptyInventorySlot()
+    if (freeSlot === null) return
+    void bot.creative.setInventorySlot(freeSlot, item)
+  }
+
+  if (bot.game.gameMode === 'creative') {
+    lastWindow.pwindow.win.jeiSlotsPage = 0
+    // todo workaround so inventory opens immediately (but still lags)
+    setTimeout(() => {
+      upJei('')
+    })
+    miscUiState.displaySearchInput = true
+  } else {
+    lastWindow.pwindow.win.jeiSlots = []
+  }
+
   if (type === undefined) {
     // player inventory
     bot.inventory.on('updateSlot', upWindowItems)
@@ -368,10 +420,6 @@ const openWindow = (type: string | undefined) => {
       bot.inventory.off('updateSlot', upWindowItems)
     }
   } else {
-    bot.on('windowClose', () => {
-      // todo hide up to the window itself!
-      hideCurrentModal()
-    })
     //@ts-expect-error
     bot.currentWindow.on('updateSlot', () => {
       upWindowItems()
