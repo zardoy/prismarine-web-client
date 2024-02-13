@@ -357,7 +357,7 @@ const openWindow = (type: string | undefined) => {
 
   lastWindow = inv
   const upWindowItems = () => {
-    upInventory(type === undefined)
+    void Promise.resolve().then(() => upInventory(type === undefined))
   }
   upWindowItems()
 
