@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import styles from './input.module.css'
+import { useUsingTouch } from './utils'
 
 interface Props extends React.ComponentProps<'input'> {
   autoFocus?: boolean
@@ -7,9 +8,10 @@ interface Props extends React.ComponentProps<'input'> {
 
 export default ({ autoFocus, ...inputProps }: Props) => {
   const ref = useRef<HTMLInputElement>(null!)
+  const isTouch = useUsingTouch()
 
   useEffect(() => {
-    if (!autoFocus || matchMedia('(pointer: coarse)').matches) return // Don't make screen keyboard popup on mobile
+    if (!autoFocus || isTouch) return // Don't make screen keyboard popup on mobile
     ref.current.focus()
   }, [])
 

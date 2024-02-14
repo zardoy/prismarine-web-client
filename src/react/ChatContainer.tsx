@@ -1,8 +1,8 @@
-import { useUsingTouch } from '@dimaka/interface'
-import { proxy, subscribe } from 'valtio'
+import { proxy, subscribe, useSnapshot } from 'valtio'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
+import { miscUiState } from '../globalState'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
 import { isIos } from './utils'
@@ -53,7 +53,7 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
 }
 
 export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose }: Props) => {
-  const usingTouch = useUsingTouch()
+  const usingTouch = useSnapshot(miscUiState).currentTouch
 
   const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 

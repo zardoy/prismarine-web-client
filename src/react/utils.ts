@@ -1,7 +1,7 @@
 import { useSnapshot } from 'valtio'
 import { useEffect, useRef } from 'react'
 import { UAParser } from 'ua-parser-js'
-import { activeModalStack } from '../globalState'
+import { activeModalStack, miscUiState } from '../globalState'
 
 export const useIsModalActive = (modal: string) => {
   return useSnapshot(activeModalStack).at(-1)?.reactType === modal
@@ -25,6 +25,10 @@ export function useDidUpdateEffect (fn, inputs) {
       return fn()
     }
   }, inputs)
+}
+
+export const useUsingTouch = () => {
+  return useSnapshot(miscUiState).currentTouch
 }
 
 export const ua = new UAParser(navigator.userAgent)
