@@ -106,8 +106,7 @@ export const onGameLoad = (onLoad) => {
     }
     const craftingSlots = bot.inventory.slots.slice(1, 5)
     const resultingItem = getResultingRecipe(craftingSlots, 2)
-    if (!resultingItem) return
-    void bot.creative.setInventorySlot(craftingResultSlot, resultingItem)
+    void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
   }) as any)
 
   bot.on('windowClose', () => {
@@ -387,14 +386,14 @@ const openWindow = (type: string | undefined) => {
   upWindowItems()
 
   lastWindow.pwindow.touch = miscUiState.currentTouch
-  lastWindow.pwindow.onJeiClick = (slotItem) => {
+  lastWindow.pwindow.onJeiClick = (slotItem, _index, isRightclick) => {
     // slotItem is the slot from mapSlots
     const itemId = loadedData.itemsByName[slotItem.name]?.id
     if (!itemId) {
       console.error(`Item for block ${slotItem.name} not found`)
       return
     }
-    const item = new PrismarineItem(itemId, 1, slotItem.metadata)
+    const item = new PrismarineItem(itemId, isRightclick ? 64 : 1, slotItem.metadata)
     const freeSlot = bot.inventory.firstEmptyInventorySlot()
     if (freeSlot === null) return
     void bot.creative.setInventorySlot(freeSlot, item)
