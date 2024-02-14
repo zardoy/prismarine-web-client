@@ -39,7 +39,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
         if (f.status === 404) return
         const contents = await f.text()
         const isLatest = contents === process.env.BUILD_VERSION
-        if (!isLatest && sessionStorage.justReloaded === 'true') {
+        if (!isLatest && sessionStorage.justReloaded) {
           // try to force bypass cache
           location.search = '?update=true'
         }
