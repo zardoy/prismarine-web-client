@@ -343,11 +343,9 @@ const implementedContainersGuiMap = {
 const upJei = (search: string) => {
   search = search.toLowerCase()
   // todo fix pre flat
-  const matchedSlots = loadedData.blocksArray.map(x => {
-    if (!x.defaultState || !x.displayName.toLowerCase().includes(search)) return null!
-    // todo
-    const block = PrismarineBlock.fromStateId(x.defaultState, 0)
-    return block
+  const matchedSlots = loadedData.itemsArray.map(x => {
+    if (!x.displayName.toLowerCase().includes(search)) return null!
+    return new PrismarineItem(x.id, 1)
   }).filter(Boolean)
   lastWindow.pwindow.win.jeiSlots = mapSlots(matchedSlots)
 }
