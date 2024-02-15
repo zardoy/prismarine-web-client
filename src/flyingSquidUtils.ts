@@ -30,3 +30,12 @@ export const saveServer = async (autoSave = true) => {
   const worlds = [(localServer as any).overworld] as Array<import('prismarine-world').world.World>
   await Promise.all([savePlayers(autoSave), ...worlds.map(async world => world.saveNow())])
 }
+export const disconnect = async () => {
+  if (localServer) {
+    await saveServer()
+    //@ts-expect-error todo expose!
+    void localServer.quit() // todo investigate we should await
+  }
+  window.history.replaceState({}, '', `${window.location.pathname}`) // remove qs
+  bot.end('You left the server')
+}

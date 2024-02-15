@@ -4,8 +4,9 @@ import { useSnapshot } from 'valtio'
 import { useEffect } from 'react'
 import { activeModalStack, miscUiState, openOptionsMenu, showModal } from '../globalState'
 import { openURL } from '../menus/components/common'
-import { openFilePicker, openGithub, setLoadingScreenStatus } from '../utils'
-import { copyFilesAsync, mkdirRecursive, openWorldDirectory, removeFileRecursiveAsync } from '../browserfs'
+import { openGithub, setLoadingScreenStatus } from '../utils'
+import { openFilePicker, copyFilesAsync, mkdirRecursive, openWorldDirectory, removeFileRecursiveAsync } from '../browserfs'
+
 import MainMenu from './MainMenu'
 
 // todo clean

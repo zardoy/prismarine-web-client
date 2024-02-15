@@ -2,10 +2,7 @@
 
 import { proxy, ref, subscribe } from 'valtio'
 import { pointerLock } from './utils'
-import { options } from './optionsStorage'
 import type { OptionsGroupType } from './optionsGuiScheme'
-import { saveServer } from './flyingSquidUtils'
-import { fsState } from './loadSave'
 
 // todo: refactor structure with support of hideNext=false
 
@@ -145,17 +142,6 @@ export const miscUiState = proxy({
   displaySearchInput: false,
 })
 
-export const resetStateAfterDisconnect = () => {
-  miscUiState.gameLoaded = false
-  miscUiState.loadedDataVersion = null
-  miscUiState.singleplayer = false
-  miscUiState.flyingSquid = false
-  miscUiState.wanOpened = false
-  miscUiState.currentDisplayQr = null
-
-  fsState.saveLoaded = false
-}
-
 export const isGameActive = (foregroundCheck: boolean) => {
   if (foregroundCheck && activeModalStack.length) return false
   return miscUiState.gameLoaded
@@ -186,38 +172,3 @@ export const showNotification = (newNotification: Partial<typeof notification>) 
 }
 
 // todo restore auto-save on interval for player data! (or implement it in flying squid since there is already auto-save for world)
-
-window.addEventListener('unload', (e) => {
-  if (!window.justReloaded) {
-    sessionStorage.justReloaded = false
-  }
-  void saveServer()
-})
-
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') void saveServer()
-})
-document.addEventListener('blur', () => {
-  void saveServer()
-})
-
-window.inspectPlayer = () => require('fs').promises.readFile('/world/playerdata/9e487d23-2ffc-365a-b1f8-f38203f59233.dat').then(window.nbt.parse).then(console.log)
-
-// todo move from global state
-window.addEventListener('beforeunload', (event) => {
-  if (!window.justReloaded) {
-    sessionStorage.justReloaded = false
-  }
-
-  // todo-low maybe exclude chat?
-  if (!isGameActive(true) && activeModalStack.at(-1)?.elem?.id !== 'chat') return
-  if (sessionStorage.lastReload && !options.preventDevReloadWhilePlaying) return
-  if (!options.closeConfirmation) return
-
-  // For major browsers doning only this is enough
-  event.preventDefault()
-
-  // Display a confirmation prompt
-  event.returnValue = '' // Required for some browsers
-  return 'The game is running. Are you sure you want to close this page?'
-})
