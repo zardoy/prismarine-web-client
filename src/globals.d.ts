@@ -2,7 +2,12 @@
 
 declare const THREE: typeof import('three')
 // todo make optional
-declare const bot: Omit<import('mineflayer').Bot, 'world'> & { world: import('prismarine-world').world.WorldSync }
+declare const bot: Omit<import('mineflayer').Bot, 'world' | '_client'> & {
+    world: import('prismarine-world').world.WorldSync
+    _client: import('minecraft-protocol').Client & {
+        write: typeof import('./generatedClientPackets').clientWrite
+    }
+}
 declare const __type_bot: typeof bot
 declare const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer
 declare const worldView: import('prismarine-viewer/viewer/lib/worldDataEmitter').WorldDataEmitter | undefined
