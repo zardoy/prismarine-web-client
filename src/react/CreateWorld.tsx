@@ -41,6 +41,7 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
       />
       <select value={version} style={{
         background: 'gray',
+        color: 'white'
       }} onChange={({ target: { value } }) => {
         creatingWorldState.version = value
       }}>
