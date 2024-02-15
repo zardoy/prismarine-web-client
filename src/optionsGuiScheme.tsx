@@ -6,9 +6,10 @@ import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
 import { OptionMeta, OptionSlider } from './react/OptionsItems'
 import Slider from './react/Slider'
-import { getScreenRefreshRate, openFilePicker, setLoadingScreenStatus } from './utils'
+import { getScreenRefreshRate, setLoadingScreenStatus } from './utils'
+import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
 import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
-import { resetLocalStorageWithoutWorld } from './browserfs'
+
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom?}>

@@ -4,11 +4,11 @@ import * as nbt from 'prismarine-nbt'
 import { proxy } from 'valtio'
 import { gzip } from 'node-gzip'
 import { options } from './optionsStorage'
-import { nameToMcOfflineUUID } from './flyingSquidUtils'
+import { nameToMcOfflineUUID, disconnect } from './flyingSquidUtils'
 import { forceCachedDataPaths } from './browserfs'
-import { disconnect, isMajorVersionGreater } from './utils'
-import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from './globalState'
-import { appStatusState } from './react/AppStatusProvider'
+import { isMajorVersionGreater } from './utils'
+
+import { activeModalStacks, insertActiveModalStack, miscUiState } from './globalState'
 
 // todo include name of opened handle (zip)!
 // additional fs metadata

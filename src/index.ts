@@ -5,6 +5,7 @@ import './globals'
 import 'iconify-icon'
 import './devtools'
 import './entities'
+import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
 import { supportedVersions } from 'minecraft-protocol'
@@ -29,7 +30,7 @@ import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
-import { possiblyCleanHandle } from './browserfs'
+import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
 import './eruda'
 import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
@@ -54,9 +55,10 @@ import {
   showModal, activeModalStacks,
   insertActiveModalStack,
   isGameActive,
-  miscUiState, resetStateAfterDisconnect,
+  miscUiState,
   notification
 } from './globalState'
+
 
 import {
   pointerLock,

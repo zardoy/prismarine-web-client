@@ -158,6 +158,12 @@ body {
   color: #999;
 }
 
+@media screen and (min-width: 430px) {
+  .span-2 {
+    grid-column: span 2;
+  }
+}
+
 @keyframes dive-animation {
   0% {
     transform: translateZ(-150px);

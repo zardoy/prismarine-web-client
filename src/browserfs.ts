@@ -7,7 +7,7 @@ import * as browserfs from 'browserfs'
 import { options, resetOptions } from './optionsStorage'
 
 import { fsState, loadSave } from './loadSave'
-import { installTexturePackFromHandle, updateTexturePackInstalledState } from './texturePack'
+import { installTexturePack, installTexturePackFromHandle, updateTexturePackInstalledState } from './texturePack'
 import { miscUiState } from './globalState'
 import { setLoadingScreenStatus } from './utils'
 
@@ -422,3 +422,42 @@ export const resetLocalStorageWithoutWorld = () => {
 }
 
 window.resetLocalStorageWorld = resetLocalStorageWorld
+export const openFilePicker = (specificCase?: 'resourcepack') => {
+  // create and show input picker
+  let picker: HTMLInputElement = document.body.querySelector('input#file-zip-picker')!
+  if (!picker) {
+    picker = document.createElement('input')
+    picker.type = 'file'
+    picker.accept = '.zip'
+
+    picker.addEventListener('change', () => {
+      const file = picker.files?.[0]
+      picker.value = ''
+      if (!file) return
+      if (!file.name.endsWith('.zip')) {
+        const doContinue = confirm(`Are you sure ${file.name.slice(-20)} is .zip file? Only .zip files are supported. Continue?`)
+        if (!doContinue) return
+      }
+      if (specificCase === 'resourcepack') {
+        void installTexturePack(file)
+      } else {
+        void openWorldZip(file)
+      }
+    })
+    picker.hidden = true
+    document.body.appendChild(picker)
+  }
+
+  picker.click()
+}
+
+export const resetStateAfterDisconnect = () => {
+  miscUiState.gameLoaded = false
+  miscUiState.loadedDataVersion = null
+  miscUiState.singleplayer = false
+  miscUiState.flyingSquid = false
+  miscUiState.wanOpened = false
+  miscUiState.currentDisplayQr = null
+
+  fsState.saveLoaded = false
+}
