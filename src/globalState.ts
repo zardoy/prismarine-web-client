@@ -141,7 +141,8 @@ export const miscUiState = proxy({
   loadedDataVersion: null as string | null,
   appLoaded: false,
   usingGamepadInput: false,
-  appConfig: null as AppConfig | null
+  appConfig: null as AppConfig | null,
+  displaySearchInput: false,
 })
 
 export const resetStateAfterDisconnect = () => {

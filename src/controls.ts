@@ -14,6 +14,7 @@ import { chatInputValueGlobal } from './react/ChatContainer'
 import { fsState } from './loadSave'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
+import { getItemFromBlock } from './botUtils'
 
 // doesnt seem to work for now
 const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
@@ -443,7 +444,7 @@ const toggleFly = (newState = !isFlying(), sendAbilities?: boolean) => {
 const selectItem = async () => {
   const block = bot.blockAtCursor(5)
   if (!block) return
-  const itemId = loadedData.itemsByName[block.name]?.id
+  const itemId = getItemFromBlock(block)?.id
   if (!itemId) return
   const Item = require('prismarine-item')(bot.version)
   const item = new Item(itemId, 1, 0)

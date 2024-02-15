@@ -30,7 +30,7 @@ const commonCss = css`
 
 /** @returns {boolean} */
 function isMobile () {
-  return window.matchMedia('(pointer: coarse)').matches
+  return window.matchMedia('(pointer: coarse)').matches || navigator.userAgent.includes('Mobile')
 }
 
 // todo there are better workarounds and proper way to detect notch

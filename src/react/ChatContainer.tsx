@@ -1,10 +1,11 @@
-import { useUsingTouch } from '@dimaka/interface'
-import { proxy, subscribe } from 'valtio'
+import { proxy, subscribe, useSnapshot } from 'valtio'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
+import { miscUiState } from '../globalState'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
+import { isIos } from './utils'
 
 export type Message = {
   parts: MessageFormatPart[],
@@ -13,7 +14,7 @@ export type Message = {
   faded?: boolean
 }
 
-const MessageLine = ({ message }: {message: Message}) => {
+const MessageLine = ({ message }: { message: Message }) => {
   const classes = {
     'chat-message-fadeout': message.fading,
     'chat-message-fade': message.fading,
@@ -52,7 +53,7 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
 }
 
 export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose }: Props) => {
-  const usingTouch = useUsingTouch()
+  const usingTouch = useSnapshot(miscUiState).currentTouch
 
   const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 
@@ -205,7 +206,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
           {messages.map((m) => (
             <MessageLine key={m.id} message={m} />
           ))}
-        </div>}
+        </div> || undefined}
       </div>
 
       <div className={`chat-wrapper chat-input-wrapper ${usingTouch ? 'input-mobile' : ''}`} hidden={!opened}>
@@ -220,78 +221,81 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
               </div>
             </div>
           ) : null}
-          <input
-            value=''
-            type="text"
-            className="chat-mobile-hidden"
-            id="chatinput-next-command"
-            spellCheck={false}
-            autoComplete="off"
-            onFocus={() => auxInputFocus('ArrowUp')}
-            onChange={() => { }}
-          />
-          <input
-            defaultValue=''
-            ref={chatInput}
-            type="text"
-            className="chat-input"
-            id="chatinput"
-            spellCheck={false}
-            autoComplete="off"
-            aria-autocomplete="both"
-            onChange={onMainInputChange}
-            onKeyDown={(e) => {
-              if (e.code === 'ArrowUp') {
-                if (chatHistoryPos.current === 0) return
-                if (chatHistoryPos.current === sendHistoryRef.current.length) { // started navigating history
-                  inputCurrentlyEnteredValue.current = e.currentTarget.value
-                }
-                chatHistoryPos.current--
-                updateInputValue(sendHistoryRef.current[chatHistoryPos.current] || '')
-              } else if (e.code === 'ArrowDown') {
-                if (chatHistoryPos.current === sendHistoryRef.current.length) return
-                chatHistoryPos.current++
-                updateInputValue(sendHistoryRef.current[chatHistoryPos.current] || inputCurrentlyEnteredValue.current || '')
+          <form onSubmit={(e) => {
+            e.preventDefault()
+            const message = chatInput.current.value
+            if (message) {
+              setSendHistory([...sendHistoryRef.current, message])
+              const result = sendMessage?.(message)
+              if (result !== false) {
+                onClose?.()
               }
-              if (e.code === 'Tab') {
-                if (completionItemsSource.length) {
-                  if (completionItems.length) {
-                    acceptComplete(completionItems[0])
+            }
+          }}>
+            {isIos && <input
+              value=''
+              type="text"
+              className="chat-mobile-hidden"
+              id="chatinput-next-command"
+              spellCheck={false}
+              autoComplete="off"
+              onFocus={() => auxInputFocus('ArrowUp')}
+              onChange={() => { }}
+            />}
+            <input
+              defaultValue=''
+              ref={chatInput}
+              type="text"
+              className="chat-input"
+              id="chatinput"
+              spellCheck={false}
+              autoComplete="off"
+              aria-autocomplete="both"
+              onChange={onMainInputChange}
+              onKeyDown={(e) => {
+                if (e.code === 'ArrowUp') {
+                  if (chatHistoryPos.current === 0) return
+                  if (chatHistoryPos.current === sendHistoryRef.current.length) { // started navigating history
+                    inputCurrentlyEnteredValue.current = e.currentTarget.value
                   }
-                } else {
-                  void fetchCompletions(false)
+                  chatHistoryPos.current--
+                  updateInputValue(sendHistoryRef.current[chatHistoryPos.current] || '')
+                } else if (e.code === 'ArrowDown') {
+                  if (chatHistoryPos.current === sendHistoryRef.current.length) return
+                  chatHistoryPos.current++
+                  updateInputValue(sendHistoryRef.current[chatHistoryPos.current] || inputCurrentlyEnteredValue.current || '')
                 }
-                e.preventDefault()
-              }
-              if (e.code === 'Space') {
-                resetCompletionItems()
-                if (chatInput.current.value.startsWith('/')) {
-                  // alternative we could just simply use keyup, but only with keydown we can display suggestions popup as soon as possible
-                  void fetchCompletions(true, getCompleteValue(getDefaultCompleteValue() + ' '))
+                if (e.code === 'Tab') {
+                  if (completionItemsSource.length) {
+                    if (completionItems.length) {
+                      acceptComplete(completionItems[0])
+                    }
+                  } else {
+                    void fetchCompletions(false)
+                  }
+                  e.preventDefault()
                 }
-              }
-              if (e.code === 'Enter') {
-                const message = chatInput.current.value
-                if (message) {
-                  setSendHistory([...sendHistoryRef.current, message])
-                  const result = sendMessage?.(message)
-                  if (result !== false) {
-                    onClose?.()
+                if (e.code === 'Space') {
+                  resetCompletionItems()
+                  if (chatInput.current.value.startsWith('/')) {
+                    // alternative we could just simply use keyup, but only with keydown we can display suggestions popup as soon as possible
+                    void fetchCompletions(true, getCompleteValue(getDefaultCompleteValue() + ' '))
                   }
                 }
-              }
-            }}
-          />
-          <input
-            value=''
-            type="text"
-            className="chat-mobile-hidden"
-            id="chatinput-prev-command"
-            spellCheck={false}
-            autoComplete="off"
-            onFocus={() => auxInputFocus('ArrowDown')}
-            onChange={() => { }}
-          />
+              }}
+            />
+            {isIos && <input
+              value=''
+              type="text"
+              className="chat-mobile-hidden"
+              id="chatinput-prev-command"
+              spellCheck={false}
+              autoComplete="off"
+              onFocus={() => auxInputFocus('ArrowDown')}
+              onChange={() => { }}
+            />}
+            <button type='submit' style={{ visibility: 'hidden' }} />
+          </form>
         </div>
       </div>
     </>

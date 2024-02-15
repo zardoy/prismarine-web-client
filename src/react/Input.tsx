@@ -1,21 +1,17 @@
 import React, { useEffect, useRef } from 'react'
 import styles from './input.module.css'
+import { useUsingTouch } from './utils'
 
 interface Props extends React.ComponentProps<'input'> {
   autoFocus?: boolean
-  onEnterPress?: (e) => void
 }
 
-export default ({ autoFocus, onEnterPress, ...inputProps }: Props) => {
+export default ({ autoFocus, ...inputProps }: Props) => {
   const ref = useRef<HTMLInputElement>(null!)
+  const isTouch = useUsingTouch()
 
   useEffect(() => {
-    if (onEnterPress) {
-      ref.current.addEventListener('keydown', (e) => {
-        if (e.code === 'Enter') onEnterPress(e)
-      })
-    }
-    if (!autoFocus || matchMedia('(pointer: coarse)').matches) return // Don't make screen keyboard popup on mobile
+    if (!autoFocus || isTouch) return // Don't make screen keyboard popup on mobile
     ref.current.focus()
   }, [])
 

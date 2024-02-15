@@ -1,9 +1,10 @@
-import { LeftTouchArea, RightTouchArea, useInterfaceState, useUsingTouch } from '@dimaka/interface'
+import { LeftTouchArea, RightTouchArea, useInterfaceState } from '@dimaka/interface'
 import { css } from '@emotion/css'
 import { useSnapshot } from 'valtio'
 import { contro } from '../controls'
 import { miscUiState, activeModalStack } from '../globalState'
 import { watchValue, options } from '../optionsStorage'
+import { useUsingTouch } from './utils'
 
 // todo
 useInterfaceState.setState({

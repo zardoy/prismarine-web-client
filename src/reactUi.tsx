@@ -18,6 +18,7 @@ import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
 import { useIsWidgetActive } from './react/utils'
+import GlobalSearchInput from './GlobalSearchInput'
 
 const Portal = ({ children, to }) => {
   return createPortal(children, to)
@@ -63,6 +64,7 @@ const InGameUi = () => {
     <Portal to={document.body}>
       {/* becaues of z-index */}
       <TouchControls />
+      <GlobalSearchInput />
     </Portal>
   </>
 }

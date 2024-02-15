@@ -1,6 +1,6 @@
-import { useUsingTouch } from '@dimaka/interface'
 import { useEffect, useState } from 'react'
 import Button from './Button'
+import { useUsingTouch } from './utils'
 
 export default () => {
   const [fullScreen, setFullScreen] = useState(false)
