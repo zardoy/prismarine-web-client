@@ -259,7 +259,7 @@ export class WorldRenderer {
     const loadBlockStates = async () => {
       return new Promise(resolve => {
         if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
-        return loadJSON(`blocksStates/${this.texturesVersion}.json`, (data) => {
+        return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
           this.downloadedBlockStatesData = data
           // todo
           this.renderUpdateEmitter.emit('blockStatesDownloaded')
