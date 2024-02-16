@@ -105,7 +105,9 @@ const renderer = new THREE.WebGLRenderer({
 })
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
-renderer.setPixelRatio(window.devicePixelRatio || 1) // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
+let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
+if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
+renderer.setPixelRatio(pixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.domElement.id = 'viewer-canvas'
 document.body.appendChild(renderer.domElement)
