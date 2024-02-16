@@ -242,7 +242,7 @@ const isFullBlock = (block: string) => {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
-type RenderSlot = Pick<import('prismarine-item').Item, 'name' | 'displayName'>
+type RenderSlot = Pick<import('prismarine-item').Item, 'name' | 'displayName' | 'durabilityUsed' | 'maxDurability' | 'enchants'>
 const renderSlot = (slot: RenderSlot, skipBlock = false): { texture: string, blockData?, scale?: number, slice?: number[] } | undefined => {
   const itemName = slot.name
   const isItem = loadedData.itemsByName[itemName]
