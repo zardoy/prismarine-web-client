@@ -187,3 +187,11 @@ export function assertDefined<T> (x: T | undefined): asserts x is T {
 export const haveDirectoryPicker = () => {
   return !!window.showDirectoryPicker
 }
+
+const reportedWarnings = new Set<string>()
+
+export const reportWarningOnce = (id: string, message: string) => {
+  if (reportedWarnings.has(id)) return
+  reportedWarnings.add(id)
+  console.warn(message)
+}

@@ -1,5 +1,6 @@
 import { options } from './optionsStorage'
 import { isCypress } from './standaloneUtils'
+import { reportWarningOnce } from './utils'
 
 let audioContext: AudioContext
 const sounds: Record<string, any> = {}
@@ -39,7 +40,12 @@ export async function playSound (url, soundVolume = 1) {
 
   if (!volume) return
 
-  audioContext ??= new window.AudioContext()
+  try {
+    audioContext ??= new window.AudioContext()
+  } catch (err) {
+    reportWarningOnce('audioContext', 'Failed to create audio context. Some sounds will not play')
+    return
+  }
 
   for (const [soundName, sound] of Object.entries(sounds)) {
     if (convertedSounds.includes(soundName)) continue
