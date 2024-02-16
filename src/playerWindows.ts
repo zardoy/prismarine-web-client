@@ -27,6 +27,7 @@ import mojangson from 'mojangson'
 import nbt from 'prismarine-nbt'
 import { splitEvery, equals } from 'rambda'
 import PItem, { Item } from 'prismarine-item'
+import Generic95 from '../assets/generic_95.png'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
@@ -189,6 +190,7 @@ const getImageSrc = (path): string | HTMLImageElement => {
     case 'gui/container/crafting_table': return CraftingTableGui
     case 'gui/container/shulker_box': return ChestLikeGui
     case 'gui/container/generic_54': return LargeChestLikeGui
+    case 'gui/container/generic_95': return Generic95
     case 'gui/container/hopper': return HopperGui
     case 'gui/container/horse': return HorseGui
     case 'gui/container/villager': return VillageGui
@@ -342,6 +344,7 @@ export const onModalClose = (callback: () => any) => {
 const implementedContainersGuiMap = {
   // todo allow arbitrary size instead!
   'minecraft:generic_9x3': 'ChestWin',
+  'minecraft:generic_9x5': 'Generic95Win',
   // hopper
   'minecraft:generic_5x1': 'HopperWin',
   'minecraft:generic_9x6': 'LargeChestWin',
