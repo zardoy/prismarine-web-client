@@ -91,6 +91,7 @@ import { downloadSoundsIfNeeded } from './soundSystem'
 
 window.debug = debug
 window.THREE = THREE
+window.worldInteractions = worldInteractions
 window.beforeRenderFrame = []
 
 // ACTUAL CODE
