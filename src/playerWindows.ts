@@ -6,6 +6,11 @@ import LargeChestLikeGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui
 import FurnaceGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/furnace.png'
 import CraftingTableGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/crafting_table.png'
 import DispenserGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/dispenser.png'
+import HopperGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/hopper.png'
+import HorseGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/horse.png'
+import VillageGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/villager.png'
+import EnchantingGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/enchanting_table.png'
+import AnvilGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/anvil.png'
 
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
 import { subscribeKey } from 'valtio/utils'
@@ -184,6 +189,11 @@ const getImageSrc = (path): string | HTMLImageElement => {
     case 'gui/container/crafting_table': return CraftingTableGui
     case 'gui/container/shulker_box': return ChestLikeGui
     case 'gui/container/generic_54': return LargeChestLikeGui
+    case 'gui/container/hopper': return HopperGui
+    case 'gui/container/horse': return HorseGui
+    case 'gui/container/villager': return VillageGui
+    case 'gui/container/enchanting_table': return EnchantingGui
+    case 'gui/container/anvil': return AnvilGui
   }
   return Dirt
 }
@@ -332,11 +342,20 @@ export const onModalClose = (callback: () => any) => {
 const implementedContainersGuiMap = {
   // todo allow arbitrary size instead!
   'minecraft:generic_9x3': 'ChestWin',
+  // hopper
+  'minecraft:generic_5x1': 'HopperWin',
   'minecraft:generic_9x6': 'LargeChestWin',
   'minecraft:generic_3x3': 'DropDispenseWin',
   'minecraft:furnace': 'FurnaceWin',
   'minecraft:smoker': 'FurnaceWin',
-  'minecraft:crafting': 'CraftingWin'
+  'minecraft:crafting': 'CraftingWin',
+  'minecraft:anvil': 'AnvilWin',
+  // enchant
+  'minecraft:enchanting_table': 'EnchantingWin',
+  // horse
+  'minecraft:horse': 'HorseWin',
+  // villager
+  'minecraft:villager': 'VillagerWin',
 }
 
 const upJei = (search: string) => {
