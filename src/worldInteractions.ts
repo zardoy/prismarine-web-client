@@ -17,6 +17,7 @@ import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
 import { isGameActive } from './globalState'
 import { assertDefined } from './utils'
 import { options } from './optionsStorage'
+import { digGlobally, stopDigging } from './mineflayerUtils'
 
 function getViewDirection (pitch, yaw) {
   const csPitch = Math.cos(pitch)
@@ -29,18 +30,20 @@ function getViewDirection (pitch, yaw) {
 class WorldInteraction {
   ready = false
   interactionLines: null | { blockPos; mesh } = null
+  breakStartTime: number | undefined = 0
+  blockBreakMesh: THREE.Mesh
+  breakTextures: THREE.Texture[]
+  lineMaterial: LineMaterial
+  // update state
+  cursorBlock: import('prismarine-block').Block | null = null
+  lastDigged: number
   prevBreakState
   currentDigTime
   prevOnGround
   lastBlockPlaced: number
   buttons = [false, false, false]
   lastButtons = [false, false, false]
-  breakStartTime: number | undefined = 0
-  cursorBlock: import('prismarine-block').Block | null = null
-  blockBreakMesh: THREE.Mesh
-  breakTextures: THREE.Texture[]
-  lastDigged: number
-  lineMaterial: LineMaterial
+  breakMeshes = {} as { [key: string]: THREE.Mesh }
 
   oneTimeInit () {
     const loader = new THREE.TextureLoader()
@@ -68,9 +71,7 @@ class WorldInteraction {
       blending: THREE.MultiplyBlending
     })
     this.blockBreakMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), breakMaterial)
-    this.blockBreakMesh.visible = false
     this.blockBreakMesh.renderOrder = 999
-    viewer.scene.add(this.blockBreakMesh)
 
     // Setup events
     document.addEventListener('mouseup', (e) => {
@@ -99,6 +100,50 @@ class WorldInteraction {
     })
   }
 
+  addWorldBreakMesh (position: Vec3, stage: number | null) {
+    const posKey = `${position.x},${position.y},${position.z}`
+    let mesh = this.breakMeshes[posKey]
+    if (stage === null) {
+      if (mesh) {
+        viewer.scene.remove(mesh)
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+        delete this.breakMeshes[posKey]
+      }
+      return
+    }
+
+    if (!mesh) {
+      mesh = this.blockBreakMesh.clone(true)
+      viewer.scene.add(mesh)
+      this.breakMeshes[posKey] = mesh
+
+      // #region set position and scale from shape
+      const block = bot.world.getBlock(position)
+      const allShapes = [...block.shapes, ...block['interactionShapes'] ?? []]
+      // union of all values
+      const breakShape = allShapes.reduce((acc, cur) => {
+        return [
+          Math.min(acc[0], cur[0]),
+          Math.min(acc[1], cur[1]),
+          Math.min(acc[2], cur[2]),
+          Math.max(acc[3], cur[3]),
+          Math.max(acc[4], cur[4]),
+          Math.max(acc[5], cur[5])
+        ]
+      })
+      const { position: shapePos, width, height, depth } = getDataFromShape(breakShape)
+      mesh.scale.set(width * 1.001, height * 1.001, depth * 1.001)
+      shapePos.add(position)
+      mesh.position.set(shapePos.x, shapePos.y, shapePos.z)
+      // #endregion
+    }
+
+    const material = mesh.material as THREE.MeshBasicMaterial
+    const oldMap = material.map
+    material.map = this.breakTextures[stage] ?? this.breakTextures.at(-1)
+    if (oldMap !== material.map) material.needsUpdate = true
+  }
+
   initBot () {
     if (!this.ready) {
       this.ready = true
@@ -111,6 +156,12 @@ class WorldInteraction {
     })
     bot.on('diggingAborted', () => {
       this.breakStartTime = undefined
+    })
+    bot.on('blockBreakProgressObserved', (block, destroyStage) => {
+      this.addWorldBreakMesh(block.position, destroyStage)
+    })
+    bot.on('blockBreakProgressEnd', (block) => {
+      this.addWorldBreakMesh(block.position, null)
     })
 
     const upLineMaterial = () => {
@@ -205,33 +256,25 @@ class WorldInteraction {
     }
 
     // Stop break
-    if ((!this.buttons[0] && this.lastButtons[0]) || cursorChanged) {
-      try {
-        bot.stopDigging() // this shouldnt throw anything...
-      } catch (e) { } // to be reworked in mineflayer, then remove the try here
+    if (!this.buttons[0] || cursorChanged) {
+      stopDigging()
     }
 
     const onGround = bot.entity.onGround || bot.game.gameMode === 'creative'
-    this.prevOnGround ??= onGround // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down
     // Start break
     // todo last check doesnt work as cursorChanged happens once (after that check is false)
     if (
       this.buttons[0]
     ) {
+      // todo hold mouse state
       if (cursorBlockDiggable
-        && (!this.lastButtons[0] || (cursorChanged && Date.now() - (this.lastDigged ?? 0) > 100) || onGround !== this.prevOnGround)
-        && onGround) {
+        && (!this.lastButtons[0] || (cursorChanged && Date.now() - (this.lastDigged ?? 0) > 100))) {
         this.currentDigTime = bot.digTime(cursorBlockDiggable)
         this.breakStartTime = performance.now()
         const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
-        bot.dig(
-          //@ts-expect-error
-          cursorBlockDiggable, 'ignore', vecArray[cursorBlockDiggable.face]
-        ).catch((err) => {
-          if (err.message === 'Digging aborted') return
-          throw err
-        })
-        customEvents.emit('digStart')
+        //@ts-expect-error
+        const blockFace = cursorBlockDiggable.face
+        digGlobally(cursorBlockDiggable, blockFace, 'right')
         this.lastDigged = Date.now()
       } else {
         bot.swingArm('right')
@@ -245,47 +288,30 @@ class WorldInteraction {
       this.updateBlockInteractionLines(cursorBlock.position, allShapes.map(shape => {
         return getDataFromShape(shape)
       }))
-      {
-        // union of all values
-        const breakShape = allShapes.reduce((acc, cur) => {
-          return [
-            Math.min(acc[0], cur[0]),
-            Math.min(acc[1], cur[1]),
-            Math.min(acc[2], cur[2]),
-            Math.max(acc[3], cur[3]),
-            Math.max(acc[4], cur[4]),
-            Math.max(acc[5], cur[5])
-          ]
-        })
-        const { position, width, height, depth } = getDataFromShape(breakShape)
-        this.blockBreakMesh.scale.set(width * 1.001, height * 1.001, depth * 1.001)
-        position.add(cursorBlock.position)
-        this.blockBreakMesh.position.set(position.x, position.y, position.z)
-      }
     } else {
       this.updateBlockInteractionLines(null)
     }
 
     // Show break animation
-    if (cursorBlockDiggable && this.breakStartTime && bot.game.gameMode !== 'creative') {
-      const elapsed = performance.now() - this.breakStartTime
-      const time = bot.digTime(cursorBlockDiggable)
-      if (time !== this.currentDigTime) {
-        console.warn('dig time changed! cancelling!', time, 'from', this.currentDigTime) // todo
-        try { bot.stopDigging() } catch { }
-      }
-      const state = Math.floor((elapsed / time) * 10)
-      //@ts-expect-error
-      this.blockBreakMesh.material.map = this.breakTextures[state] ?? this.breakTextures.at(-1)
-      if (state !== this.prevBreakState) {
-        //@ts-expect-error
-        this.blockBreakMesh.material.needsUpdate = true
-      }
-      this.prevBreakState = state
-      this.blockBreakMesh.visible = true
-    } else {
-      this.blockBreakMesh.visible = false
-    }
+    // if (cursorBlockDiggable && this.breakStartTime && bot.game.gameMode !== 'creative') {
+    //   const elapsed = performance.now() - this.breakStartTime
+    //   const time = bot.digTime(cursorBlockDiggable)
+    //   if (time !== this.currentDigTime) {
+    //     console.warn('dig time changed! cancelling!', time, 'from', this.currentDigTime) // todo
+    //     try { bot.stopDigging() } catch { }
+    //   }
+    //   const state = Math.floor((elapsed / time) * 10)
+    //   //@ts-expect-error
+    //   this.blockBreakMesh.material.map = this.breakTextures[state] ?? this.breakTextures.at(-1)
+    //   if (state !== this.prevBreakState) {
+    //     //@ts-expect-error
+    //     this.blockBreakMesh.material.needsUpdate = true
+    //   }
+    //   this.prevBreakState = state
+    //   this.blockBreakMesh.visible = true
+    // } else {
+    //   this.blockBreakMesh.visible = false
+    // }
 
     // Update state
     this.cursorBlock = cursorBlock

@@ -202,14 +202,11 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
       }
       // todo add support for all current world events
     })
-    let diggingBlock: Block | null = null
-    customEvents.on('digStart', () => {
-      diggingBlock = bot.blockAtCursor(5)
+    customEvents.on('blockDig', async (block) => {
+      await playBlockBreak(block.name, block.position)
     })
-    bot.on('diggingCompleted', async () => {
-      if (diggingBlock) {
-        await playBlockBreak(diggingBlock.name, diggingBlock.position)
-      }
+    bot.on('blockBreakProgressEnd', async (block) => {
+      console.log('blockBreakProgressEnd', block)
     })
   }
 

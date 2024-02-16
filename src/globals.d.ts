@@ -13,7 +13,7 @@ declare const loadedData: import('minecraft-data').IndexedData
 declare const customEvents: import('typed-emitter').default<{
     /** Singleplayer load requested */
     singleplayer (): void
-    digStart ()
+    blockDig (block: import('prismarine-block').Block): void
     gameLoaded (): void
     search (q: string): void
 }>
