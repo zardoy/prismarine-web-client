@@ -8,9 +8,10 @@ import CraftingTableGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/
 import DispenserGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/dispenser.png'
 import HopperGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/hopper.png'
 import HorseGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/horse.png'
-import VillageGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/villager.png'
+import VillagerGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/villager2.png'
 import EnchantingGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/enchanting_table.png'
 import AnvilGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/anvil.png'
+import BeaconGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/beacon.png'
 
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
 import { subscribeKey } from 'valtio/utils'
@@ -193,9 +194,10 @@ const getImageSrc = (path): string | HTMLImageElement => {
     case 'gui/container/generic_95': return Generic95
     case 'gui/container/hopper': return HopperGui
     case 'gui/container/horse': return HorseGui
-    case 'gui/container/villager': return VillageGui
+    case 'gui/container/villager2': return VillagerGui
     case 'gui/container/enchanting_table': return EnchantingGui
     case 'gui/container/anvil': return AnvilGui
+    case 'gui/container/beacon': return BeaconGui
   }
   return Dirt
 }
