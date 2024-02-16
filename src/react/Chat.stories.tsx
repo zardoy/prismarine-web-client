@@ -95,6 +95,7 @@ type Story = StoryObj<typeof Chat>
 
 export const Primary: Story = {
   args: {
+    usingTouch: false,
     messages: [{
       parts: [
         {

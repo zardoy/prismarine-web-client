@@ -29,6 +29,7 @@ const MessageLine = ({ message }: { message: Message }) => {
 
 type Props = {
   messages: Message[]
+  usingTouch: boolean
   opacity?: number
   opened?: boolean
   onClose?: () => void
@@ -52,9 +53,7 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
   }, initialTimeout ? 5000 : 0)
 }
 
-export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose }: Props) => {
-  const usingTouch = useSnapshot(miscUiState).currentTouch
-
+export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose, usingTouch }: Props) => {
   const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 
   const [completePadText, setCompletePadText] = useState('')
