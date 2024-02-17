@@ -11,7 +11,7 @@ import { build } from 'esbuild'
 //@ts-ignore
 try { await import('./localSettings.mjs') } catch { }
 
-fs.writeFileSync('dist/index.html', fs.readFileSync('index.html', 'utf8').replace('<!-- inject script -->', '<script src="index.js"></script>'), 'utf8')
+fs.writeFileSync('dist/index.html', fs.readFileSync('index.html', 'utf8').replace('<!-- inject script -->', '<script type="module" src="index.js"></script>'), 'utf8')
 
 const watch = process.argv.includes('--watch') || process.argv.includes('-w')
 const prod = process.argv.includes('--prod')
@@ -30,8 +30,9 @@ const buildingVersion = new Date().toISOString().split(':')[0]
 /** @type {import('esbuild').BuildOptions} */
 const buildOptions = {
   bundle: true,
+  format: 'esm',
   entryPoints: ['src/index.ts'],
-  target: ['es2020'],
+  // target: ['es2020'],
   jsx: 'automatic',
   jsxDev: dev,
   // logLevel: 'debug',

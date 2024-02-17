@@ -94,7 +94,6 @@ export class WorldRenderer {
           mesh.name = 'mesh'
           object = new THREE.Group()
           object.add(mesh)
-          mesh.occlusionTest = true
           const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
           boxHelper.name = 'helper'
           object.add(boxHelper)

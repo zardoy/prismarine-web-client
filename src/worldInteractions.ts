@@ -114,6 +114,7 @@ class WorldInteraction {
     })
 
     const upLineMaterial = () => {
+      return
       const inCreative = bot.game.gameMode === 'creative'
       const pixelRatio = viewer.renderer.getPixelRatio()
       this.lineMaterial = new LineMaterial({
@@ -129,6 +130,7 @@ class WorldInteraction {
   }
 
   updateBlockInteractionLines (blockPos: Vec3 | null, shapePositions?: Array<{ position; width; height; depth }>) {
+    return
     assertDefined(viewer)
     if (blockPos && this.interactionLines && blockPos.equals(this.interactionLines.blockPos)) {
       return
