@@ -12,8 +12,8 @@
           <div style="position: fixed;inset: 0;z-index: -1;background-color: rgba(0, 0, 0, 0.8);"></div>
       </div>
       <div>
-          <div style="font-size: calc(var(--font-size) * 1.8);color: lightgray;">Loading...</div>
-          <div style="font-size: var(--font-size);color: rgb(176, 176, 176);">A true Minecraft client in your browser!</div>
+          <div style="font-size: calc(var(--font-size) * 1.8);color: lightgray;" class="title">Loading...</div>
+          <div style="font-size: var(--font-size);color: rgb(176, 176, 176);" class="subtitle">A true Minecraft client in your browser!</div>
       </div>
   </div>
   `
@@ -22,6 +22,17 @@
         if (!window.pageLoaded) {
           document.documentElement.appendChild(loadingDivElem)
         }
+        // load error handling
+        const onError = (message) => {
+          console.log(message)
+          if (document.querySelector('.initial-loader') && document.querySelector('.initial-loader').querySelector('.title').textContent !== 'Error') {
+            document.querySelector('.initial-loader').querySelector('.title').textContent = 'Error'
+            document.querySelector('.initial-loader').querySelector('.subtitle').textContent = message
+            window.location.hash = '#dev' // show eruda
+          }
+        }
+        window.addEventListener('unhandledrejection', (e) => onError(e.reason))
+        window.addEventListener('error', (e) => onError(e.message))
       </script>
       <script type="module" async>
         const checkLoadEruda = () => {

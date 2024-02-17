@@ -103,9 +103,17 @@ watchFov()
 initCollisionShapes()
 
 // Create three.js context, add to page
-const renderer = new THREE.WebGLRenderer({
-  powerPreference: options.gpuPreference,
-})
+let renderer: THREE.WebGLRenderer
+try {
+  renderer = new THREE.WebGLRenderer({
+    powerPreference: options.gpuPreference,
+  })
+} catch (err) {
+  console.error(err)
+  throw new Error(`Failed to create WebGL context, not possible to render (restart browser): ${err.message}`)
+}
+
+// renderer.localClippingEnabled = true
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
 let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
