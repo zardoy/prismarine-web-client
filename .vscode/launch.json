@@ -3,7 +3,7 @@
         // UPDATED: all configs below are misconfigured and will crash vscode, open dist/index.html and use live preview debug instead
         // recommended as much faster
         {
-            // to launch "C:\Program Files\Google\Chrome Beta\Application\chrome.exe" --remote-debugging-port=9222
+            // to launch "C:/Program Files/Google/Chrome Beta/Application/chrome.exe" --remote-debugging-port=9222
             "type": "chrome",
             "address": "localhost",
             "name": "Attach Chrome",
@@ -43,9 +43,31 @@
                 // "<node_internals>/**/*vendors*"
                 "<node_internals>/**/*mc-data*"
             ],
+            "runtimeExecutable": "C:/Users/Raphael/AppData/Local/Yandex/YandexBrowser/Application/browser.exe"
         },
         {
-            // to launch "C:\Program Files\Mozilla Firefox\firefox.exe" -start-debugger-server
+            // not recommended as in most cases it will slower as it launches from extension host so it slows down extension host, not sure why
+            "type": "chrome",
+            "name": "Launch Chrome2",
+            "request": "launch",
+            "url": "http://localhost:9090",
+            "pathMapping": {
+                "/": "${workspaceFolder}/prismarine-viewer/public"
+            },
+            "outFiles": [
+                "${workspaceFolder}/prismarine-viewer/public/**/*.js",
+                // "!${workspaceFolder}/prismarine-viewer/public/**/*vendors*",
+                "!${workspaceFolder}/prismarine-viewer/public/**/*mc-data*",
+                "!**/node_modules/**"
+            ],
+            "skipFiles": [
+                // "<node_internals>/**/*vendors*"
+                "<node_internals>/**/*mc-data*"
+            ],
+            "runtimeExecutable": "C:/Users/Raphael/AppData/Local/Yandex/YandexBrowser/Application/browser.exe"
+        },
+        {
+            // to launch "C:/Program Files/Mozilla Firefox/firefox.exe" -start-debugger-server
             "type": "firefox",
             "name": "Attach Firefox",
             "request": "attach",

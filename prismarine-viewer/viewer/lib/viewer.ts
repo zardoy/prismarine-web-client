@@ -188,13 +188,15 @@ export class Viewer {
   }
 
   render () {
-    if (this.composer) {
-      this.renderPass.camera = this.camera
-      this.composer.render()
-    } else {
-      this.renderer.render(this.scene, this.camera)
-    }
-    this.entities.render()
+  //   if (this.composer) {
+  //     //this.renderPass.camera = this.camera
+  //     //this.composer.render()
+  //   } else {
+  //    // this.renderer.render(this.scene, this.camera)
+  //   }
+  //  // this.entities.render()
+  let camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+  this.renderer.render(this.scene, camera);
   }
 
   async waitForChunksToRender () {
