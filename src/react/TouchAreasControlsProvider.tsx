@@ -1,5 +1,6 @@
 import { useSnapshot } from 'valtio'
 import { activeModalStack } from '../globalState'
+import { options } from '../optionsStorage'
 import TouchAreasControls from './TouchAreasControls'
 import { useIsModalActive, useUsingTouch } from './utils'
 
@@ -8,5 +9,5 @@ export default () => {
   const hasModals = useSnapshot(activeModalStack).length !== 0
   const setupActive = useIsModalActive('touch-areas-setup')
 
-  return <TouchAreasControls touchActive={usingTouch && hasModals} setupActive={setupActive} />
+  return <TouchAreasControls touchActive={!!(usingTouch && hasModals)} setupActive={setupActive} buttonsPositions={options.touchControlsPositions} />
 }
