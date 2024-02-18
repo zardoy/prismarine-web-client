@@ -1,0 +1,10 @@
+.container {
+    perspective: 1200px;
+    position: fixed;
+    inset: 0;
+    height: 100vh;
+}
+
+.main {
+    height: 100%;
+}

@@ -1,0 +1,47 @@
+/* screen styles eg main menu and options are screens */
+
+.title,
+.screen-title {
+    font-size: 10px;
+    color: white;
+    text-align: center;
+    text-shadow: 1px 1px #222;
+}
+
+.screen-title {
+    margin-bottom: 10px;
+}
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    height: 100dvh;
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.fullscreen {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    z-index: 12;
+}
+
+.screen-content {
+    display: flex;
+    flex-direction: column;
+    margin-top: 35px;
+    /* todo remove it but without it in chrome android the screen is not scrollable */
+    overflow: auto;
+    /* todo I'm not sure about it */
+    /* margin-top: calc(100% / 6 - 16px); */
+    align-items: center;
+
+    gap: 10px;
+}
+
+.screen-items {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px 10px;
+}

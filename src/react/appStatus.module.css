@@ -1,0 +1,9 @@
+.potential-problem {
+  color: #808080;
+  word-break: break-all;
+  padding: 0 10px;
+}
+
+.last-status {
+  color: #808080;
+}

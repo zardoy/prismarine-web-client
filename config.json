@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "defaultHost": "<from-proxy>",
+  "defaultProxy": "zardoy.site:2344",
+  "defaultVersion": "1.18.2",
+  "mapsProvider": "zardoy.site/maps"
+}

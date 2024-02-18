@@ -1,0 +1,66 @@
+.button {
+  --scale: 1;
+  --txrV: 66px;
+  position: relative;
+  width: 200px;
+  height: calc(20px * var(--scale));
+  font-family: minecraft, mojangles, monospace;
+  font-size: 10px;
+  color: white;
+  text-shadow: 1px 1px #222;
+  border: none;
+  z-index: 1;
+  outline: none;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.button:hover,
+.button:focus-visible {
+  --txrV: 86px;
+}
+
+.button:disabled {
+  --txrV: 46px;
+  color: #A0A0A0;
+  text-shadow: 1px 1px #111;
+}
+
+.button::before,
+.button::after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: calc(20px * var(--scale));
+  background: var(--widgets-gui-atlas), rgb(114, 114, 114);
+  background-size: calc(256px * var(--scale));
+  background-position-y: calc(var(--txrV) * -1 * var(--scale));
+  z-index: -1;
+}
+
+.button::before {
+  left: 50%;
+  background-position-x: calc((-200px * var(--scale)) + 100%);
+}
+
+.button::after {
+  left: 0;
+  width: calc(50% + 1px);
+}
+
+
+.icon {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  font-size: 14px;
+}
+
+@media (pointer: coarse) {
+  .button {
+    --scale: 1.1;
+  }
+}

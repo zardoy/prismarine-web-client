@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <script type="module">
+        //@ts-check
+        import blockImg from '../prismarine-viewer/public/textures/1.16.1.png'
+        import blocksStates from '../prismarine-viewer/public/blocksStates/1.16.1.json'
+
+        // const block = {
+        //     name: 'oak_sign',
+        //     variant: 0,
+        //     elem: 1,
+        //     face: 'up'
+        // }
+        const block = {
+            name: 'light_gray_stained_glass',
+            variant: 0,
+            elem: 0,
+            face: 'north'
+        }
+        //@ts-ignore
+        const model = Object.entries(blocksStates[block.name].variants).find((a, i) => typeof block.variant === 'number' ? i === block.variant : a === block.variant)[1].model.elements[block.elem]
+        console.log(model)
+        const textureUv = model.faces[block.face].texture
+
+        const canvas = document.createElement('canvas')
+        canvas.style.imageRendering = 'pixelated'
+        document.body.appendChild(canvas)
+        const factor = 50
+        const modelWidth = model.to[0] - model.from[0]
+        const modelHeight = model.to[1] - model.from[1]
+        canvas.width = modelWidth * factor
+        canvas.height = modelHeight * factor
+        // canvas.width = 16 * factor
+        // canvas.height = 16 * factor * 2
+
+        const ctx = canvas.getContext('2d')
+        //@ts-ignore
+        ctx.imageSmoothingEnabled = false
+        const img = new Image()
+        const img2 = new Image()
+        img.src = blockImg
+        img.onload = () => {
+            //@ts-ignore
+            ctx.drawImage(img, img.width * textureUv.u, img.height * textureUv.v, img.width * textureUv.su, img.height * textureUv.sv, 0, 0, canvas.width, canvas.height)
+            // ctx.drawImage(img, 0, 0, canvas.width, canvas.height / 2)
+            console.log('width;height texture', img.width * textureUv.su, img.height * textureUv.sv)
+            console.log('base su=sv', 16 / img.width)
+        }
+    </script>
+</body>
+
+</html>

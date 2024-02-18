@@ -1,0 +1,41 @@
+name: Deploy to GitHub pages
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+on:
+  push:
+    branches: [main]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@master
+      - name: Install pnpm
+        run: npm i -g vercel pnpm
+      # - run: pnpm install
+      # - run: pnpm build
+      - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      # will install + build to .vercel/output/static
+      - run: vercel build --token=${{ secrets.VERCEL_TOKEN }} --prod
+      - run: pnpm build-storybook
+      - name: Copy playground files
+        run: node prismarine-viewer/esbuild.mjs && cp prismarine-viewer/public/index.html .vercel/output/static/playground.html && cp prismarine-viewer/public/playground.js .vercel/output/static/playground.js
+      - name: Download Generated Sounds map
+        run: node scripts/downloadSoundsMap.mjs
+      - name: Deploy Project to Vercel
+        uses: mathiasvr/command-output@v2.0.0
+        with:
+          run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }} --prod
+        id: deploy
+      - run: |
+          pnpx zardoy-release node --footer "This release URL: ${{ steps.deploy.outputs.stdout }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: cp vercel.json .vercel/output/static/vercel.json
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .vercel/output/static
+          force_orphan: true

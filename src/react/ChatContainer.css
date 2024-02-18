@@ -1,0 +1,189 @@
+div.chat-wrapper {
+  /* increase specificity */
+  position: fixed;
+  /* z-index: 10; */
+  padding-left: calc(env(safe-area-inset-left) / 2);
+  padding-right: calc(env(safe-area-inset-right, 4px) / 2);
+}
+
+.chat-messages-wrapper {
+  bottom: 40px;
+  padding: 4px;
+  padding-left: 0;
+  max-height: var(--chatHeight);
+  width: var(--chatWidth);
+  transform-origin: bottom left;
+  transform: scale(var(--chatScale));
+  pointer-events: none;
+}
+
+.chat-input-wrapper {
+  bottom: 1px;
+  width: calc(100% - 3px);
+  position: fixed;
+  left: 1px;
+  box-sizing: border-box;
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.chat-input {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.chat-completions {
+  position: absolute;
+  /* position this bottom on top of parent */
+  top: 0;
+  left: 0;
+  transform: translateY(-100%);
+  /* width: 150px; */
+  display: flex;
+  padding: 0 2px;
+  /* input padding */
+  width: 100%;
+}
+
+.input-mobile .chat-completions {
+  transform: none;
+  top: 100%;
+  padding-left: 0;
+  /* input height */
+}
+
+.chat-completions-pad-text {
+  pointer-events: none;
+  white-space: pre;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.chat-completions-items {
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  /* justify-content: flex-end; */
+  /* probably would be better to replace with margin, not sure */
+  padding: 2px;
+  max-height: 100px;
+  overflow: auto;
+  /* hide ugly scrollbars in firefox */
+  scrollbar-width: none;
+}
+
+/* unsupported by firefox */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background-color: rgb(24, 24, 24);
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgb(50, 50, 50);
+}
+
+.chat-completions-items>div {
+  cursor: pointer;
+}
+
+.chat-completions-items>div:hover {
+  text-shadow: 0px 0px 6px white;
+}
+
+.input-mobile .chat-completions-items {
+  justify-content: flex-start;
+}
+
+.input-mobile {
+  top: 15px;
+  position: absolute;
+}
+
+.input-mobile #chatinput {
+  height: 20px;
+}
+
+.display-mobile {
+  top: 40px;
+}
+
+.chat,
+.chat-input {
+  color: white;
+  font-size: 10px;
+  margin: 0px;
+  line-height: 100%;
+  text-shadow: 1px 1px 0px #3f3f3f;
+  font-family: mojangles, minecraft, monospace;
+  max-height: var(--chatHeight);
+}
+
+.chat {
+  pointer-events: none;
+  overflow: hidden;
+  width: 100%;
+  scrollbar-width: thin;
+}
+
+.chat.opened {
+  pointer-events: auto;
+  overflow-y: auto;
+}
+
+input[type=text],
+#chatinput {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0);
+  outline: none;
+  pointer-events: auto;
+  /* styles reset */
+  padding-top: 1px;
+  padding-bottom: 1px;
+  padding-left: 2px;
+  padding-right: 2px;
+  height: 15px;
+}
+
+.chat-mobile-hidden {
+  width: 8px;
+  height: 0;
+  position: absolute;
+  display: block !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chat-mobile-hidden:nth-last-child(1) {
+  height: 8px;
+}
+
+#chatinput:focus {
+  border-color: white;
+}
+
+.chat-message {
+  padding-left: 4px;
+  background-color: rgba(0, 0, 0, 0.5);
+  list-style: none;
+  word-break: break-all;
+}
+
+.chat-message-fadeout {
+  opacity: 1;
+  transition: all 3s;
+}
+
+.chat-message-fade {
+  opacity: 0;
+}
+
+.chat-message-faded {
+  transition: none !important;
+}
+
+.chat.opened .chat-message {
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+.chat-message-part {}
