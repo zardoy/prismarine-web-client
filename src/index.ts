@@ -90,6 +90,7 @@ import { loadInMemorySave } from './react/SingleplayerProvider'
 
 // side effects
 import { downloadSoundsIfNeeded } from './soundSystem'
+import { ua } from './react/utils'
 
 window.debug = debug
 window.THREE = THREE
@@ -122,6 +123,12 @@ renderer.setPixelRatio(pixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.domElement.id = 'viewer-canvas'
 document.body.appendChild(renderer.domElement)
+
+const isFirefox = ua.getBrowser().name === 'Firefox'
+if (isFirefox) {
+  // set custom property
+  document.body.style.setProperty('--thin-if-firefox', 'thin')
+}
 
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
