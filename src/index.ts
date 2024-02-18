@@ -23,6 +23,8 @@ import './menus/hud'
 import './menus/play_screen'
 import './menus/pause_screen'
 import './menus/keybinds_screen'
+import 'core-js/features/array/at'
+import 'core-js/features/promise/with-resolvers'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 
