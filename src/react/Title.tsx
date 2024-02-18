@@ -1,5 +1,5 @@
 import type { MessageFormatPart } from '../botUtils'
-import './Message.css'
+import './Title.css'
 
 type MessageProps = {
   title?: MessageFormatPart,
