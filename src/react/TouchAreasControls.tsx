@@ -3,7 +3,13 @@ import PixelartIcon from './PixelartIcon'
 
 export type Button = 'action' | 'sneak' | 'break'
 
-export default ({ touchActive, setupActive, buttonsPositions }) => {
+interface Props {
+  touchActive: boolean
+  setupActive: boolean
+  buttonsPositions: Record<Button, [number, number]>
+}
+
+export default ({ touchActive, setupActive, buttonsPositions }: Props) => {
   if (setupActive) touchActive = true
 
   const [joystickPosition, setJoystickPosition] = useState(null as { x, y, pointerId } | null)
@@ -42,25 +48,25 @@ export default ({ touchActive, setupActive, buttonsPositions }) => {
 
   buttonsPositions = {
     // 0-100
-    action: {
-      x: 90,
-      y: 70
-    },
-    sneak: {
-      x: 90,
-      y: 90
-    },
-    break: {
-      x: 70,
-      y: 70
-    }
+    action: [
+      90,
+      70
+    ],
+    sneak: [
+      90,
+      90
+    ],
+    break: [
+      70,
+      70
+    ]
   }
 
   const buttonStyles = (name: Button) => ({
     padding: 10,
     position: 'fixed',
-    left: `${buttonsPositions[name].x}%`,
-    top: `${buttonsPositions[name].y}%`,
+    left: `${buttonsPositions[name][0]}%`,
+    top: `${buttonsPositions[name][1]}%`,
     borderRadius: '50%',
   } satisfies CSSProperties)
 

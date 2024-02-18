@@ -71,3 +71,11 @@ declare module '*.png' {
     const png: string
     export default png
 }
+
+interface PromiseConstructor {
+    withResolvers<T> (): {
+        resolve: (value: T) => void;
+        reject: (reason: any) => void;
+        promise: Promise<T>;
+    }
+}
