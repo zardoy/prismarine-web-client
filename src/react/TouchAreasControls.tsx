@@ -18,6 +18,7 @@ export default ({ touchActive, setupActive, buttonsPositions }) => {
         const y = e.clientY - joystickPosition.y
         const supportsPressure = (e as any).pressure !== undefined && (e as any).pressure !== 0 && (e as any).pressure !== 0.5 && (e as any).pressure !== 1 && (e.pointerType === 'touch' || e.pointerType === 'pen')
         if ((e as any).pressure > 0.5) {
+          // todo
         }
 
 
