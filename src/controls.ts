@@ -68,6 +68,7 @@ export const contro = new ControMax({
   },
   gamepadPollingInterval: 10
 })
+window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
 
 const setSprinting = (state: boolean) => {
@@ -414,12 +415,12 @@ let allowFlying = false
 
 export const onBotCreate = () => {
   bot._client.on('abilities', ({ flags }) => {
-    allowFlying = !!(flags & 4)
     if (flags & 2) { // flying
       toggleFly(true, false)
     } else {
       toggleFly(false, false)
     }
+    allowFlying = !!(flags & 4)
   })
 }
 
