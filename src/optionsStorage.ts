@@ -55,6 +55,7 @@ const defaultOptions = {
   /** Actually might be useful */
   showCursorBlockInSpectator: false,
   renderEntities: true,
+  chatSelect: false,
 
   // advanced bot options
   autoRespawn: false,
