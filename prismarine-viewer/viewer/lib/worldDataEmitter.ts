@@ -48,6 +48,7 @@ export class WorldDataEmitter extends EventEmitter {
         emitEntity(e)
       },
       entityUpdate: (e: any) => {
+        emitEntity(e)
       },
       entityMoved: (e: any) => {
         emitEntity(e)
