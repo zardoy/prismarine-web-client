@@ -30,7 +30,9 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
     <Screen
       title={
         <>
-          {status}
+          <span style={{ userSelect: isError ? 'text' : undefined }}>
+            {status}
+          </span>
           {isError || hideDots ? '' : loadingDots}
           <p className={styles['potential-problem']}>{description}</p>
           <p className={styles['last-status']}>{lastStatus ? `Last status: ${lastStatus}` : lastStatus}</p>

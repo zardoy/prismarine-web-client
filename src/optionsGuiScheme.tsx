@@ -188,7 +188,16 @@ export const guiOptionsScheme: {
       },
       touchButtonsPosition: {
         max: 80
-      }
+      },
+      touchControlsType: {
+        values: [['classic', 'Classic'], ['joystick-buttons', 'New']],
+      },
+    },
+    {
+      custom () {
+        const { touchControlsType } = useSnapshot(options)
+        return <Button label='Setup Touch Buttons' onClick={() => showModal({ reactType: 'touch-buttons-setup' })} inScreen disabled={touchControlsType !== 'joystick-buttons'} />
+      },
     }
   ],
   sound: [
