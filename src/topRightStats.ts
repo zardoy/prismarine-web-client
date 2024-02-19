@@ -18,6 +18,7 @@ const addStat = (dom, size = 80) => {
   if (denseMode) dom.style.height = '12px'
   dom.style.overflow = 'hidden'
   dom.style.left = ''
+  dom.style.top = 0
   dom.style.right = `${total}px`
   dom.style.width = '80px'
   dom.style.zIndex = 1000
@@ -45,7 +46,7 @@ if (hideStats) {
 export const initWithRenderer = (canvas) => {
   if (hideStats) return
   statsGl.init(canvas)
-  if (statsGl.gpuPanel) {
+  if (statsGl.gpuPanel && process.env.NODE_ENV !== 'production') {
     addStatsGlStat(statsGl.gpuPanel.canvas)
   }
   // addStatsGlStat(statsGl.msPanel.canvas)
