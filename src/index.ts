@@ -23,6 +23,8 @@ import './menus/hud'
 import './menus/play_screen'
 import './menus/pause_screen'
 import './menus/keybinds_screen'
+import 'core-js/features/array/at'
+import 'core-js/features/promise/with-resolvers'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 
@@ -88,9 +90,11 @@ import { loadInMemorySave } from './react/SingleplayerProvider'
 
 // side effects
 import { downloadSoundsIfNeeded } from './soundSystem'
+import { ua } from './react/utils'
 
 window.debug = debug
 window.THREE = THREE
+window.worldInteractions = worldInteractions
 window.beforeRenderFrame = []
 
 // ACTUAL CODE
@@ -100,15 +104,31 @@ watchFov()
 initCollisionShapes()
 
 // Create three.js context, add to page
-const renderer = new THREE.WebGLRenderer({
-  powerPreference: options.gpuPreference,
-})
+let renderer: THREE.WebGLRenderer
+try {
+  renderer = new THREE.WebGLRenderer({
+    powerPreference: options.gpuPreference,
+  })
+} catch (err) {
+  console.error(err)
+  throw new Error(`Failed to create WebGL context, not possible to render (restart browser): ${err.message}`)
+}
+
+// renderer.localClippingEnabled = true
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
-renderer.setPixelRatio(window.devicePixelRatio || 1) // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
+let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
+if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
+renderer.setPixelRatio(pixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.domElement.id = 'viewer-canvas'
 document.body.appendChild(renderer.domElement)
+
+const isFirefox = ua.getBrowser().name === 'Firefox'
+if (isFirefox) {
+  // set custom property
+  document.body.style.setProperty('--thin-if-firefox', 'thin')
+}
 
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)

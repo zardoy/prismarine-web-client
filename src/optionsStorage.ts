@@ -29,6 +29,7 @@ const defaultOptions = {
   touchButtonsSize: 40,
   touchButtonsOpacity: 80,
   touchButtonsPosition: 12,
+  touchControlsPositions: {} as Record<string, [number, number]>,
   gpuPreference: 'default' as 'default' | 'high-performance' | 'low-power',
   /** @unstable */
   disableAssets: false,

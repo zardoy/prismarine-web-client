@@ -122,7 +122,7 @@ div.chat-wrapper {
   pointer-events: none;
   overflow: hidden;
   width: 100%;
-  scrollbar-width: thin;
+  scrollbar-width: var(--thin-if-firefox);
 }
 
 .chat.opened {

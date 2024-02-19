@@ -6,6 +6,12 @@ import LargeChestLikeGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui
 import FurnaceGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/furnace.png'
 import CraftingTableGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/crafting_table.png'
 import DispenserGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/dispenser.png'
+import HopperGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/hopper.png'
+import HorseGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/horse.png'
+import VillagerGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/villager2.png'
+import EnchantingGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/enchanting_table.png'
+import AnvilGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/anvil.png'
+import BeaconGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/beacon.png'
 
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
 import { subscribeKey } from 'valtio/utils'
@@ -22,6 +28,7 @@ import mojangson from 'mojangson'
 import nbt from 'prismarine-nbt'
 import { splitEvery, equals } from 'rambda'
 import PItem, { Item } from 'prismarine-item'
+import Generic95 from '../assets/generic_95.png'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
@@ -184,6 +191,13 @@ const getImageSrc = (path): string | HTMLImageElement => {
     case 'gui/container/crafting_table': return CraftingTableGui
     case 'gui/container/shulker_box': return ChestLikeGui
     case 'gui/container/generic_54': return LargeChestLikeGui
+    case 'gui/container/generic_95': return Generic95
+    case 'gui/container/hopper': return HopperGui
+    case 'gui/container/horse': return HorseGui
+    case 'gui/container/villager2': return VillagerGui
+    case 'gui/container/enchanting_table': return EnchantingGui
+    case 'gui/container/anvil': return AnvilGui
+    case 'gui/container/beacon': return BeaconGui
   }
   return Dirt
 }
@@ -228,7 +242,7 @@ const isFullBlock = (block: string) => {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
-type RenderSlot = Pick<import('prismarine-item').Item, 'name' | 'displayName'>
+type RenderSlot = Pick<import('prismarine-item').Item, 'name' | 'displayName' | 'durabilityUsed' | 'maxDurability' | 'enchants'>
 const renderSlot = (slot: RenderSlot, skipBlock = false): { texture: string, blockData?, scale?: number, slice?: number[] } | undefined => {
   const itemName = slot.name
   const isItem = loadedData.itemsByName[itemName]
@@ -332,11 +346,21 @@ export const onModalClose = (callback: () => any) => {
 const implementedContainersGuiMap = {
   // todo allow arbitrary size instead!
   'minecraft:generic_9x3': 'ChestWin',
+  'minecraft:generic_9x5': 'Generic95Win',
+  // hopper
+  'minecraft:generic_5x1': 'HopperWin',
   'minecraft:generic_9x6': 'LargeChestWin',
   'minecraft:generic_3x3': 'DropDispenseWin',
   'minecraft:furnace': 'FurnaceWin',
   'minecraft:smoker': 'FurnaceWin',
-  'minecraft:crafting': 'CraftingWin'
+  'minecraft:crafting': 'CraftingWin',
+  'minecraft:anvil': 'AnvilWin',
+  // enchant
+  'minecraft:enchanting_table': 'EnchantingWin',
+  // horse
+  'minecraft:horse': 'HorseWin',
+  // villager
+  'minecraft:villager': 'VillagerWin',
 }
 
 const upJei = (search: string) => {

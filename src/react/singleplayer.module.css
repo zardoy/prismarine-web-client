@@ -14,7 +14,8 @@
     flex: 1;
     margin: 5px;
     overflow: auto;
-    scrollbar-width: thin;
+    /* todo think of better workaround */
+    scrollbar-width: var(--thin-if-firefox);
 }
 
 .world_root {
