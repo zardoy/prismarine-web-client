@@ -13,6 +13,7 @@ export default () => {
   const { messagesLimit, chatOpacity, chatOpacityOpened } = options
   const lastMessageId = useRef(0)
   const usingTouch = useSnapshot(miscUiState).currentTouch
+  const { chatSelect } = useSnapshot(options)
 
   useEffect(() => {
     bot.addListener('message', (jsonMsg, position) => {
@@ -35,6 +36,7 @@ export default () => {
   }, [])
 
   return <ChatContainer
+    allowSelection={chatSelect}
     usingTouch={!!usingTouch}
     opacity={(isChatActive ? chatOpacityOpened : chatOpacity) / 100}
     messages={messages}

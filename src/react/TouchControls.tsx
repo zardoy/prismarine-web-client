@@ -49,8 +49,9 @@ export default () => {
   const usingTouch = useUsingTouch()
   const { usingGamepadInput } = useSnapshot(miscUiState)
   const modals = useSnapshot(activeModalStack)
+  const { touchControlsType } = useSnapshot(options)
 
-  if (!usingTouch || usingGamepadInput) return null
+  if (!usingTouch || usingGamepadInput || touchControlsType !== 'classic') return null
   return (
     <div
       style={{ zIndex: modals.length ? 7 : 8 }}

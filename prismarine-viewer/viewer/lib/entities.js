@@ -133,6 +133,9 @@ export class Entities extends EventEmitter {
     return playerObject
   }
 
+  // fixme workaround
+  defaultSteveTexture
+
   // true means use default skin url
   updatePlayerSkin (entityId, username, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
     let playerObject = this.getPlayerObject(entityId)
@@ -146,15 +149,24 @@ export class Entities extends EventEmitter {
     loadImage(skinUrl).then((image) => {
       playerObject = this.getPlayerObject(entityId)
       if (!playerObject) return
-      const skinCanvas = document.createElement('canvas')
-      loadSkinToCanvas(skinCanvas, image)
-      const skinTexture = new THREE.CanvasTexture(skinCanvas)
+      /** @type {THREE.CanvasTexture} */
+      let skinTexture
+      if (skinUrl === stevePng && this.defaultSteveTexture) {
+        skinTexture = this.defaultSteveTexture
+      } else {
+        const skinCanvas = document.createElement('canvas')
+        loadSkinToCanvas(skinCanvas, image)
+        skinTexture = new THREE.CanvasTexture(skinCanvas)
+        if (skinUrl === stevePng) {
+          this.defaultSteveTexture = skinTexture
+        }
+      }
       skinTexture.magFilter = THREE.NearestFilter
       skinTexture.minFilter = THREE.NearestFilter
       skinTexture.needsUpdate = true
       //@ts-ignore
       playerObject.skin.map = skinTexture
-      playerObject.skin.modelType = inferModelType(skinCanvas)
+      playerObject.skin.modelType = inferModelType(skinTexture.image)
 
       const earsCanvas = document.createElement('canvas')
       loadEarsToCanvasFromSkin(earsCanvas, image)
@@ -193,9 +205,9 @@ export class Entities extends EventEmitter {
           if (!playerObject.backEquipment) {
             playerObject.backEquipment = 'cape'
           }
-        })
+        }, () => {})
       }
-    })
+    }, () => {})
 
 
     playerObject.cape.visible = false
@@ -320,9 +332,36 @@ export class Entities extends EventEmitter {
     }
     // not player
     const displayText = entity.metadata?.[3] && this.displaySimpleText(entity.metadata[2]);
-    if (entity.name !== 'player') {
+    if (entity.name !== 'player' && displayText) {
       addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
     }
+
+    // todo handle map, map_chunks events
+    // if (entity.name === 'item_frame' || entity.name === 'glow_item_frame') {
+    //   const example = {
+    //     "present": true,
+    //     "itemId": 847,
+    //     "itemCount": 1,
+    //     "nbtData": {
+    //         "type": "compound",
+    //         "name": "",
+    //         "value": {
+    //             "map": {
+    //                 "type": "int",
+    //                 "value": 2146483444
+    //             },
+    //             "interactiveboard": {
+    //                 "type": "byte",
+    //                 "value": 1
+    //             }
+    //         }
+    //     }
+    // }
+    //   const item = entity.metadata?.[8]
+    //   if (item.nbtData) {
+    //     const nbt = nbt.simplify(item.nbtData)
+    //   }
+    // }
 
     // this can be undefined in case where packet entity_destroy was sent twice (so it was already deleted)
     const e = this.entities[entity.id]
