@@ -193,9 +193,9 @@ export class Entities extends EventEmitter {
           if (!playerObject.backEquipment) {
             playerObject.backEquipment = 'cape'
           }
-        })
+        }, () => {})
       }
-    })
+    }, () => {})
 
 
     playerObject.cape.visible = false

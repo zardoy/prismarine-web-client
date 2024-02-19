@@ -350,12 +350,12 @@ async function connect (connectOptions: {
   }
   const handleError = (err) => {
     errorAbortController.abort()
-    console.log('Encountered error!', err)
+    if (isCypress()) throw err
+    if (miscUiState.gameLoaded) return
 
     setLoadingScreenStatus(`Error encountered. ${err}`, true)
     onPossibleErrorDisconnect()
     destroyAll()
-    if (isCypress()) throw err
   }
 
   const errorAbortController = new AbortController()
