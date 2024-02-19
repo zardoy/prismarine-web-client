@@ -320,7 +320,7 @@ export class Entities extends EventEmitter {
     }
     // not player
     const displayText = entity.metadata?.[3] && this.displaySimpleText(entity.metadata[2]);
-    if (entity.name !== 'player') {
+    if (entity.name !== 'player' && displayText) {
       addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
     }
 
