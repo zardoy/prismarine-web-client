@@ -18,7 +18,6 @@ type TitleProps = {
   open: boolean
 }
 
-
 const defaultText: MessageFormatPart[] = [{ text: '' }]
 
 const Title = (
@@ -28,7 +27,7 @@ const Title = (
     actionBar = defaultText, 
     transitionTimes = {
       fadeIn: 2500,
-      stay: 17_500,
+      stay: 17500,
       fadeOut: 5000
     },
     open = true
@@ -36,6 +35,8 @@ const Title = (
 ) => {
   const [mounted, setMounted] = useState(false)
   const [useEnterTransition, setUseEnterTransition] = useState(true)
+  const [isOpen, setIsOpen] = useState(open)
+
   const defaultDuration = 500
   const startStyle = { 
     opacity: 1, 
@@ -55,18 +56,18 @@ const Title = (
     if (!mounted && open) {
       setMounted(true)
     }
-  }, [open])
-  //const [open, setOpen] = useState(open);
 
-  // useEffect(() => {
-  //   setTimeout(() => {
-  //     setOpen(false) 
-  //   }, transitionTimes.stay);
-  // }, [])
+    if (open) {
+      setIsOpen(true)
+      setTimeout(() => {
+        setIsOpen(false) 
+      }, transitionTimes.stay + transitionTimes.fadeIn);
+    }
+  }, [open])
 
   return (
     <Transition
-      in={open}
+      in={isOpen}
       timeout={transitionTimes ? {
         enter: transitionTimes.fadeIn,
         exit: transitionTimes.fadeOut,

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { proxy, useSnapshot } from 'valtio'
 import { disconnect } from '../flyingSquidUtils'
 import { MessageFormatPart, formatMessage } from '../botUtils'
@@ -6,36 +6,23 @@ import { showModal, hideModal } from '../globalState'
 import { options } from '../optionsStorage'
 import Title from './Title'
 import { useIsModalActive } from './utils'
-import { AnimationTimes } from './FadeTransition.tsx'
-
-const titleProxy = proxy({ value: null as MessageFormatPart[] | null })
-
-type TextEvent = {
-  animationTimes: AnimationTimes,
-  titleText: string,
-  subtitleText: string,
-  actionBarText: string,
-}
 
 export default () => {
-  const { value: title } = useSnapshot(titleProxy)
+  const [title, setTitle] = useState<MessageFormatPart[] | null>(null);
   const isTitleActive = useIsModalActive('title-screen')
 
   useEffect(() => {
-    bot._client.on('set_title_text', (data: Pick<TextEvent, 'titleText'>) => {
-      try {
-        const messageParsed = JSON.parse(data.titleText)
-        const parts = formatMessage(messageParsed)
-        titleProxy.value = parts
-      } catch (err) {
-        console.error(err)
-      }
+    bot.on('chat', (message) => {
+      setTitle(message)
     })
   }, [])
 
-  if (!isTitleActive || !title || options.autoRespawn) return null
+  if (!isTitleActive || !title) return null
 
   return <Title
-    title={title as MessageFormatPart[]}
-  />
+    title={title} subtitle={[]} actionBar={[]} transitionTimes={{
+      fadeIn: 0,
+      stay: 5000,
+      fadeOut: 0
+    }} open={true}  />
 }
