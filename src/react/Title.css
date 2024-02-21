@@ -1,0 +1,44 @@
+.message-container {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+.titleScreen {
+    position: fixed;
+    top: 20%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.message-title {
+    color: white;
+}
+
+.message-subtitle {
+    color: white;
+}
+
+.actionScreen {
+    position: fixed;
+    bottom: 10%;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.action-bar {
+    font-size: 0.8rem
+}
+
+.tooltip {
+    font-size: 0.5rem;
+    opacity: 0.7
+}
