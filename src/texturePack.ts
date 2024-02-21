@@ -83,7 +83,6 @@ export const installTexturePack = async (file: File | ArrayBuffer, name = file['
     if (path.endsWith('/')) return
     await mkdirRecursive(dirname(writePath))
     await fs.promises.writeFile(writePath, Buffer.from(await file.async('arraybuffer')))
-    done++
     upStatus()
   }))
   await completeTexturePackInstall(name)
