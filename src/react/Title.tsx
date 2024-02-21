@@ -27,7 +27,7 @@ const Title = (
     actionBar = defaultText, 
     transitionTimes = {
       fadeIn: 2500,
-      stay: 17500,
+      stay: 17_500,
       fadeOut: 5000
     },
     open = true
@@ -61,7 +61,7 @@ const Title = (
       setIsOpen(true)
       setTimeout(() => {
         setIsOpen(false) 
-      }, transitionTimes.stay + transitionTimes.fadeIn);
+      }, transitionTimes.stay + transitionTimes.fadeIn)
     }
   }, [open])
 

@@ -8,7 +8,7 @@ import Title from './Title'
 import { useIsModalActive } from './utils'
 
 export default () => {
-  const [title, setTitle] = useState<MessageFormatPart[] | null>(null);
+  const [title, setTitle] = useState<MessageFormatPart[] | null>(null)
   const isTitleActive = useIsModalActive('title-screen')
 
   useEffect(() => {
@@ -24,5 +24,5 @@ export default () => {
       fadeIn: 0,
       stay: 5000,
       fadeOut: 0
-    }} open={true}  />
+    }} open={true} />
 }
