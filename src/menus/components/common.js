@@ -48,7 +48,7 @@ function openURL (url, newTab = true) {
   if (newTab) {
     window.open(url, '_blank', 'noopener,noreferrer')
   } else {
-    window.open(url)
+    window.open(url, '_self')
   }
 }
 
