@@ -76,13 +76,14 @@ export const installTexturePack = async (file: File | ArrayBuffer, name = file['
   const allFilesArr = Object.entries(zipFile.files)
   let done = 0
   const upStatus = () => {
-    setLoadingScreenStatus(`${status} ${Math.round(++done / allFilesArr.length * 100)}%`)
+    setLoadingScreenStatus(`${status} ${Math.round(done / allFilesArr.length * 100)}%`)
   }
   await Promise.all(allFilesArr.map(async ([path, file]) => {
     const writePath = join(texturePackBasePath, path)
     if (path.endsWith('/')) return
     await mkdirRecursive(dirname(writePath))
     await fs.promises.writeFile(writePath, Buffer.from(await file.async('arraybuffer')))
+    done++
     upStatus()
   }))
   await completeTexturePackInstall(name)
