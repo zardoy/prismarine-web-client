@@ -4,7 +4,7 @@ import type { MessageFormatPart } from '../botUtils'
 import MessageFormatted from './MessageFormatted'
 import './Title.css'
 
-type AnimationTimes = {
+export type AnimationTimes = {
   fadeIn: number,
   stay: number,
   fadeOut: number
@@ -18,19 +18,13 @@ type TitleProps = {
   open: boolean
 }
 
-const defaultText: MessageFormatPart[] = [{ text: '' }]
-
 const Title = (
   {
-    title = defaultText, 
-    subtitle = defaultText, 
-    actionBar = defaultText, 
-    transitionTimes = {
-      fadeIn: 2500,
-      stay: 17_500,
-      fadeOut: 5000
-    },
-    open = true
+    title, 
+    subtitle, 
+    actionBar, 
+    transitionTimes,
+    open = false
   }: TitleProps
 ) => {
   const [mounted, setMounted] = useState(false)
@@ -56,52 +50,47 @@ const Title = (
     if (!mounted && open) {
       setMounted(true)
     }
-
-    if (open) {
-      setIsOpen(true)
-      setTimeout(() => {
-        setIsOpen(false) 
-      }, transitionTimes.stay + transitionTimes.fadeIn)
-    }
   }, [open])
 
   return (
-    <Transition
-      in={isOpen}
-      timeout={transitionTimes ? {
-        enter: transitionTimes.fadeIn,
-        exit: transitionTimes.fadeOut,
-      } : defaultDuration}
-      mountOnEnter
-      unmountOnExit
-      enter={useEnterTransition}
-      onExiting={() => {
-        setUseEnterTransition(prev => false)
-      }}
-      onExited={() => {
-        setUseEnterTransition(prev => true)
-      }}
-    >
-      {(state) => {
-        return (
-          <div style={{ ...stateStyles[state] }} className='message-container'>
-            <div className='titleScreen'>
-              <h1 className='message-title'>
-                <MessageFormatted parts={title} />
-              </h1>
-              <h4 className='message-subtitle'>
-                <MessageFormatted parts={subtitle} />
-              </h4>
-            </div>
-            <div className='actionScreen'>
-              <div className='action-bar'>
-                <MessageFormatted parts={actionBar} />
+    <div className='message-container'>
+      <Transition
+        in={open}
+        timeout={transitionTimes ? {
+          enter: transitionTimes.fadeIn,
+          exit: transitionTimes.fadeOut,
+        } : defaultDuration}
+        mountOnEnter
+        unmountOnExit
+        enter={useEnterTransition}
+        onExiting={() => {
+          setUseEnterTransition(prev => false)
+        }}
+        onExited={() => {
+          setUseEnterTransition(prev => true)
+        }}
+      >
+        {(state) => {
+          return (
+            <div style={{ ...stateStyles[state] }}>
+              <div className='titleScreen'>
+                <h1 className='message-title'>
+                  <MessageFormatted parts={title} />
+                </h1>
+                <h4 className='message-subtitle'>
+                  <MessageFormatted parts={subtitle} />
+                </h4>
+              </div>
+              <div className='actionScreen'>
+                <div className='action-bar'>
+                  <MessageFormatted parts={actionBar} />
+                </div>
               </div>
             </div>
-          </div>
-        )
-      }}
-    </Transition>
+          )}}
+      </Transition>
+    </div>
+
   )
 }
 
