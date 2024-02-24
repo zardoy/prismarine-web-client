@@ -31,22 +31,22 @@ export default () => {
   }
 
   useEffect(() => {
-    bot._client.on('set_title_text', (message) => {
+    bot.on('set_title_text', (message) => {
       setTitle([message])
       if (!open) {
         ShowTitle()
       }
     })
-    bot._client.on('set_title_subtitle', (message) => {
+    bot.on('set_title_subtitle', (message) => {
       setSubtitle([message])
     })
-    bot._client.on('action_bar', (message) => {
+    bot.on('action_bar', (message) => {
       setActionBar([message])
       if (!open) {
         ShowTitle()
       }
     })
-    bot._client.on('set_title_time', (message) => {
+    bot.on('set_title_time', (message) => {
       setAnimTimes(message)
     })
   }, [])
