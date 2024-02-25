@@ -30,6 +30,7 @@
     "@dimaka/interface": "0.0.3-alpha.0",
     "@floating-ui/react": "^0.26.1",
     "@mui/base": "5.0.0-beta.34",
+    "@nxg-org/mineflayer-tracker": "^1.2.1",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/wicg-file-system-access": "^2023.10.2",
@@ -64,6 +65,7 @@
     "react-transition-group": "^4.4.5",
     "sanitize-filename": "^1.6.3",
     "skinview3d": "^3.0.1",
+    "source-map-js": "^1.0.2",
     "stats-gl": "^1.0.5",
     "stats.js": "^0.17.0",
     "tabbable": "^6.2.0",
@@ -133,6 +135,9 @@
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
       "minecraft-protocol": "github:zardoy/minecraft-protocol#everything",
       "react": "^18.2.0"
+    },
+    "patchedDependencies": {
+      "source-map-js@1.0.2": "patches/source-map-js@1.0.2.patch"
     }
   }
 }

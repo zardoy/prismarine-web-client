@@ -14,6 +14,11 @@ overrides:
   minecraft-protocol: github:zardoy/minecraft-protocol#everything
   react: ^18.2.0
 
+patchedDependencies:
+  source-map-js@1.0.2:
+    hash: 64rmfibsvq4yinbp7ki2vnrrau
+    path: patches/source-map-js@1.0.2.patch
+
 importers:
 
   .:
@@ -27,6 +32,9 @@ importers:
       '@mui/base':
         specifier: 5.0.0-beta.34
         version: 5.0.0-beta.34(@types/react@18.2.20)(react-dom@18.2.0)(react@18.2.0)
+      '@nxg-org/mineflayer-tracker':
+        specifier: ^1.2.1
+        version: 1.2.1
       '@types/react':
         specifier: ^18.2.20
         version: 18.2.20
@@ -129,6 +137,9 @@ importers:
       skinview3d:
         specifier: ^3.0.1
         version: 3.0.1
+      source-map-js:
+        specifier: ^1.0.2
+        version: 1.0.2(patch_hash=64rmfibsvq4yinbp7ki2vnrrau)
       stats-gl:
         specifier: ^1.0.5
         version: 1.0.5
@@ -3303,6 +3314,23 @@ packages:
       rimraf: 3.0.2
     dev: false
     optional: true
+
+  /@nxg-org/mineflayer-tracker@1.2.1:
+    resolution: {integrity: sha512-SI1ffF8zvg3/ZNE021Ja2W0FZPN+WbQDZf8yFqOcXtPRXAtM9W6HvoACdzXep8BZid7WYgYLIgjKpB+9RqvCNQ==}
+    dependencies:
+      '@nxg-org/mineflayer-trajectories': 1.1.1
+      '@nxg-org/mineflayer-util-plugin': 1.8.3
+    dev: false
+
+  /@nxg-org/mineflayer-trajectories@1.1.1:
+    resolution: {integrity: sha512-X103KXlX8+L3uMeK4jQxMUdTizv01sQRSfBizAF/iOAdfQZehRLXr3CYKeJzfwPYGLN0X0JCl++cMEcZVn4vbg==}
+    dependencies:
+      '@nxg-org/mineflayer-util-plugin': 1.8.3
+    dev: false
+
+  /@nxg-org/mineflayer-util-plugin@1.8.3:
+    resolution: {integrity: sha512-YlIbzCDs9822xuvmYlD0vXZz0iye9buqp9NK4nNn15gYybdqBtC/YxK6BLqXtwNohZCKoZdKgei7Xd5Bt2/rUg==}
+    dev: false
 
   /@pkgjs/parseargs@0.11.0:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -7431,6 +7459,7 @@ packages:
   /detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
+    requiresBuild: true
     dev: false
 
   /detect-node-es@1.1.0:
@@ -11938,7 +11967,7 @@ packages:
     dependencies:
       nanoid: 3.3.6
       picocolors: 1.0.0
-      source-map-js: 1.0.2
+      source-map-js: 1.0.2(patch_hash=64rmfibsvq4yinbp7ki2vnrrau)
 
   /postcss@8.4.35:
     resolution: {integrity: sha512-u5U8qYpBCpN13BsiEB0CbR1Hhh4Gc0zLFuedrHJKMctHCHAGrMdG0PRM/KErzAL3CU6/eckEtmHNB3x6e3c0vA==}
@@ -11946,7 +11975,7 @@ packages:
     dependencies:
       nanoid: 3.3.7
       picocolors: 1.0.0
-      source-map-js: 1.0.2
+      source-map-js: 1.0.2(patch_hash=64rmfibsvq4yinbp7ki2vnrrau)
     dev: true
 
   /potpack@1.0.2:
@@ -13499,9 +13528,10 @@ packages:
     dev: false
     optional: true
 
-  /source-map-js@1.0.2:
+  /source-map-js@1.0.2(patch_hash=64rmfibsvq4yinbp7ki2vnrrau):
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
     engines: {node: '>=0.10.0'}
+    patched: true
 
   /source-map-support@0.5.21:
     resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
