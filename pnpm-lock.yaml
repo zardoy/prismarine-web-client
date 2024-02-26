@@ -9,7 +9,7 @@ overrides:
   diamond-square: github:zardoy/diamond-square
   prismarine-block: github:zardoy/prismarine-block#next-era
   prismarine-world: github:zardoy/prismarine-world#next-era
-  minecraft-data: 3.61.0
+  minecraft-data: 3.61.2
   prismarine-provider-anvil: github:zardoy/prismarine-provider-anvil#everything
   minecraft-protocol: github:zardoy/minecraft-protocol#everything
   react: ^18.2.0
@@ -105,8 +105,8 @@ importers:
         specifier: ^1.12.2
         version: 1.12.2
       minecraft-data:
-        specifier: 3.61.0
-        version: 3.61.0
+        specifier: 3.61.2
+        version: 3.61.2
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
         version: github.com/zardoy/prismarinejs-net-browserify/7d827dba61bd2f9ac9a6086fe2079a0fccadd070
@@ -342,7 +342,7 @@ importers:
         version: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-chunk:
         specifier: ^1.22.0
-        version: 1.35.0(minecraft-data@3.61.0)
+        version: 1.35.0(minecraft-data@3.61.2)
       prismarine-schematic:
         specifier: ^1.2.0
         version: 1.2.3
@@ -5640,18 +5640,18 @@ packages:
       exit-hook: 2.2.1
       flatmap: 0.0.3
       long: 5.2.3
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       minecraft-protocol: github.com/zardoy/minecraft-protocol/2c14a686bfe7cbd9a5c87b629b402295ee86219f
       mkdirp: 2.1.6
       moment: 2.29.4
       needle: 2.9.1
       node-gzip: 1.1.2
       node-rsa: 1.1.1
-      prismarine-chunk: 1.35.0(minecraft-data@3.61.0)
+      prismarine-chunk: 1.35.0(minecraft-data@3.61.2)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.5.0
-      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.61.0)
+      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.61.2)
       prismarine-windows: 2.8.0
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
       random-seed: 0.3.0
@@ -10924,8 +10924,8 @@ packages:
     resolution: {integrity: sha512-/eMxh3LNjCXOnU6KnQMjBM8dRnoJNpWIg7mD2m2RthraYiQK2FNzPWIKxWm2j3Ufcf5nzFXupgABledE86r4fQ==}
     dev: false
 
-  /minecraft-data@3.61.0:
-    resolution: {integrity: sha512-e7FMplGNjhAZvdxT66bP56ZqHymr+BrzCZlhNxRr1suFKueGSTQQA+DZ2ZU/vW/02dBFCrHfBEJh1sw5vOZ+Ew==}
+  /minecraft-data@3.61.2:
+    resolution: {integrity: sha512-4RsP5rkQx78ZaOKWGeVidc+PjH+DFzNFrQMtSVAgabDOHDWrhSaOlpkxpltHy+vYUyLhglfAkc2g1DUkgHQcTQ==}
 
   /minecraft-folder-path@1.2.0:
     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
@@ -10961,7 +10961,7 @@ packages:
   /mineflayer-pathfinder@2.4.4:
     resolution: {integrity: sha512-HAXakZrJRb1UC+5dv8EaDrqjW3ZnBnBk3nkb6x/YWyhHCUKn/E7VU0FO+UN9whuqPlkSaVumEdXJdydE6lSYxQ==}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
@@ -12055,13 +12055,13 @@ packages:
       - encoding
       - supports-color
 
-  /prismarine-biome@1.3.0(minecraft-data@3.61.0)(prismarine-registry@1.7.0):
+  /prismarine-biome@1.3.0(minecraft-data@3.61.2)(prismarine-registry@1.7.0):
     resolution: {integrity: sha512-GY6nZxq93mTErT7jD7jt8YS1aPrOakbJHh39seYsJFXvueIOdHAmW16kYQVrTVMW5MlWLQVxV/EquRwOgr4MnQ==}
     peerDependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       prismarine-registry: ^1.1.0
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       prismarine-registry: 1.7.0
 
   /prismarine-chat@1.9.1:
@@ -12072,11 +12072,11 @@ packages:
       prismarine-nbt: 2.5.0
       prismarine-registry: 1.7.0
 
-  /prismarine-chunk@1.35.0(minecraft-data@3.61.0):
+  /prismarine-chunk@1.35.0(minecraft-data@3.61.2):
     resolution: {integrity: sha512-Q1lElMUle7wWxWdQjbZo3j2/dLNG325j90IcbbMmBTnHdQSWIjWFe792XOz3RVBlvrhRJEiZk38S6/eQTQ9esw==}
     engines: {node: '>=14'}
     dependencies:
-      prismarine-biome: 1.3.0(minecraft-data@3.61.0)(prismarine-registry@1.7.0)
+      prismarine-biome: 1.3.0(minecraft-data@3.61.2)(prismarine-registry@1.7.0)
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-nbt: 2.2.1
       prismarine-registry: 1.7.0
@@ -12114,7 +12114,7 @@ packages:
   /prismarine-physics@1.8.0:
     resolution: {integrity: sha512-gbM+S+bmVtOKVv+Z0WGaHMeEeBHISIDsRDRlv8sr0dex3ZJRhuq8djA02CBreguXtI18ZKh6q3TSj2qDr45NHA==}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       prismarine-nbt: 2.5.0
       vec3: 0.1.8
     dev: true
@@ -12139,13 +12139,13 @@ packages:
   /prismarine-registry@1.7.0:
     resolution: {integrity: sha512-yyva0FpWI078nNeMhx8ekVza5uUTYhEv+C+ADu3wUQXiG8qhXkvrf0uzsnhTgZL8BLdsi2axgCEiKw9qSKIuxQ==}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       prismarine-nbt: 2.5.0
 
   /prismarine-schematic@1.2.3:
     resolution: {integrity: sha512-Mwpn43vEHhm3aw3cPhJjWqztkW+nX+QLajDHlTask8lEOTGl1WmpvFja4iwiws4GIvaC8x0Foptf4uvDsnjrAg==}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-nbt: 2.2.1
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
@@ -15356,12 +15356,12 @@ packages:
     version: 4.19.0
     engines: {node: '>=18'}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       minecraft-protocol: github.com/zardoy/minecraft-protocol/2c14a686bfe7cbd9a5c87b629b402295ee86219f
-      prismarine-biome: 1.3.0(minecraft-data@3.61.0)(prismarine-registry@1.7.0)
+      prismarine-biome: 1.3.0(minecraft-data@3.61.2)(prismarine-registry@1.7.0)
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-chat: 1.9.1
-      prismarine-chunk: 1.35.0(minecraft-data@3.61.0)
+      prismarine-chunk: 1.35.0(minecraft-data@3.61.2)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.2.1
@@ -15398,8 +15398,8 @@ packages:
     name: diamond-square
     version: 1.3.0
     dependencies:
-      minecraft-data: 3.61.0
-      prismarine-chunk: 1.35.0(minecraft-data@3.61.0)
+      minecraft-data: 3.61.2
+      prismarine-chunk: 1.35.0(minecraft-data@3.61.2)
       random-seed: 0.3.0
       vec3: 0.1.8
     dev: false
@@ -15429,7 +15429,7 @@ packages:
       endian-toggle: 0.0.0
       lodash.get: 4.4.2
       lodash.merge: 4.6.2
-      minecraft-data: 3.61.0
+      minecraft-data: 3.61.2
       minecraft-folder-path: 1.2.0
       node-fetch: 2.7.0
       node-rsa: 0.4.2
@@ -15449,20 +15449,20 @@ packages:
     name: prismarine-block
     version: 1.17.1
     dependencies:
-      minecraft-data: 3.61.0
-      prismarine-biome: 1.3.0(minecraft-data@3.61.0)(prismarine-registry@1.7.0)
+      minecraft-data: 3.61.2
+      prismarine-biome: 1.3.0(minecraft-data@3.61.2)(prismarine-registry@1.7.0)
       prismarine-chat: 1.9.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.2.1
       prismarine-registry: 1.7.0
 
-  github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.61.0):
+  github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.61.2):
     resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0ddcd9d48574113308e1fbebef60816aced0846f}
     id: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f
     name: prismarine-provider-anvil
     version: 2.7.0
     dependencies:
-      prismarine-chunk: 1.35.0(minecraft-data@3.61.0)
+      prismarine-chunk: 1.35.0(minecraft-data@3.61.2)
       prismarine-nbt: 2.5.0
       uint4: 0.1.2
       vec3: 0.1.8
