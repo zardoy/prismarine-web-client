@@ -106,7 +106,7 @@ const commands: Array<{
   {
     command: ['/save'],
     async invoke () {
-      await saveServer()
+      await saveServer(false)
     }
   }
 ]

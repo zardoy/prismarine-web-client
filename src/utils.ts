@@ -1,9 +1,6 @@
 import { hideModal, isGameActive, miscUiState, notification, showModal } from './globalState'
 import { options } from './optionsStorage'
-import { openWorldZip } from './browserfs'
-import { installTexturePack } from './texturePack'
 import { appStatusState } from './react/AppStatusProvider'
-import { saveServer } from './flyingSquidUtils'
 
 export const goFullscreen = async (doToggle = false) => {
   if (!document.fullscreenElement) {
@@ -147,17 +144,6 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
   appStatusState.status = status
 }
 
-
-export const disconnect = async () => {
-  if (localServer) {
-    await saveServer()
-    //@ts-expect-error todo expose!
-    void localServer.quit() // todo investigate we should await
-  }
-  window.history.replaceState({}, '', `${window.location.pathname}`) // remove qs
-  bot.end('You left the server')
-}
-
 // doesn't support snapshots
 export const toMajorVersion = (version) => {
   const [a, b] = (String(version)).split('.')
@@ -181,35 +167,6 @@ export const reloadChunks = async () => {
   await worldView.updatePosition(bot.entity.position, true)
 }
 
-export const openFilePicker = (specificCase?: 'resourcepack') => {
-  // create and show input picker
-  let picker: HTMLInputElement = document.body.querySelector('input#file-zip-picker')!
-  if (!picker) {
-    picker = document.createElement('input')
-    picker.type = 'file'
-    picker.accept = '.zip'
-
-    picker.addEventListener('change', () => {
-      const file = picker.files?.[0]
-      picker.value = ''
-      if (!file) return
-      if (!file.name.endsWith('.zip')) {
-        const doContinue = confirm(`Are you sure ${file.name.slice(-20)} is .zip file? Only .zip files are supported. Continue?`)
-        if (!doContinue) return
-      }
-      if (specificCase === 'resourcepack') {
-        void installTexturePack(file)
-      } else {
-        void openWorldZip(file)
-      }
-    })
-    picker.hidden = true
-    document.body.appendChild(picker)
-  }
-
-  picker.click()
-}
-
 export const openGithub = () => {
   window.open(process.env.GITHUB_URL, '_blank')
 }
@@ -229,4 +186,12 @@ export function assertDefined<T> (x: T | undefined): asserts x is T {
 
 export const haveDirectoryPicker = () => {
   return !!window.showDirectoryPicker
+}
+
+const reportedWarnings = new Set<string>()
+
+export const reportWarningOnce = (id: string, message: string) => {
+  if (reportedWarnings.has(id)) return
+  reportedWarnings.add(id)
+  console.warn(message)
 }

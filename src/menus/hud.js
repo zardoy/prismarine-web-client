@@ -117,12 +117,8 @@ class Hud extends LitElement {
     this.isReady = true
     window.dispatchEvent(new CustomEvent('hud-ready', { detail: this }))
 
-    watchValue(options, (o) => {
-      miscUiState.currentTouch = o.alwaysShowMobileControls || isMobile()
-      this.showMobileControls(miscUiState.currentTouch)
-    })
-
     watchValue(miscUiState, o => {
+      this.showMobileControls(o.currentTouch)
       //@ts-expect-error
       this.shadowRoot.host.style.display = o.gameLoaded ? 'block' : 'none'
     })

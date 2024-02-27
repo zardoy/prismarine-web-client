@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSnapshot } from 'valtio'
 import { formatMessage } from '../botUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
-import { hideCurrentModal } from '../globalState'
+import { hideCurrentModal, miscUiState } from '../globalState'
 import { options } from '../optionsStorage'
 import ChatContainer, { Message, fadeMessage } from './ChatContainer'
 import { useIsModalActive } from './utils'
@@ -11,6 +12,8 @@ export default () => {
   const isChatActive = useIsModalActive('chat')
   const { messagesLimit, chatOpacity, chatOpacityOpened } = options
   const lastMessageId = useRef(0)
+  const usingTouch = useSnapshot(miscUiState).currentTouch
+  const { chatSelect } = useSnapshot(options)
 
   useEffect(() => {
     bot.addListener('message', (jsonMsg, position) => {
@@ -33,6 +36,8 @@ export default () => {
   }, [])
 
   return <ChatContainer
+    allowSelection={chatSelect}
+    usingTouch={!!usingTouch}
     opacity={(isChatActive ? chatOpacityOpened : chatOpacity) / 100}
     messages={messages}
     opened={isChatActive}

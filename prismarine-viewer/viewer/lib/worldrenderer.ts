@@ -9,7 +9,7 @@ import { dispose3 } from './dispose'
 import { toMajor } from './version.js'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
-import { chunkPos } from './simpleUtils'
+import { chunkPos, sectionPos } from './simpleUtils'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -260,7 +260,7 @@ export class WorldRenderer {
     const loadBlockStates = async () => {
       return new Promise(resolve => {
         if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
-        return loadJSON(`blocksStates/${this.texturesVersion}.json`, (data) => {
+        return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
           this.downloadedBlockStatesData = data
           // todo
           this.renderUpdateEmitter.emit('blockStatesDownloaded')
@@ -275,12 +275,13 @@ export class WorldRenderer {
     })
   }
 
-  getLoadedChunksRelative (pos: Vec3) {
-    const [currentX, currentZ] = chunkPos(pos)
+  getLoadedChunksRelative (pos: Vec3, includeY = false) {
+    const [currentX, currentY, currentZ] = sectionPos(pos)
     return Object.fromEntries(Object.entries(this.sectionObjects).map(([key, o]) => {
       const [xRaw, yRaw, zRaw] = key.split(',').map(Number)
-      const [x, z] = chunkPos({ x: xRaw, z: zRaw })
-      return [`${x - currentX},${z - currentZ}`, o]
+      const [x, y, z] = sectionPos({ x: xRaw, y: yRaw, z: zRaw })
+      const setKey = includeY ? `${x - currentX},${y - currentY},${z - currentZ}` : `${x - currentX},${z - currentZ}`
+      return [setKey, o]
     }))
   }
 

@@ -51,6 +51,7 @@ body {
   -ms-user-select: none;
   user-select: none;
   font-family: minecraft, mojangles, monospace;
+  z-index: -5;
 }
 
 #react-root {
@@ -148,8 +149,19 @@ body {
   animation-fill-mode: forwards;
 }
 
+.full-svg svg {
+  width: 100%;
+  height: 100%;
+}
+
 .muted {
   color: #999;
+}
+
+@media screen and (min-width: 430px) {
+  .span-2 {
+    grid-column: span 2;
+  }
 }
 
 @keyframes dive-animation {

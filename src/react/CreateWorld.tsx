@@ -27,26 +27,29 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
   }, [])
 
   return <Screen title="Create world" backdrop="dirt">
-    <div style={{ display: 'flex' }}>
+    <form style={{ display: 'flex' }} onSubmit={(e) => {
+      e.preventDefault()
+      createClick()
+    }}>
       <Input
         autoFocus
         value={title}
         onChange={({ target: { value } }) => {
           creatingWorldState.title = value
         }}
-        onEnterPress={() => {
-          createClick()
-        }}
         placeholder='World name'
       />
-      <select value={version} onChange={({ target: { value } }) => {
+      <select value={version} style={{
+        background: 'gray',
+        color: 'white'
+      }} onChange={({ target: { value } }) => {
         creatingWorldState.version = value
       }}>
         {versions.map(({ version, label }) => {
           return <option key={version} value={version}>{label}</option>
         })}
       </select>
-    </div>
+    </form>
     <div style={{ display: 'flex' }}>
       <Button onClick={() => {
         const index = worldTypes.indexOf(type)

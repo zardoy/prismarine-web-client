@@ -18,6 +18,8 @@ import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
 import { useIsWidgetActive } from './react/utils'
+import GlobalSearchInput from './GlobalSearchInput'
+import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 
 const Portal = ({ children, to }) => {
   return createPortal(children, to)
@@ -58,11 +60,13 @@ const InGameUi = () => {
       <DeathScreenProvider />
       <ChatProvider />
       <SoundMuffler />
+      <TouchAreasControlsProvider />
     </Portal>
     <DisplayQr />
     <Portal to={document.body}>
       {/* becaues of z-index */}
       <TouchControls />
+      <GlobalSearchInput />
     </Portal>
   </>
 }

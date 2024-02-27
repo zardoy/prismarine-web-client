@@ -17,15 +17,25 @@ export function nameToMcOfflineUUID (name) {
   return (new UUID(javaUUID('OfflinePlayer:' + name))).toString()
 }
 
-export async function savePlayers () {
+export async function savePlayers (autoSave: boolean) {
+  if (autoSave && new URL(location.href).searchParams.get('noSave') === 'true') return
   //@ts-expect-error TODO
   await localServer!.savePlayersSingleplayer()
 }
 
 // todo flying squid should expose save function instead
-export const saveServer = async () => {
+export const saveServer = async (autoSave = true) => {
   if (!localServer || fsState.isReadonly) return
   // todo
   const worlds = [(localServer as any).overworld] as Array<import('prismarine-world').world.World>
-  await Promise.all([savePlayers(), ...worlds.map(async world => world.saveNow())])
+  await Promise.all([savePlayers(autoSave), ...worlds.map(async world => world.saveNow())])
+}
+export const disconnect = async () => {
+  if (localServer) {
+    await saveServer()
+    //@ts-expect-error todo expose!
+    void localServer.quit() // todo investigate we should await
+  }
+  window.history.replaceState({}, '', `${window.location.pathname}`) // remove qs
+  bot.end('You left the server')
 }

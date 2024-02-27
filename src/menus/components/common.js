@@ -30,7 +30,7 @@ const commonCss = css`
 
 /** @returns {boolean} */
 function isMobile () {
-  return window.matchMedia('(pointer: coarse)').matches
+  return window.matchMedia('(pointer: coarse)').matches || navigator.userAgent.includes('Mobile')
 }
 
 // todo there are better workarounds and proper way to detect notch
@@ -48,7 +48,7 @@ function openURL (url, newTab = true) {
   if (newTab) {
     window.open(url, '_blank', 'noopener,noreferrer')
   } else {
-    window.open(url)
+    window.open(url, '_self')
   }
 }
 

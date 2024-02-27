@@ -105,3 +105,15 @@ export const formatMessage = (message: MessageInput) => {
 
   return msglist
 }
+
+const blockToItemRemaps = {
+  water: 'water_bucket',
+  lava: 'lava_bucket',
+  redstone_wire: 'redstone',
+  tripwire: 'tripwire_hook'
+}
+
+export const getItemFromBlock = (block: import('prismarine-block').Block) => {
+  const item = loadedData.items[blockToItemRemaps[block.name] ?? block.name]
+  return item
+}

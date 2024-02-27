@@ -6,7 +6,7 @@ A true Minecraft client running in your browser! A port of the original game to 
 
 This project is a work in progress, but I consider it to be usable. If you encounter any bugs or usability issues, please report them!
 
-You can try this out at [mcraft.fun](https://mcraft.fun/), [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy.
+You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
 
 ### Big Features
 
@@ -82,6 +82,20 @@ You can also drag and drop any .dat or .mca (region files) into the browser wind
 - `F3 + G` - Toggle chunk sections (geometries) border visibility + entities outline (aka Three.js geometry helpers)
 
 world chunks have a *yellow* border, hostile mobs have a *red* outline, passive mobs have a *green* outline, players have a *blue* outline.
+
+### Query Parameters
+
+Press `Y` to set query parameters to url of your current game state.
+
+- `?server=<server_address>` - Display connect screen to the server on load
+- `?username=<username>` - Set the username on load
+- `?proxy=<proxy_address>` - Set the proxy server address on load
+- `?version=<version>` - Set the version on load
+- `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
+<!-- - `?password=<password>` - Set the password on load -->
+- `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
+- `?singleplayer=1` - Create empty world on load. Nothing will be saved
+- `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
 
 ### Notable Things that Power this Project
 

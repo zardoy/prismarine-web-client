@@ -5,6 +5,7 @@ import './globals'
 import 'iconify-icon'
 import './devtools'
 import './entities'
+import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
 import { onGameLoad } from './playerWindows'
 import { supportedVersions } from 'minecraft-protocol'
@@ -22,6 +23,8 @@ import './menus/hud'
 import './menus/play_screen'
 import './menus/pause_screen'
 import './menus/keybinds_screen'
+import 'core-js/features/array/at'
+import 'core-js/features/promise/with-resolvers'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 import WebGpuRenderer from 'THREE/examples/jsm/renderers/webgpu/WebGPURenderer.js'
@@ -30,7 +33,7 @@ import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
-import { possiblyCleanHandle } from './browserfs'
+import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
 import './eruda'
 import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
@@ -55,9 +58,10 @@ import {
   showModal, activeModalStacks,
   insertActiveModalStack,
   isGameActive,
-  miscUiState, resetStateAfterDisconnect,
+  miscUiState,
   notification
 } from './globalState'
+
 
 import {
   pointerLock,
@@ -87,9 +91,12 @@ import { loadInMemorySave } from './react/SingleplayerProvider'
 
 // side effects
 import { downloadSoundsIfNeeded } from './soundSystem'
+import { ua } from './react/utils'
+import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 
 window.debug = debug
 window.THREE = THREE
+window.worldInteractions = worldInteractions
 window.beforeRenderFrame = []
 
 // ACTUAL CODE
@@ -106,10 +113,18 @@ const renderer = new WebGpuRenderer({
 }) as any
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
-renderer.setPixelRatio(window.devicePixelRatio || 1) // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
+let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
+if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
+renderer.setPixelRatio(pixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.domElement.id = 'viewer-canvas'
 document.body.appendChild(renderer.domElement)
+
+const isFirefox = ua.getBrowser().name === 'Firefox'
+if (isFirefox) {
+  // set custom property
+  document.body.style.setProperty('--thin-if-firefox', 'thin')
+}
 
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
@@ -117,6 +132,11 @@ window.viewer = viewer
 Object.defineProperty(window, 'debugSceneChunks', {
   get () {
     return viewer.world.getLoadedChunksRelative(bot.entity.position)
+  },
+})
+Object.defineProperty(window, 'debugSceneChunksY', {
+  get () {
+    return viewer.world.getLoadedChunksRelative(bot.entity.position, true)
   },
 })
 viewer.entities.entitiesOptions = {
@@ -331,12 +351,12 @@ async function connect (connectOptions: {
   }
   const handleError = (err) => {
     errorAbortController.abort()
-    console.log('Encountered error!', err)
+    if (isCypress()) throw err
+    if (miscUiState.gameLoaded) return
 
     setLoadingScreenStatus(`Error encountered. ${err}`, true)
     onPossibleErrorDisconnect()
     destroyAll()
-    if (isCypress()) throw err
   }
 
   const errorAbortController = new AbortController()
@@ -651,6 +671,7 @@ async function connect (connectOptions: {
     let screenTouches = 0
     let capturedPointer: { id; x; y; sourceX; sourceY; activateCameraMove; time } | undefined
     registerListener(document, 'pointerdown', (e) => {
+      const usingJoystick = options.touchControlsType === 'joystick-buttons'
       const clickedEl = e.composedPath()[0]
       if (!isGameActive(true) || !miscUiState.currentTouch || clickedEl !== cameraControlEl || e.pointerId === undefined) {
         return
@@ -659,6 +680,16 @@ async function connect (connectOptions: {
       if (screenTouches === 3) {
         // todo needs fixing!
         // window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
+      }
+      if (usingJoystick) {
+        if (!joystickPointer.pointer && e.clientX < window.innerWidth / 2) {
+          joystickPointer.pointer = {
+            pointerId: e.pointerId,
+            x: e.clientX,
+            y: e.clientY
+          }
+          return
+        }
       }
       if (capturedPointer) {
         return
@@ -673,19 +704,33 @@ async function connect (connectOptions: {
         activateCameraMove: false,
         time: Date.now()
       }
-      virtualClickTimeout ??= setTimeout(() => {
-        virtualClickActive = true
-        document.dispatchEvent(new MouseEvent('mousedown', { button: 0 }))
-      }, touchStartBreakingBlockMs)
+      if (options.touchControlsType !== 'joystick-buttons') {
+        virtualClickTimeout ??= setTimeout(() => {
+          virtualClickActive = true
+          document.dispatchEvent(new MouseEvent('mousedown', { button: 0 }))
+        }, touchStartBreakingBlockMs)
+      }
     })
     registerListener(document, 'pointermove', (e) => {
-      if (e.pointerId === undefined || e.pointerId !== capturedPointer?.id) return
+      if (e.pointerId === undefined) return
+      const supportsPressure = (e as any).pressure !== undefined && (e as any).pressure !== 0 && (e as any).pressure !== 0.5 && (e as any).pressure !== 1 && (e.pointerType === 'touch' || e.pointerType === 'pen')
+      if (e.pointerId === joystickPointer.pointer?.pointerId) {
+        handleMovementStickDelta(e)
+        if (supportsPressure && (e as any).pressure > 0.5) {
+          bot.setControlState('sprint', true)
+          // todo
+        }
+        return
+      }
+      if (e.pointerId !== capturedPointer?.id) return
       window.scrollTo(0, 0)
       e.preventDefault()
       e.stopPropagation()
 
       const allowedJitter = 1.1
-      // todo support .pressure (3d touch)
+      if (supportsPressure) {
+        bot.setControlState('jump', (e as any).pressure > 0.5)
+      }
       const xDiff = Math.abs(e.pageX - capturedPointer.sourceX) > allowedJitter
       const yDiff = Math.abs(e.pageY - capturedPointer.sourceY) > allowedJitter
       if (!capturedPointer.activateCameraMove && (xDiff || yDiff)) capturedPointer.activateCameraMove = true
@@ -698,18 +743,26 @@ async function connect (connectOptions: {
     }, { passive: false })
 
     const pointerUpHandler = (e: PointerEvent) => {
-      if (e.pointerId === undefined || e.pointerId !== capturedPointer?.id) return
+      if (e.pointerId === undefined) return
+      if (e.pointerId === joystickPointer.pointer?.pointerId) {
+        handleMovementStickDelta()
+        joystickPointer.pointer = null
+        return
+      }
+      if (e.pointerId !== capturedPointer?.id) return
       clearTimeout(virtualClickTimeout)
       virtualClickTimeout = undefined
 
-      if (virtualClickActive) {
-        // button 0 is left click
-        document.dispatchEvent(new MouseEvent('mouseup', { button: 0 }))
-        virtualClickActive = false
-      } else if (!capturedPointer.activateCameraMove && (Date.now() - capturedPointer.time < touchStartBreakingBlockMs)) {
-        document.dispatchEvent(new MouseEvent('mousedown', { button: 2 }))
-        worldInteractions.update()
-        document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
+      if (options.touchControlsType !== 'joystick-buttons') {
+        if (virtualClickActive) {
+          // button 0 is left click
+          document.dispatchEvent(new MouseEvent('mouseup', { button: 0 }))
+          virtualClickActive = false
+        } else if (!capturedPointer.activateCameraMove && (Date.now() - capturedPointer.time < touchStartBreakingBlockMs)) {
+          document.dispatchEvent(new MouseEvent('mousedown', { button: 2 }))
+          worldInteractions.update()
+          document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
+        }
       }
       capturedPointer = undefined
       screenTouches--

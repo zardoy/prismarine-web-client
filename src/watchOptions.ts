@@ -3,6 +3,8 @@
 import { subscribeKey } from 'valtio/utils'
 import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
+import { miscUiState } from './globalState'
+import { isMobile } from './menus/components/common'
 
 subscribeKey(options, 'renderDistance', reloadChunks)
 subscribeKey(options, 'multiplayerRenderDistance', reloadChunks)
@@ -14,7 +16,17 @@ watchValue(options, o => {
   document.documentElement.style.setProperty('--guiScale', `${o.guiScale}`)
 })
 
+/** happens once */
 export const watchOptionsAfterViewerInit = () => {
+  const updateTouch = (o) => {
+    miscUiState.currentTouch = o.alwaysShowMobileControls || isMobile()
+  }
+
+  watchValue(options, updateTouch)
+  window.matchMedia('(pointer: coarse)').addEventListener('change', (e) => {
+    updateTouch(options)
+  })
+
   watchValue(options, o => {
     if (!viewer) return
     viewer.world.showChunkBorders = o.showChunkBorders
