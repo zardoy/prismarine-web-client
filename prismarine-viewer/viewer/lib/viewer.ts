@@ -192,9 +192,9 @@ export class Viewer {
       this.renderPass.camera = this.camera
       this.composer.render()
     } else {
-      this.renderer.render(this.scene, this.camera)
+      this.renderer.renderAsync(this.scene, this.camera)
     }
-    this.entities.render()
+    // this.entities.render()
   }
 
   async waitForChunksToRender () {

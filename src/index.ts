@@ -114,7 +114,7 @@ const renderer = new WebGpuRenderer({
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
 let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
-if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
+// if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
 renderer.setPixelRatio(pixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.domElement.id = 'viewer-canvas'

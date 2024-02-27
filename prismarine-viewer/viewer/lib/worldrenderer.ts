@@ -114,8 +114,12 @@ export class WorldRenderer {
           }
           this.sectionObjects[data.key] = object
           this.updatePosDataChunk(data.key)
-          object.occlusionTest = true
+          // mesh.occlusionTest = true
           this.scene.add(object)
+          // mesh.onBeforeRender = (renderer, scene, camera, geometry) => {
+          //   //@ts-ignore
+          //   object.occluded = renderer.isOccluded(mesh)
+          // }
         } else if (data.type === 'sectionFinished') {
           this.sectionsOutstanding.delete(data.key)
           this.renderUpdateEmitter.emit('update')
