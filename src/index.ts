@@ -27,7 +27,7 @@ import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
-import WebGpuRenderer from 'THREE/examples/jsm/renderers/webgpu/WebGPURenderer.js'
+import WebGpuRenderer from 'three/examples/jsm/renderers/webgpu/WebGPURenderer.js'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
