@@ -14,7 +14,7 @@ import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
 // import * as _THREE from 'three-latest'
 import { render } from './scene1'
-import WebGpuRendererJs from 'THREE/examples/jsm/renderers/webgpu/WebGPURenderer.js'
+import WebGpuRendererJs from 'three/examples/jsm/renderers/webgpu/WebGPURenderer.js'
 
 // const THREE = _THREE as typeof import('three')
 globalThis.THREE = THREE
