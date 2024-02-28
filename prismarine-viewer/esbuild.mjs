@@ -30,6 +30,7 @@ const buildOptions = {
   // logLevel: 'debug',
   logLevel: 'info',
   platform: 'browser',
+  format: 'esm',
   sourcemap: dev ? 'inline' : false,
   minify: !dev,
   outfile: join(__dirname, 'public/playground.js'),
@@ -47,6 +48,7 @@ const buildOptions = {
     http: 'http-browserify',
     stream: 'stream-browserify',
     net: 'net-browserify',
+    // three: 'three-latest'
   },
   inject: [],
   metafile: true,
@@ -56,7 +58,7 @@ const buildOptions = {
   plugins: [
     {
       name: 'minecraft-data',
-      setup (build) {
+      setup(build) {
         build.onLoad({
           filter: /minecraft-data[\/\\]data.js$/,
         }, () => {

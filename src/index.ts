@@ -27,6 +27,7 @@ import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
+import WebGpuRenderer from 'three/examples/jsm/renderers/webgpu/WebGPURenderer.js'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -105,21 +106,15 @@ watchFov()
 initCollisionShapes()
 
 // Create three.js context, add to page
-let renderer: THREE.WebGLRenderer
-try {
-  renderer = new THREE.WebGLRenderer({
-    powerPreference: options.gpuPreference,
-  })
-} catch (err) {
-  console.error(err)
-  throw new Error(`Failed to create WebGL context, not possible to render (restart browser): ${err.message}`)
-}
-
-// renderer.localClippingEnabled = true
+const renderer = new WebGpuRenderer({
+  forceWebGL: true,
+  // powerPreference: options.gpuPreference === 'default' ? undefined : options.gpuPreference,
+  // alpha: true,
+}) as any
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
 let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
-if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
+// if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
 renderer.setPixelRatio(pixelRatio)
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.domElement.id = 'viewer-canvas'
