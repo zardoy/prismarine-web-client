@@ -15,6 +15,23 @@ function mod (x, n) {
   return ((x % n) + n) % n
 }
 
+export type WorldHolder = {
+  add(opt: {
+    geometry: {
+      positions: Float32Array,
+      normals: Float32Array,
+      colors: Float32Array,
+      uvs: Float32Array,
+      indices: Uint32Array,
+      sx: number,
+      sy: number,
+      sz: number,
+      signs: Record<string, { isWall: boolean, rotation: number }>
+    }
+  })
+  remove(opt: { key: string })
+}
+
 export class WorldRenderer {
   worldConfig = { minY: 0, worldHeight: 256 }
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
@@ -43,7 +60,7 @@ export class WorldRenderer {
 
   promisesQueue = [] as Promise<any>[]
 
-  constructor(public scene: THREE.Scene, numWorkers = 4) {
+  constructor(public holder: WorldHolder, numWorkers = 4) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
@@ -58,12 +75,13 @@ export class WorldRenderer {
           setTimeout(resolve, 0)
         })
         if (data.type === 'geometry') {
-          let object: THREE.Object3D = this.sectionObjects[data.key]
-          if (object) {
-            this.scene.remove(object)
-            dispose3(object)
-            delete this.sectionObjects[data.key]
-          }
+          // let object: THREE.Object3D = this.sectionObjects[data.key]
+          // if (object) {
+          //   this.scene.remove(object)
+          //   dispose3(object)
+          //   delete this.sectionObjects[data.key]
+          // }
+          // if
 
           const chunkCoords = data.key.split(',')
           if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length || !this.active) return
@@ -82,39 +100,41 @@ export class WorldRenderer {
           //   }
           // }
 
-          const geometry = new THREE.BufferGeometry()
-          geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
-          geometry.setAttribute('normal', new THREE.BufferAttribute(data.geometry.normals, 3))
-          geometry.setAttribute('color', new THREE.BufferAttribute(data.geometry.colors, 3))
-          geometry.setAttribute('uv', new THREE.BufferAttribute(data.geometry.uvs, 2))
-          geometry.setIndex(data.geometry.indices)
+          return
+          
+          // const geometry = new THREE.BufferGeometry()
+          // geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
+          // geometry.setAttribute('normal', new THREE.BufferAttribute(data.geometry.normals, 3))
+          // geometry.setAttribute('color', new THREE.BufferAttribute(data.geometry.colors, 3))
+          // geometry.setAttribute('uv', new THREE.BufferAttribute(data.geometry.uvs, 2))
+          // geometry.setIndex(data.geometry.indices)
 
-          const mesh = new THREE.Mesh(geometry, this.material)
-          mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
-          mesh.name = 'mesh'
-          object = new THREE.Group()
-          object.add(mesh)
-          const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
-          boxHelper.name = 'helper'
-          object.add(boxHelper)
-          object.name = 'chunk'
-          if (!this.showChunkBorders) {
-            boxHelper.visible = false
-          }
-          // should not compute it once
-          if (Object.keys(data.geometry.signs).length) {
-            for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
-              const [x, y, z] = posKey.split(',')
-              const signBlockEntity = this.blockEntities[posKey]
-              if (!signBlockEntity) continue
-              const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity));
-              if (!sign) continue
-              object.add(sign)
-            }
-          }
-          this.sectionObjects[data.key] = object
-          this.updatePosDataChunk(data.key)
-          this.scene.add(object)
+          // const mesh = new THREE.Mesh(geometry, this.material)
+          // mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
+          // mesh.name = 'mesh'
+          // object = new THREE.Group()
+          // object.add(mesh)
+          // const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
+          // boxHelper.name = 'helper'
+          // object.add(boxHelper)
+          // object.name = 'chunk'
+          // if (!this.showChunkBorders) {
+          //   boxHelper.visible = false
+          // }
+          // // should not compute it once
+          // if (Object.keys(data.geometry.signs).length) {
+          //   for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
+          //     const [x, y, z] = posKey.split(',')
+          //     const signBlockEntity = this.blockEntities[posKey]
+          //     if (!signBlockEntity) continue
+          //     const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity));
+          //     if (!sign) continue
+          //     object.add(sign)
+          //   }
+          // }
+          // this.sectionObjects[data.key] = object
+          // this.updatePosDataChunk(data.key)
+          // this.scene.add(object)
         } else if (data.type === 'sectionFinished') {
           this.sectionsOutstanding.delete(data.key)
           this.renderUpdateEmitter.emit('update')
@@ -230,19 +250,19 @@ export class WorldRenderer {
   }
 
   setVersion (version, texturesVersion = version) {
-    this.version = version
-    this.texturesVersion = texturesVersion
-    this.resetWorld()
-    this.active = true
+    // this.version = version
+    // this.texturesVersion = texturesVersion
+    // this.resetWorld()
+    // this.active = true
 
-    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
-    for (const worker of this.workers) {
-      const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
-      mcData.version = JSON.parse(JSON.stringify(mcData.version))
-      worker.postMessage({ type: 'mcData', mcData, version: this.version })
-    }
+    // const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
+    // for (const worker of this.workers) {
+    //   const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
+    //   mcData.version = JSON.parse(JSON.stringify(mcData.version))
+    //   worker.postMessage({ type: 'mcData', mcData, version: this.version })
+    // }
 
-    this.updateTexturesData()
+    // this.updateTexturesData()
   }
 
   updateTexturesData () {
@@ -308,22 +328,22 @@ export class WorldRenderer {
   }
 
   removeColumn (x, z) {
-    this.cleanChunkTextures(x, z)
+    // this.cleanChunkTextures(x, z)
 
-    delete this.loadedChunks[`${x},${z}`]
-    for (const worker of this.workers) {
-      worker.postMessage({ type: 'unloadChunk', x, z })
-    }
-    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
-      this.setSectionDirty(new Vec3(x, y, z), false)
-      const key = `${x},${y},${z}`
-      const mesh = this.sectionObjects[key]
-      if (mesh) {
-        this.scene.remove(mesh)
-        dispose3(mesh)
-      }
-      delete this.sectionObjects[key]
-    }
+    // delete this.loadedChunks[`${x},${z}`]
+    // for (const worker of this.workers) {
+    //   worker.postMessage({ type: 'unloadChunk', x, z })
+    // }
+    // for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+    //   this.setSectionDirty(new Vec3(x, y, z), false)
+    //   const key = `${x},${y},${z}`
+    //   const mesh = this.sectionObjects[key]
+    //   if (mesh) {
+    //     this.scene.remove(mesh)
+    //     dispose3(mesh)
+    //   }
+    //   delete this.sectionObjects[key]
+    // }
   }
 
   setBlockStateId (pos, stateId) {

@@ -7,7 +7,9 @@ import { Primitives } from './primitives'
 import { getVersion } from './version'
 import EventEmitter from 'events'
 import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
+import { WorldHolder } from './worldrenderer'
 
+THREE.ShaderChunk
 export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
@@ -28,17 +30,10 @@ export class Viewer {
   fxaaPass: ShaderPass
   renderPass: RenderPass
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
-    this.scene = new THREE.Scene()
-    this.resetScene()
-    if (this.enableFXAA) {
-      this.enableFxaaScene()
-    }
-    this.world = new WorldRenderer(this.scene, numWorkers)
-    this.entities = new Entities(this.scene)
-    this.primitives = new Primitives(this.scene, this.camera)
-
-    this.domElement = renderer.domElement
+  constructor(public holder: WorldHolder, numWorkers?: number, public enableFXAA = false) {
+    this.world = new WorldRenderer(holder, numWorkers)
+    // this.entities = new Entities(this.scene)
+    // this.primitives = new Primitives(this.scene, this.camera)
   }
 
   resetScene () {
@@ -187,15 +182,15 @@ export class Viewer {
     tweenJs.update()
   }
 
-  render () {
-    if (this.composer) {
-      this.renderPass.camera = this.camera
-      this.composer.render()
-    } else {
-      this.renderer.render(this.scene, this.camera)
-    }
-    this.entities.render()
-  }
+  // render () {
+  //   if (this.composer) {
+  //     this.renderPass.camera = this.camera
+  //     this.composer.render()
+  //   } else {
+  //     this.renderer.render(this.scene, this.camera)
+  //   }
+  //   this.entities.render()
+  // }
 
   async waitForChunksToRender () {
     await this.world.waitForChunksToRender()

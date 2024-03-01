@@ -33,13 +33,13 @@ const params = {
   metadata: 0,
   supportBlock: false,
   entity: '',
-  removeEntity () {
+  removeEntity() {
     this.entity = ''
   },
   entityRotate: false,
   camera: '',
-  playSound () { },
-  blockIsomorphicRenderBundle () { }
+  playSound() { },
+  blockIsomorphicRenderBundle() { }
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -59,7 +59,7 @@ const setQs = () => {
 
 let ignoreResize = false
 
-async function main () {
+async function main() {
   let continuousRender = false
 
   const { version } = params
@@ -126,20 +126,96 @@ async function main () {
 
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
 
-  // Create three.js context, add to page
-  const renderer = new THREE.WebGLRenderer({ alpha: true, ...localStorage['renderer'] })
-  renderer.setPixelRatio(window.devicePixelRatio || 1)
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  document.body.appendChild(renderer.domElement)
+  const canvas = document.createElement('canvas')
+  const gl = canvas.getContext('webgl2')!
+
+  const program = createProgram(gl, `  #version 300 es
+  precision highp float;
+  layout (location = 0) in vec3 aPos;
+  void main()
+  {
+     gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);
+  }
+  `, `#version 300 es
+  precision highp float;
+  out vec4 FragColor;
+  void main()
+  {
+     FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+  }
+  
+  
+  `)
+
+  let vertices = new Float32Array([
+    0.5, 0.5, 0.0,  // top right
+    0.5, -0.5, 0.0,  // bottom right
+    -0.5, -0.5, 0.0,  // bottom left
+    -0.5, 0.5, 0.0   // top left 
+  ])
+  let indices = new Uint8Array([  // note that we start from 0!
+    0, 1, 3,  // first Triangle
+    1, 2, 3   // second Triangle
+  ])
+  let VBO, VAO, EBO
+  VAO = gl.createVertexArray();
+  VBO = gl.createBuffer();
+  EBO = gl.createBuffer();
+
+  gl.bindVertexArray(VAO);
+  gl.bindBuffer(gl.ARRAY_BUFFER, VBO)
+  gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, EBO)
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
+
+  new THREE.BufferAttribute(vertices, 3)
+  gl.vertexAttribPointer(0,3,gl.FLOAT, false, 0 , 0)
+  gl.enableVertexAttribArray(0)
+
+
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
+  gl.bindVertexArray(null)
+
+  //gl.attachShader(program, program)
+
+  //gl.clearColor(0, 0, 0, 1)
+  //gl.clear(gl.COLOR_BUFFER_BIT)
+  document.body.appendChild(canvas)
+
+  //gl.createVertexArray
+
+  //const model = 
+  //gl.
+  //gl.texImage2D()
+  // loop
+  const loop = () => {
+    gl.canvas.width = window.innerWidth
+    gl.canvas.height = window.innerHeight
+    gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+
+
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.clearColor(0.5, 0, 0, 0);
+    gl.useProgram(program)
+    gl.bindVertexArray(VAO)
+    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
+
+
+    requestAnimationFrame(loop)
+    //gl.Swa
+  }
+  loop()
+
+  // gl.deleteVertexArray(VAO);
+  // gl.deleteBuffer(VBO)
+  // gl.deleteBuffer(EBO)
+  // gl.deleteProgram(program)
+
+  return
 
   // Create viewer
   const viewer = new Viewer(renderer, 1)
-  viewer.entities.setDebugMode('basic')
-  viewer.setVersion(version)
-  viewer.entities.onSkinUpdate = () => {
-    viewer.update()
-    viewer.render()
-  }
 
   viewer.listen(worldView)
   // Load chunks
@@ -147,115 +223,115 @@ async function main () {
   window['worldView'] = worldView
   window['viewer'] = viewer
 
-  params.blockIsomorphicRenderBundle = () => {
-    const canvas = renderer.domElement
-    const onlyCurrent = !confirm('Ok - render all blocks, Cancel - render only current one')
-    const sizeRaw = prompt('Size', '512')
-    if (!sizeRaw) return
-    const size = parseInt(sizeRaw)
-    // const size = 512
+  // params.blockIsomorphicRenderBundle = () => {
+  //   const canvas = renderer.domElement
+  //   const onlyCurrent = !confirm('Ok - render all blocks, Cancel - render only current one')
+  //   const sizeRaw = prompt('Size', '512')
+  //   if (!sizeRaw) return
+  //   const size = parseInt(sizeRaw)
+  //   // const size = 512
 
-    ignoreResize = true
-    canvas.width = size
-    canvas.height = size
-    renderer.setSize(size, size)
+  //   ignoreResize = true
+  //   canvas.width = size
+  //   canvas.height = size
+  //   renderer.setSize(size, size)
 
-    //@ts-ignore
-    viewer.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 10)
-    viewer.scene.background = null
+  //   //@ts-ignore
+  //   viewer.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 10)
+  //   viewer.scene.background = null
 
-    const rad = THREE.MathUtils.degToRad(-120)
-    viewer.directionalLight.position.set(
-      Math.cos(rad),
-      Math.sin(rad),
-      0.2
-    ).normalize()
-    viewer.directionalLight.intensity = 1
+  //   const rad = THREE.MathUtils.degToRad(-120)
+  //   viewer.directionalLight.position.set(
+  //     Math.cos(rad),
+  //     Math.sin(rad),
+  //     0.2
+  //   ).normalize()
+  //   viewer.directionalLight.intensity = 1
 
-    const cameraPos = targetPos.offset(2, 2, 2)
-    const pitch = THREE.MathUtils.degToRad(-30)
-    const yaw = THREE.MathUtils.degToRad(45)
-    viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-    // viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
-    viewer.camera.position.set(cameraPos.x + 1, cameraPos.y + 0.5, cameraPos.z + 1)
+  //   const cameraPos = targetPos.offset(2, 2, 2)
+  //   const pitch = THREE.MathUtils.degToRad(-30)
+  //   const yaw = THREE.MathUtils.degToRad(45)
+  //   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+  //   // viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
+  //   viewer.camera.position.set(cameraPos.x + 1, cameraPos.y + 0.5, cameraPos.z + 1)
 
-    const allBlocks = mcData.blocksArray.map(b => b.name)
-    // const allBlocks = ['stone', 'warped_slab']
+  //   const allBlocks = mcData.blocksArray.map(b => b.name)
+  //   // const allBlocks = ['stone', 'warped_slab']
 
-    let blockCount = 1
-    let blockName = allBlocks[0]
+  //   let blockCount = 1
+  //   let blockName = allBlocks[0]
 
-    const updateBlock = () => {
+  //   const updateBlock = () => {
 
-      //@ts-ignore
-      // viewer.setBlockStateId(targetPos, mcData.blocksByName[blockName].minStateId)
-      params.block = blockName
-      // todo cleanup (introduce getDefaultState)
-      onUpdate.block()
-      applyChanges(false, true)
-    }
-    viewer.waitForChunksToRender().then(async () => {
-      // wait for next macro task
-      await new Promise(resolve => {
-        setTimeout(resolve, 0)
-      })
-      if (onlyCurrent) {
-        viewer.render()
-        onWorldUpdate()
-      } else {
-        // will be called on every render update
-        viewer.world.renderUpdateEmitter.addListener('update', onWorldUpdate)
-        updateBlock()
-      }
-    })
+  //     //@ts-ignore
+  //     // viewer.setBlockStateId(targetPos, mcData.blocksByName[blockName].minStateId)
+  //     params.block = blockName
+  //     // todo cleanup (introduce getDefaultState)
+  //     onUpdate.block()
+  //     applyChanges(false, true)
+  //   }
+  //   viewer.waitForChunksToRender().then(async () => {
+  //     // wait for next macro task
+  //     await new Promise(resolve => {
+  //       setTimeout(resolve, 0)
+  //     })
+  //     if (onlyCurrent) {
+  //       viewer.render()
+  //       onWorldUpdate()
+  //     } else {
+  //       // will be called on every render update
+  //       viewer.world.renderUpdateEmitter.addListener('update', onWorldUpdate)
+  //       updateBlock()
+  //     }
+  //   })
 
-    const zip = new JSZip()
-    zip.file('description.txt', 'Generated with prismarine-viewer')
+  //   const zip = new JSZip()
+  //   zip.file('description.txt', 'Generated with prismarine-viewer')
 
-    const end = async () => {
-      // download zip file
+  //   const end = async () => {
+  //     // download zip file
 
-      const a = document.createElement('a')
-      const blob = await zip.generateAsync({ type: 'blob' })
-      const dataUrlZip = URL.createObjectURL(blob)
-      a.href = dataUrlZip
-      a.download = 'blocks_render.zip'
-      a.click()
-      URL.revokeObjectURL(dataUrlZip)
-      console.log('end')
+  //     const a = document.createElement('a')
+  //     const blob = await zip.generateAsync({ type: 'blob' })
+  //     const dataUrlZip = URL.createObjectURL(blob)
+  //     a.href = dataUrlZip
+  //     a.download = 'blocks_render.zip'
+  //     a.click()
+  //     URL.revokeObjectURL(dataUrlZip)
+  //     console.log('end')
 
-      viewer.world.renderUpdateEmitter.removeListener('update', onWorldUpdate)
-    }
+  //     viewer.world.renderUpdateEmitter.removeListener('update', onWorldUpdate)
+  //   }
 
-    async function onWorldUpdate () {
-      // await new Promise(resolve => {
-      //   setTimeout(resolve, 50)
-      // })
-      const dataUrl = canvas.toDataURL('image/png')
+  //   async function onWorldUpdate () {
+  //     // await new Promise(resolve => {
+  //     //   setTimeout(resolve, 50)
+  //     // })
+  //     const dataUrl = canvas.toDataURL('image/png')
 
-      zip.file(`${blockName}.png`, dataUrl.split(',')[1], { base64: true })
+  //     zip.file(`${blockName}.png`, dataUrl.split(',')[1], { base64: true })
 
-      if (onlyCurrent) {
-        end()
-      } else {
-        nextBlock()
-      }
-    }
-    const nextBlock = async () => {
-      blockName = allBlocks[blockCount++]
-      console.log(allBlocks.length, '/', blockCount, blockName)
-      if (blockCount % 5 === 0) {
-        await new Promise(resolve => {
-          setTimeout(resolve, 100)
-        })
-      }
-      if (blockName) {
-        updateBlock()
-      } else {
-        end()
-      }
-    }
-  }
+  //     if (onlyCurrent) {
+  //       end()
+  //     } else {
+  //       nextBlock()
+  //     }
+  //   }
+  //   const nextBlock = async () => {
+  //     blockName = allBlocks[blockCount++]
+  //     console.log(allBlocks.length, '/', blockCount, blockName)
+  //     if (blockCount % 5 === 0) {
+  //       await new Promise(resolve => {
+  //         setTimeout(resolve, 100)
+  //       })
+  //     }
+  //     if (blockName) {
+  //       updateBlock()
+  //     } else {
+  //       end()
+  //     }
+  //   }
+  // }
 
   // const jsonData = await fetch('https://bluecolored.de/bluemap/maps/overworld/tiles/0/x-2/2/z1/6.json?584662').then(r => r.json())
 
@@ -315,7 +391,7 @@ async function main () {
       id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
     })
     const enableSkeletonDebug = (obj) => {
-      const {children, isSkeletonHelper} = obj
+      const { children, isSkeletonHelper } = obj
       if (!Array.isArray(children)) return
       if (isSkeletonHelper) {
         obj.visible = true
@@ -333,7 +409,7 @@ async function main () {
   }
 
   const onUpdate = {
-    block () {
+    block() {
       metadataFolder.destroy()
       const block = mcData.blocksByName[params.block]
       if (!block) return
@@ -376,7 +452,7 @@ async function main () {
       }
       metadataFolder.open()
     },
-    entity () {
+    entity() {
       continuousRender = params.entity === 'player'
       entityUpdateShared()
       if (!params.entity) return
@@ -396,7 +472,7 @@ async function main () {
       // entityRotationFolder.add(params, 'entityRotate')
       // entityRotationFolder.open()
     },
-    supportBlock () {
+    supportBlock() {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     }
   }
@@ -515,3 +591,31 @@ async function main () {
   }, { capture: true })
 }
 main()
+
+export const createProgram = (gl: WebGL2RenderingContext, vertexShader: string, fragmentShader: string) => {
+  const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
+    const shaderName = type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'
+    const shader = gl.createShader(type)!
+    gl.shaderSource(shader, source)
+    gl.compileShader(shader)
+    const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
+    if (!success) {
+      const info = gl.getShaderInfoLog(shader)
+      gl.deleteShader(shader)
+      throw new Error(`Shader ${shaderName} compile error: ` + info)
+    }
+    return shader
+  }
+
+  const program = gl.createProgram()!
+  gl.attachShader(program, createShader(gl, gl.VERTEX_SHADER, vertexShader)!)
+  gl.attachShader(program, createShader(gl, gl.FRAGMENT_SHADER, fragmentShader)!)
+  gl.linkProgram(program)
+  const linkSuccess = gl.getProgramParameter(program, gl.LINK_STATUS)
+  if (!linkSuccess) {
+    const info = gl.getProgramInfoLog(program)
+    gl.deleteProgram(program)
+    throw new Error('Program link error: ' + info)
+  }
+  return program
+}
