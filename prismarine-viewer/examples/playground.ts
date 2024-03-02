@@ -15,7 +15,7 @@ import Entity from '../viewer/lib/entity/Entity'
 
 globalThis.THREE = THREE
 //@ts-ignore
-require('three/examples/js/controls/OrbitControls')
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const gui = new GUI()
 
@@ -291,7 +291,7 @@ async function main () {
 
 
   //@ts-ignore
-  const controls = new globalThis.THREE.OrbitControls(viewer.camera, renderer.domElement)
+  const controls = new OrbitControls(viewer.camera, renderer.domElement)
   controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
   const cameraPos = targetPos.offset(2, 2, 2)

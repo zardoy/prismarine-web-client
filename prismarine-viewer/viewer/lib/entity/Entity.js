@@ -191,7 +191,7 @@ function getMesh (texture, jsonModel, overrides = {}) {
   geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(geoData.skinWeights, 4))
   geometry.setIndex(geoData.indices)
 
-  const material = new THREE.MeshLambertMaterial({ transparent: true, skinning: true, alphaTest: 0.1 })
+  const material = new THREE.MeshLambertMaterial({ transparent: true, alphaTest: 0.1 })
   const mesh = new THREE.SkinnedMesh(geometry, material)
   mesh.add(...rootBones)
   mesh.bind(skeleton)

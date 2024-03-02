@@ -1,7 +1,7 @@
 {
   "version": 1,
   "defaultHost": "<from-proxy>",
-  "defaultProxy": "zardoy.site:2344",
+  "defaultProxy": "proxy.mcraft.fun",
   "defaultVersion": "1.18.2",
   "mapsProvider": "https://maps.mcraft.fun/"
 }

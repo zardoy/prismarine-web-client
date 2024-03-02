@@ -139,6 +139,11 @@ Object.defineProperty(window, 'debugSceneChunks', {
     return viewer.world.getLoadedChunksRelative(bot.entity.position)
   },
 })
+Object.defineProperty(window, 'debugSceneChunksY', {
+  get () {
+    return viewer.world.getLoadedChunksRelative(bot.entity.position, true)
+  },
+})
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
