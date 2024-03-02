@@ -15,7 +15,7 @@ import Entity from '../viewer/lib/entity/Entity'
 
 globalThis.THREE = THREE
 //@ts-ignore
-require('three/examples/js/controls/OrbitControls')
+//require('three/examples/js/controls/OrbitControls')
 
 const gui = new GUI()
 
