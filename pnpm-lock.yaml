@@ -5,7 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  three: 0.128.0
+  three: 0.154.0
   diamond-square: github:zardoy/diamond-square
   prismarine-block: github:zardoy/prismarine-block#next-era
   prismarine-world: github:zardoy/prismarine-world#next-era
@@ -13,11 +13,6 @@ overrides:
   prismarine-provider-anvil: github:zardoy/prismarine-provider-anvil#everything
   minecraft-protocol: github:zardoy/minecraft-protocol#everything
   react: ^18.2.0
-
-patchedDependencies:
-  source-map-js@1.0.2:
-    hash: 64rmfibsvq4yinbp7ki2vnrrau
-    path: patches/source-map-js@1.0.2.patch
 
 importers:
 
@@ -139,7 +134,7 @@ importers:
         version: 3.0.1
       source-map-js:
         specifier: ^1.0.2
-        version: 1.0.2(patch_hash=64rmfibsvq4yinbp7ki2vnrrau)
+        version: 1.0.2
       stats-gl:
         specifier: ^1.0.5
         version: 1.0.5
@@ -197,8 +192,8 @@ importers:
         specifier: ^0.17.1
         version: 0.17.1
       '@types/three':
-        specifier: 0.128.0
-        version: 0.128.0
+        specifier: 0.154.0
+        version: 0.154.0
       '@types/ua-parser-js':
         specifier: ^0.7.39
         version: 0.7.39
@@ -287,8 +282,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       three:
-        specifier: 0.128.0
-        version: 0.128.0
+        specifier: 0.154.0
+        version: 0.154.0
       timers-browserify:
         specifier: ^2.0.12
         version: 2.0.12
@@ -360,7 +355,7 @@ importers:
         version: 4.7.2
       three-stdlib:
         specifier: ^2.26.11
-        version: 2.28.5(three@0.128.0)
+        version: 2.28.5(three@0.154.0)
       three.meshline:
         specifier: ^1.3.0
         version: 1.4.0
@@ -4899,6 +4894,10 @@ packages:
     dev: false
     optional: true
 
+  /@tweenjs/tween.js@18.6.4:
+    resolution: {integrity: sha512-lB9lMjuqjtuJrx7/kOkqQBtllspPIN+96OvTCeJ2j5FEzinoAXTdAMFnDAQT1KVPRlnYfBrqxtqP66vDM40xxQ==}
+    dev: true
+
   /@tweenjs/tween.js@20.0.3:
     resolution: {integrity: sha512-SYUe1UgY5HM05EB4+0B4arq2IPjvyzKXoklXKxSYrc2IFxGm1cBrqg5XbiB5uwbs0xY5j+rj986NAJMM0KZaUw==}
     dev: false
@@ -5239,8 +5238,15 @@ packages:
   /@types/stats.js@0.17.1:
     resolution: {integrity: sha512-OgfYE1x2w1jRUXzzKABX+kOdwz2y9PE0uSwnZabkWfJTWOzm7Pvfm4JI2xqRE0q2nwUe2jZLWcrcnhd9lQU63w==}
 
-  /@types/three@0.128.0:
-    resolution: {integrity: sha512-Jwq5XYUkzAcPTo34hlGAQGUyAI0b2F3aCCFWG/v7ZhJBEG5HGcusMSr70GhDlT8Gs0f02QnSPZ2RCA1MrCOa/w==}
+  /@types/three@0.154.0:
+    resolution: {integrity: sha512-IioqpGhch6FdLDh4zazRn3rXHj6Vn2nVOziJdXVbJFi9CaI65LtP9qqUtpzbsHK2Ezlox8NtsLNHSw3AQzucjA==}
+    dependencies:
+      '@tweenjs/tween.js': 18.6.4
+      '@types/stats.js': 0.17.1
+      '@types/webxr': 0.5.7
+      fflate: 0.6.10
+      lil-gui: 0.17.0
+      meshoptimizer: 0.18.1
     dev: true
 
   /@types/three@0.156.0:
@@ -5265,7 +5271,6 @@ packages:
 
   /@types/webxr@0.5.7:
     resolution: {integrity: sha512-Rcgs5c2eNFnHp53YOjgtKfl/zWX1Y+uFGUwlSXrWcZWu3yhANRezmph4MninmqybUYT6g9ZE0aQ9QIdPkLR3Kg==}
-    dev: false
 
   /@types/wicg-file-system-access@2023.10.2:
     resolution: {integrity: sha512-nSiK8qt0O7sQmDcW3HYfvya7GDoD6ipgdcUFzk3QN+UBIqXeNg38Nh6VnKv7EIPfkVETRiquyMskCbpxUzgX1Q==}
@@ -8749,7 +8754,6 @@ packages:
 
   /fflate@0.6.10:
     resolution: {integrity: sha512-IQrh3lEPM93wVCEczc9SaAOvkmcoQn/G8Bo1e8ZPlY3X3bnAxWaBdvTdvM1hP62iZp0BXWDy4vTAy4fF0+Dlpg==}
-    dev: false
 
   /figures@3.2.0:
     resolution: {integrity: sha512-yaduQFRKLXYOGgEn6AZau90j3ggSOyiqXU0F9JZfeXYhNa+Jk4X+s45A2zg5jns87GAFa34BBm2kXw4XpNcbdg==}
@@ -10458,6 +10462,10 @@ packages:
       immediate: 3.0.6
     dev: false
 
+  /lil-gui@0.17.0:
+    resolution: {integrity: sha512-MVBHmgY+uEbmJNApAaPbtvNh1RCAeMnKym82SBjtp5rODTYKWtM+MXHCifLe2H2Ti1HuBGBtK/5SyG4ShQ3pUQ==}
+    dev: true
+
   /lil-gui@0.18.2:
     resolution: {integrity: sha512-DgdrLy3/KGC0PiQLKgOcJMPItP4xY4iWgJ9+91Zaxfr8GCTmMps05QS9w9jW7yspILlbscbquwjOwxmWnSx5Uw==}
     dev: false
@@ -10852,7 +10860,6 @@ packages:
 
   /meshoptimizer@0.18.1:
     resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
-    dev: false
 
   /methods@1.1.2:
     resolution: {integrity: sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==}
@@ -11967,7 +11974,7 @@ packages:
     dependencies:
       nanoid: 3.3.6
       picocolors: 1.0.0
-      source-map-js: 1.0.2(patch_hash=64rmfibsvq4yinbp7ki2vnrrau)
+      source-map-js: 1.0.2
 
   /postcss@8.4.35:
     resolution: {integrity: sha512-u5U8qYpBCpN13BsiEB0CbR1Hhh4Gc0zLFuedrHJKMctHCHAGrMdG0PRM/KErzAL3CU6/eckEtmHNB3x6e3c0vA==}
@@ -11975,7 +11982,7 @@ packages:
     dependencies:
       nanoid: 3.3.7
       picocolors: 1.0.0
-      source-map-js: 1.0.2(patch_hash=64rmfibsvq4yinbp7ki2vnrrau)
+      source-map-js: 1.0.2
     dev: true
 
   /potpack@1.0.2:
@@ -13360,7 +13367,7 @@ packages:
     dependencies:
       '@types/three': 0.156.0
       skinview-utils: 0.7.1
-      three: 0.128.0
+      three: 0.154.0
     dev: false
 
   /slash@3.0.0:
@@ -13528,10 +13535,9 @@ packages:
     dev: false
     optional: true
 
-  /source-map-js@1.0.2(patch_hash=64rmfibsvq4yinbp7ki2vnrrau):
+  /source-map-js@1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
     engines: {node: '>=0.10.0'}
-    patched: true
 
   /source-map-support@0.5.21:
     resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
@@ -13982,10 +13988,10 @@ packages:
       any-promise: 1.3.0
     dev: false
 
-  /three-stdlib@2.28.5(three@0.128.0):
+  /three-stdlib@2.28.5(three@0.154.0):
     resolution: {integrity: sha512-JdLMhkpT+1ZWeQPyKQNW1zqUwISI2hsUljS6u3vB9lp5EvwsayaAzGnbVeR35895udOF+zxcTiQY3psk+qqlxg==}
     peerDependencies:
-      three: 0.128.0
+      three: 0.154.0
     dependencies:
       '@types/draco3d': 1.4.7
       '@types/offscreencanvas': 2019.7.2
@@ -13993,15 +13999,15 @@ packages:
       draco3d: 1.5.6
       fflate: 0.6.10
       potpack: 1.0.2
-      three: 0.128.0
+      three: 0.154.0
     dev: false
 
   /three.meshline@1.4.0:
     resolution: {integrity: sha512-A8IsiMrWP8zmHisGDAJ76ZD7t/dOF/oCe/FUKNE6Bu01ZYEx8N6IlU/1Plb2aOZtAuWM2A8s8qS3hvY0OFuvOw==}
     dev: false
 
-  /three@0.128.0:
-    resolution: {integrity: sha512-i0ap/E+OaSfzw7bD1TtYnPo3VEplkl70WX5fZqZnfZsE3k3aSFudqrrC9ldFZfYFkn1zwDmBcdGfiIm/hnbyZA==}
+  /three@0.154.0:
+    resolution: {integrity: sha512-Uzz8C/5GesJzv8i+Y2prEMYUwodwZySPcNhuJUdsVMH2Yn4Nm8qlbQe6qRN5fOhg55XB0WiLfTPBxVHxpE60ug==}
 
   /throttle-debounce@3.0.1:
     resolution: {integrity: sha512-dTEWWNu6JmeVXY0ZYoPuH5cRIwc0MeGbJwah9KUNYSJwommQpCzTySTpEe8Gs1J23aeWEuAobe4Ag7EHVt/LOg==}

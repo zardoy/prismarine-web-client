@@ -29,7 +29,12 @@ export class Viewer {
   renderPass: RenderPass
 
   constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
+    // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
+    THREE.ColorManagement.enabled = false
+    renderer.outputColorSpace = THREE.LinearSRGBColorSpace
+
     this.scene = new THREE.Scene()
+    this.scene.matrixAutoUpdate = false // for perf
     this.resetScene()
     if (this.enableFXAA) {
       this.enableFxaaScene()
