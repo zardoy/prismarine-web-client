@@ -3,6 +3,7 @@ import { BotEvents } from 'mineflayer'
 import { MessageFormatPart } from '../botUtils'
 import Title from './Title'
 import type { AnimationTimes } from './Title'
+import type { ClientOnMap } from '../generatedServerPackets'
 
 
 const defaultText: MessageFormatPart[] = [{ text: '' }]
@@ -34,16 +35,13 @@ export default () => {
     bot._client.on('set_title_time', (packet) => {
       setAnimTimes(JSON.parse(packet.text))
     })
-    bot._client.on('clear_titles', (packet) => {
-      const mes = JSON.parse(packet.text)
+    bot._client.on('clear_titles', (mes) => {
+      setOpen(false)
       if (mes.reset) {
-        setOpen(false)
         setTitle(defaultText)
         setSubtitle(defaultText)
         setActionBar(defaultText)
         setAnimTimes({ fadeIn: 400, stay: 3800, fadeOut: 800 })
-      } else {
-        setOpen(false)
       }
     })
 
@@ -67,8 +65,7 @@ export default () => {
     bot.on('set_title_time' as keyof BotEvents, (packet) => {
       setAnimTimes(JSON.parse(packet.text))
     })
-    bot.on('clear_titles' as keyof BotEvents, (packet) => {
-      const mes = JSON.parse(packet.text)
+    bot.on('clear_titles' as keyof BotEvents, (mes) => {
       setOpen(false)
       if (mes.reset) {
         setTitle(defaultText)
@@ -80,7 +77,8 @@ export default () => {
 
 
     // before 1.17
-    bot.on('title', (mes) => {
+    bot.on('title', (mes: ClientOnMap['title'] | string) => {
+      if (typeof mes === 'string') return
       switch (mes.action) {
         case 0:
           console.log(mes)
