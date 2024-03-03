@@ -135,6 +135,9 @@
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
       "minecraft-protocol": "github:zardoy/minecraft-protocol#everything",
       "react": "^18.2.0"
+    },
+    "patchedDependencies": {
+      "mineflayer@4.19.0": "patches/mineflayer@4.19.0.patch"
     }
   }
 }

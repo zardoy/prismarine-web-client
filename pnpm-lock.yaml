@@ -14,6 +14,11 @@ overrides:
   minecraft-protocol: github:zardoy/minecraft-protocol#everything
   react: ^18.2.0
 
+patchedDependencies:
+  mineflayer@4.19.0:
+    hash: xeo5axq6tlyduou7rfqdpa4bny
+    path: patches/mineflayer@4.19.0.patch
+
 importers:
 
   .:
@@ -250,7 +255,7 @@ importers:
         version: github.com/zardoy/minecraft-inventory-gui/bf2e7ba3afdc606604d85682d081778281d533cb(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:PrismarineJS/mineflayer
-        version: github.com/PrismarineJS/mineflayer/b9491ae508dc52e4538dd66eb6f47a639facde20
+        version: github.com/PrismarineJS/mineflayer/b9491ae508dc52e4538dd66eb6f47a639facde20(patch_hash=xeo5axq6tlyduou7rfqdpa4bny)
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -15356,8 +15361,9 @@ packages:
       react: 18.2.0
     dev: false
 
-  github.com/PrismarineJS/mineflayer/b9491ae508dc52e4538dd66eb6f47a639facde20:
+  github.com/PrismarineJS/mineflayer/b9491ae508dc52e4538dd66eb6f47a639facde20(patch_hash=xeo5axq6tlyduou7rfqdpa4bny):
     resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/b9491ae508dc52e4538dd66eb6f47a639facde20}
+    id: github.com/PrismarineJS/mineflayer/b9491ae508dc52e4538dd66eb6f47a639facde20
     name: mineflayer
     version: 4.19.0
     engines: {node: '>=18'}
@@ -15383,6 +15389,7 @@ packages:
       - encoding
       - supports-color
     dev: true
+    patched: true
 
   github.com/PrismarineJS/node-process/380d0b4f4c86f1b65b216c311bf00431f314e88e:
     resolution: {tarball: https://codeload.github.com/PrismarineJS/node-process/tar.gz/380d0b4f4c86f1b65b216c311bf00431f314e88e}

@@ -16,26 +16,26 @@ export default () => {
 
 
   useEffect(() => {
-    bot._client.on('set_title_text', (message) => {
-      setTitle([JSON.parse(message.text)])
+    bot._client.on('set_title_text', (packet) => {
+      setTitle([JSON.parse(packet.text)])
       if (!open) {
         setOpen(true)
       }
     })
-    bot._client.on('set_title_subtitle', (message) => {
-      setSubtitle([JSON.parse(message.text)])
+    bot._client.on('set_title_subtitle', (packet) => {
+      setSubtitle([JSON.parse(packet.text)])
     })
-    bot._client.on('action_bar', (message) => {
-      setActionBar([JSON.parse(message.text)])
+    bot._client.on('action_bar', (packet) => {
+      setActionBar([JSON.parse(packet.text)])
       if (!open) {
         setOpen(true)
       }
     })
-    bot._client.on('set_title_time', (message) => {
-      setAnimTimes(JSON.parse(message.text))
+    bot._client.on('set_title_time', (packet) => {
+      setAnimTimes(JSON.parse(packet.text))
     })
-    bot._client.on('clear_titles', (message) => {
-      const mes = JSON.parse(message.text)
+    bot._client.on('clear_titles', (packet) => {
+      const mes = JSON.parse(packet.text)
       if (mes.reset) {
         setOpen(false)
         setTitle(defaultText)
@@ -48,37 +48,77 @@ export default () => {
     })
 
 
-    bot.on('set_title_text' as keyof BotEvents, (message) => {
-      console.log(message)
-      setTitle([JSON.parse(message.text)])
+    bot.on('set_title_text' as keyof BotEvents, (packet) => {
+      console.log(packet)
+      setTitle([JSON.parse(packet.text)])
       if (!open) {
         setOpen(true)
       }
     })
-    bot.on('set_title_subtitle' as keyof BotEvents, (message) => {
-      setSubtitle([JSON.parse(message.text)])
+    bot.on('set_title_subtitle' as keyof BotEvents, (packet) => {
+      setSubtitle([JSON.parse(packet.text)])
     })
-    bot.on('action_bar' as keyof BotEvents, (message) => {
-      setActionBar([JSON.parse(message.text)])
+    bot.on('action_bar' as keyof BotEvents, (packet) => {
+      setActionBar([JSON.parse(packet.text)])
       if (!open) {
         setOpen(true)
       }
     })
-    bot.on('set_title_time' as keyof BotEvents, (message) => {
-      setAnimTimes(JSON.parse(message.text))
+    bot.on('set_title_time' as keyof BotEvents, (packet) => {
+      setAnimTimes(JSON.parse(packet.text))
     })
-    bot.on('clear_titles' as keyof BotEvents, (message) => {
-      const mes = JSON.parse(message.text)
+    bot.on('clear_titles' as keyof BotEvents, (packet) => {
+      const mes = JSON.parse(packet.text)
+      setOpen(false)
       if (mes.reset) {
-        setOpen(false)
         setTitle(defaultText)
         setSubtitle(defaultText)
         setActionBar(defaultText)
         setAnimTimes({ fadeIn: 400, stay: 3800, fadeOut: 800 })
-      } else {
-        setOpen(false)
-      }
+      } 
+    })
 
+
+    // before 1.17
+    bot.on('title', (mes) => {
+      switch (mes.action) {
+        case 0:
+          console.log(mes)
+          setTitle([JSON.parse(mes.text)])
+          if (!open) {
+            setOpen(true)
+          }
+          break
+        case 1:
+          console.log(mes)
+          setSubtitle([JSON.parse(mes.text)])
+          break
+        case 2:
+          console.log(mes)
+          setActionBar([JSON.parse(mes.text)])
+          if (!open) {
+            setOpen(true)
+          }
+          break
+        case 3:
+          console.log(mes)
+          setAnimTimes({ fadeIn: mes.fadeIn, stay: mes.stay, fadeOut: mes.fadeOut })
+          break
+        case 4:
+          console.log(mes)
+          setOpen(false)
+          break
+        // case 5:
+        //   console.log(mes)
+        //   // setOpen(false)
+        //   setTitle(defaultText)
+        //   setSubtitle(defaultText)
+        //   setActionBar(defaultText)
+        //   setAnimTimes({ fadeIn: 400, stay: 3800, fadeOut: 800 })
+        //   break
+        // default: 
+        //   console.log(mes)
+      }
     })
   }, [])
 
