@@ -11,30 +11,15 @@ type Story = StoryObj<typeof Title>;
 
 export const Primary: Story = {
   args: {
-    title: [{
+    title: {
       text: 'New title',
-    }],
-    subtitle: [{
+    },
+    subtitle: {
       text: 'Subtitle'
-    }],
-    actionBar: [{
+    },
+    actionBar: {
       text: 'Action bar text'
-    }],
-    open: false
-  }
-}
-
-export const ChangeAnimationTime: Story = {
-  args: {
-    title: [{
-      text: 'New title',
-    }],
-    subtitle: [{
-      text: 'Subtitle'
-    }],
-    actionBar: [{
-      text: 'Action bar text'
-    }],
+    },
     open: false,
     transitionTimes: {
       fadeIn: 2500,
@@ -44,21 +29,3 @@ export const ChangeAnimationTime: Story = {
   }
 }
 
-export const TitlesOnly: Story = {
-  args: {
-    title: [{
-      text: 'New title',
-    }],
-    subtitle: [{
-      text: 'Subtitle'
-    }],
-  }
-}
-
-export const ActionsOnly: Story = {
-  args: {
-    actionBar: [{
-      text: 'Action bar text'
-    }],
-  }
-}

@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Transition } from 'react-transition-group'
-import type { MessageFormatPart } from '../botUtils'
-import MessageFormatted from './MessageFormatted'
+import MessageFormattedString from './MessageFormattedString'
 import './Title.css'
 
 export type AnimationTimes = {
@@ -11,9 +10,9 @@ export type AnimationTimes = {
 }
 
 type TitleProps = {
-  title: MessageFormatPart[],
-  subtitle: MessageFormatPart[],
-  actionBar: MessageFormatPart[],
+  title: string | Record<string, any>,
+  subtitle: string | Record<string, any>,
+  actionBar: string | Record<string, any>,
   transitionTimes: AnimationTimes,
   open: boolean
 }
@@ -75,15 +74,15 @@ const Title = (
             <div style={{ ...stateStyles[state] }}>
               <div className='titleScreen'>
                 <h1 className='message-title'>
-                  <MessageFormatted parts={title} />
+                  <MessageFormattedString message={title} />
                 </h1>
                 <h4 className='message-subtitle'>
-                  <MessageFormatted parts={subtitle} />
+                  <MessageFormattedString message={subtitle} />
                 </h4>
               </div>
               <div className='actionScreen'>
                 <div className='action-bar'>
-                  <MessageFormatted parts={actionBar} />
+                  <MessageFormattedString message={actionBar} />
                 </div>
               </div>
             </div>
