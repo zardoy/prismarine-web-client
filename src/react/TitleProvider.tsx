@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
+import { BotEvents } from 'mineflayer'
 import { MessageFormatPart } from '../botUtils'
 import Title from './Title'
 import type { AnimationTimes } from './Title'
-import { BotEvents } from 'mineflayer'
 
 
 const defaultText: MessageFormatPart[] = [{ text: '' }]
@@ -123,7 +123,7 @@ export default () => {
   }, [])
 
   useEffect(() => {
-    let timeoutID: ReturnType<typeof setTimeout> | undefined = undefined
+    let timeoutID: ReturnType<typeof setTimeout> | undefined
     if (open) {
       timeoutID = setTimeout(() => {
         setOpen(false)
