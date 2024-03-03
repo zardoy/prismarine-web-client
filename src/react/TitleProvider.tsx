@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { BotEvents } from 'mineflayer'
 import { MessageFormatPart } from '../botUtils'
+import type { ClientOnMap } from '../generatedServerPackets'
 import Title from './Title'
 import type { AnimationTimes } from './Title'
-import type { ClientOnMap } from '../generatedServerPackets'
 
 
 const defaultText: MessageFormatPart[] = [{ text: '' }]
