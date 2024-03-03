@@ -72,7 +72,7 @@ export default () => {
         setSubtitle(defaultText)
         setActionBar(defaultText)
         setAnimTimes({ fadeIn: 400, stay: 3800, fadeOut: 800 })
-      } 
+      }
     })
 
 
@@ -80,7 +80,7 @@ export default () => {
     bot.on('title', (packet: ClientOnMap['title'] | string) => {
       let mes: ClientOnMap['title']
       if (typeof packet === 'string') {
-        mes = JSON.parse(packet) 
+        mes = JSON.parse(packet)
       } else {
         mes = packet
       }
@@ -123,7 +123,7 @@ export default () => {
       timeoutID = setTimeout(() => {
         setOpen(false)
       }, animTimes.stay)
-    } 
+    }
 
     return () => {
       clearTimeout(timeoutID)
