@@ -556,7 +556,7 @@ async function connect (connectOptions: {
   const packetBeforePlay = (_, __, ___, fullBuffer) => {
     lastPacket = fullBuffer.toString()
   }
-  bot._client.on('packet', packetBeforePlay)
+  bot._client.on('packet', packetBeforePlay as any)
   const playStateSwitch = (newState) => {
     if (newState === 'play') {
       bot._client.removeListener('packet', packetBeforePlay)

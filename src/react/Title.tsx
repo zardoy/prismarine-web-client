@@ -19,9 +19,9 @@ type TitleProps = {
 
 const Title = (
   {
-    title, 
-    subtitle, 
-    actionBar, 
+    title,
+    subtitle,
+    actionBar,
     transitionTimes,
     open = false
   }: TitleProps
@@ -31,11 +31,11 @@ const Title = (
   const [isOpen, setIsOpen] = useState(open)
 
   const defaultDuration = 500
-  const startStyle = { 
-    opacity: 1, 
+  const startStyle = {
+    opacity: 1,
     transition: `${transitionTimes.fadeIn}ms ease-in-out all` }
-  const endExitStyle = { 
-    opacity: 0, 
+  const endExitStyle = {
+    opacity: 0,
     transition: `${transitionTimes.fadeOut}ms ease-in-out all` }
 
   const stateStyles = {
