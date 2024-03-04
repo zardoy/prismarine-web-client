@@ -70,13 +70,8 @@ export default () => {
         setTitle(defaultText)
         setSubtitle(defaultText)
         setActionBar(defaultText)
-<<<<<<< HEAD
-        setAnimTimes({ fadeIn: 400, stay: 3800, fadeOut: 800 })
-      }
-=======
         setAnimTimes(defaultTime)
-      } 
->>>>>>> 15b162f (Title always above crosshair + fades are converted from game ticks + removed some useless code)
+      }
     })
 
 
