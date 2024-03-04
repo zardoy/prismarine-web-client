@@ -20,26 +20,28 @@ export default () => {
   const [subtitle, setSubtitle] = useState<string | Record<string, any>>(defaultText)
   const [actionBar, setActionBar] = useState<string | Record<string, any>>(defaultText)
   const [animTimes, setAnimTimes] = useState<AnimationTimes>(defaultTime)
-  const [open, setOpen] = useState(false)
+  const [openTitle, setOpenTitle] = useState(false)
+  const [openActionBar, setOpenActionBar] = useState(false)
 
 
   useEffect(() => {
     bot._client.on('set_title_text', (packet) => {
       setTitle(JSON.parse(packet.text))
-      setOpen(true)
+      setOpenTitle(true)
     })
     bot._client.on('set_title_subtitle', (packet) => {
       setSubtitle(JSON.parse(packet.text))
     })
     bot._client.on('action_bar', (packet) => {
       setActionBar(JSON.parse(packet.text))
-      setOpen(true)
+      setOpenActionBar(true)
     })
     bot._client.on('set_title_time', (packet) => {
       setAnimTimes(ticksToMs(packet))
     })
     bot._client.on('clear_titles', (mes) => {
-      setOpen(false)
+      setOpenTitle(false)
+      setOpenActionBar(false)
       if (mes.reset) {
         setTitle(defaultText)
         setSubtitle(defaultText)
@@ -52,20 +54,21 @@ export default () => {
     bot.on('set_title_text' as keyof BotEvents, (packet) => {
       console.log(packet.text)
       setTitle(JSON.parse(packet.text))
-      setOpen(true)
+      setOpenTitle(true)
     })
     bot.on('set_title_subtitle' as keyof BotEvents, (packet) => {
       setSubtitle(JSON.parse(packet.text))
     })
     bot.on('action_bar' as keyof BotEvents, (packet) => {
       setActionBar(JSON.parse(packet.text))
-      setOpen(true)
+      setOpenActionBar(true)
     })
     bot.on('set_title_time' as keyof BotEvents, (packet) => {
       setAnimTimes(ticksToMs(packet))
     })
     bot.on('clear_titles' as keyof BotEvents, (mes) => {
-      setOpen(false)
+      setOpenTitle(false)
+      setOpenActionBar(false)
       if (mes.reset) {
         setTitle(defaultText)
         setSubtitle(defaultText)
@@ -86,23 +89,25 @@ export default () => {
       switch (mes.action) {
         case 0:
           setTitle(JSON.parse(mes.text))
-          setOpen(true)
+          setOpenTitle(true)
           break
         case 1:
           setSubtitle(JSON.parse(mes.text))
           break
         case 2:
           setActionBar(JSON.parse(mes.text))
-          setOpen(true)
+          setOpenActionBar(true)
           break
         case 3:
           setAnimTimes(ticksToMs({ fadeIn: mes.fadeIn, stay: mes.stay, fadeOut: mes.fadeOut }))
           break
         case 4:
-          setOpen(false)
+          setOpenTitle(false)
+          setOpenActionBar(false)
           break
         case 5:
-          setOpen(false)
+          setOpenTitle(false)
+          setOpenActionBar(false)
           setTitle(defaultText)
           setSubtitle(defaultText)
           setActionBar(defaultText)
@@ -113,23 +118,33 @@ export default () => {
   }, [])
 
   useEffect(() => {
-    let timeoutID: ReturnType<typeof setTimeout> | undefined
-    if (open) {
-      timeoutID = setTimeout(() => {
-        setOpen(false)
+    const timeoutID: Record<string, ReturnType<typeof setTimeout> | undefined> = { 
+      'title': undefined, 
+      'actionbar': undefined
+    }
+    if (openTitle) {
+      timeoutID['title'] = setTimeout(() => {
+        setOpenTitle(false)
+      }, animTimes.stay)
+    }
+    if (openActionBar) {
+      timeoutID['actionbar'] = setTimeout(() => {
+        setOpenActionBar(false)
       }, animTimes.stay)
     }
 
     return () => {
-      clearTimeout(timeoutID)
+      if (timeoutID['title']) clearTimeout(timeoutID['title'])
+      if (timeoutID['actionbar']) clearTimeout(timeoutID['actionbar'])
     }
-  }, [open])
+  }, [openTitle, openActionBar])
 
   return <Title
     title={title}
     subtitle={subtitle}
     actionBar={actionBar}
     transitionTimes={animTimes}
-    open={open}
+    openTitle={openTitle}
+    openActionBar={openActionBar}
   />
 }

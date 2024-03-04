@@ -14,7 +14,8 @@ type TitleProps = {
   subtitle: string | Record<string, any>,
   actionBar: string | Record<string, any>,
   transitionTimes: AnimationTimes,
-  open: boolean
+  openTitle: boolean,
+  openActionBar: boolean
 }
 
 const Title = (
@@ -23,12 +24,13 @@ const Title = (
     subtitle,
     actionBar,
     transitionTimes,
-    open = false
+    openTitle = false,
+    openActionBar = false
   }: TitleProps
 ) => {
   const [mounted, setMounted] = useState(false)
   const [useEnterTransition, setUseEnterTransition] = useState(true)
-  const [isOpen, setIsOpen] = useState(open)
+  const [isOpenTitle, setIsOpenTitle] = useState(openTitle)
 
   const defaultDuration = 500
   const startStyle = {
@@ -46,15 +48,15 @@ const Title = (
   }
 
   useEffect(() => {
-    if (!mounted && open) {
+    if (!mounted && (openTitle || openActionBar)) {
       setMounted(true)
     }
-  }, [open])
+  }, [openTitle, openActionBar])
 
   return (
     <div className='message-container'>
       <Transition
-        in={open}
+        in={openTitle}
         timeout={transitionTimes ? {
           enter: transitionTimes.fadeIn,
           exit: transitionTimes.fadeOut,
@@ -78,14 +80,36 @@ const Title = (
               <h4 className='message-subtitle'>
                 <MessageFormattedString message={subtitle} />
               </h4>
+            </div>
+          )}}
+      </Transition>
+      <Transition
+        in={openActionBar}
+        timeout={transitionTimes ? {
+          enter: transitionTimes.fadeIn,
+          exit: transitionTimes.fadeOut,
+        } : defaultDuration}
+        mountOnEnter
+        unmountOnExit
+        // enter={useEnterTransition}
+        // onExiting={() => {
+        //   setUseEnterTransition(prev => false)
+        // }}
+        // onExited={() => {
+        //   setUseEnterTransition(prev => true)
+        // }}
+      >
+        {(state) => {
+          return (
+            <div style={{ ...stateStyles[state] }}>
               <div className='action-bar'>
                 <MessageFormattedString message={actionBar} />
               </div>
             </div>
-          )}}
+          )
+        }}
       </Transition>
     </div>
-
   )
 }
 

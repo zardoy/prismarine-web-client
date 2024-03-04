@@ -20,7 +20,8 @@ export const Primary: Story = {
     actionBar: {
       text: 'Action bar text'
     },
-    open: false,
+    openTitle: false,
+    openActionBar: false,
     transitionTimes: {
       fadeIn: 2500,
       stay: 17_500,
