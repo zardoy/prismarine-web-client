@@ -72,18 +72,14 @@ const Title = (
         {(state) => {
           return (
             <div style={{ ...stateStyles[state] }}>
-              <div className='titleScreen'>
-                <h1 className='message-title'>
-                  <MessageFormattedString message={title} />
-                </h1>
-                <h4 className='message-subtitle'>
-                  <MessageFormattedString message={subtitle} />
-                </h4>
-              </div>
-              <div className='actionScreen'>
-                <div className='action-bar'>
-                  <MessageFormattedString message={actionBar} />
-                </div>
+              <h1 className='message-title'>
+                <MessageFormattedString message={title} />
+              </h1>
+              <h4 className='message-subtitle'>
+                <MessageFormattedString message={subtitle} />
+              </h4>
+              <div className='action-bar'>
+                <MessageFormattedString message={actionBar} />
               </div>
             </div>
           )}}
