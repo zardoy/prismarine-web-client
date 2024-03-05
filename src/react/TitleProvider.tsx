@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BotEvents } from 'mineflayer'
 import type { ClientOnMap } from '../generatedServerPackets'
 import Title from './Title'
 import type { AnimationTimes } from './Title'

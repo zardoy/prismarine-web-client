@@ -1,4 +1,4 @@
-.message-container {
+.title-container {
     position: fixed;
     inset: 0;
     z-index: -1;
@@ -40,4 +40,3 @@
     font-size: 0.7rem;
     text-align: center;
 }
-

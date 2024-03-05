@@ -30,7 +30,6 @@ const Title = (
 ) => {
   const [mounted, setMounted] = useState(false)
   const [useEnterTransition, setUseEnterTransition] = useState(true)
-  const [isOpenTitle, setIsOpenTitle] = useState(openTitle)
 
   const defaultDuration = 500
   const startStyle = {
@@ -54,7 +53,7 @@ const Title = (
   }, [openTitle, openActionBar])
 
   return (
-    <div className='message-container'>
+    <div className='title-container'>
       <Transition
         in={openTitle}
         timeout={transitionTimes ? {
