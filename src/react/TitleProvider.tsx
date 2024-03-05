@@ -57,31 +57,10 @@ export default () => {
     })
 
 
-    bot.on('set_title_text' as keyof BotEvents, (packet) => {
-      setTitle(JSON.parse(packet.text))
-      setOpenTitle(true)
-    })
-    bot.on('set_title_subtitle' as keyof BotEvents, (packet) => {
-      setSubtitle(JSON.parse(packet.text))
-    })
-    bot.on('action_bar' as keyof BotEvents, (packet) => {
-      setActionBar(JSON.parse(packet.text))
+    bot.on('actionBar', (packet) => {
+      setActionBar(packet)
       setOpenActionBar(true)
     })
-    bot.on('set_title_time' as keyof BotEvents, (packet) => {
-      setAnimTimes(ticksToMs(packet))
-    })
-    bot.on('clear_titles' as keyof BotEvents, (mes) => {
-      setOpenTitle(false)
-      setOpenActionBar(false)
-      if (mes.reset) {
-        setTitle(defaultText)
-        setSubtitle(defaultText)
-        setActionBar(defaultText)
-        setAnimTimes(defaultTimings)
-      }
-    })
-
 
     // before 1.17
     bot.on('title', (packet: ClientOnMap['title'] | string) => {
