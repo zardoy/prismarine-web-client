@@ -13,6 +13,16 @@ import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
 
+//@ts-ignore
+import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
+//@ts-ignore
+import Stone from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/stone.png'
+
+//@ts-ignore
+import VertShader from './_VertexShader.vert'
+//@ts-ignore
+import FragShader from './_FragmentShader.frag'
+
 globalThis.THREE = THREE
 //@ts-ignore
 require('three/examples/js/controls/OrbitControls')
@@ -129,29 +139,13 @@ async function main() {
   const canvas = document.createElement('canvas')
   const gl = canvas.getContext('webgl2')!
 
-  const program = createProgram(gl, `  #version 300 es
-  precision highp float;
-  layout (location = 0) in vec3 aPos;
-  void main()
-  {
-     gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0f);
-  }
-  `, `#version 300 es
-  precision highp float;
-  out vec4 FragColor;
-  void main()
-  {
-     FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
-  }
-  
-  
-  `)
+  const program = createProgram(gl,VertShader, FragShader) 
 
   let vertices = new Float32Array([
-    0.5, 0.5, 0.0,  // top right
-    0.5, -0.5, 0.0,  // bottom right
-    -0.5, -0.5, 0.0,  // bottom left
-    -0.5, 0.5, 0.0   // top left 
+    0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0, // top right
+    0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0, // bottom right
+   -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0, // bottom left
+   -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0 
   ])
   let indices = new Uint8Array([  // note that we start from 0!
     0, 1, 3,  // first Triangle
@@ -169,13 +163,64 @@ async function main() {
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, EBO)
   gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
 
-  new THREE.BufferAttribute(vertices, 3)
-  gl.vertexAttribPointer(0,3,gl.FLOAT, false, 0 , 0)
+  //new THREE.BufferAttribute(vertices, 3)
+
+  gl.vertexAttribPointer(0,3,gl.FLOAT, false,  8 * 4, 0)
   gl.enableVertexAttribArray(0)
+
+  gl.vertexAttribPointer(1,3,gl.FLOAT, false,  8*4, 3*4)
+  gl.enableVertexAttribArray(1)
+
+  gl.vertexAttribPointer(2,2,gl.FLOAT, false, 8*4 , 6*4)
+  gl.enableVertexAttribArray(2)
 
 
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
   gl.bindVertexArray(null)
+
+  let image = new Image();
+  // simple black white chess image 10x10
+  image.src = Dirt
+  let image2 = new Image();
+  // simple black white chess image 10x10
+  image2.src = Stone
+
+  console.log(image.src)
+  await new Promise((resolve) => {
+    image.onload = resolve
+  })
+  await new Promise((resolve) => {
+    image2.onload = resolve
+  })
+  
+  let texture1 = gl.createTexture();  
+  gl.bindTexture(gl.TEXTURE_2D, texture1); 
+
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  //.tset texture fgl.ering paramegl.s
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, image.width, image.height, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
+  //gl.generateMipmap(gl.TEXTURE_2D);
+
+  let texture2 = gl.createTexture();  
+  gl.bindTexture(gl.TEXTURE_2D, texture2); 
+
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  //.tset texture fgl.ering paramegl.s
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, image2.width, image2.height, 0, gl.RGB, gl.UNSIGNED_BYTE, image2);
+  //gl.generateMipmap(gl.TEXTURE_2D);
+
+  gl.useProgram(program)
+
+  gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
+  gl.uniform1i(gl.getUniformLocation(program, "texture2"), 1);
 
   //gl.attachShader(program, program)
 
@@ -194,14 +239,20 @@ async function main() {
     gl.canvas.height = window.innerHeight
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
-
+    gl.clearColor(0.1, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT)
-    gl.clearColor(0.5, 0, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, texture1);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texture2);
+
+    
     gl.useProgram(program)
     gl.bindVertexArray(VAO)
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
 
-
+    
     requestAnimationFrame(loop)
     //gl.Swa
   }
@@ -215,7 +266,7 @@ async function main() {
   return
 
   // Create viewer
-  const viewer = new Viewer(renderer, 1)
+  const viewer = new Viewer(null as  any | null, 1) as any
 
   viewer.listen(worldView)
   // Load chunks
@@ -575,7 +626,7 @@ async function main() {
     const { camera } = viewer
     viewer.camera.aspect = window.innerWidth / window.innerHeight
     viewer.camera.updateProjectionMatrix()
-    renderer.setSize(window.innerWidth, window.innerHeight)
+    // renderer.setSize(window.innerWidth, window.innerHeight)
 
     animate()
   }
@@ -598,6 +649,7 @@ export const createProgram = (gl: WebGL2RenderingContext, vertexShader: string, 
     const shader = gl.createShader(type)!
     gl.shaderSource(shader, source)
     gl.compileShader(shader)
+    
     const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
     if (!success) {
       const info = gl.getShaderInfoLog(shader)
@@ -606,6 +658,8 @@ export const createProgram = (gl: WebGL2RenderingContext, vertexShader: string, 
     }
     return shader
   }
+
+ 
 
   const program = gl.createProgram()!
   gl.attachShader(program, createShader(gl, gl.VERTEX_SHADER, vertexShader)!)
