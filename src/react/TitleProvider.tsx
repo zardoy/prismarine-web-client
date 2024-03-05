@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { BotEvents } from 'mineflayer'
 import type { ClientOnMap } from '../generatedServerPackets'
 import Title from './Title'
@@ -24,7 +24,7 @@ export default () => {
   const [openActionBar, setOpenActionBar] = useState(false)
 
 
-  useEffect(() => {
+  useMemo(() => {
     bot._client.on('set_title_text', (packet) => {
       setTitle(JSON.parse(packet.text))
       setOpenTitle(true)
@@ -52,7 +52,6 @@ export default () => {
 
 
     bot.on('set_title_text' as keyof BotEvents, (packet) => {
-      console.log(packet.text)
       setTitle(JSON.parse(packet.text))
       setOpenTitle(true)
     })
@@ -118,8 +117,8 @@ export default () => {
   }, [])
 
   useEffect(() => {
-    const timeoutID: Record<string, ReturnType<typeof setTimeout> | undefined> = { 
-      'title': undefined, 
+    const timeoutID: Record<string, ReturnType<typeof setTimeout> | undefined> = {
+      'title': undefined,
       'actionbar': undefined
     }
     if (openTitle) {
