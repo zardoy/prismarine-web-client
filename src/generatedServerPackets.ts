@@ -1493,3 +1493,11 @@ export interface ClientOnMap {
     yaw: number;
   };
 }
+
+type ClientOnMcProtocolEvents = ClientOnMap & {
+  [x: `raw.${string}`]: any
+  packet: any
+  state: any
+}
+
+export declare const clientOn: <T extends keyof ClientOnMcProtocolEvents>(name: T, callback: (data: ClientOnMcProtocolEvents[T], packetMeta: import('minecraft-protocol').PacketMeta) => void) => void
