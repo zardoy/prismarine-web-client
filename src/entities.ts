@@ -27,7 +27,8 @@ customEvents.on('gameLoaded', () => {
   bot.on('physicsTick', () => {
     for (const [id, { tracking, info }] of Object.entries(bot.tracker.trackingData)) {
       if (!tracking) continue
-      const e = bot.entities[id]!
+      const e = bot.entities[id]
+      if (!e) continue
       const speed = info.avgSpeed
       const WALKING_SPEED = 0.03
       const SPRINTING_SPEED = 0.18
