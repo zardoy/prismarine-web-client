@@ -17,7 +17,8 @@ function mod (x, n) {
 
 export class WorldRenderer {
   worldConfig = { minY: 0, worldHeight: 256 }
-  material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
+  // todo @sa2urami set alphaTest back to 0.1 and instead properly sort transparent and solid objects (needs to be done in worker too)
+  material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.5 })
 
   blockEntities = {}
   sectionObjects: Record<string, THREE.Object3D> = {}

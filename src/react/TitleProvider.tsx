@@ -23,13 +23,6 @@ export default () => {
   const [openTitle, setOpenTitle] = useState(false)
   const [openActionBar, setOpenActionBar] = useState(false)
 
-
-  const closeTitle = () => {
-    setOpenTitle(false)
-    // vanilla behavior: if title is closed, subtitle is cleared
-    setSubtitle(defaultText)
-  }
-
   useMemo(() => {
     bot._client.on('set_title_text', (packet) => {
       setTitle(JSON.parse(packet.text))
@@ -46,7 +39,7 @@ export default () => {
       setAnimTimes(ticksToMs(packet))
     })
     bot._client.on('clear_titles', (mes) => {
-      closeTitle()
+      setOpenTitle(false)
       setOpenActionBar(false)
       if (mes.reset) {
         setTitle(defaultText)
@@ -63,7 +56,7 @@ export default () => {
     })
 
     // before 1.17
-    bot.on('title', (packet: ClientOnMap['title'] | string) => {
+    bot._client.on('title', (packet: ClientOnMap['title'] | string) => {
       let mes: ClientOnMap['title']
       if (typeof packet === 'string') {
         mes = JSON.parse(packet)
@@ -103,13 +96,28 @@ export default () => {
 
   useEffect(() => {
     const id = setTimeout(() => {
-      closeTitle()
+      setOpenTitle(false)
     }, animTimes.stay) // only initial stay time is used for title
 
     return () => {
       clearTimeout(id)
     }
   }, [title, subtitle])
+
+  useEffect(() => {
+    let id: any = null
+    if (!openTitle) {
+      id = setTimeout(() => {
+        setSubtitle(defaultText)
+      }, animTimes.fadeOut)
+    }
+
+    return () => {
+      if (id) {
+        clearTimeout(id)
+      }
+    }
+  }, [openTitle])
 
   useEffect(() => {
     const id = setTimeout(() => {
