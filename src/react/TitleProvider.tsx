@@ -6,7 +6,7 @@ import type { AnimationTimes } from './Title'
 
 
 const defaultText: Record<string, any> = { 'text': '' }
-const defaultTime: AnimationTimes = { fadeIn: 400, stay: 3800, fadeOut: 800 }
+const defaultTimings: AnimationTimes = { fadeIn: 400, stay: 3800, fadeOut: 800 }
 
 const ticksToMs = (ticks: AnimationTimes) => {
   ticks.fadeIn *= 50
@@ -19,10 +19,16 @@ export default () => {
   const [title, setTitle] = useState<string | Record<string, any>>(defaultText)
   const [subtitle, setSubtitle] = useState<string | Record<string, any>>(defaultText)
   const [actionBar, setActionBar] = useState<string | Record<string, any>>(defaultText)
-  const [animTimes, setAnimTimes] = useState<AnimationTimes>(defaultTime)
+  const [animTimes, setAnimTimes] = useState<AnimationTimes>(defaultTimings)
   const [openTitle, setOpenTitle] = useState(false)
   const [openActionBar, setOpenActionBar] = useState(false)
 
+
+  const closeTitle = () => {
+    setOpenTitle(false)
+    // vanilla behavior: if title is closed, subtitle is cleared
+    setSubtitle(defaultText)
+  }
 
   useMemo(() => {
     bot._client.on('set_title_text', (packet) => {
@@ -40,13 +46,13 @@ export default () => {
       setAnimTimes(ticksToMs(packet))
     })
     bot._client.on('clear_titles', (mes) => {
-      setOpenTitle(false)
+      closeTitle()
       setOpenActionBar(false)
       if (mes.reset) {
         setTitle(defaultText)
         setSubtitle(defaultText)
         setActionBar(defaultText)
-        setAnimTimes(defaultTime)
+        setAnimTimes(defaultTimings)
       }
     })
 
@@ -72,7 +78,7 @@ export default () => {
         setTitle(defaultText)
         setSubtitle(defaultText)
         setActionBar(defaultText)
-        setAnimTimes(defaultTime)
+        setAnimTimes(defaultTimings)
       }
     })
 
@@ -110,33 +116,31 @@ export default () => {
           setTitle(defaultText)
           setSubtitle(defaultText)
           setActionBar(defaultText)
-          setAnimTimes(defaultTime)
+          setAnimTimes(defaultTimings)
           break
       }
     })
   }, [])
 
   useEffect(() => {
-    const timeoutID: Record<string, ReturnType<typeof setTimeout> | undefined> = {
-      'title': undefined,
-      'actionbar': undefined
-    }
-    if (openTitle) {
-      timeoutID['title'] = setTimeout(() => {
-        setOpenTitle(false)
-      }, animTimes.stay)
-    }
-    if (openActionBar) {
-      timeoutID['actionbar'] = setTimeout(() => {
-        setOpenActionBar(false)
-      }, animTimes.stay)
-    }
+    const id = setTimeout(() => {
+      closeTitle()
+    }, animTimes.stay) // only initial stay time is used for title
 
     return () => {
-      if (timeoutID['title']) clearTimeout(timeoutID['title'])
-      if (timeoutID['actionbar']) clearTimeout(timeoutID['actionbar'])
+      clearTimeout(id)
     }
-  }, [openTitle, openActionBar])
+  }, [title, subtitle])
+
+  useEffect(() => {
+    const id = setTimeout(() => {
+      setOpenActionBar(false)
+    }, animTimes.stay)
+
+    return () => {
+      clearTimeout(id)
+    }
+  }, [actionBar])
 
   return <Title
     title={title}
