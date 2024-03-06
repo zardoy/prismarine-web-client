@@ -5,7 +5,7 @@ class FoodBar extends LitElement {
   static get styles () {
     return css`
       .foodbar {
-        position: absolute;
+        position: fixed;
         display: flex;
         flex-direction: row-reverse;
         left: calc(50% + 91px);
