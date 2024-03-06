@@ -3,7 +3,7 @@
   "version": "0.0.0-dev",
   "description": "A minecraft client running in a browser",
   "scripts": {
-    "start": "node scripts/build.js copyFilesDev && node scripts/prepareData.mjs && node esbuild.mjs --watch",
+    "start": "node scripts/build.js copyFilesDev && node scripts/prepareData.mjs && node 4  --watch",
     "start-watch-script": "nodemon -w esbuild.mjs --watch",
     "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod",
     "check-build": "tsc && pnpm test-unit && pnpm build",
@@ -52,6 +52,7 @@
     "jszip": "^3.10.1",
     "lit": "^2.8.0",
     "lodash-es": "^4.17.21",
+    "math.gl": "^4.0.0",
     "minecraft-assets": "^1.12.2",
     "minecraft-data": "3.61.0",
     "net-browserify": "github:zardoy/prismarinejs-net-browserify",

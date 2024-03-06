@@ -12,6 +12,7 @@ import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
+import * as Mathgl from 'math.gl'
 
 //@ts-ignore
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
@@ -22,6 +23,8 @@ import Stone from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/stone.pn
 import VertShader from './_VertexShader.vert'
 //@ts-ignore
 import FragShader from './_FragmentShader.frag'
+import { WebGLUtils } from 'three/src/renderers/webgl/WebGLUtils'
+import { transform } from 'esbuild'
 
 globalThis.THREE = THREE
 //@ts-ignore
@@ -142,10 +145,10 @@ async function main() {
   const program = createProgram(gl,VertShader, FragShader) 
 
   let vertices = new Float32Array([
-    0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0, // top right
-    0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0, // bottom right
-   -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0, // bottom left
-   -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0 
+    0.5,  0.5, 0.0,   1.0, 1.0, // top right
+    0.5, -0.5, 0.0,   1.0, 0.0, // bottom right
+   -0.5, -0.5, 0.0,   0.0, 0.0, // bottom left
+   -0.5,  0.5, 0.0,    0.0, 1.0 
   ])
   let indices = new Uint8Array([  // note that we start from 0!
     0, 1, 3,  // first Triangle
@@ -165,14 +168,14 @@ async function main() {
 
   //new THREE.BufferAttribute(vertices, 3)
 
-  gl.vertexAttribPointer(0,3,gl.FLOAT, false,  8 * 4, 0)
+  gl.vertexAttribPointer(0,3,gl.FLOAT, false,  5 * 4, 0)
   gl.enableVertexAttribArray(0)
 
-  gl.vertexAttribPointer(1,3,gl.FLOAT, false,  8*4, 3*4)
+  gl.vertexAttribPointer(1,2,gl.FLOAT, false,  5*4, 3*4)
   gl.enableVertexAttribArray(1)
 
-  gl.vertexAttribPointer(2,2,gl.FLOAT, false, 8*4 , 6*4)
-  gl.enableVertexAttribArray(2)
+  //gl.vertexAttribPointer(2,2,gl.FLOAT, false, 8*4 , 6*4)
+  //gl.enableVertexAttribArray(2)
 
 
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -228,13 +231,16 @@ async function main() {
   //gl.clear(gl.COLOR_BUFFER_BIT)
   document.body.appendChild(canvas)
 
+  //console.log('webglUtils', webglUtils)
+
+  //WebGLUtils.
   //gl.createVertexArray
 
   //const model = 
   //gl.
   //gl.texImage2D()
   // loop
-  const loop = () => {
+  const loop = (performance) => {
     gl.canvas.width = window.innerWidth
     gl.canvas.height = window.innerHeight
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
@@ -246,8 +252,17 @@ async function main() {
     gl.bindTexture(gl.TEXTURE_2D, texture1);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texture2);
-
+    let transform = Mathgl.Matrix4.IDENTITY
+    //transform = transform.translate([0.2,-0.5,0.0])
     
+    //transform = transform.rotateXYZ([0,3,0])
+     transform = transform.rotateAxis(0, [0,0,1])
+ // glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+      //transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+    //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+    console.log(transform)
+      gl.uniformMatrix4fv(gl.getUniformLocation(program, "transform"), false, transform);
+       // Mathgl
     gl.useProgram(program)
     gl.bindVertexArray(VAO)
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
@@ -256,7 +271,7 @@ async function main() {
     requestAnimationFrame(loop)
     //gl.Swa
   }
-  loop()
+  loop(performance.now)
 
   // gl.deleteVertexArray(VAO);
   // gl.deleteBuffer(VBO)
@@ -273,6 +288,12 @@ async function main() {
   await worldView.init(targetPos)
   window['worldView'] = worldView
   window['viewer'] = viewer
+
+  function degrees_to_radians(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
 
   // params.blockIsomorphicRenderBundle = () => {
   //   const canvas = renderer.domElement
