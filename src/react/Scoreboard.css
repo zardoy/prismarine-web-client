@@ -13,6 +13,9 @@
   display: flex;
   flex-direction: column;
   padding-inline: 5px;
+  font-size: 0.5rem;
+  max-height: 70%;
+  overflow: hidden;
 }
 
 .scoreboard-title {
