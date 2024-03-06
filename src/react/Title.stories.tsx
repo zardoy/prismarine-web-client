@@ -11,6 +11,8 @@ type Story = StoryObj<typeof Title>;
 
 export const Primary: Story = {
   args: {
+    openTitle: false,
+    openActionBar: false,
     title: {
       text: 'New title',
     },
@@ -20,8 +22,6 @@ export const Primary: Story = {
     actionBar: {
       text: 'Action bar text'
     },
-    openTitle: false,
-    openActionBar: false,
     transitionTimes: {
       fadeIn: 2500,
       stay: 17_500,
