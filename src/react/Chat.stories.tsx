@@ -71,7 +71,9 @@ const meta: Meta<typeof Chat> = {
       }
     }
 
-    return <div>
+    return <div style={{
+      marginTop: args.usingTouch ? 100 : 0
+    }}>
       <div style={{ fontSize: 6, userSelect: 'auto', color: 'gray' }}>Hint: you can capture needed message with <code>bot.on('message', console.log)</code>, copy object, and assign it here to <code>window.spamMessage</code> variable (but ensure the correct frame window is selected in devtools)</div>
       <Chat {...args} opened={open} messages={messages} onClose={() => setOpen(false)} fetchCompletionItems={async (triggerType, value) => {
         console.log('fetchCompletionItems')
@@ -96,6 +98,7 @@ type Story = StoryObj<typeof Chat>
 export const Primary: Story = {
   args: {
     usingTouch: false,
+    allowSelection: false,
     messages: [{
       parts: [
         {

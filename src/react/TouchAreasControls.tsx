@@ -150,7 +150,8 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
 
   useEffect(() => {
     joystickPointer.joystickInner = joystickInner.current && ref(joystickInner.current)
-  }, [])
+    // todo antipattern
+  }, [touchActive])
 
   if (!touchActive) return null
 
