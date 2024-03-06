@@ -134,16 +134,6 @@ if (isFirefox) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
-Object.defineProperty(window, 'debugSceneChunks', {
-  get () {
-    return viewer.world.getLoadedChunksRelative(bot.entity.position)
-  },
-})
-Object.defineProperty(window, 'debugSceneChunksY', {
-  get () {
-    return viewer.world.getLoadedChunksRelative(bot.entity.position, true)
-  },
-})
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
@@ -556,7 +546,7 @@ async function connect (connectOptions: {
   const packetBeforePlay = (_, __, ___, fullBuffer) => {
     lastPacket = fullBuffer.toString()
   }
-  bot._client.on('packet', packetBeforePlay)
+  bot._client.on('packet', packetBeforePlay as any)
   const playStateSwitch = (newState) => {
     if (newState === 'play') {
       bot._client.removeListener('packet', packetBeforePlay)

@@ -14,6 +14,7 @@ import AppStatusProvider from './react/AppStatusProvider'
 import SelectOption from './react/SelectOption'
 import EnterFullscreenButton from './react/EnterFullscreenButton'
 import ChatProvider from './react/ChatProvider'
+import TitleProvider from './react/TitleProvider'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
@@ -60,6 +61,7 @@ const InGameUi = () => {
       <DeathScreenProvider />
       <ChatProvider />
       <SoundMuffler />
+      <TitleProvider />
       <TouchAreasControlsProvider />
     </Portal>
     <DisplayQr />
