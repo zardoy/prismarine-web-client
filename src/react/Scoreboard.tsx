@@ -21,7 +21,7 @@ export default function Scoreboard ({ title, items, open }: ScoreboardProps) {
       {
         items.map((item, index) => {
           return(
-            <div className='item-container'>
+            <div key={index} className='item-container'>
               <div className='item-name'>
                 {item.name}
               </div>
