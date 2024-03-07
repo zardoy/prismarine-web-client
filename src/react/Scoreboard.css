@@ -6,7 +6,7 @@
   right: 0px;
   top: 50%;
   transform: translateY(-50%);
-  background-color: black;
+  background-color: rgba(0, 0, 0, 0.4);
   min-width: 100px;
   max-width: 400px;
   display: flex;
@@ -15,6 +15,12 @@
   font-size: 0.5rem;
   max-height: 70%;
   overflow: hidden;
+}
+
+@media (max-width: 800px) {
+  .scoreboard-container {
+    font-size: 0.4rem;
+  }
 }
 
 .scoreboard-title {
