@@ -10,6 +10,10 @@ type ScoreboardProps = {
   open: boolean
 }
 
+export const reactKeyForMessage = (message) => {
+  return typeof message === 'string' ? message : JSON.stringify(message)
+}
+
 export default function Scoreboard ({ title, items, open }: ScoreboardProps) {
 
   if (!open) return null
@@ -19,17 +23,16 @@ export default function Scoreboard ({ title, items, open }: ScoreboardProps) {
         <MessageFormattedString message={title} />
       </div>
       {
-        items.map((item, index) => {
-          return(
-            <div key={index} className='item-container'>
-              <div className='item-name'>
-                <MessageFormattedString message={item.displayName ?? item.name} />
-              </div>
-              <div className='item-value'>
-                {item.value}
-              </div>
+        items.map((item) => {
+          const message = item.displayName ?? item.name
+          return <div key={reactKeyForMessage(message) + '_' + item.value} className='item-container'>
+            <div className='item-name'>
+              <MessageFormattedString message={message} />
             </div>
-          )
+            <div className='item-value'>
+              {item.value}
+            </div>
+          </div>
         })
       }
     </div>

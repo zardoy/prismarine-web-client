@@ -6,6 +6,7 @@ import { miscUiState } from '../globalState'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
 import { isIos } from './utils'
+import { reactKeyForMessage } from './Scoreboard'
 
 export type Message = {
   parts: MessageFormatPart[],
@@ -206,7 +207,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
       }}>
         {opacity && <div ref={chatMessages} className={`chat ${opened ? 'opened' : ''}`} id="chat-messages" style={{ opacity }}>
           {messages.map((m) => (
-            <MessageLine key={m.id} message={m} />
+            <MessageLine key={reactKeyForMessage(m)} message={m} />
           ))}
         </div> || undefined}
       </div>
