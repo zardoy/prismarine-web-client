@@ -146,7 +146,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
 
   const auxInputFocus = (fireKey: string) => {
     chatInput.current.focus()
-    document.dispatchEvent(new KeyboardEvent('keydown', { code: fireKey }))
+    chatInput.current.dispatchEvent(new KeyboardEvent('keydown', { code: fireKey, bubbles: true }))
   }
 
   const getDefaultCompleteValue = () => {
