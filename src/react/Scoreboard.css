@@ -1,0 +1,37 @@
+.scoreboard-container {
+  z-index: -2;
+  pointer-events: none;
+  white-space: nowrap;
+  position: fixed;
+  right: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.4);
+  min-width: 100px;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  padding-inline: 5px;
+  font-size: 0.5rem;
+  max-height: 70%;
+  overflow: hidden;
+}
+
+@media (max-width: 800px) {
+  .scoreboard-container {
+    font-size: 0.4rem;
+  }
+}
+
+.scoreboard-title {
+  text-align: center;
+}
+
+.item-container {
+  display: flex;
+}
+
+.item-value {
+  margin-left: auto;
+  color: lightcoral;
+}
