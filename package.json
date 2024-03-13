@@ -31,6 +31,8 @@
     "@floating-ui/react": "^0.26.1",
     "@mui/base": "5.0.0-beta.34",
     "@nxg-org/mineflayer-tracker": "^1.2.1",
+    "@react-oauth/google": "^0.12.1",
+    "@types/gapi": "^0.0.47",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/wicg-file-system-access": "^2023.10.2",

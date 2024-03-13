@@ -4,6 +4,7 @@ import fs from 'fs'
 import sanitizeFilename from 'sanitize-filename'
 import { oneOf } from '@zardoy/utils'
 import * as browserfs from 'browserfs'
+import { GoogleDriveFileSystem } from 'browserfs/googledrive.bundle'
 import { options, resetOptions } from './optionsStorage'
 
 import { fsState, loadSave } from './loadSave'
@@ -173,6 +174,27 @@ export const mountExportFolder = async () => {
       resolve()
     })
   })
+  return true
+}
+
+export const mountGoogleDriveFolder = async (readonly: boolean) => {
+  const googleDriveFileSystem = new GoogleDriveFileSystem()
+  googleDriveFileSystem.isReadonly = readonly
+  await new Promise<void>(resolve => {
+    browserfs.configure({
+      fs: 'MountableFileSystem',
+      options: {
+        ...defaultMountablePoints,
+        '/google': googleDriveFileSystem
+      },
+    }, (e) => {
+      if (e) throw e
+      resolve()
+    })
+  })
+  fsState.isReadonly = true
+  fsState.syncFs = false
+  fsState.inMemorySave = false
   return true
 }
 

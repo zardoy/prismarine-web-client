@@ -11,6 +11,13 @@ const meta: Meta<{ open }> = {
         lastPlayed: Date.now() - 600_000,
         size: 100_000,
       }))}
+      providerActions={{
+        local () { },
+      }}
+      providers={{
+        local: 'Local',
+        test: 'Test',
+      }}
       onWorldAction={() => { }}
       onGeneralAction={() => { }}
     />
