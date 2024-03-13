@@ -14,13 +14,7 @@ export default () => {
   const isModalActive = useIsModalActive('death-screen')
 
   useEffect(() => {
-    type DeathEvent = {
-      playerId: number
-      entityId: number
-      message: string
-    }
-
-    bot._client.on('death_combat_event', (data: DeathEvent) => {
+    bot._client.on('death_combat_event', (data) => {
       try {
         if (data.playerId !== bot.entity.id) return
         const messageParsed = JSON.parse(data.message)

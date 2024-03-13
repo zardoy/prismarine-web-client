@@ -348,6 +348,12 @@ let endFlyLoop: ReturnType<typeof makeInterval> | undefined
 const currentFlyVector = new Vec3(0, 0, 0)
 window.currentFlyVector = currentFlyVector
 
+// todo cleanup
+const flyingPressedKeys = {
+  down: false,
+  up: false
+}
+
 const startFlyLoop = () => {
   if (!isFlying()) return
   endFlyLoop?.()
@@ -378,12 +384,14 @@ const patchedSetControlState = (action, state) => {
   if (!changeVec) {
     return originalSetControlState(action, state)
   }
+  if (flyingPressedKeys[state === 'jump' ? 'up' : 'down'] === state) return
   const toAddVec = changeVec.scaled(state ? 1 : -1)
   for (const coord of ['x', 'y', 'z']) {
     if (toAddVec[coord] === 0) continue
     if (currentFlyVector[coord] === toAddVec[coord]) return
   }
   currentFlyVector.add(toAddVec)
+  flyingPressedKeys[state === 'jump' ? 'up' : 'down'] = state
 }
 
 const startFlying = (sendAbilities = true) => {
@@ -406,6 +414,11 @@ const endFlying = (sendAbilities = true) => {
       flags: 0,
     })
   }
+  Object.assign(flyingPressedKeys, {
+    up: false,
+    down: false
+  })
+  currentFlyVector.set(0, 0, 0)
   bot.physics['airborneAcceleration'] = standardAirborneAcceleration
   bot.creative.stopFlying()
   endFlyLoop?.()
