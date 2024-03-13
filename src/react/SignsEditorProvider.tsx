@@ -28,5 +28,5 @@ export default () => {
   }, [])
 
   if (!isModalActive) return null
-  return <SignsEditor handleInput={handleInput} />
+  return <SignsEditor isWysiwyg={false} handleInput={handleInput} />
 }

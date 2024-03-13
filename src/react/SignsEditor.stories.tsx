@@ -11,7 +11,7 @@ type Story = StoryObj<typeof SignsEditor>;
 
 export const Primary: Story = {
   args: {
-    handleInput: () => {},
+    handleInput () {},
     isWysiwyg: false
   }
 }
