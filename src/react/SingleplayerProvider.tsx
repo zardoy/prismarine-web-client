@@ -137,6 +137,9 @@ const Inner = () => {
       if (selectedProvider === 'google') {
         await mountGoogleDriveFolder(googleProviderData.readonlyMode)
       }
+      if (selectedProvider === 'local' && !(await fs.promises.stat('/data/worlds').catch(() => false))) {
+        await fs.promises.mkdir('/data/worlds')
+      }
       readWorlds(readWorldsAbortController.current)
     })()
 
