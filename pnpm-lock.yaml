@@ -56,7 +56,7 @@ importers:
         version: 0.0.11
       browserfs:
         specifier: github:zardoy/browserfs#build
-        version: github.com/zardoy/browserfs/212d4a689e804146c8cc1d2633cfb0a49b87df4a
+        version: github.com/zardoy/browserfs/e60ca69e74888e057a96a468afe1d62347d3f56f
       change-case:
         specifier: ^5.1.2
         version: 5.1.2
@@ -85,8 +85,8 @@ importers:
         specifier: ^4.18.2
         version: 4.18.2
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.9
-        version: /@zardoy/flying-squid@0.0.9
+        specifier: npm:@zardoy/flying-squid@^0.0.10
+        version: /@zardoy/flying-squid@0.0.10
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -5652,8 +5652,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@zardoy/flying-squid@0.0.9:
-    resolution: {integrity: sha512-Q7xqm+Uu/Y/8jziVM+sazddDw50t3IoQ7y0BTAgLpYaqEsJDvTAoXmHspd9NRFVEs0CM4M/qZxvztCcdJryGIg==}
+  /@zardoy/flying-squid@0.0.10:
+    resolution: {integrity: sha512-uMpNRjYWbBAgWUld4pIPOIM3vBtcR4LWuBBBwDALhZDIRU+Iu7kHjbUD0OfBzayYn78qB3T1d6dJj4oRa0M7Jg==}
     engines: {node: '>=8'}
     hasBin: true
     dependencies:
@@ -5677,7 +5677,7 @@ packages:
       prismarine-item: 1.14.0
       prismarine-nbt: 2.5.0
       prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.62.0)
-      prismarine-windows: 2.8.0
+      prismarine-windows: 2.9.0
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
       random-seed: 0.3.0
       range: 0.0.3
@@ -12179,21 +12179,12 @@ packages:
       vec3: 0.1.8
     dev: false
 
-  /prismarine-windows@2.8.0:
-    resolution: {integrity: sha512-9HVhJ8tfCeRubYwQzgz8oiHNAebMJ5hDdjm45PZwrOgewaislnR2HDsbPMWiCcyWkYL7J8bVLVoSzEzv5pH98g==}
-    dependencies:
-      prismarine-item: 1.14.0
-      prismarine-registry: 1.7.0
-      typed-emitter: 2.1.0
-    dev: false
-
   /prismarine-windows@2.9.0:
     resolution: {integrity: sha512-fm4kOLjGFPov7TEJRmXHoiPabxIQrG36r2mDjlNxfkcLfMHFb3/1ML6mp4iRQa7wL0GK4DIAyiBqCWoeWDxARg==}
     dependencies:
       prismarine-item: 1.14.0
       prismarine-registry: 1.7.0
       typed-emitter: 2.1.0
-    dev: true
 
   /process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
@@ -15420,8 +15411,8 @@ packages:
     engines: {node: '>= 0.6.0'}
     dev: true
 
-  github.com/zardoy/browserfs/212d4a689e804146c8cc1d2633cfb0a49b87df4a:
-    resolution: {tarball: https://codeload.github.com/zardoy/browserfs/tar.gz/212d4a689e804146c8cc1d2633cfb0a49b87df4a}
+  github.com/zardoy/browserfs/e60ca69e74888e057a96a468afe1d62347d3f56f:
+    resolution: {tarball: https://codeload.github.com/zardoy/browserfs/tar.gz/e60ca69e74888e057a96a468afe1d62347d3f56f}
     name: browserfs
     version: 2.0.0-zardoy
     dependencies:
