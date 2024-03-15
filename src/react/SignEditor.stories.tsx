@@ -1,13 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
-import SignsEditor from './SignsEditor'
+import SignEditor from './SignEditor'
 
-const meta: Meta<typeof SignsEditor> = {
-  component: SignsEditor
+const meta: Meta<typeof SignEditor> = {
+  component: SignEditor
 }
 
 export default meta
-type Story = StoryObj<typeof SignsEditor>;
+type Story = StoryObj<typeof SignEditor>;
 
 export const Primary: Story = {
   args: {
