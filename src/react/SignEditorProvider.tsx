@@ -1,17 +1,34 @@
 import { useMemo, useEffect, useState } from 'react'
 import { showModal } from '../globalState'
+import { MessageFormatPart } from '../botUtils'
 import { useIsModalActive } from './utils'
 import SignEditor from './SignEditor'
 
 
+const isWysiwyg = async () => {
+  const items = await bot.tabComplete('/', true, true)
+  const commands = new Set<string>(['data'])
+  for (const item of items) {
+    if (commands.has(item.match as unknown as string)) {
+      return true
+    }
+  }
+  return false
+}
+
 export default () => {
   const [location, setLocation] = useState<{x: number, y: number, z: number} | null>(null)
-  const [text, setText] = useState<string | string[]>('')
+  const [text, setText] = useState<string | string[] | MessageFormatPart[]>('')
+  const [enableWysiwyg, setEnableWysiwyg] = useState(false)
   const isModalActive = useIsModalActive('signs-editor-screen')
 
-  const handleInput = (text: string) => {
-    if (text.length > 22 || text.includes('\n')) {
-      const lines = text.split('\n')
+  const handleInput = (newText: string | MessageFormatPart[]) => {
+    if (typeof newText !== 'string') {
+      setText(newText)
+      return
+    }
+    if (newText.length > 22 || newText.includes('\n')) {
+      const lines = newText.split('\n')
       const result: string[] = []
       for (const line of lines) {
         let startIndex = 0
@@ -26,21 +43,40 @@ export default () => {
       }
       setText(result)
     } else {
-      setText(text)
+      setText(newText)
     }
   }
 
   useEffect(() => {
     if (!isModalActive) {
       if (location) {
-        console.log(location)
-        bot._client.write('update_sign', {
-          location,
-          text1: typeof text === 'string' ? text : text[0] ?? '',
-          text2: typeof text === 'string' ? '' : text[1] ?? '',
-          text3: typeof text === 'string' ? '' : text[2] ?? '',
-          text4: typeof text === 'string' ? '' : text[3] ?? ''
-        })
+        if (typeof text === 'string') {
+          bot._client.write('update_sign', {
+            location,
+            text1: text, 
+            text2: '',
+            text3: '',
+            text4: ''
+          })
+        } else if (text.length === 0) {
+          console.error('text array is empty. It should never happen')
+        } else if (typeof text[0] === 'string') {
+          bot._client.write('update_sign', {
+            location,
+            text1: text[0], 
+            text2: text[1] ?? '',
+            text3: text[2] ?? '',
+            text4: text[3] ?? ''
+          })
+        } else if (typeof text[0] === 'object') {
+          bot._client.write('update_sign', {
+            location,
+            text1: JSON.stringify(text[0]), 
+            text2: text[1] ? JSON.stringify(text[1]) : '',
+            text3: text[2] ? JSON.stringify(text[2]) : '',
+            text4: text[3] ? JSON.stringify(text[3]) : ''
+          })
+        }
       }
     }
   }, [isModalActive])
@@ -50,8 +86,11 @@ export default () => {
       setLocation(prev => packet.location)
       showModal({ reactType: 'signs-editor-screen' })
     })
+    isWysiwyg().then((value) => {
+      setEnableWysiwyg(value)
+    })
   }, [])
 
   if (!isModalActive) return null
-  return <SignEditor isWysiwyg={false} handleInput={handleInput} />
+  return <SignEditor isWysiwyg={enableWysiwyg} handleInput={handleInput} />
 }
