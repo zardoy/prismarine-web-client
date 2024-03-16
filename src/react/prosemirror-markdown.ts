@@ -26,6 +26,7 @@ export class ProseMirrorView {
           autocorrect: 'off',
           autocapitalize: 'off',
           spellcheck: 'false',
+          autofocus: 'true',
         }
       },
     })
@@ -43,4 +44,3 @@ export class ProseMirrorView {
     this.view.destroy()
   }
 }
-

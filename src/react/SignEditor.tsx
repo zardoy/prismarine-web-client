@@ -12,7 +12,7 @@ const imageSource = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAMCAYAA
 type Props = {
   handleInput: (text: string | MessageFormatPart[]) => void,
   isWysiwyg: boolean,
-  handleClick?: () => void 
+  handleClick?: () => void
 }
 
 export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
@@ -23,14 +23,14 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
     if (ref.current && !mount.current) {
       mount.current = true
       const view = new ProseMirrorView(ref.current, '')
-    } 
+    }
   }, [ref.current])
 
   return <div className='signs-editor-container'>
     <div className='signs-editor-inner-container'>
       <img className='signs-editor-bg-image' src={imageSource} alt='' />
       {isWysiwyg ? (
-        <p ref={ref} id='editor' className='wysiwyg-editor'></p>
+        <p ref={ref} id='formatted_sign_editor' className='wysiwyg-editor'></p>
       ) : (
         <textarea className='signs-editor' rows={1} onInput={(e) => {
           e.currentTarget.style.height = 'auto'

@@ -63,11 +63,11 @@ const InGameUi = () => {
       <DeathScreenProvider />
       <ChatProvider />
       <SoundMuffler />
-      <SignEditorProvider />
       <TitleProvider />
       <ScoreboardProvider />
       <TouchAreasControlsProvider />
     </Portal>
+    <SignEditorProvider />
     <DisplayQr />
     <Portal to={document.body}>
       {/* becaues of z-index */}

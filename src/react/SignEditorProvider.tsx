@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useState } from 'react'
 import { showModal, hideModal } from '../globalState'
 import { MessageFormatPart } from '../botUtils'
+import { setDoPreventDefault } from '../controls'
 import { useIsModalActive } from './utils'
 import SignEditor from './SignEditor'
 
@@ -52,12 +53,14 @@ export default () => {
   }
 
   useEffect(() => {
+    setDoPreventDefault(!isModalActive) // disable e.preventDefault() since we might be using wysiwyg editor which doesn't use textarea and need default browser behavior to ensure characters are being typed in contenteditable container. Ideally we should do e.preventDefault() only when either ctrl, cmd (meta) or alt key is pressed.
+
     if (!isModalActive) {
       if (location) {
         if (typeof text === 'string') {
           bot._client.write('update_sign', {
             location,
-            text1: text, 
+            text1: text,
             text2: '',
             text3: '',
             text4: ''
@@ -67,7 +70,7 @@ export default () => {
         } else if (typeof text[0] === 'string') {
           bot._client.write('update_sign', {
             location,
-            text1: text[0], 
+            text1: text[0],
             text2: text[1] ?? '',
             text3: text[2] ?? '',
             text4: text[3] ?? ''
@@ -75,7 +78,7 @@ export default () => {
         } else if (typeof text[0] === 'object') {
           bot._client.write('update_sign', {
             location,
-            text1: JSON.stringify(text[0]), 
+            text1: JSON.stringify(text[0]),
             text2: text[1] ? JSON.stringify(text[1]) : '',
             text3: text[2] ? JSON.stringify(text[2]) : '',
             text4: text[3] ? JSON.stringify(text[3]) : ''
@@ -90,7 +93,7 @@ export default () => {
       setLocation(prev => packet.location)
       showModal({ reactType: 'signs-editor-screen' })
     })
-    isWysiwyg().then((value) => {
+    void isWysiwyg().then((value) => {
       setEnableWysiwyg(value)
     })
   }, [])
