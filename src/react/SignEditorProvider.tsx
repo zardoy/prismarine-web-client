@@ -2,6 +2,7 @@ import { useMemo, useEffect, useState } from 'react'
 import { showModal, hideModal } from '../globalState'
 import { MessageFormatPart } from '../botUtils'
 import { setDoPreventDefault } from '../controls'
+import { options } from '../optionsStorage'
 import { useIsModalActive } from './utils'
 import SignEditor from './SignEditor'
 
@@ -90,11 +91,18 @@ export default () => {
 
   useMemo(() => {
     bot._client.on('open_sign_entity', (packet) => {
+      if (!options.autoSignEditor) return
       setLocation(prev => packet.location)
       showModal({ reactType: 'signs-editor-screen' })
-    })
-    void isWysiwyg().then((value) => {
-      setEnableWysiwyg(value)
+      if (options.wysiwygSignEditor === 'auto') {
+        void isWysiwyg().then((value) => {
+          setEnableWysiwyg(value)
+        })
+      } else if (options.wysiwygSignEditor === 'always') {
+        setEnableWysiwyg(true)
+      } else {
+        setEnableWysiwyg(false)
+      }
     })
   }, [])
 
