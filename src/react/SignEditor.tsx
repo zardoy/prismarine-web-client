@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { MessageFormatPart } from '../botUtils'
 import { ProseMirrorView } from './prosemirror-markdown'
+import Button from './Button'
 import 'prosemirror-view/style/prosemirror.css'
 import 'prosemirror-menu/style/menu.css'
 import './SignEditor.css'
@@ -10,16 +11,19 @@ const imageSource = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAMCAYAA
 
 type Props = {
   handleInput: (text: string | MessageFormatPart[]) => void,
-  isWysiwyg: boolean
+  isWysiwyg: boolean,
+  handleClick?: () => void 
 }
 
-export default ({ handleInput, isWysiwyg }: Props) => {
+export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
   const ref = useRef(null)
+  const mount = useRef(false)
 
   useEffect(() => {
-    if (ref.current) {
+    if (ref.current && !mount.current) {
+      mount.current = true
       const view = new ProseMirrorView(ref.current, '')
-    }
+    } 
   }, [ref.current])
 
   return <div className='signs-editor-container'>
@@ -35,6 +39,7 @@ export default ({ handleInput, isWysiwyg }: Props) => {
         }}>
         </textarea>
       )}
+      <Button onClick={handleClick} className='sign-editor-button' label={'Done'} />
     </div>
   </div>
 }

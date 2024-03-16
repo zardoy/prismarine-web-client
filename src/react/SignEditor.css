@@ -27,7 +27,7 @@
 
 .signs-editor {
   font: inherit;
-  font-size: 1.5rem;
+  font-size: 215%;
   width: 90%;
   max-height: 90%;
   background-color: rgba(255, 255, 255, 0);
@@ -43,6 +43,11 @@
   text-align: center;
 }
 
+.ProseMirror p {
+  font-size: 215%;
+  text-align: center;
+}
+
 .wysiwyg-editor {
   color: black;
   background-color: rgba(255, 255, 255, 0.7);
@@ -50,4 +55,11 @@
   max-height: 90%;
   margin: 0px;
   white-space: pre-wrap;
+}
+
+.sign-editor-button {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  width: 75px;
 }

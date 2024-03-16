@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState } from 'react'
-import { showModal } from '../globalState'
+import { showModal, hideModal } from '../globalState'
 import { MessageFormatPart } from '../botUtils'
 import { useIsModalActive } from './utils'
 import SignEditor from './SignEditor'
@@ -21,6 +21,10 @@ export default () => {
   const [text, setText] = useState<string | string[] | MessageFormatPart[]>('')
   const [enableWysiwyg, setEnableWysiwyg] = useState(false)
   const isModalActive = useIsModalActive('signs-editor-screen')
+
+  const handleClick = () => {
+    hideModal({ reactType: 'signs-editor-screen' })
+  }
 
   const handleInput = (newText: string | MessageFormatPart[]) => {
     if (typeof newText !== 'string') {
@@ -92,5 +96,5 @@ export default () => {
   }, [])
 
   if (!isModalActive) return null
-  return <SignEditor isWysiwyg={enableWysiwyg} handleInput={handleInput} />
+  return <SignEditor isWysiwyg={enableWysiwyg} handleInput={handleInput} handleClick={handleClick} />
 }
