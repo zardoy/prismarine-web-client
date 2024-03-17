@@ -29,11 +29,14 @@ export default () => {
   }
 
   const handleInput = (target: HTMLInputElement) => {
-    const specialSymbols = /[;|',.()[\]{} ]/
+    const smallSymbols = /[()[\]{} ]/
+    const largeSymbols = /[;|',.]/
     let addLength = 0
     for (const letter of target.value) {
-      if (specialSymbols.test(letter)) {
+      if (smallSymbols.test(letter)) {
         addLength += 1 - 1 / 1.46
+      } else if (largeSymbols.test(letter)) {
+        addLength -= 2
       } 
     }
     if (text.current.length < Number(target.dataset.key) + 1) {
