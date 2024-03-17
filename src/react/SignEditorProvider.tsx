@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo, useEffect, useState, useRef } from 'react'
 import { showModal, hideModal } from '../globalState'
 import { MessageFormatPart } from '../botUtils'
 import { setDoPreventDefault } from '../controls'
@@ -20,7 +20,7 @@ const isWysiwyg = async () => {
 
 export default () => {
   const [location, setLocation] = useState<{x: number, y: number, z: number} | null>(null)
-  const [text, setText] = useState<string | string[] | MessageFormatPart[]>('')
+  const text = useRef<MessageFormatPart[]>([])
   const [enableWysiwyg, setEnableWysiwyg] = useState(false)
   const isModalActive = useIsModalActive('signs-editor-screen')
 
@@ -28,29 +28,20 @@ export default () => {
     hideModal({ reactType: 'signs-editor-screen' })
   }
 
-  const handleInput = (newText: string | MessageFormatPart[]) => {
-    if (typeof newText !== 'string') {
-      setText(newText)
-      return
+  const handleInput = (target: HTMLInputElement) => {
+    const specialSymbols = /[;|',.()[\]{} ]/
+    let addLength = 0
+    for (const letter of target.value) {
+      if (specialSymbols.test(letter)) {
+        addLength += 1 - 1 / 1.46
+      } 
     }
-    if (newText.length > 22 || newText.includes('\n')) {
-      const lines = newText.split('\n')
-      const result: string[] = []
-      for (const line of lines) {
-        let startIndex = 0
-        while (startIndex < line.length) {
-          if (startIndex + 22 < line.length) {
-            result.push(line.slice(startIndex, startIndex + 22))
-          } else {
-            result.push(line.slice(startIndex))
-          }
-          startIndex += 22
-        }
-      }
-      setText(result)
+    if (text.current.length < Number(target.dataset.key) + 1) {
+      text.current.push({ text: target.value })
     } else {
-      setText(newText)
+      text.current[Number(target.dataset.key)] = { text: target.value }
     }
+    target.setAttribute('maxlength', `${15 + Math.ceil(addLength)}`)
   }
 
   useEffect(() => {
@@ -58,33 +49,13 @@ export default () => {
 
     if (!isModalActive) {
       if (location) {
-        if (typeof text === 'string') {
-          bot._client.write('update_sign', {
-            location,
-            text1: text,
-            text2: '',
-            text3: '',
-            text4: ''
-          })
-        } else if (text.length === 0) {
-          console.error('text array is empty. It should never happen')
-        } else if (typeof text[0] === 'string') {
-          bot._client.write('update_sign', {
-            location,
-            text1: text[0],
-            text2: text[1] ?? '',
-            text3: text[2] ?? '',
-            text4: text[3] ?? ''
-          })
-        } else if (typeof text[0] === 'object') {
-          bot._client.write('update_sign', {
-            location,
-            text1: JSON.stringify(text[0]),
-            text2: text[1] ? JSON.stringify(text[1]) : '',
-            text3: text[2] ? JSON.stringify(text[2]) : '',
-            text4: text[3] ? JSON.stringify(text[3]) : ''
-          })
-        }
+        bot._client.write('update_sign', {
+          location,
+          text1: text.current[0] ? JSON.stringify(text.current[0]) : '',
+          text2: text.current[1] ? JSON.stringify(text.current[1]) : '',
+          text3: text.current[2] ? JSON.stringify(text.current[2]) : '',
+          text4: text.current[3] ? JSON.stringify(text.current[3]) : ''
+        })
       }
     }
   }, [isModalActive])

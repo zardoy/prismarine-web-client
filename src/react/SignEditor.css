@@ -26,14 +26,14 @@
   image-rendering: pixelated;
 }
 
-.signs-editor {
+.sign-editor {
   font: inherit;
-  font-size: 215%;
+  font-size: 400%;
   width: 90%;
   max-height: 90%;
   background-color: rgba(255, 255, 255, 0);
   border-width: 0px;
-  border: none;
+  border: 1px solid black;
   overflow: auto;
   outline: none;
   -webkit-box-shadow: none;
@@ -45,7 +45,7 @@
 }
 
 .ProseMirror p {
-  font-size: 215%;
+  font-size: 400%;
   text-align: center;
 }
 
