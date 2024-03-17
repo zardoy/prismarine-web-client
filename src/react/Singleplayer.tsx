@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { Fragment, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
 // todo optimize size
 import missingWorldPreview from 'minecraft-assets/minecraft-assets/data/1.10/gui/presets/isles.png'
@@ -87,6 +87,10 @@ export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, set
 
   const [search, setSearch] = useState('')
   const [focusedWorld, setFocusedWorld] = useState('')
+
+  useEffect(() => {
+    setFocusedWorld('')
+  }, [activeProvider])
 
   return <div ref={containerRef}>
     <div className="dirt-bg" />

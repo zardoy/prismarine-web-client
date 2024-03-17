@@ -74,7 +74,8 @@
     "title-case": "3.x",
     "ua-parser-js": "^1.0.37",
     "valtio": "^1.11.1",
-    "workbox-build": "^7.0.0"
+    "workbox-build": "^7.0.0",
+    "google-drive-browserfs": "github:zardoy/browserfs#google-drive"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^7.4.6",

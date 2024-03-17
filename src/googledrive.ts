@@ -4,7 +4,7 @@ import React from 'react'
 
 const CLIENT_ID = '137156026346-igv2gkjsj2hlid92rs3q7cjjnc77s132.apps.googleusercontent.com'
 // const CLIENT_ID = process.env.GOOGLE_CLIENT_ID
-const SCOPES = 'https://www.googleapis.com/auth/drive.metadata.readonly https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive'
+const SCOPES = 'https://www.googleapis.com/auth/drive'
 
 export const GoogleDriveProvider = ({ children }) => {
   return React.createElement(GoogleOAuthProvider, { clientId: CLIENT_ID } as any, children)

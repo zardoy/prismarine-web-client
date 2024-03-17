@@ -3,7 +3,7 @@ import { proxy, subscribe, useSnapshot } from 'valtio'
 import { useEffect, useRef, useState } from 'react'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { fsState, loadSave, longArrayToNumber, readLevelDat } from '../loadSave'
-import { mountExportFolder, mountGoogleDriveFolder, removeFileRecursiveAsync } from '../browserfs'
+import { googleDriveGetFileIdFromPath, mountExportFolder, mountGoogleDriveFolder, removeFileRecursiveAsync } from '../browserfs'
 import { hideCurrentModal, showModal } from '../globalState'
 import { haveDirectoryPicker, setLoadingScreenStatus } from '../utils'
 import { exportWorld } from '../builtinCommands'
@@ -12,6 +12,7 @@ import Singleplayer, { WorldProps } from './Singleplayer'
 import { useIsModalActive } from './utils'
 import { showOptionsModal } from './SelectOption'
 import Input from './Input'
+import GoogleButton from './GoogleButton'
 
 const worldsProxy = proxy({
   value: null as null | WorldProps[],
@@ -20,7 +21,7 @@ const worldsProxy = proxy({
 })
 
 const getWorldsPath = () => {
-  return worldsProxy.selectedProvider === 'local' ? `/data/worlds` : worldsProxy.selectedProvider === 'google' ? `/google/${googleProviderData.worldsPath.replace(/\\$/, '')}` : ''
+  return worldsProxy.selectedProvider === 'local' ? `/data/worlds` : worldsProxy.selectedProvider === 'google' ? `/google/${googleProviderData.worldsPath.replace(/\/$/, '')}` : ''
 }
 
 const providersEnableFeatures = {
@@ -147,7 +148,7 @@ const Inner = () => {
       readWorldsAbortController.current.abort()
       readWorldsAbortController.current = new AbortController()
     }
-  }, [selectedProvider, loggedIn, worldsPath])
+  }, [selectedProvider, loggedIn, worldsPath, googleDriveReadonly])
 
   const googleLogIn = useGoogleLogIn()
 
@@ -158,16 +159,18 @@ const Inner = () => {
       googleProviderData.accessToken = null
       // TODO revoke token
     },
-    [`Read Only: ${googleDriveReadonly ? 'ON' : 'OFF'}`] () {
+    async [`Read Only: ${googleDriveReadonly ? 'ON' : 'OFF'}`] () {
+      if (googleProviderData.readonlyMode) {
+        const choice = await showOptionsModal('[Unstable Feature] Enabling world save might corrupt your worlds, eg remove entities (note: you can always restore previous version of files in Drive)', ['Continue'])
+        if (choice !== 'Continue') return
+      }
       googleProviderData.readonlyMode = !googleProviderData.readonlyMode
     },
     'Worlds Path': <Input rootStyles={{ width: 100 }} placeholder='Worlds path' defaultValue={worldsPath} onBlur={(e) => {
       googleProviderData.worldsPath = e.target.value
     }} />
   } : {
-    'Log In' () {
-      googleLogIn()
-    }
+    'Log In': <GoogleButton onClick={googleLogIn} />
   } : {
     'Loading...' () { }
   } : undefined
@@ -188,13 +191,22 @@ const Inner = () => {
     }}
     onWorldAction={async (action, worldName) => {
       const worldPath = `${getWorldsPath()}/${worldName}`
+      const openInGoogleDrive = () => {
+        const fileId = googleDriveGetFileIdFromPath(worldPath.replace('/google/', ''))
+        if (!fileId) return alert('File not found')
+        window.open(`https://drive.google.com/drive/folders/${fileId}`)
+      }
+
       if (action === 'load') {
         setLoadingScreenStatus(`Starting loading world ${worldName}`)
         await loadInMemorySave(worldPath)
         return
       }
       if (action === 'delete') {
-        if (!providersEnableFeatures[selectedProvider].delete) return alert('Not implemented yet')
+        if (selectedProvider === 'google') {
+          openInGoogleDrive()
+          return
+        }
 
         if (!confirm('Are you sure you want to delete current world')) return
         setLoadingScreenStatus(`Removing world ${worldName}`)
@@ -203,7 +215,10 @@ const Inner = () => {
         readWorlds(readWorldsAbortController.current)
       }
       if (action === 'export') {
-        if (!providersEnableFeatures[selectedProvider].export) return alert('Not implemented yet')
+        if (selectedProvider === 'google') {
+          openInGoogleDrive()
+          return
+        }
 
         const selectedVariant =
           haveDirectoryPicker()
