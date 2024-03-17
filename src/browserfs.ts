@@ -10,6 +10,7 @@ import { fsState, loadSave } from './loadSave'
 import { installTexturePack, installTexturePackFromHandle, updateTexturePackInstalledState } from './texturePack'
 import { miscUiState } from './globalState'
 import { setLoadingScreenStatus } from './utils'
+const { GoogleDriveFileSystem } = require('google-drive-browserfs/src/backends/GoogleDrive') // disable type checking
 
 browserfs.install(window)
 const defaultMountablePoints = {
@@ -173,6 +174,34 @@ export const mountExportFolder = async () => {
       resolve()
     })
   })
+  return true
+}
+
+let googleDriveFileSystem
+
+/** Only cached! */
+export const googleDriveGetFileIdFromPath = (path: string) => {
+  return googleDriveFileSystem._getExistingFileId(path)
+}
+
+export const mountGoogleDriveFolder = async (readonly: boolean) => {
+  googleDriveFileSystem = new GoogleDriveFileSystem()
+  googleDriveFileSystem.isReadonly = readonly
+  await new Promise<void>(resolve => {
+    browserfs.configure({
+      fs: 'MountableFileSystem',
+      options: {
+        ...defaultMountablePoints,
+        '/google': googleDriveFileSystem
+      },
+    }, (e) => {
+      if (e) throw e
+      resolve()
+    })
+  })
+  fsState.isReadonly = readonly
+  fsState.syncFs = false
+  fsState.inMemorySave = false
   return true
 }
 

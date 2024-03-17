@@ -24,5 +24,8 @@
         "src",
         "cypress",
         "prismarine-viewer/viewer"
+    ],
+    "exclude": [
+        "node_modules",
     ]
 }

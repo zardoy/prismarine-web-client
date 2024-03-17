@@ -5,7 +5,7 @@ import Slider from './Slider'
 const meta: Meta<typeof Slider> = {
   component: Slider,
   args: {
-    label: 'hapiness',
+    label: 'happiness',
     value: 0,
     updateValue (value) {
       console.log('updateValue', value)
