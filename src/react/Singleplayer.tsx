@@ -63,13 +63,14 @@ interface Props {
   setActiveProvider?: (provider: string) => void
   providerActions?: Record<string, (() => void) | undefined | JSX.Element>
   disabledProviders?: string[]
+  isReadonly?: boolean
   error?: string
 
   onWorldAction (action: 'load' | 'export' | 'delete' | 'edit', worldName: string): void
   onGeneralAction (action: 'cancel' | 'create'): void
 }
 
-export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, setActiveProvider, providerActions, providers, disabledProviders, error }: Props) => {
+export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, setActiveProvider, providerActions, providers, disabledProviders, error, isReadonly }: Props) => {
   const containerRef = useRef<any>()
   const firstButton = useRef<HTMLButtonElement>(null!)
 
@@ -135,7 +136,7 @@ export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, set
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 400 }}>
         <div>
           <Button rootRef={firstButton} disabled={!focusedWorld} onClick={() => onWorldAction('load', focusedWorld)}>LOAD WORLD</Button>
-          <Button onClick={() => onGeneralAction('create')}>Create New World</Button>
+          <Button onClick={() => onGeneralAction('create')} disabled={isReadonly}>Create New World</Button>
         </div>
         <div>
           <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('export', focusedWorld)}>Export</Button>

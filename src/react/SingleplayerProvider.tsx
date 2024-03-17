@@ -20,7 +20,7 @@ const worldsProxy = proxy({
   error: '',
 })
 
-const getWorldsPath = () => {
+export const getWorldsPath = () => {
   return worldsProxy.selectedProvider === 'local' ? `/data/worlds` : worldsProxy.selectedProvider === 'google' ? `/google/${googleProviderData.worldsPath.replace(/\/$/, '')}` : ''
 }
 
@@ -178,6 +178,7 @@ const Inner = () => {
 
   return <Singleplayer
     error={error}
+    isReadonly={selectedProvider === 'google' && (googleDriveReadonly || !isGoogleProviderReady)}
     providers={{
       local: 'Local',
       google: 'Google Drive',
