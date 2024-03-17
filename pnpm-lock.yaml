@@ -92,7 +92,7 @@ importers:
         version: 11.1.1
       google-drive-browserfs:
         specifier: github:zardoy/browserfs#google-drive
-        version: github.com/zardoy/browserfs/b14df77216e73674f1d9cca29e595de7e2f4e023
+        version: github.com/zardoy/browserfs/6d7a80cbba53d06eee81b8dd3aae6f256699310f
       iconify-icon:
         specifier: ^1.0.8
         version: 1.0.8
@@ -15414,8 +15414,8 @@ packages:
     engines: {node: '>= 0.6.0'}
     dev: true
 
-  github.com/zardoy/browserfs/b14df77216e73674f1d9cca29e595de7e2f4e023:
-    resolution: {tarball: https://codeload.github.com/zardoy/browserfs/tar.gz/b14df77216e73674f1d9cca29e595de7e2f4e023}
+  github.com/zardoy/browserfs/6d7a80cbba53d06eee81b8dd3aae6f256699310f:
+    resolution: {tarball: https://codeload.github.com/zardoy/browserfs/tar.gz/6d7a80cbba53d06eee81b8dd3aae6f256699310f}
     name: browserfs
     version: 2.0.0
     engines: {node: '>= 18'}

@@ -4,13 +4,13 @@ import fs from 'fs'
 import sanitizeFilename from 'sanitize-filename'
 import { oneOf } from '@zardoy/utils'
 import * as browserfs from 'browserfs'
-import { GoogleDriveFileSystem } from 'google-drive-browserfs/src/backends/GoogleDrive'
 import { options, resetOptions } from './optionsStorage'
 
 import { fsState, loadSave } from './loadSave'
 import { installTexturePack, installTexturePackFromHandle, updateTexturePackInstalledState } from './texturePack'
 import { miscUiState } from './globalState'
 import { setLoadingScreenStatus } from './utils'
+const { GoogleDriveFileSystem } = require('google-drive-browserfs/src/backends/GoogleDrive') // disable type checking
 
 browserfs.install(window)
 const defaultMountablePoints = {
@@ -177,7 +177,7 @@ export const mountExportFolder = async () => {
   return true
 }
 
-let googleDriveFileSystem: GoogleDriveFileSystem
+let googleDriveFileSystem
 
 /** Only cached! */
 export const googleDriveGetFileIdFromPath = (path: string) => {
