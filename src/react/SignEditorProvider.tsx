@@ -47,48 +47,30 @@ interface Element {
 
 function transformToMinecraftJSON (element: Element): any {
   switch (element.type) {
-    case 'root': 
+    case 'root': {
+      if (!element.children) return
+      return element.children.map(child => transformToMinecraftJSON(child))
+    }
     case 'paragraph': {
-      if (!element.children) return { text: '' }
-      return {
-        text: '',
-        extra: element.children.map(child => transformToMinecraftJSON(child))
-      }
+      if (!element.children) return
+      const transformedChildren = element.children.map(child => transformToMinecraftJSON(child))
+      return transformedChildren.flat()
     }
     case 'strong': {
-      if (!element.children) return { text: '' }
-      return {
-        text: '',
-        extra: [
-          {
-            text: element.children[0].value,
-            bold: true,
-            color: 'white'
-          }
-        ]
-      }
+      if (!element.children) return
+      const transformedChild = element.children.map(child => transformToMinecraftJSON(child))
+      return [{ text: '', bold: true }, ...transformedChild, { text: '', bold: true }]
     }
     case 'text': {
-      return {
-        text: element.value
-      }
+      return { text: element.value }
     }
     case 'emphasis': {
-      if (!element.children) return { text: '' }
-      return {
-        text: '',
-        extra: [
-          {
-            text: element.children[0].value,
-            italic: true,
-            color: 'white'
-          }
-        ]
-      }
+      if (!element.children) return
+      const emphasizedChild = element.children.map(child => transformToMinecraftJSON(child))
+      return [{ text: '', italic: true }, ...emphasizedChild, { text: '', italic: true }]
     }
-    default: {
+    default:
       return {}
-    }
   }
 }
 
@@ -129,24 +111,16 @@ export default () => {
 
     if (!isModalActive && location) {
       if (enableWysiwyg) {
+        const message = `/data merge block ${location.x} ${location.y} ${location.z} {Text1: ${text.current[0]},Text2:${text.current[1]},Text3:'{"text":"line 3"}',Text4:'{"text":"line 4"}'}`
+        bot.chat(message)
+        console.log('message sended')
+      } else {
         bot._client.write('update_sign', {
           location,
           text1: text.current[0],
           text2: text.current[1],
           text3: text.current[2],
           text4: text.current[3]
-        })
-      } else {
-        bot._client.write('tile_entity_data', {
-          location,
-          action: 1,
-          nbtData: {
-            Text1: text.current[0],
-            Text2: text.current[1],
-            Text3: text.current[2],
-            Text4: text.current[3],
-            display: { Name:'{"text":"Custom Sign"}' }
-          }
         })
       }
     }
