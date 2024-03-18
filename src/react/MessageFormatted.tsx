@@ -1,24 +1,34 @@
 import { ComponentProps } from 'react'
 import { render } from '@xmcl/text-component'
 import { noCase } from 'change-case'
+import mojangson from 'mojangson'
 import { MessageFormatPart } from '../botUtils'
 import { openURL } from '../menus/components/common'
 import { chatInputValueGlobal } from './ChatContainer'
 
 const hoverItemToText = (hoverEvent: MessageFormatPart['hoverEvent']) => {
-  if (!hoverEvent) return undefined
-  const contents = hoverEvent['contents'] ?? hoverEvent.value
-  if (typeof contents === 'string') return contents
-  // if (hoverEvent.action === 'show_text') {
-  //   return contents
-  // }
-  if (hoverEvent.action === 'show_item') {
-    return contents.id
-  }
-  if (hoverEvent.action === 'show_entity') {
-    let str = noCase(contents.type.replace('minecraft:', ''))
-    if (contents.name) str += `: ${contents.name.text}`
-    return str
+  try {
+    if (!hoverEvent) return undefined
+    const contents = hoverEvent['contents'] ?? hoverEvent.value
+    if (typeof contents.text === 'string' && contents.text.startsWith('{')) {
+      Object.assign(contents, mojangson.simplify(mojangson.parse(contents.text)))
+    }
+    if (typeof contents === 'string') return contents
+    // if (hoverEvent.action === 'show_text') {
+    //   return contents
+    // }
+    if (hoverEvent.action === 'show_item') {
+      return contents.id
+    }
+    if (hoverEvent.action === 'show_entity') {
+      let str = noCase(contents.type.replace('minecraft:', ''))
+      if (contents.name) str += `: ${contents.name.text}`
+      return str
+    }
+  } catch (err) {
+    // todo report critical error
+    console.error('Failed to parse message hover', err)
+    return undefined
   }
 }
 
@@ -45,7 +55,7 @@ const clickEventToProps = (clickEvent: MessageFormatPart['clickEvent']) => {
   if (clickEvent.action === 'copy_to_clipboard') {
     return {
       onClick () {
-        navigator.clipboard.writeText(clickEvent.value)
+        void navigator.clipboard.writeText(clickEvent.value)
       }
     }
   }
