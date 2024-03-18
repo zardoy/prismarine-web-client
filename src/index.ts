@@ -7,7 +7,7 @@ import './devtools'
 import './entities'
 import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
-import { onGameLoad } from './playerWindows'
+import { itemsAtlases, onGameLoad } from './playerWindows'
 import { supportedVersions } from 'minecraft-protocol'
 
 import './menus/components/button'
@@ -25,6 +25,8 @@ import './menus/pause_screen'
 import './menus/keybinds_screen'
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
+
+import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 
@@ -135,6 +137,28 @@ if (isFirefox) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
+new THREE.TextureLoader().load(itemsPng, (texture) => {
+  viewer.entities.itemsTexture = texture
+  // todo unify
+  viewer.entities.getItemUv = (id) => {
+    const name = loadedData.items[id]?.name
+    const uv = itemsAtlases.latest.textures[name]
+    if (!uv) {
+      const uvBlock = viewer.world.downloadedBlockStatesData[name]?.variants?.['']?.[0].model?.elements?.[0]?.faces?.north.texture
+      if (!uvBlock) return
+      return {
+        ...uvBlock,
+        size: Math.abs(uvBlock.su),
+        texture: viewer.world.material.map
+      }
+    }
+    return {
+      ...uv,
+      size: itemsAtlases.latest.size,
+      texture: viewer.entities.itemsTexture
+    }
+  }
+})
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
