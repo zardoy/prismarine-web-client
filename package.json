@@ -67,6 +67,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-transition-group": "^4.4.5",
+    "remark": "^15.0.1",
     "sanitize-filename": "^1.6.3",
     "skinview3d": "^3.0.1",
     "source-map-js": "^1.0.2",

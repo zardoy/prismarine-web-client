@@ -1,4 +1,5 @@
 import { useMemo, useEffect, useState, useRef } from 'react'
+import { remark } from 'remark'
 import { showModal, hideModal } from '../globalState'
 import { MessageFormatPart } from '../botUtils'
 import { setDoPreventDefault } from '../controls'
@@ -19,6 +20,78 @@ const isWysiwyg = async () => {
   return false
 }
 
+const getAST = async (markdown: string) => {
+  const arr = markdown.split('\n\n')
+  return arr.map(md => remark().parse(md))
+}
+
+interface Position {
+    start: {
+        line: number;
+        column: number;
+        offset: number;
+    };
+    end: {
+        line: number;
+        column: number;
+        offset: number;
+    };
+}
+
+interface Element {
+    type: string;
+    children?: Element[];
+    value?: string;
+    position: Position;
+}
+
+function transformToMinecraftJSON (element: Element): any {
+  switch (element.type) {
+    case 'root': 
+    case 'paragraph': {
+      if (!element.children) return { text: '' }
+      return {
+        text: '',
+        extra: element.children.map(child => transformToMinecraftJSON(child))
+      }
+    }
+    case 'strong': {
+      if (!element.children) return { text: '' }
+      return {
+        text: '',
+        extra: [
+          {
+            text: element.children[0].value,
+            bold: true,
+            color: 'white'
+          }
+        ]
+      }
+    }
+    case 'text': {
+      return {
+        text: element.value
+      }
+    }
+    case 'emphasis': {
+      if (!element.children) return { text: '' }
+      return {
+        text: '',
+        extra: [
+          {
+            text: element.children[0].value,
+            italic: true,
+            color: 'white'
+          }
+        ]
+      }
+    }
+    default: {
+      return {}
+    }
+  }
+}
+
 export default () => {
   const [location, setLocation] = useState<{x: number, y: number, z: number} | null>(null)
   const text = useRef<string[]>(['', '', '', ''])
@@ -27,6 +100,11 @@ export default () => {
 
   const handleClick = (view: ProseMirrorView) => {
     hideModal({ reactType: 'signs-editor-screen' })
+    void getAST(view.content).then(value => {
+      console.log(value)
+      const mcJSON = value.map(ast => transformToMinecraftJSON(ast as Element))
+      console.log(mcJSON)
+    })
     console.log(view.content)
   }
 
