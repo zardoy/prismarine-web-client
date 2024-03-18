@@ -93,6 +93,9 @@ import { downloadSoundsIfNeeded } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 
+import { SourceMapConsumer } from 'source-map-js'
+import { possiblyHandleStateVariable } from './googledrive'
+
 window.debug = debug
 window.THREE = THREE
 window.worldInteractions = worldInteractions
@@ -110,8 +113,24 @@ try {
   renderer = new THREE.WebGLRenderer({
     powerPreference: options.gpuPreference,
   })
+  // throw new Error('test')
 } catch (err) {
   console.error(err)
+  void fetch('index.js.map').then(async (res) => {
+    const map = await res.json()
+    console.log('starting mapping')
+    const consumer = new SourceMapConsumer(map)
+    for (const line of err.stack.split('\n')) {
+      const match = /(.*)(http:\/\/.*):(\d+):(\d+)/.exec(line)
+      if (!match) continue
+      const originalPosition = consumer.originalPositionFor({
+        line: parseInt(match[3], 10),
+        column: parseInt(match[4], 10),
+      })
+
+      console.log('mapped', originalPosition.source, originalPosition.line, originalPosition.column)
+    }
+  })
   throw new Error(`Failed to create WebGL context, not possible to render (restart browser): ${err.message}`)
 }
 
