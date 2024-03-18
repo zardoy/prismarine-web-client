@@ -93,6 +93,9 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
+      math.gl:
+        specifier: ^4.0.0
+        version: 4.0.1
       minecraft-assets:
         specifier: ^1.12.2
         version: 1.12.2
@@ -141,6 +144,9 @@ importers:
       title-case:
         specifier: 3.x
         version: 3.0.3
+      twgl.js:
+        specifier: ^5.5.4
+        version: 5.5.4
       ua-parser-js:
         specifier: ^1.0.37
         version: 1.0.37
@@ -3185,6 +3191,16 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
+    dev: false
+
+  /@math.gl/core@4.0.1:
+    resolution: {integrity: sha512-9IewNjR9V66o+gYIIq5agFoHy6ZT6DRpRGQBfsUpZz4glAqOjVt64he8GGzjpmqfT+kKT4qwQ7nQl/hZLF15qA==}
+    dependencies:
+      '@math.gl/types': 4.0.1
+    dev: false
+
+  /@math.gl/types@4.0.1:
+    resolution: {integrity: sha512-E9qBKAjVBiZD8Is7TbygiLGtYBP3GSLus6RUJSuzFQegdYXeVagvrs4UkBJxhrRAxw4crfH0Tq7IhTMKuuJNQw==}
     dev: false
 
   /@mdx-js/react@2.3.0(react@18.2.0):
@@ -10745,6 +10761,12 @@ packages:
       react: 18.2.0
     dev: true
 
+  /math.gl@4.0.1:
+    resolution: {integrity: sha512-Yvw1HfmsDePxwhCBvGT8teyPN0mwxcxUaWLoDaRuZYxoUYa9HRg+6ywBS+yXopC0wIS9MFi+BCVKP8hdJpaJjw==}
+    dependencies:
+      '@math.gl/core': 4.0.1
+    dev: false
+
   /md5-file@4.0.0:
     resolution: {integrity: sha512-UC0qFwyAjn4YdPpKaDNw6gNxRf7Mcx7jC1UGCY4boCzgvU2Aoc1mOGzTtrjjLKhM5ivsnhoKpQVxKPp+1j1qwg==}
     engines: {node: '>=6.0'}
@@ -14157,6 +14179,10 @@ packages:
 
   /tweetnacl@0.14.5:
     resolution: {integrity: sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==}
+
+  /twgl.js@5.5.4:
+    resolution: {integrity: sha512-6kFOmijOpmblTN9CCwOTCxK4lPg7rCyQjLuub6EMOlEp89Ex6yUcsMjsmH7andNPL2NE3XmHdqHeP5gVKKPhxw==}
+    dev: false
 
   /type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}

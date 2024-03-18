@@ -12,7 +12,8 @@ import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
-import * as Mathgl from 'math.gl'
+// import * as Mathgl from 'math.gl'
+import { m4 } from 'twgl.js'
 
 //@ts-ignore
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
@@ -23,8 +24,6 @@ import Stone from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/stone.pn
 import VertShader from './_VertexShader.vert'
 //@ts-ignore
 import FragShader from './_FragmentShader.frag'
-import { WebGLUtils } from 'three/src/renderers/webgl/WebGLUtils'
-import { transform } from 'esbuild'
 
 globalThis.THREE = THREE
 //@ts-ignore
@@ -142,13 +141,14 @@ async function main() {
   const canvas = document.createElement('canvas')
   const gl = canvas.getContext('webgl2')!
 
-  const program = createProgram(gl,VertShader, FragShader) 
+  const program = createProgram(gl,VertShader, FragShader)
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 
   let vertices = new Float32Array([
-    0.5,  0.5, 0.0,   1.0, 1.0, // top right
-    0.5, -0.5, 0.0,   1.0, 0.0, // bottom right
-   -0.5, -0.5, 0.0,   0.0, 0.0, // bottom left
-   -0.5,  0.5, 0.0,    0.0, 1.0 
+    0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0, // top right
+    0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0, // bottom right
+   -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0, // bottom left
+   -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0
   ])
   let indices = new Uint8Array([  // note that we start from 0!
     0, 1, 3,  // first Triangle
@@ -168,14 +168,14 @@ async function main() {
 
   //new THREE.BufferAttribute(vertices, 3)
 
-  gl.vertexAttribPointer(0,3,gl.FLOAT, false,  5 * 4, 0)
+  gl.vertexAttribPointer(0,3,gl.FLOAT, false,  8 * 4, 0)
   gl.enableVertexAttribArray(0)
 
-  gl.vertexAttribPointer(1,2,gl.FLOAT, false,  5*4, 3*4)
+  gl.vertexAttribPointer(1,3,gl.FLOAT, false,  8*4, 3*4)
   gl.enableVertexAttribArray(1)
 
-  //gl.vertexAttribPointer(2,2,gl.FLOAT, false, 8*4 , 6*4)
-  //gl.enableVertexAttribArray(2)
+  gl.vertexAttribPointer(2,2,gl.FLOAT, false, 8*4 , 6*4)
+  gl.enableVertexAttribArray(2)
 
 
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -195,9 +195,9 @@ async function main() {
   await new Promise((resolve) => {
     image2.onload = resolve
   })
-  
-  let texture1 = gl.createTexture();  
-  gl.bindTexture(gl.TEXTURE_2D, texture1); 
+
+  let texture1 = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture1);
 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
@@ -208,8 +208,8 @@ async function main() {
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, image.width, image.height, 0, gl.RGB, gl.UNSIGNED_BYTE, image);
   //gl.generateMipmap(gl.TEXTURE_2D);
 
-  let texture2 = gl.createTexture();  
-  gl.bindTexture(gl.TEXTURE_2D, texture2); 
+  let texture2 = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, texture2);
 
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
@@ -231,15 +231,6 @@ async function main() {
   //gl.clear(gl.COLOR_BUFFER_BIT)
   document.body.appendChild(canvas)
 
-  //console.log('webglUtils', webglUtils)
-
-  //WebGLUtils.
-  //gl.createVertexArray
-
-  //const model = 
-  //gl.
-  //gl.texImage2D()
-  // loop
   const loop = (performance) => {
     gl.canvas.width = window.innerWidth
     gl.canvas.height = window.innerHeight
@@ -252,22 +243,32 @@ async function main() {
     gl.bindTexture(gl.TEXTURE_2D, texture1);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texture2);
-    let transform = Mathgl.Matrix4.IDENTITY
-    //transform = transform.translate([0.2,-0.5,0.0])
-    
-    //transform = transform.rotateXYZ([0,3,0])
-     transform = transform.rotateAxis(0, [0,0,1])
- // glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-      //transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
+
+    const view = m4.lookAt([0, 0, 2], [0, 0, 0], [0, 1, 0])
+    const projection = m4.perspective(45 * Math.PI / 180, gl.canvas.width / gl.canvas.height, 0.1, 100)
+    const model = m4.identity()
+    m4.rotateX(model, performance / 1000, model);
+    m4.rotateY(model, performance / 2500, model)
+    m4.translate(view, [0, 0, -10], view)
+
+
+
+    //let transform = m4.identity()
+    // transform = m4.translate(transform, [0.5, 0.5, 0.0], transform)
+    //m4.axisRotate(transform, [0,1.0,0.0], performance/100, transform)
+
+    // glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+    //transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
     //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-    console.log(transform)
-      gl.uniformMatrix4fv(gl.getUniformLocation(program, "transform"), false, transform);
-       // Mathgl
+    //gl.uniformMatrix4fv(gl.getUniformLocation(program, "transform"), false, transform);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "projection"), false, projection);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "model"), false, model);
+    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, view);
     gl.useProgram(program)
     gl.bindVertexArray(VAO)
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
 
-    
+
     requestAnimationFrame(loop)
     //gl.Swa
   }
@@ -281,7 +282,7 @@ async function main() {
   return
 
   // Create viewer
-  const viewer = new Viewer(null as  any | null, 1) as any
+  const viewer = new Viewer(null as  any | null, 1)
 
   viewer.listen(worldView)
   // Load chunks
@@ -440,6 +441,7 @@ async function main() {
 
   //@ts-ignore
   const controls = new globalThis.THREE.OrbitControls(viewer.camera, renderer.domElement)
+  viewer.camer
   controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
   const cameraPos = targetPos.offset(2, 2, 2)
@@ -670,7 +672,7 @@ export const createProgram = (gl: WebGL2RenderingContext, vertexShader: string, 
     const shader = gl.createShader(type)!
     gl.shaderSource(shader, source)
     gl.compileShader(shader)
-    
+
     const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
     if (!success) {
       const info = gl.getShaderInfoLog(shader)
@@ -680,7 +682,7 @@ export const createProgram = (gl: WebGL2RenderingContext, vertexShader: string, 
     return shader
   }
 
- 
+
 
   const program = gl.createProgram()!
   gl.attachShader(program, createShader(gl, gl.VERTEX_SHADER, vertexShader)!)
