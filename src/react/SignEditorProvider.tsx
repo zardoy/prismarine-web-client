@@ -100,12 +100,13 @@ export default () => {
 
   const handleClick = (view: ProseMirrorView) => {
     hideModal({ reactType: 'signs-editor-screen' })
+    if (!enableWysiwyg) return
     void getAST(view.content).then(value => {
-      console.log(value)
       const mcJSON = value.map(ast => transformToMinecraftJSON(ast as Element))
-      console.log(mcJSON)
+      for (const [index, json] of mcJSON.entries()) {
+        text.current[index] = JSON.stringify(json)
+      }
     })
-    console.log(view.content)
   }
 
   const handleInput = (target: HTMLInputElement) => {
@@ -126,14 +127,26 @@ export default () => {
   useEffect(() => {
     setDoPreventDefault(!isModalActive) // disable e.preventDefault() since we might be using wysiwyg editor which doesn't use textarea and need default browser behavior to ensure characters are being typed in contenteditable container. Ideally we should do e.preventDefault() only when either ctrl, cmd (meta) or alt key is pressed.
 
-    if (!isModalActive) {
-      if (location) {
+    if (!isModalActive && location) {
+      if (enableWysiwyg) {
         bot._client.write('update_sign', {
           location,
-          text1: text.current[0] ?? '',
-          text2: text.current[1] ?? '',
-          text3: text.current[2] ?? '',
-          text4: text.current[3] ?? ''
+          text1: text.current[0],
+          text2: text.current[1],
+          text3: text.current[2],
+          text4: text.current[3]
+        })
+      } else {
+        bot._client.write('tile_entity_data', {
+          location,
+          action: 1,
+          nbtData: {
+            Text1: text.current[0],
+            Text2: text.current[1],
+            Text3: text.current[2],
+            Text4: text.current[3],
+            display: { Name:'{"text":"Custom Sign"}' }
+          }
         })
       }
     }
