@@ -12,17 +12,18 @@ const imageSource = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAMCAYAA
 type Props = {
   handleInput: (target: HTMLInputElement) => void,
   isWysiwyg: boolean,
-  handleClick?: () => void
+  handleClick?: (view: ProseMirrorView) => void
 }
 
 export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
   const ref = useRef(null)
   const mount = useRef(false)
+  const editorView = useRef<ProseMirrorView | null>(null)
 
   useEffect(() => {
     if (ref.current && !mount.current) {
       mount.current = true
-      const view = new ProseMirrorView(ref.current, '')
+      editorView.current = new ProseMirrorView(ref.current, '')
     }
   }, [ref.current])
 
@@ -37,7 +38,11 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
         }} />
       })
       }
-      <Button onClick={handleClick} className='sign-editor-button' label={'Done'} />
+      <Button onClick={() => {
+        if (handleClick && editorView.current) {
+          handleClick(editorView.current)
+        }
+      }} className='sign-editor-button' label={'Done'} />
     </div>
   </div>
 }

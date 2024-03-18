@@ -3,6 +3,7 @@ import { showModal, hideModal } from '../globalState'
 import { MessageFormatPart } from '../botUtils'
 import { setDoPreventDefault } from '../controls'
 import { options } from '../optionsStorage'
+import { ProseMirrorView } from './prosemirror-markdown'
 import { useIsModalActive } from './utils'
 import SignEditor from './SignEditor'
 
@@ -20,12 +21,13 @@ const isWysiwyg = async () => {
 
 export default () => {
   const [location, setLocation] = useState<{x: number, y: number, z: number} | null>(null)
-  const text = useRef<MessageFormatPart[]>([])
+  const text = useRef<string[]>(['', '', '', ''])
   const [enableWysiwyg, setEnableWysiwyg] = useState(false)
   const isModalActive = useIsModalActive('signs-editor-screen')
 
-  const handleClick = () => {
+  const handleClick = (view: ProseMirrorView) => {
     hideModal({ reactType: 'signs-editor-screen' })
+    console.log(view.content)
   }
 
   const handleInput = (target: HTMLInputElement) => {
@@ -36,14 +38,10 @@ export default () => {
       if (smallSymbols.test(letter)) {
         addLength += 1 - 1 / 1.46
       } else if (largeSymbols.test(letter)) {
-        addLength -= 2
+        addLength += 1 - 1 / 3
       } 
     }
-    if (text.current.length < Number(target.dataset.key) + 1) {
-      text.current.push({ text: target.value })
-    } else {
-      text.current[Number(target.dataset.key)] = { text: target.value }
-    }
+    text.current[Number(target.dataset.key)] = target.value
     target.setAttribute('maxlength', `${15 + Math.ceil(addLength)}`)
   }
 
@@ -54,10 +52,10 @@ export default () => {
       if (location) {
         bot._client.write('update_sign', {
           location,
-          text1: text.current[0] ? JSON.stringify(text.current[0]) : '',
-          text2: text.current[1] ? JSON.stringify(text.current[1]) : '',
-          text3: text.current[2] ? JSON.stringify(text.current[2]) : '',
-          text4: text.current[3] ? JSON.stringify(text.current[3]) : ''
+          text1: text.current[0] ?? '',
+          text2: text.current[1] ?? '',
+          text3: text.current[2] ?? '',
+          text4: text.current[3] ?? ''
         })
       }
     }
