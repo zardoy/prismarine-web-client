@@ -29,7 +29,7 @@
           if (document.querySelector('.initial-loader') && document.querySelector('.initial-loader').querySelector('.title').textContent !== 'Error') {
             document.querySelector('.initial-loader').querySelector('.title').textContent = 'Error'
             document.querySelector('.initial-loader').querySelector('.subtitle').textContent = message
-            window.location.hash = '#dev' // show eruda
+            if (window.navigator.maxTouchPoints > 1) window.location.hash = '#dev' // show eruda
           }
         }
         window.addEventListener('unhandledrejection', (e) => onError(e.reason))
@@ -70,9 +70,14 @@
       }
     </style>
     <!-- // #endregion -->
+    <!-- <script type="module">
+      window.loadPluginScript = async ({ pluginName, script }) => {
+        window.loadedPlugins[pluginName] = await import(script)
+      }
+    </script> -->
     <title>Prismarine Web Client</title>
     <link rel="stylesheet" href="index.css">
-    <link rel="favicon" href="favicon.ico">
+    <link rel="favicon" href="favicon.png">
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="canonical" href="https://mcraft.fun">
     <meta name="description" content="Minecraft web client running in your browser">

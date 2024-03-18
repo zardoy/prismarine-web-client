@@ -92,6 +92,7 @@ import { loadInMemorySave } from './react/SingleplayerProvider'
 import { downloadSoundsIfNeeded } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
+import { possiblyHandleStateVariable } from './googledrive'
 
 window.debug = debug
 window.THREE = THREE
@@ -886,3 +887,5 @@ if (initialLoader) {
   initialLoader.style.opacity = '0'
   window.pageLoaded = true
 }
+
+void possiblyHandleStateVariable()

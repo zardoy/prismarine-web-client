@@ -46,9 +46,9 @@ if (hideStats) {
 export const initWithRenderer = (canvas) => {
   if (hideStats) return
   statsGl.init(canvas)
-  if (statsGl.gpuPanel && process.env.NODE_ENV !== 'production') {
-    addStatsGlStat(statsGl.gpuPanel.canvas)
-  }
+  // if (statsGl.gpuPanel && process.env.NODE_ENV !== 'production') {
+  //   addStatsGlStat(statsGl.gpuPanel.canvas)
+  // }
   // addStatsGlStat(statsGl.msPanel.canvas)
   statsGl.container.style.display = 'flex'
   statsGl.container.style.justifyContent = 'flex-end'
