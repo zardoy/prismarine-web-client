@@ -7,7 +7,7 @@ import { googleDriveGetFileIdFromPath, mountExportFolder, mountGoogleDriveFolder
 import { hideCurrentModal, showModal } from '../globalState'
 import { haveDirectoryPicker, setLoadingScreenStatus } from '../utils'
 import { exportWorld } from '../builtinCommands'
-import { googleProviderData, useGoogleLogIn, GoogleDriveProvider, isGoogleDriveAvailable } from '../googledrive'
+import { googleProviderData, useGoogleLogIn, GoogleDriveProvider, isGoogleDriveAvailable, APP_ID } from '../googledrive'
 import Singleplayer, { WorldProps } from './Singleplayer'
 import { useIsModalActive } from './utils'
 import { showOptionsModal } from './SelectOption'
@@ -21,7 +21,7 @@ const worldsProxy = proxy({
 })
 
 export const getWorldsPath = () => {
-  return worldsProxy.selectedProvider === 'local' ? `/data/worlds` : worldsProxy.selectedProvider === 'google' ? `/google/${googleProviderData.worldsPath.replace(/\/$/, '')}` : ''
+  return worldsProxy.selectedProvider === 'local' ? `/data/worlds` : worldsProxy.selectedProvider === 'google' ? `/google/${'/'.replace(/\/$/, '')}` : ''
 }
 
 const providersEnableFeatures = {
@@ -111,32 +111,62 @@ export default () => {
   </GoogleDriveProvider>
 }
 
+export const loadGoogleDriveApi = async () => {
+  const scriptEl = await loadScript('https://apis.google.com/js/api.js')
+  if (!scriptEl) return // already loaded
+  return new Promise<void>((resolve) => {
+    gapi.load('client', () => {
+      gapi.load('client:picker', () => {
+        void gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest').then(() => {
+          googleProviderData.isReady = true
+          resolve()
+        })
+      })
+    })
+  })
+}
+
 const Inner = () => {
   const worlds = useSnapshot(worldsProxy).value as WorldProps[] | null
   const { selectedProvider, error } = useSnapshot(worldsProxy)
   const readWorldsAbortController = useRef(new AbortController())
 
+  useEffect(() => {
+    return () => {
+      worldsProxy.selectedProvider = 'local'
+    }
+  }, [])
+
   // 3rd party providers
   useEffect(() => {
     if (selectedProvider !== 'google') return
-    void loadScript('https://apis.google.com/js/api.js').then(async (scriptEl) => {
-      if (!scriptEl) return // already loaded
-      gapi.load('client', () => {
-        void gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest').then(() => {
-          googleProviderData.isReady = true
-        })
-      })
-    })
+    void loadGoogleDriveApi()
   }, [selectedProvider])
 
+  const [selectedGoogleId, setSelectedGoogleId] = useState('')
   const loggedIn = !!useSnapshot(googleProviderData).accessToken
   const googleDriveReadonly = useSnapshot(googleProviderData).readonlyMode
-  const { worldsPath } = useSnapshot(googleProviderData)
 
   useEffect(() => {
     (async () => {
       if (selectedProvider === 'google') {
-        await mountGoogleDriveFolder(googleProviderData.readonlyMode)
+        if (!selectedGoogleId) {
+          worldsProxy.value = []
+          return
+        }
+        await mountGoogleDriveFolder(googleProviderData.readonlyMode, selectedGoogleId)
+        const exists = async (path) => {
+          try {
+            await fs.promises.stat(path)
+            return true
+          } catch {
+            return false
+          }
+        }
+        if (await exists(`${getWorldsPath()}/level.dat`)) {
+          await loadInMemorySave(getWorldsPath())
+          return
+        }
       }
       if (selectedProvider === 'local' && !(await fs.promises.stat('/data/worlds').catch(() => false))) {
         await fs.promises.mkdir('/data/worlds')
@@ -148,7 +178,7 @@ const Inner = () => {
       readWorldsAbortController.current.abort()
       readWorldsAbortController.current = new AbortController()
     }
-  }, [selectedProvider, loggedIn, worldsPath, googleDriveReadonly])
+  }, [selectedProvider, loggedIn, googleDriveReadonly, selectedGoogleId])
 
   const googleLogIn = useGoogleLogIn()
 
@@ -157,7 +187,8 @@ const Inner = () => {
     'Log Out' () {
       googleProviderData.hasEverLoggedIn = false
       googleProviderData.accessToken = null
-      // TODO revoke token
+      googleProviderData.lastSelectedFolder = null
+      window.google.accounts.oauth2.revoke(googleProviderData.accessToken)
     },
     async [`Read Only: ${googleDriveReadonly ? 'ON' : 'OFF'}`] () {
       if (googleProviderData.readonlyMode) {
@@ -166,15 +197,54 @@ const Inner = () => {
       }
       googleProviderData.readonlyMode = !googleProviderData.readonlyMode
     },
-    'Worlds Path': <Input rootStyles={{ width: 100 }} placeholder='Worlds path' defaultValue={worldsPath} onBlur={(e) => {
-      googleProviderData.worldsPath = e.target.value
-    }} />
+    // 'Worlds Path': <Input rootStyles={{ width: 100 }} placeholder='Worlds path' defaultValue={worldsPath} onBlur={(e) => {
+    //   googleProviderData.worldsPath = e.target.value
+    // }} />
   } : {
     'Log In': <GoogleButton onClick={googleLogIn} />
   } : {
     'Loading...' () { }
   } : undefined
   // end
+
+  useEffect(() => {
+    let picker
+    if (loggedIn && selectedProvider === 'google' && isGoogleProviderReady) {
+      const { google } = window
+
+      const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+        .setIncludeFolders(true)
+        .setMimeTypes('application/vnd.google-apps.folder')
+        .setSelectFolderEnabled(true)
+        .setParent('root')
+
+
+      picker = new google.picker.PickerBuilder()
+        .enableFeature(google.picker.Feature.NAV_HIDDEN)
+        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+        .setDeveloperKey('AIzaSyBTiHpEqaLL7mEcrsnSS4M-z8cpRH5UwY0')
+        .setAppId(APP_ID)
+        .setOAuthToken(googleProviderData.accessToken)
+        .addView(view)
+        .addView(new google.picker.DocsUploadView())
+        .setTitle('Select a folder with your worlds')
+        .setCallback((data) => {
+          if (data.action === google.picker.Action.PICKED) {
+            googleProviderData.lastSelectedFolder = {
+              id: data.docs[0].id,
+              name: data.docs[0].name,
+            }
+            setSelectedGoogleId(data.docs[0].id)
+          }
+        })
+        .build()
+      picker.setVisible(true)
+    }
+
+    return () => {
+      if (picker) picker.dispose()
+    }
+  }, [selectedProvider, loggedIn])
 
   return <Singleplayer
     error={error}

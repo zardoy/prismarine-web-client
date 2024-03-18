@@ -886,3 +886,5 @@ if (initialLoader) {
   initialLoader.style.opacity = '0'
   window.pageLoaded = true
 }
+
+void possiblyHandleStateVariable()

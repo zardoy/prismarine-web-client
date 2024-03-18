@@ -184,8 +184,9 @@ export const googleDriveGetFileIdFromPath = (path: string) => {
   return googleDriveFileSystem._getExistingFileId(path)
 }
 
-export const mountGoogleDriveFolder = async (readonly: boolean) => {
+export const mountGoogleDriveFolder = async (readonly: boolean, rootId: string) => {
   googleDriveFileSystem = new GoogleDriveFileSystem()
+  googleDriveFileSystem.rootDirId = rootId
   googleDriveFileSystem.isReadonly = readonly
   await new Promise<void>(resolve => {
     browserfs.configure({
