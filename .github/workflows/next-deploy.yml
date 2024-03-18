@@ -1,0 +1,40 @@
+name: Vercel Deploy Next
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+on:
+  push:
+    branches:
+      - next
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+      - name: Install Global Dependencies
+        run: npm install --global vercel pnpm
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+      - run: pnpm build-storybook
+      - name: Copy playground files
+        run: node prismarine-viewer/esbuild.mjs && cp prismarine-viewer/public/index.html .vercel/output/static/playground.html && cp prismarine-viewer/public/playground.js .vercel/output/static/playground.js
+      - name: Download Generated Sounds map
+        run: node scripts/downloadSoundsMap.mjs
+      - name: Deploy Project Artifacts to Vercel
+        uses: mathiasvr/command-output@v2.0.0
+        with:
+          run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        id: deploy
+      - name: Set deployment alias
+        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }}
+      # - uses: mshick/add-pr-comment@v2
+      #   with:
+      #     message: |
+      #       Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
