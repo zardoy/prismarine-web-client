@@ -563,7 +563,7 @@ async function connect (connectOptions: {
 
   bot.on('kicked', (kickReason) => {
     console.log('User was kicked!', kickReason)
-    setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReason}`, true)
+    setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${typeof kickReason === 'object' ? JSON.stringify(kickReason) : kickReason}`, true)
     destroyAll()
   })
 
