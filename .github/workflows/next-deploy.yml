@@ -14,8 +14,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          ref: refs/pull/${{ github.event.issue.number }}/head
       - name: Install Global Dependencies
         run: npm install --global vercel pnpm
       - name: Pull Vercel Environment Information
