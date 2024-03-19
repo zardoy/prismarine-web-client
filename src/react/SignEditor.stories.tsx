@@ -3,7 +3,12 @@ import type { Meta, StoryObj } from '@storybook/react'
 import SignEditor from './SignEditor'
 
 const meta: Meta<typeof SignEditor> = {
-  component: SignEditor
+  component: SignEditor,
+  render (args) {
+    return <SignEditor {...args} handleClick={(result) => {
+      console.log('handleClick', result)
+    }} />
+  }
 }
 
 export default meta
@@ -15,4 +20,3 @@ export const Primary: Story = {
     isWysiwyg: false
   }
 }
-
