@@ -45,14 +45,15 @@
 }
 
 .ProseMirror p {
-  font-size: 400%;
+  font-size: 380%;
   text-align: center;
 }
 
 .wysiwyg-editor {
   color: black;
+  max-height: 100%;
+  overflow: hidden;
   width: 90%;
-  max-height: 90%;
   margin: 0px;
   white-space: pre-wrap;
   border: 1px solid #ccc;

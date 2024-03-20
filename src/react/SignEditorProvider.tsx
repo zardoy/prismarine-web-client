@@ -1,10 +1,7 @@
 import { useMemo, useEffect, useState, useRef } from 'react'
-import { remark } from 'remark'
 import { showModal, hideModal } from '../globalState'
-import { MessageFormatPart } from '../botUtils'
 import { setDoPreventDefault } from '../controls'
 import { options } from '../optionsStorage'
-import { ProseMirrorView } from './prosemirror-markdown'
 import { useIsModalActive } from './utils'
 import SignEditor, { ResultType } from './SignEditor'
 
@@ -20,13 +17,6 @@ const isWysiwyg = async () => {
   return false
 }
 
-const getAST = async (markdown: string) => {
-  const arr = markdown.split('\n\n')
-  return arr.map(md => remark().parse(md))
-}
-
-
-
 export default () => {
   const [location, setLocation] = useState<{x: number, y: number, z: number} | null>(null)
   const text = useRef<string[]>(['', '', '', ''])
@@ -35,9 +25,18 @@ export default () => {
 
   const handleClick = (result: ResultType) => {
     hideModal({ reactType: 'signs-editor-screen' })
-    if (!enableWysiwyg) return
     if ('plainText' in result) {
-
+      bot._client.write('update_sign', {
+        location,
+        text1: result.plainText[0],
+        text2: result.plainText[1],
+        text3: result.plainText[2],
+        text4: result.plainText[3]
+      })
+    } else {
+      if (!location) return
+      const command = `/data merge block ${location.x} ${location.y} ${location.z} {Text1:'` + JSON.stringify(result.dataText[0]) + '\',Text2: \'' + JSON.stringify(result.dataText[1]) + '\',Text3:\'' + JSON.stringify(result.dataText[2]) + '\',Text4:\'' + JSON.stringify(result.dataText[3]) + '\'}' // mojangson
+      bot.chat(command)
     }
   }
 
@@ -58,22 +57,6 @@ export default () => {
 
   useEffect(() => {
     setDoPreventDefault(!isModalActive) // disable e.preventDefault() since we might be using wysiwyg editor which doesn't use textarea and need default browser behavior to ensure characters are being typed in contenteditable container. Ideally we should do e.preventDefault() only when either ctrl, cmd (meta) or alt key is pressed.
-
-    if (!isModalActive && location) {
-      if (enableWysiwyg) {
-        const message = `/data merge block ${location.x} ${location.y} ${location.z} {Text1: ${text.current[0]},Text2:${text.current[1]},Text3:'{"text":"line 3"}',Text4:'{"text":"line 4"}'}`
-        bot.chat(message)
-        console.log('message sended')
-      } else {
-        bot._client.write('update_sign', {
-          location,
-          text1: text.current[0],
-          text2: text.current[1],
-          text3: text.current[2],
-          text4: text.current[3]
-        })
-      }
-    }
   }, [isModalActive])
 
   useMemo(() => {
