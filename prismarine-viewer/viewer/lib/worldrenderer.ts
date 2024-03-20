@@ -101,7 +101,7 @@ export class WorldRenderer {
           // }
 
           return
-          
+
           // const geometry = new THREE.BufferGeometry()
           // geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
           // geometry.setAttribute('normal', new THREE.BufferAttribute(data.geometry.normals, 3))
@@ -274,24 +274,24 @@ export class WorldRenderer {
       this.material.map.onUpdate = () => {
         this.downloadedTextureImage = this.material.map!.image
       }
+      const loadBlockStates = async () => {
+        return new Promise(resolve => {
+          if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
+          return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
+            this.downloadedBlockStatesData = data
+            // todo
+            this.renderUpdateEmitter.emit('blockStatesDownloaded')
+            resolve(data)
+          })
+        })
+      }
+      loadBlockStates().then((blockStates) => {
+        for (const worker of this.workers) {
+          worker.postMessage({ type: 'blockStates', json: blockStates })
+        }
+      })
     })
 
-    const loadBlockStates = async () => {
-      return new Promise(resolve => {
-        if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
-        return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
-          this.downloadedBlockStatesData = data
-          // todo
-          this.renderUpdateEmitter.emit('blockStatesDownloaded')
-          resolve(data)
-        })
-      })
-    }
-    loadBlockStates().then((blockStates) => {
-      for (const worker of this.workers) {
-        worker.postMessage({ type: 'blockStates', json: blockStates })
-      }
-    })
   }
 
   getLoadedChunksRelative (pos: Vec3) {

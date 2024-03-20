@@ -14,6 +14,7 @@ import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
 // import * as Mathgl from 'math.gl'
 import { m4 } from 'twgl.js'
+import Stats from 'stats.js'
 
 //@ts-ignore
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
@@ -94,7 +95,8 @@ async function main() {
   const mcData = require('minecraft-data')(version)
   window['loadedData'] = mcData
 
-  gui.add(params, 'version', globalThis.includedVersions)
+const stats = new Stats()
+gui.add(params, 'version', globalThis.includedVersions)
   gui.add(params, 'block', mcData.blocksArray.map(b => b.name).sort((a, b) => a.localeCompare(b)))
   const metadataGui = gui.add(params, 'metadata')
   gui.add(params, 'supportBlock')
@@ -141,41 +143,82 @@ async function main() {
   const canvas = document.createElement('canvas')
   const gl = canvas.getContext('webgl2')!
 
-  const program = createProgram(gl,VertShader, FragShader)
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+  const program = createProgram(gl, VertShader, FragShader)
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000)
 
   let vertices = new Float32Array([
-    0.5,  0.5, 0.0,   1.0, 0.0, 0.0,   1.0, 1.0, // top right
-    0.5, -0.5, 0.0,   0.0, 1.0, 0.0,   1.0, 0.0, // bottom right
-   -0.5, -0.5, 0.0,   0.0, 0.0, 1.0,   0.0, 0.0, // bottom left
-   -0.5,  0.5, 0.0,   1.0, 1.0, 0.0,   0.0, 1.0
+    -0.5, -0.5, -0.5, 0.0, 0.0,
+    0.5, -0.5, -0.5, 1.0, 0.0,
+    0.5, 0.5, -0.5, 1.0, 1.0,
+    0.5, 0.5, -0.5, 1.0, 1.0,
+    -0.5, 0.5, -0.5, 0.0, 1.0,
+    -0.5, -0.5, -0.5, 0.0, 0.0,
+
+    -0.5, -0.5, 0.5, 0.0, 0.0,
+    0.5, -0.5, 0.5, 1.0, 0.0,
+    0.5, 0.5, 0.5, 1.0, 1.0,
+    0.5, 0.5, 0.5, 1.0, 1.0,
+    -0.5, 0.5, 0.5, 0.0, 1.0,
+    -0.5, -0.5, 0.5, 0.0, 0.0,
+
+    -0.5, 0.5, 0.5, 1.0, 0.0,
+    -0.5, 0.5, -0.5, 1.0, 1.0,
+    -0.5, -0.5, -0.5, 0.0, 1.0,
+    -0.5, -0.5, -0.5, 0.0, 1.0,
+    -0.5, -0.5, 0.5, 0.0, 0.0,
+    -0.5, 0.5, 0.5, 1.0, 0.0,
+
+    0.5, 0.5, 0.5, 1.0, 0.0,
+    0.5, 0.5, -0.5, 1.0, 1.0,
+    0.5, -0.5, -0.5, 0.0, 1.0,
+    0.5, -0.5, -0.5, 0.0, 1.0,
+    0.5, -0.5, 0.5, 0.0, 0.0,
+    0.5, 0.5, 0.5, 1.0, 0.0,
+
+    -0.5, -0.5, -0.5, 0.0, 1.0,
+    0.5, -0.5, -0.5, 1.0, 1.0,
+    0.5, -0.5, 0.5, 1.0, 0.0,
+    0.5, -0.5, 0.5, 1.0, 0.0,
+    -0.5, -0.5, 0.5, 0.0, 0.0,
+    -0.5, -0.5, -0.5, 0.0, 1.0,
+
+    -0.5, 0.5, -0.5, 0.0, 1.0,
+    0.5, 0.5, -0.5, 1.0, 1.0,
+    0.5, 0.5, 0.5, 1.0, 0.0,
+    0.5, 0.5, 0.5, 1.0, 0.0,
+    -0.5, 0.5, 0.5, 0.0, 0.0,
+    -0.5, 0.5, -0.5, 0.0, 1.0
   ])
-  let indices = new Uint8Array([  // note that we start from 0!
-    0, 1, 3,  // first Triangle
-    1, 2, 3   // second Triangle
-  ])
-  let VBO, VAO, EBO
-  VAO = gl.createVertexArray();
+
+  let CubePositions = [] as any
+
+  //write random coordinates to cube positions xyz ten cubes;
+  for (let i = 0; i < 100_000; i++) {
+    let x = Math.random() * 100 - 50;
+    let y = Math.random() * 100 - 50;
+    let z = Math.random() * 100 - 100;
+    CubePositions.push([x, y, z]);
+  }
+
+  let VBO, VAO = gl.createVertexArray();
   VBO = gl.createBuffer();
-  EBO = gl.createBuffer();
+  //EBO = gl.createBuffer();
 
   gl.bindVertexArray(VAO);
   gl.bindBuffer(gl.ARRAY_BUFFER, VBO)
   gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, EBO)
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
+  //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, EBO)
+  //gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW)
 
-  //new THREE.BufferAttribute(vertices, 3)
-
-  gl.vertexAttribPointer(0,3,gl.FLOAT, false,  8 * 4, 0)
+  gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * 4, 0)
   gl.enableVertexAttribArray(0)
 
-  gl.vertexAttribPointer(1,3,gl.FLOAT, false,  8*4, 3*4)
+  gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * 4, 3 * 4)
   gl.enableVertexAttribArray(1)
 
-  gl.vertexAttribPointer(2,2,gl.FLOAT, false, 8*4 , 6*4)
-  gl.enableVertexAttribArray(2)
+  //gl.vertexAttribPointer(2,2,gl.FLOAT, false, 8*4 , 6*4)
+  //gl.enableVertexAttribArray(2)
 
 
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -186,7 +229,7 @@ async function main() {
   image.src = Dirt
   let image2 = new Image();
   // simple black white chess image 10x10
-  image2.src = Stone
+  image2.src = '/textures/1.18.1.png'
 
   console.log(image.src)
   await new Promise((resolve) => {
@@ -195,6 +238,55 @@ async function main() {
   await new Promise((resolve) => {
     image2.onload = resolve
   })
+
+  let pitch = 0, yaw = 0;
+  let x = 0, y = 0, z = 0;
+
+  const keys = (e) => {
+    const code = e.code
+    const pressed = e.type === 'keydown'
+    if (pressed) {
+      if (code === 'KeyW') {
+        z--;
+      }
+      if (code === 'KeyS') {
+        z++;
+      }
+      if (code === 'KeyA') {
+        x--;
+      }
+      if (code === 'KeyD') {
+        x++;
+      }
+    }
+  }
+  window.addEventListener('keydown', keys)
+  window.addEventListener('keyup', keys)
+
+  // mouse
+  const mouse = { x: 0, y: 0 }
+  const mouseMove = (e) => {
+    if (e.buttons === 1) {
+      yaw += e.movementY/20;
+      pitch += e.movementX/20;
+    }
+  }
+  window.addEventListener('mousemove', mouseMove)
+
+  const viewer = new Viewer(null as any | null, 1)
+  globalThis.viewer = viewer
+  viewer.world.texturesVersion = ('1.18.1')
+  viewer.world.updateTexturesData()
+  await new Promise(resolve => {
+    // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
+    // viewer.world.material.map!.image.onload = () => {
+    //   console.log(this.material.map!.image)
+    //   resolve()
+    // }
+    viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', resolve)
+  })
+  console.log(viewer.world.downloadedBlockStatesData)
+  const names = Object.keys(viewer.world.downloadedBlockStatesData)
 
   let texture1 = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, texture1);
@@ -226,51 +318,93 @@ async function main() {
   gl.uniform1i(gl.getUniformLocation(program, "texture2"), 1);
 
   //gl.attachShader(program, program)
-
+  gl.enable(gl.DEPTH_TEST)
+  //gl.generateMipmap()
+  //gl.enable(gl)
   //gl.clearColor(0, 0, 0, 1)
   //gl.clear(gl.COLOR_BUFFER_BIT)
   document.body.appendChild(canvas)
 
+  let view = m4.lookAt([0, 0, 2], [0, 0, 0], [0, 1, 0])
+  const projection = m4.perspective(75 * Math.PI / 180, gl.canvas.width / gl.canvas.height, 0.1, 512)
+  // view = m4.identity();
+  // m4.rotateX(view, yaw * Math.PI / 180)
+  // m4.rotateY(view, pitch * Math.PI / 180)
+  // m4.translate(view, [x,y,z], view)
+  let ModelUniform = gl.getUniformLocation(program, "model")
+  let uvUniform = gl.getUniformLocation(program, "uv");
+  let ViewUniform = gl.getUniformLocation(program, "view")
+  let ProjectionUniform = gl.getUniformLocation(program, "projection")
+
+  // stats.addPanel(new Stats.Panel('FPS', '#0ff', '#002'))
+  document.body.appendChild(stats.dom)
   const loop = (performance) => {
-    gl.canvas.width = window.innerWidth
-    gl.canvas.height = window.innerHeight
+    stats.begin()
+    gl.canvas.width = window.innerWidth * window.devicePixelRatio
+    gl.canvas.height = window.innerHeight * window.devicePixelRatio
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+
+    view = m4.identity();
+    m4.rotateX(view, yaw * Math.PI / 180, view)
+    m4.rotateY(view, pitch * Math.PI / 180, view)
+    m4.translate(view, [x,y,z], view)
 
     gl.clearColor(0.1, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.clear(gl.DEPTH_BUFFER_BIT)
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture1);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texture2);
 
-    const view = m4.lookAt([0, 0, 2], [0, 0, 0], [0, 1, 0])
-    const projection = m4.perspective(45 * Math.PI / 180, gl.canvas.width / gl.canvas.height, 0.1, 100)
-    const model = m4.identity()
-    m4.rotateX(model, performance / 1000, model);
-    m4.rotateY(model, performance / 2500, model)
-    m4.translate(view, [0, 0, -10], view)
-
-
-
-    //let transform = m4.identity()
-    // transform = m4.translate(transform, [0.5, 0.5, 0.0], transform)
-    //m4.axisRotate(transform, [0,1.0,0.0], performance/100, transform)
-
-    // glm::mat4 transform = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
-    //transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.0f));
-    //transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-    //gl.uniformMatrix4fv(gl.getUniformLocation(program, "transform"), false, transform);
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "projection"), false, projection);
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "model"), false, model);
-    gl.uniformMatrix4fv(gl.getUniformLocation(program, "view"), false, view);
     gl.useProgram(program)
-    gl.bindVertexArray(VAO)
-    gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_BYTE, 0);
 
+    gl.uniformMatrix4fv(ViewUniform, false, view);
+    gl.uniformMatrix4fv(ProjectionUniform, false, projection);
+
+
+
+    gl.bindVertexArray(VAO)
+
+
+    let i = 0
+    CubePositions.forEach((cubePosition) => {
+      const model = m4.identity()
+
+      m4.translate(model, [cubePosition[0], cubePosition[1], cubePosition[2]], model);
+      //m4.rotateX(model, performance / 1000*i/800 + Math.random() / 100, model);
+      //m4.rotateY(model, performance / 2500*i/800 + Math.random() / 100, model)
+      //m4.rotateZ(model, Math.random() / 1010, model)
+      gl.uniformMatrix4fv(ModelUniform, false, model);
+      gl.uniform2fv(uvUniform, [i%64 * 1/64,parseInt(i/64) * 1/64]);
+
+      // let result
+      // i %= names.length / 2
+      // for (const name of ['stone']) {
+      //   result = viewer.world.downloadedBlockStatesData[name]?.variants?.['']?.[0]?.model?.elements?.[0]?.faces?.north?.texture
+      //   i++
+      //   if (result) break
+      // }
+      // const
+      // const tileSize = image.width
+      // const blocks =
+      // result = {
+      //   v: 3*1/64,
+      //   u: 4*1/64
+      // }
+
+      i++
+      i %= 800;
+
+
+      gl.drawArrays(gl.TRIANGLES, 0, 36);
+    })
+    ///model.translate([0, 0, 0], model)
 
     requestAnimationFrame(loop)
     //gl.Swa
+    stats.end()
   }
   loop(performance.now)
 
@@ -282,7 +416,6 @@ async function main() {
   return
 
   // Create viewer
-  const viewer = new Viewer(null as  any | null, 1)
 
   viewer.listen(worldView)
   // Load chunks
@@ -290,121 +423,10 @@ async function main() {
   window['worldView'] = worldView
   window['viewer'] = viewer
 
-  function degrees_to_radians(degrees)
-{
-  var pi = Math.PI;
-  return degrees * (pi/180);
-}
-
-  // params.blockIsomorphicRenderBundle = () => {
-  //   const canvas = renderer.domElement
-  //   const onlyCurrent = !confirm('Ok - render all blocks, Cancel - render only current one')
-  //   const sizeRaw = prompt('Size', '512')
-  //   if (!sizeRaw) return
-  //   const size = parseInt(sizeRaw)
-  //   // const size = 512
-
-  //   ignoreResize = true
-  //   canvas.width = size
-  //   canvas.height = size
-  //   renderer.setSize(size, size)
-
-  //   //@ts-ignore
-  //   viewer.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 10)
-  //   viewer.scene.background = null
-
-  //   const rad = THREE.MathUtils.degToRad(-120)
-  //   viewer.directionalLight.position.set(
-  //     Math.cos(rad),
-  //     Math.sin(rad),
-  //     0.2
-  //   ).normalize()
-  //   viewer.directionalLight.intensity = 1
-
-  //   const cameraPos = targetPos.offset(2, 2, 2)
-  //   const pitch = THREE.MathUtils.degToRad(-30)
-  //   const yaw = THREE.MathUtils.degToRad(45)
-  //   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-  //   // viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
-  //   viewer.camera.position.set(cameraPos.x + 1, cameraPos.y + 0.5, cameraPos.z + 1)
-
-  //   const allBlocks = mcData.blocksArray.map(b => b.name)
-  //   // const allBlocks = ['stone', 'warped_slab']
-
-  //   let blockCount = 1
-  //   let blockName = allBlocks[0]
-
-  //   const updateBlock = () => {
-
-  //     //@ts-ignore
-  //     // viewer.setBlockStateId(targetPos, mcData.blocksByName[blockName].minStateId)
-  //     params.block = blockName
-  //     // todo cleanup (introduce getDefaultState)
-  //     onUpdate.block()
-  //     applyChanges(false, true)
-  //   }
-  //   viewer.waitForChunksToRender().then(async () => {
-  //     // wait for next macro task
-  //     await new Promise(resolve => {
-  //       setTimeout(resolve, 0)
-  //     })
-  //     if (onlyCurrent) {
-  //       viewer.render()
-  //       onWorldUpdate()
-  //     } else {
-  //       // will be called on every render update
-  //       viewer.world.renderUpdateEmitter.addListener('update', onWorldUpdate)
-  //       updateBlock()
-  //     }
-  //   })
-
-  //   const zip = new JSZip()
-  //   zip.file('description.txt', 'Generated with prismarine-viewer')
-
-  //   const end = async () => {
-  //     // download zip file
-
-  //     const a = document.createElement('a')
-  //     const blob = await zip.generateAsync({ type: 'blob' })
-  //     const dataUrlZip = URL.createObjectURL(blob)
-  //     a.href = dataUrlZip
-  //     a.download = 'blocks_render.zip'
-  //     a.click()
-  //     URL.revokeObjectURL(dataUrlZip)
-  //     console.log('end')
-
-  //     viewer.world.renderUpdateEmitter.removeListener('update', onWorldUpdate)
-  //   }
-
-  //   async function onWorldUpdate () {
-  //     // await new Promise(resolve => {
-  //     //   setTimeout(resolve, 50)
-  //     // })
-  //     const dataUrl = canvas.toDataURL('image/png')
-
-  //     zip.file(`${blockName}.png`, dataUrl.split(',')[1], { base64: true })
-
-  //     if (onlyCurrent) {
-  //       end()
-  //     } else {
-  //       nextBlock()
-  //     }
-  //   }
-  //   const nextBlock = async () => {
-  //     blockName = allBlocks[blockCount++]
-  //     console.log(allBlocks.length, '/', blockCount, blockName)
-  //     if (blockCount % 5 === 0) {
-  //       await new Promise(resolve => {
-  //         setTimeout(resolve, 100)
-  //       })
-  //     }
-  //     if (blockName) {
-  //       updateBlock()
-  //     } else {
-  //       end()
-  //     }
-  //   }
-  // }
+  function degrees_to_radians(degrees) {
+    var pi = Math.PI;
+    return degrees * (pi / 180);
+  }
 
   // const jsonData = await fetch('https://bluecolored.de/bluemap/maps/overworld/tiles/0/x-2/2/z1/6.json?584662').then(r => r.json())
 
@@ -437,232 +459,6 @@ async function main() {
   //   side: THREE.FrontSide,
   //   wireframe: false
   // })
-
-
-  //@ts-ignore
-  const controls = new globalThis.THREE.OrbitControls(viewer.camera, renderer.domElement)
-  viewer.camer
-  controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
-
-  const cameraPos = targetPos.offset(2, 2, 2)
-  const pitch = THREE.MathUtils.degToRad(-45)
-  const yaw = THREE.MathUtils.degToRad(45)
-  viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-  viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
-  viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
-  controls.update()
-
-  let blockProps = {}
-  let entityOverrides = {}
-  const getBlock = () => {
-    return mcData.blocksByName[params.block || 'air']
-  }
-
-  const entityUpdateShared = () => {
-    viewer.entities.clear()
-    if (!params.entity) return
-    worldView.emit('entity', {
-      id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
-    })
-    const enableSkeletonDebug = (obj) => {
-      const { children, isSkeletonHelper } = obj
-      if (!Array.isArray(children)) return
-      if (isSkeletonHelper) {
-        obj.visible = true
-        return
-      }
-      for (const child of children) {
-        if (typeof child === 'object') enableSkeletonDebug(child)
-      }
-    }
-    enableSkeletonDebug(viewer.entities.entities['id'])
-    setTimeout(() => {
-      viewer.update()
-      viewer.render()
-    }, TWEEN_DURATION)
-  }
-
-  const onUpdate = {
-    block() {
-      metadataFolder.destroy()
-      const block = mcData.blocksByName[params.block]
-      if (!block) return
-      const props = new Block(block.id, 0, 0).getProperties()
-      //@ts-ignore
-      const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
-      metadataFolder = gui.addFolder('metadata')
-      if (states) {
-        for (const state of states) {
-          let defaultValue
-          switch (state.type) {
-            case 'enum':
-              defaultValue = state.values[0]
-              break
-            case 'bool':
-              defaultValue = false
-              break
-            case 'int':
-              defaultValue = 0
-              break
-            case 'direction':
-              defaultValue = 'north'
-              break
-
-            default:
-              continue
-          }
-          blockProps[state.name] = defaultValue
-          if (state.type === 'enum') {
-            metadataFolder.add(blockProps, state.name, state.values)
-          } else {
-            metadataFolder.add(blockProps, state.name)
-          }
-        }
-      } else {
-        for (const [name, value] of Object.entries(props)) {
-          blockProps[name] = value
-          metadataFolder.add(blockProps, name)
-        }
-      }
-      metadataFolder.open()
-    },
-    entity() {
-      continuousRender = params.entity === 'player'
-      entityUpdateShared()
-      if (!params.entity) return
-      if (params.entity === 'player') {
-        viewer.entities.updatePlayerSkin('id', viewer.entities.entities.id.username, true, true)
-        viewer.entities.playAnimation('id', 'running')
-      }
-      // let prev = false
-      // setInterval(() => {
-      //   viewer.entities.playAnimation('id', prev ? 'running' : 'idle')
-      //   prev = !prev
-      // }, 1000)
-
-      Entity.getStaticData(params.entity)
-      // entityRotationFolder.destroy()
-      // entityRotationFolder = gui.addFolder('entity metadata')
-      // entityRotationFolder.add(params, 'entityRotate')
-      // entityRotationFolder.open()
-    },
-    supportBlock() {
-      viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
-    }
-  }
-
-
-  const applyChanges = (metadataUpdate = false, skipQs = false) => {
-    const blockId = getBlock()?.id
-    let block: BlockLoader.Block
-    if (metadataUpdate) {
-      block = new Block(blockId, 0, params.metadata)
-      Object.assign(blockProps, block.getProperties())
-      for (const _child of metadataFolder.children) {
-        const child = _child as import('lil-gui').Controller
-        child.updateDisplay()
-      }
-    } else {
-      try {
-        //@ts-ignore
-        block = Block.fromProperties(blockId ?? -1, blockProps, 0)
-      } catch (err) {
-        console.error(err)
-        block = Block.fromStateId(0, 0)
-      }
-    }
-
-    //@ts-ignore
-    viewer.setBlockStateId(targetPos, block.stateId)
-    console.log('up stateId', block.stateId)
-    params.metadata = block.metadata
-    metadataGui.updateDisplay()
-    if (!skipQs) {
-      setQs()
-    }
-  }
-  gui.onChange(({ property, object }) => {
-    if (object === params) {
-      if (property === 'camera') return
-      onUpdate[property]?.()
-      applyChanges(property === 'metadata')
-    } else {
-      applyChanges()
-    }
-  })
-  viewer.waitForChunksToRender().then(async () => {
-    await new Promise(resolve => {
-      setTimeout(resolve, 0)
-    })
-    for (const update of Object.values(onUpdate)) {
-      update()
-    }
-    applyChanges(true)
-    gui.openAnimated()
-  })
-
-  const animate = () => {
-    // if (controls) controls.update()
-    // worldView.updatePosition(controls.target)
-    viewer.update()
-    viewer.render()
-    // window.requestAnimationFrame(animate)
-  }
-  viewer.world.renderUpdateEmitter.addListener('update', () => {
-    animate()
-  })
-  animate()
-
-  // #region camera rotation param
-  if (params.camera) {
-    const [x, y] = params.camera.split(',')
-    viewer.camera.rotation.set(parseFloat(x), parseFloat(y), 0, 'ZYX')
-    controls.update()
-    console.log(viewer.camera.rotation.x, parseFloat(x))
-  }
-  const throttledCamQsUpdate = _.throttle(() => {
-    const { camera } = viewer
-    // params.camera = `${camera.rotation.x.toFixed(2)},${camera.rotation.y.toFixed(2)}`
-    setQs()
-  }, 200)
-  controls.addEventListener('change', () => {
-    throttledCamQsUpdate()
-    animate()
-  })
-  // #endregion
-
-  const continuousUpdate = () => {
-    if (continuousRender) {
-      animate()
-    }
-    requestAnimationFrame(continuousUpdate)
-  }
-  continuousUpdate()
-
-  window.onresize = () => {
-    if (ignoreResize) return
-    // const vec3 = new THREE.Vector3()
-    // vec3.set(-1, -1, -1).unproject(viewer.camera)
-    // console.log(vec3)
-    // box.position.set(vec3.x, vec3.y, vec3.z-1)
-
-    const { camera } = viewer
-    viewer.camera.aspect = window.innerWidth / window.innerHeight
-    viewer.camera.updateProjectionMatrix()
-    // renderer.setSize(window.innerWidth, window.innerHeight)
-
-    animate()
-  }
-  window.dispatchEvent(new Event('resize'))
-
-  params.playSound = () => {
-    viewer.playSound(targetPos, 'button_click.mp3')
-  }
-  addEventListener('keydown', (e) => {
-    if (e.code === 'KeyE') {
-      params.playSound()
-    }
-  }, { capture: true })
 }
 main()
 

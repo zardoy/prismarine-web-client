@@ -2,15 +2,19 @@
 precision highp float;
 out vec4 FragColor;
 
-in vec3 ourColor;
 in vec2 TexCoord;
 
-// texture samplers
 uniform sampler2D texture1;
 uniform sampler2D texture2;
 
+uniform vec2 uv;
+uniform vec2 suv;
+
 void main()
 {
-	// linearly interpolate between both textures (80% container, 20% awesomeface)
-	FragColor = mix(texture(texture1, TexCoord), texture(texture2, TexCoord),0.0);
+	vec2 position = vec2(1, 1);	// I assume gets tile at (1, 1) since the size of the tiles are 1/16
+	vec2 size = vec2(1/64, 1/64);
+    vec2 coord = uv + TexCoord * (1.0f/64.0f);
+
+    FragColor = mix(texture(texture1, coord), texture(texture2, coord), 1.0);
 }
