@@ -45,7 +45,7 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
       })
       }
       <Button onClick={async () => {
-        if (handleClick && editorView.current) {
+        if (handleClick) {
           if (isWysiwyg) {
             const text = markdownToFormattedText(editorView.current.content)
             handleClick({ dataText: text })
