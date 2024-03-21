@@ -21,7 +21,7 @@ import widgets from './react/widgets'
 import { useIsWidgetActive } from './react/utils'
 import GlobalSearchInput from './GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
-import NotificationProvider from './react/NotificationProvider'
+import NotificationProvider, { showNotification } from './react/NotificationProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -105,9 +105,8 @@ const App = () => {
 
 const PerComponentErrorBoundary = ({ children }) => {
   return children.map((child, i) => <ErrorBoundary key={i} renderError={(error) => {
-    // notfic
     const componentNameClean = (child.type.name || child.type.displayName || 'Unknown').replaceAll(/__|_COMPONENT/g, '')
-    console.error(`UI component ${componentNameClean} crashed!`, componentNameClean, error.message)
+    showNotification(`UI component ${componentNameClean} crashed!`, 'Please report this. Use console to see more info.', true, undefined)
     return null
   }}>{child}</ErrorBoundary>)
 }
