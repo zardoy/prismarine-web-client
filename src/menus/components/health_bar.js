@@ -93,11 +93,15 @@ class HealthBar extends LitElement {
   }
 
   effectAdded (effect) {
-    this.shadowRoot.querySelector('#health').classList.add(getEffectClass(effect))
+    const effectClass = getEffectClass(effect)
+    if (!effectClass) return
+    this.shadowRoot.querySelector('#health').classList.add(effectClass)
   }
 
   effectEnded (effect) {
-    this.shadowRoot.querySelector('#health').classList.remove(getEffectClass(effect))
+    const effectClass = getEffectClass(effect)
+    if (!effectClass) return
+    this.shadowRoot.querySelector('#health').classList.remove(effectClass)
   }
 
   onDamage () {

@@ -18,7 +18,7 @@ import { initWeblRenderer } from './webglRenderer'
 
 globalThis.THREE = THREE
 //@ts-ignore
-require('three/examples/js/controls/OrbitControls')
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 const gui = new GUI()
 
@@ -36,13 +36,13 @@ const params = {
   metadata: 0,
   supportBlock: false,
   entity: '',
-  removeEntity() {
+  removeEntity () {
     this.entity = ''
   },
   entityRotate: false,
   camera: '',
-  playSound() { },
-  blockIsomorphicRenderBundle() { }
+  playSound () { },
+  blockIsomorphicRenderBundle () { }
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -62,7 +62,7 @@ const setQs = () => {
 
 let ignoreResize = false
 
-async function main() {
+async function main () {
   let continuousRender = false
 
   const { version } = params
@@ -143,7 +143,7 @@ async function main() {
   window['worldView'] = worldView
   window['viewer'] = viewer
 
-  function degrees_to_radians(degrees) {
+  function degrees_to_radians (degrees) {
     var pi = Math.PI;
     return degrees * (pi / 180);
   }
@@ -179,5 +179,230 @@ async function main() {
   //   side: THREE.FrontSide,
   //   wireframe: false
   // })
+
+
+  //@ts-ignore
+  const controls = new OrbitControls(viewer.camera, renderer.domElement)
+  controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+
+  const cameraPos = targetPos.offset(2, 2, 2)
+  const pitch = THREE.MathUtils.degToRad(-45)
+  const yaw = THREE.MathUtils.degToRad(45)
+  viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+  viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+  viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
+  controls.update()
+
+  let blockProps = {}
+  let entityOverrides = {}
+  const getBlock = () => {
+    return mcData.blocksByName[params.block || 'air']
+  }
+
+  const entityUpdateShared = () => {
+    viewer.entities.clear()
+    if (!params.entity) return
+    worldView.emit('entity', {
+      id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
+    })
+    const enableSkeletonDebug = (obj) => {
+      const { children, isSkeletonHelper } = obj
+      if (!Array.isArray(children)) return
+      if (isSkeletonHelper) {
+        obj.visible = true
+        return
+      }
+      for (const child of children) {
+        if (typeof child === 'object') enableSkeletonDebug(child)
+      }
+    }
+    enableSkeletonDebug(viewer.entities.entities['id'])
+    setTimeout(() => {
+      viewer.update()
+      viewer.render()
+    }, TWEEN_DURATION)
+  }
+
+  const onUpdate = {
+    block () {
+      metadataFolder.destroy()
+      const block = mcData.blocksByName[params.block]
+      if (!block) return
+      const props = new Block(block.id, 0, 0).getProperties()
+      //@ts-ignore
+      const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
+      metadataFolder = gui.addFolder('metadata')
+      if (states) {
+        for (const state of states) {
+          let defaultValue
+          switch (state.type) {
+            case 'enum':
+              defaultValue = state.values[0]
+              break
+            case 'bool':
+              defaultValue = false
+              break
+            case 'int':
+              defaultValue = 0
+              break
+            case 'direction':
+              defaultValue = 'north'
+              break
+
+            default:
+              continue
+          }
+          blockProps[state.name] = defaultValue
+          if (state.type === 'enum') {
+            metadataFolder.add(blockProps, state.name, state.values)
+          } else {
+            metadataFolder.add(blockProps, state.name)
+          }
+        }
+      } else {
+        for (const [name, value] of Object.entries(props)) {
+          blockProps[name] = value
+          metadataFolder.add(blockProps, name)
+        }
+      }
+      metadataFolder.open()
+    },
+    entity () {
+      continuousRender = params.entity === 'player'
+      entityUpdateShared()
+      if (!params.entity) return
+      if (params.entity === 'player') {
+        viewer.entities.updatePlayerSkin('id', viewer.entities.entities.id.username, true, true)
+        viewer.entities.playAnimation('id', 'running')
+      }
+      // let prev = false
+      // setInterval(() => {
+      //   viewer.entities.playAnimation('id', prev ? 'running' : 'idle')
+      //   prev = !prev
+      // }, 1000)
+
+      Entity.getStaticData(params.entity)
+      // entityRotationFolder.destroy()
+      // entityRotationFolder = gui.addFolder('entity metadata')
+      // entityRotationFolder.add(params, 'entityRotate')
+      // entityRotationFolder.open()
+    },
+    supportBlock () {
+      viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
+    }
+  }
+
+
+  const applyChanges = (metadataUpdate = false, skipQs = false) => {
+    const blockId = getBlock()?.id
+    let block: BlockLoader.Block
+    if (metadataUpdate) {
+      block = new Block(blockId, 0, params.metadata)
+      Object.assign(blockProps, block.getProperties())
+      for (const _child of metadataFolder.children) {
+        const child = _child as import('lil-gui').Controller
+        child.updateDisplay()
+      }
+    } else {
+      try {
+        //@ts-ignore
+        block = Block.fromProperties(blockId ?? -1, blockProps, 0)
+      } catch (err) {
+        console.error(err)
+        block = Block.fromStateId(0, 0)
+      }
+    }
+
+    //@ts-ignore
+    viewer.setBlockStateId(targetPos, block.stateId)
+    console.log('up stateId', block.stateId)
+    params.metadata = block.metadata
+    metadataGui.updateDisplay()
+    if (!skipQs) {
+      setQs()
+    }
+  }
+  gui.onChange(({ property, object }) => {
+    if (object === params) {
+      if (property === 'camera') return
+      onUpdate[property]?.()
+      applyChanges(property === 'metadata')
+    } else {
+      applyChanges()
+    }
+  })
+  viewer.waitForChunksToRender().then(async () => {
+    await new Promise(resolve => {
+      setTimeout(resolve, 0)
+    })
+    for (const update of Object.values(onUpdate)) {
+      update()
+    }
+    applyChanges(true)
+    gui.openAnimated()
+  })
+
+  const animate = () => {
+    // if (controls) controls.update()
+    // worldView.updatePosition(controls.target)
+    viewer.update()
+    viewer.render()
+    // window.requestAnimationFrame(animate)
+  }
+  viewer.world.renderUpdateEmitter.addListener('update', () => {
+    animate()
+  })
+  animate()
+
+  // #region camera rotation param
+  if (params.camera) {
+    const [x, y] = params.camera.split(',')
+    viewer.camera.rotation.set(parseFloat(x), parseFloat(y), 0, 'ZYX')
+    controls.update()
+    console.log(viewer.camera.rotation.x, parseFloat(x))
+  }
+  const throttledCamQsUpdate = _.throttle(() => {
+    const { camera } = viewer
+    // params.camera = `${camera.rotation.x.toFixed(2)},${camera.rotation.y.toFixed(2)}`
+    setQs()
+  }, 200)
+  controls.addEventListener('change', () => {
+    throttledCamQsUpdate()
+    animate()
+  })
+  // #endregion
+
+  const continuousUpdate = () => {
+    if (continuousRender) {
+      animate()
+    }
+    requestAnimationFrame(continuousUpdate)
+  }
+  continuousUpdate()
+
+  window.onresize = () => {
+    if (ignoreResize) return
+    // const vec3 = new THREE.Vector3()
+    // vec3.set(-1, -1, -1).unproject(viewer.camera)
+    // console.log(vec3)
+    // box.position.set(vec3.x, vec3.y, vec3.z-1)
+
+    const { camera } = viewer
+    viewer.camera.aspect = window.innerWidth / window.innerHeight
+    viewer.camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+
+    animate()
+  }
+  window.dispatchEvent(new Event('resize'))
+
+  params.playSound = () => {
+    viewer.playSound(targetPos, 'button_click.mp3')
+  }
+  addEventListener('keydown', (e) => {
+    if (e.code === 'KeyE') {
+      params.playSound()
+    }
+  }, { capture: true })
 }
 main()

@@ -6,6 +6,7 @@ import { miscUiState } from '../globalState'
 import { MessagePart } from './MessageFormatted'
 import './ChatContainer.css'
 import { isIos } from './utils'
+import { reactKeyForMessage } from './Scoreboard'
 
 export type Message = {
   parts: MessageFormatPart[],
@@ -36,6 +37,7 @@ type Props = {
   sendMessage?: (message: string) => boolean | void
   fetchCompletionItems?: (triggerKind: 'implicit' | 'explicit', completeValue: string, fullValue: string, abortController?: AbortController) => Promise<string[] | void>
   // width?: number
+  allowSelection?: boolean
 }
 
 export const chatInputValueGlobal = proxy({
@@ -53,7 +55,7 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
   }, initialTimeout ? 5000 : 0)
 }
 
-export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose, usingTouch }: Props) => {
+export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose, usingTouch, allowSelection }: Props) => {
   const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 
   const [completePadText, setCompletePadText] = useState('')
@@ -144,7 +146,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
 
   const auxInputFocus = (fireKey: string) => {
     chatInput.current.focus()
-    document.dispatchEvent(new KeyboardEvent('keydown', { code: fireKey }))
+    chatInput.current.dispatchEvent(new KeyboardEvent('keydown', { code: fireKey, bubbles: true }))
   }
 
   const getDefaultCompleteValue = () => {
@@ -200,10 +202,12 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
 
   return (
     <>
-      <div className={`chat-wrapper chat-messages-wrapper ${usingTouch ? 'display-mobile' : ''}`} hidden={isCypress()}>
+      <div className={`chat-wrapper chat-messages-wrapper ${usingTouch ? 'display-mobile' : ''}`} hidden={isCypress()} style={{
+        userSelect: opened && allowSelection ? 'text' : undefined,
+      }}>
         {opacity && <div ref={chatMessages} className={`chat ${opened ? 'opened' : ''}`} id="chat-messages" style={{ opacity }}>
           {messages.map((m) => (
-            <MessageLine key={m.id} message={m} />
+            <MessageLine key={reactKeyForMessage(m)} message={m} />
           ))}
         </div> || undefined}
       </div>

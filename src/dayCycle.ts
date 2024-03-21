@@ -6,9 +6,9 @@ export default () => {
     assertDefined(viewer)
     // 0 morning
     const dayTotal = 24_000
-    const evening = 12_542
-    const night = 17_843
-    const morningStart = 22_300
+    const evening = 11_500
+    const night = 13_500
+    const morningStart = 23_000
     const morningEnd = 23_961
     const timeProgress = options.dayCycleAndLighting ? bot.time.timeOfDay : 0
 

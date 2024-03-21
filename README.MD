@@ -6,7 +6,7 @@ A true Minecraft client running in your browser! A port of the original game to 
 
 This project is a work in progress, but I consider it to be usable. If you encounter any bugs or usability issues, please report them!
 
-You can try this out at [mcraft.fun](https://mcraft.fun/), [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy.
+You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
 
 ### Big Features
 

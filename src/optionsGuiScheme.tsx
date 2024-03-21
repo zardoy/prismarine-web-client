@@ -45,11 +45,7 @@ export const guiOptionsScheme: {
     },
     {
       custom () {
-        return <>
-          <div></div>
-          <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Experimental</span>
-          <div></div>
-        </>
+        return <Category>Experimental</Category>
       },
       dayCycleAndLighting: {
         text: 'Day Cycle',
@@ -139,6 +135,9 @@ export const guiOptionsScheme: {
         unit: '',
         delayApply: true,
       },
+      custom () {
+        return <Category>Chat</Category>
+      },
       chatWidth: {
         max: 320,
         unit: 'px',
@@ -150,6 +149,8 @@ export const guiOptionsScheme: {
       chatOpacity: {
       },
       chatOpacityOpened: {
+      },
+      chatSelect: {
       },
     }
   ],
@@ -187,7 +188,16 @@ export const guiOptionsScheme: {
       },
       touchButtonsPosition: {
         max: 80
-      }
+      },
+      touchControlsType: {
+        values: [['classic', 'Classic'], ['joystick-buttons', 'New']],
+      },
+    },
+    {
+      custom () {
+        const { touchControlsType } = useSnapshot(options)
+        return <Button label='Setup Touch Buttons' onClick={() => showModal({ reactType: 'touch-buttons-setup' })} inScreen disabled={touchControlsType !== 'joystick-buttons'} />
+      },
     }
   ],
   sound: [
@@ -220,3 +230,9 @@ export const guiOptionsScheme: {
   ],
 }
 export type OptionsGroupType = 'main' | 'render' | 'interface' | 'controls' | 'sound' | 'advanced' | 'VR'
+
+const Category = ({ children }) => <div style={{
+  fontSize: 9,
+  textAlign: 'center',
+  gridColumn: 'span 2'
+}}>{children}</div>

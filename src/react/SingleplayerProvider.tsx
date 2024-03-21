@@ -10,11 +10,12 @@ import Singleplayer, { WorldProps } from './Singleplayer'
 import { useIsModalActive } from './utils'
 import { showOptionsModal } from './SelectOption'
 
-const worldsProxy: { value: WorldProps[] } = proxy({ value: [] })
+const worldsProxy = proxy({ value: null as null | WorldProps[] })
 
 export const readWorlds = () => {
   (async () => {
     try {
+      worldsProxy.value = null
       const worlds = await fs.promises.readdir(`/data/worlds`)
       worldsProxy.value = (await Promise.allSettled(worlds.map(async (folder) => {
         const { levelDat } = (await readLevelDat(`/data/worlds/${folder}`))!
@@ -55,7 +56,7 @@ export const loadInMemorySave = async (worldPath: string) => {
 }
 
 export default () => {
-  const worlds = useSnapshot(worldsProxy).value as WorldProps[]
+  const worlds = useSnapshot(worldsProxy).value as WorldProps[] | null
   const active = useIsModalActive('singleplayer')
 
   useEffect(() => {

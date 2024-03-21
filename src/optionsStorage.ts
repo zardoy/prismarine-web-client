@@ -29,6 +29,21 @@ const defaultOptions = {
   touchButtonsSize: 40,
   touchButtonsOpacity: 80,
   touchButtonsPosition: 12,
+  touchControlsPositions: {
+    action: [
+      90,
+      70
+    ],
+    sneak: [
+      90,
+      90
+    ],
+    break: [
+      70,
+      70
+    ]
+  } as Record<string, [number, number]>,
+  touchControlsType: 'classic' as 'classic' | 'joystick-buttons',
   gpuPreference: 'default' as 'default' | 'high-performance' | 'low-power',
   /** @unstable */
   disableAssets: false,
@@ -54,17 +69,23 @@ const defaultOptions = {
   /** Actually might be useful */
   showCursorBlockInSpectator: false,
   renderEntities: true,
+  chatSelect: false,
 
   // advanced bot options
   autoRespawn: false,
-  mutedSounds: [] as string[]
+  mutedSounds: [] as string[],
+  plugins: [] as Array<{ enabled: boolean, name: string, description: string, script: string }>,
 }
 
-const migrateOptions = (options) => {
+const migrateOptions = (options: Partial<AppOptions & Record<string, any>>) => {
   if (options.highPerformanceGpu) {
     options.gpuPreference = 'high-performance'
     delete options.highPerformanceGpu
   }
+  if (Object.keys(options.touchControlsPositions ?? {}).length === 0) {
+    options.touchControlsPositions = defaultOptions.touchControlsPositions
+  }
+
   return options
 }
 

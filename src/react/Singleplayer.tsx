@@ -55,7 +55,7 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
 }
 
 interface Props {
-  worldData: WorldProps[]
+  worldData: WorldProps[] | null // null means loading
   onWorldAction (action: 'load' | 'export' | 'delete' | 'edit', worldName: string): void
   onGeneralAction (action: 'cancel' | 'create'): void
 }
@@ -86,14 +86,19 @@ export default ({ worldData, onGeneralAction, onWorldAction }: Props) => {
         <span className={classNames('screen-title', styles.title)}>Select Saved World</span>
         <Input autoFocus value={search} onChange={({ target: { value } }) => setSearch(value)} />
       </div>
-      <div className={styles.content}>
+      <div className={classNames(styles.content, !worldData && styles.content_loading)}>
         {
-          worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, title, size, lastPlayed, detail }) => (
-            <World title={title} lastPlayed={lastPlayed} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
-              if (interaction === 'enter') onWorldAction('load', name)
-              else if (interaction === 'space') firstButton.current?.focus()
-            }} detail={detail} />
-          ))
+          worldData
+            ? worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, title, size, lastPlayed, detail }) => (
+              <World title={title} lastPlayed={lastPlayed} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
+                if (interaction === 'enter') onWorldAction('load', name)
+                else if (interaction === 'space') firstButton.current?.focus()
+              }} detail={detail} />
+            ))
+            : <div style={{
+              fontSize: 10,
+              color: 'lightgray',
+            }}>Loading...</div>
         }
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 400 }}>

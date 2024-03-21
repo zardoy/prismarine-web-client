@@ -1,7 +1,10 @@
 import { Entity } from 'prismarine-entity'
+import tracker from '@nxg-org/mineflayer-tracker'
 import { options, watchValue } from './optionsStorage'
 
 customEvents.on('gameLoaded', () => {
+  bot.loadPlugin(tracker)
+
   // todo cleanup (move to viewer, also shouldnt be used at all)
   const playerPerAnimation = {} as Record<string, string>
   const entityData = (e: Entity) => {
@@ -10,6 +13,7 @@ customEvents.on('gameLoaded', () => {
     window.debugEntityMetadata[e.username] = e
     // todo entity spawn timing issue, check perf
     if (viewer.entities.entities[e.id]?.playerObject) {
+      bot.tracker.trackEntity(e)
       const { playerObject } = viewer.entities.entities[e.id]
       playerObject.backEquipment = e.equipment.some((item) => item?.name === 'elytra') ? 'elytra' : 'cape'
       if (playerObject.cape.map === null) {
@@ -17,17 +21,27 @@ customEvents.on('gameLoaded', () => {
       }
       // todo (easy, important) elytra flying animation
       // todo cleanup states
-      const WALKING_SPEED = 0.1
-      const SPRINTING_SPEED = 0.15
-      const isWalking = Math.abs(e.velocity.x) > WALKING_SPEED || Math.abs(e.velocity.z) > WALKING_SPEED
-      const isSprinting = Math.abs(e.velocity.x) > SPRINTING_SPEED || Math.abs(e.velocity.z) > SPRINTING_SPEED
-      const newAnimation = isWalking ? (isSprinting ? 'running' : 'walking') : 'idle'
-      if (newAnimation !== playerPerAnimation[e.username]) {
-        viewer.entities.playAnimation(e.id, newAnimation)
-        playerPerAnimation[e.username] = newAnimation
-      }
     }
   }
+
+  bot.on('physicsTick', () => {
+    for (const [id, { tracking, info }] of Object.entries(bot.tracker.trackingData)) {
+      if (!tracking) continue
+      const e = bot.entities[id]
+      if (!e) continue
+      const speed = info.avgSpeed
+      const WALKING_SPEED = 0.03
+      const SPRINTING_SPEED = 0.18
+      const isWalking = Math.abs(speed.x) > WALKING_SPEED || Math.abs(speed.z) > WALKING_SPEED
+      const isSprinting = Math.abs(speed.x) > SPRINTING_SPEED || Math.abs(speed.z) > SPRINTING_SPEED
+      const newAnimation = isWalking ? (isSprinting ? 'running' : 'walking') : 'idle'
+      const username = e.username!
+      if (newAnimation !== playerPerAnimation[username]) {
+        viewer.entities.playAnimation(e.id, newAnimation)
+        playerPerAnimation[username] = newAnimation
+      }
+    }
+  })
 
   bot.on('entitySwingArm', (e) => {
     if (viewer.entities.entities[e.id]?.playerObject) {
@@ -54,6 +68,7 @@ customEvents.on('gameLoaded', () => {
   viewer.entities.addListener('remove', (e) => {
     loadedSkinEntityIds.delete(e.id)
     playerPerAnimation[e.username] = ''
+    bot.tracker.stopTrackingEntity(e, true)
   })
 
   bot.on('entityMoved', (e) => {

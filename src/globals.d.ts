@@ -4,8 +4,9 @@ declare const THREE: typeof import('three')
 // todo make optional
 declare const bot: Omit<import('mineflayer').Bot, 'world' | '_client'> & {
     world: import('prismarine-world').world.WorldSync
-    _client: import('minecraft-protocol').Client & {
+    _client: Omit<import('minecraft-protocol').Client, 'on'> & {
         write: typeof import('./generatedClientPackets').clientWrite
+        on: typeof import('./generatedServerPackets').clientOn
     }
 }
 declare const __type_bot: typeof bot
@@ -70,4 +71,12 @@ declare module '*.json' {
 declare module '*.png' {
     const png: string
     export default png
+}
+
+interface PromiseConstructor {
+    withResolvers<T> (): {
+        resolve: (value: T) => void;
+        reject: (reason: any) => void;
+        promise: Promise<T>;
+    }
 }

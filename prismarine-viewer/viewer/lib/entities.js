@@ -11,7 +11,8 @@ import { loadSkinToCanvas, loadEarsToCanvasFromSkin, inferModelType, loadCapeToC
 import stevePng from 'minecraft-assets/minecraft-assets/data/1.20.2/entity/player/wide/steve.png'
 import { WalkingGeneralSwing } from './entity/animations'
 import { NameTagObject } from 'skinview3d/libs/nametag'
-import { fromFormattedString } from '@xmcl/text-component'
+import { flat, fromFormattedString } from '@xmcl/text-component'
+import mojangson from 'mojangson'
 
 export const TWEEN_DURATION = 50 // todo should be 100
 
@@ -39,6 +40,23 @@ function getUsernameTexture (username, { fontFamily = 'sans-serif' }) {
   return canvas
 }
 
+const addNametag = (entity, options, mesh) => {
+  if (entity.username !== undefined) {
+    if (mesh.children.find(c => c.name === 'nametag')) return // todo update
+    const canvas = getUsernameTexture(entity.username, options)
+    const tex = new THREE.Texture(canvas)
+    tex.needsUpdate = true
+    const spriteMat = new THREE.SpriteMaterial({ map: tex })
+    const sprite = new THREE.Sprite(spriteMat)
+    sprite.renderOrder = 1000
+    sprite.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
+    sprite.position.y += entity.height + 0.6
+    sprite.name = 'nametag'
+
+    mesh.add(sprite)
+  }
+}
+
 function getEntityMesh (entity, scene, options, overrides) {
   if (entity.name) {
     try {
@@ -46,18 +64,7 @@ function getEntityMesh (entity, scene, options, overrides) {
       const entityName = entity.name.toLowerCase()
       const e = new Entity('1.16.4', entityName, scene, overrides)
 
-      if (entity.username !== undefined) {
-        const canvas = getUsernameTexture(entity.username, options)
-        const tex = new THREE.Texture(canvas)
-        tex.needsUpdate = true
-        const spriteMat = new THREE.SpriteMaterial({ map: tex })
-        const sprite = new THREE.Sprite(spriteMat)
-        sprite.renderOrder = 1000
-        sprite.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
-        sprite.position.y += entity.height + 0.6
-
-        e.mesh.add(sprite)
-      }
+      addNametag(entity, options, e.mesh)
       return e.mesh
     } catch (err) {
       console.log(err)
@@ -126,6 +133,9 @@ export class Entities extends EventEmitter {
     return playerObject
   }
 
+  // fixme workaround
+  defaultSteveTexture
+
   // true means use default skin url
   updatePlayerSkin (entityId, username, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
     let playerObject = this.getPlayerObject(entityId)
@@ -139,15 +149,24 @@ export class Entities extends EventEmitter {
     loadImage(skinUrl).then((image) => {
       playerObject = this.getPlayerObject(entityId)
       if (!playerObject) return
-      const skinCanvas = document.createElement('canvas')
-      loadSkinToCanvas(skinCanvas, image)
-      const skinTexture = new THREE.CanvasTexture(skinCanvas)
+      /** @type {THREE.CanvasTexture} */
+      let skinTexture
+      if (skinUrl === stevePng && this.defaultSteveTexture) {
+        skinTexture = this.defaultSteveTexture
+      } else {
+        const skinCanvas = document.createElement('canvas')
+        loadSkinToCanvas(skinCanvas, image)
+        skinTexture = new THREE.CanvasTexture(skinCanvas)
+        if (skinUrl === stevePng) {
+          this.defaultSteveTexture = skinTexture
+        }
+      }
       skinTexture.magFilter = THREE.NearestFilter
       skinTexture.minFilter = THREE.NearestFilter
       skinTexture.needsUpdate = true
       //@ts-ignore
       playerObject.skin.map = skinTexture
-      playerObject.skin.modelType = inferModelType(skinCanvas)
+      playerObject.skin.modelType = inferModelType(skinTexture.image)
 
       const earsCanvas = document.createElement('canvas')
       loadEarsToCanvasFromSkin(earsCanvas, image)
@@ -186,9 +205,9 @@ export class Entities extends EventEmitter {
           if (!playerObject.backEquipment) {
             playerObject.backEquipment = 'cape'
           }
-        })
+        }, () => {})
       }
-    })
+    }, () => {})
 
 
     playerObject.cape.visible = false
@@ -226,6 +245,13 @@ export class Entities extends EventEmitter {
       }
     }
 
+  }
+
+  displaySimpleText (jsonLike) {
+    if (!jsonLike) return
+    const parsed = mojangson.simplify(mojangson.parse(jsonLike))
+    const text = flat(parsed).map(x => x.text)
+    return text.join('')
   }
 
   update (/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
@@ -294,6 +320,48 @@ export class Entities extends EventEmitter {
       this.setDebugMode(this.debugMode, group)
       this.setVisible(this.visible, group)
     }
+
+    //@ts-ignore
+    const isInvisible = entity.metadata?.[0] & 0x20
+    if (isInvisible) {
+      for (const child of this.entities[entity.id].children.find(c => c.name === 'mesh').children) {
+        if (child.name !== 'nametag') {
+          child.visible = false
+        }
+      }
+    }
+    // not player
+    const displayText = entity.metadata?.[3] && this.displaySimpleText(entity.metadata[2]);
+    if (entity.name !== 'player' && displayText) {
+      addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
+    }
+
+    // todo handle map, map_chunks events
+    // if (entity.name === 'item_frame' || entity.name === 'glow_item_frame') {
+    //   const example = {
+    //     "present": true,
+    //     "itemId": 847,
+    //     "itemCount": 1,
+    //     "nbtData": {
+    //         "type": "compound",
+    //         "name": "",
+    //         "value": {
+    //             "map": {
+    //                 "type": "int",
+    //                 "value": 2146483444
+    //             },
+    //             "interactiveboard": {
+    //                 "type": "byte",
+    //                 "value": 1
+    //             }
+    //         }
+    //     }
+    // }
+    //   const item = entity.metadata?.[8]
+    //   if (item.nbtData) {
+    //     const nbt = nbt.simplify(item.nbtData)
+    //   }
+    // }
 
     // this can be undefined in case where packet entity_destroy was sent twice (so it was already deleted)
     const e = this.entities[entity.id]

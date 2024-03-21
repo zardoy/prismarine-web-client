@@ -34,7 +34,7 @@ import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
 import { assertDefined } from './utils'
 
-const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
+export const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
 const loadedImagesCache = new Map<string, HTMLImageElement>()
 const cleanLoadedImagesCache = () => {
   loadedImagesCache.delete('blocks')

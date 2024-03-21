@@ -5,11 +5,11 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
-  three: 0.128.0
+  three: 0.154.0
   diamond-square: github:zardoy/diamond-square
   prismarine-block: github:zardoy/prismarine-block#next-era
   prismarine-world: github:zardoy/prismarine-world#next-era
-  minecraft-data: 3.61.0
+  minecraft-data: 3.62.0
   prismarine-provider-anvil: github:zardoy/prismarine-provider-anvil#everything
   minecraft-protocol: github:zardoy/minecraft-protocol#everything
   react: ^18.2.0
@@ -27,6 +27,9 @@ importers:
       '@mui/base':
         specifier: 5.0.0-beta.34
         version: 5.0.0-beta.34(@types/react@18.2.20)(react-dom@18.2.0)(react@18.2.0)
+      '@nxg-org/mineflayer-tracker':
+        specifier: ^1.2.1
+        version: 1.2.1
       '@types/react':
         specifier: ^18.2.20
         version: 18.2.20
@@ -100,8 +103,8 @@ importers:
         specifier: ^1.12.2
         version: 1.12.2
       minecraft-data:
-        specifier: 3.61.0
-        version: 3.61.0
+        specifier: 3.62.0
+        version: 3.62.0
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
         version: github.com/zardoy/prismarinejs-net-browserify/7d827dba61bd2f9ac9a6086fe2079a0fccadd070
@@ -132,6 +135,9 @@ importers:
       skinview3d:
         specifier: ^3.0.1
         version: 3.0.1
+      source-map-js:
+        specifier: ^1.0.2
+        version: 1.0.2
       stats-gl:
         specifier: ^1.0.5
         version: 1.0.5
@@ -192,8 +198,8 @@ importers:
         specifier: ^0.17.1
         version: 0.17.1
       '@types/three':
-        specifier: 0.128.0
-        version: 0.128.0
+        specifier: 0.154.0
+        version: 0.154.0
       '@types/ua-parser-js':
         specifier: ^0.7.39
         version: 0.7.39
@@ -247,10 +253,10 @@ importers:
         version: 1.0.0
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: github.com/zardoy/minecraft-inventory-gui/b54222dcdc508f7418102a7e25abf3df35a8c9ba(@types/react@18.2.20)(react@18.2.0)
+        version: github.com/zardoy/minecraft-inventory-gui/6685fa4a10590a5decef90a454ba0b9e045e7737(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:PrismarineJS/mineflayer
-        version: github.com/PrismarineJS/mineflayer/b9491ae508dc52e4538dd66eb6f47a639facde20
+        version: github.com/PrismarineJS/mineflayer/d77a0511d02fe552170249ec19c2ff3030d17137
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -282,8 +288,8 @@ importers:
         specifier: ^3.0.0
         version: 3.0.0
       three:
-        specifier: 0.128.0
-        version: 0.128.0
+        specifier: 0.154.0
+        version: 0.154.0
       timers-browserify:
         specifier: ^2.0.12
         version: 2.0.12
@@ -337,7 +343,7 @@ importers:
         version: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-chunk:
         specifier: ^1.22.0
-        version: 1.35.0(minecraft-data@3.61.0)
+        version: 1.35.0(minecraft-data@3.62.0)
       prismarine-schematic:
         specifier: ^1.2.0
         version: 1.2.3
@@ -355,7 +361,7 @@ importers:
         version: 4.7.2
       three-stdlib:
         specifier: ^2.26.11
-        version: 2.28.5(three@0.128.0)
+        version: 2.28.5(three@0.154.0)
       three.meshline:
         specifier: ^1.3.0
         version: 1.4.0
@@ -3320,6 +3326,23 @@ packages:
     dev: false
     optional: true
 
+  /@nxg-org/mineflayer-tracker@1.2.1:
+    resolution: {integrity: sha512-SI1ffF8zvg3/ZNE021Ja2W0FZPN+WbQDZf8yFqOcXtPRXAtM9W6HvoACdzXep8BZid7WYgYLIgjKpB+9RqvCNQ==}
+    dependencies:
+      '@nxg-org/mineflayer-trajectories': 1.1.1
+      '@nxg-org/mineflayer-util-plugin': 1.8.3
+    dev: false
+
+  /@nxg-org/mineflayer-trajectories@1.1.1:
+    resolution: {integrity: sha512-X103KXlX8+L3uMeK4jQxMUdTizv01sQRSfBizAF/iOAdfQZehRLXr3CYKeJzfwPYGLN0X0JCl++cMEcZVn4vbg==}
+    dependencies:
+      '@nxg-org/mineflayer-util-plugin': 1.8.3
+    dev: false
+
+  /@nxg-org/mineflayer-util-plugin@1.8.3:
+    resolution: {integrity: sha512-YlIbzCDs9822xuvmYlD0vXZz0iye9buqp9NK4nNn15gYybdqBtC/YxK6BLqXtwNohZCKoZdKgei7Xd5Bt2/rUg==}
+    dev: false
+
   /@pkgjs/parseargs@0.11.0:
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
@@ -4887,6 +4910,10 @@ packages:
     dev: false
     optional: true
 
+  /@tweenjs/tween.js@18.6.4:
+    resolution: {integrity: sha512-lB9lMjuqjtuJrx7/kOkqQBtllspPIN+96OvTCeJ2j5FEzinoAXTdAMFnDAQT1KVPRlnYfBrqxtqP66vDM40xxQ==}
+    dev: true
+
   /@tweenjs/tween.js@20.0.3:
     resolution: {integrity: sha512-SYUe1UgY5HM05EB4+0B4arq2IPjvyzKXoklXKxSYrc2IFxGm1cBrqg5XbiB5uwbs0xY5j+rj986NAJMM0KZaUw==}
     dev: false
@@ -5227,8 +5254,15 @@ packages:
   /@types/stats.js@0.17.1:
     resolution: {integrity: sha512-OgfYE1x2w1jRUXzzKABX+kOdwz2y9PE0uSwnZabkWfJTWOzm7Pvfm4JI2xqRE0q2nwUe2jZLWcrcnhd9lQU63w==}
 
-  /@types/three@0.128.0:
-    resolution: {integrity: sha512-Jwq5XYUkzAcPTo34hlGAQGUyAI0b2F3aCCFWG/v7ZhJBEG5HGcusMSr70GhDlT8Gs0f02QnSPZ2RCA1MrCOa/w==}
+  /@types/three@0.154.0:
+    resolution: {integrity: sha512-IioqpGhch6FdLDh4zazRn3rXHj6Vn2nVOziJdXVbJFi9CaI65LtP9qqUtpzbsHK2Ezlox8NtsLNHSw3AQzucjA==}
+    dependencies:
+      '@tweenjs/tween.js': 18.6.4
+      '@types/stats.js': 0.17.1
+      '@types/webxr': 0.5.7
+      fflate: 0.6.10
+      lil-gui: 0.17.0
+      meshoptimizer: 0.18.1
     dev: true
 
   /@types/three@0.156.0:
@@ -5253,7 +5287,6 @@ packages:
 
   /@types/webxr@0.5.7:
     resolution: {integrity: sha512-Rcgs5c2eNFnHp53YOjgtKfl/zWX1Y+uFGUwlSXrWcZWu3yhANRezmph4MninmqybUYT6g9ZE0aQ9QIdPkLR3Kg==}
-    dev: false
 
   /@types/wicg-file-system-access@2023.10.2:
     resolution: {integrity: sha512-nSiK8qt0O7sQmDcW3HYfvya7GDoD6ipgdcUFzk3QN+UBIqXeNg38Nh6VnKv7EIPfkVETRiquyMskCbpxUzgX1Q==}
@@ -5628,18 +5661,18 @@ packages:
       exit-hook: 2.2.1
       flatmap: 0.0.3
       long: 5.2.3
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       minecraft-protocol: github.com/zardoy/minecraft-protocol/2c14a686bfe7cbd9a5c87b629b402295ee86219f
       mkdirp: 2.1.6
       moment: 2.29.4
       needle: 2.9.1
       node-gzip: 1.1.2
       node-rsa: 1.1.1
-      prismarine-chunk: 1.35.0(minecraft-data@3.61.0)
+      prismarine-chunk: 1.35.0(minecraft-data@3.62.0)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.5.0
-      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.61.0)
+      prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.62.0)
       prismarine-windows: 2.8.0
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
       random-seed: 0.3.0
@@ -7447,6 +7480,7 @@ packages:
   /detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
+    requiresBuild: true
     dev: false
 
   /detect-node-es@1.1.0:
@@ -8736,7 +8770,6 @@ packages:
 
   /fflate@0.6.10:
     resolution: {integrity: sha512-IQrh3lEPM93wVCEczc9SaAOvkmcoQn/G8Bo1e8ZPlY3X3bnAxWaBdvTdvM1hP62iZp0BXWDy4vTAy4fF0+Dlpg==}
-    dev: false
 
   /figures@3.2.0:
     resolution: {integrity: sha512-yaduQFRKLXYOGgEn6AZau90j3ggSOyiqXU0F9JZfeXYhNa+Jk4X+s45A2zg5jns87GAFa34BBm2kXw4XpNcbdg==}
@@ -10445,6 +10478,10 @@ packages:
       immediate: 3.0.6
     dev: false
 
+  /lil-gui@0.17.0:
+    resolution: {integrity: sha512-MVBHmgY+uEbmJNApAaPbtvNh1RCAeMnKym82SBjtp5rODTYKWtM+MXHCifLe2H2Ti1HuBGBtK/5SyG4ShQ3pUQ==}
+    dev: true
+
   /lil-gui@0.18.2:
     resolution: {integrity: sha512-DgdrLy3/KGC0PiQLKgOcJMPItP4xY4iWgJ9+91Zaxfr8GCTmMps05QS9w9jW7yspILlbscbquwjOwxmWnSx5Uw==}
     dev: false
@@ -10845,7 +10882,6 @@ packages:
 
   /meshoptimizer@0.18.1:
     resolution: {integrity: sha512-ZhoIoL7TNV4s5B6+rx5mC//fw8/POGyNxS/DZyCJeiZ12ScLfVwRE/GfsxwiTkMYYD5DmK2/JXnEVXqL4rF+Sw==}
-    dev: false
 
   /methods@1.1.2:
     resolution: {integrity: sha512-iclAHeNqNm68zFtnZ0e+1L2yUIdvzNoauKU4WBA3VvH/vPFieF7qfRlwUZU+DA9P9bPXIS90ulxoUoCH23sV2w==}
@@ -10917,8 +10953,8 @@ packages:
     resolution: {integrity: sha512-/eMxh3LNjCXOnU6KnQMjBM8dRnoJNpWIg7mD2m2RthraYiQK2FNzPWIKxWm2j3Ufcf5nzFXupgABledE86r4fQ==}
     dev: false
 
-  /minecraft-data@3.61.0:
-    resolution: {integrity: sha512-e7FMplGNjhAZvdxT66bP56ZqHymr+BrzCZlhNxRr1suFKueGSTQQA+DZ2ZU/vW/02dBFCrHfBEJh1sw5vOZ+Ew==}
+  /minecraft-data@3.62.0:
+    resolution: {integrity: sha512-jJXZ/WgyX79tIHlqvfyqG+sJDUekHiA3e9NRUCMGUno4NDrZMcpRI065DnkrI720RHTMb8iadf0NmnBP4Rla5A==}
 
   /minecraft-folder-path@1.2.0:
     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
@@ -10954,7 +10990,7 @@ packages:
   /mineflayer-pathfinder@2.4.4:
     resolution: {integrity: sha512-HAXakZrJRb1UC+5dv8EaDrqjW3ZnBnBk3nkb6x/YWyhHCUKn/E7VU0FO+UN9whuqPlkSaVumEdXJdydE6lSYxQ==}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
@@ -12048,13 +12084,13 @@ packages:
       - encoding
       - supports-color
 
-  /prismarine-biome@1.3.0(minecraft-data@3.61.0)(prismarine-registry@1.7.0):
+  /prismarine-biome@1.3.0(minecraft-data@3.62.0)(prismarine-registry@1.7.0):
     resolution: {integrity: sha512-GY6nZxq93mTErT7jD7jt8YS1aPrOakbJHh39seYsJFXvueIOdHAmW16kYQVrTVMW5MlWLQVxV/EquRwOgr4MnQ==}
     peerDependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       prismarine-registry: ^1.1.0
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       prismarine-registry: 1.7.0
 
   /prismarine-chat@1.9.1:
@@ -12065,11 +12101,11 @@ packages:
       prismarine-nbt: 2.5.0
       prismarine-registry: 1.7.0
 
-  /prismarine-chunk@1.35.0(minecraft-data@3.61.0):
+  /prismarine-chunk@1.35.0(minecraft-data@3.62.0):
     resolution: {integrity: sha512-Q1lElMUle7wWxWdQjbZo3j2/dLNG325j90IcbbMmBTnHdQSWIjWFe792XOz3RVBlvrhRJEiZk38S6/eQTQ9esw==}
     engines: {node: '>=14'}
     dependencies:
-      prismarine-biome: 1.3.0(minecraft-data@3.61.0)(prismarine-registry@1.7.0)
+      prismarine-biome: 1.3.0(minecraft-data@3.62.0)(prismarine-registry@1.7.0)
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-nbt: 2.2.1
       prismarine-registry: 1.7.0
@@ -12107,7 +12143,7 @@ packages:
   /prismarine-physics@1.8.0:
     resolution: {integrity: sha512-gbM+S+bmVtOKVv+Z0WGaHMeEeBHISIDsRDRlv8sr0dex3ZJRhuq8djA02CBreguXtI18ZKh6q3TSj2qDr45NHA==}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       prismarine-nbt: 2.5.0
       vec3: 0.1.8
     dev: true
@@ -12132,13 +12168,13 @@ packages:
   /prismarine-registry@1.7.0:
     resolution: {integrity: sha512-yyva0FpWI078nNeMhx8ekVza5uUTYhEv+C+ADu3wUQXiG8qhXkvrf0uzsnhTgZL8BLdsi2axgCEiKw9qSKIuxQ==}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       prismarine-nbt: 2.5.0
 
   /prismarine-schematic@1.2.3:
     resolution: {integrity: sha512-Mwpn43vEHhm3aw3cPhJjWqztkW+nX+QLajDHlTask8lEOTGl1WmpvFja4iwiws4GIvaC8x0Foptf4uvDsnjrAg==}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-nbt: 2.2.1
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
@@ -12151,6 +12187,15 @@ packages:
       prismarine-item: 1.14.0
       prismarine-registry: 1.7.0
       typed-emitter: 2.1.0
+    dev: false
+
+  /prismarine-windows@2.9.0:
+    resolution: {integrity: sha512-fm4kOLjGFPov7TEJRmXHoiPabxIQrG36r2mDjlNxfkcLfMHFb3/1ML6mp4iRQa7wL0GK4DIAyiBqCWoeWDxARg==}
+    dependencies:
+      prismarine-item: 1.14.0
+      prismarine-registry: 1.7.0
+      typed-emitter: 2.1.0
+    dev: true
 
   /process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
@@ -13353,7 +13398,7 @@ packages:
     dependencies:
       '@types/three': 0.156.0
       skinview-utils: 0.7.1
-      three: 0.128.0
+      three: 0.154.0
     dev: false
 
   /slash@3.0.0:
@@ -13974,10 +14019,10 @@ packages:
       any-promise: 1.3.0
     dev: false
 
-  /three-stdlib@2.28.5(three@0.128.0):
+  /three-stdlib@2.28.5(three@0.154.0):
     resolution: {integrity: sha512-JdLMhkpT+1ZWeQPyKQNW1zqUwISI2hsUljS6u3vB9lp5EvwsayaAzGnbVeR35895udOF+zxcTiQY3psk+qqlxg==}
     peerDependencies:
-      three: 0.128.0
+      three: 0.154.0
     dependencies:
       '@types/draco3d': 1.4.7
       '@types/offscreencanvas': 2019.7.2
@@ -13985,15 +14030,15 @@ packages:
       draco3d: 1.5.6
       fflate: 0.6.10
       potpack: 1.0.2
-      three: 0.128.0
+      three: 0.154.0
     dev: false
 
   /three.meshline@1.4.0:
     resolution: {integrity: sha512-A8IsiMrWP8zmHisGDAJ76ZD7t/dOF/oCe/FUKNE6Bu01ZYEx8N6IlU/1Plb2aOZtAuWM2A8s8qS3hvY0OFuvOw==}
     dev: false
 
-  /three@0.128.0:
-    resolution: {integrity: sha512-i0ap/E+OaSfzw7bD1TtYnPo3VEplkl70WX5fZqZnfZsE3k3aSFudqrrC9ldFZfYFkn1zwDmBcdGfiIm/hnbyZA==}
+  /three@0.154.0:
+    resolution: {integrity: sha512-Uzz8C/5GesJzv8i+Y2prEMYUwodwZySPcNhuJUdsVMH2Yn4Nm8qlbQe6qRN5fOhg55XB0WiLfTPBxVHxpE60ug==}
 
   /throttle-debounce@3.0.1:
     resolution: {integrity: sha512-dTEWWNu6JmeVXY0ZYoPuH5cRIwc0MeGbJwah9KUNYSJwommQpCzTySTpEe8Gs1J23aeWEuAobe4Ag7EHVt/LOg==}
@@ -15346,25 +15391,25 @@ packages:
       react: 18.2.0
     dev: false
 
-  github.com/PrismarineJS/mineflayer/b9491ae508dc52e4538dd66eb6f47a639facde20:
-    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/b9491ae508dc52e4538dd66eb6f47a639facde20}
+  github.com/PrismarineJS/mineflayer/d77a0511d02fe552170249ec19c2ff3030d17137:
+    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/d77a0511d02fe552170249ec19c2ff3030d17137}
     name: mineflayer
-    version: 4.19.0
+    version: 4.20.0
     engines: {node: '>=18'}
     dependencies:
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       minecraft-protocol: github.com/zardoy/minecraft-protocol/2c14a686bfe7cbd9a5c87b629b402295ee86219f
-      prismarine-biome: 1.3.0(minecraft-data@3.61.0)(prismarine-registry@1.7.0)
+      prismarine-biome: 1.3.0(minecraft-data@3.62.0)(prismarine-registry@1.7.0)
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-chat: 1.9.1
-      prismarine-chunk: 1.35.0(minecraft-data@3.61.0)
+      prismarine-chunk: 1.35.0(minecraft-data@3.62.0)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.2.1
       prismarine-physics: 1.8.0
       prismarine-recipe: 1.3.1(prismarine-registry@1.7.0)
       prismarine-registry: 1.7.0
-      prismarine-windows: 2.8.0
+      prismarine-windows: 2.9.0
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
       protodef: 1.15.0
       typed-emitter: 1.4.0
@@ -15394,15 +15439,15 @@ packages:
     name: diamond-square
     version: 1.3.0
     dependencies:
-      minecraft-data: 3.61.0
-      prismarine-chunk: 1.35.0(minecraft-data@3.61.0)
+      minecraft-data: 3.62.0
+      prismarine-chunk: 1.35.0(minecraft-data@3.62.0)
       random-seed: 0.3.0
       vec3: 0.1.8
     dev: false
 
-  github.com/zardoy/minecraft-inventory-gui/b54222dcdc508f7418102a7e25abf3df35a8c9ba(@types/react@18.2.20)(react@18.2.0):
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b54222dcdc508f7418102a7e25abf3df35a8c9ba}
-    id: github.com/zardoy/minecraft-inventory-gui/b54222dcdc508f7418102a7e25abf3df35a8c9ba
+  github.com/zardoy/minecraft-inventory-gui/6685fa4a10590a5decef90a454ba0b9e045e7737(@types/react@18.2.20)(react@18.2.0):
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/6685fa4a10590a5decef90a454ba0b9e045e7737}
+    id: github.com/zardoy/minecraft-inventory-gui/6685fa4a10590a5decef90a454ba0b9e045e7737
     name: minecraft-inventory-gui
     version: 1.0.1
     dependencies:
@@ -15425,7 +15470,7 @@ packages:
       endian-toggle: 0.0.0
       lodash.get: 4.4.2
       lodash.merge: 4.6.2
-      minecraft-data: 3.61.0
+      minecraft-data: 3.62.0
       minecraft-folder-path: 1.2.0
       node-fetch: 2.7.0
       node-rsa: 0.4.2
@@ -15445,20 +15490,20 @@ packages:
     name: prismarine-block
     version: 1.17.1
     dependencies:
-      minecraft-data: 3.61.0
-      prismarine-biome: 1.3.0(minecraft-data@3.61.0)(prismarine-registry@1.7.0)
+      minecraft-data: 3.62.0
+      prismarine-biome: 1.3.0(minecraft-data@3.62.0)(prismarine-registry@1.7.0)
       prismarine-chat: 1.9.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.2.1
       prismarine-registry: 1.7.0
 
-  github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.61.0):
+  github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.62.0):
     resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0ddcd9d48574113308e1fbebef60816aced0846f}
     id: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f
     name: prismarine-provider-anvil
     version: 2.7.0
     dependencies:
-      prismarine-chunk: 1.35.0(minecraft-data@3.61.0)
+      prismarine-chunk: 1.35.0(minecraft-data@3.62.0)
       prismarine-nbt: 2.5.0
       uint4: 0.1.2
       vec3: 0.1.8
