@@ -22,22 +22,20 @@ export type ResultType = {
 }
 
 export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
-  const ref = useRef(null)
-  const mount = useRef(false)
+  const prosemirrorContainer = useRef(null)
   const editorView = useRef<ProseMirrorView | null>(null)
 
   useEffect(() => {
-    if (ref.current && !mount.current) {
-      mount.current = true
-      editorView.current = new ProseMirrorView(ref.current, '')
+    if (isWysiwyg) {
+      editorView.current = new ProseMirrorView(prosemirrorContainer.current, '')
     }
-  }, [ref.current])
+  }, [isWysiwyg])
 
   return <div className='signs-editor-container'>
     <div className='signs-editor-inner-container'>
       <img className='signs-editor-bg-image' src={imageSource} alt='' />
       {isWysiwyg ? (
-        <p ref={ref} id='formatted_sign_editor' className='wysiwyg-editor'></p>
+        <p ref={prosemirrorContainer} className='wysiwyg-editor'></p>
       ) : [1, 2, 3, 4].map((value, index) => {
         return <input className='sign-editor' key={index} data-key={index} maxLength={15} onInput={(e) => {
           handleInput(e.currentTarget)
@@ -47,7 +45,7 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
       <Button onClick={async () => {
         if (handleClick) {
           if (isWysiwyg) {
-            const text = markdownToFormattedText(editorView.current.content)
+            const text = markdownToFormattedText(editorView.current!.content)
             handleClick({ dataText: text })
           } else {
             const text = [] as string[]
