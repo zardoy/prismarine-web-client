@@ -130,7 +130,13 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
         >
           Prismarine Web Client {versionStatus}
         </span>
-        <span className={styles['product-description']}>A Minecraft client in the browser!</span>
+        <span className={styles['product-description']}>
+          <a style={{
+            color: 'lightgray',
+            fontSize: 9,
+          }} href='https://privacy.mcraft.fun'>Privacy Policy</a>
+          <span>A Minecraft client in the browser!</span>
+        </span>
       </div>
 
       {mapsProvider &&

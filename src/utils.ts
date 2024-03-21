@@ -1,6 +1,7 @@
-import { hideModal, isGameActive, miscUiState, notification, showModal } from './globalState'
+import { hideModal, isGameActive, miscUiState, showModal } from './globalState'
 import { options } from './optionsStorage'
 import { appStatusState } from './react/AppStatusProvider'
+import { notificationProxy, showNotification } from './react/NotificationProvider'
 
 export const goFullscreen = async (doToggle = false) => {
   if (!document.fullscreenElement) {
@@ -32,8 +33,8 @@ export const pointerLock = {
       void goFullscreen()
     }
     const displayBrowserProblem = () => {
-      notification.show = true
-      notification.message = navigator['keyboard'] ? 'Browser Limitation: Click on screen, enable Auto Fullscreen or F11' : 'Browser Limitation: Click on screen or use fullscreen in Chrome'
+      showNotification('Browser Delay Limitation', navigator['keyboard'] ? 'Click on screen, enable Auto Fullscreen or F11' : 'Click on screen or use fullscreen in Chrome')
+      notificationProxy.id = 'pointerlockchange'
     }
     if (!(document.fullscreenElement && navigator['keyboard']) && this.justHitEscape) {
       displayBrowserProblem()

@@ -158,17 +158,4 @@ export const gameAdditionalState = proxy({
 
 window.gameAdditionalState = gameAdditionalState
 
-// rename current (non-stackable) notification to one-time (system) notification
-const initialNotification = {
-  show: false,
-  autoHide: true,
-  message: '',
-  type: 'info',
-}
-export const notification = proxy(initialNotification)
-
-export const showNotification = (newNotification: Partial<typeof notification>) => {
-  Object.assign(notification, { show: true, ...newNotification }, initialNotification)
-}
-
 // todo restore auto-save on interval for player data! (or implement it in flying squid since there is already auto-save for world)

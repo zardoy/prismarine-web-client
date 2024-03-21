@@ -4,6 +4,7 @@ import { isCypress } from './standaloneUtils'
 
 const stats = new Stats()
 const stats2 = new Stats()
+const hasRamPanel = stats2.dom.children.length === 3
 const statsGl = new StatsGl({ minimal: true })
 // in my case values are good: gpu: < 0.5, cpu < 0.15
 
@@ -34,7 +35,9 @@ const addStatsGlStat = (canvas) => {
   addStat(container)
 }
 addStat(stats.dom)
-addStat(stats2.dom)
+if (hasRamPanel) {
+  addStat(stats2.dom)
+}
 
 const hideStats = localStorage.hideStats || isCypress()
 if (hideStats) {
@@ -46,9 +49,9 @@ if (hideStats) {
 export const initWithRenderer = (canvas) => {
   if (hideStats) return
   statsGl.init(canvas)
-  if (statsGl.gpuPanel && process.env.NODE_ENV !== 'production') {
-    addStatsGlStat(statsGl.gpuPanel.canvas)
-  }
+  // if (statsGl.gpuPanel && process.env.NODE_ENV !== 'production') {
+  //   addStatsGlStat(statsGl.gpuPanel.canvas)
+  // }
   // addStatsGlStat(statsGl.msPanel.canvas)
   statsGl.container.style.display = 'flex'
   statsGl.container.style.justifyContent = 'flex-end'

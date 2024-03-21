@@ -87,7 +87,7 @@ export const onGameLoad = (onLoad) => {
       // todo format
       bot._client.emit('chat', {
         message: JSON.stringify({
-          text: `[client error] cannot open unimplemented window ${win.id} (${win.type}). Slots: ${win.slots.map(item => getItemName(item) ?? '(empty)').join(', ')}`
+          text: `[client error] cannot open unimplemented window ${win.id} (${win.type}). Slots: ${win.slots.map(item => getItemName(item)).filter(Boolean).join(', ')}`
         })
       })
       bot.currentWindow?.['close']()
@@ -296,7 +296,7 @@ export const getItemName = (item: import('prismarine-item').Item | null) => {
   const customName = itemNbt.display?.Name
   if (!customName) return
   const parsed = mojangson.simplify(mojangson.parse(customName))
-  // todo display damage and full text renderer from sign renderer
+  // todo display full text renderer from sign renderer
   const text = flat(parsed).map(x => x.text)
   return text
 }

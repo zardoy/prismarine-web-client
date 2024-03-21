@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
 // todo optimize size
 import missingWorldPreview from 'minecraft-assets/minecraft-assets/data/1.10/gui/presets/isles.png'
@@ -9,10 +9,12 @@ import { focusable } from 'tabbable'
 import styles from './singleplayer.module.css'
 import Input from './Input'
 import Button from './Button'
+import Tabs from './Tabs'
 
 export interface WorldProps {
   name: string
   title: string
+  iconBase64?: string
   size?: number
   lastPlayed?: number
   isFocused?: boolean
@@ -20,7 +22,8 @@ export interface WorldProps {
   detail?: string
   onInteraction?(interaction: 'enter' | 'space')
 }
-const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus, onInteraction }: WorldProps) => {
+
+const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus, onInteraction, iconBase64 }: WorldProps) => {
   const timeRelativeFormatted = useMemo(() => {
     if (!lastPlayed) return
     const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
@@ -45,7 +48,7 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
       onInteraction?.(e.code === 'Enter' ? 'enter' : 'space')
     }
   }} onDoubleClick={() => onInteraction?.('enter')}>
-    <img className={styles.world_image} src={missingWorldPreview} />
+    <img className={`${styles.world_image} ${iconBase64 ? '' : styles.image_missing}`} src={iconBase64 ? `data:image/png;base64,${iconBase64}` : missingWorldPreview} alt='world preview' />
     <div className={styles.world_info}>
       <div className={styles.world_title} title='level.dat world name'>{title}</div>
       <div className='muted'>{timeRelativeFormatted} {detail.slice(-30)}</div>
@@ -56,11 +59,22 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
 
 interface Props {
   worldData: WorldProps[] | null // null means loading
+  providers: Record<string, string>
+  activeProvider?: string
+  setActiveProvider?: (provider: string) => void
+  providerActions?: Record<string, (() => void) | undefined | JSX.Element>
+  disabledProviders?: string[]
+  isReadonly?: boolean
+  error?: string
+  warning?: string
+  warningAction?: () => void
+  warningActionLabel?: string
+
   onWorldAction (action: 'load' | 'export' | 'delete' | 'edit', worldName: string): void
   onGeneralAction (action: 'cancel' | 'create'): void
 }
 
-export default ({ worldData, onGeneralAction, onWorldAction }: Props) => {
+export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, setActiveProvider, providerActions, providers, disabledProviders, error, isReadonly, warning, warningAction, warningActionLabel }: Props) => {
   const containerRef = useRef<any>()
   const firstButton = useRef<HTMLButtonElement>(null!)
 
@@ -79,6 +93,10 @@ export default ({ worldData, onGeneralAction, onWorldAction }: Props) => {
   const [search, setSearch] = useState('')
   const [focusedWorld, setFocusedWorld] = useState('')
 
+  useEffect(() => {
+    setFocusedWorld('')
+  }, [activeProvider])
+
   return <div ref={containerRef}>
     <div className="dirt-bg" />
     <div className={classNames('fullscreen', styles.root)}>
@@ -87,24 +105,52 @@ export default ({ worldData, onGeneralAction, onWorldAction }: Props) => {
         <Input autoFocus value={search} onChange={({ target: { value } }) => setSearch(value)} />
       </div>
       <div className={classNames(styles.content, !worldData && styles.content_loading)}>
-        {
-          worldData
-            ? worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, title, size, lastPlayed, detail }) => (
-              <World title={title} lastPlayed={lastPlayed} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
-                if (interaction === 'enter') onWorldAction('load', name)
-                else if (interaction === 'space') firstButton.current?.focus()
-              }} detail={detail} />
-            ))
-            : <div style={{
-              fontSize: 10,
-              color: 'lightgray',
-            }}>Loading...</div>
-        }
+        <Tabs tabs={Object.keys(providers)} disabledTabs={disabledProviders} activeTab={activeProvider ?? ''} labels={providers} onTabChange={(tab) => {
+          setActiveProvider?.(tab as any)
+        }} fullSize />
+        <div style={{
+          marginTop: 3,
+        }}>
+          {
+            providerActions && <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              // overflow: 'auto',
+            }}>
+              <span style={{ fontSize: 9, marginRight: 3 }}>Actions: </span> {Object.entries(providerActions).map(([label, action]) => (
+                typeof action === 'function' ? <Button key={label} onClick={action} style={{ width: 100 }}>{label}</Button> : <Fragment key={label}>{action}</Fragment>
+              ))}
+            </div>
+          }
+          {
+            worldData
+              ? worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, size, detail, ...rest }) => (
+                <World {...rest} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
+                  if (interaction === 'enter') onWorldAction('load', name)
+                  else if (interaction === 'space') firstButton.current?.focus()
+                }} detail={detail} />
+              ))
+              : <div style={{
+                fontSize: 10,
+                color: error ? 'red' : 'lightgray',
+              }}>{error || 'Loading (check #dev console if loading too long)...'}</div>
+          }
+          {
+            warning && <div style={{
+              fontSize: 8,
+              color: '#ffa500ba',
+              marginTop: 5,
+              textAlign: 'center',
+            }}>
+              {warning} {warningAction && <a onClick={warningAction}>{warningActionLabel}</a>}
+            </div>
+          }
+        </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 400 }}>
         <div>
           <Button rootRef={firstButton} disabled={!focusedWorld} onClick={() => onWorldAction('load', focusedWorld)}>LOAD WORLD</Button>
-          <Button onClick={() => onGeneralAction('create')}>Create New World</Button>
+          <Button onClick={() => onGeneralAction('create')} disabled={isReadonly}>Create New World</Button>
         </div>
         <div>
           <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('export', focusedWorld)}>Export</Button>

@@ -73,6 +73,9 @@ export default () => {
         window.loadedData = undefined
         if (activeModalStacks['main-menu']) {
           insertActiveModalStack('main-menu')
+          if (activeModalStack.at(-1)?.reactType === 'app-status') {
+            hideModal(undefined, undefined, { force: true }) // workaround: hide loader that was shown on world loading
+          }
         } else {
           hideModal(undefined, undefined, { force: true })
         }

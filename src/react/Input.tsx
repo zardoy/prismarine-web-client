@@ -3,10 +3,11 @@ import styles from './input.module.css'
 import { useUsingTouch } from './utils'
 
 interface Props extends React.ComponentProps<'input'> {
+  rootStyles?: React.CSSProperties
   autoFocus?: boolean
 }
 
-export default ({ autoFocus, ...inputProps }: Props) => {
+export default ({ autoFocus, rootStyles, ...inputProps }: Props) => {
   const ref = useRef<HTMLInputElement>(null!)
   const isTouch = useUsingTouch()
 
@@ -15,7 +16,7 @@ export default ({ autoFocus, ...inputProps }: Props) => {
     ref.current.focus()
   }, [])
 
-  return <div className={styles.container}>
+  return <div className={styles.container} style={rootStyles}>
     <input ref={ref} className={styles.input} autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' spellCheck='false' {...inputProps} />
   </div>
 }
