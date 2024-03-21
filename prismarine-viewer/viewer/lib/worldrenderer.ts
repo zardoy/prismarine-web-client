@@ -10,7 +10,7 @@ import { toMajor } from './version.js'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
-import { addCubes } from '../../examples/webglRenderer'
+import { addCubes, cubePositions } from '../../examples/webglRenderer'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -57,6 +57,7 @@ export class WorldRenderer {
   droppedFpsPercentage = 0
   initialChunksLoad = true
   enableChunksLoadDelay = false
+  newChunks = {}
 
   texturesVersion?: string
 
@@ -88,9 +89,10 @@ export class WorldRenderer {
           const chunkCoords = data.key.split(',')
           if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 
-          addCubes(Object.entries(data.geometry.blocks).map(([pos, block]) => {
-            return pos.split(',').map(Number) as [number, number, number]
-          }))
+          this.newChunks[data.key] = data.geometry
+          // cubePositions.push(...Object.entries(data.geometry.blocks).map(([pos, block]) => {
+          //   return [...pos.split(',').map(Number), block] as [number, number, number, string]
+          // }))
 
 
           // if (!this.initialChunksLoad && this.enableChunksLoadDelay) {

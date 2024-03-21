@@ -21,10 +21,10 @@ export const makeRender = () => {
     renderLoop()
 }
 
-let CubePositions = [] as [number, number, number][]
+export const cubePositions = [] as [number, number, number, string][]
 
 export const addCubes = (positions: [number, number, number][]) => {
-    CubePositions.push(...positions)
+    // CubePositions.push(...positions)
 }
 
 export const initWeblRenderer = async (version) => {
@@ -80,12 +80,12 @@ export const initWeblRenderer = async (version) => {
     ])
 
     // write random coordinates to cube positions xyz ten cubes;
-    for (let i = 0; i < 100_000; i++) {
-        let x = Math.random() * 100 - 50;
-        let y = Math.random() * 100 - 50;
-        let z = Math.random() * 100 - 100;
-        CubePositions.push([x, y, z]);
-    }
+    // for (let i = 0; i < 100_000; i++) {
+    //     let x = Math.random() * 100 - 50;
+    //     let y = Math.random() * 100 - 50;
+    //     let z = Math.random() * 100 - 100;
+    //     CubePositions.push([x, y, z]);
+    // }
 
     let VBO, VAO = gl.createVertexArray();
     VBO = gl.createBuffer();
@@ -141,6 +141,12 @@ export const initWeblRenderer = async (version) => {
             }
             if (code === 'KeyD') {
                 viewer.camera.position.x += 1
+            }
+            if (code === 'ShiftLeft') {
+                viewer.camera.position.y += 0.5
+            }
+            if (code === 'Space') {
+                viewer.camera.position.y -= 0.5
             }
         }
     }
@@ -234,11 +240,12 @@ export const initWeblRenderer = async (version) => {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
         view = m4.identity();
+        // view = viewer.camera.matrix.elements
         const yaw = viewer.camera.rotation.y
         const pitch = viewer.camera.rotation.x
         m4.rotateX(view, yaw * Math.PI / 180, view)
         m4.rotateY(view, pitch * Math.PI / 180, view)
-        m4.translate(view, [viewer.camera.position.x, viewer.camera.position.y, viewer.camera.position.z], view)
+        m4.translate(view, [-viewer.camera.position.x, -viewer.camera.position.y, -viewer.camera.position.z], view)
 
         gl.clearColor(0.1, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT)
@@ -255,25 +262,35 @@ export const initWeblRenderer = async (version) => {
 
 
         let i = 0
-        CubePositions.forEach((cubePosition) => {
-            const model = m4.identity()
+        // CubePositions = [[
+        //     2, 90, 2
+        // ]]
+        const cubePositions = Object.values(viewer.world.newChunks).map((chunk: any) => {
+            return Object.entries(chunk.blocks).map(([pos, block]) => {
+                return [...pos.split(',').map(Number), block] as [number, number, number, string]
+            })
+        }).flat()
+        cubePositions.forEach(([x, y, z, name]) => {
+            const result = findTextureInBlockStates(name)?.north.texture!
+            if (result) {
+                const model = m4.identity()
 
-            m4.translate(model, [cubePosition[0], cubePosition[1], cubePosition[2]], model);
-            //m4.rotateX(model, performance / 1000*i/800 + Math.random() / 100, model);
-            //m4.rotateY(model, performance / 2500*i/800 + Math.random() / 100, model)
-            //m4.rotateZ(model, Math.random() / 1010, model)
-            const result = findTextureInBlockStates(i % 2 ? 'dirt' : 'cobblestone')?.north.texture!
-            gl.uniformMatrix4fv(ModelUniform, false, model);
-            // const u = 4 * 1 / 64;
-            // const v = 0 * 1 / 64;
-            const u = result.u + result.su
-            const v = result.v
-            gl.uniform2fv(uvUniform, [u, v])
+                //m4.rotateX(model, performance / 1000*i/800 + Math.random() / 100, model);
+                //m4.rotateY(model, performance / 2500*i/800 + Math.random() / 100, model)
+                //m4.rotateZ(model, Math.random() / 1010, model)
+                m4.translate(model, [x, y, z], model);
+                gl.uniformMatrix4fv(ModelUniform, false, model);
+                // const u = 4 * 1 / 64;
+                // const v = 0 * 1 / 64;
+                const u = result.u + result.su
+                const v = result.v
+                gl.uniform2fv(uvUniform, [u, v])
 
-            i++
-            // i %= 800;
+                i++
+                // i %= 800;
 
-            gl.drawArrays(gl.TRIANGLES, 0, 36);
+                gl.drawArrays(gl.TRIANGLES, 0, 36);
+            }
         })
         ///model.translate([0, 0, 0], model)
 
