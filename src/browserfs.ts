@@ -30,6 +30,7 @@ browserfs.configure({
 export const forceCachedDataPaths = {}
 export const forceRedirectPaths = {}
 
+window.fs = fs
 //@ts-expect-error
 fs.promises = new Proxy(Object.fromEntries(['readFile', 'writeFile', 'stat', 'mkdir', 'rmdir', 'unlink', 'rename', /* 'copyFile',  */'readdir'].map(key => [key, promisify(fs[key])])), {
   get (target, p: string, receiver) {

@@ -12,7 +12,6 @@ const { closeWan, openToWanAndCopyJoinLink, getJoinLink } = require('../localSer
 const { uniqueFileNameFromWorldName, copyFilesAsyncWithProgress, existsViaStats, mkdirRecursive } = require('../browserfs')
 const { showOptionsModal } = require('../react/SelectOption')
 const { openURL } = require('./components/common')
-const fs = require('fs').promises
 
 class PauseScreen extends LitElement {
   static get styles () {
