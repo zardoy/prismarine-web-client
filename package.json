@@ -75,6 +75,7 @@
     "stats.js": "^0.17.0",
     "tabbable": "^6.2.0",
     "title-case": "3.x",
+    "twgl.js": "^5.5.4",
     "ua-parser-js": "^1.0.37",
     "valtio": "^1.11.1",
     "workbox-build": "^7.0.0"

@@ -33,7 +33,6 @@ export const initWeblRenderer = async (version) => {
     const gl = canvas.getContext('webgl2')!
 
     const program = createProgram(gl, VertShader, FragShader)
-    // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000)
 
     let vertices = new Float32Array([
         -0.5, -0.5, -0.5, 0.0, 0.0,
@@ -80,12 +79,12 @@ export const initWeblRenderer = async (version) => {
     ])
 
     // write random coordinates to cube positions xyz ten cubes;
-    // for (let i = 0; i < 100_000; i++) {
-    //     let x = Math.random() * 100 - 50;
-    //     let y = Math.random() * 100 - 50;
-    //     let z = Math.random() * 100 - 100;
-    //     CubePositions.push([x, y, z]);
-    // }
+    for (let i = 0; i < 100_000; i++) {
+        let x = Math.random() * 100 - 50;
+        let y = Math.random() * 100 - 50;
+        let z = Math.random() * 100 - 100;
+        cubePositions.push([x, y, z, 'stone']);
+    }
 
     let VBO, VAO = gl.createVertexArray();
     VBO = gl.createBuffer();
@@ -157,11 +156,14 @@ export const initWeblRenderer = async (version) => {
     const mouse = { x: 0, y: 0 }
     const mouseMove = (e) => {
         if (e.buttons === 1) {
-            viewer.camera.rotation.y += e.movementX / 100
-            viewer.camera.rotation.x += e.movementY / 100
+            viewer.camera.rotation.y += e.movementX / 50
+            viewer.camera.rotation.x += e.movementY / 50
             console.log('viewer.camera.position', viewer.camera.position)
             // yaw += e.movementY / 20;
             // pitch += e.movementX / 20;
+        }
+        if (e.buttons === 2) {
+            viewer.camera.position.set(0, 0, 0)
         }
     }
     window.addEventListener('mousemove', mouseMove)
@@ -241,8 +243,8 @@ export const initWeblRenderer = async (version) => {
 
         view = m4.identity();
         // view = viewer.camera.matrix.elements
-        const yaw = viewer.camera.rotation.y
-        const pitch = viewer.camera.rotation.x
+        const yaw = viewer.camera.rotation.x
+        const pitch = viewer.camera.rotation.y
         m4.rotateX(view, yaw * Math.PI / 180, view)
         m4.rotateY(view, pitch * Math.PI / 180, view)
         m4.translate(view, [-viewer.camera.position.x, -viewer.camera.position.y, -viewer.camera.position.z], view)
@@ -265,11 +267,11 @@ export const initWeblRenderer = async (version) => {
         // CubePositions = [[
         //     2, 90, 2
         // ]]
-        const cubePositions = Object.values(viewer.world.newChunks).map((chunk: any) => {
-            return Object.entries(chunk.blocks).map(([pos, block]) => {
-                return [...pos.split(',').map(Number), block] as [number, number, number, string]
-            })
-        }).flat()
+        // const cubePositions = Object.values(viewer.world.newChunks).map((chunk: any) => {
+        //     return Object.entries(chunk.blocks).map(([pos, block]) => {
+        //         return [...pos.split(',').map(Number), block] as [number, number, number, string]
+        //     })
+        // }).flat()
         cubePositions.forEach(([x, y, z, name]) => {
             const result = findTextureInBlockStates(name)?.north.texture!
             if (result) {

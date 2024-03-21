@@ -340,17 +340,18 @@ async function main () {
     gui.openAnimated()
   })
 
-  const animate = () => {
+  const animate = () => {}
+  const animate2 = () => {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
     viewer.update()
     viewer.render()
-    window.requestAnimationFrame(animate)
+    window.requestAnimationFrame(animate2)
   }
   // viewer.world.renderUpdateEmitter.addListener('update', () => {
   //   animate()
   // })
-  animate()
+  animate2()
 
   // #region camera rotation param
   if (params.camera) {
@@ -374,7 +375,7 @@ async function main () {
     if (continuousRender) {
       animate()
     }
-    requestAnimationFrame(continuousUpdate)
+    // requestAnimationFrame(continuousUpdate)
   }
   continuousUpdate()
 

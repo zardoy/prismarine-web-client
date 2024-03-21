@@ -47,6 +47,7 @@ const buildOptions = {
     http: 'http-browserify',
     stream: 'stream-browserify',
     net: 'net-browserify',
+    'stats.js': 'node_modules/stats.js/src/Stats.js',
   },
   inject: [],
   metafile: true,

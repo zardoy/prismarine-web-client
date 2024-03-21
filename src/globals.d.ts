@@ -72,6 +72,14 @@ declare module '*.png' {
     const png: string
     export default png
 }
+declare module '*.frag' {
+    const png: string
+    export default png
+}
+declare module '*.vert' {
+    const png: string
+    export default png
+}
 
 interface PromiseConstructor {
     withResolvers<T> (): {

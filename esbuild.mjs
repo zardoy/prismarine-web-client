@@ -76,7 +76,9 @@ const buildOptions = {
   loader: {
     // todo use external or resolve issues with duplicating
     '.png': 'dataurl',
-    '.map': 'empty'
+    '.map': 'empty',
+    '.vert': 'text',
+    '.frag': 'text'
   },
   write: false,
   // todo would be better to enable?
