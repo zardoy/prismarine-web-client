@@ -102,17 +102,24 @@ export class WorldRenderer {
           if (!this.showChunkBorders) {
             boxHelper.visible = false
           }
-          // should not compute it once
-          if (Object.keys(data.geometry.signs).length) {
-            for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
-              const [x, y, z] = posKey.split(',')
-              const signBlockEntity = this.blockEntities[posKey]
-              if (!signBlockEntity) continue
-              const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity));
-              if (!sign) continue
-              object.add(sign)
+          for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
+            const [x, y, z] = posKey.split(',')
+            const signBlockEntity = this.blockEntities[posKey]
+            if (!signBlockEntity) continue
+            const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity));
+            if (!sign) continue
+            object.add(sign)
+          }
+
+
+          for (const [posKey, level] of Object.entries(data.geometry.lights)) {
+            const [x, y, z] = posKey.split(',')
+            const lights = this.renderLight(new Vec3(+x, +y, +z), level);
+            for (const light of lights) {
+              object.add(light)
             }
           }
+
           this.sectionObjects[data.key] = object
           this.updatePosDataChunk(data.key)
           this.scene.add(object)
@@ -171,6 +178,7 @@ export class WorldRenderer {
   }
 
   renderSign (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
+    return
     const tex = this.getSignTexture(position, blockEntity)
 
     if (!tex) return
@@ -205,6 +213,29 @@ export class WorldRenderer {
     group.position.set(position.x + 0.5, position.y + y, position.z + 0.5)
     return group
   }
+
+  renderLight (centerPosition: Vec3, level: number) {
+    centerPosition = centerPosition.offset(0.5, 0.5, 0.5)
+    const lights = [] as THREE.PointLight[]
+    // add lights on each corner position eg -0.5x, -0.5z +0.5x, -0.5z +0.5x, +0.5z -0.5x, +0.5z
+    for (let x = -1; x <= 1; x += 1) {
+      for (let z = -1; z <= 1; z += 1) {
+        for (let y = -1; y <= 1; y += 1) {
+          if (x === 0 && y === 0 && z === 0) continue
+          if (x !== 0 && y !== 0 && z !== 0) continue
+          if ([x, y, z].filter(x => x !== 0).length > 1) continue
+          const light = new THREE.PointLight(0xffffff, level / 15, 15)
+          light.position.set(centerPosition.x + x, centerPosition.y + y, centerPosition.z + z)
+          lights.push(light)
+          // const helper = new THREE.PointLightHelper(light, 0.1)
+          // lights.push(helper as any)
+          // console.log('add light')
+        }
+      }
+    }
+    return lights
+  }
+
 
   updateShowChunksBorder (value: boolean) {
     this.showChunkBorders = value
@@ -349,6 +380,63 @@ export class WorldRenderer {
     const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
     this.workers[hash].postMessage({ type: 'dirty', x: pos.x, y: pos.y, z: pos.z, value })
     this.sectionsOutstanding.add(`${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`)
+  }
+
+  createMaterials () {
+    let materials = [];
+		if (!Array.isArray(textures)) throw new Error("Invalid texture.json: 'textures' is not an array!")
+		for (let i = 0; i < textures.length; i++) {
+			let textureSettings = textures[i];
+
+			let color = textureSettings.color;
+			if (!Array.isArray(color) || color.length < 4){
+				color = [0, 0, 0, 0];
+			}
+
+			let opaque = color[3] === 1;
+			let transparent = !!textureSettings.halfTransparent;
+
+			let texture = new THREE.Texture();
+      const img = new Image()
+      img.src = textureSettings.texture
+			texture.image = img;
+
+			texture.anisotropy = 1;
+			texture.generateMipmaps = opaque || transparent;
+			texture.magFilter = THREE.NearestFilter;
+			texture.minFilter = texture.generateMipmaps ? THREE.NearestMipMapLinearFilter : THREE.NearestFilter;
+			texture.wrapS = THREE.ClampToEdgeWrapping;
+			texture.wrapT = THREE.ClampToEdgeWrapping;
+			texture.flipY = false;
+			// texture.flatShading = true;
+			texture.image.addEventListener("load", () => texture.needsUpdate = true);
+
+			this.loadedTextures.push(texture);
+
+			let material = new ShaderMaterial({
+				uniforms: {
+					...uniforms,
+					textureImage: {
+						type: 't',
+						value: texture
+					},
+					transparent: { value: transparent }
+				},
+				vertexShader: vertexShader,
+				fragmentShader: fragmentShader,
+				transparent: transparent,
+				depthWrite: true,
+				depthTest: true,
+				vertexColors: true,
+				side: THREE.FrontSide,
+				wireframe: false,
+			});
+
+			material.needsUpdate = true;
+			materials[i] = material;
+		}
+
+		return materials;
   }
 
   // Listen for chunk rendering updates emitted if a worker finished a render and resolve if the number

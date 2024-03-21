@@ -3,6 +3,9 @@ import { BlockStatesOutput } from '../prepare/modelsBuilder'
 import { World } from './world'
 import { Block } from 'prismarine-block'
 
+//@ts-ignore
+import { lightLevels } from './moreBlockDataGenerated.json'
+
 const tints: any = {}
 let blockStates: BlockStatesOutput
 
@@ -388,7 +391,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     t_uvs: [],
     indices: [],
     // todo this can be removed here
-    signs: {}
+    signs: {},
+    lights: {}
   } as Record<string, any>
 
   const cursor = new Vec3(0, 0, 0)
@@ -396,6 +400,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
+        // if (block.stateId === 0) continue // TODO fix lava issue
         if (block.name.includes('_sign')) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
@@ -411,6 +416,12 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             rotation: isWall ? facingRotationMap[props.facing] : +props.rotation
           }
         }
+
+        // if (lightLevels[block.name] && block.name !== 'end_rod') {
+        //   const key = `${cursor.x},${cursor.y},${cursor.z}`
+        //   attr.lights[key] = lightLevels[block.name]
+        // }
+
         const biome = block.biome.name
         if (block.variant === undefined) {
           block.variant = getModelVariants(block)
@@ -422,6 +433,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           if (block.name === 'water') {
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
           } else if (block.name === 'lava') {
+            // console.log('render lava') // TODO fix lava issue
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
           } else {
             let globalMatrix = null as any
