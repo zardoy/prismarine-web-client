@@ -4,7 +4,8 @@ import * as nbt from 'prismarine-nbt'
 import RegionFile from 'prismarine-provider-anvil/src/region'
 import { versions } from 'minecraft-data'
 import { openWorldDirectory, openWorldZip } from './browserfs'
-import { isGameActive, showNotification } from './globalState'
+import { isGameActive } from './globalState'
+import { showNotification } from './react/NotificationProvider'
 
 const parseNbt = promisify(nbt.parse)
 const simplifyNbt = nbt.simplify
@@ -100,9 +101,7 @@ async function handleDroppedFile (file: File) {
     alert('Couldn\'t parse nbt, ensure you are opening .dat or file (or .zip/folder with a world)')
     throw err
   })
-  showNotification({
-    message: `${file.name} data available in browser console`,
-  })
+  showNotification(`${file.name} data available in browser console`)
   console.log('raw', parsed)
   console.log('simplified', nbt.simplify(parsed))
 }

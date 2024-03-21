@@ -30,6 +30,12 @@ importers:
       '@nxg-org/mineflayer-tracker':
         specifier: ^1.2.1
         version: 1.2.1
+      '@react-oauth/google':
+        specifier: ^0.12.1
+        version: 0.12.1(react-dom@18.2.0)(react@18.2.0)
+      '@types/gapi':
+        specifier: ^0.0.47
+        version: 0.0.47
       '@types/react':
         specifier: ^18.2.20
         version: 18.2.20
@@ -50,7 +56,7 @@ importers:
         version: 0.0.11
       browserfs:
         specifier: github:zardoy/browserfs#build
-        version: github.com/zardoy/browserfs/0ff5df5c4e67f54b5f032b87dc650e8b78626bc7
+        version: github.com/zardoy/browserfs/e60ca69e74888e057a96a468afe1d62347d3f56f
       change-case:
         specifier: ^5.1.2
         version: 5.1.2
@@ -79,11 +85,14 @@ importers:
         specifier: ^4.18.2
         version: 4.18.2
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.9
-        version: /@zardoy/flying-squid@0.0.9
+        specifier: npm:@zardoy/flying-squid@^0.0.15
+        version: /@zardoy/flying-squid@0.0.15
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
+      google-drive-browserfs:
+        specifier: github:zardoy/browserfs#google-drive
+        version: github.com/zardoy/browserfs/ab58ae8ef00e3a31db01909e365e6cb5188436e0
       iconify-icon:
         specifier: ^1.0.8
         version: 1.0.8
@@ -114,6 +123,9 @@ importers:
       pretty-bytes:
         specifier: ^6.1.1
         version: 6.1.1
+      prismarine-provider-anvil:
+        specifier: github:zardoy/prismarine-provider-anvil#everything
+        version: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.62.0)
       prosemirror-example-setup:
         specifier: ^1.2.2
         version: 1.2.2
@@ -265,7 +277,7 @@ importers:
         version: github.com/zardoy/minecraft-inventory-gui/6685fa4a10590a5decef90a454ba0b9e045e7737(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:PrismarineJS/mineflayer
-        version: github.com/PrismarineJS/mineflayer/d77a0511d02fe552170249ec19c2ff3030d17137
+        version: github.com/PrismarineJS/mineflayer/195b3cbd70a110080af9b77a4659991c5d9e484a
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -3310,7 +3322,7 @@ packages:
     requiresBuild: true
     dependencies:
       '@gar/promisify': 1.1.3
-      semver: 7.5.4
+      semver: 7.6.0
     dev: false
     optional: true
 
@@ -3912,6 +3924,16 @@ packages:
     dependencies:
       '@babel/runtime': 7.22.11
     dev: true
+
+  /@react-oauth/google@0.12.1(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-qagsy22t+7UdkYAiT5ZhfM4StXi9PPNvw0zuwNmabrWyMKddczMtBIOARflbaIj+wHiQjnMAsZmzsUYuXeyoSg==}
+    peerDependencies:
+      react: ^18.2.0
+      react-dom: '>=16.8.0'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
 
   /@rollup/plugin-babel@5.3.1(@babel/core@7.22.11)(rollup@2.79.1):
     resolution: {integrity: sha512-WFfdLWU/xVWKeRQnKmIAQULUI7Il0gZnBIH/ZFO069wYIfPu+8zrfp/KMW0atmELoRDq8FbiP3VCss9MhCut7Q==}
@@ -5049,6 +5071,10 @@ packages:
     resolution: {integrity: sha512-frsJrz2t/CeGifcu/6uRo4b+SzAwT4NYCVPu1GN8IB9XTzrpPkGuV0tmh9mN+/L0PklAlsC3u5Fxt0ju00LXIw==}
     dev: true
 
+  /@types/gapi@0.0.47:
+    resolution: {integrity: sha512-/ZsLuq6BffMgbKMtZyDZ8vwQvTyKhKQ1G2K6VyWCgtHHhfSSXbk4+4JwImZiTjWNXfI2q1ZStAwFFHSkNoTkHA==}
+    dev: false
+
   /@types/glob@7.2.0:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
     dependencies:
@@ -5445,7 +5471,7 @@ packages:
       debug: 4.3.4(supports-color@8.1.1)
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.5.4
+      semver: 7.6.0
       ts-api-utils: 1.0.3(typescript@5.2.2)
       typescript: 5.2.2
     transitivePeerDependencies:
@@ -5466,7 +5492,7 @@ packages:
       debug: 4.3.4(supports-color@8.1.1)
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.5.4
+      semver: 7.6.0
       ts-api-utils: 1.0.3(typescript@5.2.2)
       typescript: 5.2.2
     transitivePeerDependencies:
@@ -5486,7 +5512,7 @@ packages:
       '@typescript-eslint/types': 6.1.0
       '@typescript-eslint/typescript-estree': 6.1.0(typescript@5.2.2)
       eslint: 8.50.0
-      semver: 7.5.4
+      semver: 7.6.0
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -5666,8 +5692,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@zardoy/flying-squid@0.0.9:
-    resolution: {integrity: sha512-Q7xqm+Uu/Y/8jziVM+sazddDw50t3IoQ7y0BTAgLpYaqEsJDvTAoXmHspd9NRFVEs0CM4M/qZxvztCcdJryGIg==}
+  /@zardoy/flying-squid@0.0.15:
+    resolution: {integrity: sha512-VooP9XuzNQVL3y0zlaU5wStRm1vfQIXAzVNHuvMoMgyIyOiD7A59QzVZT93GAoTyUBHTwqweXMPQftjywUy62A==}
     engines: {node: '>=8'}
     hasBin: true
     dependencies:
@@ -5682,7 +5708,7 @@ packages:
       minecraft-data: 3.62.0
       minecraft-protocol: github.com/zardoy/minecraft-protocol/2c14a686bfe7cbd9a5c87b629b402295ee86219f
       mkdirp: 2.1.6
-      moment: 2.29.4
+      moment: 2.30.1
       needle: 2.9.1
       node-gzip: 1.1.2
       node-rsa: 1.1.1
@@ -5691,7 +5717,7 @@ packages:
       prismarine-item: 1.14.0
       prismarine-nbt: 2.5.0
       prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.62.0)
-      prismarine-windows: 2.8.0
+      prismarine-windows: 2.9.0
       prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
       random-seed: 0.3.0
       range: 0.0.3
@@ -5699,6 +5725,7 @@ packages:
       typed-emitter: 1.4.0
       uuid-1345: 1.0.2
       vec3: 0.1.8
+      yaml: 2.4.1
       yargs: 17.7.2
     transitivePeerDependencies:
       - encoding
@@ -10793,7 +10820,7 @@ packages:
     resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
     engines: {node: '>=10'}
     dependencies:
-      semver: 7.5.4
+      semver: 7.6.0
     dev: true
 
   /make-fetch-happen@10.2.1:
@@ -11431,8 +11458,8 @@ packages:
     dependencies:
       nearley: 2.20.1
 
-  /moment@2.29.4:
-    resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
+  /moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
     dev: false
 
   /moo@0.5.2:
@@ -11555,7 +11582,7 @@ packages:
     engines: {node: '>=10'}
     requiresBuild: true
     dependencies:
-      semver: 7.5.4
+      semver: 7.6.0
     dev: false
 
   /node-addon-api@5.1.0:
@@ -11620,7 +11647,7 @@ packages:
       nopt: 6.0.0
       npmlog: 6.0.2
       rimraf: 3.0.2
-      semver: 7.5.4
+      semver: 7.6.0
       tar: 6.2.0
       which: 2.0.2
     transitivePeerDependencies:
@@ -11698,7 +11725,7 @@ packages:
     dependencies:
       hosted-git-info: 4.1.0
       is-core-module: 2.13.0
-      semver: 7.5.4
+      semver: 7.6.0
       validate-npm-package-license: 3.0.4
     dev: true
 
@@ -12469,21 +12496,12 @@ packages:
       vec3: 0.1.8
     dev: false
 
-  /prismarine-windows@2.8.0:
-    resolution: {integrity: sha512-9HVhJ8tfCeRubYwQzgz8oiHNAebMJ5hDdjm45PZwrOgewaislnR2HDsbPMWiCcyWkYL7J8bVLVoSzEzv5pH98g==}
-    dependencies:
-      prismarine-item: 1.14.0
-      prismarine-registry: 1.7.0
-      typed-emitter: 2.1.0
-    dev: false
-
   /prismarine-windows@2.9.0:
     resolution: {integrity: sha512-fm4kOLjGFPov7TEJRmXHoiPabxIQrG36r2mDjlNxfkcLfMHFb3/1ML6mp4iRQa7wL0GK4DIAyiBqCWoeWDxARg==}
     dependencies:
       prismarine-item: 1.14.0
       prismarine-registry: 1.7.0
       typed-emitter: 2.1.0
-    dev: true
 
   /process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
@@ -13823,7 +13841,7 @@ packages:
     resolution: {integrity: sha512-a2B9Y0KlNXl9u/vsW6sTIu9vGEpfKu2wRV6l1H3XEas/0gUIzGzBoP/IouTcUQbm9JWZLH3COxyn03TYlFax6w==}
     engines: {node: '>=10'}
     dependencies:
-      semver: 7.5.4
+      semver: 7.6.0
     dev: true
 
   /sisteransi@1.0.5:
@@ -15818,6 +15836,12 @@ packages:
     engines: {node: '>= 14'}
     dev: true
 
+  /yaml@2.4.1:
+    resolution: {integrity: sha512-pIXzoImaqmfOrL7teGUBt/T7ZDnyeGBWyXQBvOVhLkWLN37GXv8NMLK406UY6dS51JfcQHsmcW5cJ441bHg6Lg==}
+    engines: {node: '>= 14'}
+    hasBin: true
+    dev: false
+
   /yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
     engines: {node: '>=10'}
@@ -15898,8 +15922,8 @@ packages:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
     dev: false
 
-  github.com/PrismarineJS/mineflayer/d77a0511d02fe552170249ec19c2ff3030d17137:
-    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/d77a0511d02fe552170249ec19c2ff3030d17137}
+  github.com/PrismarineJS/mineflayer/195b3cbd70a110080af9b77a4659991c5d9e484a:
+    resolution: {tarball: https://codeload.github.com/PrismarineJS/mineflayer/tar.gz/195b3cbd70a110080af9b77a4659991c5d9e484a}
     name: mineflayer
     version: 4.20.0
     engines: {node: '>=18'}
@@ -15912,7 +15936,7 @@ packages:
       prismarine-chunk: 1.35.0(minecraft-data@3.62.0)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
-      prismarine-nbt: 2.2.1
+      prismarine-nbt: 2.5.0
       prismarine-physics: 1.8.0
       prismarine-recipe: 1.3.1(prismarine-registry@1.7.0)
       prismarine-registry: 1.7.0
@@ -15933,8 +15957,15 @@ packages:
     engines: {node: '>= 0.6.0'}
     dev: true
 
-  github.com/zardoy/browserfs/0ff5df5c4e67f54b5f032b87dc650e8b78626bc7:
-    resolution: {tarball: https://codeload.github.com/zardoy/browserfs/tar.gz/0ff5df5c4e67f54b5f032b87dc650e8b78626bc7}
+  github.com/zardoy/browserfs/ab58ae8ef00e3a31db01909e365e6cb5188436e0:
+    resolution: {tarball: https://codeload.github.com/zardoy/browserfs/tar.gz/ab58ae8ef00e3a31db01909e365e6cb5188436e0}
+    name: browserfs
+    version: 2.0.0
+    engines: {node: '>= 18'}
+    dev: false
+
+  github.com/zardoy/browserfs/e60ca69e74888e057a96a468afe1d62347d3f56f:
+    resolution: {tarball: https://codeload.github.com/zardoy/browserfs/tar.gz/e60ca69e74888e057a96a468afe1d62347d3f56f}
     name: browserfs
     version: 2.0.0-zardoy
     dependencies:

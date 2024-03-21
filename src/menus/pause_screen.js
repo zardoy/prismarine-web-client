@@ -1,13 +1,15 @@
 //@ts-check
+const { join } = require('path')
 const { LitElement, html, css } = require('lit')
 const { subscribe } = require('valtio')
 const { subscribeKey } = require('valtio/utils')
-const { hideCurrentModal, showModal, miscUiState, notification, openOptionsMenu } = require('../globalState')
+const { usedServerPathsV1 } = require('flying-squid/dist/lib/modules/world')
+const { hideCurrentModal, showModal, miscUiState, openOptionsMenu } = require('../globalState')
 const { fsState } = require('../loadSave')
-const { openGithub } = require('../utils')
+const { openGithub, setLoadingScreenStatus } = require('../utils')
 const { disconnect } = require('../flyingSquidUtils')
 const { closeWan, openToWanAndCopyJoinLink, getJoinLink } = require('../localServerMultiplayer')
-const { uniqueFileNameFromWorldName, copyFilesAsyncWithProgress } = require('../browserfs')
+const { uniqueFileNameFromWorldName, copyFilesAsyncWithProgress, existsViaStats, mkdirRecursive } = require('../browserfs')
 const { showOptionsModal } = require('../react/SelectOption')
 const { openURL } = require('./components/common')
 
@@ -69,10 +71,23 @@ class PauseScreen extends LitElement {
     }
     const action = await showOptionsModal('World actions...', ['Save to browser memory'])
     if (action === 'Save to browser memory') {
-      //@ts-expect-error
-      const { worldFolder } = localServer.options
-      const savePath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
-      await copyFilesAsyncWithProgress(worldFolder, savePath)
+      setLoadingScreenStatus('Saving world')
+      try {
+        //@ts-expect-error
+        const { worldFolder } = localServer.options
+        const saveRootPath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
+        await mkdirRecursive(saveRootPath)
+        for (const copyPath of [...usedServerPathsV1, 'icon.png']) {
+          const srcPath = join(worldFolder, copyPath)
+          const savePath = join(saveRootPath, copyPath)
+          // eslint-disable-next-line no-await-in-loop
+          await copyFilesAsyncWithProgress(srcPath, savePath, false)
+        }
+      } catch (err) {
+        void showOptionsModal(`Error while saving the world: ${err.message}`, [])
+      } finally {
+        setLoadingScreenStatus(undefined)
+      }
     }
   }
 
@@ -83,7 +98,7 @@ class PauseScreen extends LitElement {
     return html`
       <div class="bg"></div>
       <!-- todo uncomment when browserfs is fixed -->
-      <!--<pmui-button style="position:fixed;left: 5px;top: 5px;" pmui-icon="pixelarticons:folder" pmui-width="20px" pmui-label="" @pmui-click=${async () => this.openWorldActions()}></pmui-button>-->
+      <pmui-button style="position:fixed;left: 5px;top: 5px;" pmui-icon="pixelarticons:folder" pmui-width="20px" pmui-label="" @pmui-click=${async () => this.openWorldActions()}></pmui-button>
 
       <p class="title">Game Menu</p>
 
@@ -127,8 +142,6 @@ class PauseScreen extends LitElement {
 
   show () {
     this.focus()
-    // todo?
-    notification.show = false
   }
 
   onReturnPress () {

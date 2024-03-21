@@ -4,6 +4,7 @@ import defaultLocalServerOptions from '../defaultLocalServerOptions'
 import { mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'
 import CreateWorld, { WorldCustomize, creatingWorldState } from './CreateWorld'
 import { useIsModalActive } from './utils'
+import { getWorldsPath } from './SingleplayerProvider'
 
 export default () => {
   const activeCreate = useIsModalActive('create-world')
@@ -24,7 +25,7 @@ export default () => {
         // create new world
         const { title, type, version } = creatingWorldState
         // todo display path in ui + disable if exist
-        const savePath = await uniqueFileNameFromWorldName(title, `/data/worlds`)
+        const savePath = await uniqueFileNameFromWorldName(title, getWorldsPath())
         await mkdirRecursive(savePath)
         let generation
         if (type === 'flat') {
