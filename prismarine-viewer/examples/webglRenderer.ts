@@ -74,22 +74,28 @@ export const initWeblRenderer = async (version) => {
         -0.5, 0.5, -0.5, 0.0, 1.0  // top-let
     ])
 
-    let NumberOfCube = 25_000
+    let NumberOfCube = 1_000_000
 
     let cubePositions = new Float32Array(NumberOfCube * 3)
+    let cubeTextureIndices = new Float32Array(NumberOfCube);
 
 
     // write random coordinates to cube positions xyz ten cubes;
     for (let i = 0; i < NumberOfCube * 3; i += 3) {
-        cubePositions[i] = Math.random() * 100 - 50;
-        cubePositions[i + 1] = Math.random() * 100 - 50;
+        cubePositions[i] = Math.random() * 1000 - 500;
+        cubePositions[i + 1] = Math.random() * 1000 - 500;
         cubePositions[i + 2] = Math.random() * 100 - 100;
-        //cubePositions.push([x, y, z, null]);
+        cubeTextureIndices[i / 3] = Math.floor(Math.random() * 400 + 400);
     }
 
     let instanceVBO = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
     gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    let instanceTextureID = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
+    gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     let VBO, VAO = gl.createVertexArray();
@@ -112,6 +118,12 @@ export const initWeblRenderer = async (version) => {
     gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 3 * 4, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.vertexAttribDivisor(2, 1);
+
+    gl.enableVertexAttribArray(3);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
+    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 1 * 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.vertexAttribDivisor(3, 1);
 
     //gl.bindBuffer(gl.ARRAY_BUFFER, null);
     //gl.bindVertexArray(null)
@@ -148,10 +160,10 @@ export const initWeblRenderer = async (version) => {
                 viewer.camera.position.x += 1
             }
             if (code === 'ShiftLeft') {
-                viewer.camera.position.y += 0.5
+                viewer.camera.position.y -= 0.5
             }
             if (code === 'Space') {
-                viewer.camera.position.y -= 0.5
+                viewer.camera.position.y += 0.5
             }
         }
     }
@@ -264,7 +276,7 @@ export const initWeblRenderer = async (version) => {
         m4.rotateY(view, pitch * Math.PI / 180, view)
         m4.translate(view, [-viewer.camera.position.x, -viewer.camera.position.y, -viewer.camera.position.z], view)
 
-        gl.clearColor(0.5, 0.5, 0.5, 1.0);
+        gl.clearColor(0.5, 0.5, 0.5, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.clear(gl.DEPTH_BUFFER_BIT)
 
@@ -278,6 +290,7 @@ export const initWeblRenderer = async (version) => {
 
 
         gl.bindVertexArray(VAO)
+
         //gl.bindVertexArray(instanceVBO)
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, NumberOfCube);
         //gl.bindVertexArray(null)
