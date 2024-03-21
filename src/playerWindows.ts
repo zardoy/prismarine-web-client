@@ -127,7 +127,7 @@ export const onGameLoad = (onLoad) => {
   })
 }
 
-const findTextureInBlockStates = (name) => {
+export const findTextureInBlockStates = (name) => {
   assertDefined(viewer)
   const blockStates: BlockStates = viewer.world.customBlockStatesData || viewer.world.downloadedBlockStatesData
   const vars = blockStates[name]?.variants
