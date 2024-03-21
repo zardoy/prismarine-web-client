@@ -30,12 +30,14 @@ const providersEnableFeatures = {
     calculateSize: true,
     delete: true,
     export: true,
+    icon: true
   },
   google: {
     calculateSize: false,
     // TODO
     delete: false,
     export: false,
+    icon: true
   }
 }
 
@@ -67,12 +69,22 @@ export const readWorlds = (abortController: AbortController) => {
             size += stat.size
           }
         }
+        let iconBase64 = ''
+        if (providersEnableFeatures[provider].icon) {
+          const iconPath = `${worldsPath}/${folder}/icon.png`
+          try {
+            iconBase64 = await fs.promises.readFile(iconPath, 'base64')
+          } catch {
+            // ignore
+          }
+        }
         const levelName = levelDat.LevelName as string | undefined
         return {
           name: folder,
           title: levelName ?? folder,
           lastPlayed: levelDat.LastPlayed && longArrayToNumber(levelDat.LastPlayed),
           detail: `${levelDat.Version?.Name ?? 'unknown version'}, ${folder}`,
+          iconBase64,
           size,
         } satisfies WorldProps
       }))).filter((x, i) => {

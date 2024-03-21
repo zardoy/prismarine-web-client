@@ -36,8 +36,10 @@
 }
 .world_image {
     height: 100%;
-    filter: grayscale(1);
     aspect-ratio: 1;
+}
+.world_image.image_missing {
+    filter: grayscale(1);
 }
 .world_root.world_focused {
     border-color: white;

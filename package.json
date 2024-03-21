@@ -49,8 +49,9 @@
     "esbuild": "^0.19.3",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.12",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.13",
     "fs-extra": "^11.1.1",
+    "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "iconify-icon": "^1.0.8",
     "jszip": "^3.10.1",
     "lit": "^2.8.0",
@@ -61,6 +62,7 @@
     "node-gzip": "^1.1.2",
     "peerjs": "^1.5.0",
     "pretty-bytes": "^6.1.1",
+    "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
     "qrcode.react": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -74,8 +76,7 @@
     "title-case": "3.x",
     "ua-parser-js": "^1.0.37",
     "valtio": "^1.11.1",
-    "workbox-build": "^7.0.0",
-    "google-drive-browserfs": "github:zardoy/browserfs#google-drive"
+    "workbox-build": "^7.0.0"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^7.4.6",

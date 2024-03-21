@@ -60,7 +60,6 @@ import {
   insertActiveModalStack,
   isGameActive,
   miscUiState,
-  notification
 } from './globalState'
 
 
@@ -95,6 +94,8 @@ import { downloadSoundsIfNeeded } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
+import flyingSquidEvents from './flyingSquidEvents'
+import { hideNotification, notificationProxy } from './react/NotificationProvider'
 
 window.debug = debug
 window.THREE = THREE
@@ -366,6 +367,7 @@ async function connect (connectOptions: {
       })
     }
   }
+  let lastPacket = undefined as string | undefined
   const onPossibleErrorDisconnect = () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     if (lastPacket && bot?._client && bot._client.state !== 'play') {
@@ -373,6 +375,7 @@ async function connect (connectOptions: {
     }
   }
   const handleError = (err) => {
+    console.error(err)
     errorAbortController.abort()
     if (isCypress()) throw err
     if (miscUiState.gameLoaded) return
@@ -471,6 +474,7 @@ async function connect (connectOptions: {
           setLoadingScreenStatus(newStatus, false, false, true)
         })
       })
+      flyingSquidEvents()
     }
 
     let initialLoadingText: string
@@ -570,7 +574,6 @@ async function connect (connectOptions: {
     destroyAll()
   })
 
-  let lastPacket = undefined as string | undefined
   const packetBeforePlay = (_, __, ___, fullBuffer) => {
     lastPacket = fullBuffer.toString()
   }
@@ -676,7 +679,9 @@ async function connect (connectOptions: {
     }
 
     function changeCallback () {
-      notification.show = false
+      if (notificationProxy.id === 'pointerlockchange') {
+        hideNotification()
+      }
       if (renderer.xr.isPresenting) return // todo
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
         showModal(pauseMenu)

@@ -3,9 +3,10 @@ import { Vec3 } from 'vec3'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import type { Block } from 'prismarine-block'
-import { miscUiState, showNotification } from './globalState'
+import { miscUiState } from './globalState'
 import { options } from './optionsStorage'
 import { loadOrPlaySound } from './basicSounds'
+import { showNotification } from './react/NotificationProvider'
 
 subscribeKey(miscUiState, 'gameLoaded', async () => {
   if (!miscUiState.gameLoaded) return
@@ -21,9 +22,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
 
   if (!soundsMap) {
     console.warn('No sounds map for version', bot.version, 'supported versions are', Object.keys(allSoundsMap).join(', '))
-    showNotification({
-      message: 'No sounds map for version ' + bot.version,
-    })
+    showNotification('Warning', 'No sounds map for version ' + bot.version)
     return
   }
 

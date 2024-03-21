@@ -4,7 +4,7 @@ const { LitElement, html, css } = require('lit')
 const { subscribe } = require('valtio')
 const { subscribeKey } = require('valtio/utils')
 const { usedServerPathsV1 } = require('flying-squid/dist/lib/modules/world')
-const { hideCurrentModal, showModal, miscUiState, notification, openOptionsMenu } = require('../globalState')
+const { hideCurrentModal, showModal, miscUiState, openOptionsMenu } = require('../globalState')
 const { fsState } = require('../loadSave')
 const { openGithub, setLoadingScreenStatus } = require('../utils')
 const { disconnect } = require('../flyingSquidUtils')
@@ -143,8 +143,6 @@ class PauseScreen extends LitElement {
 
   show () {
     this.focus()
-    // todo?
-    notification.show = false
   }
 
   onReturnPress () {

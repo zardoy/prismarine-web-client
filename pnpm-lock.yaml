@@ -85,8 +85,8 @@ importers:
         specifier: ^4.18.2
         version: 4.18.2
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.12
-        version: /@zardoy/flying-squid@0.0.12
+        specifier: npm:@zardoy/flying-squid@^0.0.13
+        version: /@zardoy/flying-squid@0.0.13
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -123,6 +123,9 @@ importers:
       pretty-bytes:
         specifier: ^6.1.1
         version: 6.1.1
+      prismarine-provider-anvil:
+        specifier: github:zardoy/prismarine-provider-anvil#everything
+        version: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.62.0)
       qrcode.react:
         specifier: ^3.1.0
         version: 3.1.0(react@18.2.0)
@@ -5655,8 +5658,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@zardoy/flying-squid@0.0.12:
-    resolution: {integrity: sha512-wFvdROB9iEucdYamBLXhKKGiUdprjxJsSo0Mk4UKMUoau9G3oly1tVfkuVZc9mQm0NSLOx8oSPA3uCNUT9lAgw==}
+  /@zardoy/flying-squid@0.0.13:
+    resolution: {integrity: sha512-K4vjMx+pi+Xbmm/m6xb17hml8w+0Bk89SiqGuDiB5zaRcTup7K5iqmZ2STQRrTZkjxSNh+eX26R67x2l0XHBIg==}
     engines: {node: '>=8'}
     hasBin: true
     dependencies:
@@ -5671,7 +5674,7 @@ packages:
       minecraft-data: 3.62.0
       minecraft-protocol: github.com/zardoy/minecraft-protocol/2c14a686bfe7cbd9a5c87b629b402295ee86219f
       mkdirp: 2.1.6
-      moment: 2.29.4
+      moment: 2.30.1
       needle: 2.9.1
       node-gzip: 1.1.2
       node-rsa: 1.1.1
@@ -11149,8 +11152,8 @@ packages:
     dependencies:
       nearley: 2.20.1
 
-  /moment@2.29.4:
-    resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
+  /moment@2.30.1:
+    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
     dev: false
 
   /moo@0.5.2:

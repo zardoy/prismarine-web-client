@@ -60,6 +60,7 @@ export const loadSave = async (root = '/world') => {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete forceCachedDataPaths[key]
   }
+  // eslint-disable-next-line guard-for-in
   for (const key in forceRedirectPaths) {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete forceRedirectPaths[key]
