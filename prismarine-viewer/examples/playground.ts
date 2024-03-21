@@ -186,7 +186,7 @@ async function main () {
   const yaw = THREE.MathUtils.degToRad(45)
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
   viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
-  viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
+  viewer.camera.position.set(0, 0, 0)
   // controls.update()
 
   let blockProps = {}
@@ -340,7 +340,7 @@ async function main () {
     gui.openAnimated()
   })
 
-  const animate = () => {}
+  const animate = () => { }
   const animate2 = () => {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
