@@ -1,11 +1,12 @@
 import fs from 'fs'
+import path from 'path'
 import { supportedVersions } from 'flying-squid/dist/lib/version'
 import * as nbt from 'prismarine-nbt'
 import { proxy } from 'valtio'
 import { gzip } from 'node-gzip'
 import { options } from './optionsStorage'
 import { nameToMcOfflineUUID, disconnect } from './flyingSquidUtils'
-import { forceCachedDataPaths } from './browserfs'
+import { forceCachedDataPaths, forceRedirectPaths, mkdirRecursive } from './browserfs'
 import { isMajorVersionGreater } from './utils'
 
 import { activeModalStacks, insertActiveModalStack, miscUiState } from './globalState'
@@ -43,6 +44,14 @@ export const readLevelDat = async (path) => {
 }
 
 export const loadSave = async (root = '/world') => {
+  // todo test
+  if (miscUiState.gameLoaded) {
+    await disconnect()
+    await new Promise(resolve => {
+      setTimeout(resolve)
+    })
+  }
+
   const disablePrompts = options.disableLoadPrompts
 
   // todo do it in singleplayer as well
@@ -50,6 +59,11 @@ export const loadSave = async (root = '/world') => {
   for (const key in forceCachedDataPaths) {
     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
     delete forceCachedDataPaths[key]
+  }
+  // eslint-disable-next-line guard-for-in
+  for (const key in forceRedirectPaths) {
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete forceRedirectPaths[key]
   }
   // todo check jsHeapSizeLimit
 
@@ -105,6 +119,7 @@ export const loadSave = async (root = '/world') => {
       if (fsState.isReadonly) {
         forceCachedDataPaths[playerDatPath] = playerDat
       } else {
+        await mkdirRecursive(path.dirname(playerDatPath))
         await fs.promises.writeFile(playerDatPath, playerDat)
       }
     }
@@ -136,10 +151,12 @@ export const loadSave = async (root = '/world') => {
     alert('Note: the world is saved only on /save or disconnect! Ensure you have backup!')
   }
 
-  // todo fix these
-  if (miscUiState.gameLoaded) {
-    await disconnect()
+  // improve compatibility with community saves
+  const rootRemapFiles = ['Warp files']
+  for (const rootRemapFile of rootRemapFiles) {
+    forceRedirectPaths[path.join(root, rootRemapFile)] = path.join(root, '..', rootRemapFile)
   }
+
   // todo reimplement
   if (activeModalStacks['main-menu']) {
     insertActiveModalStack('main-menu')

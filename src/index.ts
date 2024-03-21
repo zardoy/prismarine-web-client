@@ -7,7 +7,7 @@ import './devtools'
 import './entities'
 import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
-import { onGameLoad } from './playerWindows'
+import { itemsAtlases, onGameLoad } from './playerWindows'
 import { supportedVersions } from 'minecraft-protocol'
 
 import './menus/components/button'
@@ -25,6 +25,8 @@ import './menus/pause_screen'
 import './menus/keybinds_screen'
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
+
+import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 
@@ -58,7 +60,6 @@ import {
   insertActiveModalStack,
   isGameActive,
   miscUiState,
-  notification
 } from './globalState'
 
 
@@ -93,6 +94,8 @@ import { downloadSoundsIfNeeded } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
+import flyingSquidEvents from './flyingSquidEvents'
+import { hideNotification, notificationProxy } from './react/NotificationProvider'
 
 window.debug = debug
 window.THREE = THREE
@@ -135,6 +138,28 @@ if (isFirefox) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
 window.viewer = viewer
+new THREE.TextureLoader().load(itemsPng, (texture) => {
+  viewer.entities.itemsTexture = texture
+  // todo unify
+  viewer.entities.getItemUv = (id) => {
+    const name = loadedData.items[id]?.name
+    const uv = itemsAtlases.latest.textures[name]
+    if (!uv) {
+      const uvBlock = viewer.world.downloadedBlockStatesData[name]?.variants?.['']?.[0].model?.elements?.[0]?.faces?.north.texture
+      if (!uvBlock) return
+      return {
+        ...uvBlock,
+        size: Math.abs(uvBlock.su),
+        texture: viewer.world.material.map
+      }
+    }
+    return {
+      ...uv,
+      size: itemsAtlases.latest.size,
+      texture: viewer.entities.itemsTexture
+    }
+  }
+})
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
@@ -331,14 +356,18 @@ async function connect (connectOptions: {
       //@ts-expect-error
       window.bot = bot = undefined
     }
+    resetStateAfterDisconnect()
+    cleanFs()
+    removeAllListeners()
+  }
+  const cleanFs = () => {
     if (singleplayer && !fsState.inMemorySave) {
       possiblyCleanHandle(() => {
         // todo: this is not enough, we need to wait for all async operations to finish
       })
     }
-    resetStateAfterDisconnect()
-    removeAllListeners()
   }
+  let lastPacket = undefined as string | undefined
   const onPossibleErrorDisconnect = () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison
     if (lastPacket && bot?._client && bot._client.state !== 'play') {
@@ -346,6 +375,7 @@ async function connect (connectOptions: {
     }
   }
   const handleError = (err) => {
+    console.error(err)
     errorAbortController.abort()
     if (isCypress()) throw err
     if (miscUiState.gameLoaded) return
@@ -444,6 +474,7 @@ async function connect (connectOptions: {
           setLoadingScreenStatus(newStatus, false, false, true)
         })
       })
+      flyingSquidEvents()
     }
 
     let initialLoadingText: string
@@ -539,11 +570,10 @@ async function connect (connectOptions: {
 
   bot.on('kicked', (kickReason) => {
     console.log('User was kicked!', kickReason)
-    setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReason}`, true)
+    setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${typeof kickReason === 'object' ? JSON.stringify(kickReason) : kickReason}`, true)
     destroyAll()
   })
 
-  let lastPacket = undefined as string | undefined
   const packetBeforePlay = (_, __, ___, fullBuffer) => {
     lastPacket = fullBuffer.toString()
   }
@@ -649,7 +679,9 @@ async function connect (connectOptions: {
     }
 
     function changeCallback () {
-      notification.show = false
+      if (notificationProxy.id === 'pointerlockchange') {
+        hideNotification()
+      }
       if (renderer.xr.isPresenting) return // todo
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
         showModal(pauseMenu)

@@ -31,13 +31,11 @@ export type JsonAtlas = {
     [file: string]: {
       u: number,
       v: number,
-      su: number,
-      sv: number
     }
   }
 }
 
-export const makeTextureAtlas = (input: string[], getInputData: (name) => {contents: string, tileWidthMult?: number}, tilesCount = input.length, suSvOptimize: 'remove' | null = null): {
+export const makeTextureAtlas = (input: string[], getInputData: (name) => { contents: string, tileWidthMult?: number }, tilesCount = input.length, suSvOptimize: 'remove' | null = null): {
   image: Buffer,
   canvas: Canvas,
   json: JsonAtlas

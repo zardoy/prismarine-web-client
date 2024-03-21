@@ -9,7 +9,7 @@ import blocksFileNames from '../generated/blocks.json'
 import type { BlockStates } from './playerWindows'
 import { copyFilesAsync, copyFilesAsyncWithProgress, mkdirRecursive, removeFileRecursiveAsync } from './browserfs'
 import { setLoadingScreenStatus } from './utils'
-import { showNotification } from './globalState'
+import { showNotification } from './react/NotificationProvider'
 
 export const resourcePackState = proxy({
   resourcePackInstalled: false,
@@ -96,9 +96,7 @@ export const completeTexturePackInstall = async (name?: string) => {
     await genTexturePackTextures(viewer.version)
   }
   setLoadingScreenStatus(undefined)
-  showNotification({
-    message: 'Texturepack installed!',
-  })
+  showNotification('Texturepack installed')
   await updateTexturePackInstalledState()
 }
 

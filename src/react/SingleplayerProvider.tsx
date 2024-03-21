@@ -16,6 +16,7 @@ import GoogleButton from './GoogleButton'
 
 const worldsProxy = proxy({
   value: null as null | WorldProps[],
+  brokenWorlds: [] as string[],
   selectedProvider: 'local' as 'local' | 'google',
   error: '',
 })
@@ -29,19 +30,23 @@ const providersEnableFeatures = {
     calculateSize: true,
     delete: true,
     export: true,
+    icon: true
   },
   google: {
     calculateSize: false,
     // TODO
     delete: false,
     export: false,
+    icon: true
   }
 }
 
 export const readWorlds = (abortController: AbortController) => {
   if (abortController.signal.aborted) return
-  worldsProxy.error = '';
+  worldsProxy.error = ''
+  worldsProxy.brokenWorlds = [];
   (async () => {
+    const brokenWorlds = [] as string[]
     try {
       const loggedIn = !!googleProviderData.accessToken
       worldsProxy.value = null
@@ -64,17 +69,28 @@ export const readWorlds = (abortController: AbortController) => {
             size += stat.size
           }
         }
+        let iconBase64 = ''
+        if (providersEnableFeatures[provider].icon) {
+          const iconPath = `${worldsPath}/${folder}/icon.png`
+          try {
+            iconBase64 = await fs.promises.readFile(iconPath, 'base64')
+          } catch {
+            // ignore
+          }
+        }
         const levelName = levelDat.LevelName as string | undefined
         return {
           name: folder,
           title: levelName ?? folder,
           lastPlayed: levelDat.LastPlayed && longArrayToNumber(levelDat.LastPlayed),
           detail: `${levelDat.Version?.Name ?? 'unknown version'}, ${folder}`,
+          iconBase64,
           size,
         } satisfies WorldProps
-      }))).filter(x => {
+      }))).filter((x, i) => {
         if (x.status === 'rejected') {
           console.warn(x.reason)
+          brokenWorlds.push(worlds[i])
           return false
         }
         return true
@@ -87,6 +103,7 @@ export const readWorlds = (abortController: AbortController) => {
       worldsProxy.value = null
       worldsProxy.error = err.message
     }
+    worldsProxy.brokenWorlds = brokenWorlds
   })().catch((err) => {
     // todo it still doesn't work for some reason!
     worldsProxy.error = err.message
@@ -128,7 +145,7 @@ export const loadGoogleDriveApi = async () => {
 
 const Inner = () => {
   const worlds = useSnapshot(worldsProxy).value as WorldProps[] | null
-  const { selectedProvider, error } = useSnapshot(worldsProxy)
+  const { selectedProvider, error, brokenWorlds } = useSnapshot(worldsProxy)
   const readWorldsAbortController = useRef(new AbortController())
 
   useEffect(() => {
@@ -260,6 +277,16 @@ const Inner = () => {
     setActiveProvider={(provider) => {
       worldsProxy.selectedProvider = provider as any
     }}
+    warning={brokenWorlds.length ? `Some worlds are broken: ${brokenWorlds.join(', ')}` : undefined}
+    warningAction={async () => {
+      for (const brokenWorld of worldsProxy.brokenWorlds) {
+        setLoadingScreenStatus(`Removing broken world ${brokenWorld}`)
+        // eslint-disable-next-line no-await-in-loop
+        await removeFileRecursiveAsync(`${getWorldsPath()}/${brokenWorld}`)
+      }
+      setLoadingScreenStatus(undefined)
+    }}
+    warningActionLabel='Remove broken worlds'
     onWorldAction={async (action, worldName) => {
       const worldPath = `${getWorldsPath()}/${worldName}`
       const openInGoogleDrive = () => {

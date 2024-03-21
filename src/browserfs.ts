@@ -28,7 +28,9 @@ browserfs.configure({
 })
 
 export const forceCachedDataPaths = {}
+export const forceRedirectPaths = {}
 
+window.fs = fs
 //@ts-expect-error
 fs.promises = new Proxy(Object.fromEntries(['readFile', 'writeFile', 'stat', 'mkdir', 'rmdir', 'unlink', 'rename', /* 'copyFile',  */'readdir'].map(key => [key, promisify(fs[key])])), {
   get (target, p: string, receiver) {
@@ -36,14 +38,20 @@ fs.promises = new Proxy(Object.fromEntries(['readFile', 'writeFile', 'stat', 'mk
     return (...args) => {
       // browser fs bug: if path doesn't start with / dirname will return . which would cause infinite loop, so we need to normalize paths
       if (typeof args[0] === 'string' && !args[0].startsWith('/')) args[0] = '/' + args[0]
+      const toRemap = Object.entries(forceRedirectPaths).find(([from]) => args[0].startsWith(from))
+      if (toRemap) {
+        args[0] = args[0].replace(toRemap[0], toRemap[1])
+      }
       // Write methods
       // todo issue one-time warning (in chat I guess)
-      if (fsState.isReadonly) {
+      const readonly = fsState.isReadonly && !(args[0].startsWith('/data') && !fsState.inMemorySave) // allow copying worlds from external providers such as zip
+      if (readonly) {
         if (oneOf(p, 'readFile', 'writeFile') && forceCachedDataPaths[args[0]]) {
           if (p === 'readFile') {
             return Promise.resolve(forceCachedDataPaths[args[0]])
           } else if (p === 'writeFile') {
             forceCachedDataPaths[args[0]] = args[1]
+            console.debug('Skipped writing to readonly fs', args[0])
             return Promise.resolve()
           }
         }
@@ -322,7 +330,19 @@ export const possiblyCleanHandle = (callback = () => { }) => {
   }
 }
 
-export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: string) => {
+export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: string, throwRootNotExist = true) => {
+  const stat = await existsViaStats(pathSrc)
+  if (!stat) {
+    if (throwRootNotExist) throw new Error(`Cannot copy. Source directory ${pathSrc} does not exist`)
+    console.debug('source directory does not exist', pathSrc)
+    return
+  }
+  if (!stat.isDirectory()) {
+    await fs.promises.writeFile(pathDest, await fs.promises.readFile(pathSrc))
+    console.debug('copied single file', pathSrc, pathDest)
+    return
+  }
+
   try {
     setLoadingScreenStatus('Copying files')
     let filesCount = 0
@@ -339,20 +359,34 @@ export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: stri
         }
       }))
     }
+    console.debug('Counting files', pathSrc)
     await countFiles(pathSrc)
+    console.debug('counted', filesCount)
     let copied = 0
     await copyFilesAsync(pathSrc, pathDest, (name) => {
       copied++
-      setLoadingScreenStatus(`Copying files (${copied}/${filesCount}) ${name}...`)
+      setLoadingScreenStatus(`Copying files (${copied}/${filesCount}): ${name}`)
     })
   } finally {
     setLoadingScreenStatus(undefined)
   }
 }
 
+export const existsViaStats = async (path: string) => {
+  try {
+    return await fs.promises.stat(path)
+  } catch (e) {
+    return false
+  }
+}
+
 export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopied?: (name) => void) => {
   // query: can't use fs.copy! use fs.promises.writeFile and readFile
   const files = await fs.promises.readdir(pathSrc)
+
+  if (!await existsViaStats(pathDest)) {
+    await fs.promises.mkdir(pathDest, { recursive: true })
+  }
 
   // Use Promise.all to parallelize file/directory copying
   await Promise.all(files.map(async (file) => {
@@ -365,8 +399,14 @@ export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopi
       await copyFilesAsync(curPathSrc, curPathDest, fileCopied)
     } else {
       // Copy file
-      await fs.promises.writeFile(curPathDest, await fs.promises.readFile(curPathSrc))
-      fileCopied?.(file)
+      try {
+        await fs.promises.writeFile(curPathDest, await fs.promises.readFile(curPathSrc))
+        console.debug('copied file', curPathSrc, curPathDest)
+      } catch (err) {
+        console.error('Error copying file', curPathSrc, curPathDest, err)
+        throw err
+      }
+      fileCopied?.(curPathDest)
     }
   }))
 }

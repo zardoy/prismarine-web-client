@@ -79,7 +79,7 @@ function getEntityMesh (entity, scene, options, overrides) {
 }
 
 export class Entities extends EventEmitter {
-  constructor (scene) {
+  constructor(scene) {
     super()
     this.scene = scene
     this.entities = {}
@@ -88,6 +88,8 @@ export class Entities extends EventEmitter {
     this.onSkinUpdate = () => { }
     this.clock = new THREE.Clock()
     this.visible = true
+    this.itemsTexture = null
+    this.getItemUv = undefined
   }
 
   clear () {
@@ -110,7 +112,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  setVisible(visible, /** @type {THREE.Object3D?} */entity = null) {
+  setVisible (visible, /** @type {THREE.Object3D?} */entity = null) {
     this.visible = visible
     for (const mesh of entity ? [entity] : Object.values(this.entities)) {
       mesh.visible = visible
@@ -205,9 +207,9 @@ export class Entities extends EventEmitter {
           if (!playerObject.backEquipment) {
             playerObject.backEquipment = 'cape'
           }
-        }, () => {})
+        }, () => { })
       }
-    }, () => {})
+    }, () => { })
 
 
     playerObject.cape.visible = false
@@ -258,7 +260,60 @@ export class Entities extends EventEmitter {
     if (!this.entities[entity.id] && !entity.delete) {
       const group = new THREE.Group()
       let mesh
-      if (entity.name === 'player') {
+      if (entity.name === 'item') {
+        /** @type {any} */
+        //@ts-ignore
+        const item = entity.metadata?.find(m => typeof m === 'object' && m !== null && m.itemCount)
+        if (item) {
+          const textureUv = this.getItemUv?.(item.itemId ?? item.blockId)
+          if (textureUv) {
+            const { u, v, size, su, sv, texture } = textureUv
+            const itemsTexture = texture.clone()
+            itemsTexture.flipY = true
+            itemsTexture.offset.set(u, 1 - v - (sv ?? size))
+            itemsTexture.repeat.set(su ?? size, sv ?? size)
+            itemsTexture.needsUpdate = true
+            itemsTexture.magFilter = THREE.NearestFilter
+            itemsTexture.minFilter = THREE.NearestFilter
+            const itemsTextureFlipped = itemsTexture.clone()
+            itemsTextureFlipped.repeat.x *= -1
+            itemsTextureFlipped.needsUpdate = true
+            itemsTextureFlipped.offset.set(u + (su ?? size), 1 - v - (sv ?? size))
+            const material = new THREE.MeshStandardMaterial({
+              map: itemsTexture,
+              transparent: true,
+              alphaTest: 0.1,
+            })
+            const materialFlipped = new THREE.MeshStandardMaterial({
+              map: itemsTextureFlipped,
+              transparent: true,
+              alphaTest: 0.1,
+            })
+            mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 0.0), [
+              // top left and right bottom are black box materials others are transparent
+              new THREE.MeshBasicMaterial({ color: 0x000000 }), new THREE.MeshBasicMaterial({ color: 0x000000 }),
+              new THREE.MeshBasicMaterial({ color: 0x000000 }), new THREE.MeshBasicMaterial({ color: 0x000000 }),
+              material, materialFlipped
+            ])
+            mesh.scale.set(0.5, 0.5, 0.5)
+            mesh.position.set(0, 0.2, 0)
+            // set faces
+            // mesh.position.set(targetPos.x + 0.5 + 2, targetPos.y + 0.5, targetPos.z + 0.5)
+            // viewer.scene.add(mesh)
+            const clock = new THREE.Clock()
+            mesh.onBeforeRender = () => {
+              const delta = clock.getDelta()
+              mesh.rotation.y += delta
+            }
+            //@ts-ignore
+            group.additionalCleanup = () => {
+              // important: avoid texture memory leak and gpu slowdown
+              itemsTexture.dispose()
+              itemsTextureFlipped.dispose()
+            }
+          }
+        }
+      } else if (entity.name === 'player') {
         // CREATE NEW PLAYER ENTITY
         const wrapper = new THREE.Group()
         /** @type {PlayerObject & { animation?: PlayerAnimation }} */
@@ -331,7 +386,7 @@ export class Entities extends EventEmitter {
       }
     }
     // not player
-    const displayText = entity.metadata?.[3] && this.displaySimpleText(entity.metadata[2]);
+    const displayText = entity.metadata?.[3] && this.displaySimpleText(entity.metadata[2])
     if (entity.name !== 'player' && displayText) {
       addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
     }
@@ -379,6 +434,7 @@ export class Entities extends EventEmitter {
     }
 
     if (entity.delete && e) {
+      if (e.additionalCleanup) e.additionalCleanup()
       this.emit('remove', entity)
       this.scene.remove(e)
       dispose3(e)

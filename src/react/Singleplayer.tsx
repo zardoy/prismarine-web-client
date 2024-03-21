@@ -14,6 +14,7 @@ import Tabs from './Tabs'
 export interface WorldProps {
   name: string
   title: string
+  iconBase64?: string
   size?: number
   lastPlayed?: number
   isFocused?: boolean
@@ -22,7 +23,7 @@ export interface WorldProps {
   onInteraction?(interaction: 'enter' | 'space')
 }
 
-const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus, onInteraction }: WorldProps) => {
+const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus, onInteraction, iconBase64 }: WorldProps) => {
   const timeRelativeFormatted = useMemo(() => {
     if (!lastPlayed) return
     const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
@@ -47,7 +48,7 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
       onInteraction?.(e.code === 'Enter' ? 'enter' : 'space')
     }
   }} onDoubleClick={() => onInteraction?.('enter')}>
-    <img className={styles.world_image} src={missingWorldPreview} />
+    <img className={`${styles.world_image} ${iconBase64 ? '' : styles.image_missing}`} src={iconBase64 ? `data:image/png;base64,${iconBase64}` : missingWorldPreview} alt='world preview' />
     <div className={styles.world_info}>
       <div className={styles.world_title} title='level.dat world name'>{title}</div>
       <div className='muted'>{timeRelativeFormatted} {detail.slice(-30)}</div>
@@ -65,12 +66,15 @@ interface Props {
   disabledProviders?: string[]
   isReadonly?: boolean
   error?: string
+  warning?: string
+  warningAction?: () => void
+  warningActionLabel?: string
 
   onWorldAction (action: 'load' | 'export' | 'delete' | 'edit', worldName: string): void
   onGeneralAction (action: 'cancel' | 'create'): void
 }
 
-export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, setActiveProvider, providerActions, providers, disabledProviders, error, isReadonly }: Props) => {
+export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, setActiveProvider, providerActions, providers, disabledProviders, error, isReadonly, warning, warningAction, warningActionLabel }: Props) => {
   const containerRef = useRef<any>()
   const firstButton = useRef<HTMLButtonElement>(null!)
 
@@ -120,8 +124,8 @@ export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, set
           }
           {
             worldData
-              ? worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, title, size, lastPlayed, detail }) => (
-                <World title={title} lastPlayed={lastPlayed} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
+              ? worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, size, detail, ...rest }) => (
+                <World {...rest} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
                   if (interaction === 'enter') onWorldAction('load', name)
                   else if (interaction === 'space') firstButton.current?.focus()
                 }} detail={detail} />
@@ -129,7 +133,17 @@ export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, set
               : <div style={{
                 fontSize: 10,
                 color: error ? 'red' : 'lightgray',
-              }}>{error || 'Loading (#dev check console if loading too long)...'}</div>
+              }}>{error || 'Loading (check #dev console if loading too long)...'}</div>
+          }
+          {
+            warning && <div style={{
+              fontSize: 8,
+              color: '#ffa500ba',
+              marginTop: 5,
+              textAlign: 'center',
+            }}>
+              {warning} {warningAction && <a onClick={warningAction}>{warningActionLabel}</a>}
+            </div>
           }
         </div>
       </div>

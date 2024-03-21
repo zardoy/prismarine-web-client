@@ -1,6 +1,5 @@
 //@ts-check
-import { renderToDom } from '@zardoy/react-util'
-
+import { renderToDom, ErrorBoundary } from '@zardoy/react-util'
 import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
@@ -22,9 +21,10 @@ import widgets from './react/widgets'
 import { useIsWidgetActive } from './react/utils'
 import GlobalSearchInput from './GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
+import NotificationProvider, { showNotification } from './react/NotificationProvider'
 
-const Portal = ({ children, to }) => {
-  return createPortal(children, to)
+const RobustPortal = ({ children, to }) => {
+  return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
 }
 
 const DisplayQr = () => {
@@ -57,7 +57,7 @@ const InGameUi = () => {
   if (!gameLoaded) return
 
   return <>
-    <Portal to={document.querySelector('#ui-root')}>
+    <RobustPortal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
       <DeathScreenProvider />
       <ChatProvider />
@@ -65,13 +65,13 @@ const InGameUi = () => {
       <TitleProvider />
       <ScoreboardProvider />
       <TouchAreasControlsProvider />
-    </Portal>
+    </RobustPortal>
     <DisplayQr />
-    <Portal to={document.body}>
+    <RobustPortal to={document.body}>
       {/* becaues of z-index */}
       <TouchControls />
       <GlobalSearchInput />
-    </Portal>
+    </RobustPortal>
   </>
 }
 
@@ -90,7 +90,7 @@ const App = () => {
   return <div>
     <EnterFullscreenButton />
     <InGameUi />
-    <Portal to={document.querySelector('#ui-root')}>
+    <RobustPortal to={document.querySelector('#ui-root')}>
       <AllWidgets />
       <SingleplayerProvider />
       <CreateWorldProvider />
@@ -98,8 +98,17 @@ const App = () => {
       <SelectOption />
       <OptionsRenderApp />
       <MainMenuRenderApp />
-    </Portal>
+      <NotificationProvider />
+    </RobustPortal>
   </div>
+}
+
+const PerComponentErrorBoundary = ({ children }) => {
+  return children.map((child, i) => <ErrorBoundary key={i} renderError={(error) => {
+    const componentNameClean = (child.type.name || child.type.displayName || 'Unknown').replaceAll(/__|_COMPONENT/g, '')
+    showNotification(`UI component ${componentNameClean} crashed!`, 'Please report this. Use console to see more info.', true, undefined)
+    return null
+  }}>{child}</ErrorBoundary>)
 }
 
 renderToDom(<App />, {
