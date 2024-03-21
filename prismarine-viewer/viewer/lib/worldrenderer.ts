@@ -10,13 +10,14 @@ import { toMajor } from './version.js'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
+import { addCubes } from '../../examples/webglRenderer'
 
 function mod (x, n) {
   return ((x % n) + n) % n
 }
 
 export type WorldHolder = {
-  add(opt: {
+  add (opt: {
     geometry: {
       positions: Float32Array,
       normals: Float32Array,
@@ -29,7 +30,7 @@ export type WorldHolder = {
       signs: Record<string, { isWall: boolean, rotation: number }>
     }
   })
-  remove(opt: { key: string })
+  remove (opt: { key: string })
 }
 
 export class WorldRenderer {
@@ -61,7 +62,7 @@ export class WorldRenderer {
 
   promisesQueue = [] as Promise<any>[]
 
-  constructor(public holder: WorldHolder, numWorkers = 4) {
+  constructor(public holder: unknown, numWorkers = 4) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
@@ -85,7 +86,12 @@ export class WorldRenderer {
           // if
 
           const chunkCoords = data.key.split(',')
-          if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length || !this.active) return
+          if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
+
+          addCubes(Object.entries(data.geometry.blocks).map(([pos, block]) => {
+            return pos.split(',').map(Number) as [number, number, number]
+          }))
+
 
           // if (!this.initialChunksLoad && this.enableChunksLoadDelay) {
           //   const newPromise = new Promise(resolve => {
@@ -238,12 +244,12 @@ export class WorldRenderer {
   }
 
   resetWorld () {
-    this.active = false
-    for (const mesh of Object.values(this.sectionObjects)) {
-      this.scene.remove(mesh)
-    }
-    this.sectionObjects = {}
-    this.loadedChunks = {}
+    // this.active = false
+    // for (const mesh of Object.values(this.sectionObjects)) {
+    //   this.scene.remove(mesh)
+    // }
+    // this.sectionObjects = {}
+    // this.loadedChunks = {}
     this.sectionsOutstanding = new Set()
     for (const worker of this.workers) {
       worker.postMessage({ type: 'reset' })
@@ -251,19 +257,19 @@ export class WorldRenderer {
   }
 
   setVersion (version, texturesVersion = version) {
-    // this.version = version
-    // this.texturesVersion = texturesVersion
-    // this.resetWorld()
-    // this.active = true
+    this.version = version
+    this.texturesVersion = texturesVersion
+    this.resetWorld()
+    this.active = true
 
-    // const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
-    // for (const worker of this.workers) {
-    //   const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
-    //   mcData.version = JSON.parse(JSON.stringify(mcData.version))
-    //   worker.postMessage({ type: 'mcData', mcData, version: this.version })
-    // }
+    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
+    for (const worker of this.workers) {
+      const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
+      mcData.version = JSON.parse(JSON.stringify(mcData.version))
+      worker.postMessage({ type: 'mcData', mcData, version: this.version })
+    }
 
-    // this.updateTexturesData()
+    this.updateTexturesData()
   }
 
   updateTexturesData () {
@@ -306,6 +312,7 @@ export class WorldRenderer {
   }
 
   addColumn (x, z, chunk) {
+    console.log('addColumn')
     this.initialChunksLoad = false
     this.loadedChunks[`${x},${z}`] = true
     for (const worker of this.workers) {

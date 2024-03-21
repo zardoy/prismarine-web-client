@@ -21,13 +21,19 @@ export const makeRender = () => {
     renderLoop()
 }
 
-export const initWeblRenderer = async () => {
+let CubePositions = [] as [number, number, number][]
+
+export const addCubes = (positions: [number, number, number][]) => {
+    CubePositions.push(...positions)
+}
+
+export const initWeblRenderer = async (version) => {
     const stats = new Stats()
     const canvas = document.createElement('canvas')
     const gl = canvas.getContext('webgl2')!
 
     const program = createProgram(gl, VertShader, FragShader)
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000)
+    // const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000)
 
     let vertices = new Float32Array([
         -0.5, -0.5, -0.5, 0.0, 0.0,
@@ -73,9 +79,7 @@ export const initWeblRenderer = async () => {
         -0.5, 0.5, -0.5, 0.0, 1.0
     ])
 
-    let CubePositions = [] as any
-
-    //write random coordinates to cube positions xyz ten cubes;
+    // write random coordinates to cube positions xyz ten cubes;
     for (let i = 0; i < 100_000; i++) {
         let x = Math.random() * 100 - 50;
         let y = Math.random() * 100 - 50;
@@ -112,7 +116,7 @@ export const initWeblRenderer = async () => {
     image.src = Dirt
     let image2 = new Image();
     // simple black white chess image 10x10
-    image2.src = '/textures/1.18.1.png'
+    image2.src = `/textures/${version}.png`
 
     console.log(image.src)
     await new Promise((resolve) => {
@@ -122,24 +126,21 @@ export const initWeblRenderer = async () => {
         image2.onload = resolve
     })
 
-    let pitch = 0, yaw = 0;
-    let x = 0, y = 0, z = 0;
-
     const keys = (e) => {
         const code = e.code
         const pressed = e.type === 'keydown'
         if (pressed) {
             if (code === 'KeyW') {
-                z--;
+                viewer.camera.position.z -= 1
             }
             if (code === 'KeyS') {
-                z++;
+                viewer.camera.position.z += 1
             }
             if (code === 'KeyA') {
-                x--;
+                viewer.camera.position.x -= 1
             }
             if (code === 'KeyD') {
-                x++;
+                viewer.camera.position.x += 1
             }
         }
     }
@@ -150,13 +151,16 @@ export const initWeblRenderer = async () => {
     const mouse = { x: 0, y: 0 }
     const mouseMove = (e) => {
         if (e.buttons === 1) {
-            yaw += e.movementY / 20;
-            pitch += e.movementX / 20;
+            viewer.camera.rotation.y += e.movementX / 100
+            viewer.camera.rotation.x += e.movementY / 100
+            console.log('viewer.camera.position', viewer.camera.position)
+            // yaw += e.movementY / 20;
+            // pitch += e.movementX / 20;
         }
     }
     window.addEventListener('mousemove', mouseMove)
 
-    viewer.world.texturesVersion = ('1.18.1')
+    viewer.world.texturesVersion = version
     viewer.world.updateTexturesData()
     await new Promise(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
@@ -186,7 +190,6 @@ export const initWeblRenderer = async () => {
 
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    //.tset texture fgl.ering paramegl.s
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
@@ -231,9 +234,11 @@ export const initWeblRenderer = async () => {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
         view = m4.identity();
+        const yaw = viewer.camera.rotation.y
+        const pitch = viewer.camera.rotation.x
         m4.rotateX(view, yaw * Math.PI / 180, view)
         m4.rotateY(view, pitch * Math.PI / 180, view)
-        m4.translate(view, [x, y, z], view)
+        m4.translate(view, [viewer.camera.position.x, viewer.camera.position.y, viewer.camera.position.z], view)
 
         gl.clearColor(0.1, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT)
@@ -265,7 +270,7 @@ export const initWeblRenderer = async () => {
             const v = result.v
             gl.uniform2fv(uvUniform, [u, v])
 
-            // i++
+            i++
             // i %= 800;
 
             gl.drawArrays(gl.TRIANGLES, 0, 36);

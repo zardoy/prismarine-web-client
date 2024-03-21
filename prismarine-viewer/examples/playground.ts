@@ -65,7 +65,8 @@ let ignoreResize = false
 async function main () {
   let continuousRender = false
 
-  const { version } = params
+  // const { version } = params
+  const version = '1.18.1'
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
@@ -128,12 +129,12 @@ async function main () {
   // await schem.paste(world, new Vec3(0, 60, 0))
 
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
-  const viewer = new Viewer(null as any | null, 1)
+  const nullRenderer = new THREE.WebGLRenderer({ antialias: true })
+  const viewer = new Viewer(nullRenderer, 1)
+  viewer.setVersion(version)
   globalThis.viewer = viewer
 
-  initWeblRenderer()
-
-  return
+  await initWeblRenderer(version)
 
   // Create viewer
 
@@ -142,11 +143,6 @@ async function main () {
   await worldView.init(targetPos)
   window['worldView'] = worldView
   window['viewer'] = viewer
-
-  function degrees_to_radians (degrees) {
-    var pi = Math.PI;
-    return degrees * (pi / 180);
-  }
 
   // const jsonData = await fetch('https://bluecolored.de/bluemap/maps/overworld/tiles/0/x-2/2/z1/6.json?584662').then(r => r.json())
 
@@ -182,16 +178,16 @@ async function main () {
 
 
   //@ts-ignore
-  const controls = new OrbitControls(viewer.camera, renderer.domElement)
-  controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+  // const controls = new OrbitControls(viewer.camera, nullRenderer.domElement)
+  // controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
   const cameraPos = targetPos.offset(2, 2, 2)
   const pitch = THREE.MathUtils.degToRad(-45)
   const yaw = THREE.MathUtils.degToRad(45)
-  viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-  viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
-  viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
-  controls.update()
+  // viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+  // viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+  // viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
+  // controls.update()
 
   let blockProps = {}
   let entityOverrides = {}
@@ -222,6 +218,8 @@ async function main () {
       viewer.render()
     }, TWEEN_DURATION)
   }
+
+  params.block ||= 'stone'
 
   const onUpdate = {
     block () {
@@ -347,18 +345,18 @@ async function main () {
     // worldView.updatePosition(controls.target)
     viewer.update()
     viewer.render()
-    // window.requestAnimationFrame(animate)
+    window.requestAnimationFrame(animate)
   }
-  viewer.world.renderUpdateEmitter.addListener('update', () => {
-    animate()
-  })
+  // viewer.world.renderUpdateEmitter.addListener('update', () => {
+  //   animate()
+  // })
   animate()
 
   // #region camera rotation param
   if (params.camera) {
     const [x, y] = params.camera.split(',')
     viewer.camera.rotation.set(parseFloat(x), parseFloat(y), 0, 'ZYX')
-    controls.update()
+    // controls.update()
     console.log(viewer.camera.rotation.x, parseFloat(x))
   }
   const throttledCamQsUpdate = _.throttle(() => {
@@ -366,10 +364,10 @@ async function main () {
     // params.camera = `${camera.rotation.x.toFixed(2)},${camera.rotation.y.toFixed(2)}`
     setQs()
   }, 200)
-  controls.addEventListener('change', () => {
-    throttledCamQsUpdate()
-    animate()
-  })
+  // controls.addEventListener('change', () => {
+  //   throttledCamQsUpdate()
+  //   animate()
+  // })
   // #endregion
 
   const continuousUpdate = () => {
@@ -390,7 +388,7 @@ async function main () {
     const { camera } = viewer
     viewer.camera.aspect = window.innerWidth / window.innerHeight
     viewer.camera.updateProjectionMatrix()
-    renderer.setSize(window.innerWidth, window.innerHeight)
+    nullRenderer.setSize(window.innerWidth, window.innerHeight)
 
     animate()
   }

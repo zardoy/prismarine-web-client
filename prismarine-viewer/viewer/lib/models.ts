@@ -388,7 +388,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     t_uvs: [],
     indices: [],
     // todo this can be removed here
-    signs: {}
+    signs: {},
+    blocks: {}
   } as Record<string, any>
 
   const cursor = new Vec3(0, 0, 0)
@@ -417,13 +418,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         }
 
         for (const variant of block.variant) {
+          console.log(variant)
           if (!variant || !variant.model) continue
 
-          if (block.name === 'water') {
-            renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
-          } else if (block.name === 'lava') {
-            renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
-          } else {
+          if (block.name !== 'water' && block.name !== 'lava'/*  && block.isCube */) {
             let globalMatrix = null as any
             let globalShift = null as any
 
@@ -440,9 +438,51 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             }
 
             for (const element of variant.model.elements) {
-              renderElement(world, cursor, element, variant.model.ao, attr, globalMatrix, globalShift, block, biome)
+              for (const face in element.faces) {
+                const cullIfIdentical = block.name.indexOf('glass') >= 0
+
+                const eFace = element.faces[face]
+                const { corners, mask1, mask2 } = elemFaces[face]
+                const dir = matmul3(globalMatrix, elemFaces[face].dir)
+
+                if (eFace.cullface) {
+                  const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
+                  if (neighbor) {
+                    if (cullIfIdentical && neighbor.type === block.type) continue
+                    if (!neighbor.transparent && neighbor.isCube) continue
+                  } else {
+                    continue
+                  }
+                }
+
+                attr.blocks[`${cursor.x},${cursor.y},${cursor.z}`] = block.name
+              }
             }
           }
+          //   if (block.name === 'water') {
+          //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
+          //   } else if (block.name === 'lava') {
+          //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
+          //   } else {
+          // let globalMatrix = null as any
+          // let globalShift = null as any
+
+          // for (const axis of ['x', 'y', 'z']) {
+          //   if (axis in variant) {
+          //     if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -variant[axis])
+          //     else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -variant[axis]))
+          //   }
+          // }
+
+          // if (globalMatrix) {
+          //   globalShift = [8, 8, 8]
+          //   globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
+          // }
+
+          //     for (const element of variant.model.elements) {
+          //       renderElement(world, cursor, element, variant.model.ao, attr, globalMatrix, globalShift, block, biome)
+          //     }
+          //   }
         }
       }
     }
