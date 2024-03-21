@@ -85,8 +85,8 @@ importers:
         specifier: ^4.18.2
         version: 4.18.2
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.10
-        version: /@zardoy/flying-squid@0.0.10
+        specifier: npm:@zardoy/flying-squid@^0.0.12
+        version: /@zardoy/flying-squid@0.0.12
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -5655,8 +5655,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@zardoy/flying-squid@0.0.10:
-    resolution: {integrity: sha512-uMpNRjYWbBAgWUld4pIPOIM3vBtcR4LWuBBBwDALhZDIRU+Iu7kHjbUD0OfBzayYn78qB3T1d6dJj4oRa0M7Jg==}
+  /@zardoy/flying-squid@0.0.12:
+    resolution: {integrity: sha512-wFvdROB9iEucdYamBLXhKKGiUdprjxJsSo0Mk4UKMUoau9G3oly1tVfkuVZc9mQm0NSLOx8oSPA3uCNUT9lAgw==}
     engines: {node: '>=8'}
     hasBin: true
     dependencies:
@@ -5688,6 +5688,7 @@ packages:
       typed-emitter: 1.4.0
       uuid-1345: 1.0.2
       vec3: 0.1.8
+      yaml: 2.4.1
       yargs: 17.7.2
     transitivePeerDependencies:
       - encoding
@@ -15302,6 +15303,12 @@ packages:
     resolution: {integrity: sha512-N/lyzTPaJasoDmfV7YTrYCI0G/3ivm/9wdG0aHuheKowWQwGTsK0Eoiw6utmzAnI6pkJa0DUVygvp3spqqEKXg==}
     engines: {node: '>= 14'}
     dev: true
+
+  /yaml@2.4.1:
+    resolution: {integrity: sha512-pIXzoImaqmfOrL7teGUBt/T7ZDnyeGBWyXQBvOVhLkWLN37GXv8NMLK406UY6dS51JfcQHsmcW5cJ441bHg6Lg==}
+    engines: {node: '>= 14'}
+    hasBin: true
+    dev: false
 
   /yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}

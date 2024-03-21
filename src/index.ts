@@ -355,13 +355,16 @@ async function connect (connectOptions: {
       //@ts-expect-error
       window.bot = bot = undefined
     }
+    resetStateAfterDisconnect()
+    cleanFs()
+    removeAllListeners()
+  }
+  const cleanFs = () => {
     if (singleplayer && !fsState.inMemorySave) {
       possiblyCleanHandle(() => {
         // todo: this is not enough, we need to wait for all async operations to finish
       })
     }
-    resetStateAfterDisconnect()
-    removeAllListeners()
   }
   const onPossibleErrorDisconnect = () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-comparison

@@ -65,12 +65,15 @@ interface Props {
   disabledProviders?: string[]
   isReadonly?: boolean
   error?: string
+  warning?: string
+  warningAction?: () => void
+  warningActionLabel?: string
 
   onWorldAction (action: 'load' | 'export' | 'delete' | 'edit', worldName: string): void
   onGeneralAction (action: 'cancel' | 'create'): void
 }
 
-export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, setActiveProvider, providerActions, providers, disabledProviders, error, isReadonly }: Props) => {
+export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, setActiveProvider, providerActions, providers, disabledProviders, error, isReadonly, warning, warningAction, warningActionLabel }: Props) => {
   const containerRef = useRef<any>()
   const firstButton = useRef<HTMLButtonElement>(null!)
 
@@ -129,7 +132,17 @@ export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, set
               : <div style={{
                 fontSize: 10,
                 color: error ? 'red' : 'lightgray',
-              }}>{error || 'Loading (#dev check console if loading too long)...'}</div>
+              }}>{error || 'Loading (check #dev console if loading too long)...'}</div>
+          }
+          {
+            warning && <div style={{
+              fontSize: 8,
+              color: '#ffa500ba',
+              marginTop: 5,
+              textAlign: 'center',
+            }}>
+              {warning} {warningAction && <a onClick={warningAction}>{warningActionLabel}</a>}
+            </div>
           }
         </div>
       </div>
