@@ -418,7 +418,6 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         }
 
         for (const variant of block.variant) {
-          console.log(variant)
           if (!variant || !variant.model) continue
 
           if (block.name !== 'water' && block.name !== 'lava'/*  && block.isCube */) {
@@ -455,7 +454,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
                   }
                 }
 
-                attr.blocks[`${cursor.x},${cursor.y},${cursor.z}`] = block.name
+                const pos = block.position
+                attr.blocks[`${pos.x},${pos.y},${pos.z}`] = block.name
               }
             }
           }

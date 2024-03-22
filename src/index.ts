@@ -96,6 +96,7 @@ import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasCon
 import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
+import { initWebglRenderer } from 'prismarine-viewer/examples/webglRenderer'
 
 window.debug = debug
 window.THREE = THREE
@@ -178,11 +179,18 @@ let previousWindowWidth = window.innerWidth
 let previousWindowHeight = window.innerHeight
 let max = 0
 let rendered = 0
+let windowFocused = true
+window.addEventListener('focus', () => {
+  windowFocused = true
+})
+window.addEventListener('blur', () => {
+  windowFocused = false
+})
 const renderFrame = (time: DOMHighResTimeStamp) => {
   if (window.stopLoop) return
   for (const fn of beforeRenderFrame) fn()
   window.requestAnimationFrame(renderFrame)
-  if (window.stopRender || renderer.xr.isPresenting) return
+  if (window.stopRender || renderer.xr.isPresenting || !windowFocused) return
   if (renderInterval) {
     delta += time - lastTime
     lastTime = time
@@ -228,6 +236,7 @@ const resizeHandler = () => {
   }
 }
 
+initWebglRenderer('1.14.4')
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
 
@@ -440,6 +449,7 @@ async function connect (connectOptions: {
       viewer.setVersion(version)
     }
 
+    serverOptions.version = '1.14.4'
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
     if (downloadVersion) {
       await downloadMcData(downloadVersion)

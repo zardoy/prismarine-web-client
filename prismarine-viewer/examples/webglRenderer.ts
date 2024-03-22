@@ -18,12 +18,18 @@ declare const viewer: Viewer
 
 let renderLoop
 export const makeRender = () => {
-    renderLoop()
+    renderLoop?.()
 }
 
-export const cubePositions = [] as [number, number, number, string | null][]
+let cubePositions
+let updateCubes
+export const updateCubePositions = () => {
+    updateCubes()
+}
 
-export const initWeblRenderer = async (version) => {
+export const cubePositionsRaw = [] as [number, number, number, string | null][]
+
+export const initWebglRenderer = async (version) => {
     const stats = new Stats()
     const canvas = document.createElement('canvas')
     const gl = canvas.getContext('webgl2')!
@@ -76,7 +82,7 @@ export const initWeblRenderer = async (version) => {
 
     let NumberOfCube = 1_000_000
 
-    let cubePositions = new Float32Array(NumberOfCube * 3)
+    cubePositions = new Float32Array(NumberOfCube * 3)
     let cubeTextureIndices = new Float32Array(NumberOfCube);
 
 
@@ -85,21 +91,40 @@ export const initWeblRenderer = async (version) => {
         cubePositions[i] = Math.random() * 1000 - 500;
         cubePositions[i + 1] = Math.random() * 1000 - 500;
         cubePositions[i + 2] = Math.random() * 100 - 100;
-        cubeTextureIndices[i / 3] = Math.floor(Math.random() * 400 + 400);
+        // cubeTextureIndices[i / 3] = Math.floor(Math.random() * 400 + 400);
+        cubeTextureIndices[i / 3] = 0;
     }
     cubePositions[0] = 0;
     cubePositions[1] = 0;
     cubePositions[2] = 0;
 
     let instanceVBO = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-    gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
     let instanceTextureID = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-    gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    updateCubes = () => {
+        cubePositions = new Float32Array(cubePositionsRaw.length * 3)
+        cubeTextureIndices = new Float32Array(cubePositionsRaw.length);
+
+        cubePositionsRaw.forEach(([x, y, z, name], i) => {
+            cubePositions[i * 3] = x
+            cubePositions[i * 3 + 1] = y
+            cubePositions[i * 3 + 2] = z
+            // just set index to 0 for now
+            cubeTextureIndices[i] = 0
+        })
+
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
+        gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
+        gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    }
+
+    updateCubes()
+    globalThis.updateCubes = updateCubes
+
 
     let VBO, VAO = gl.createVertexArray();
     VBO = gl.createBuffer();
@@ -299,9 +324,6 @@ export const initWeblRenderer = async (version) => {
         //gl.bindVertexArray(null)
 
         //let i = 0
-        // CubePositions = [[
-        //     2, 90, 2
-        // ]]
         // const cubePositions = Object.values(viewer.world.newChunks).map((chunk: any) => {
         //     return Object.entries(chunk.blocks).map(([pos, block]) => {
         //         return [...pos.split(',').map(Number), block] as [number, number, number, string]
