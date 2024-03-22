@@ -87,6 +87,9 @@ export const initWeblRenderer = async (version) => {
         cubePositions[i + 2] = Math.random() * 100 - 100;
         cubeTextureIndices[i / 3] = Math.floor(Math.random() * 400 + 400);
     }
+    cubePositions[0] = 0;
+    cubePositions[1] = 0;
+    cubePositions[2] = 0;
 
     let instanceVBO = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
@@ -242,7 +245,7 @@ export const initWeblRenderer = async (version) => {
     document.body.appendChild(canvas)
 
     let view = m4.lookAt([0, 0, 2], [0, 0, 0], [0, 1, 0])
-    const projection = m4.perspective(75 * Math.PI / 180, gl.canvas.width / gl.canvas.height, 0.1, 512)
+    const projection = m4.perspective(75 * Math.PI / 180, gl.canvas.width / gl.canvas.height, 0.1, 2048)
     // view = m4.identity();
     // m4.rotateX(view, yaw * Math.PI / 180)
     // m4.rotateY(view, pitch * Math.PI / 180)

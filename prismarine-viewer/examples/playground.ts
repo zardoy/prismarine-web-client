@@ -337,7 +337,7 @@ async function main () {
       update()
     }
     applyChanges(true)
-    gui.openAnimated()
+    // gui.openAnimated()
   })
 
   const animate = () => { }

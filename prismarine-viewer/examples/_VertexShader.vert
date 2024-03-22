@@ -5,7 +5,7 @@ layout (location = 2) in vec3 aOffset;
 layout (location = 3) in float aTextureIndex;
 
 out vec2 TexCoord;
-out float TextureIndex;
+flat out float TextureIndex;
 
 //uniform mat4 model;
 uniform mat4 view;
