@@ -27,7 +27,7 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
   const editorView = useRef<ProseMirrorView | null>(null)
 
   const highlightCurrentInput = (inputs: HTMLCollectionOf<HTMLInputElement>) => {
-    const inputsArray = Array.from(inputs)
+    const inputsArray = [...inputs]
     for (const [index, input] of inputsArray.entries()) {
       if (index === currentInputIndex.current) {
         input.classList.add('selected')

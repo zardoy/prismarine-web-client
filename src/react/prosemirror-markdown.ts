@@ -29,17 +29,17 @@ export class ProseMirrorView {
     fullMenu[0] = fullMenu[0].filter(item => item.spec.title !== 'Add or remove link' && item.spec.title !== 'Toggle code font')
     fullMenu.splice(3, 1); // remove the insert list, quote & checkbox menu
     (fullMenu[1][0] as any).options.label = 'Color' // check-build error: fullMenu[1][0].options.label = 'Color'
-    fullMenu[1][0].content[0].spec.label = 'Red'
-    fullMenu[1][0].content[0].spec.run = (state, dispatch, view) => {
-      // console.log('state', state)
-      // // make <p style="color: red">...</p>
-      // const { from, to } = state.selection
-      // const { tr } = state
-      // console.log(schema.marks)
-      // tr.addMark(from, to, schema.marks.textColor.create({ color: 'red' }))
-      // dispatch(tr)
-      toggleMark(schema.marks.textColor, { color: 'red' })(state, dispatch, view)
-    }
+    // fullMenu[1][0].content[0].spec.label = 'Red'
+    // fullMenu[1][0].content[0].spec.run = (state, dispatch, view) => {
+    // console.log('state', state)
+    // // make <p style="color: red">...</p>
+    // const { from, to } = state.selection
+    // const { tr } = state
+    // console.log(schema.marks)
+    // tr.addMark(from, to, schema.marks.textColor.create({ color: 'red' }))
+    // dispatch(tr)
+    //   toggleMark(schema.marks.textColor, { color: 'red' })(state, dispatch, view)
+    // }
     fullMenu[1].splice(1, 1) // remove the type menu
     console.log('fullMenu', fullMenu)
     this.view = new EditorView(target, {
