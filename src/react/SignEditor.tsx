@@ -23,13 +23,39 @@ export type ResultType = {
 
 export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
   const prosemirrorContainer = useRef(null)
+  const currentInputIndex = useRef(0)
   const editorView = useRef<ProseMirrorView | null>(null)
+
+  const highlightCurrentInput = (inputs: HTMLCollectionOf<HTMLInputElement>) => {
+    const inputsArray = Array.from(inputs)
+    for (const [index, input] of inputsArray.entries()) {
+      if (index === currentInputIndex.current) {
+        input.classList.add('selected')
+        input.focus()
+      } else {
+        input.classList.remove('selected')
+      }
+    }
+  }
 
   useEffect(() => {
     if (isWysiwyg) {
       editorView.current = new ProseMirrorView(prosemirrorContainer.current, '')
     }
   }, [isWysiwyg])
+
+  useEffect(() => {
+    const inputs = document.getElementsByClassName('sign-editor') as HTMLCollectionOf<HTMLInputElement>
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowUp') {
+        currentInputIndex.current = Math.max(currentInputIndex.current - 1, 0)
+        highlightCurrentInput(inputs)
+      } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
+        currentInputIndex.current = Math.min(currentInputIndex.current + 1, inputs.length - 1)
+        highlightCurrentInput(inputs)
+      } 
+    })
+  }, [])
 
   return <div className='signs-editor-container'>
     <div className='signs-editor-inner-container'>

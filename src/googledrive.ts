@@ -33,7 +33,7 @@ export const useGoogleLogIn = () => {
     scope: SCOPES,
     flow: 'implicit',
     onError (error) {
-      const accessDenied = error.error === 'access_denied' || error.error === 'invalid_scope' || (error as any).error_subtype === 'access_denied'
+      const accessDenied = error.error === 'access_denied' || error.error === 'invalid_scope' || (error).error_subtype === 'access_denied'
       if (accessDenied) {
         googleProviderData.hasEverLoggedIn = false
       }

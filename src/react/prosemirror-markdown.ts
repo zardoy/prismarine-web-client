@@ -8,7 +8,7 @@ import { toggleMark } from 'prosemirror-commands'
 export class ProseMirrorView {
   view
 
-  constructor(target, content) {
+  constructor (target, content) {
     console.log('schema.marks', schema.marks)
     //@ts-expect-error
     schema.marks.textColor = {
