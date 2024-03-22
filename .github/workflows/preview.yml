@@ -45,3 +45,5 @@ jobs:
         with:
           message: |
             Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
+            [Playground](${{ steps.deploy.outputs.stdout }}/playground.html)
+            [Storybook](${{ steps.deploy.outputs.stdout }}/storybook/)
