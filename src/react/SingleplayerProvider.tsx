@@ -7,7 +7,7 @@ import { googleDriveGetFileIdFromPath, mountExportFolder, mountGoogleDriveFolder
 import { hideCurrentModal, showModal } from '../globalState'
 import { haveDirectoryPicker, setLoadingScreenStatus } from '../utils'
 import { exportWorld } from '../builtinCommands'
-import { googleProviderData, useGoogleLogIn, GoogleDriveProvider, isGoogleDriveAvailable, APP_ID } from '../googledrive'
+import { googleProviderState, useGoogleLogIn, GoogleDriveProvider, isGoogleDriveAvailable, APP_ID } from '../googledrive'
 import Singleplayer, { WorldProps } from './Singleplayer'
 import { useIsModalActive } from './utils'
 import { showOptionsModal } from './SelectOption'
@@ -18,6 +18,7 @@ const worldsProxy = proxy({
   value: null as null | WorldProps[],
   brokenWorlds: [] as string[],
   selectedProvider: 'local' as 'local' | 'google',
+  selectedGoogleId: '',
   error: '',
 })
 
@@ -48,7 +49,7 @@ export const readWorlds = (abortController: AbortController) => {
   (async () => {
     const brokenWorlds = [] as string[]
     try {
-      const loggedIn = !!googleProviderData.accessToken
+      const loggedIn = !!googleProviderState.accessToken
       worldsProxy.value = null
       if (worldsProxy.selectedProvider === 'google' && !loggedIn) {
         worldsProxy.value = []
@@ -135,7 +136,7 @@ export const loadGoogleDriveApi = async () => {
     gapi.load('client', () => {
       gapi.load('client:picker', () => {
         void gapi.client.load('https://www.googleapis.com/discovery/v1/apis/drive/v3/rest').then(() => {
-          googleProviderData.isReady = true
+          googleProviderState.isReady = true
           resolve()
         })
       })
@@ -145,14 +146,8 @@ export const loadGoogleDriveApi = async () => {
 
 const Inner = () => {
   const worlds = useSnapshot(worldsProxy).value as WorldProps[] | null
-  const { selectedProvider, error, brokenWorlds } = useSnapshot(worldsProxy)
+  const { selectedProvider, error, brokenWorlds, selectedGoogleId } = useSnapshot(worldsProxy)
   const readWorldsAbortController = useRef(new AbortController())
-
-  useEffect(() => {
-    return () => {
-      worldsProxy.selectedProvider = 'local'
-    }
-  }, [])
 
   // 3rd party providers
   useEffect(() => {
@@ -160,9 +155,8 @@ const Inner = () => {
     void loadGoogleDriveApi()
   }, [selectedProvider])
 
-  const [selectedGoogleId, setSelectedGoogleId] = useState('')
-  const loggedIn = !!useSnapshot(googleProviderData).accessToken
-  const googleDriveReadonly = useSnapshot(googleProviderData).readonlyMode
+  const loggedIn = !!useSnapshot(googleProviderState).accessToken
+  const googleDriveReadonly = useSnapshot(googleProviderState).readonlyMode
 
   useEffect(() => {
     (async () => {
@@ -171,7 +165,7 @@ const Inner = () => {
           worldsProxy.value = []
           return
         }
-        await mountGoogleDriveFolder(googleProviderData.readonlyMode, selectedGoogleId)
+        await mountGoogleDriveFolder(googleProviderState.readonlyMode, selectedGoogleId)
         const exists = async (path) => {
           try {
             await fs.promises.stat(path)
@@ -199,21 +193,74 @@ const Inner = () => {
 
   const googleLogIn = useGoogleLogIn()
 
-  const isGoogleProviderReady = useSnapshot(googleProviderData).isReady
-  const providerActions = selectedProvider === 'google' ? isGoogleProviderReady ? loggedIn ? {
+  const googlePicker = useRef/* <google.picker.Picker | null> */(null as any)
+
+  useEffect(() => {
+    return () => {
+      googlePicker.current?.dispose()
+    }
+  })
+
+  const selectGoogleFolder = async () => {
+    if (googleProviderState.lastSelectedFolder) {
+      // ask to use saved previous fodler
+      const choice = await showOptionsModal(`Use previously selected folder "${googleProviderState.lastSelectedFolder.name}"?`, ['Yes', 'No'])
+      if (!choice) return
+      if (choice === 'Yes') {
+        worldsProxy.selectedGoogleId = googleProviderState.lastSelectedFolder.id
+        return
+      }
+    }
+
+    const { google } = window
+
+    const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
+      .setIncludeFolders(true)
+      .setMimeTypes('application/vnd.google-apps.folder')
+      .setSelectFolderEnabled(true)
+      .setParent('root')
+
+
+    googlePicker.current = new google.picker.PickerBuilder()
+      .enableFeature(google.picker.Feature.NAV_HIDDEN)
+      .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
+      .setDeveloperKey('AIzaSyBTiHpEqaLL7mEcrsnSS4M-z8cpRH5UwY0')
+      .setAppId(APP_ID)
+      .setOAuthToken(googleProviderState.accessToken)
+      .addView(view)
+      .addView(new google.picker.DocsUploadView())
+      .setTitle('Select a folder with your worlds')
+      .setCallback((data) => {
+        if (data.action === google.picker.Action.PICKED) {
+          googleProviderState.lastSelectedFolder = {
+            id: data.docs[0].id,
+            name: data.docs[0].name,
+          }
+          worldsProxy.selectedGoogleId = data.docs[0].id
+        }
+      })
+      .build()
+    googlePicker.current.setVisible(true)
+  }
+
+  const isGoogleProviderReady = useSnapshot(googleProviderState).isReady
+  const providerActions = loggedIn && selectedProvider === 'google' && isGoogleProviderReady && !selectedGoogleId ? {
+    'Select Folder': selectGoogleFolder
+  } : selectedProvider === 'google' ? isGoogleProviderReady ? loggedIn ? {
     'Log Out' () {
-      googleProviderData.hasEverLoggedIn = false
-      googleProviderData.accessToken = null
-      googleProviderData.lastSelectedFolder = null
-      window.google.accounts.oauth2.revoke(googleProviderData.accessToken)
+      googleProviderState.hasEverLoggedIn = false
+      googleProviderState.accessToken = null
+      googleProviderState.lastSelectedFolder = null
+      window.google.accounts.oauth2.revoke(googleProviderState.accessToken)
     },
     async [`Read Only: ${googleDriveReadonly ? 'ON' : 'OFF'}`] () {
-      if (googleProviderData.readonlyMode) {
+      if (googleProviderState.readonlyMode) {
         const choice = await showOptionsModal('[Unstable Feature] Enabling world save might corrupt your worlds, eg remove entities (note: you can always restore previous version of files in Drive)', ['Continue'])
         if (choice !== 'Continue') return
       }
-      googleProviderData.readonlyMode = !googleProviderData.readonlyMode
+      googleProviderState.readonlyMode = !googleProviderState.readonlyMode
     },
+    'Select Folder': selectGoogleFolder,
     // 'Worlds Path': <Input rootStyles={{ width: 100 }} placeholder='Worlds path' defaultValue={worldsPath} onBlur={(e) => {
     //   googleProviderData.worldsPath = e.target.value
     // }} />
@@ -224,48 +271,9 @@ const Inner = () => {
   } : undefined
   // end
 
-  useEffect(() => {
-    let picker
-    if (loggedIn && selectedProvider === 'google' && isGoogleProviderReady) {
-      const { google } = window
-
-      const view = new google.picker.DocsView(google.picker.ViewId.FOLDERS)
-        .setIncludeFolders(true)
-        .setMimeTypes('application/vnd.google-apps.folder')
-        .setSelectFolderEnabled(true)
-        .setParent('root')
-
-
-      picker = new google.picker.PickerBuilder()
-        .enableFeature(google.picker.Feature.NAV_HIDDEN)
-        .enableFeature(google.picker.Feature.MULTISELECT_ENABLED)
-        .setDeveloperKey('AIzaSyBTiHpEqaLL7mEcrsnSS4M-z8cpRH5UwY0')
-        .setAppId(APP_ID)
-        .setOAuthToken(googleProviderData.accessToken)
-        .addView(view)
-        .addView(new google.picker.DocsUploadView())
-        .setTitle('Select a folder with your worlds')
-        .setCallback((data) => {
-          if (data.action === google.picker.Action.PICKED) {
-            googleProviderData.lastSelectedFolder = {
-              id: data.docs[0].id,
-              name: data.docs[0].name,
-            }
-            setSelectedGoogleId(data.docs[0].id)
-          }
-        })
-        .build()
-      picker.setVisible(true)
-    }
-
-    return () => {
-      if (picker) picker.dispose()
-    }
-  }, [selectedProvider, loggedIn])
-
   return <Singleplayer
     error={error}
-    isReadonly={selectedProvider === 'google' && (googleDriveReadonly || !isGoogleProviderReady)}
+    isReadonly={selectedProvider === 'google' && (googleDriveReadonly || !isGoogleProviderReady || !selectedGoogleId)}
     providers={{
       local: 'Local',
       google: 'Google Drive',

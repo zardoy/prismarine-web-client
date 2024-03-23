@@ -25,9 +25,9 @@ export const useGoogleLogIn = () => {
   const login = useGoogleLogin({
     onSuccess (tokenResponse) {
       localStorage.hasEverLoggedIn = true
-      googleProviderData.accessToken = tokenResponse.access_token
-      googleProviderData.expiresIn = ref(new Date(Date.now() + tokenResponse.expires_in * 1000))
-      googleProviderData.hasEverLoggedIn = true
+      googleProviderState.accessToken = tokenResponse.access_token
+      googleProviderState.expiresIn = ref(new Date(Date.now() + tokenResponse.expires_in * 1000))
+      googleProviderState.hasEverLoggedIn = true
     },
     // prompt: hasEverLoggedIn ? 'none' : 'consent',
     scope: SCOPES,
@@ -35,12 +35,12 @@ export const useGoogleLogIn = () => {
     onError (error) {
       const accessDenied = error.error === 'access_denied' || error.error === 'invalid_scope' || (error as any).error_subtype === 'access_denied'
       if (accessDenied) {
-        googleProviderData.hasEverLoggedIn = false
+        googleProviderState.hasEverLoggedIn = false
       }
     }
   })
   return () => login({
-    prompt: googleProviderData.hasEverLoggedIn ? 'none' : 'consent'
+    prompt: googleProviderState.hasEverLoggedIn ? 'none' : 'consent'
   })
 }
 
@@ -61,11 +61,11 @@ export const possiblyHandleStateVariable = async () => {
     async callback (response) {
       if (response.error) {
         setLoadingScreenStatus('Error: ' + response.error, true)
-        googleProviderData.hasEverLoggedIn = false
+        googleProviderState.hasEverLoggedIn = false
         return
       }
       setLoadingScreenStatus('Opening world in read only mode...')
-      googleProviderData.accessToken = response.access_token
+      googleProviderState.accessToken = response.access_token
       await mountGoogleDriveFolder(true, parsed.ids[0])
       await loadInMemorySave('/google')
     }
@@ -73,14 +73,14 @@ export const possiblyHandleStateVariable = async () => {
   const choice = await showOptionsModal('Select an action...', ['Login'])
   if (choice === 'Login') {
     tokenClient.requestAccessToken({
-      prompt: googleProviderData.hasEverLoggedIn ? '' : 'consent',
+      prompt: googleProviderState.hasEverLoggedIn ? '' : 'consent',
     })
   } else {
     window.close()
   }
 }
 
-export const googleProviderData = proxy({
+export const googleProviderState = proxy({
   accessToken: (localStorage.saveAccessToken ? localStorage.accessToken : null) as string | null,
   hasEverLoggedIn: !!(localStorage.hasEverLoggedIn),
   isReady: false,
@@ -92,18 +92,18 @@ export const googleProviderData = proxy({
   } | null
 })
 
-subscribe(googleProviderData, () => {
-  localStorage.googleReadonlyMode = googleProviderData.readonlyMode
-  localStorage.lastSelectedFolder = googleProviderData.lastSelectedFolder ? JSON.stringify(googleProviderData.lastSelectedFolder) : null
-  if (googleProviderData.hasEverLoggedIn) {
+subscribe(googleProviderState, () => {
+  localStorage.googleReadonlyMode = googleProviderState.readonlyMode
+  localStorage.lastSelectedFolder = googleProviderState.lastSelectedFolder ? JSON.stringify(googleProviderState.lastSelectedFolder) : null
+  if (googleProviderState.hasEverLoggedIn) {
     localStorage.hasEverLoggedIn = true
   } else {
     delete localStorage.hasEverLoggedIn
   }
 
-  if (localStorage.saveAccessToken && googleProviderData) {
+  if (localStorage.saveAccessToken && googleProviderState) {
     // For testing only
-    localStorage.accessToken = googleProviderData.accessToken || null
+    localStorage.accessToken = googleProviderState.accessToken || null
   } else {
     delete localStorage.accessToken
   }
