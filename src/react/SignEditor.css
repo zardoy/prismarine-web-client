@@ -8,7 +8,7 @@
 }
 
 .signs-editor-inner-container {
-  position: absolute;
+  position: relative;
   width: 700px;
   aspect-ratio: 2;
   display: flex;
@@ -27,7 +27,7 @@
 
 .sign-editor {
   font: inherit;
-  font-size: 450%;
+  font-size: 420%;
   width: 90%;
   max-height: 90%;
   background-color: rgba(255, 255, 255, 0);
@@ -57,6 +57,9 @@
   .ProseMirror p {
     font-size: 310%;
   }
+  .sign-editor {
+    font-size: 310%;
+  }
   .signs-editor-inner-container {
     width: 500px;
   }
@@ -66,6 +69,9 @@
   .ProseMirror p {
     font-size: 180%;
   }
+  .sign-editor {
+    font-size: 180%;
+  }
   .signs-editor-inner-container {
     width: 300px;
   }
@@ -73,6 +79,9 @@
 
 @media (max-width: 350px) {
   .ProseMirror p {
+    font-size: 130%;
+  }
+  .sign-editor {
     font-size: 130%;
   }
   .signs-editor-inner-container {
