@@ -22,6 +22,10 @@ subscribe(customKeymaps, () => {
   localStorage.keymap = JSON.parse(customKeymaps)
 })
 
+const controlOptions = {
+  preventDefault: true
+}
+
 export const contro = new ControMax({
   commands: {
     general: {
@@ -58,6 +62,7 @@ export const contro = new ControMax({
     }
   },
 }, {
+  defaultControlOptions: controlOptions,
   target: document,
   captureEvents () {
     return bot && isGameActive(false)
@@ -70,6 +75,10 @@ export const contro = new ControMax({
 })
 window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
+
+export const setDoPreventDefault = (state: boolean) => {
+  controlOptions.preventDefault = state
+}
 
 const setSprinting = (state: boolean) => {
   bot.setControlState('sprint', state)
