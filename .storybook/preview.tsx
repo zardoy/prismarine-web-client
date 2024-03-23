@@ -7,11 +7,12 @@ import './storybook.css'
 
 const preview: Preview = {
   decorators: [
-    (Story) => (
-      <div id='ui-root'>
+    (Story, c) => {
+      const noScaling = c.parameters.noScaling
+      return <div id={noScaling ? '' : 'ui-root'}>
         <Story />
-      </div>
-    ),
+      </div>;
+    },
   ],
   parameters: {
     actions: { argTypesRegex: "^on[A-Z].*" },

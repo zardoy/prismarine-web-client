@@ -18,5 +18,8 @@ export const Primary: Story = {
   args: {
     handleInput () {},
     isWysiwyg: false
-  }
+  },
+  parameters: {
+    noScaling: true
+  },
 }
