@@ -19,6 +19,7 @@ const isWysiwyg = async () => {
 
 export default () => {
   const [location, setLocation] = useState<{x: number, y: number, z: number} | null>(null)
+  const [isFrontText, setIsFrontText] = useState(true)
   const text = useRef<string[]>(['', '', '', ''])
   const [enableWysiwyg, setEnableWysiwyg] = useState(false)
   const isModalActive = useIsModalActive('signs-editor-screen')
@@ -28,6 +29,7 @@ export default () => {
     if ('plainText' in result) {
       bot._client.write('update_sign', {
         location,
+        isFrontText,
         text1: result.plainText[0],
         text2: result.plainText[1],
         text3: result.plainText[2],
@@ -62,6 +64,7 @@ export default () => {
   useMemo(() => {
     bot._client.on('open_sign_entity', (packet) => {
       if (!options.autoSignEditor) return
+      setIsFrontText((packet as any).isFrontText ?? true)
       setLocation(prev => packet.location)
       showModal({ reactType: 'signs-editor-screen' })
       if (options.wysiwygSignEditor === 'auto') {
