@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { focusable } from 'tabbable'
 import markdownToFormattedText from '../markdownToFormattedText'
 import { ProseMirrorView } from './prosemirror-markdown'
 import Button from './Button'
@@ -23,20 +24,7 @@ export type ResultType = {
 
 export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
   const prosemirrorContainer = useRef(null)
-  const currentInputIndex = useRef(0)
   const editorView = useRef<ProseMirrorView | null>(null)
-
-  const highlightCurrentInput = (inputs: HTMLCollectionOf<HTMLInputElement>) => {
-    const inputsArray = [...inputs]
-    for (const [index, input] of inputsArray.entries()) {
-      if (index === currentInputIndex.current) {
-        input.classList.add('selected')
-        input.focus()
-      } else {
-        input.classList.remove('selected')
-      }
-    }
-  }
 
   useEffect(() => {
     if (isWysiwyg) {
@@ -44,28 +32,34 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
     }
   }, [isWysiwyg])
 
-  useEffect(() => {
-    const inputs = document.getElementsByClassName('sign-editor') as HTMLCollectionOf<HTMLInputElement>
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') {
-        currentInputIndex.current = Math.max(currentInputIndex.current - 1, 0)
-        highlightCurrentInput(inputs)
-      } else if (e.key === 'ArrowDown' || e.key === 'Enter') {
-        currentInputIndex.current = Math.min(currentInputIndex.current + 1, inputs.length - 1)
-        highlightCurrentInput(inputs)
-      } 
-    })
-  }, [])
-
-  return <div className='signs-editor-container'>
+  return <div
+    className='signs-editor-container'
+    onKeyDown={(e) => {
+      let { code } = e
+      if ((e.target as HTMLElement).matches('input') && e.key === 'Enter') code = 'ArrowDown'
+      if (code === 'ArrowDown' || code === 'ArrowUp') {
+        e.preventDefault()
+        const dir = code === 'ArrowDown' ? 1 : -1
+        const elements = focusable(e.currentTarget)
+        const focusedElemIndex = elements.indexOf(document.activeElement as HTMLElement)
+        if (focusedElemIndex === -1) return
+        const nextElem = elements[focusedElemIndex + dir]
+        nextElem?.focus()
+      }
+    }}>
     <div className='signs-editor-inner-container'>
       <img className='signs-editor-bg-image' src={imageSource} alt='' />
       {isWysiwyg ? (
         <p ref={prosemirrorContainer} className='wysiwyg-editor'></p>
       ) : [1, 2, 3, 4].map((value, index) => {
-        return <input className='sign-editor' key={index} data-key={index} maxLength={15} onInput={(e) => {
-          handleInput(e.currentTarget)
-        }} />
+        return <input
+          className='sign-editor'
+          key={index}
+          data-key={index}
+          maxLength={15} // overriden by handleInput
+          onChange={(e) => {
+            handleInput(e.currentTarget)
+          }} />
       })
       }
       <Button onClick={async () => {
