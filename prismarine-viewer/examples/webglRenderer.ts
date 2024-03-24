@@ -91,8 +91,8 @@ export const initWebglRenderer = async (version) => {
         cubePositions[i] = Math.random() * 1000 - 500;
         cubePositions[i + 1] = Math.random() * 1000 - 500;
         cubePositions[i + 2] = Math.random() * 100 - 100;
-        // cubeTextureIndices[i / 3] = Math.floor(Math.random() * 400 + 400);
-        cubeTextureIndices[i / 3] = 0;
+        cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
+        // cubeTextureIndices[i / 3] = 0;
     }
     cubePositions[0] = 0;
     cubePositions[1] = 0;

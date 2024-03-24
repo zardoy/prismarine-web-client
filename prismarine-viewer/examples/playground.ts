@@ -68,7 +68,7 @@ async function main () {
   let continuousRender = false
 
   // const { version } = params
-  const version = '1.18.1'
+  const version = '1.14.4'
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
