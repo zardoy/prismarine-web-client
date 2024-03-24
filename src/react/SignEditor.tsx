@@ -35,6 +35,8 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
   return <div
     className='signs-editor-container'
     onKeyDown={(e) => {
+      // arrow down/up, Enter to navigate between lines
+      if (isWysiwyg) return // todo
       let { code } = e
       if ((e.target as HTMLElement).matches('input') && e.key === 'Enter') code = 'ArrowDown'
       if (code === 'ArrowDown' || code === 'ArrowUp') {
