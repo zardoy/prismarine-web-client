@@ -27,7 +27,7 @@ export const updateCubePositions = () => {
     updateCubes()
 }
 
-export const cubePositionsRaw = [] as [number, number, number, string | null][]
+export let cubePositionsRaw = [] as [number, number, number, string | null][]
 
 export const initWebglRenderer = async (version) => {
     const stats = new Stats()
@@ -101,6 +101,16 @@ export const initWebglRenderer = async (version) => {
     let instanceVBO = gl.createBuffer();
     let instanceTextureID = gl.createBuffer();
     updateCubes = () => {
+        return
+        // cubePositionsRaw = [
+        //     // for now one cube in front of the camera
+        //     [viewer.camera.position.x, viewer.camera.position.y, viewer.camera.position.z, 'dirt'],
+        //     [viewer.camera.position.x + 2, viewer.camera.position.y, viewer.camera.position.z, 'dirt'],
+        //     [viewer.camera.position.x - 2, viewer.camera.position.y, viewer.camera.position.z, 'dirt'],
+        //     [viewer.camera.position.x, viewer.camera.position.y, viewer.camera.position.z + 2, 'dirt'],
+        //     [viewer.camera.position.x, viewer.camera.position.y, viewer.camera.position.z - 2, 'dirt'],
+        // ]
+
         cubePositions = new Float32Array(cubePositionsRaw.length * 3)
         cubeTextureIndices = new Float32Array(cubePositionsRaw.length);
 
@@ -122,7 +132,15 @@ export const initWebglRenderer = async (version) => {
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
-    updateCubes()
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
+    gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
+    gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    // updateCubes()
     globalThis.updateCubes = updateCubes
 
 
@@ -200,8 +218,8 @@ export const initWebglRenderer = async (version) => {
 
     // mouse
     const mouse = { x: 0, y: 0 }
-    const mouseMove = (e) => {
-        if (e.buttons === 1) {
+    const mouseMove = (e: PointerEvent) => {
+        if (e.buttons === 1 || e.pointerType === 'touch') {
             viewer.camera.rotation.y += e.movementX / 20
             viewer.camera.rotation.x += e.movementY / 20
             console.log('viewer.camera.position', viewer.camera.position)
@@ -212,7 +230,7 @@ export const initWebglRenderer = async (version) => {
             viewer.camera.position.set(0, 0, 0)
         }
     }
-    window.addEventListener('mousemove', mouseMove)
+    window.addEventListener('pointermove', mouseMove)
 
     viewer.world.texturesVersion = version
     viewer.world.updateTexturesData()

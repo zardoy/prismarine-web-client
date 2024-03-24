@@ -14,11 +14,13 @@ import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
 // import * as Mathgl from 'math.gl'
 import { findTextureInBlockStates } from '../../src/playerWindows'
-import { initWeblRenderer } from './webglRenderer'
+import { initWebglRenderer } from './webglRenderer'
+import { renderToDom } from '@zardoy/react-util'
 
 globalThis.THREE = THREE
 //@ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { renderPlayground } from './TouchControls2'
 
 const gui = new GUI()
 
@@ -134,7 +136,8 @@ async function main () {
   viewer.setVersion(version)
   globalThis.viewer = viewer
 
-  await initWeblRenderer(version)
+  await initWebglRenderer(version)
+  renderPlayground()
 
   // Create viewer
 
