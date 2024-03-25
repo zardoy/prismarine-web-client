@@ -5734,7 +5734,7 @@ packages:
       prismarine-nbt: 2.5.0
       prismarine-provider-anvil: github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.62.0)
       prismarine-windows: 2.9.0
-      prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
+      prismarine-world: github.com/zardoy/prismarine-world/6ae6f009d38460de284f8c226c665f04cbad9465
       random-seed: 0.3.0
       range: 0.0.3
       readline: 1.3.0
@@ -12505,7 +12505,7 @@ packages:
       minecraft-data: 3.62.0
       prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
       prismarine-nbt: 2.2.1
-      prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
+      prismarine-world: github.com/zardoy/prismarine-world/6ae6f009d38460de284f8c226c665f04cbad9465
       vec3: 0.1.8
     dev: false
 
@@ -15955,7 +15955,7 @@ packages:
       prismarine-recipe: 1.3.1(prismarine-registry@1.7.0)
       prismarine-registry: 1.7.0
       prismarine-windows: 2.9.0
-      prismarine-world: github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786
+      prismarine-world: github.com/zardoy/prismarine-world/6ae6f009d38460de284f8c226c665f04cbad9465
       protodef: 1.15.0
       typed-emitter: 1.4.0
       vec3: 0.1.8
@@ -16063,8 +16063,8 @@ packages:
       - minecraft-data
     dev: false
 
-  github.com/zardoy/prismarine-world/c358222204d21fe7d45379fbfcefb047f926c786:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-world/tar.gz/c358222204d21fe7d45379fbfcefb047f926c786}
+  github.com/zardoy/prismarine-world/6ae6f009d38460de284f8c226c665f04cbad9465:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-world/tar.gz/6ae6f009d38460de284f8c226c665f04cbad9465}
     name: prismarine-world
     version: 3.6.2
     engines: {node: '>=8.0.0'}
