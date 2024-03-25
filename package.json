@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node scripts/build.js copyFilesDev && node scripts/prepareData.mjs && node esbuild.mjs --watch",
     "start-watch-script": "nodemon -w esbuild.mjs --watch",
-    "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod",
+    "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod && node buildWorkers.mjs",
     "check-build": "tsc && pnpm test-unit && pnpm build",
     "test:cypress": "cypress run",
     "test:cypress:perf": "cypress run --spec cypress/e2e/perf.spec.ts --browser edge",
