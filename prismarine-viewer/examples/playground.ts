@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import _ from 'lodash'
 import { WorldDataEmitter, Viewer, MapControls } from '../viewer'
 import { Vec3 } from 'vec3'
@@ -12,6 +13,11 @@ import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
+//import FragShader from './shader.frag?raw'
+//@ts-ignore
+import VertShader from './_VertexShader.vert'
+//@ts-ignore
+import FragShader from './_FragmentShader.frag'
 
 globalThis.THREE = THREE
 //@ts-ignore
@@ -132,8 +138,24 @@ async function main () {
   renderer.setSize(window.innerWidth, window.innerHeight)
   document.body.appendChild(renderer.domElement)
 
+  const geometry = new THREE.PlaneGeometry( 2, 2 ); // RenderPlane on all Screen for shaderspace
+  let uniforms = {};
+  const material = new THREE.ShaderMaterial( {
+
+    uniforms: uniforms,
+    vertexShader: VertShader,
+    fragmentShader: FragShader
+  } );
+  const pos = new Float32Array([1,1,0,0,2,2])
+  geometry.setAttribute('position', new THREE.BufferAttribute(pos,3))
+
+  const mesh = new THREE.Mesh( geometry, material );
+
   // Create viewer
   const viewer = new Viewer(renderer, 1)
+  viewer.scene.add(mesh);
+  viewer.render()
+  return
   viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
   viewer.entities.onSkinUpdate = () => {
@@ -329,6 +351,7 @@ async function main () {
     setTimeout(() => {
       viewer.update()
       viewer.render()
+      console.log(VertShader)
     }, TWEEN_DURATION)
   }
 
