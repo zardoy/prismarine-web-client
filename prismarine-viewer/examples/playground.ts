@@ -135,9 +135,63 @@ async function main () {
   const viewer = new Viewer(nullRenderer, 1)
   viewer.setVersion(version)
   globalThis.viewer = viewer
+  await new Promise(resolve => {
+        // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
+        // viewer.world.material.map!.image.onload = () => {
+        //   console.log(this.material.map!.image)
+        //   resolve()
+        // }
+        viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', resolve)
+    })
 
   await initWebglRenderer(version)
+  const simpleControls = () => {
+    const keys = (e) => {
+      const code = e.code
+      const pressed = e.type === 'keydown'
+      if (pressed) {
+        if (code === 'KeyW') {
+          viewer.camera.position.z -= 1
+        }
+        if (code === 'KeyS') {
+          viewer.camera.position.z += 1
+        }
+        if (code === 'KeyA') {
+          viewer.camera.position.x -= 1
+        }
+        if (code === 'KeyD') {
+          viewer.camera.position.x += 1
+        }
+        if (code === 'ShiftLeft') {
+          viewer.camera.position.y -= 0.5
+        }
+        if (code === 'Space') {
+          viewer.camera.position.y += 0.5
+        }
+      }
+    }
+    window.addEventListener('keydown', keys)
+    window.addEventListener('keyup', keys)
+
+    // mouse
+    const mouse = { x: 0, y: 0 }
+    const mouseMove = (e: PointerEvent) => {
+      if (e.buttons === 1 || e.pointerType === 'touch') {
+        viewer.camera.rotation.y += e.movementX / 20
+        viewer.camera.rotation.x += e.movementY / 20
+        console.log('viewer.camera.position', viewer.camera.position)
+        // yaw += e.movementY / 20;
+        // pitch += e.movementX / 20;
+      }
+      if (e.buttons === 2) {
+        viewer.camera.position.set(0, 0, 0)
+      }
+    }
+    window.addEventListener('pointermove', mouseMove)
+  }
+  simpleControls()
   renderPlayground()
+  return
 
   // Create viewer
 

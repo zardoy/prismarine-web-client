@@ -97,6 +97,7 @@ import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
 import { initWebglRenderer } from 'prismarine-viewer/examples/webglRenderer'
+import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 
 window.debug = debug
 window.THREE = THREE
@@ -123,12 +124,6 @@ try {
 // renderer.localClippingEnabled = true
 initWithRenderer(renderer.domElement)
 window.renderer = renderer
-let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
-if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
-renderer.setPixelRatio(pixelRatio)
-renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.domElement.id = 'viewer-canvas'
-document.body.appendChild(renderer.domElement)
 
 const isFirefox = ua.getBrowser().name === 'Firefox'
 if (isFirefox) {
@@ -173,70 +168,8 @@ watchValue(options, (o) => {
 })
 
 let postRenderFrameFn = () => { }
-let delta = 0
-let lastTime = performance.now()
-let previousWindowWidth = window.innerWidth
-let previousWindowHeight = window.innerHeight
-let max = 0
-let rendered = 0
-let windowFocused = true
-window.addEventListener('focus', () => {
-  windowFocused = true
+void initWebglRenderer('1.14.4').then((canvas) => {
 })
-window.addEventListener('blur', () => {
-  windowFocused = false
-})
-const renderFrame = (time: DOMHighResTimeStamp) => {
-  if (window.stopLoop) return
-  for (const fn of beforeRenderFrame) fn()
-  window.requestAnimationFrame(renderFrame)
-  if (window.stopRender || renderer.xr.isPresenting || !windowFocused) return
-  if (renderInterval) {
-    delta += time - lastTime
-    lastTime = time
-    if (delta > renderInterval) {
-      delta %= renderInterval
-      // continue rendering
-    } else {
-      return
-    }
-  }
-  // ios bug: viewport dimensions are updated after the resize event
-  if (previousWindowWidth !== window.innerWidth || previousWindowHeight !== window.innerHeight) {
-    resizeHandler()
-    previousWindowWidth = window.innerWidth
-    previousWindowHeight = window.innerHeight
-  }
-  statsStart()
-  viewer.update()
-  viewer.render()
-  rendered++
-  postRenderFrameFn()
-  statsEnd()
-}
-renderFrame(performance.now())
-setInterval(() => {
-  if (max > 0) {
-    viewer.world.droppedFpsPercentage = rendered / max
-  }
-  max = Math.max(rendered, max)
-  rendered = 0
-}, 1000)
-
-const resizeHandler = () => {
-  const width = window.innerWidth
-  const height = window.innerHeight
-
-  viewer.camera.aspect = width / height
-  viewer.camera.updateProjectionMatrix()
-  renderer.setSize(width, height)
-
-  if (viewer.composer) {
-    viewer.updateComposerSize()
-  }
-}
-
-initWebglRenderer('1.14.4')
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
 
