@@ -10,7 +10,7 @@ import { toMajor } from './version.js'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
-import { cubePositionsRaw, updateCubePositions } from '../../examples/webglRenderer'
+import { addBlocksSection } from '../../examples/webglRenderer'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -89,11 +89,12 @@ export class WorldRenderer {
           const chunkCoords = data.key.split(',')
           if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 
+          addBlocksSection(data.key, data.geometry)
           this.newChunks[data.key] = data.geometry
-          cubePositionsRaw.push(...Object.entries(data.geometry.blocks).map(([pos, block]) => {
-            return [...pos.split(',').map(Number), block] as [number, number, number, string]
-          }))
-          updateCubePositions()
+          // cubePositionsBySections[data.key].push(...Object.entries(data.geometry.blocks).map(([pos, block]) => {
+          //   return [...pos.split(',').map(Number), block] as [number, number, number, string]
+          // }))
+          // updateCubePositions()
 
           // if (!this.initialChunksLoad && this.enableChunksLoadDelay) {
           //   const newPromise = new Promise(resolve => {

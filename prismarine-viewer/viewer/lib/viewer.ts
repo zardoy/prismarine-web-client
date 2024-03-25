@@ -7,7 +7,6 @@ import { Primitives } from './primitives'
 import { getVersion } from './version'
 import EventEmitter from 'events'
 import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
-import { makeRender } from '../../examples/webglRenderer'
 
 export class Viewer {
   scene: THREE.Scene
@@ -194,7 +193,6 @@ export class Viewer {
   }
 
   render () {
-    makeRender()
     // if (this.composer) {
     //   this.renderPass.camera = this.camera
     //   this.composer.render()

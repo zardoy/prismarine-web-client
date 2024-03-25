@@ -4,22 +4,25 @@ let worker
 
 declare const viewer: Viewer
 
-export const makeRender = () => { }
-
-let cubePositions
-let updateCubes
-export const updateCubePositions = () => {
-    updateCubes()
-}
-
-export let cubePositionsRaw = [] as [number, number, number, string | null][]
-
 const sendWorkerMessage = (message: any, transfer?: Transferable[]) => {
     worker.postMessage(message, transfer)
     // replacable by onmessage
 }
 
-export const initWebglRenderer = async (version: string | undefined) => {
+export const addBlocksSection = (key, data) => {
+    sendWorkerMessage({ type: 'addBlocksSection', data, key })
+}
+
+export const initWebglRenderer = async (version: string, postRender = () => { }) => {
+    viewer.setVersion(version)
+    await new Promise(resolve => {
+        // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
+        // viewer.world.material.map!.image.onload = () => {
+        //   console.log(this.material.map!.image)
+        //   resolve()
+        // }
+        viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', resolve)
+    })
     const imageBlob = await fetch(`./textures/${version}.png`).then((res) => res.blob())
     const canvas = document.createElement('canvas')
     canvas.width = window.innerWidth * window.devicePixelRatio
@@ -64,6 +67,7 @@ export const initWebglRenderer = async (version: string | undefined) => {
                 height: window.innerHeight * window.devicePixelRatio
             })
         }
+        postRender()
         if (['rotation', 'position'].some((key) => oldCamera[key] !== viewer.camera[key])) {
             // TODO fix
             for (const [key, val] of Object.entries(oldCamera)) {

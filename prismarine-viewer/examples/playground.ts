@@ -135,14 +135,6 @@ async function main () {
   const viewer = new Viewer(nullRenderer, 1)
   viewer.setVersion(version)
   globalThis.viewer = viewer
-  await new Promise(resolve => {
-        // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
-        // viewer.world.material.map!.image.onload = () => {
-        //   console.log(this.material.map!.image)
-        //   resolve()
-        // }
-        viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', resolve)
-    })
 
   await initWebglRenderer(version)
   const simpleControls = () => {

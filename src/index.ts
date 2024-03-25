@@ -97,7 +97,7 @@ import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
 import { initWebglRenderer } from 'prismarine-viewer/examples/webglRenderer'
-import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
+// import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 
 window.debug = debug
 window.THREE = THREE
@@ -168,8 +168,6 @@ watchValue(options, (o) => {
 })
 
 let postRenderFrameFn = () => { }
-void initWebglRenderer('1.14.4').then((canvas) => {
-})
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
 
@@ -387,6 +385,10 @@ async function connect (connectOptions: {
     if (downloadVersion) {
       await downloadMcData(downloadVersion)
     }
+    await initWebglRenderer(downloadVersion, () => {
+      postRenderFrameFn()
+      // viewer.update()
+    })
 
     if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:

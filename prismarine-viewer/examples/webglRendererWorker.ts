@@ -6,43 +6,41 @@ import VertShader from './_VertexShader.vert'
 import FragShader from './_FragmentShader.frag'
 
 let blockStates
-
-const findTextureInBlockStates = (name): any => {
-    // assertDefined(viewer)
-    // const blockStates: BlockStates = viewer.world.customBlockStatesData || viewer.world.downloadedBlockStatesData
-    // const vars = blockStates[name]?.variants
-    // if (!vars) return
-    // let firstVar = Object.values(vars)[0]
-    // if (Array.isArray(firstVar)) firstVar = firstVar[0]
-    // if (!firstVar) return
-    // const elements = firstVar.model?.elements
-    // if (elements?.length !== 1) return
-    // return elements[0].faces
-}
-
-let cubePositionsRaw = [] as [number, number, number, string | null][]
+let newSectionsData = {}
+let rendering = true
+let cubePositions
+let updateCubes
 
 const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 1000)
+
+let renderedFrames = 0
+setInterval(() => {
+    // console.log('FPS:', renderedFrames)
+    renderedFrames = 0
+}, 1000)
+
+const findTextureInBlockStates = (name): any => {
+    const vars = blockStates[name]?.variants
+    if (!vars) return
+    let firstVar = Object.values(vars)[0] as any
+    if (Array.isArray(firstVar)) firstVar = firstVar[0]
+    if (!firstVar) return
+    const elements = firstVar.model?.elements
+    if (elements?.length !== 1) return
+    return elements[0].faces
+}
 
 const updateSize = (width, height) => {
     camera.aspect = width / height
     camera.updateProjectionMatrix()
 }
 
-let renderedFrames = 0
-setInterval(() => {
-    console.log('FPS:', renderedFrames)
-    renderedFrames = 0
-}, 1000)
-
-let rendering = true
-let cubePositions
-let updateCubes
 const updateCubePositions = () => {
     updateCubes()
 }
 
 export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, blockStatesJson: any) => {
+    blockStates = blockStatesJson
     const textureBitmap = await createImageBitmap(imageBlob)
     const textureWidth = textureBitmap.width
     const textureHeight = textureBitmap.height
@@ -123,29 +121,42 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         //     [camera.position.x, camera.position.y, camera.position.z + 2, 'dirt'],
         //     [camera.position.x, camera.position.y, camera.position.z - 2, 'dirt'],
         // ]
-        // NumberOfCube = cubePositionsRaw.length
-        // cubePositions = new Float32Array(NumberOfCube * 3)
-        // cubeTextureIndices = new Float32Array(NumberOfCube);
-        // for (let i = 0; i < NumberOfCube * 3; i += 3) {
-        //     cubePositions[i] = cubePositionsRaw[i / 3][0]
-        //     cubePositions[i + 1] = cubePositionsRaw[i / 3][1]
-        //     cubePositions[i + 2] = cubePositionsRaw[i / 3][2]
-        //     cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
-        //     const name = cubePositionsRaw[i / 3][3]
-        //     const result = findTextureInBlockStates(name)?.north.texture! ?? findTextureInBlockStates('sponge')?.north.texture!
-        //     const tileSize = 16;
-        //     function uvToTextureIndex (u, v) {
-        //         // Convert pixel coordinates to tile index
-        //         const tileX = Math.floor(u * textureWidth / tileSize);
-        //         const tileY = Math.floor(v * textureHeight / tileSize);
+        const keys = Object.keys(newSectionsData);
+        if (keys.length) {
+            const cubePositionsRaw = keys.flatMap((key: any) => {
+                const chunk = newSectionsData[key]
+                return Object.entries(chunk.blocks).map(([pos, blockName]) => {
+                    return [...pos.split(',').map(Number), blockName] as [number, number, number, string]
+                })
+            })
+            NumberOfCube = cubePositionsRaw.length
+            cubePositions = new Float32Array(NumberOfCube * 3)
+            cubeTextureIndices = new Float32Array(NumberOfCube);
+            for (let i = 0; i < NumberOfCube * 3; i += 3) {
+                cubePositions[i] = cubePositionsRaw[i / 3][0]
+                cubePositions[i + 1] = cubePositionsRaw[i / 3][1]
+                cubePositions[i + 2] = cubePositionsRaw[i / 3][2]
+                cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
+                const name = cubePositionsRaw[i / 3][3]
+                const result = findTextureInBlockStates(name)?.north?.texture! ?? findTextureInBlockStates('sponge')?.north.texture!
+                const tileSize = 16;
+                function uvToTextureIndex (u, v) {
+                    // Convert UV coordinates to pixel coordinates
+                    let x = u * textureWidth;
+                    let y = v * textureHeight;
 
-        //         // Calculate texture index
-        //         const textureIndex = tileY * (textureWidth / tileSize) + tileX;
+                    // Convert pixel coordinates to tile index
+                    const tileX = Math.floor(x / tileSize);
+                    const tileY = Math.floor(y / tileSize);
 
-        //         return textureIndex;
-        //     }
-        //     cubeTextureIndices[i / 3] = uvToTextureIndex(result.u, result.v)
-        // }
+                    // Calculate texture index
+                    const textureIndex = tileY * (textureWidth / tileSize) + tileX;
+
+                    return textureIndex;
+                }
+                cubeTextureIndices[i / 3] = uvToTextureIndex(result.u, result.v) - 1
+            }
+        }
 
         let instanceVBO = gl.createBuffer();
         let instanceTextureID = gl.createBuffer();
@@ -257,6 +268,8 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     updateSize(gl.canvas.width, gl.canvas.height)
     const renderLoop = (performance) => {
+        requestAnimationFrame(renderLoop)
+        if (!rendering) return
         // gl.canvas.width = window.innerWidth * window.devicePixelRatio
         // gl.canvas.height = window.innerHeight * window.devicePixelRatio
         if (newWidth || newHeight) {
@@ -298,41 +311,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, NumberOfCube);
         //gl.bindVertexArray(null)
 
-        //let i = 0
-        // const cubePositions = Object.values(viewer.world.newChunks).map((chunk: any) => {
-        //     return Object.entries(chunk.blocks).map(([pos, block]) => {
-        //         return [...pos.split(',').map(Number), block] as [number, number, number, string]
-        //     })
-        // }).flat()
-
-
-        // cubePositions.forEach(([x, y, z, name]) => {
-        //     if (result || true) {
-        //         const model = m4.identity()
-
-        //         //m4.rotateX(model, performance / 1000*i/800 + Math.random() / 100, model);
-        //         //m4.rotateY(model, performance / 2500*i/800 + Math.random() / 100, model)
-        //         //m4.rotateZ(model, Math.random() / 1010, model)
-        //         m4.translate(model, [x, y, z], model);
-        //         gl.uniformMatrix4fv(ModelUniform, false, model);
-        //         const u = i / 64;
-        //         const v = i % 64;
-        //         // const u = result.u + result.su
-        //         // const v = result.v
-        //         gl.uniform2fv(uvUniform, [u, v])
-
-        //         i++
-        //         i %= 800;
-
-        //         gl.drawArrays(gl.TRIANGLES, 0, 36);
-        //     }
-        // })
-
-
-        ///model.translate([0, 0, 0], model)
-
         renderedFrames++
-        requestAnimationFrame(renderLoop)
     }
     requestAnimationFrame(renderLoop)
 
@@ -394,8 +373,9 @@ onmessage = function (e) {
         newWidth = e.data.newWidth
         newHeight = e.data.newHeight
     }
-    if (e.data.cubePositionsRaw) {
-        cubePositionsRaw = e.data.cubePositionsRaw
+    if (e.data.type === 'addBlocksSection') {
+        newSectionsData[e.data.key] = e.data.data
+        updateCubes?.()
     }
     if (e.data.type === 'camera') {
         camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
