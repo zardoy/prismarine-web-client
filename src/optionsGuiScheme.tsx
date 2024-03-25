@@ -152,6 +152,22 @@ export const guiOptionsScheme: {
       },
       chatSelect: {
       },
+    },
+    {
+      custom () {
+        return <Category>Sign Editor</Category>
+      },
+      autoSignEditor: {
+        text: 'Enable Sign Editor',
+      },
+      wysiwygSignEditor: {
+        text: 'WYSIWG Editor',
+        values: [
+          'auto',
+          'always',
+          'never'
+        ],
+      },
     }
   ],
   controls: [

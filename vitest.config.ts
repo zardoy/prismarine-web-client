@@ -5,6 +5,7 @@ export default defineConfig({
   test: {
     include: [
       '../../src/botUtils.test.ts',
+      '../../src/markdownToFormattedText.test.ts',
       'sign-renderer/tests.test.ts'
     ],
   },
