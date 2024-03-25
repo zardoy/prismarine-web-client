@@ -387,7 +387,7 @@ async function connect (connectOptions: {
     }
     await initWebglRenderer(downloadVersion, () => {
       postRenderFrameFn()
-      // viewer.update()
+      viewer.update()
     })
 
     if (singleplayer) {
