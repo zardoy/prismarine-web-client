@@ -40,7 +40,7 @@ export const hideNotification = () => {
 }
 
 export default () => {
-  const { autoHide, message, open, icon, type, subMessage } = useSnapshot(notificationProxy)
+  const { autoHide, message, open, icon, type, subMessage, action } = useSnapshot(notificationProxy)
 
   useEffect(() => {
     if (autoHide && open) {
@@ -58,6 +58,7 @@ export default () => {
   // }, [])
 
   return <Notification
+    action={action}
     type={type}
     message={message}
     subMessage={subMessage}

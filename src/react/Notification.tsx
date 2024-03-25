@@ -36,7 +36,7 @@ export default ({ type = 'message', message, subMessage = '', open, icon = '', a
         position: 'fixed',
         top: 0,
         right: 0,
-        width: '160px',
+        width: '155px',
         whiteSpace: 'nowrap',
         fontSize: '9px',
         display: 'flex',
@@ -45,7 +45,7 @@ export default ({ type = 'message', message, subMessage = '', open, icon = '', a
         padding: '3px 8px',
         background: isError ? 'rgba(255, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.7)',
         borderRadius: '0 0 0 5px',
-        pointerEvents: action ? 'auto' : 'none',
+        pointerEvents: action ? '' : 'none',
         zIndex: 1200, // even above stats
         ...addStyles
       }}>
