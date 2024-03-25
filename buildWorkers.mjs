@@ -11,14 +11,21 @@ const result = await (watch ? context : build)({
     outfile: 'prismarine-viewer/public/webglRendererWorker.js',
     sourcemap: watch ? 'inline' : 'external',
     minify: !watch,
+    treeShaking: true,
     logLevel: 'info',
+    alias: {
+        'three': './node_modules/three/src/Three.js'
+    },
     plugins: [
         {
             name: 'writeOutput',
             setup (build) {
                 build.onEnd(({ outputFiles }) => {
-                    for (const file of ['prismarine-viewer/public/webglRendererWorker.js', 'dist/webglRendererWorker.js']) {
-                        fs.writeFileSync(file, outputFiles[0].text, 'utf8')
+                    for (const file of outputFiles) {
+                        for (const dir of ['prismarine-viewer/public', 'dist']) {
+                            const baseName = file.path.split('/').pop()
+                            fs.writeFileSync(`${dir}/${baseName}`, file.contents)
+                        }
                     }
                 })
             }
