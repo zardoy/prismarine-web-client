@@ -258,6 +258,7 @@ async function connect (connectOptions: {
   server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string
 }) {
   if (miscUiState.gameLoaded) return
+  miscUiState.hasErrors = false
   lastConnectOptions.value = connectOptions
   document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
@@ -318,6 +319,7 @@ async function connect (connectOptions: {
     console.error(err)
     errorAbortController.abort()
     if (isCypress()) throw err
+    miscUiState.hasErrors = true
     if (miscUiState.gameLoaded) return
 
     setLoadingScreenStatus(`Error encountered. ${err}`, true)

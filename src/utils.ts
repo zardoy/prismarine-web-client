@@ -20,6 +20,12 @@ export const toNumber = (val) => {
   return isNaN(num) ? undefined : num
 }
 
+export const inGameError = (err) => {
+  console.error(err)
+  // todo report
+  miscUiState.hasErrors = true
+}
+
 export const pointerLock = {
   get hasPointerLock () {
     return document.pointerLockElement
