@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useRef } from 'react'
 import PixelartIcon from './PixelartIcon'
 import './IndicatorEffects.css'
 
@@ -41,26 +41,31 @@ const EffectBox = ({ image, time, level }: Pick<EffectType, 'image' | 'time' | '
 }
 
 export const defaultIndicatorsState = {
-  writingFiles: false, // saving
-  readonlyFiles: false,
-  readingFiles: false,
   chunksLoading: false,
+  readingFiles: false,
+  readonlyFiles: false,
+  writingFiles: false, // saving
   appHasErrors: false,
 }
 
 const indicatorIcons: Record<keyof typeof defaultIndicatorsState, string> = {
-  writingFiles: 'arrow-bar-up',
-  readingFiles: 'arrow-bar-down',
   chunksLoading: 'add-grid',
+  readingFiles: 'arrow-bar-down',
+  writingFiles: 'arrow-bar-up',
   appHasErrors: 'alert',
   readonlyFiles: 'file-off',
 }
 
 export default ({ indicators, effects }: {indicators: typeof defaultIndicatorsState, effects: readonly EffectType[]}) => {
+  const effectsRef = useRef(effects)
+  useEffect(() => {
+    effectsRef.current = effects
+  }, [effects])
 
   useEffect(() => {
+    // todo use more precise timer for each effect
     const interval = setInterval(() => {
-      for (const [index, effect] of effects.entries()) {
+      for (const [index, effect] of effectsRef.current.entries()) {
         if (effect.time === 0) {
           // effect.removeEffect(effect.image)
           return
@@ -74,23 +79,27 @@ export default ({ indicators, effects }: {indicators: typeof defaultIndicatorsSt
     }
   }, [])
 
-  const indicatorsMapped = Object.entries(indicators).map(([key, state]) => ({ icon: indicatorIcons[key], state }))
+  const indicatorsMapped = Object.entries(defaultIndicatorsState).map(([key, state]) => ({
+    icon: indicatorIcons[key],
+    // preserve order
+    state: indicators[key],
+  }))
   return <div className='effectsScreen-container'>
     <div className='indicators-container'>
       {
-        indicatorsMapped.map((indicator) => <div style={{
+        indicatorsMapped.map((indicator) => <div key={indicator.icon} style={{
           opacity: indicator.state ? 1 : 0,
           transition: 'opacity 0.1s',
         }}>
-          <PixelartIcon key={indicator.icon} iconName={indicator.icon} />
+          <PixelartIcon iconName={indicator.icon} />
         </div>)
       }
     </div>
     <div className='effects-container'>
       {
         effects.map(
-          (effect, index) => <EffectBox
-            key={`effectBox-${index}`}
+          (effect) => <EffectBox
+            key={`effectBox-${effect.image}`}
             image={effect.image}
             time={effect.time}
             level={effect.level}

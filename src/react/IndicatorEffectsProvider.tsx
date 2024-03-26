@@ -1,12 +1,15 @@
 import { proxy, useSnapshot } from 'valtio'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { inGameError } from '../utils'
+import { fsState } from '../loadSave'
+import { miscUiState } from '../globalState'
 import IndicatorEffects, { EffectType, defaultIndicatorsState } from './IndicatorEffects'
-import { imagesIdMap } from './effectsImages'
-
+import { images } from './effectsImages'
 
 export const state = proxy({
-  indicators: { ...defaultIndicatorsState },
+  indicators: {
+    chunksLoading: false
+  },
   effects: [] as EffectType[]
 })
 
@@ -47,13 +50,46 @@ const getEffectIndex = (newEffect: EffectType) => {
 }
 
 export default () => {
-  const indicators = useSnapshot(state.indicators)
+  const stateIndicators = useSnapshot(state.indicators)
+  const { hasErrors } = useSnapshot(miscUiState)
+  const { isReadonly, openReadOperations, openWriteOperations } = useSnapshot(fsState)
+  const allIndicators: typeof defaultIndicatorsState = {
+    readonlyFiles: isReadonly,
+    writingFiles: openWriteOperations > 0,
+    readingFiles: openReadOperations > 0,
+    appHasErrors: hasErrors,
+    ...stateIndicators,
+  }
+
+  useEffect(() => {
+    let alreadyWaiting = false
+    const listener = () => {
+      if (alreadyWaiting) return
+      state.indicators.chunksLoading = true
+      alreadyWaiting = true
+      void viewer.waitForChunksToRender().then(() => {
+        state.indicators.chunksLoading = false
+        alreadyWaiting = false
+      })
+    }
+    viewer.world.renderUpdateEmitter.on('dirty', listener)
+
+    return () => {
+      viewer.world.renderUpdateEmitter.off('dirty', listener)
+    }
+  }, [])
+
   const effects = useSnapshot(state.effects)
 
   useMemo(() => {
+    const effectsImages = Object.fromEntries(loadedData.effectsArray.map((effect) => {
+      const nameKebab = effect.name.replaceAll(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).slice(1)
+      return [effect.id, images[nameKebab]]
+    }))
+    console.log('effectsImages', effectsImages)
     bot.on('entityEffect', (entity, effect) => {
       if (entity.id !== bot.entity.id) return
-      const image = imagesIdMap[effect.id] ?? null
+      const image = effectsImages[effect.id] ?? null
       if (!image) {
         inGameError(`received unknown effect id ${effect.id}}`)
         return
@@ -67,7 +103,7 @@ export default () => {
     })
     bot.on('entityEffectEnd', (entity, effect) => {
       if (entity.id !== bot.entity.id) return
-      const image = imagesIdMap[effect.id] ?? null
+      const image = effectsImages[effect.id] ?? null
       if (!image) {
         inGameError(`received unknown effect id ${effect.id}}}`)
         return
@@ -77,7 +113,7 @@ export default () => {
   }, [])
 
   return <IndicatorEffects
-    indicators={indicators}
+    indicators={allIndicators}
     effects={effects}
   />
 }

@@ -342,6 +342,7 @@ export class WorldRenderer {
   }
 
   setSectionDirty (pos, value = true) {
+    this.renderUpdateEmitter.emit('dirty', pos, value)
     this.cleanChunkTextures(pos.x, pos.z) // todo don't do this!
     // Dispatch sections to workers based on position
     // This guarantees uniformity accross workers and that a given section

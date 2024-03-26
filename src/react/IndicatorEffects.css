@@ -3,10 +3,12 @@
   top: 5%;
   left: 0px;
   z-index: -1;
+  pointer-events: none;
 }
 
 .indicators-container {
   display: flex;
+  font-size: 0.7em;
 }
 
 .effects-container {
@@ -20,14 +22,14 @@
 }
 
 .effect-box__image {
-  width: 25px;
+  width: 23px;
   margin-right: 3px;
 }
 
 .effect-box__time {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
 }
 
 .effect-box__level {
-  font-size: 0.5rem;
+  font-size: 0.45rem;
 }
