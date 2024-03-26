@@ -2,6 +2,7 @@
   position: fixed;
   top: 5%;
   left: 0px;
+  z-index: -1;
 }
 
 .indicators-container {
@@ -21,10 +22,6 @@
 .effect-box__image {
   width: 25px;
   margin-right: 3px;
-}
-
-.effect-box__time, .effect-box__level {
-  opacity: 0.7;
 }
 
 .effect-box__time {

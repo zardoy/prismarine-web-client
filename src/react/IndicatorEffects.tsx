@@ -6,6 +6,7 @@ import './IndicatorEffects.css'
 
 
 function formatTime (seconds: number): string {
+  if (seconds < 0) return ''
   const minutes = Math.floor(seconds / 60)
   const remainingSeconds = seconds % 60
   const formattedMinutes = String(minutes).padStart(2, '0')
@@ -13,36 +14,22 @@ function formatTime (seconds: number): string {
   return `${formattedMinutes}:${formattedSeconds}`
 }
 
-export type EffectBoxProps = {
+export type EffectType = {
   image: string,
   time: number,
   level: number,
-  removeEffect: (image: string) => void
+  removeEffect: (image: string) => void,
+  reduceTime: (image: string) => void
 }
 
-const EffectBox = ({ image, time, level, removeEffect }: EffectBoxProps) => {
-  const [timer, setTimer] = useState(time)
+const EffectBox = ({ image, time, level }: Pick<EffectType, 'image' | 'time' | 'level'>) => {
 
-  useEffect(() => {
-    if (timer === 0) removeEffect(image)
-  }, [timer])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimer(prev => prev - 1)
-    }, 1000)
-
-    return () => {
-      clearInterval(interval)
-    }
-  }, [])
-
-  const formattedTime = useMemo(() => formatTime(timer), [timer])
+  const formattedTime = useMemo(() => formatTime(time), [time])
 
   return <div className='effect-box'>
     <img className='effect-box__image' src={image} alt='' />
     <div>
-      {timer >= 0 ? (
+      {formattedTime ? (
         // if time is negative then effect is shown without time. 
         // Component should be removed manually with time = 0
         <div className='effect-box__time'>{formattedTime}</div>
@@ -56,9 +43,27 @@ const EffectBox = ({ image, time, level, removeEffect }: EffectBoxProps) => {
 
 export type IndicatorType = {
   icon: string,
+  removeInd: (iconName: string) => void
 }
 
-export default ({ indicators, effects }: {indicators: readonly IndicatorType[], effects: readonly EffectBoxProps[]}) => {
+export default ({ indicators, effects }: {indicators: readonly IndicatorType[], effects: readonly EffectType[]}) => {
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      for (const [index, effect] of effects.entries()) {
+        if (effect.time === 0) {
+          effect.removeEffect(effect.image)
+        } else {
+          effect.reduceTime(effect.image)
+        }
+      }
+    }, 1000)
+
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [effects])
+
   return <div className='effectsScreen-container'>
     <div className='indicators-container'>
       {
@@ -73,7 +78,6 @@ export default ({ indicators, effects }: {indicators: readonly IndicatorType[], 
             image={effect.image} 
             time={effect.time} 
             level={effect.level} 
-            removeEffect={effect.removeEffect}
           />
         )
       }

@@ -1,23 +1,24 @@
 import { proxy, useSnapshot } from 'valtio'
 import { proxySet } from 'valtio/utils'
 import { useMemo } from 'react'
-import IndicatorEffects, { IndicatorType, EffectBoxProps } from './IndicatorEffects'
+import IndicatorEffects, { IndicatorType, EffectType } from './IndicatorEffects'
 import { images, imagesIdMap } from './effectsImages'
 
 
 
 export const state = proxy({
   indicators: [] as IndicatorType[],
-  effects: [] as EffectBoxProps[]
+  effects: [] as EffectType[]
 })
 
-const addEffect = (newEffect: EffectBoxProps) => {
-  const effectIndex = getEffectIndex(newEffect)
+export const addEffect = (newEffect: Omit<EffectType, 'reduceTime' | 'removeEffect'>) => {
+  const effectIndex = getEffectIndex(newEffect as EffectType)
   if (typeof effectIndex === 'number') {
-    state.effects.splice(effectIndex, 1)
-    state.effects.push(newEffect)
+    state.effects[effectIndex].time = newEffect.time
+    state.effects[effectIndex].level = newEffect.level
   } else {
-    state.effects.push(newEffect)
+    const effect = { ...newEffect, reduceTime, removeEffect }
+    state.effects.push(effect)
   }
 }
 
@@ -29,7 +30,15 @@ const removeEffect = (image: string) => {
   }
 }
 
-const getEffectIndex = (newEffect: EffectBoxProps) => {
+const reduceTime = (image: string) => {
+  for (const [index, effect] of (state.effects).entries()) {
+    if (effect.image === image) {
+      effect.time -= 1
+    }
+  }
+}
+
+const getEffectIndex = (newEffect: EffectType) => {
   for (const [index, effect] of (state.effects).entries()) {
     if (effect.image === newEffect.image) {
       return index
@@ -38,8 +47,9 @@ const getEffectIndex = (newEffect: EffectBoxProps) => {
   return null
 }
 
-const addIndicator = (newInd: IndicatorType) => {
-  state.indicators.push(newInd)
+export const addInd = (newInd: Omit<IndicatorType, 'removeInd'>) => {
+  const ind = { ...newInd, removeInd }
+  state.indicators.push(ind)
 }
 
 const removeInd = (icon: string) => {
@@ -66,7 +76,6 @@ export default () => {
         image,
         time: packet.duration / 20, // duration received in ticks
         level: packet.amplifier,
-        removeEffect
       }
       addEffect(newEffect)
     })

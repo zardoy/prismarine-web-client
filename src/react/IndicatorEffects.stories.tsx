@@ -18,13 +18,15 @@ export const Primary: Story = {
         image: images.glowing,
         time: 200,
         level: 255,
-        removeEffect (image: string) {}
+        removeEffect (image: string) {},
+        reduceTime (image: string) {}
       },
       {
         image: images.absorption,
         time: 30,
         level: 99,
-        removeEffect (image: string) {}
+        removeEffect (image: string) {},
+        reduceTime (image: string) {}
       }
     ],
   }
