@@ -1,6 +1,8 @@
+import 'iconify-icon'
+
 import type { Meta, StoryObj } from '@storybook/react'
 
-import IndicatorEffects from './IndicatorEffects'
+import IndicatorEffects, { defaultIndicatorsState } from './IndicatorEffects'
 import { images } from './effectsImages'
 
 const meta: Meta<typeof IndicatorEffects> = {
@@ -12,7 +14,7 @@ type Story = StoryObj<typeof IndicatorEffects>;
 
 export const Primary: Story = {
   args: {
-    indicators: [] as any,
+    indicators: defaultIndicatorsState,
     effects: [
       {
         image: images.glowing,

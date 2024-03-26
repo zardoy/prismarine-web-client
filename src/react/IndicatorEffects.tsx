@@ -1,6 +1,5 @@
-import { useMemo, useEffect, useState } from 'react'
+import { useMemo, useEffect } from 'react'
 import PixelartIcon from './PixelartIcon'
-import { images } from './effectsImages'
 import './IndicatorEffects.css'
 
 
@@ -30,7 +29,7 @@ const EffectBox = ({ image, time, level }: Pick<EffectType, 'image' | 'time' | '
     <img className='effect-box__image' src={image} alt='' />
     <div>
       {formattedTime ? (
-        // if time is negative then effect is shown without time. 
+        // if time is negative then effect is shown without time.
         // Component should be removed manually with time = 0
         <div className='effect-box__time'>{formattedTime}</div>
       ) : null }
@@ -41,43 +40,60 @@ const EffectBox = ({ image, time, level }: Pick<EffectType, 'image' | 'time' | '
   </div>
 }
 
-export type IndicatorType = {
-  icon: string,
-  removeInd: (iconName: string) => void
+export const defaultIndicatorsState = {
+  writingFiles: false, // saving
+  readonlyFiles: false,
+  readingFiles: false,
+  chunksLoading: false,
+  appHasErrors: false,
 }
 
-export default ({ indicators, effects }: {indicators: readonly IndicatorType[], effects: readonly EffectType[]}) => {
+const indicatorIcons: Record<keyof typeof defaultIndicatorsState, string> = {
+  writingFiles: 'arrow-bar-up',
+  readingFiles: 'arrow-bar-down',
+  chunksLoading: 'add-grid',
+  appHasErrors: 'alert',
+  readonlyFiles: 'file-off',
+}
+
+export default ({ indicators, effects }: {indicators: typeof defaultIndicatorsState, effects: readonly EffectType[]}) => {
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    const interval = setInterval(() => {
       for (const [index, effect] of effects.entries()) {
         if (effect.time === 0) {
-          effect.removeEffect(effect.image)
-        } else {
-          effect.reduceTime(effect.image)
+          // effect.removeEffect(effect.image)
+          return
         }
+        effect.reduceTime(effect.image)
       }
     }, 1000)
 
     return () => {
-      clearTimeout(timeout)
+      clearInterval(interval)
     }
-  }, [effects])
+  }, [])
 
+  const indicatorsMapped = Object.entries(indicators).map(([key, state]) => ({ icon: indicatorIcons[key], state }))
   return <div className='effectsScreen-container'>
     <div className='indicators-container'>
       {
-        indicators.map((indicator, index) => <PixelartIcon key={`indicator-${index}`} iconName={indicator.icon} />)
+        indicatorsMapped.map((indicator) => <div style={{
+          opacity: indicator.state ? 1 : 0,
+          transition: 'opacity 0.1s',
+        }}>
+          <PixelartIcon key={indicator.icon} iconName={indicator.icon} />
+        </div>)
       }
     </div>
     <div className='effects-container'>
       {
         effects.map(
-          (effect, index) => <EffectBox 
-            key={`effectBox-${index}`} 
-            image={effect.image} 
-            time={effect.time} 
-            level={effect.level} 
+          (effect, index) => <EffectBox
+            key={`effectBox-${index}`}
+            image={effect.image}
+            time={effect.time}
+            level={effect.level}
           />
         )
       }

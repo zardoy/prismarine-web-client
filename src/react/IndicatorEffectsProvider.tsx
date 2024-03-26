@@ -1,13 +1,12 @@
 import { proxy, useSnapshot } from 'valtio'
-import { proxySet } from 'valtio/utils'
 import { useMemo } from 'react'
-import IndicatorEffects, { IndicatorType, EffectType } from './IndicatorEffects'
-import { images, imagesIdMap } from './effectsImages'
-
+import { inGameError } from '../utils'
+import IndicatorEffects, { EffectType, defaultIndicatorsState } from './IndicatorEffects'
+import { imagesIdMap } from './effectsImages'
 
 
 export const state = proxy({
-  indicators: [] as IndicatorType[],
+  indicators: { ...defaultIndicatorsState },
   effects: [] as EffectType[]
 })
 
@@ -47,50 +46,37 @@ const getEffectIndex = (newEffect: EffectType) => {
   return null
 }
 
-export const addInd = (newInd: Omit<IndicatorType, 'removeInd'>) => {
-  const ind = { ...newInd, removeInd }
-  state.indicators.push(ind)
-}
-
-const removeInd = (icon: string) => {
-  for (const [index, ind] of (state.indicators).entries()) {
-    if (ind.icon === icon) {
-      state.indicators.splice(index, 1)
-    }
-  }
-}
-
 export default () => {
   const indicators = useSnapshot(state.indicators)
   const effects = useSnapshot(state.effects)
 
   useMemo(() => {
-    bot._client.on('entity_effect', (packet) => {
-      if (packet.entityId !== bot.entity.id) return
-      const image = imagesIdMap[packet.effectId] ?? null
+    bot.on('entityEffect', (entity, effect) => {
+      if (entity.id !== bot.entity.id) return
+      const image = imagesIdMap[effect.id] ?? null
       if (!image) {
-        console.error('received unknown effect id')
+        inGameError(`received unknown effect id ${effect.id}}`)
         return
       }
       const newEffect = {
         image,
-        time: packet.duration / 20, // duration received in ticks
-        level: packet.amplifier,
+        time: effect.duration / 20, // duration received in ticks
+        level: effect.amplifier,
       }
       addEffect(newEffect)
     })
-    bot._client.on('remove_entity_effect', (packet) => {
-      if (packet.entityId !== bot.entity.id) return
-      const image = imagesIdMap[packet.effectId] ?? null
+    bot.on('entityEffectEnd', (entity, effect) => {
+      if (entity.id !== bot.entity.id) return
+      const image = imagesIdMap[effect.id] ?? null
       if (!image) {
-        console.error('received unknown effect id')
+        inGameError(`received unknown effect id ${effect.id}}}`)
         return
       }
       removeEffect(image)
     })
   }, [])
 
-  return <IndicatorEffects 
+  return <IndicatorEffects
     indicators={indicators}
     effects={effects}
   />
