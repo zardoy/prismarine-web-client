@@ -86,7 +86,6 @@ export default () => {
       const nameKebab = effect.name.replaceAll(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).slice(1)
       return [effect.id, images[nameKebab]]
     }))
-    console.log('effectsImages', effectsImages)
     bot.on('entityEffect', (entity, effect) => {
       if (entity.id !== bot.entity.id) return
       const image = effectsImages[effect.id] ?? null
