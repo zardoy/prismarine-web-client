@@ -7,15 +7,28 @@ const watch = process.argv.includes('-w')
 const result = await (watch ? context : build)({
     bundle: true,
     platform: 'browser',
-    entryPoints: ['prismarine-viewer/examples/webglRendererWorker.ts'],
-    outfile: 'prismarine-viewer/public/webglRendererWorker.js',
+    entryPoints: ['prismarine-viewer/examples/webglRendererWorker.ts', 'src/worldSaveWorker.ts'],
+    outdir: 'prismarine-viewer/public/',
     sourcemap: watch ? 'inline' : 'external',
     minify: !watch,
     treeShaking: true,
     logLevel: 'info',
     alias: {
-        'three': './node_modules/three/src/Three.js'
+        'three': './node_modules/three/src/Three.js',
+        events: 'events', // make explicit
+        buffer: 'buffer',
+        'fs': 'browserfs/dist/shims/fs.js',
+        http: 'http-browserify',
+        perf_hooks: './src/perf_hooks_replacement.js',
+        crypto: './src/crypto.js',
+        stream: 'stream-browserify',
+        net: 'net-browserify',
+        assert: 'assert',
+        dns: './src/dns.js'
     },
+    inject: [
+        './src/shims.js'
+    ],
     plugins: [
         {
             name: 'writeOutput',
