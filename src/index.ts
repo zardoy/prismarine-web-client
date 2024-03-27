@@ -919,7 +919,7 @@ downloadAndOpenFile().then((downloadAction) => {
 const initialLoader = document.querySelector('.initial-loader') as HTMLElement | null
 if (initialLoader) {
   initialLoader.style.opacity = '0'
-  window.pageLoaded = true
 }
+window.pageLoaded = true
 
 void possiblyHandleStateVariable()
