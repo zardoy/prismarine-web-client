@@ -12,6 +12,9 @@ const { supportedVersions } = MCProtocol
 const prod = process.argv.includes('--prod')
 let connectedClients = []
 
+let singleFileBuild = false
+export const setSingleFileBuild = (v) => singleFileBuild = v
+
 /** @type {import('esbuild').Plugin[]} */
 const plugins = [
   {
@@ -64,11 +67,26 @@ const plugins = [
         }
       })
 
-      build.onEnd(async ({ metafile, outputFiles }) => {
+      build.onEnd(async ({ metafile, outputFiles = [], errors }) => {
+        if (errors.length) return
         // write outputFiles
-        //@ts-ignore
-        for (const file of outputFiles) {
-          await fs.promises.writeFile(file.path, file.contents)
+        if (singleFileBuild) {
+          const jsFile = outputFiles.find(outputFile => outputFile.path.endsWith('.js'))?.contents
+          const cssFile = outputFiles.find(outputFile => outputFile.path.endsWith('.css'))?.contents
+          let html = fs.readFileSync('./index.html', 'utf8')
+          html = html.replace('<!-- inject script -->', `<script>${jsFile}</script>`)
+          html = html.replace('<link rel="stylesheet" href="index.css">', `<style>${cssFile}</style>`)
+
+          const favicon = fs.readFileSync('./assets/favicon.png', 'base64')
+          html = html.replace(`<link rel="icon" type="image/png" href="data:image/png;base64,${favicon}" />`, ``)
+          html = html.replace('<link rel="favicon" href="favicon.ico">', '')
+          html = html.replace('<link rel="manifest" href="manifest.json" crossorigin="use-credentials">', '')
+          fs.writeFileSync('./dist/minecraft.html', html)
+          outputFiles
+        } else {
+          for (const file of outputFiles) {
+            await fs.promises.writeFile(file.path, file.contents)
+          }
         }
         if (!prod) return
         // const deps = Object.entries(metafile.inputs).sort(([, a], [, b]) => b.bytes - a.bytes).map(([x, { bytes }]) => [x, filesize(bytes)]).slice(0, 5)
@@ -133,7 +151,7 @@ const plugins = [
         }
 
         // write metafile to disk if needed to analyze
-        // fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
+        fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
 
         /** @type {import('esbuild').OutputFile} */
         //@ts-ignore

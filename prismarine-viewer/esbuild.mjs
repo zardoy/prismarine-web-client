@@ -6,6 +6,7 @@ import * as esbuild from 'esbuild'
 import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 import path, { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
+import { spawn } from 'child_process'
 
 const dev = process.argv.includes('-w')
 
@@ -22,17 +23,20 @@ fs.copyFileSync(join(__dirname, 'playground.html'), join(__dirname, 'public/inde
 fsExtra.copySync(mcDataPath, join(__dirname, 'public/mc-data'))
 const availableVersions = fs.readdirSync(mcDataPath).map(ver => ver.replace('.js', ''))
 
+const headlessBuild = process.argv.includes('--headless')
+let prevExec
+
 /** @type {import('esbuild').BuildOptions} */
 const buildOptions = {
   bundle: true,
-  entryPoints: [join(__dirname, './examples/playground.ts')],
+  entryPoints: [join(__dirname, headlessBuild ? './examples/headless.js' : './examples/playground.ts')],
   // target: ['es2020'],
   // logLevel: 'debug',
   logLevel: 'info',
-  platform: 'browser',
+  platform: headlessBuild ? 'node' : 'browser',
   sourcemap: dev ? 'inline' : false,
   minify: !dev,
-  outfile: join(__dirname, 'public/playground.js'),
+  outfile: join(__dirname, headlessBuild ? 'public/headless.js' : 'public/playground.js'),
   mainFields: [
     'browser', 'module', 'main'
   ],
@@ -48,42 +52,53 @@ const buildOptions = {
     stream: 'stream-browserify',
     net: 'net-browserify',
   },
+  external: headlessBuild ? ['minecraft-data'] : [],
   inject: [],
   metafile: true,
   loader: {
     '.png': 'dataurl',
   },
   plugins: [
-    {
-      name: 'minecraft-data',
+    ...headlessBuild ? [{
+      name: 'starter',
       setup (build) {
-        build.onLoad({
-          filter: /minecraft-data[\/\\]data.js$/,
-        }, () => {
-          const defaultVersionsObj = {}
-          return {
-            contents: `window.mcData ??= ${JSON.stringify(defaultVersionsObj)};module.exports = { pc: window.mcData }`,
-            loader: 'js',
-          }
-        })
-        build.onEnd((e) => {
-          if (e.errors.length) return
-          fs.writeFileSync(join(__dirname, 'public/metafile.json'), JSON.stringify(e.metafile), 'utf8')
+        prevExec?.kill()
+        prevExec = spawn(`node`, [join(__dirname, 'public/headless.js')], {
+          stdio: 'inherit'
         })
       }
-    },
-    polyfillNode({
-      polyfills: {
-        fs: false,
-        crypto: false,
-        events: false,
-        http: false,
-        stream: false,
-        buffer: false,
-        perf_hooks: false,
-        net: false,
+    }] : [
+      {
+        name: 'minecraft-data',
+        setup (build) {
+          build.onLoad({
+            filter: /minecraft-data[\/\\]data.js$/,
+          }, () => {
+            const defaultVersionsObj = {}
+            return {
+              contents: `window.mcData ??= ${JSON.stringify(defaultVersionsObj)};module.exports = { pc: window.mcData }`,
+              loader: 'js',
+            }
+          })
+          build.onEnd((e) => {
+            if (e.errors.length) return
+            fs.writeFileSync(join(__dirname, 'public/metafile.json'), JSON.stringify(e.metafile), 'utf8')
+          })
+        }
       },
-    })
+      polyfillNode({
+        polyfills: {
+          fs: false,
+          crypto: false,
+          events: false,
+          http: false,
+          stream: false,
+          buffer: false,
+          perf_hooks: false,
+          net: false,
+        },
+      })
+    ]
   ],
 }
 if (dev) {

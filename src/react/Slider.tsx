@@ -55,6 +55,9 @@ const Slider: React.FC<Props> = ({
         max={max}
         value={value}
         disabled={!!disabledReason}
+        onPointerDown={(e) => {
+          (e.target as HTMLElement).setPointerCapture(e.pointerId)
+        }}
         onChange={(e) => {
           const newValue = Number(e.target.value)
           setValue(newValue)

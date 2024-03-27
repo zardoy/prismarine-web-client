@@ -3,7 +3,7 @@ import * as esbuild from 'esbuild'
 import fs from 'fs'
 // import htmlPlugin from '@chialab/esbuild-plugin-html'
 import server from './server.js'
-import { clients, plugins } from './scripts/esbuildPlugins.mjs'
+import { clients, plugins, setSingleFileBuild } from './scripts/esbuildPlugins.mjs'
 import { generateSW } from 'workbox-build'
 import { getSwAdditionalEntries } from './scripts/build.js'
 import { build } from 'esbuild'
@@ -11,7 +11,11 @@ import { build } from 'esbuild'
 //@ts-ignore
 try { await import('./localSettings.mjs') } catch { }
 
-fs.writeFileSync('dist/index.html', fs.readFileSync('index.html', 'utf8').replace('<!-- inject script -->', '<script src="index.js"></script>'), 'utf8')
+const singleFileBuild = false
+
+setSingleFileBuild(singleFileBuild)
+
+fs.writeFileSync('./dist/index.html', fs.readFileSync('index.html', 'utf8').replace('<!-- inject script -->', '<script src="index.js"></script>'), 'utf8')
 
 const watch = process.argv.includes('--watch') || process.argv.includes('-w')
 const prod = process.argv.includes('--prod')
