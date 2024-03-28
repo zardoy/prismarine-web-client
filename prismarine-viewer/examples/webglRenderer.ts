@@ -1,4 +1,6 @@
+import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { Viewer } from '../viewer/lib/viewer'
+import { options } from '../../src/optionsStorage'
 
 let worker
 
@@ -9,8 +11,39 @@ const sendWorkerMessage = (message: any, transfer?: Transferable[]) => {
     // replacable by onmessage
 }
 
+let allReceived = false
+if (typeof customEvents !== 'undefined') {
+    customEvents.on('gameLoaded', () => {
+        const chunksExpected = generateSpiralMatrix(options.renderDistance)
+        let received = 0
+        bot.on('chunkColumnLoad', (data) => {
+            received++
+            if (received === chunksExpected.length) {
+                allReceived = true
+                // addBlocksSection('all', viewer.world.newChunks)
+            }
+        })
+    })
+}
+
+
+let isWaitingToUpload = false
 export const addBlocksSection = (key, data) => {
-    sendWorkerMessage({ type: 'addBlocksSection', data, key })
+    if (isWaitingToUpload) return
+    isWaitingToUpload = true
+    viewer.waitForChunksToRender().then(() => {
+        isWaitingToUpload = false
+        for (const [key, data] of Object.entries(viewer.world.newChunks)) {
+            sendWorkerMessage({
+                type: 'addBlocksSection', data, key
+            })
+        }
+        if (allReceived) {
+            sendWorkerMessage({
+                type: 'addBlocksSectionDone'
+            })
+        }
+    })
 }
 
 export const initWebglRenderer = async (version: string, postRender = () => { }) => {
@@ -29,10 +62,12 @@ export const initWebglRenderer = async (version: string, postRender = () => { })
     canvas.height = window.innerHeight * window.devicePixelRatio
     document.body.appendChild(canvas)
     canvas.id = 'viewer-canvas'
+
     const offscreen = canvas.transferControlToOffscreen()
 
     // replacable by initWebglRenderer
     worker = new Worker('./webglRendererWorker.js')
+    addFpsCounter()
     sendWorkerMessage({
         canvas: offscreen,
         imageBlob,
@@ -83,4 +118,30 @@ export const initWebglRenderer = async (version: string, postRender = () => { })
     }
 
     requestAnimationFrame(mainLoop)
+}
+
+
+const addFpsCounter = () => {
+    const fpsCounter = document.createElement('div')
+    fpsCounter.id = 'fps-counter'
+    fpsCounter.style.position = 'fixed'
+    fpsCounter.style.top = '0'
+    fpsCounter.style.right = '0'
+    // gray bg
+    fpsCounter.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
+    fpsCounter.style.color = 'white'
+    fpsCounter.style.padding = '2px'
+    fpsCounter.style.fontFamily = 'monospace'
+    fpsCounter.style.fontSize = '12px'
+    document.body.appendChild(fpsCounter)
+    let prevTimeout
+    worker.addEventListener('message', (e) => {
+        if (e.data.type === 'fps') {
+            fpsCounter.innerText = `FPS: ${e.data.fps}`
+            if (prevTimeout) clearTimeout(prevTimeout);
+            prevTimeout = setTimeout(() => {
+                fpsCounter.innerText = '<hanging>'
+            }, 1002)
+        }
+    })
 }

@@ -64,11 +64,13 @@ const setQs = () => {
 
 let ignoreResize = false
 
+const enableControls = new URLSearchParams(window.location.search).get('controls') === 'true'
+
 async function main () {
   let continuousRender = false
 
   // const { version } = params
-  const version = '1.14.4'
+  const version = '1.16.4'
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
@@ -138,28 +140,43 @@ async function main () {
 
   await initWebglRenderer(version)
   const simpleControls = () => {
+    let pressedKeys = new Set()
+    const loop = () => {
+      // Create a vector that points in the direction the camera is looking
+      let direction = new THREE.Vector3(0, 0, 0);
+      if (pressedKeys.has('KeyW')) {
+        direction.z = -0.5;
+      }
+      if (pressedKeys.has('KeyS')) {
+        direction.z += 0.5
+      }
+      if (pressedKeys.has('KeyA')) {
+        direction.x -= 0.5
+      }
+      if (pressedKeys.has('KeyD')) {
+        direction.x += 0.5
+      }
+
+
+      if (pressedKeys.has('ShiftLeft')) {
+        viewer.camera.position.y -= 0.5
+      }
+      if (pressedKeys.has('Space')) {
+        viewer.camera.position.y += 0.5
+      }
+      direction.applyQuaternion(viewer.camera.quaternion);
+      direction.y = 0;
+      // Add the vector to the camera's position to move the camera
+      viewer.camera.position.add(direction);
+    }
+    setInterval(loop, 1000 / 30)
     const keys = (e) => {
       const code = e.code
       const pressed = e.type === 'keydown'
       if (pressed) {
-        if (code === 'KeyW') {
-          viewer.camera.position.z -= 1
-        }
-        if (code === 'KeyS') {
-          viewer.camera.position.z += 1
-        }
-        if (code === 'KeyA') {
-          viewer.camera.position.x -= 1
-        }
-        if (code === 'KeyD') {
-          viewer.camera.position.x += 1
-        }
-        if (code === 'ShiftLeft') {
-          viewer.camera.position.y -= 0.5
-        }
-        if (code === 'Space') {
-          viewer.camera.position.y += 0.5
-        }
+        pressedKeys.add(code)
+      } else {
+        pressedKeys.delete(code)
       }
     }
     window.addEventListener('keydown', keys)
@@ -169,8 +186,12 @@ async function main () {
     const mouse = { x: 0, y: 0 }
     const mouseMove = (e: PointerEvent) => {
       if (e.buttons === 1 || e.pointerType === 'touch') {
-        viewer.camera.rotation.y += e.movementX / 20
-        viewer.camera.rotation.x += e.movementY / 20
+        viewer.camera.rotation.x -= e.movementY / 100
+        //viewer.camera.
+        viewer.camera.rotation.y -= e.movementX / 100
+        if (viewer.camera.rotation.x < -Math.PI / 2) viewer.camera.rotation.x = -Math.PI / 2
+        if (viewer.camera.rotation.x > Math.PI / 2) viewer.camera.rotation.x = Math.PI / 2
+
         console.log('viewer.camera.position', viewer.camera.position)
         // yaw += e.movementY / 20;
         // pitch += e.movementX / 20;
@@ -183,7 +204,7 @@ async function main () {
   }
   simpleControls()
   renderPlayground()
-  return
+  if (!enableControls) return
 
   // Create viewer
 

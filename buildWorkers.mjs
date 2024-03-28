@@ -7,7 +7,7 @@ const watch = process.argv.includes('-w')
 const result = await (watch ? context : build)({
     bundle: true,
     platform: 'browser',
-    entryPoints: ['prismarine-viewer/examples/webglRendererWorker.ts', 'src/worldSaveWorker.ts'],
+    entryPoints: ['prismarine-viewer/examples/webglRendererWorker.ts'],
     outdir: 'prismarine-viewer/public/',
     sourcemap: watch ? 'inline' : 'external',
     minify: !watch,

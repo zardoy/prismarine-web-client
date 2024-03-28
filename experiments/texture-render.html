@@ -10,8 +10,8 @@
 <body>
     <script type="module">
         //@ts-check
-        import blockImg from '../prismarine-viewer/public/textures/1.16.1.png'
-        import blocksStates from '../prismarine-viewer/public/blocksStates/1.16.1.json'
+        import blockImg from '../prismarine-viewer/public/textures/1.14.4.png'
+        import blocksStates from '../prismarine-viewer/public/blocksStates/1.14.4.json'
 
         // const block = {
         //     name: 'oak_sign',
@@ -20,22 +20,24 @@
         //     face: 'up'
         // }
         const block = {
-            name: 'light_gray_stained_glass',
+            name: 'oak_leaves',
             variant: 0,
             elem: 0,
             face: 'north'
         }
-        //@ts-ignore
-        const model = Object.entries(blocksStates[block.name].variants).find((a, i) => typeof block.variant === 'number' ? i === block.variant : a === block.variant)[1].model.elements[block.elem]
+        const model = Object.entries(blocksStates[block.name].variants).find((a, i) => typeof block.variant === 'number' ? i === block.variant : a === block.variant)[1]
         console.log(model)
-        const textureUv = model.faces[block.face].texture
+        //@ts-ignore
+        const element = model.model.elements[block.elem]
+        console.log(element)
+        const textureUv = element.faces[block.face].texture
 
         const canvas = document.createElement('canvas')
         canvas.style.imageRendering = 'pixelated'
         document.body.appendChild(canvas)
         const factor = 50
-        const modelWidth = model.to[0] - model.from[0]
-        const modelHeight = model.to[1] - model.from[1]
+        const modelWidth = element.to[0] - element.from[0]
+        const modelHeight = element.to[1] - element.from[1]
         canvas.width = modelWidth * factor
         canvas.height = modelHeight * factor
         // canvas.width = 16 * factor
@@ -49,7 +51,8 @@
         img.src = blockImg
         img.onload = () => {
             //@ts-ignore
-            ctx.drawImage(img, img.width * textureUv.u, img.height * textureUv.v, img.width * textureUv.su, img.height * textureUv.sv, 0, 0, canvas.width, canvas.height)
+            ctx.drawImage(img, img.width * textureUv.u - 16, img.height * textureUv.v, -16, 16, 0, 0, canvas.width, canvas.height)
+            console.log('pos', img.width * textureUv.u - 16)
             // ctx.drawImage(img, 0, 0, canvas.width, canvas.height / 2)
             console.log('width;height texture', img.width * textureUv.su, img.height * textureUv.sv)
             console.log('base su=sv', 16 / img.width)

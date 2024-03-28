@@ -16,6 +16,7 @@ const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 1000)
 let renderedFrames = 0
 setInterval(() => {
     // console.log('FPS:', renderedFrames)
+    postMessage({ type: 'fps', fps: renderedFrames })
     renderedFrames = 0
 }, 1000)
 
@@ -25,9 +26,9 @@ const findTextureInBlockStates = (name): any => {
     let firstVar = Object.values(vars)[0] as any
     if (Array.isArray(firstVar)) firstVar = firstVar[0]
     if (!firstVar) return
-    const elements = firstVar.model?.elements
-    if (elements?.length !== 1) return
-    return elements[0].faces
+    const [element] = firstVar.model?.elements
+    if (!element || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16))) return
+    return element.faces
 }
 
 const updateSize = (width, height) => {
@@ -101,9 +102,9 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     // write random coordinates to cube positions xyz ten cubes;
     for (let i = 0; i < NumberOfCube * 3; i += 3) {
-        cubePositions[i] = Math.random() * 1000 - 500;
-        cubePositions[i + 1] = Math.random() * 1000 - 500;
-        cubePositions[i + 2] = Math.random() * 100 - 100;
+        cubePositions[i] = Math.floor(Math.random() * 1000) - 500;
+        cubePositions[i + 1] = Math.floor(Math.random() * 1000) - 500;
+        cubePositions[i + 2] = Math.floor(Math.random() * 100) - 100;
         cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
         // cubeTextureIndices[i / 3] = 0;
     }
@@ -162,11 +163,11 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         let instanceTextureID = gl.createBuffer();
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-        gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW); // todo
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-        gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW); // todo
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
         VAO = gl.createVertexArray();
         let VBO = gl.createBuffer();
@@ -227,20 +228,9 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, textureWidth, textureHeight, 0, gl.RGB, gl.UNSIGNED_BYTE, textureBitmap);
     //gl.generateMipmap(gl.TEXTURE_2D);
 
-    const texture2 = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture2);
-
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, textureWidth, textureHeight, 0, gl.RGB, gl.UNSIGNED_BYTE, textureBitmap);
     //gl.generateMipmap(gl.TEXTURE_2D);
 
     gl.useProgram(program)
-
-
 
     gl.uniform1i(gl.getUniformLocation(program, "texture1"), 0);
     gl.uniform1i(gl.getUniformLocation(program, "texture2"), 1);
@@ -249,6 +239,8 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.enable(gl.DEPTH_TEST)
     gl.frontFace(gl.CCW)
     gl.enable(gl.CULL_FACE)
+    gl.enable(gl.BLEND)
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
 
     //gl.generateMipmap()
@@ -263,8 +255,8 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, texture1);
-    gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, texture2);
+
+    gl.bindVertexArray(VAO)
 
     updateSize(gl.canvas.width, gl.canvas.height)
     const renderLoop = (performance) => {
@@ -281,31 +273,32 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         }
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
-        let view = new THREE.Matrix4();
+        //let view = new THREE.Matrix4();
         // Rotate the view matrix around the X axis by yaw (in radians)
-        const yaw = camera.rotation.x
-        const pitch = camera.rotation.y
-        view.makeRotationX(yaw * Math.PI / 4);
+        //const yaw = camera.rotation.x
+        //const pitch = camera.rotation.y
+        //view.makeRotationX(yaw * Math.PI / 4);
         // Rotate the view matrix around the Y axis by pitch (in radians)
-        view.multiply(new THREE.Matrix4().makeRotationY(pitch * Math.PI / 180));
+        //view.multiply(new THREE.Matrix4().makeRotationY(pitch * Math.PI / 180));
         // Translate the view matrix by the vector [x, y, z]
-        view.multiply(new THREE.Matrix4().makeTranslation(camera.position.x, camera.position.y, camera.position.z));
+        //view.multiply(new THREE.Matrix4().makeTranslation(camera.position.x, camera.position.y, camera.position.z));
 
         gl.clearColor(0.5, 0.5, 0.5, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.clear(gl.DEPTH_BUFFER_BIT)
 
         gl.useProgram(program)
-
-
+        //camera.lookAt(new THREE.Vector3(0, 0, 0))
+        camera.up = new THREE.Vector3(0, 1, 0)
         camera.updateMatrix()
         camera.updateProjectionMatrix()
-        gl.uniformMatrix4fv(ViewUniform, false, view.elements);
+
+        gl.uniformMatrix4fv(ViewUniform, false, camera.matrix.invert().elements);
         gl.uniformMatrix4fv(ProjectionUniform, false, camera.projectionMatrix.elements);
 
 
 
-        gl.bindVertexArray(VAO)
+
 
         //gl.bindVertexArray(instanceVBO)
         gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, NumberOfCube);
@@ -375,10 +368,12 @@ onmessage = function (e) {
     }
     if (e.data.type === 'addBlocksSection') {
         newSectionsData[e.data.key] = e.data.data
+    }
+    if (e.data.type === 'addBlocksSectionDone') {
         updateCubes?.()
     }
     if (e.data.type === 'camera') {
-        camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
         camera.rotation.set(e.data.camera.rotation.x, e.data.camera.rotation.y, e.data.camera.rotation.z, 'ZYX')
+        camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
     }
 }
