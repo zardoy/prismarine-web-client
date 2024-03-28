@@ -15,7 +15,7 @@ uniform mat4 projection;
 
 void main()
 {
-    gl_Position = projection * view * vec4(aPos + aOffset + vec3(0.5f,0.0f,0.5f), 1.0f);
+    gl_Position = projection * view * vec4(aPos + aOffset + vec3(0.5f,0.5f,0.5f), 1.0f);
     TexCoord = vec2(aTexCoord.x, (1.0 - aTexCoord.y));
     TextureIndex = aTextureIndex;
 }
