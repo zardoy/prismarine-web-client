@@ -924,39 +924,3 @@ if (initialLoader) {
 window.pageLoaded = true
 
 void possiblyHandleStateVariable()
-
-window.testSave = () => {
-  const workersNum = 5
-  const workers = [] as Worker[]
-
-  for (let i = 0; i < workersNum; i++) {
-    const worker = new Worker('./worldSaveWorker.js')
-    workers.push(worker)
-  }
-
-  const chunks = generateSpiralMatrix(50)
-
-  console.time('chunks-main')
-  for (const [i, worker] of workers.entries()) {
-    worker.postMessage({
-      type: 'readChunks',
-      chunks: chunks.slice(i * chunks.length / workersNum, (i + 1) * chunks.length / workersNum),
-      folder: localServer?.options.worldFolder + '/region'
-    })
-  }
-
-  let finishedWorkers = 0
-
-  for (const worker of workers) {
-    // eslint-disable-next-line @typescript-eslint/no-loop-func
-    worker.onmessage = (msg) => {
-      if (msg.data.type === 'done') {
-        finishedWorkers++
-        if (finishedWorkers === workersNum) {
-          console.timeEnd('chunks-main')
-        }
-      }
-    }
-  }
-
-}
