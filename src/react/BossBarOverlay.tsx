@@ -1,5 +1,6 @@
 import type { BossBar as BossBarTypeRaw } from 'mineflayer'
 import React, { useState, useEffect } from 'react'
+import MessageFormattedString from './MessageFormattedString'
 
 const colors = ['pink', 'blue', 'red', 'green', 'yellow', 'purple', 'white']
 const divs = [0, 6, 10, 12, 20]
@@ -48,7 +49,7 @@ const BossBar = ({ bar }: {bar: BossBarType}) => {
 
   return (
     <div className="bossbar-container">
-      <div className="bossbar-title">{title}</div>
+      <div className="bossbar-title"><MessageFormattedString message={title} /></div>
       <div className="bossbar" style={bossBarStyles}>
         <div className="fill" style={fillStyles}></div>
         <div className="fill" style={div1Styles}></div>
