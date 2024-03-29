@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { isGameActive } from '../globalState'
 import MessageFormattedString from './MessageFormattedString'
-import './PlayerListOverlay.css' 
+import './PlayerListOverlay.css'
 
 
 const MAX_ROWS_PER_COL = 10
@@ -59,12 +59,12 @@ export default ({ serverIP }) => {
   }, [serverIP])
 
 
-  const lists = [] as any
   const playersArray = Object.values(players).sort((a, b) => {
     if (a.username > b.username) return 1
     if (a.username < b.username) return -1
     return 0
   })
+  const lists = [] as Array<typeof playersArray>
 
   let tempList = [] as typeof playersArray
   for (let i = 0; i < playersArray.length; i++) {
@@ -103,5 +103,3 @@ export default ({ serverIP }) => {
     </div>
   </div>
 }
-
-
