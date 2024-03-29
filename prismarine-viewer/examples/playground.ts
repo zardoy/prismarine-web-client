@@ -120,14 +120,18 @@ async function main () {
   const chunk1 = new Chunk()
   //@ts-ignore
   const chunk2 = new Chunk()
-  chunk1.setBlockStateId(targetPos, 34)
-  chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
+  chunk1.setBlockStateId(targetPos, 1)
+  chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 1)
+  chunk1.setBlockStateId(targetPos.offset(0, 1, 1), 1)
+  chunk1.setBlockStateId(targetPos.offset(0, 1, 0), 1)
+  chunk1.setBlockStateId(targetPos.offset(1, 1, 0), 1)
+  chunk1.setBlockStateId(targetPos.offset(-1, 1, 0), 1)
   const world = new World((chunkX, chunkZ) => {
-    // if (chunkX === 0 && chunkZ === 0) return chunk1
-    // if (chunkX === 1 && chunkZ === 0) return chunk2
+    if (chunkX === 0 && chunkZ === 0) return chunk1
+    if (chunkX === 1 && chunkZ === 0) return chunk2
     //@ts-ignore
-    const chunk = new Chunk()
-    return chunk
+    // const chunk = new Chunk()
+    // return chunk
   })
 
   // await schem.paste(world, new Vec3(0, 60, 0))
@@ -254,8 +258,8 @@ async function main () {
   const cameraPos = targetPos.offset(2, 2, 2)
   const pitch = THREE.MathUtils.degToRad(-45)
   const yaw = THREE.MathUtils.degToRad(45)
-  viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-  viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+  // viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+  // viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
   viewer.camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z)
   // controls.update()
 

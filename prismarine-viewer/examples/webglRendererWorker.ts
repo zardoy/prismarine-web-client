@@ -6,10 +6,11 @@ import VertShader from './_VertexShader.vert'
 import FragShader from './_FragmentShader.frag'
 
 let blockStates
-let newSectionsData = {}
+let allBlocks = []
+let chunksArrIndexes = {}
 let rendering = true
 let cubePositions
-let updateCubes
+let updateCubes: (startIndex: any) => void
 
 const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 1000)
 
@@ -34,10 +35,6 @@ const findTextureInBlockStates = (name): any => {
 const updateSize = (width, height) => {
     camera.aspect = width / height
     camera.updateProjectionMatrix()
-}
-
-const updateCubePositions = () => {
-    updateCubes()
 }
 
 export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, blockStatesJson: any) => {
@@ -113,7 +110,44 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     cubePositions[2] = 0;
 
     let VAO = gl.createVertexArray();
-    updateCubes = () => {
+    let instanceVBO = gl.createBuffer();
+    let instanceTextureID = gl.createBuffer();
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
+    gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW); // todo
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
+    gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW); // todo
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    VAO = gl.createVertexArray();
+    let VBO = gl.createBuffer();
+    //EBO = gl.createBuffer();
+
+    gl.bindVertexArray(VAO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, VBO)
+    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * 4, 0)
+    gl.enableVertexAttribArray(0)
+
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * 4, 3 * 4)
+    gl.enableVertexAttribArray(1)
+    //instance data
+
+    gl.enableVertexAttribArray(2);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
+    gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 3 * 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.vertexAttribDivisor(2, 1);
+
+    gl.enableVertexAttribArray(3);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
+    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 1 * 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.vertexAttribDivisor(3, 1);
+
+    updateCubes = (startIndex) => {
         // cubePositionsRaw = [
         //     // for now one cube in front of the camera
         //     [camera.position.x, camera.position.y, camera.position.z, 'dirt'],
@@ -122,82 +156,45 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         //     [camera.position.x, camera.position.y, camera.position.z + 2, 'dirt'],
         //     [camera.position.x, camera.position.y, camera.position.z - 2, 'dirt'],
         // ]
-        const keys = Object.keys(newSectionsData);
-        if (keys.length) {
-            const cubePositionsRaw = keys.flatMap((key: any) => {
-                const chunk = newSectionsData[key]
-                return Object.entries(chunk.blocks).map(([pos, blockName]) => {
-                    return [...pos.split(',').map(Number), blockName] as [number, number, number, string]
-                })
-            })
-            NumberOfCube = cubePositionsRaw.length
-            cubePositions = new Float32Array(NumberOfCube * 3)
-            cubeTextureIndices = new Float32Array(NumberOfCube);
-            for (let i = 0; i < NumberOfCube * 3; i += 3) {
-                cubePositions[i] = cubePositionsRaw[i / 3][0]
-                cubePositions[i + 1] = cubePositionsRaw[i / 3][1]
-                cubePositions[i + 2] = cubePositionsRaw[i / 3][2]
-                cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
-                const name = cubePositionsRaw[i / 3][3]
-                const result = findTextureInBlockStates(name)?.north?.texture! /* ?? findTextureInBlockStates('sponge')?.north.texture! */
-                const tileSize = 16;
-                function uvToTextureIndex (u, v) {
-                    // Convert UV coordinates to pixel coordinates
-                    let x = u * textureWidth;
-                    let y = v * textureHeight;
+        NumberOfCube = allBlocks.length
+        cubePositions = new Float32Array(NumberOfCube * 3)
+        cubeTextureIndices = new Float32Array(NumberOfCube);
+        for (let i = 0; i < NumberOfCube * 3; i += 3) {
+            cubePositions[i] = allBlocks[i / 3][0]
+            cubePositions[i + 1] = allBlocks[i / 3][1]
+            cubePositions[i + 2] = allBlocks[i / 3][2]
+            cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
+            const name = allBlocks[i / 3][3]
+            const result = findTextureInBlockStates(name)?.north?.texture! ?? findTextureInBlockStates('sponge')?.north.texture!
+            const tileSize = 16;
+            function uvToTextureIndex (u, v) {
+                // Convert UV coordinates to pixel coordinates
+                let x = u * textureWidth;
+                let y = v * textureHeight;
 
-                    // Convert pixel coordinates to tile index
-                    const tileX = Math.floor(x / tileSize);
-                    const tileY = Math.floor(y / tileSize);
+                // Convert pixel coordinates to tile index
+                const tileX = Math.floor(x / tileSize);
+                const tileY = Math.floor(y / tileSize);
 
-                    // Calculate texture index
-                    const textureIndex = tileY * (textureWidth / tileSize) + tileX;
+                // Calculate texture index
+                const textureIndex = tileY * (textureWidth / tileSize) + tileX;
 
-                    return textureIndex;
-                }
-                cubeTextureIndices[i / 3] = uvToTextureIndex(result.u, result.v) - 1
+                return textureIndex;
             }
+            cubeTextureIndices[i / 3] = uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
         }
 
-        let instanceVBO = gl.createBuffer();
-        let instanceTextureID = gl.createBuffer();
 
+        startIndex = 0 // TODO!
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-        gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW); // todo
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubePositions, startIndex * 3); // update buffer content
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-        gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW); // todo
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubeTextureIndices, startIndex); // update buffer content
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        VAO = gl.createVertexArray();
-        let VBO = gl.createBuffer();
-        //EBO = gl.createBuffer();
-
-        gl.bindVertexArray(VAO);
-        gl.bindBuffer(gl.ARRAY_BUFFER, VBO)
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
-
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * 4, 0)
-        gl.enableVertexAttribArray(0)
-
-        gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * 4, 3 * 4)
-        gl.enableVertexAttribArray(1)
-        //instance data
-
-        gl.enableVertexAttribArray(2);
-        gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-        gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 3 * 4, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.vertexAttribDivisor(2, 1);
-
-        gl.enableVertexAttribArray(3);
-        gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-        gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 1 * 4, 0);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.vertexAttribDivisor(3, 1);
     }
 
-    updateCubes()
     globalThis.updateCubes = updateCubes
 
 
@@ -367,10 +364,17 @@ onmessage = function (e) {
         newHeight = e.data.newHeight
     }
     if (e.data.type === 'addBlocksSection') {
-        newSectionsData[e.data.key] = e.data.data
+        const currentLength = allBlocks.length;
+        chunksArrIndexes[e.data.key] = [currentLength, currentLength + e.data.data.length]
+        // in: object - name, out: [x, y, z, name]
+        allBlocks.push(...Object.entries(e.data.data.blocks).map(([key, value]) => {
+            const [x, y, z] = key.split(',').map(Number)
+            return [x, y, z, value]
+        }))
+        // updateCubes?.(currentLength)
     }
     if (e.data.type === 'addBlocksSectionDone') {
-        updateCubes?.()
+        updateCubes?.(0)
     }
     if (e.data.type === 'camera') {
         camera.rotation.set(e.data.camera.rotation.x, e.data.camera.rotation.y, e.data.camera.rotation.z, 'ZYX')
