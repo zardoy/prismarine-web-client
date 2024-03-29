@@ -38,7 +38,7 @@ export const addBlocksSection = (key, data) => {
                 type: 'addBlocksSection', data, key
             })
         }
-        if (allReceived) {
+        if (allReceived || (playground && Object.values(viewer.world.newChunks).length)) {
             sendWorkerMessage({
                 type: 'addBlocksSectionDone'
             })
@@ -46,7 +46,9 @@ export const addBlocksSection = (key, data) => {
     })
 }
 
-export const initWebglRenderer = async (version: string, postRender = () => { }) => {
+let playground = false
+export const initWebglRenderer = async (version: string, postRender = () => { }, isPlayground = false) => {
+    playground = true
     viewer.setVersion(version)
     await new Promise(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
@@ -103,7 +105,8 @@ export const initWebglRenderer = async (version: string, postRender = () => { })
             })
         }
         postRender()
-        if (['rotation', 'position'].some((key) => oldCamera[key] !== viewer.camera[key])) {
+        // TODO! do it in viewer to avoid possible delays
+        if (/* playground &&  */['rotation', 'position'].some((key) => oldCamera[key] !== viewer.camera[key])) {
             // TODO fix
             for (const [key, val] of Object.entries(oldCamera)) {
                 for (const key2 of Object.keys(val)) {
@@ -133,6 +136,7 @@ const addFpsCounter = () => {
     fpsCounter.style.padding = '2px'
     fpsCounter.style.fontFamily = 'monospace'
     fpsCounter.style.fontSize = '12px'
+    fpsCounter.style.zIndex = '1000'
     document.body.appendChild(fpsCounter)
     let prevTimeout
     worker.addEventListener('message', (e) => {

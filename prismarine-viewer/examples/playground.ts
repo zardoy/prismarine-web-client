@@ -138,7 +138,7 @@ async function main () {
   viewer.setVersion(version)
   globalThis.viewer = viewer
 
-  await initWebglRenderer(version)
+  await initWebglRenderer(version, () => { }, true)
   const simpleControls = () => {
     let pressedKeys = new Set()
     const loop = () => {
@@ -256,7 +256,7 @@ async function main () {
   const yaw = THREE.MathUtils.degToRad(45)
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
   viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
-  viewer.camera.position.set(0, 0, 0)
+  viewer.camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z)
   // controls.update()
 
   let blockProps = {}

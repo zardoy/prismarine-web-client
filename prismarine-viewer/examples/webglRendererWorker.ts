@@ -139,7 +139,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
                 cubePositions[i + 2] = cubePositionsRaw[i / 3][2]
                 cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
                 const name = cubePositionsRaw[i / 3][3]
-                const result = findTextureInBlockStates(name)?.north?.texture! ?? findTextureInBlockStates('sponge')?.north.texture!
+                const result = findTextureInBlockStates(name)?.north?.texture! /* ?? findTextureInBlockStates('sponge')?.north.texture! */
                 const tileSize = 16;
                 function uvToTextureIndex (u, v) {
                     // Convert UV coordinates to pixel coordinates
