@@ -63,7 +63,7 @@ const InGameUi = () => {
     <RobustPortal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
       <DeathScreenProvider />
-      <PlayerListOverlay serverIP={bot.host} />
+      <PlayerListOverlay serverIP={'test'} />
       <ChatProvider />
       <SoundMuffler />
       <TitleProvider />
