@@ -2,7 +2,7 @@ import MessageFormattedString from './MessageFormattedString'
 import './PlayerListOverlay.css'
 
 
-type PlayersLists = import('mineflayer').Player[][]
+type PlayersLists = Array<Array<import('mineflayer').Player>>
 
 type PlayerListOverlayProps = {
   playersLists: PlayersLists,
