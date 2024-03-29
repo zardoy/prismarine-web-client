@@ -1,3 +1,4 @@
+import type { BossBar as BossBarTypeRaw } from 'mineflayer'
 import React, { useState, useEffect } from 'react'
 
 const colors = ['pink', 'blue', 'red', 'green', 'yellow', 'purple', 'white']
@@ -7,7 +8,16 @@ const translations = {
   'entity.minecraft.wither': 'Wither'
 }
 
-const BossBar = ({ bar }) => {
+type BossBarType = BossBarTypeRaw & {
+  // todo why not use public properties?
+  title: { text: string, translate: string },
+  _title: { text: string, translate: string },
+  _color: string,
+  _dividers: number,
+  _health: number
+}
+
+const BossBar = ({ bar }: {bar: BossBarType}) => {
   const [title, setTitle] = useState('')
   const [bossBarStyles, setBossBarStyles] = useState<{[key: string]: string | number}>({})
   const [fillStyles, setFillStyles] = useState<{[key: string]: string | number}>({})
@@ -49,14 +59,14 @@ const BossBar = ({ bar }) => {
 }
 
 export default () => {
-  const [bossBars, setBossBars] = useState(new Map())
+  const [bossBars, setBossBars] = useState(new Map<string, BossBarType>())
 
   useEffect(() => {
     // bot.on('bossBarCreated', (bossBar) => {
     //   setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar)))
     // })
     bot.on('bossBarUpdated', (bossBar) => {
-      setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar)))
+      setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar as BossBarType)))
     })
     bot.on('bossBarDeleted', (bossBar) => {
       const newBossBars = new Map(bossBars)
@@ -73,5 +83,3 @@ export default () => {
     </div>
   )
 }
-
-
