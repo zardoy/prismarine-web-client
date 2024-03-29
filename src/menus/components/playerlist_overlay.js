@@ -182,4 +182,4 @@ class PlayerListOverlay extends LitElement {
   }
 }
 
-window.customElements.define('pmui-playerlist-overlay', PlayerListOverlay)
+// window.customElements.define('pmui-playerlist-overlay', PlayerListOverlay)

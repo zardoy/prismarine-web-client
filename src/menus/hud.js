@@ -153,7 +153,7 @@ class Hud extends LitElement {
     debugMenu.bot = bot
 
     hotbar.init()
-    playerList.init(host)
+    // playerList.init(host)
 
     bot.on('entityHurt', (entity) => {
       if (entity !== bot.entity) return
