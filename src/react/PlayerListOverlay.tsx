@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { isGameActive } from '../globalState'
+import MessageFormattedString from './MessageFormattedString'
 import './PlayerListOverlay.css' 
 
 
@@ -27,12 +28,18 @@ export default ({ serverIP }) => {
     }
   }
 
-  useEffect(() => {
+  useMemo(() => {
     function requestUpdate () {
       // Placeholder for requestUpdate logic
       setPlayers(bot.players)
     }
 
+    bot.on('playerUpdated', () => requestUpdate())
+    bot.on('playerJoined', () => requestUpdate())
+    bot.on('playerLeft', () => requestUpdate())
+  }, [])
+
+  useEffect(() => {
     setPlayers(bot.players)
     if (bot.player) {
       setClientId(bot.player.uuid)
@@ -44,10 +51,6 @@ export default ({ serverIP }) => {
 
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('keyup', handleKeyUp)
-
-    bot.on('playerUpdated', () => requestUpdate())
-    bot.on('playerJoined', () => requestUpdate())
-    bot.on('playerLeft', () => requestUpdate())
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
@@ -77,12 +80,15 @@ export default ({ serverIP }) => {
 
   return <div className="playerlist-container" id="playerlist-container" >
     <span className="title">Server IP: {serverIP}</span>
+    <div className='playerlist-header'>
+      <MessageFormattedString message={bot.tablist.header} />
+    </div>
     <div className="player-lists">
       {lists.map((list, index) => (
         <div key={index} className="player-list">
           {list.map(player => (
             <div key={player.uuid} className={`playerlist-entry${clientId === player.uuid ? ' active-player' : ''}`} id={`plist-player-${player.uuid}`}>
-              {player.username}
+              <MessageFormattedString message={player.username} />
               <div className="playerlist-ping">
                 <p className="playerlist-ping-value">{player.ping}</p>
                 <p className="playerlist-ping-label">ms</p>
@@ -91,6 +97,9 @@ export default ({ serverIP }) => {
           ))}
         </div>
       ))}
+    </div>
+    <div className='playerlist-footer'>
+      <MessageFormattedString message={bot.tablist.footer} />
     </div>
   </div>
 }

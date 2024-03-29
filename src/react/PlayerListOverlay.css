@@ -14,6 +14,10 @@
   z-index: 30;
 }
 
+.playerlist-header, .playerlist-footer {
+  font-size: 0.5rem
+}
+
 .title {
   color: white;
   text-shadow: 1px 1px 0px #3f3f3f;
