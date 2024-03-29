@@ -11,6 +11,10 @@ type Story = StoryObj<typeof PlayerListOverlay>;
 
 export const Primary: Story = {
   args: {
+    playersLists: [],
+    clientId: '',
+    tablistHeader: 'Header',
+    tablistFooter: 'Footer',
     serverIP: '95.163.228.101',
   }
 }
