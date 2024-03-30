@@ -18,6 +18,7 @@ import ScoreboardProvider from './react/ScoreboardProvider'
 import SignEditorProvider from './react/SignEditorProvider'
 import IndicatorEffectsProvider from './react/IndicatorEffectsProvider'
 import PlayerListOverlayProvider from './react/PlayerListOverlayProvider'
+import HealthBarProvider from './react/HealthBarProvider'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
@@ -69,6 +70,7 @@ const InGameUi = () => {
       <TitleProvider />
       <ScoreboardProvider />
       <IndicatorEffectsProvider />
+      <HealthBarProvider />
       <TouchAreasControlsProvider />
     </RobustPortal>
     <PerComponentErrorBoundary>

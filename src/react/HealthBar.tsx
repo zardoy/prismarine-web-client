@@ -31,11 +31,12 @@ export default (
 
   useEffect(() => {
     if (healthRef.current) {
-      if (gameMode === 'creative' || gameMode === 'spectator') {
-        healthRef.current.classList.add('creative')
-      } else {
-        healthRef.current.classList.remove('creative')
-      }
+      healthRef.current.classList.toggle('creative', gameMode === 'creative' || gameMode === 'spectator')
+      // if (gameMode === 'creative' || gameMode === 'spectator') {
+      //   healthRef.current.classList.add('creative')
+      // } else {
+      //   healthRef.current.classList.remove('creative')
+      // }
     }
   }, [gameMode])
 

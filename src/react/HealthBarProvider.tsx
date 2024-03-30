@@ -4,23 +4,26 @@ import HealthBar from './HealthBar'
 import './HealthBar.css'
 
 
-export default (showHealth: boolean) => {
-  const damaged = useRef(false)
-  const healthValue = useRef(10)
-  const gameMode = useRef('')
-  const isHardcore = useRef(false)
-  const effectToAdd = useRef<number | null>(null)
-  const effectToRemove = useRef<number | null>(null)
+export default () => {
+  const [damaged, setDamaged] = useState(false)
+  const [healthValue, setHealthValue] = useState(10)
+  const [gameMode, setGameMode] = useState('')
+  const [isHardcore, setIsHardcore] = useState(false)
+  const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
+  const [effectToRemove, setEffectToRemove] = useState<number | null>(null)
   let hurtTimeout
 
   const getEffectClass = (effect) => {
-    switch (effect.id) {
+    switch (effect) {
       case 19:
         return 'poisoned'
+        break
       case 20:
         return 'withered'
+        break
       case 22:
         return 'absorption'
+        break
       default:
         return ''
     }
@@ -39,15 +42,15 @@ export default (showHealth: boolean) => {
   }
 
   const onDamage = () => {
-    damaged.current = true
+    setDamaged(prev => true)
     if (hurtTimeout) clearTimeout(hurtTimeout)
     hurtTimeout = setTimeout(() => {
-      damaged.current = false
+      setDamaged(prev => false)
     }, 1000)
   }
 
   const updateHealth = (hValue) => {
-    healthValue.current = hValue
+    setHealthValue(prev => hValue)
   }
 
   useMemo(() => {
@@ -57,18 +60,18 @@ export default (showHealth: boolean) => {
     })
 
     bot.on('game', () => {
-      gameMode.current = bot.game.gameMode
-      isHardcore.current = bot.game.hardcore
+      setGameMode(prev => bot.game.gameMode)
+      setIsHardcore(prev => bot.game.hardcore)
     })
 
     bot.on('entityEffect', (entity, effect) => {
       if (entity !== bot.entity) return
-      effectToAdd.current = effect.id
+      setEffectToAdd(prev => effect.id)
     })
 
     bot.on('entityEffectEnd', (entity, effect) => {
       if (entity !== bot.entity) return
-      effectToRemove.current = effect.id
+      setEffectToRemove(prev => effect.id)
     })
 
     bot.on('health', () => {
@@ -77,12 +80,12 @@ export default (showHealth: boolean) => {
   }, []) 
 
   return <HealthBar 
-    gameMode={gameMode.current}
-    isHardcore={isHardcore.current}
-    damaged={damaged.current}
-    healthValue={healthValue.current}
-    effectToAdd={effectToAdd.current}
-    effectToRemove={effectToRemove.current}
+    gameMode={gameMode}
+    isHardcore={isHardcore}
+    damaged={damaged}
+    healthValue={healthValue}
+    effectToAdd={effectToAdd}
+    effectToRemove={effectToRemove}
     effectAdded={effectAdded}
     effectEnded={effectEnded}
   />

@@ -155,24 +155,24 @@ class Hud extends LitElement {
     hotbar.init()
     // playerList.init(host)
 
-    bot.on('entityHurt', (entity) => {
-      if (entity !== bot.entity) return
-      healthbar.onDamage()
-    })
+    // bot.on('entityHurt', (entity) => {
+    //   if (entity !== bot.entity) return
+    //   healthbar.onDamage()
+    // })
 
-    bot.on('entityEffect', (entity, effect) => {
-      if (entity !== bot.entity) return
-      healthbar.effectAdded(effect)
-    })
+    // bot.on('entityEffect', (entity, effect) => {
+    //   if (entity !== bot.entity) return
+    //   healthbar.effectAdded(effect)
+    // })
 
-    bot.on('entityEffectEnd', (entity, effect) => {
-      if (entity !== bot.entity) return
-      healthbar.effectEnded(effect)
-    })
+    // bot.on('entityEffectEnd', (entity, effect) => {
+    //   if (entity !== bot.entity) return
+    //   healthbar.effectEnded(effect)
+    // })
 
     const onGameModeChange = () => {
       const gamemode = getGamemodeNumber(bot)
-      healthbar.gameModeChanged(gamemode, bot.game.hardcore)
+      // healthbar.gameModeChanged(gamemode, bot.game.hardcore)
       foodbar.gameModeChanged(gamemode)
       // breathbar.gameModeChanged(gamemode)
       const creativeLike = gamemode === 1 || gamemode === 3
@@ -182,7 +182,7 @@ class Hud extends LitElement {
     onGameModeChange()
 
     const onHealthUpdate = () => {
-      healthbar.updateHealth(bot.health, true)
+      // healthbar.updateHealth(bot.health, true)
       foodbar.updateHunger(bot.food, true)
     }
     bot.on('health', onHealthUpdate)
@@ -244,7 +244,6 @@ class Hud extends LitElement {
       <pmui-bossbars-overlay id="bossbars-overlay"></pmui-bossbars-overlay>
       <div class="crosshair"></div>
       <!--<pmui-breathbar id="breath-bar"></pmui-breathbar>-->
-      <pmui-healthbar id="health-bar"></pmui-healthbar>
       <pmui-foodbar id="food-bar"></pmui-foodbar>
       <div id="xp-bar-bg">
         <div class="xp-bar"></div>
