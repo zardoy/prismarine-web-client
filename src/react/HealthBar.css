@@ -1,6 +1,7 @@
 .health {
   position: fixed;
   display: flex;
+  z-index: -1;
   flex-direction: row;
   left: calc(50% - 91px);
   bottom: 30px;

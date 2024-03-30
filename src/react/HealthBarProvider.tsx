@@ -11,19 +11,16 @@ export default () => {
   const [isHardcore, setIsHardcore] = useState(false)
   const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
   const [effectToRemove, setEffectToRemove] = useState<number | null>(null)
-  let hurtTimeout
+  const hurtTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const getEffectClass = (effect) => {
     switch (effect) {
       case 19:
         return 'poisoned'
-        break
       case 20:
         return 'withered'
-        break
       case 22:
         return 'absorption'
-        break
       default:
         return ''
     }
@@ -43,8 +40,8 @@ export default () => {
 
   const onDamage = () => {
     setDamaged(prev => true)
-    if (hurtTimeout) clearTimeout(hurtTimeout)
-    hurtTimeout = setTimeout(() => {
+    if (hurtTimeout.current) clearTimeout(hurtTimeout.current)
+    hurtTimeout.current = setTimeout(() => {
       setDamaged(prev => false)
     }, 1000)
   }
