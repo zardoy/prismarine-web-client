@@ -28,55 +28,61 @@ export default (
   }: HealthBarProps) => {
   const healthRef = useRef<HTMLDivElement | null>(null)
   const [className, setClassName] = useState('')
-  const [effectsList, setEffectsList] = useState<string[]>([])
 
   useEffect(() => {
-    if (gameMode === 'creative' || gameMode === 'spectator') {
-      if (!className.includes('creative')) setClassName(className + ' creative')
-    } else {
-      setClassName(className.replace(' creative', ''))
+    if (healthRef.current) {
+      if (gameMode === 'creative' || gameMode === 'spectator') {
+        healthRef.current.classList.add('creative')
+      } else {
+        healthRef.current.classList.remove('creative')
+      }
     }
   }, [gameMode])
 
   useEffect(() => {
-    if (isHardcore) {
-      if (!className.includes('hardcore')) setClassName(className + ' hardcore')
-    } else {
-      setClassName(className.replace(' hardcore', ''))
+    if (healthRef.current) {
+      if (isHardcore) {
+        healthRef.current.classList.add('hardcore')
+      } else {
+        healthRef.current.classList.remove('hardcore')
+      }
     }
   }, [isHardcore])
 
   useEffect(() => {
-    if (damaged && !className.includes('damaged')) {
-      if (!className.includes('damaged')) setClassName(className + ' damaged')
-    } else {
-      setClassName(className.replace(' damaged', ''))
+    if (healthRef.current) {
+      if (damaged) {
+        healthRef.current.classList.add('damaged')
+      } else {
+        healthRef.current.classList.remove('damaged')
+      }
     }
   }, [damaged])
 
   useEffect(() => {
-    if (healthValue <= 4) {
-      setClassName(className + ' low')
-    } else {
-      setClassName(className.replace(' low', ''))
-    }
-
-    const healthElement = healthRef.current
-    if (!healthElement) return
-    const hearts = healthElement.children
-
-    for (const heart of hearts) {
-      heart.classList.remove('full')
-      heart.classList.remove('half')
-    }
-
-    for (let i = 0; i < Math.ceil(healthValue / 2); i++) {
-      if (i >= hearts.length) break
-
-      if (healthValue % 2 !== 0 && Math.ceil(healthValue / 2) === i + 1) {
-        hearts[i].classList.add('half')
+    if (healthRef.current) {
+      if (healthValue <= 4) {
+        healthRef.current.classList.add('low')
       } else {
-        hearts[i].classList.add('full')
+        healthRef.current.classList.remove('low')
+      }
+
+      const healthElement = healthRef.current
+      const hearts = healthElement.children
+
+      for (const heart of hearts) {
+        heart.classList.remove('full')
+        heart.classList.remove('half')
+      }
+
+      for (let i = 0; i < Math.ceil(healthValue / 2); i++) {
+        if (i >= hearts.length) break
+
+        if (healthValue % 2 !== 0 && Math.ceil(healthValue / 2) === i + 1) {
+          hearts[i].classList.add('half')
+        } else {
+          hearts[i].classList.add('full')
+        }
       }
     }
   }, [healthValue])
@@ -89,7 +95,7 @@ export default (
     effectEnded(healthRef.current, effectToRemove)
   }, [effectToRemove])
 
-  return <div ref={healthRef} className={ `health ${className}` } >
+  return <div ref={healthRef} className='health' >
     {
       Array.from({ length: 10 }, () => 0)
         .map(
