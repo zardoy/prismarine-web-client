@@ -34,7 +34,7 @@
 
 .heart {
   width: 9px;
-  height: 9px;
+  height: calc(9px - var(--hardcore) * 0.2px);
   /* background-image: url('${unsafeCSS(guiIcons1_17_1)}'), url('${unsafeCSS(guiIcons1_17_1)}'); */
   background-size: 256px, 256px;
   background-position: var(--bg-x) var(--bg-y), var(--bg-x) var(--bg-y);
