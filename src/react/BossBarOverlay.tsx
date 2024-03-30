@@ -1,5 +1,5 @@
 import type { BossBar as BossBarTypeRaw } from 'mineflayer'
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import MessageFormattedString from './MessageFormattedString'
 import './BossBarOverlay.css'
 
