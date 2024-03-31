@@ -297,7 +297,7 @@ export class WorldRenderer {
       }
       loadBlockStates().then((blockStates) => {
         for (const worker of this.workers) {
-          worker.postMessage({ type: 'blockStates', json: blockStates })
+          worker.postMessage({ type: 'blockStates', json: blockStates, textureSize: texture.image.width })
         }
       })
     })

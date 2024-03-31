@@ -2,9 +2,11 @@ import { Vec3 } from 'vec3'
 import { BlockStatesOutput } from '../prepare/modelsBuilder'
 import { World } from './world'
 import { Block } from 'prismarine-block'
+import { BlockType } from '../../examples/shared'
 
 const tints: any = {}
 let blockStates: BlockStatesOutput
+let textureSize: number
 
 let tintsData
 try {
@@ -455,7 +457,40 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
                 }
 
                 const pos = block.position
-                attr.blocks[`${pos.x},${pos.y},${pos.z}`] = block.name
+
+                const findTextureInBlockStates = (name): any => {
+                  const vars = blockStates[name]?.variants
+                  if (!vars) return
+                  let firstVar = Object.values(vars)[0] as any
+                  if (Array.isArray(firstVar)) firstVar = firstVar[0]
+                  if (!firstVar) return
+                  const [element] = firstVar.model?.elements
+                  if (!element || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16))) return
+                  return element.faces
+                }
+
+                const result = findTextureInBlockStates(block.name)?.north?.texture!/*  ?? findTextureInBlockStates('sponge')?.north.texture! */
+                if (!result) continue // todo
+                function uvToTextureIndex (u, v) {
+                  const textureWidth = textureSize
+                  const textureHeight = textureSize
+                  const tileSize = 16;
+                  // Convert UV coordinates to pixel coordinates
+                  let x = u * textureWidth;
+                  let y = v * textureHeight;
+
+                  // Convert pixel coordinates to tile index
+                  const tileX = Math.floor(x / tileSize);
+                  const tileY = Math.floor(y / tileSize);
+
+                  // Calculate texture index
+                  const textureIndex = tileY * (textureWidth / tileSize) + tileX;
+
+                  return textureIndex;
+                }
+                attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
+                  textureIndex: uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0),
+                } satisfies BlockType
               }
             }
           }
@@ -576,6 +611,7 @@ function getModelVariants (block: import('prismarine-block').Block) {
   return []
 }
 
-export const setBlockStates = (_blockStates: BlockStatesOutput | null) => {
+export const setBlockStatesAndData = (_blockStates: BlockStatesOutput | null, _textureSize: number) => {
+  textureSize = _textureSize
   blockStates = _blockStates!
 }

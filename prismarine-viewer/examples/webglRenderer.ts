@@ -12,6 +12,8 @@ const sendWorkerMessage = (message: any, transfer?: Transferable[]) => {
 }
 
 let allReceived = false
+declare const customEvents
+declare const bot
 if (typeof customEvents !== 'undefined') {
     customEvents.on('gameLoaded', () => {
         const chunksExpected = generateSpiralMatrix(options.renderDistance)

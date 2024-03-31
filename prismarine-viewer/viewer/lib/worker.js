@@ -12,7 +12,7 @@ if (!global.self) {
 
 const { Vec3 } = require('vec3')
 const { World } = require('./world')
-const { getSectionGeometry, setBlockStates } = require('./models')
+const { getSectionGeometry, setBlockStatesAndData } = require('./models')
 
 let world = null
 let dirtySections = {}
@@ -43,7 +43,7 @@ self.onmessage = ({ data }) => {
     globalThis.mcData = data.mcData
     world = new World(data.version)
   } else if (data.type === 'blockStates') {
-    setBlockStates(data.json)
+    setBlockStatesAndData(data.json, data.textureSize)
     blockStatesReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)

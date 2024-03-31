@@ -4,8 +4,8 @@ import * as THREE from 'three'
 import VertShader from './_VertexShader.vert'
 //@ts-ignore
 import FragShader from './_FragmentShader.frag'
+import { BlockType } from './shared'
 
-let blockStates
 let allBlocks = []
 let chunksArrIndexes = {}
 let rendering = true
@@ -21,24 +21,13 @@ setInterval(() => {
     renderedFrames = 0
 }, 1000)
 
-const findTextureInBlockStates = (name): any => {
-    const vars = blockStates[name]?.variants
-    if (!vars) return
-    let firstVar = Object.values(vars)[0] as any
-    if (Array.isArray(firstVar)) firstVar = firstVar[0]
-    if (!firstVar) return
-    const [element] = firstVar.model?.elements
-    if (!element || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16))) return
-    return element.faces
-}
-
 const updateSize = (width, height) => {
     camera.aspect = width / height
     camera.updateProjectionMatrix()
 }
 
 export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, blockStatesJson: any) => {
-    blockStates = blockStatesJson
+    // blockStates = blockStatesJson
     const textureBitmap = await createImageBitmap(imageBlob)
     const textureWidth = textureBitmap.width
     const textureHeight = textureBitmap.height
@@ -164,24 +153,9 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
             cubePositions[i + 1] = allBlocks[i / 3][1]
             cubePositions[i + 2] = allBlocks[i / 3][2]
             cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
-            const name = allBlocks[i / 3][3]
-            const result = findTextureInBlockStates(name)?.north?.texture! ?? findTextureInBlockStates('sponge')?.north.texture!
-            const tileSize = 16;
-            function uvToTextureIndex (u, v) {
-                // Convert UV coordinates to pixel coordinates
-                let x = u * textureWidth;
-                let y = v * textureHeight;
+            const block = allBlocks[i / 3][3] as BlockType
 
-                // Convert pixel coordinates to tile index
-                const tileX = Math.floor(x / tileSize);
-                const tileY = Math.floor(y / tileSize);
-
-                // Calculate texture index
-                const textureIndex = tileY * (textureWidth / tileSize) + tileX;
-
-                return textureIndex;
-            }
-            cubeTextureIndices[i / 3] = uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
+            cubeTextureIndices[i / 3] = block.textureIndex
         }
 
 
@@ -369,7 +343,7 @@ onmessage = function (e) {
         // in: object - name, out: [x, y, z, name]
         allBlocks.push(...Object.entries(e.data.data.blocks).map(([key, value]) => {
             const [x, y, z] = key.split(',').map(Number)
-            return [x, y, z, value]
+            return [x, y, z, value as BlockType]
         }))
         // updateCubes?.(currentLength)
     }
