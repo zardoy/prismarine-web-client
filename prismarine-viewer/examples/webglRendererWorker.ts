@@ -11,6 +11,7 @@ let chunksArrIndexes = {}
 let rendering = true
 let cubePositions
 let updateCubes: (startIndex: any) => void
+let lastNotUpdatedIndex = 0
 
 const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 1000)
 
@@ -145,27 +146,38 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         //     [camera.position.x, camera.position.y, camera.position.z + 2, 'dirt'],
         //     [camera.position.x, camera.position.y, camera.position.z - 2, 'dirt'],
         // ]
-        NumberOfCube = allBlocks.length
-        cubePositions = new Float32Array(NumberOfCube * 3)
-        cubeTextureIndices = new Float32Array(NumberOfCube);
-        for (let i = 0; i < NumberOfCube * 3; i += 3) {
-            cubePositions[i] = allBlocks[i / 3][0]
-            cubePositions[i + 1] = allBlocks[i / 3][1]
-            cubePositions[i + 2] = allBlocks[i / 3][2]
+        const blocks = allBlocks.slice(startIndex)
+        cubePositions = new Float32Array(blocks.length * 3)
+        cubeTextureIndices = new Float32Array(blocks.length);
+        for (let i = 0; i < blocks.length * 3; i += 3) {
+            cubePositions[i] = blocks[i / 3][0]
+            cubePositions[i + 1] = blocks[i / 3][1]
+            cubePositions[i + 2] = blocks[i / 3][2]
             cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
-            const block = allBlocks[i / 3][3] as BlockType
+            const block = blocks[i / 3][3] as BlockType
 
             cubeTextureIndices[i / 3] = block.textureIndex
         }
 
 
-        startIndex = 0 // TODO!
+        // startIndex = 0 // TODO!
+        // console.log('startIndex', startIndex, cubePositions.length, allBlocks.length)
+        const updateBuffersSize = allBlocks.length > NumberOfCube
+        if (updateBuffersSize) {
+            NumberOfCube += 1_000_000
+        }
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubePositions, startIndex * 3); // update buffer content
+        if (updateBuffersSize) {
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NumberOfCube * 3), gl.STATIC_DRAW); // todo
+        }
+        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 3 * 4, cubePositions); // update buffer content
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, cubeTextureIndices, startIndex); // update buffer content
+        if (updateBuffersSize) {
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NumberOfCube), gl.STATIC_DRAW); // todo
+        }
+        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4, cubeTextureIndices); // update buffer content
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
@@ -272,7 +284,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
 
         //gl.bindVertexArray(instanceVBO)
-        gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, NumberOfCube);
+        gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, allBlocks.length || NumberOfCube);
         //gl.bindVertexArray(null)
 
         renderedFrames++
@@ -345,10 +357,14 @@ onmessage = function (e) {
             const [x, y, z] = key.split(',').map(Number)
             return [x, y, z, value as BlockType]
         }))
+        lastNotUpdatedIndex ??= currentLength
         // updateCubes?.(currentLength)
     }
     if (e.data.type === 'addBlocksSectionDone') {
-        updateCubes?.(0)
+        console.time('updateCubes')
+        updateCubes?.(lastNotUpdatedIndex)
+        lastNotUpdatedIndex = undefined
+        console.timeEnd('updateCubes')
     }
     if (e.data.type === 'camera') {
         camera.rotation.set(e.data.camera.rotation.x, e.data.camera.rotation.y, e.data.camera.rotation.z, 'ZYX')
