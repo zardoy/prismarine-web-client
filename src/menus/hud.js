@@ -173,7 +173,7 @@ class Hud extends LitElement {
     const onGameModeChange = () => {
       const gamemode = getGamemodeNumber(bot)
       // healthbar.gameModeChanged(gamemode, bot.game.hardcore)
-      foodbar.gameModeChanged(gamemode)
+      // foodbar.gameModeChanged(gamemode)
       // breathbar.gameModeChanged(gamemode)
       const creativeLike = gamemode === 1 || gamemode === 3
       this.shadowRoot.querySelector('#xp-bar-bg').style.display = creativeLike ? 'none' : 'block'
@@ -183,7 +183,7 @@ class Hud extends LitElement {
 
     const onHealthUpdate = () => {
       // healthbar.updateHealth(bot.health, true)
-      foodbar.updateHunger(bot.food, true)
+      // foodbar.updateHunger(bot.food, true)
     }
     bot.on('health', onHealthUpdate)
     onHealthUpdate()
@@ -244,7 +244,6 @@ class Hud extends LitElement {
       <pmui-bossbars-overlay id="bossbars-overlay"></pmui-bossbars-overlay>
       <div class="crosshair"></div>
       <!--<pmui-breathbar id="breath-bar"></pmui-breathbar>-->
-      <pmui-foodbar id="food-bar"></pmui-foodbar>
       <div id="xp-bar-bg">
         <div class="xp-bar"></div>
         <span id="xp-label"></span>

@@ -1,12 +1,14 @@
 import { useRef, useState, useMemo } from 'react'
 import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
 import HealthBar from './HealthBar'
+import FoodBar from './FoodBar'
 import './HealthBar.css'
 
 
 export default () => {
   const [damaged, setDamaged] = useState(false)
   const [healthValue, setHealthValue] = useState(10)
+  const [food, setFood] = useState(10)
   const [gameMode, setGameMode] = useState('')
   const [isHardcore, setIsHardcore] = useState(false)
   const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
@@ -73,19 +75,27 @@ export default () => {
 
     bot.on('health', () => {
       updateHealth(bot.health)
+      setFood(prev => bot.food)
     })
   }, []) 
 
-  return <HealthBar 
-    gameMode={gameMode}
-    isHardcore={isHardcore}
-    damaged={damaged}
-    healthValue={healthValue}
-    effectToAdd={effectToAdd}
-    effectToRemove={effectToRemove}
-    effectAdded={effectAdded}
-    effectEnded={effectEnded}
-  />
+  return <>
+    <HealthBar 
+      gameMode={gameMode}
+      isHardcore={isHardcore}
+      damaged={damaged}
+      healthValue={healthValue}
+      effectToAdd={effectToAdd}
+      effectToRemove={effectToRemove}
+      effectAdded={effectAdded}
+      effectEnded={effectEnded}
+    />
+    <FoodBar 
+      gameMode={gameMode}
+      food={food}
+    />
+
+  </>
 }
 
 
