@@ -1,0 +1,28 @@
+.breathbar {
+  position: fixed;
+  display: flex;
+  flex-direction: row-reverse;
+  left: calc(50% + 91px);
+  transform: translate(-100%);
+  bottom: 40px;
+  --offset: calc(-1 * 16px);
+  --bg-x: calc(-1 * 16px);
+  --bg-y: calc(-1 * 18px);
+}
+
+.breath {
+  width: 9px;
+  height: 9px;
+  margin-left: -1px;
+  background-position: 20px 20px;
+}
+
+.breath.full {
+  background-size: 256px;
+  background-position: var(--offset) var(--bg-y);
+}
+
+.breath.half {
+  background-size: 256px;
+  background-position: calc(var(--offset) - 9px) var(--bg-y);
+}

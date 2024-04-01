@@ -2,6 +2,7 @@ import { useRef, useState, useMemo } from 'react'
 import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
 import HealthBar from './HealthBar'
 import FoodBar from './FoodBar'
+import BreathBar from './BreathBar'
 import './HealthBar.css'
 
 
@@ -9,6 +10,7 @@ export default () => {
   const [damaged, setDamaged] = useState(false)
   const [healthValue, setHealthValue] = useState(10)
   const [food, setFood] = useState(10)
+  const [oxygen, setOxygen] = useState(10)
   const [gameMode, setGameMode] = useState('')
   const [isHardcore, setIsHardcore] = useState(false)
   const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
@@ -77,6 +79,10 @@ export default () => {
       updateHealth(bot.health)
       setFood(prev => bot.food)
     })
+
+    bot.on('breath', () => {
+      setOxygen(prev => bot.oxygenLevel)
+    })
   }, []) 
 
   return <>
@@ -93,6 +99,10 @@ export default () => {
     <FoodBar 
       gameMode={gameMode}
       food={food}
+    />
+    <BreathBar 
+      gameMode={gameMode}
+      oxygen={oxygen}
     />
 
   </>

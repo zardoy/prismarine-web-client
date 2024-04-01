@@ -5,26 +5,13 @@ import './FoodBar.css'
 
 export type FoodBarProps = {
   gameMode: string,
-  // isHardcore: boolean,
   food: number,
-  // healthValue: number,
-  // effectToAdd: number | null,
-  // effectToRemove: number | null,
-  // effectAdded: (htmlElement: HTMLDivElement | null, effect: number | null) => void,
-  // effectEnded: (htmlElement: HTMLDivElement | null, effect: number | null) => void,
-
 }
 
 export default (
   {
     gameMode, 
-    // isHardcore, 
     food, 
-    // healthValue, 
-    // effectToAdd,
-    // effectToRemove,
-    // effectAdded,
-    // effectEnded
   }: FoodBarProps) => {
   const foodRef = useRef<HTMLDivElement | null>(null)
 
@@ -33,26 +20,6 @@ export default (
       foodRef.current.classList.toggle('creative', gameMode === 'creative')
     }
   }, [gameMode])
-
-  // useEffect(() => {
-  //   if (foodRef.current) {
-  //     if (isHardcore) {
-  //       foodRef.current.classList.add('hardcore')
-  //     } else {
-  //       foodRef.current.classList.remove('hardcore')
-  //     }
-  //   }
-  // }, [isHardcore])
-
-  // useEffect(() => {
-  //   if (foodRef.current) {
-  //     if (damaged) {
-  //       foodRef.current.classList.add('damaged')
-  //     } else {
-  //       foodRef.current.classList.remove('damaged')
-  //     }
-  //   }
-  // }, [damaged])
 
   useEffect(() => {
     const foodbar = foodRef.current
@@ -77,14 +44,6 @@ export default (
       }
     }
   }, [food])
-
-  // useEffect(() => {
-  //   effectAdded(foodRef.current, effectToAdd)
-  // }, [effectToAdd])
-  //
-  // useEffect(() => {
-  //   effectEnded(foodRef.current, effectToRemove)
-  // }, [effectToRemove])
 
   return <div ref={foodRef} className='foodbar' >
     {
