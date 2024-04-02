@@ -33,10 +33,10 @@ export const Primary: Story = {
       'event1': 'nothing'
     },
     rendererDevice: 'device',
+    loadData: {
+      biomesArray: [
+        { name: 'plains' }
+      ]
+    }
   },
-  loadData: {
-    biomesArray: [
-      { name: 'plains' }
-    ]
-  }
 }
