@@ -6,12 +6,20 @@ import './FoodBar.css'
 export type FoodBarProps = {
   gameMode: string,
   food: number,
+  effectToAdd: number | null,
+  effectToRemove: number | null,
+  effectAdded: (htmlElement: HTMLDivElement | null, effect: number | null) => void,
+  effectEnded: (htmlElement: HTMLDivElement | null, effect: number | null) => void,
 }
 
 export default (
   {
     gameMode, 
     food, 
+    effectToAdd,
+    effectToRemove,
+    effectAdded,
+    effectEnded
   }: FoodBarProps) => {
   const foodRef = useRef<HTMLDivElement | null>(null)
 
@@ -44,6 +52,14 @@ export default (
       }
     }
   }, [food])
+
+  useEffect(() => {
+    effectAdded(foodRef.current, effectToAdd)
+  }, [effectToAdd])
+
+  useEffect(() => {
+    effectEnded(foodRef.current, effectToRemove)
+  }, [effectToRemove])
 
   return <div ref={foodRef} className='foodbar' >
     {

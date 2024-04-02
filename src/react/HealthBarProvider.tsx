@@ -32,14 +32,18 @@ export default () => {
 
   const effectAdded = (htmlElement, effect) => {
     const effectClass = getEffectClass(effect)
-    if (!effectClass) return
-    htmlElement.classList.add(effectClass)
+    if (effectClass) {
+      htmlElement.classList.add(effectClass)
+    }
+    setEffectToAdd(null)
   }
 
   const effectEnded = (htmlElement, effect) => {
     const effectClass = getEffectClass(effect)
-    if (!effectClass) return
-    htmlElement.classList.remove(effectClass)
+    if (effectClass) {
+      htmlElement.classList.remove(effectClass)
+    }
+    setEffectToRemove(null)
   }
 
   const onDamage = () => {
@@ -99,12 +103,15 @@ export default () => {
     <FoodBar 
       gameMode={gameMode}
       food={food}
+      effectToAdd={effectToAdd}
+      effectToRemove={effectToRemove}
+      effectAdded={effectAdded}
+      effectEnded={effectEnded}
     />
     <BreathBar 
       gameMode={gameMode}
       oxygen={oxygen}
     />
-
   </>
 }
 
