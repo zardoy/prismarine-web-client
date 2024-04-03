@@ -12,10 +12,8 @@ type Story = StoryObj<typeof DebugOverlay>;
 export const Primary: Story = {
   args: {
     version: '1.0.0',
-    entities: {} as any,
-    game: {
-      dimension: 'dimension'
-    },
+    entitiesCount: 0,
+    dimension: 'dimension',
     entity: {
       position: {
         x: 0,
@@ -25,18 +23,11 @@ export const Primary: Story = {
       yaw: 10,
       pitch: 10
     },
-    time: {
-      day: 1
-    },
+    day: 0,
     packetsString: 'packets',
     customEntries: {
       'event1': 'nothing'
     },
     rendererDevice: 'device',
-    loadData: {
-      biomesArray: [
-        { name: 'plains' }
-      ]
-    }
   },
 }

@@ -1,7 +1,9 @@
 import { useMemo, useEffect, useState, useRef } from 'react'
 import { getFixedFilesize } from '../downloadAndOpenFile'
+import worldInteractions from '../worldInteractions'
 import { options } from '../optionsStorage'
-import DebugOverlay from './DebugOverlay'
+
+import DebugOverlay, { DebugOverlayProps } from './DebugOverlay'
 
 
 const defaultPacketsCount = {
@@ -24,6 +26,16 @@ export default () => {
   const ignoredPackets = useRef(new Set(''))
   const [packetsString, setPacketsString] = useState('')
   const [showDebug, setShowDebug] = useState(false)
+  const [entity, setEntity] = useState<DebugOverlayProps['entity'] | null>(null)
+  const [skyL, setSkyL] = useState(0)
+  const [biomeId, setBiomeId] = useState(0)
+  const [day, setDay] = useState(0)
+  const [version, setVersion] = useState('')
+  const [entitiesCount, setEntitiesCount] = useState(0)
+  const [dimension, setDimension] = useState('')
+  const [cursorBlock, setCursorBlock] = useState<typeof worldInteractions.cursorBlock>(null)
+  const [rendererDevice, setRendererDevice] = useState('')
+  const [revision, setRevision] = useState('')
 
   const hardcodedListOfDebugPacketsToIgnore = {
     received: [
@@ -108,11 +120,35 @@ export default () => {
     }, 1000)
 
     bot._client.on('packet', readPacket)
+    // Build error: no packets 'packet_name' and 'writePacket'
     // bot._client.on('packet_name', (packet, data) => readPacket(data, packet)) // custom client
     // bot._client.on('writePacket', (packet, data) => {
     //   sent.count++
     //   managePackets('sent', packet, data)
     // })
+    bot.on('move', () => {
+      setEntity(prev => { return { position: bot.entity.position, yaw: bot.entity.yaw, pitch: bot.entity.pitch }})
+      setSkyL(prev => bot.world.getSkyLight(bot.entity.position))
+      setBiomeId(prev => bot.world.getBiome(bot.entity.position))
+      setDimension(bot.game.dimension)
+    })
+    bot.on('time', () => {
+      setDay(bot.time.day)
+    })
+    bot.on('entitySpawn', () => {
+      setEntitiesCount(Object.values(bot.entities).length)
+    })
+    bot.on('entityGone', () => {
+      setEntitiesCount(Object.values(bot.entities).length)
+    })
+
+    try {
+      const gl = window.renderer.getContext()
+      setRendererDevice(gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL))
+    } catch (err) {
+      console.warn(err)
+    }
+    setRevision(THREE.REVISION)
 
     return () => {
       document.removeEventListener('keydown', handleF3)
@@ -122,35 +158,17 @@ export default () => {
 
   return <DebugOverlay 
     show={showDebug}
-    version={'1.0.0'}
-    entities={{} as any}
-    game={{
-      dimension: 'dimension'
-    }}
-    entity={{
-      position: {
-        x: 0,
-        y: 0,
-        z: 0
-      },
-      yaw: 10,
-      pitch: 10
-    }}
-    time={{
-      day: 1
-    }}
+    version={version}
+    entitiesCount={entitiesCount}
+    dimension={dimension}
+    entity={entity ?? { position: { x: 0, y:0, z:0 }, yaw: 0, pitch: 0 }}
+    day={day}
     packetsString={packetsString}
-    customEntries={{
-      'event1': 'nothing'
-    }}
-    rendererDevice={'device'}
-    loadData={{
-      biomesArray: [
-        { name: 'plains' }
-      ]
-    }}
-    threejs_revision={'threejs'}
-    biomeId={0}
-    skyL={'sky'}
+    customEntries={{} as DebugOverlayProps['customEntries']}
+    rendererDevice={rendererDevice}
+    threejs_revision={revision}
+    target={cursorBlock}
+    biome={loadedData.biomesArray[biomeId]?.name ?? 'unknown biome'}
+    skyL={skyL}
   />
 }

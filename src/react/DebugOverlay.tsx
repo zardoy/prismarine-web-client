@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { proxy, useSnapshot } from 'valtio'
+import worldInteractions from '../worldInteractions'
 import './DebugOverlay.css'
 
 
@@ -8,13 +9,11 @@ const state = proxy({
   rot: [ 0, 0 ]
 })
 
-type DebugOverlayProps = {
+export type DebugOverlayProps = {
   show: boolean,
   version: string,
-  entities: any, // Assuming the type of bot.entities is not known
-  game: {
-    dimension: string,
-  },
+  entitiesCount: number, 
+  dimension: string,
   entity: {
     position: {
       x: number,
@@ -24,43 +23,29 @@ type DebugOverlayProps = {
     yaw: number,
     pitch: number
   },
-  time: {
-    day: number,
-  },
+  day: number,
   packetsString: string,
   customEntries: Record<string, any>, // Assuming customEntries is a key-value pair object
   rendererDevice: string,
-  loadData: {
-    biomesArray: Array<Record<string, any>>,
-  },
-  target?: {
-    name: string,
-    position: {
-      x: number,
-      y: number,
-      z: number,
-    },
-    getProperties: () => Record<string, any>, // Assuming getProperties returns a key-value pair object
-  },
+  target?: typeof worldInteractions.cursorBlock,
   threejs_revision: string,
-  biomeId: number,
-  skyL: string
+  biome: string,
+  skyL: number
 }
 
 export default ({
   show,
   version,
-  entities,
-  game,
+  entitiesCount,
+  dimension,
   entity,
-  time,
-  loadData,
+  day,
   packetsString,
   customEntries,
   rendererDevice,
   target,
   threejs_revision,
-  biomeId,
+  biome,
   skyL
 } : DebugOverlayProps) => {
   const minecraftYaw = useRef(0)
@@ -80,6 +65,8 @@ export default ({
     state.pos.x = entity.position.x
     state.pos.y = entity.position.y
     state.pos.z = entity.position.z
+    state.rot[0] = entity.yaw
+    state.rot[1] = entity.pitch
   }, [entity])
 
   useEffect(() => {
@@ -92,8 +79,8 @@ export default ({
   return <>
     <div className="debug-left-side">
       <p>Prismarine Web Client ({version})</p>
-      <p>E: {Object.values(entities).length}</p>
-      <p>{game.dimension}</p>
+      <p>E: {entitiesCount}</p>
+      <p>{dimension}</p>
       <div className="empty"></div>
       <p>XYZ: {pos.x.toFixed(3)} / {pos.y.toFixed(3)} / {pos.z.toFixed(3)}</p>
       <p>Chunk: {Math.floor(pos.x % 16)} ~ {Math.floor(pos.z % 16)} in {Math.floor(pos.x / 16)} ~ {Math.floor(pos.z / 16)}</p>
@@ -102,8 +89,8 @@ export default ({
       <p>Facing (minecraft): {quadsDescription[minecraftQuad.current]} ({minecraftYaw.current.toFixed(1)} {(rot[1] * -180 / Math.PI).toFixed(1)})</p>
       <p>Light: {skyL} ({skyL} sky)</p>
 
-      <p>Biome: minecraft:{loadData.biomesArray[biomeId]?.name ?? 'unknown biome'}</p>
-      <p>Day: {time.day}</p>
+      <p>Biome: minecraft:{biome}</p>
+      <p>Day: {day}</p>
       <div className="empty"></div>
       {Object.entries(customEntries).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
     </div>
