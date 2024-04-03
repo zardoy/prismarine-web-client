@@ -38,61 +38,70 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     const program = createProgram(gl, VertShader, FragShader)
 
     let vertices = new Float32Array([
-        -0.5, -0.5, -0.5, 0.0, 0.0, // Bottom-let
-        0.5, -0.5, -0.5, 1.0, 0.0, // bottom-right
-        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
-        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
-        -0.5, 0.5, -0.5, 0.0, 1.0, // top-let
-        -0.5, -0.5, -0.5, 0.0, 0.0, // bottom-let
+        -0.5, -0.5, -0.5, 0.0, 0.0,      0.0, // Bottom-let
+        0.5, -0.5, -0.5, 1.0, 0.0,      0.0, // bottom-right
+        0.5, 0.5, -0.5, 1.0, 1.0,      0.0, // top-right
+        0.5, 0.5, -0.5, 1.0, 1.0,      0.0, // top-right
+        -0.5, 0.5, -0.5, 0.0, 1.0,      0.0, // top-let
+        -0.5, -0.5, -0.5, 0.0, 0.0,      0.0, // bottom-let
         // ront ace
-        -0.5, -0.5, 0.5, 0.0, 0.0, // bottom-let
-        0.5, 0.5, 0.5, 1.0, 1.0, // top-right
-        0.5, -0.5, 0.5, 1.0, 0.0, // bottom-right
-        0.5, 0.5, 0.5, 1.0, 1.0, // top-right
-        -0.5, -0.5, 0.5, 0.0, 0.0, // bottom-let
-        -0.5, 0.5, 0.5, 0.0, 1.0, // top-let
+        -0.5, -0.5, 0.5, 0.0, 0.0,   1.0, // bottom-let
+        0.5, 0.5, 0.5, 1.0, 1.0,    1.0, // top-right
+        0.5, -0.5, 0.5, 1.0, 0.0,    1.0, // bottom-right
+        0.5, 0.5, 0.5, 1.0, 1.0,    1.0,// top-right
+        -0.5, -0.5, 0.5, 0.0, 0.0,          1.0,// bottom-let
+        -0.5, 0.5, 0.5, 0.0, 1.0,          1.0,// top-let
         // Let ace
-        -0.5, 0.5, 0.5, 1.0, 0.0, // top-right
-        -0.5, -0.5, -0.5, 0.0, 1.0, // bottom-let
-        -0.5, 0.5, -0.5, 1.0, 1.0, // top-let
-        -0.5, -0.5, -0.5, 0.0, 1.0, // bottom-let
-        -0.5, 0.5, 0.5, 1.0, 0.0, // top-right
-        -0.5, -0.5, 0.5, 0.0, 0.0, // bottom-right
+        -0.5, 0.5, 0.5, 1.0, 0.0,       2.0,// top-right
+        -0.5, -0.5, -0.5, 0.0, 1.0,       2.0,// bottom-let
+        -0.5, 0.5, -0.5, 1.0, 1.0,       2.0,// top-let
+        -0.5, -0.5, -0.5, 0.0, 1.0,       2.0,// bottom-let
+        -0.5, 0.5, 0.5, 1.0, 0.0,      2.0, // top-right
+        -0.5, -0.5, 0.5, 0.0, 0.0,       2.0,// bottom-right
         // Right ace
-        0.5, 0.5, 0.5, 1.0, 0.0, // top-let
-        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
-        0.5, -0.5, -0.5, 0.0, 1.0, // bottom-right
-        0.5, -0.5, -0.5, 0.0, 1.0, // bottom-right
-        0.5, -0.5, 0.5, 0.0, 0.0, // bottom-let
-        0.5, 0.5, 0.5, 1.0, 0.0, // top-let
-        // Bottom ace
-        -0.5, -0.5, -0.5, 0.0, 1.0, // top-right
-        0.5, -0.5, 0.5, 1.0, 0.0, // bottom-let
-        0.5, -0.5, -0.5, 1.0, 1.0, // top-let
-        0.5, -0.5, 0.5, 1.0, 0.0, // bottom-let
-        -0.5, -0.5, -0.5, 0.0, 1.0, // top-right
-        -0.5, -0.5, 0.5, 0.0, 0.0, // bottom-right
+        0.5, 0.5, 0.5, 1.0, 0.0,      3.0,// top-let
+        0.5, 0.5, -0.5, 1.0, 1.0,      3.0,// top-right
+        0.5, -0.5, -0.5, 0.0, 1.0,      3.0,// bottom-right
+        0.5, -0.5, -0.5, 0.0, 1.0,      3.0,// bottom-right
+        0.5, -0.5, 0.5, 0.0, 0.0,      3.0,// bottom-let
+        0.5, 0.5, 0.5, 1.0, 0.0,     3.0, // top-let
+        // Bottom ace      
+        -0.5, -0.5, -0.5, 0.0, 1.0,            4.0,// top-right
+        0.5, -0.5, 0.5, 1.0, 0.0,            4.0,// bottom-let
+        0.5, -0.5, -0.5, 1.0, 1.0,           4.0,// top-let
+        0.5, -0.5, 0.5, 1.0, 0.0,           4.0, // bottom-let
+        -0.5, -0.5, -0.5, 0.0, 1.0,           4.0, // top-right
+        -0.5, -0.5, 0.5, 0.0, 0.0,           4.0, // bottom-right
         // Top ace
-        -0.5, 0.5, -0.5, 0.0, 1.0, // top-let
-        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
-        0.5, 0.5, 0.5, 1.0, 0.0, // bottom-right
-        0.5, 0.5, 0.5, 1.0, 0.0, // bottom-right
-        -0.5, 0.5, 0.5, 0.0, 0.0, // bottom-let
-        -0.5, 0.5, -0.5, 0.0, 1.0  // top-let
+        -0.5, 0.5, -0.5, 0.0, 1.0,          5.0,// top-let
+        0.5, 0.5, -0.5, 1.0, 1.0,          5.0,// top-right
+        0.5, 0.5, 0.5, 1.0, 0.0,          5.0,// bottom-right
+        0.5, 0.5, 0.5, 1.0, 0.0,          5.0,// bottom-right
+        -0.5, 0.5, 0.5, 0.0, 0.0,          5.0,// bottom-let
+        -0.5, 0.5, -0.5, 0.0, 1.0 ,          5.0// top-let
     ])
 
-    let NumberOfCube = 1_000_000
+    let NumberOfCube = 25_000
 
     cubePositions = new Float32Array(NumberOfCube * 3)
-    let cubeTextureIndices = new Float32Array(NumberOfCube);
+    let cubeTextureIndices = new Float32Array(NumberOfCube*6);
 
 
     // write random coordinates to cube positions xyz ten cubes;
     for (let i = 0; i < NumberOfCube * 3; i += 3) {
-        cubePositions[i] = Math.floor(Math.random() * 1000) - 500;
-        cubePositions[i + 1] = Math.floor(Math.random() * 1000) - 500;
+        cubePositions[i] = Math.floor(Math.random() * 100) - 50;
+        cubePositions[i + 1] = Math.floor(Math.random() * 100) - 50;
         cubePositions[i + 2] = Math.floor(Math.random() * 100) - 100;
-        cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
+        // cubeTextureIndices[i / 3] = 0;
+    }
+
+    for (let i = 0; i < NumberOfCube * 6; i += 6) {
+        cubeTextureIndices[i] = Math.floor(Math.random() * 800);
+        cubeTextureIndices[i+1] = Math.floor(Math.random() * 800);
+        cubeTextureIndices[i+2] = Math.floor(Math.random() * 800);
+        cubeTextureIndices[i+3] = Math.floor(Math.random() * 800);
+        cubeTextureIndices[i+4] = Math.floor(Math.random() * 800);
+        cubeTextureIndices[i+5] = Math.floor(Math.random() * 800);
         // cubeTextureIndices[i / 3] = 0;
     }
     cubePositions[0] = 0;
@@ -112,30 +121,38 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     VAO = gl.createVertexArray();
     let VBO = gl.createBuffer();
+   // let VBO_sides = gl.createBuffer();
     //EBO = gl.createBuffer();
 
     gl.bindVertexArray(VAO);
     gl.bindBuffer(gl.ARRAY_BUFFER, VBO)
+   // gl.bindBuffer(gl.ARRAY_BUFFER, VBO_sides)
     gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
 
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * 4, 0)
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 6 * 4, 0)
     gl.enableVertexAttribArray(0)
 
-    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * 4, 3 * 4)
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 6 * 4, 3 * 4)
     gl.enableVertexAttribArray(1)
+
+    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 6 * 4, 5 * 4)
+    gl.enableVertexAttribArray(2)
     //instance data
 
-    gl.enableVertexAttribArray(2);
-    gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-    gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 3 * 4, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.vertexAttribDivisor(2, 1);
-
     gl.enableVertexAttribArray(3);
-    gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-    gl.vertexAttribPointer(3, 1, gl.FLOAT, false, 1 * 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
+    gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 3 * 4, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.vertexAttribDivisor(3, 1);
+
+    gl.enableVertexAttribArray(4);
+    gl.enableVertexAttribArray(5);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
+    gl.vertexAttribPointer(4, 4, gl.FLOAT, false, 4 * 6, 0);
+    gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 2 * 6, 4 * 4);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.vertexAttribDivisor(4, 1);
+    gl.vertexAttribDivisor(5, 1);
 
     updateCubes = (startIndex) => {
         // cubePositionsRaw = [
@@ -185,19 +202,6 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
 
 
-    //gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    //gl.bindVertexArray(null)
-
-    // viewer.world.updateTexturesData()
-    // await new Promise(resolve => {
-    //     // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
-    //     // viewer.world.material.map!.image.onload = () => {
-    //     //   console.log(this.material.map!.image)
-    //     //   resolve()
-    //     // }
-    //     viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', resolve)
-    // })
-    // const names = Object.keys(viewer.world.downloadedBlockStatesData)
 
     let texture1 = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture1);
