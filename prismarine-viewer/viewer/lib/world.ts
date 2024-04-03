@@ -29,20 +29,21 @@ export type WorldBlock = Block & {
   isCube: boolean
 }
 
+
 export class World {
-  Chunk: any/* import('prismarine-chunk/types/index').PCChunk */
-  columns = {}
+  Chunk: typeof import('prismarine-chunk/types/index').PCChunk
+  columns = {} as { [key: string]: import('prismarine-chunk/types/index').PCChunk }
   blockCache = {}
   biomeCache: { [id: number]: mcData.Biome }
 
-  constructor (version) {
-    this.Chunk = Chunks(version)
+  constructor(version) {
+    this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
   }
 
   addColumn (x, z, json) {
     const chunk = this.Chunk.fromJson(json)
-    this.columns[columnKey(x, z)] = chunk
+    this.columns[columnKey(x, z)] = chunk as any
     return chunk
   }
 
@@ -66,6 +67,10 @@ export class World {
     return true
   }
 
+  getColumnByPos (pos: Vec3) {
+    return this.getColumn(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
+  }
+
   getBlock (pos: Vec3): WorldBlock | null {
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
 
@@ -79,6 +84,7 @@ export class World {
 
     if (!this.blockCache[stateId]) {
       const b = column.getBlock(locInChunk)
+      //@ts-expect-error
       b.isCube = isCube(b.shapes)
       this.blockCache[stateId] = b
     }

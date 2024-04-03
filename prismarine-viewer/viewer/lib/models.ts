@@ -310,6 +310,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     }
 
     const aos: number[] = []
+    const baseLight = Math.min(15, world.getColumnByPos(block.position).getBlockLight(cursor) + 1 + world.getColumnByPos(block.position).getSkyLight(cursor) + 1) / 15
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
@@ -356,7 +357,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         aos.push(ao)
       }
 
-      attr.colors.push(tint[0] * light, tint[1] * light, tint[2] * light)
+      attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
     }
 
     if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
