@@ -140,7 +140,7 @@ class Hud extends LitElement {
    * @param {string} host
    */
   init (renderer, bot, host) {
-    const debugMenu = this.shadowRoot.querySelector('#debug-overlay')
+    // const debugMenu = this.shadowRoot.querySelector('#debug-overlay')
     const playerList = this.shadowRoot.querySelector('#playerlist-overlay')
     const healthbar = this.shadowRoot.querySelector('#health-bar')
     const foodbar = this.shadowRoot.querySelector('#food-bar')
@@ -150,7 +150,7 @@ class Hud extends LitElement {
     const xpLabel = this.shadowRoot.querySelector('#xp-label')
 
     this.bot = bot
-    debugMenu.bot = bot
+    // debugMenu.bot = bot
 
     hotbar.init()
     // playerList.init(host)
@@ -237,9 +237,9 @@ class Hud extends LitElement {
       e.stopPropagation()
       showModal(document.getElementById('pause-screen'))
     }}></div>
-      </div>
+      </div> 
 
-      <pmui-debug-overlay id="debug-overlay"></pmui-debug-overlay>
+      <!-- <pmui-debug-overlay id="debug-overlay"></pmui-debug-overlay> -->
       <pmui-playerlist-overlay id="playerlist-overlay"></pmui-playerlist-overlay>
       <pmui-bossbars-overlay id="bossbars-overlay"></pmui-bossbars-overlay>
       <div class="crosshair"></div>

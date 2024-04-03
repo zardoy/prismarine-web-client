@@ -236,8 +236,8 @@ let lastMouseMove: number
 let debugMenu
 const updateCursor = () => {
   worldInteractions.update()
-  debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
-  debugMenu.cursorBlock = worldInteractions.cursorBlock
+  // debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
+  // debugMenu.cursorBlock = worldInteractions.cursorBlock
 }
 function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
@@ -634,9 +634,9 @@ async function connect (connectOptions: {
 
     bot.on('physicsTick', () => updateCursor())
 
-    const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
+    // const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
 
-    window.debugMenu = debugMenu
+    // window.debugMenu = debugMenu
 
     void initVR()
 
@@ -646,10 +646,10 @@ async function connect (connectOptions: {
 
     try {
       const gl = renderer.getContext()
-      debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
+      // debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
     } catch (err) {
       console.warn(err)
-      debugMenu.rendererDevice = '???'
+      // debugMenu.rendererDevice = '???'
     }
 
     // Link WorldDataEmitter and Viewer

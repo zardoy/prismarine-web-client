@@ -5,48 +5,50 @@ import './DebugOverlay.css'
 
 const state = proxy({
   pos: { x: 0, y: 0, z: 0 },
-  rot: [ 0.0, 0.0 ]
+  rot: [ 0, 0 ]
 })
 
 type DebugOverlayProps = {
-  version: string;
-  entities: any; // Assuming the type of bot.entities is not known
+  show: boolean,
+  version: string,
+  entities: any, // Assuming the type of bot.entities is not known
   game: {
-    dimension: string;
-  };
+    dimension: string,
+  },
   entity: {
     position: {
-      x: number;
-      y: number;
-      z: number;
+      x: number,
+      y: number,
+      z: number,
     },
     yaw: number,
     pitch: number
-  };
+  },
   time: {
-    day: number;
-  };
-  packetsString: string;
-  customEntries: Record<string, any>; // Assuming customEntries is a key-value pair object
-  rendererDevice: string;
+    day: number,
+  },
+  packetsString: string,
+  customEntries: Record<string, any>, // Assuming customEntries is a key-value pair object
+  rendererDevice: string,
   loadData: {
-    biomesArray: Record<string, any>[];
-  };
+    biomesArray: Array<Record<string, any>>,
+  },
   target?: {
-    name: string;
+    name: string,
     position: {
-      x: number;
-      y: number;
-      z: number;
-    };
-    getProperties: () => Record<string, any>; // Assuming getProperties returns a key-value pair object
-  };
-  threejs_revision: string;
-  biomeId: number;
+      x: number,
+      y: number,
+      z: number,
+    },
+    getProperties: () => Record<string, any>, // Assuming getProperties returns a key-value pair object
+  },
+  threejs_revision: string,
+  biomeId: number,
   skyL: string
 }
 
 export default ({
+  show,
   version,
   entities,
   game,
@@ -85,6 +87,8 @@ export default ({
     minecraftQuad.current = Math.floor(((minecraftYaw.current + 180) / 90 + 0.5) % 4)
   }, [rot[0]])
 
+  if (!show) return null
+
   return <>
     <div className="debug-left-side">
       <p>Prismarine Web Client ({version})</p>
@@ -101,7 +105,7 @@ export default ({
       <p>Biome: minecraft:{loadData.biomesArray[biomeId]?.name ?? 'unknown biome'}</p>
       <p>Day: {time.day}</p>
       <div className="empty"></div>
-      {Object.entries(customEntries).map(([name, value]) => <p>{name}: {value}</p>)}
+      {Object.entries(customEntries).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
     </div>
 
     <div className="debug-right-side">
@@ -112,10 +116,10 @@ export default ({
         {
           Object.entries(target.getProperties()).map(
             ([name, value], idx, arr) => {
-              return <p>
+              return <p key={name}>
                 {name}: {
                   typeof value === 'boolean' ? (
-                    <span style={{color: value ? 'lightgreen' : 'red'}}>{value}</span>
+                    <span style={{ color: value ? 'lightgreen' : 'red' }}>{value}</span>
                   ) : value
                 }
               </p>
