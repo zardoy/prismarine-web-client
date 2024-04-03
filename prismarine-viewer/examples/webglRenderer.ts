@@ -40,7 +40,7 @@ export const addBlocksSection = (key, data) => {
                 type: 'addBlocksSection', data, key
             })
         }
-        if (allReceived || (playground && Object.values(viewer.world.newChunks).length)) {
+        if (allReceived || (true && Object.values(viewer.world.newChunks).length)) {
             sendWorkerMessage({
                 type: 'addBlocksSectionDone'
             })
@@ -48,9 +48,29 @@ export const addBlocksSection = (key, data) => {
     })
 }
 
+export const sendCameraToWorker = () => {
+    const cameraData = ['rotation', 'position'].reduce((acc, key) => {
+        acc[key] = ['x', 'y', 'z'].reduce((acc2, key2) => {
+            acc2[key2] = viewer.camera[key][key2]
+            return acc2
+        }, {})
+        return acc
+    }, {})
+    sendWorkerMessage({
+        type: 'camera',
+        camera: cameraData
+    })
+}
+
+export const removeBlocksSection = (key) => {
+    sendWorkerMessage({
+        type: 'removeBlocksSection', key
+    })
+}
+
 let playground = false
 export const initWebglRenderer = async (version: string, postRender = () => { }, isPlayground = false) => {
-    playground = true
+    playground = isPlayground
     viewer.setVersion(version)
     await new Promise(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
@@ -75,7 +95,7 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
     sendWorkerMessage({
         canvas: offscreen,
         imageBlob,
-        blockStatesJson: viewer.world.downloadedBlockStatesData
+        isPlayground
     }, [offscreen])
 
     let oldWidth = window.innerWidth
@@ -95,7 +115,7 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
     })
     const mainLoop = () => {
         requestAnimationFrame(mainLoop)
-        if (!focused) return
+        if (!focused || window.stopRender) return
 
         if (oldWidth !== window.innerWidth || oldHeight !== window.innerHeight) {
             oldWidth = window.innerWidth
@@ -108,17 +128,14 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
         }
         postRender()
         // TODO! do it in viewer to avoid possible delays
-        if (/* playground &&  */['rotation', 'position'].some((key) => oldCamera[key] !== viewer.camera[key])) {
+        if (playground && ['rotation', 'position'].some((key) => oldCamera[key] !== viewer.camera[key])) {
             // TODO fix
             for (const [key, val] of Object.entries(oldCamera)) {
                 for (const key2 of Object.keys(val)) {
                     oldCamera[key][key2] = viewer.camera[key][key2]
                 }
             }
-            sendWorkerMessage({
-                type: 'camera',
-                camera: oldCamera
-            })
+            sendCameraToWorker()
         }
     }
 
@@ -138,7 +155,7 @@ const addFpsCounter = () => {
     fpsCounter.style.padding = '2px'
     fpsCounter.style.fontFamily = 'monospace'
     fpsCounter.style.fontSize = '12px'
-    fpsCounter.style.zIndex = '1000'
+    fpsCounter.style.zIndex = '10000'
     document.body.appendChild(fpsCounter)
     let prevTimeout
     worker.addEventListener('message', (e) => {

@@ -7,6 +7,7 @@ import { Primitives } from './primitives'
 import { getVersion } from './version'
 import EventEmitter from 'events'
 import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
+import { sendCameraToWorker } from '../../examples/webglRenderer'
 
 export class Viewer {
   scene: THREE.Scene
@@ -115,6 +116,7 @@ export class Viewer {
       new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
     }
     cam.rotation.set(pitch, yaw, roll, 'ZYX')
+    sendCameraToWorker()
   }
 
   playSound (position: Vec3, path: string, volume = 1) {

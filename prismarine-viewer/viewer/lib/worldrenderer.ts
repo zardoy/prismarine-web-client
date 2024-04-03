@@ -10,7 +10,7 @@ import { toMajor } from './version.js'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
-import { addBlocksSection } from '../../examples/webglRenderer'
+import { addBlocksSection, removeBlocksSection } from '../../examples/webglRenderer'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -315,7 +315,6 @@ export class WorldRenderer {
   }
 
   addColumn (x, z, chunk) {
-    console.log('addColumn')
     this.initialChunksLoad = false
     this.loadedChunks[`${x},${z}`] = true
     for (const worker of this.workers) {
@@ -340,12 +339,18 @@ export class WorldRenderer {
   }
 
   removeColumn (x, z) {
-    // this.cleanChunkTextures(x, z)
-
-    // delete this.loadedChunks[`${x},${z}`]
-    // for (const worker of this.workers) {
-    //   worker.postMessage({ type: 'unloadChunk', x, z })
-    // }
+    for (const key of Object.keys(this.newChunks)) {
+      const [xSec, _ySec, zSec] = key.split(',').map(Number)
+      // if (Math.floor(x / 16) === x && Math.floor(z / 16) === z) {
+      if (x === xSec && z === zSec) {
+        // foundSections.push(key)
+        removeBlocksSection(key)
+      }
+    }
+    delete this.loadedChunks[`${x},${z}`]
+    for (const worker of this.workers) {
+      worker.postMessage({ type: 'unloadChunk', x, z })
+    }
     // for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
     //   this.setSectionDirty(new Vec3(x, y, z), false)
     //   const key = `${x},${y},${z}`
