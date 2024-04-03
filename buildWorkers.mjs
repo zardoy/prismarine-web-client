@@ -1,6 +1,7 @@
 // main worker file intended for computing world geometry is built using prismarine-viewer/buildWorker.mjs
 import { build, context } from 'esbuild'
 import fs from 'fs'
+import path from 'path'
 
 const watch = process.argv.includes('-w')
 
@@ -36,8 +37,8 @@ const result = await (watch ? context : build)({
                 build.onEnd(({ outputFiles }) => {
                     for (const file of outputFiles) {
                         for (const dir of ['prismarine-viewer/public', 'dist']) {
-                            const baseName = file.path.split('/').pop()
-                            fs.writeFileSync(`${dir}/${baseName}`, file.contents)
+                            const baseName = path.basename(file.path)
+                            fs.writeFileSync(path.join(dir, baseName), file.contents)
                         }
                     }
                 })
