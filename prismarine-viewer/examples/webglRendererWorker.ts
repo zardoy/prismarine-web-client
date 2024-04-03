@@ -98,6 +98,18 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
             cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
             // cubeTextureIndices[i / 3] = 0;
         }
+
+        for (let i = 0; i < NumberOfCube * 6; i += 6) {
+            cubeTextureIndices[i + 0] = Math.floor(Math.random() * 800);
+            cubeTextureIndices[i + 1] = Math.floor(Math.random() * 800);
+            cubeTextureIndices[i + 2] = Math.floor(Math.random() * 800);
+            cubeTextureIndices[i + 3] = Math.floor(Math.random() * 800);
+            cubeTextureIndices[i + 4] = Math.floor(Math.random() * 800);
+            cubeTextureIndices[i + 5] = Math.floor(Math.random() * 800);
+            // cubeTextureIndices[i / 3] = 0;
+        }
+
+
     }
     cubePositions[0] = 0;
     cubePositions[1] = 0;
