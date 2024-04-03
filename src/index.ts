@@ -12,16 +12,7 @@ import { supportedVersions } from 'minecraft-protocol'
 
 import './menus/components/button'
 import './menus/components/edit_box'
-import './menus/components/hotbar'
-import './menus/components/health_bar'
-import './menus/components/food_bar'
-import './menus/components/breath_bar'
-import './menus/components/debug_overlay'
-import './menus/components/playerlist_overlay'
-import './menus/components/bossbars_overlay'
-import './menus/hud'
 import './menus/play_screen'
-import './menus/pause_screen'
 import './menus/keybinds_screen'
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
@@ -227,9 +218,6 @@ const resizeHandler = () => {
     viewer.updateComposerSize()
   }
 }
-
-const hud = document.getElementById('hud')
-const pauseMenu = document.getElementById('pause-screen')
 
 let mouseMovePostHandle = (e) => { }
 let lastMouseMove: number
@@ -517,6 +505,7 @@ async function connect (connectOptions: {
       }
     }) as unknown as typeof __type_bot
     window.bot = bot
+    customEvents.emit('mineflayerBotCreated')
     if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature
@@ -562,7 +551,6 @@ async function connect (connectOptions: {
   if (!bot) return
 
   const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
-  hud.preload(bot)
 
   // bot.on('inject_allowed', () => {
   //   loadingScreen.maybeRecoverable = false
@@ -634,9 +622,8 @@ async function connect (connectOptions: {
 
     bot.on('physicsTick', () => updateCursor())
 
+    // TODO update
     // const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
-
-    // window.debugMenu = debugMenu
 
     void initVR()
 
@@ -644,13 +631,13 @@ async function connect (connectOptions: {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
     }
 
-    try {
-      const gl = renderer.getContext()
-      // debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
-    } catch (err) {
-      console.warn(err)
-      // debugMenu.rendererDevice = '???'
-    }
+    // try {
+    //   const gl = renderer.getContext()
+    //   debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
+    // } catch (err) {
+    //   console.warn(err)
+    //   debugMenu.rendererDevice = '???'
+    // }
 
     // Link WorldDataEmitter and Viewer
     viewer.listen(worldView)
@@ -686,13 +673,14 @@ async function connect (connectOptions: {
       }
       if (renderer.xr.isPresenting) return // todo
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
-        showModal(pauseMenu)
+        // showModal(pauseMenu)
       }
     }
 
     registerListener(document, 'pointerlockchange', changeCallback, false)
 
-    const cameraControlEl = hud
+    // const cameraControlEl = hud
+    const cameraControlEl = document.body
 
     /** after what time of holding the finger start breaking the block */
     const touchStartBreakingBlockMs = 500
@@ -815,8 +803,8 @@ async function connect (connectOptions: {
           viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', () => resolve())
         })
       }
-      hud.init(renderer, bot, server.host)
-      hud.style.display = 'block'
+      // hud.init(renderer, bot, server.host)
+      // hud.style.display = 'block'
     })
 
     if (appStatusState.isError) return
@@ -892,7 +880,7 @@ void window.fetch('config.json').then(async res => res.json()).then(c => c, (err
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
 
-  window.addEventListener('hud-ready', (e) => {
+  void Promise.resolve().then(() => {
     // try to connect to peer
     const qs = new URLSearchParams(window.location.search)
     const peerId = qs.get('connectPeer')
@@ -909,7 +897,6 @@ downloadAndOpenFile().then((downloadAction) => {
       })
     }
   })
-  if (document.getElementById('hud').isReady) window.dispatchEvent(new Event('hud-ready'))
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)

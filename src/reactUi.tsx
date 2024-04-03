@@ -3,6 +3,7 @@ import { renderToDom, ErrorBoundary } from '@zardoy/react-util'
 import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
+import { useEffect, useMemo, useState } from 'react'
 import { miscUiState } from './globalState'
 import DeathScreenProvider from './react/DeathScreenProvider'
 import OptionsRenderApp from './react/OptionsRenderApp'
@@ -57,6 +58,23 @@ const DisplayQr = () => {
   </div>
 }
 
+// mounted earlier than ingame ui TODO
+const GameHud = ({ children }) => {
+  const { loadedDataVersion } = useSnapshot(miscUiState)
+  const [gameLoaded, setGameLoaded] = useState(false)
+
+  useEffect(() => {
+    customEvents.on('mineflayerBotCreated', () => {
+      setGameLoaded(true)
+    })
+  }, [])
+  useEffect(() => {
+    if (!loadedDataVersion) setGameLoaded(false)
+  }, [loadedDataVersion])
+
+  return gameLoaded ? children : null
+}
+
 const InGameUi = () => {
   const { gameLoaded } = useSnapshot(miscUiState)
   if (!gameLoaded) return
@@ -72,7 +90,6 @@ const InGameUi = () => {
       <TitleProvider />
       <ScoreboardProvider />
       <IndicatorEffectsProvider />
-      <HealthBarProvider />
       <TouchAreasControlsProvider />
     </RobustPortal>
     <PerComponentErrorBoundary>
@@ -111,6 +128,9 @@ const App = () => {
       <OptionsRenderApp />
       <MainMenuRenderApp />
       <NotificationProvider />
+      <GameHud>
+        <HealthBarProvider />
+      </GameHud>
     </RobustPortal>
   </div>
 }
