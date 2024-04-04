@@ -115,6 +115,7 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
     })
     const mainLoop = () => {
         requestAnimationFrame(mainLoop)
+        //@ts-ignore
         if (!focused || window.stopRender) return
 
         if (oldWidth !== window.innerWidth || oldHeight !== window.innerHeight) {
@@ -140,6 +141,13 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
     }
 
     requestAnimationFrame(mainLoop)
+}
+
+export const setAnimationTick = (tick: number) => {
+    sendWorkerMessage({
+        type: 'animationTick',
+        tick
+    })
 }
 
 

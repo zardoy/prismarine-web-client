@@ -14,7 +14,7 @@ import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
 // import * as Mathgl from 'math.gl'
 import { findTextureInBlockStates } from '../../src/playerWindows'
-import { initWebglRenderer } from './webglRenderer'
+import { initWebglRenderer, setAnimationTick } from './webglRenderer'
 import { renderToDom } from '@zardoy/react-util'
 
 globalThis.THREE = THREE
@@ -44,7 +44,8 @@ const params = {
   entityRotate: false,
   camera: '',
   playSound () { },
-  blockIsomorphicRenderBundle () { }
+  blockIsomorphicRenderBundle () { },
+  animationTick: 0
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -100,6 +101,7 @@ async function main () {
   gui.add(params, 'skip')
   gui.add(params, 'playSound')
   gui.add(params, 'blockIsomorphicRenderBundle')
+  gui.add(params, 'animationTick', 0, 20, 1).listen()
   gui.open(false)
   let metadataFolder = gui.addFolder('metadata')
   // let entityRotationFolder = gui.addFolder('entity metadata')
@@ -122,16 +124,16 @@ async function main () {
   const chunk2 = new Chunk()
   chunk1.setBlockStateId(targetPos, 1)
   chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 1)
-  chunk1.setBlockStateId(targetPos.offset(0, 1, 1), 1)
-  chunk1.setBlockStateId(targetPos.offset(0, 1, 0), 1)
-  chunk1.setBlockStateId(targetPos.offset(1, 1, 0), 1)
-  chunk1.setBlockStateId(targetPos.offset(-1, 1, 0), 1)
+  chunk1.setBlockStateId(targetPos.offset(0, 1, 1), 2)
+  // chunk1.setBlockStateId(targetPos.offset(0, 1, 0), 1)
+  // chunk1.setBlockStateId(targetPos.offset(1, 1, 0), 1)
+  // chunk1.setBlockStateId(targetPos.offset(-1, 1, 0), 1)
   const world = new World((chunkX, chunkZ) => {
-    if (chunkX === 0 && chunkZ === 0) return chunk1
-    if (chunkX === 1 && chunkZ === 0) return chunk2
+    // if (chunkX === 0 && chunkZ === 0) return chunk1
+    // if (chunkX === 1 && chunkZ === 0) return chunk2
     //@ts-ignore
-    // const chunk = new Chunk()
-    // return chunk
+    const chunk = new Chunk()
+    return chunk
   })
 
   // await schem.paste(world, new Vec3(0, 60, 0))
@@ -189,6 +191,7 @@ async function main () {
     // mouse
     const mouse = { x: 0, y: 0 }
     const mouseMove = (e: PointerEvent) => {
+      if ((e.target as HTMLElement).closest('.lil-gui')) return
       if (e.buttons === 1 || e.pointerType === 'touch') {
         viewer.camera.rotation.x -= e.movementY / 100
         //viewer.camera.
@@ -196,7 +199,6 @@ async function main () {
         if (viewer.camera.rotation.x < -Math.PI / 2) viewer.camera.rotation.x = -Math.PI / 2
         if (viewer.camera.rotation.x > Math.PI / 2) viewer.camera.rotation.x = Math.PI / 2
 
-        console.log('viewer.camera.position', viewer.camera.position)
         // yaw += e.movementY / 20;
         // pitch += e.movementX / 20;
       }
@@ -361,6 +363,9 @@ async function main () {
     },
     supportBlock () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
+    },
+    animationTick () {
+      setAnimationTick(params.animationTick)
     }
   }
 

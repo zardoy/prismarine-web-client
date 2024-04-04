@@ -465,12 +465,15 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
                   if (Array.isArray(firstVar)) firstVar = firstVar[0]
                   if (!firstVar) return
                   const [element] = firstVar.model?.elements
-                  if (!element || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16))) return
+                  if (!element/*  || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16)) */) return
                   return element.faces
                 }
 
-                const result = findTextureInBlockStates(block.name)?.north?.texture!/*  ?? findTextureInBlockStates('sponge')?.north.texture! */
-                if (!result) continue // todo
+                const getResult = (side: string): number => {
+                  const result = findTextureInBlockStates(block.name)?.[side]?.texture
+                  if (!result) return 0 // todo
+                  return uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
+                }
                 function uvToTextureIndex (u, v) {
                   const textureWidth = textureSize
                   const textureHeight = textureSize
@@ -488,8 +491,18 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
 
                   return textureIndex;
                 }
+                // back, front, left, right, top, bottom
+                const textures = [
+                  getResult('north'),
+                  getResult('south'),
+                  getResult('west'),
+                  getResult('east'),
+                  getResult('up'),
+                  getResult('down')
+                ]
+                if (textures.every(t => t === 0)) continue
                 attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
-                  textureIndex: uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0),
+                  textureIndex: textures,
                 } satisfies BlockType
               }
             }

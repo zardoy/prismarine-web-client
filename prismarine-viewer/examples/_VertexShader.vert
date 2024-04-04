@@ -14,6 +14,7 @@ flat out float TextureIndex;
 
 uniform mat4 view;
 uniform mat4 projection;
+uniform int tick;
 
 void main()
 {
@@ -22,6 +23,7 @@ void main()
     //TextureIndex = aTextureIndex; //Passing texture index to fragment shader
     switch (int(CubeSide)) {
         case 0:
+            TexCoord = vec2((1.0f-aTexCoord.x), (1.0 - aTexCoord.y));
             TextureIndex = aTextureIndex.x;
             break;
         case 1:
@@ -29,9 +31,11 @@ void main()
             break;
         case 2:
             TextureIndex = aTextureIndex.z;
+            TexCoord = vec2((1.0f-aTexCoord.y), (1.0f - aTexCoord.x));
             break;
         case 3:
             TextureIndex = aTextureIndex.z;
+            TexCoord = vec2(aTexCoord.y, (1.0f - aTexCoord.x));
             break;
         case 4:
             TextureIndex = aTextureIndexPlus.x;
@@ -40,6 +44,8 @@ void main()
             TextureIndex = aTextureIndexPlus.y;
             break;
     }
-    
+    TextureIndex += float(tick);
+
+
     //CubeSideIndex = CubeSide; //Passing cube side index to fragment shader
 }
