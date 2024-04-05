@@ -290,7 +290,6 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.bindVertexArray(VAO)
 
     updateSize(gl.canvas.width, gl.canvas.height)
-    // setInterval(() => tick = (tick + 1) % 20, 1)
     const renderLoop = (performance) => {
         requestAnimationFrame(renderLoop)
         if (!rendering) return
@@ -367,6 +366,7 @@ const createProgram = (gl: WebGL2RenderingContext, vertexShader: string, fragmen
 let started = false
 let newWidth: number | undefined
 let newHeight: number | undefined
+let autoTickUpdate = undefined as number | undefined
 onmessage = function (e) {
     if (!started) {
         started = true
@@ -431,6 +431,22 @@ onmessage = function (e) {
         camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
     }
     if (e.data.type === 'animationTick') {
-        animationTick = e.data.tick % 20 // todo update automatically in worker
+        if (e.data.frames <= 0) {
+            autoTickUpdate = undefined
+            animationTick = 0
+            return
+        }
+        if (e.data.tick === -1) {
+            autoTickUpdate = e.data.frames
+        } else {
+            autoTickUpdate = undefined
+            animationTick = e.data.tick % 20 // todo update automatically in worker
+        }
     }
 }
+
+setInterval(() => {
+    if (autoTickUpdate) {
+        animationTick = (animationTick + 1) % autoTickUpdate;
+    }
+}, 1000 / 20)

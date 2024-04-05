@@ -143,10 +143,11 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
     requestAnimationFrame(mainLoop)
 }
 
-export const setAnimationTick = (tick: number) => {
+export const setAnimationTick = (tick: number, frames?: number) => {
     sendWorkerMessage({
         type: 'animationTick',
-        tick
+        tick,
+        frames
     })
 }
 

@@ -71,7 +71,7 @@ async function main () {
   let continuousRender = false
 
   // const { version } = params
-  const version = '1.16.4'
+  const version = '1.20.2'
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
@@ -101,7 +101,7 @@ async function main () {
   gui.add(params, 'skip')
   gui.add(params, 'playSound')
   gui.add(params, 'blockIsomorphicRenderBundle')
-  const animationController = gui.add(params, 'animationTick', 0, 20, 1).listen()
+  const animationController = gui.add(params, 'animationTick', -1, 20, 1).listen()
   gui.open(false)
   let metadataFolder = gui.addFolder('metadata')
   // let entityRotationFolder = gui.addFolder('entity metadata')
@@ -365,7 +365,7 @@ async function main () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     },
     animationTick () {
-      setAnimationTick(params.animationTick)
+      setAnimationTick(params.animationTick, viewer.world.hasWithFrames - 1)
     }
   }
 
@@ -430,7 +430,9 @@ async function main () {
     window.requestAnimationFrame(animate2)
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
-    // animationController.max(viewer.world.hasWithFrames ?? 0)
+    const frames = viewer.world.hasWithFrames ? viewer.world.hasWithFrames - 1 : 0;
+    animationController.max(frames)
+    onUpdate.animationTick()
   })
   animate2()
 
