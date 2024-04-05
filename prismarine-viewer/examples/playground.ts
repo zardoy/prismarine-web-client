@@ -427,9 +427,9 @@ async function main () {
     viewer.render()
     window.requestAnimationFrame(animate2)
   }
-  // viewer.world.renderUpdateEmitter.addListener('update', () => {
-  //   animate()
-  // })
+  viewer.world.renderUpdateEmitter.addListener('update', () => {
+    gui.add(params, 'animationTick', 0, viewer.world.hasWithFrames ?? 0, 1).listen()
+  })
   animate2()
 
   // #region camera rotation param

@@ -469,9 +469,13 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
                   return element.faces
                 }
 
+                let animatedFrames = undefined
                 const getResult = (side: string): number => {
                   const result = findTextureInBlockStates(block.name)?.[side]?.texture
                   if (!result) return 0 // todo
+                  if (result.animatedFrames) {
+                    animatedFrames = result.animatedFrames
+                  }
                   return uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
                 }
                 function uvToTextureIndex (u, v) {
@@ -503,6 +507,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
                 if (textures.every(t => t === 0)) continue
                 attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
                   textureIndex: textures,
+                  animatedFrames
                 } satisfies BlockType
               }
             }

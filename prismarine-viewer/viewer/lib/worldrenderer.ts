@@ -39,6 +39,7 @@ export class WorldRenderer {
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.5 })
 
   blockEntities = {}
+  hasWithFrames = undefined as number | undefined
   sectionObjects: Record<string, THREE.Object3D> = {}
   showChunkBorders = false
   active = false
@@ -63,7 +64,7 @@ export class WorldRenderer {
 
   promisesQueue = [] as Promise<any>[]
 
-  constructor(public holder: unknown, numWorkers = 4) {
+  constructor (public holder: unknown, numWorkers = 4) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
@@ -90,6 +91,11 @@ export class WorldRenderer {
           if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 
           addBlocksSection(data.key, data.geometry)
+          const blocks = Object.values(data.geometry.blocks) as any[]
+          const animatedFrames = blocks.find((x: any) => {
+            return x.animatedFrames
+          });
+          this.hasWithFrames = animatedFrames?.animatedFrames
           this.newChunks[data.key] = data.geometry
           // cubePositionsBySections[data.key].push(...Object.entries(data.geometry.blocks).map(([pos, block]) => {
           //   return [...pos.split(',').map(Number), block] as [number, number, number, string]

@@ -61,7 +61,20 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
     const inputData = getInputData(keyValue);
     img.src = inputData.contents
     const renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
-    g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
+    let animatedFrames = 0
+    if (img.height > tileSize) {
+      const frames = img.height / tileSize;
+      animatedFrames = frames
+      console.log("Animated texture", keyValue, frames)
+      offset += frames - 1
+      for (let i = 0; i < frames; i++) {
+        const x = ((pos + i) % texSize) * tileSize
+        const y = Math.floor((pos + i) / texSize) * tileSize
+        g.drawImage(img, 0, i * tileSize, renderWidth, tileSize, x, y, renderWidth, tileSize)
+      }
+    } else {
+      g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
+    }
 
     const cleanName = keyValue.split('.').slice(0, -1).join('.') || keyValue
     texturesIndex[cleanName] = {
@@ -70,7 +83,8 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
       ...suSvOptimize === 'remove' ? {} : {
         su: suSv,
         sv: suSv
-      }
+      },
+      animatedFrames: animatedFrames || undefined
     }
   }
 
