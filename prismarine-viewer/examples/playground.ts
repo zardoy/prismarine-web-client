@@ -101,7 +101,7 @@ async function main () {
   gui.add(params, 'skip')
   gui.add(params, 'playSound')
   gui.add(params, 'blockIsomorphicRenderBundle')
-  gui.add(params, 'animationTick', 0, 20, 1).listen()
+  const animationController = gui.add(params, 'animationTick', 0, 20, 1).listen()
   gui.open(false)
   let metadataFolder = gui.addFolder('metadata')
   // let entityRotationFolder = gui.addFolder('entity metadata')
@@ -403,7 +403,9 @@ async function main () {
     if (object === params) {
       if (property === 'camera') return
       onUpdate[property]?.()
-      applyChanges(property === 'metadata')
+      if (property !== 'animationTick') {
+        applyChanges(property === 'metadata')
+      }
     } else {
       applyChanges()
     }
@@ -428,7 +430,7 @@ async function main () {
     window.requestAnimationFrame(animate2)
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
-    gui.add(params, 'animationTick', 0, viewer.world.hasWithFrames ?? 0, 1).listen()
+    // animationController.max(viewer.world.hasWithFrames ?? 0)
   })
   animate2()
 

@@ -22,7 +22,7 @@ const warnings = new Set<string>()
 Promise.resolve().then(async () => {
   generateItemsAtlases()
   console.time('generateTextures')
-  for (const version of mcAssets.versions as typeof mcAssets['versions']) {
+  for (const version of [(mcAssets.versions as typeof mcAssets['versions']).at(-1)]) {
     // for debugging (e.g. when above is overridden)
     if (!mcAssets.versions.includes(version)) {
       throw new Error(`Version ${version} is not supported by minecraft-assets`)

@@ -422,7 +422,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         for (const variant of block.variant) {
           if (!variant || !variant.model) continue
 
-          if (block.name !== 'water' && block.name !== 'lava'/*  && block.isCube */) {
+          if (true/* block.name !== 'water' && block.name !== 'lava' *//*  && block.isCube */) {
             let globalMatrix = null as any
             let globalShift = null as any
 
@@ -460,18 +460,21 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
 
                 const findTextureInBlockStates = (name): any => {
                   const vars = blockStates[name]?.variants
-                  if (!vars) return
+                  if (!vars) return blockStates[name]?.multipart?.[0]?.apply?.[0]?.model?.elements?.[0]?.faces?.south?.texture
                   let firstVar = Object.values(vars)[0] as any
                   if (Array.isArray(firstVar)) firstVar = firstVar[0]
                   if (!firstVar) return
                   const [element] = firstVar.model?.elements
+                  if (!element) return firstVar.model?.textures?.particle
                   if (!element/*  || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16)) */) return
                   return element.faces
                 }
 
                 let animatedFrames = undefined
                 const getResult = (side: string): number => {
-                  const result = findTextureInBlockStates(block.name)?.[side]?.texture
+                  const facesOrTexture = findTextureInBlockStates(block.name);
+                  if (!facesOrTexture) return
+                  const result = 'u' in facesOrTexture ? facesOrTexture : facesOrTexture?.[side]?.texture
                   if (!result) return 0 // todo
                   if (result.animatedFrames) {
                     animatedFrames = result.animatedFrames
