@@ -62,6 +62,12 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
     img.src = inputData.contents
     const renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
     let animatedFrames = 0
+    const addDebugText = (x, y) => {
+      // return // disable debug text
+      g.fillStyle = 'black'
+      g.font = '8px Arial'
+      g.fillText(i, x, y)
+    }
     if (img.height > tileSize) {
       const frames = img.height / tileSize;
       animatedFrames = frames
@@ -71,9 +77,11 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
         const x = ((pos + i) % texSize) * tileSize
         const y = Math.floor((pos + i) / texSize) * tileSize
         g.drawImage(img, 0, i * tileSize, renderWidth, tileSize, x, y, renderWidth, tileSize)
+        addDebugText(x, y)
       }
     } else {
       g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
+      addDebugText(x, y)
     }
 
     const cleanName = keyValue.split('.').slice(0, -1).join('.') || keyValue

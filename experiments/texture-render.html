@@ -51,12 +51,27 @@
         img.src = blockImg
         img.onload = () => {
             //@ts-ignore
-            ctx.drawImage(img, img.width * textureUv.u - 16, img.height * textureUv.v, -16, 16, 0, 0, canvas.width, canvas.height)
+            // ctx.drawImage(img, img.width * textureUv.u + 350, img.height * textureUv.v, -132, 16, 0, 0, canvas.width, canvas.height)
+            ctx.canvas.width = img.width
+            ctx.canvas.height = img.height
+            ctx.drawImage(img, 0, 0)
+            console.log('x', img.width * textureUv.u / 16, 'y', img.height * textureUv.v / 16, 'w', img.width * textureUv.su, 'h', img.height * textureUv.sv)
+            // highlight
+            ctx.fillStyle = 'rgba(255, 0, 0, 0.9)'
+            ctx.fillRect(img.width * textureUv.u, img.height * textureUv.v, img.width * textureUv.su, img.height * textureUv.sv)
             console.log('pos', img.width * textureUv.u - 16)
             // ctx.drawImage(img, 0, 0, canvas.width, canvas.height / 2)
             console.log('width;height texture', img.width * textureUv.su, img.height * textureUv.sv)
             console.log('base su=sv', 16 / img.width)
         }
+        let prev = 0
+        setInterval(() => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            ctx.drawImage(img, 0, 0)
+            ctx.fillStyle = prev % 2 === 0 ? 'rgba(255, 0, 0, 0.9)' : 'rgba(0, 255, 0, 0)'
+            prev += 1
+            ctx.fillRect(img.width * textureUv.u, img.height * textureUv.v, img.width * textureUv.su, img.height * textureUv.sv)
+        }, 500)
     </script>
 </body>
 

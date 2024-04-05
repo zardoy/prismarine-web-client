@@ -22,9 +22,10 @@ const warnings = new Set<string>()
 Promise.resolve().then(async () => {
   generateItemsAtlases()
   console.time('generateTextures')
-  for (const version of mcAssets.versions as typeof mcAssets['versions']) {
+  const versions = process.argv.includes('-l') ? mcAssets.versions.at(-1) : mcAssets.versions
+  for (const version of versions as typeof mcAssets['versions']) {
     // for debugging (e.g. when above is overridden)
-    if (!mcAssets.versions.includes(version)) {
+    if (!versions.includes(version)) {
       throw new Error(`Version ${version} is not supported by minecraft-assets`)
     }
     const assets = mcAssets(version)
@@ -44,7 +45,7 @@ Promise.resolve().then(async () => {
     fs.copySync(assets.directory, path.resolve(texturesPath, version), { overwrite: true })
   }
 
-  fs.writeFileSync(path.join(publicPath, 'supportedVersions.json'), '[' + mcAssets.versions.map(v => `"${v}"`).toString() + ']')
+  fs.writeFileSync(path.join(publicPath, 'supportedVersions.json'), '[' + versions.map(v => `"${v}"`).toString() + ']')
   warnings.forEach(x => console.warn(x))
   console.timeEnd('generateTextures')
 })

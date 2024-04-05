@@ -419,127 +419,126 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           block.variant = getModelVariants(block)
         }
 
-        for (const variant of block.variant) {
-          if (!variant || !variant.model) continue
+        if (/* block.name !== 'water' && block.name !== 'lava' *//*  && block.isCube */block.name !== 'air') {
+          let globalMatrix = null as any
+          let globalShift = null as any
 
-          if (true/* block.name !== 'water' && block.name !== 'lava' *//*  && block.isCube */) {
-            let globalMatrix = null as any
-            let globalShift = null as any
-
+          if (block.variant?.model) {
             for (const axis of ['x', 'y', 'z']) {
-              if (axis in variant) {
-                if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -variant[axis])
-                else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -variant[axis]))
-              }
-            }
-
-            if (globalMatrix) {
-              globalShift = [8, 8, 8]
-              globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
-            }
-
-            for (const element of variant.model.elements) {
-              for (const face in element.faces) {
-                const cullIfIdentical = block.name.indexOf('glass') >= 0
-
-                const eFace = element.faces[face]
-                const { corners, mask1, mask2 } = elemFaces[face]
-                const dir = matmul3(globalMatrix, elemFaces[face].dir)
-
-                if (eFace.cullface) {
-                  const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
-                  if (neighbor) {
-                    if (cullIfIdentical && neighbor.type === block.type) continue
-                    if (!neighbor.transparent && neighbor.isCube) continue
-                  } else {
-                    continue
-                  }
-                }
-
-                const pos = block.position
-
-                const findTextureInBlockStates = (name): any => {
-                  const vars = blockStates[name]?.variants
-                  if (!vars) return blockStates[name]?.multipart?.[0]?.apply?.[0]?.model?.elements?.[0]?.faces?.south?.texture
-                  let firstVar = Object.values(vars)[0] as any
-                  if (Array.isArray(firstVar)) firstVar = firstVar[0]
-                  if (!firstVar) return
-                  const [element] = firstVar.model?.elements
-                  if (!element) return firstVar.model?.textures?.particle
-                  if (!element/*  || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16)) */) return
-                  return element.faces
-                }
-
-                let animatedFrames = undefined
-                const getResult = (side: string): number => {
-                  const facesOrTexture = findTextureInBlockStates(block.name);
-                  if (!facesOrTexture) return
-                  const result = 'u' in facesOrTexture ? facesOrTexture : facesOrTexture?.[side]?.texture
-                  if (!result) return 0 // todo
-                  if (result.animatedFrames) {
-                    animatedFrames = result.animatedFrames
-                  }
-                  return uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
-                }
-                function uvToTextureIndex (u, v) {
-                  const textureWidth = textureSize
-                  const textureHeight = textureSize
-                  const tileSize = 16;
-                  // Convert UV coordinates to pixel coordinates
-                  let x = u * textureWidth;
-                  let y = v * textureHeight;
-
-                  // Convert pixel coordinates to tile index
-                  const tileX = Math.floor(x / tileSize);
-                  const tileY = Math.floor(y / tileSize);
-
-                  // Calculate texture index
-                  const textureIndex = tileY * (textureWidth / tileSize) + tileX;
-
-                  return textureIndex;
-                }
-                // back, front, left, right, top, bottom
-                const textures = [
-                  getResult('north'),
-                  getResult('south'),
-                  getResult('west'),
-                  getResult('east'),
-                  getResult('up'),
-                  getResult('down')
-                ]
-                if (textures.every(t => t === 0)) continue
-                attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
-                  textureIndex: textures,
-                  animatedFrames
-                } satisfies BlockType
+              if (axis in block.variant) {
+                if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -block.variant[axis])
+                else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -block.variant[axis]))
               }
             }
           }
-          //   if (block.name === 'water') {
-          //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
-          //   } else if (block.name === 'lava') {
-          //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
-          //   } else {
-          // let globalMatrix = null as any
-          // let globalShift = null as any
 
-          // for (const axis of ['x', 'y', 'z']) {
-          //   if (axis in variant) {
-          //     if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -variant[axis])
-          //     else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -variant[axis]))
-          //   }
-          // }
+          if (globalMatrix) {
+            globalShift = [8, 8, 8]
+            globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
+          }
 
-          // if (globalMatrix) {
-          //   globalShift = [8, 8, 8]
-          //   globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
-          // }
+          // full cube rendering
+          for (const face in elemFaces) {
+            const cullIfIdentical = block.name.indexOf('glass') >= 0
 
-          //     for (const element of variant.model.elements) {
-          //       renderElement(world, cursor, element, variant.model.ao, attr, globalMatrix, globalShift, block, biome)
-          //     }
-          //   }
+            // const eFace = element.faces[face]
+            const { corners, mask1, mask2 } = elemFaces[face]
+            const dir = matmul3(globalMatrix, elemFaces[face].dir)
+
+            if (/* eFace.cullface */true) {
+              const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
+              if (neighbor) {
+                if (cullIfIdentical && neighbor.type === block.type) continue
+                if (!neighbor.transparent && neighbor.isCube) continue
+              } else {
+                continue
+              }
+            }
+
+            const pos = block.position
+
+            const findTextureInBlockStates = (name): any => {
+              const vars = blockStates[name]?.variants
+              if (!vars) return blockStates[name]?.multipart?.[0]?.apply?.[0]?.model?.elements?.[0]?.faces?.south?.texture
+              let firstVar = Object.values(vars)[0] as any
+              if (Array.isArray(firstVar)) firstVar = firstVar[0]
+              if (!firstVar) return
+              const [element] = firstVar.model?.elements
+              if (!element) return firstVar.model?.textures?.particle
+              if (!element/*  || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16)) */) return
+              return element.faces
+            }
+
+            let animatedFrames = undefined
+            const getResult = (side: string): number => {
+              const facesOrTexture = findTextureInBlockStates(block.name);
+              if (!facesOrTexture) return
+              const result = 'u' in facesOrTexture ? facesOrTexture : facesOrTexture?.[side]?.texture
+              if (!result) return 0 // todo
+              if (result.animatedFrames) {
+                animatedFrames = result.animatedFrames
+              }
+              return uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
+            }
+            function uvToTextureIndex (u, v) {
+              const textureWidth = textureSize
+              const textureHeight = textureSize
+              const tileSize = 16;
+              // Convert UV coordinates to pixel coordinates
+              let x = u * textureWidth;
+              let y = v * textureHeight;
+
+              // Convert pixel coordinates to tile index
+              const tileX = Math.floor(x / tileSize);
+              const tileY = Math.floor(y / tileSize);
+
+              // Calculate texture index
+              const textureIndex = tileY * (textureWidth / tileSize) + tileX;
+
+              return textureIndex;
+            }
+            // back, front, left, right, top, bottom
+            const textures = [
+              getResult('north'),
+              getResult('south'),
+              getResult('west'),
+              getResult('east'),
+              getResult('up'),
+              getResult('down')
+            ]
+            if (textures.every(t => t === 0)) continue
+            attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
+              textureIndex: textures,
+              animatedFrames
+            } satisfies BlockType
+          }
+
         }
+        //   if (block.name === 'water') {
+        //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
+        //   } else if (block.name === 'lava') {
+        //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
+        //   } else {
+        // let globalMatrix = null as any
+        // let globalShift = null as any
+
+        // for (const axis of ['x', 'y', 'z']) {
+        //   if (axis in variant) {
+        //     if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -variant[axis])
+        //     else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -variant[axis]))
+        //   }
+        // }
+
+        // if (globalMatrix) {
+        //   globalShift = [8, 8, 8]
+        //   globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
+        // }
+
+        //     for (const element of variant.model.elements) {
+        //       renderElement(world, cursor, element, variant.model.ao, attr, globalMatrix, globalShift, block, biome)
+        //     }
+        //   }
+
       }
     }
   }
