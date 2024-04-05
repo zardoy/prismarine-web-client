@@ -317,7 +317,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
         camera.updateMatrix()
         if (!globalThis.stopRendering) {
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, allBlocks.length ? allBlocks.length / 3 : NumberOfCube);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, allBlocks.length || NumberOfCube);
         }
         //gl.bindVertexArray(null)
 
