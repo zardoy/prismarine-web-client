@@ -1,31 +1,56 @@
 //@ts-nocheck
 // to fix select!
-import React, { useEffect } from 'react'
-import { useRecoilState, useRecoilValue } from 'recoil' // Assuming you're using Recoil for state management
-import { hideCurrentModal, showModal, miscUiState, notification, openOptionsMenu } from '../globalState'
+import { useEffect } from 'react'
+import { useSnapshot } from 'valtio' 
+import { 
+  activeModalStack, 
+  hideCurrentModal, 
+  showModal, 
+  hideModal,
+  miscUiState, 
+  notification, 
+  openOptionsMenu } from '../globalState'
 import { fsState } from '../loadSave'
 import { saveWorld } from '../builtinCommands'
-import { disconnect } from '../utils'
+import { disconnect } from '../flyingSquidUtils'
+import { pointerLock } from '../utils'
 import { closeWan, openToWanAndCopyJoinLink, getJoinLink } from '../localServerMultiplayer'
-import { openURL } from './components/common'
+import { openURL } from '../menus/components/common'
+import { useIsModalActive } from './utils'
 import Button from './Button'
 import Screen from './Screen'
+import './PauseScreen.css'
 
 export default () => {
-  const [, setFsState] = useRecoilState(fsState) // Adjust this based on your Recoil setup
-  const singleplayer = useRecoilValue(miscUiState.singleplayer)
-  const isOpenedToWan = useRecoilValue(miscUiState.wanOpened)
+  const isModalActive = useIsModalActive('pause-screen')
+  const fsStateSnap = useSnapshot(fsState)
+  const activeModalStackSnap = useSnapshot(activeModalStack)
+  const { singleplayer, wanOpened } = useSnapshot(miscUiState)
+
+  const handlePointerLockChange = () => {
+    if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
+      showModal({ reactType: 'pause-screen' })
+    }
+  }
+  
+  useEffect(() => {
+    document.addEventListener('pointerlockchange', handlePointerLockChange)
+
+    return () => {
+      document.removeEventListener('pointerlockchange', handlePointerLockChange)
+    }
+  }, [])
 
   const onReturnPress = () => {
-    hideCurrentModal()
+    hideModal({ reactType: 'pause-screen' })
   }
 
   const clickJoinLinkButton = async (qr = false) => {
-    if (!qr && isOpenedToWan) {
+    if (!qr && wanOpened) {
       closeWan()
       return
     }
-    if (!isOpenedToWan || !qr) {
+    if (!wanOpened || !qr) {
       await openToWanAndCopyJoinLink(() => { }, !qr)
     }
     if (qr) {
@@ -34,50 +59,54 @@ export default () => {
     }
   }
 
-  useEffect(() => {
-    // Subscribe to fsState changes
-    const fsStateSubscription = fsState.subscribe(() => {
-      setFsState(fsState)
-    })
-
-    // Subscribe to miscUiState changes
-    const singleplayerSubscription = miscUiState.subscribeKey('singleplayer', () => {
-      // Update component state as needed
-    })
-
-    const wanOpenedSubscription = miscUiState.subscribeKey('wanOpened', () => {
-      // Update component state as needed
-    })
-
-    // Unsubscribe from subscriptions on component unmount
-    return () => {
-      fsStateSubscription()
-      singleplayerSubscription()
-      wanOpenedSubscription()
+  const openWorldActions = async () => {
+    if (fsStateSnap.inMemorySave || !singleplayer) {
+      return showOptionsModal('World actions...', [])
     }
-  }, [])
+    const action = await showOptionsModal('World actions...', ['Save to browser memory'])
+    if (action === 'Save to browser memory') {
+      setLoadingScreenStatus('Saving world')
+      try {
+        //@ts-expect-error
+        const { worldFolder } = localServer.options
+        const saveRootPath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
+        await mkdirRecursive(saveRootPath)
+        for (const copyPath of [...usedServerPathsV1, 'icon.png']) {
+          const srcPath = join(worldFolder, copyPath)
+          const savePath = join(saveRootPath, copyPath)
+          // eslint-disable-next-line no-await-in-loop
+          await copyFilesAsyncWithProgress(srcPath, savePath, false)
+        }
+      } catch (err) {
+        void showOptionsModal(`Error while saving the world: ${err.message}`, [])
+      } finally {
+        setLoadingScreenStatus(undefined)
+      }
+    }
+  }
 
+  if (!isModalActive) return null
   return (
     <Screen title='Game Menu'>
-      <main>
+      <div className='pause-container'>
         <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
         <div className="row">
           <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL)}>GitHub</Button>
           <Button className="button" style={{ width: '98px' }} onClick={() => openURL('https://discord.gg/4Ucm684Fq3')}>Discord</Button>
         </div>
-        <button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</button>
+        <Button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</Button>
         {singleplayer ? (
           <div className="row">
             <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton()}>
-              {isOpenedToWan ? 'Close Wan' : 'Copy Join Link'}
+              {wanOpened ? 'Close Wan' : 'Copy Join Link'}
             </Button>
-            <Button className="button" style={{ height: '0' }} onClick={async () => clickJoinLinkButton(true)}>Copy Link</Button>
+            <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton(true)}>Copy Link</Button>
           </div>
-        ) : ''}
+        ) : null}
         <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
           {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect'}
         </Button>
-      </main>
+      </div>
     </Screen>
   )
 }

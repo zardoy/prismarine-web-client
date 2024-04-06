@@ -1,6 +1,7 @@
 .breathbar {
   position: fixed;
   display: flex;
+  z-index: -1;
   flex-direction: row-reverse;
   left: calc(50% + 91px);
   transform: translate(-100%);

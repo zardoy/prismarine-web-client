@@ -21,6 +21,7 @@ import IndicatorEffectsProvider from './react/IndicatorEffectsProvider'
 import PlayerListOverlayProvider from './react/PlayerListOverlayProvider'
 import HealthBarProvider from './react/HealthBarProvider'
 import DebugOverlayProvider from './react/DebugOverlayProvider'
+import PauseScreen from './react/PauseScreen'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
@@ -129,6 +130,7 @@ const App = () => {
       <MainMenuRenderApp />
       <NotificationProvider />
       <GameHud>
+        <PauseScreen />
         <HealthBarProvider />
       </GameHud>
     </RobustPortal>
