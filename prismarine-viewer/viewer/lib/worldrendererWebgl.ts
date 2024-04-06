@@ -6,6 +6,7 @@ import { WorldRendererCommon } from './worldrendererCommon'
 export class WorldRendererWebgl extends WorldRendererCommon {
   newChunks = {} as Record<string, any>
   webglData: WebglData
+  stopBlockUpdate = false
 
   constructor(numWorkers = 4) {
     super(numWorkers)
@@ -19,6 +20,11 @@ export class WorldRendererWebgl extends WorldRendererCommon {
     const { textureName } = block
     if (!textureName) return
     return this.webglData[textureName]
+  }
+
+  setBlockStateId (pos: any, stateId: any): void {
+    if (this.stopBlockUpdate) return
+    super.setBlockStateId(pos, stateId)
   }
 
   handleWorkerMessage (data: any): void {
@@ -49,6 +55,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
 
 
   removeColumn (x, z) {
+    return
     super.removeColumn(x, z)
     for (const key of Object.keys(this.newChunks)) {
       const [xSec, _ySec, zSec] = key.split(',').map(Number)

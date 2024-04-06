@@ -138,11 +138,15 @@ async function main () {
     return chunk
   })
 
+  let stopUpdate = false
+  // let stopUpdate = true
+
   // await schem.paste(world, new Vec3(0, 60, 0))
 
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
   const nullRenderer = new THREE.WebGLRenderer({ antialias: true })
   const viewer = new Viewer(nullRenderer, 1)
+  viewer.world.stopBlockUpdate = stopUpdate
   viewer.setVersion(version)
   globalThis.viewer = viewer
 

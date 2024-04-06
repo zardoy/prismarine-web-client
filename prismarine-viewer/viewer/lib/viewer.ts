@@ -15,7 +15,7 @@ export class Viewer {
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
   camera: THREE.PerspectiveCamera
-  world: WorldRendererWebgl | WorldRendererThree
+  world: WorldRendererWebgl/*  | WorldRendererThree */
   entities: Entities
   primitives: Primitives
   domElement: HTMLCanvasElement
@@ -163,7 +163,7 @@ export class Viewer {
     })
     // todo remove and use other architecture instead so data flow is clear
     emitter.on('blockEntities', (blockEntities) => {
-      (this.world as WorldRendererThree).blockEntities = blockEntities
+      (this.world as unknown as WorldRendererThree).blockEntities = blockEntities
     })
 
     emitter.on('unloadChunk', ({ x, z }) => {

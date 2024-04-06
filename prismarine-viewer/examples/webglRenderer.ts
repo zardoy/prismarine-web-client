@@ -31,15 +31,13 @@ if (typeof customEvents !== 'undefined') {
 
 let isWaitingToUpload = false
 export const addBlocksSection = (key, data) => {
+    sendWorkerMessage({
+        type: 'addBlocksSection', data, key
+    })
     if (isWaitingToUpload) return
     isWaitingToUpload = true
     viewer.waitForChunksToRender().then(() => {
         isWaitingToUpload = false
-        for (const [key, data] of Object.entries(viewer.world.newChunks)) {
-            sendWorkerMessage({
-                type: 'addBlocksSection', data, key
-            })
-        }
         if (allReceived || (true && Object.values(viewer.world.newChunks).length)) {
             sendWorkerMessage({
                 type: 'addBlocksSectionDone'
