@@ -157,7 +157,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.enableVertexAttribArray(5);
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
     gl.vertexAttribPointer(4, 4, gl.FLOAT, false, 4 * 6, 0);
-    gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 2 * 6, 4 * 4);
+    gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 4 * 6, 4 * 4);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.vertexAttribDivisor(4, 1);
     gl.vertexAttribDivisor(5, 1);
