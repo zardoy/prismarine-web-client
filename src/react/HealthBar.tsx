@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from 'react'
-import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
 import './HealthBar.css'
 
 
@@ -54,6 +53,7 @@ export default (
     if (healthRef.current) {
       if (damaged) {
         healthRef.current.classList.add('damaged')
+        console.log('damage')
       } else {
         healthRef.current.classList.remove('damaged')
       }
@@ -102,8 +102,7 @@ export default (
         .map(
           (num, index) => <div 
             key={`heart-${index}`}
-            className='heart' 
-            style={{ backgroundImage: `url(${icons}), url(${icons})` }}></div>
+            className='heart'></div>
         )
     }
   </div>

@@ -80,6 +80,7 @@ export default () => {
     })
 
     bot.on('health', () => {
+      if (bot.health < healthValue) onDamage()
       updateHealth(bot.health)
       setFood(prev => bot.food)
     })
@@ -91,7 +92,7 @@ export default () => {
 
   return <div style={{
     //@ts-expect-error
-    '--gui-icons': `url(${icons})`
+    '--gui-icons': `url(${icons}), url(${icons})`
   }}>
     <HealthBar
       gameMode={gameMode}

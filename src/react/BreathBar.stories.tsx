@@ -11,8 +11,6 @@ type Story = StoryObj<typeof BreathBar>;
 
 export const Primary: Story = {
   args: {
-    gameMode: 'survival',
     oxygen: 20
-
   }
 }
