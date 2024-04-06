@@ -5,13 +5,15 @@ import { useUsingTouch } from './utils'
 interface Props extends React.ComponentProps<'input'> {
   rootStyles?: React.CSSProperties
   autoFocus?: boolean
+  inputRef?: React.RefObject<HTMLInputElement>
 }
 
-export default ({ autoFocus, rootStyles, ...inputProps }: Props) => {
+export default ({ autoFocus, rootStyles, inputRef, ...inputProps }: Props) => {
   const ref = useRef<HTMLInputElement>(null!)
   const isTouch = useUsingTouch()
 
   useEffect(() => {
+    if (inputRef) (inputRef as any).current = ref.current
     if (!autoFocus || isTouch) return // Don't make screen keyboard popup on mobile
     ref.current.focus()
   }, [])
