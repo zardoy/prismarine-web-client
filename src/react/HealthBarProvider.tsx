@@ -94,6 +94,7 @@ export default () => {
     //@ts-expect-error
     '--gui-icons': `url(${icons}), url(${icons})`
   }}>
+    <div className='crosshair'></div>
     <HealthBar
       gameMode={gameMode}
       isHardcore={isHardcore}
