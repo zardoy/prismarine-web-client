@@ -802,6 +802,7 @@ async function connect (connectOptions: {
           viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', () => resolve())
         })
       }
+      miscUiState.serverIp = server.host as string | null
       // hud.init(renderer, bot, server.host)
       // hud.style.display = 'block'
     })

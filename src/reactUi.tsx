@@ -85,7 +85,7 @@ const InGameUi = () => {
       {/* apply scaling */}
       <DeathScreenProvider />
       <DebugOverlayProvider />
-      <PlayerListOverlayProvider serverIP={'test'} />
+      <PlayerListOverlayProvider />
       <ChatProvider />
       <SoundMuffler />
       <TitleProvider />

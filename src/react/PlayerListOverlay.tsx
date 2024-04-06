@@ -15,7 +15,7 @@ type PlayerListOverlayProps = {
 export default ({ playersLists, clientId, tablistHeader, tablistFooter, serverIP }: PlayerListOverlayProps) => {
 
   return <div className="playerlist-container" id="playerlist-container" >
-    <span className="title">Server IP: {serverIP}</span>
+    <span className="playerlist-title">Server IP: {serverIP}</span>
     <div className='playerlist-header'>
       <MessageFormattedString message={tablistHeader} />
     </div>

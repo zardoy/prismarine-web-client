@@ -1,5 +1,6 @@
+import { useSnapshot } from 'valtio'
 import { useState, useEffect, useMemo } from 'react'
-import { isGameActive } from '../globalState'
+import { isGameActive, miscUiState } from '../globalState'
 import MessageFormattedString from './MessageFormattedString'
 import PlayerListOverlay from './PlayerListOverlay'
 import './PlayerListOverlay.css'
@@ -9,7 +10,8 @@ const MAX_ROWS_PER_COL = 10
 
 type Players = typeof bot.players
 
-export default ({ serverIP }) => {
+export default () => {
+  const { serverIp } = useSnapshot(miscUiState)
   const [clientId, setClientId] = useState('')
   const [players, setPlayers] = useState<Players>({})
   const [isOpen, setIsOpen] = useState(false)
@@ -57,7 +59,7 @@ export default ({ serverIP }) => {
       document.removeEventListener('keydown', handleKeyDown)
       document.removeEventListener('keyup', handleKeyUp)
     }
-  }, [serverIP])
+  }, [serverIp])
 
 
   const playersArray = Object.values(players).sort((a, b) => {
@@ -84,6 +86,6 @@ export default ({ serverIP }) => {
     clientId={clientId} 
     tablistHeader={bot.tablist.header} 
     tablistFooter={bot.tablist.footer}
-    serverIP={serverIP}
+    serverIP={serverIp ?? ''}
   />
 }
