@@ -84,7 +84,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         -0.5, 0.5, -0.5, 0.0, 1.0, 5.0// top-let
     ])
 
-    let NumberOfCube = isPlayground ? 1_500_000 : 5_000_000
+    let NumberOfCube = isPlayground ? 1_000_000 : 5_000_000
 
     cubePositions = new Float32Array(NumberOfCube * 3)
     let cubeTextureIndices = new Float32Array(NumberOfCube * 6);
@@ -172,7 +172,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         //     [camera.position.x, camera.position.y, camera.position.z - 2, 'dirt'],
         // ]
         const blocks = allBlocks.slice(startIndex, lastNotUpdatedArrSize ? startIndex + lastNotUpdatedArrSize : undefined)
-        globalThis.allBlocksSize = allBlocks.length / 3
+        globalThis.allBlocksSize = allBlocks.length
         cubePositions = new Float32Array(blocks.length * 3)
         cubeTextureIndices = new Float32Array(blocks.length * 6);
         for (let i = 0; i < blocks.length * 3; i += 3) {

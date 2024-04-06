@@ -419,7 +419,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           block.variant = getModelVariants(block)
         }
 
-        if (/* block.name !== 'water' && block.name !== 'lava' *//*  && block.isCube */block.name !== 'air') {
+        if (block.name !== 'water' && /* && block.name !== 'lava' *//*  && block.isCube */block.name !== 'air') {
           let globalMatrix = null as any
           let globalShift = null as any
 
@@ -503,10 +503,11 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
               getResult('south'),
               getResult('west'),
               getResult('east'),
-              getResult('up'),
-              getResult('down')
+              getResult('down'),
+              getResult('up')
             ]
             if (textures.every(t => t === 0)) continue
+            if (pos.y <= 1) continue // TODO!!
             attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
               textureIndex: textures,
               textureName
