@@ -10,7 +10,7 @@ export default () => {
   const [damaged, setDamaged] = useState(false)
   const [healthValue, setHealthValue] = useState(10)
   const [food, setFood] = useState(10)
-  const [oxygen, setOxygen] = useState(10)
+  const [oxygen, setOxygen] = useState(0)
   const [gameMode, setGameMode] = useState('')
   const [isHardcore, setIsHardcore] = useState(false)
   const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
@@ -87,10 +87,10 @@ export default () => {
     bot.on('breath', () => {
       setOxygen(prev => bot.oxygenLevel)
     })
-  }, []) 
+  }, [])
 
   return <>
-    <HealthBar 
+    <HealthBar
       gameMode={gameMode}
       isHardcore={isHardcore}
       damaged={damaged}
@@ -100,7 +100,7 @@ export default () => {
       effectAdded={effectAdded}
       effectEnded={effectEnded}
     />
-    <FoodBar 
+    <FoodBar
       gameMode={gameMode}
       food={food}
       effectToAdd={effectToAdd}
@@ -108,11 +108,9 @@ export default () => {
       effectAdded={effectAdded}
       effectEnded={effectEnded}
     />
-    <BreathBar 
+    <BreathBar
       gameMode={gameMode}
       oxygen={oxygen}
     />
   </>
 }
-
-
