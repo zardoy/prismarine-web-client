@@ -1,5 +1,5 @@
 import { useRef, useState, useMemo } from 'react'
-import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
+import { GameMode } from 'mineflayer'
 import HealthBar from './HealthBar'
 import FoodBar from './FoodBar'
 import BreathBar from './BreathBar'
@@ -11,7 +11,7 @@ export default () => {
   const [healthValue, setHealthValue] = useState(10)
   const [food, setFood] = useState(10)
   const [oxygen, setOxygen] = useState(0)
-  const [gameMode, setGameMode] = useState('')
+  const [gameMode, setGameMode] = useState<GameMode | ''>('')
   const [isHardcore, setIsHardcore] = useState(false)
   const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
   const [effectToRemove, setEffectToRemove] = useState<number | null>(null)
@@ -109,8 +109,7 @@ export default () => {
       effectEnded={effectEnded}
     />
     <BreathBar
-      gameMode={gameMode}
-      oxygen={oxygen}
+      oxygen={gameMode !== 'survival' && gameMode !== 'adventure' ? 0 : oxygen}
     />
   </>
 }

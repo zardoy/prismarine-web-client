@@ -4,22 +4,14 @@ import './BreathBar.css'
 
 
 export type BreathBarProps = {
-  gameMode: string,
   oxygen: number,
 }
 
 export default (
   {
-    gameMode, 
-    oxygen, 
+    oxygen,
   }: BreathBarProps) => {
   const breathRef = useRef<HTMLDivElement | null>(null)
-
-  useEffect(() => {
-    if (breathRef.current) {
-      breathRef.current.classList.toggle('creative', gameMode === 'creative' || gameMode === 'creative')
-    }
-  }, [gameMode])
 
   useEffect(() => {
     const breathbar = breathRef.current
@@ -48,17 +40,15 @@ export default (
     }
   }, [oxygen])
 
-  return <div ref={breathRef} className='breathbar' >
+  return <div ref={breathRef} className='breathbar'>
     {
       Array.from({ length: 10 }, () => 0)
         .map(
-          (num, index) => <div 
+          (num, index) => <div
             key={`breath-${index}`}
-            className='breath' 
+            className='breath'
             style={{ backgroundImage: `url(${icons})` }}></div>
         )
     }
   </div>
 }
-
-
