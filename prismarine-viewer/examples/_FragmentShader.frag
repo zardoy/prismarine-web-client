@@ -17,7 +17,5 @@ void main()
     coord = coord + ivec2(TexCoord * 16.0f);
 
     vec4 t = texelFetch(texture1, coord, 0);
-    if (t.z < 0.01)
-        discard;
     FragColor = t;
 }

@@ -121,11 +121,11 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     let instanceTextureID = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-    gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.STATIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.DYNAMIC_DRAW); // todo
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-    gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.STATIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.DYNAMIC_DRAW); // todo
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     VAO = gl.createVertexArray();
     let VBO = gl.createBuffer();
@@ -254,7 +254,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, textureWidth, textureHeight, 0, gl.RGB, gl.UNSIGNED_BYTE, textureBitmap);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, textureWidth, textureHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, textureBitmap);
     //gl.generateMipmap(gl.TEXTURE_2D);
 
     //gl.generateMipmap(gl.TEXTURE_2D);
