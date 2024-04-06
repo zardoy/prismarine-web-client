@@ -1,10 +1,10 @@
 import { useRef, useState, useMemo } from 'react'
 import { GameMode } from 'mineflayer'
+import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
 import HealthBar from './HealthBar'
 import FoodBar from './FoodBar'
 import BreathBar from './BreathBar'
 import './HealthBar.css'
-
 
 export default () => {
   const [damaged, setDamaged] = useState(false)
@@ -89,7 +89,10 @@ export default () => {
     })
   }, [])
 
-  return <>
+  return <div style={{
+    //@ts-expect-error
+    '--gui-icons': `url(${icons})`
+  }}>
     <HealthBar
       gameMode={gameMode}
       isHardcore={isHardcore}
@@ -111,5 +114,5 @@ export default () => {
     <BreathBar
       oxygen={gameMode !== 'survival' && gameMode !== 'adventure' ? 0 : oxygen}
     />
-  </>
+  </div>
 }

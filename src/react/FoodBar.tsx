@@ -1,5 +1,4 @@
 import { useRef, useState, useEffect } from 'react'
-import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
 import './FoodBar.css'
 
 
@@ -14,8 +13,8 @@ export type FoodBarProps = {
 
 export default (
   {
-    gameMode, 
-    food, 
+    gameMode,
+    food,
     effectToAdd,
     effectToRemove,
     effectAdded,
@@ -65,13 +64,10 @@ export default (
     {
       Array.from({ length: 10 }, () => 0)
         .map(
-          (num, index) => <div 
+          (num, index) => <div
             key={`food-${index}`}
-            className='food' 
-            style={{ backgroundImage: `url(${icons}), url(${icons})` }}></div>
+            className='food'></div>
         )
     }
   </div>
 }
-
-
