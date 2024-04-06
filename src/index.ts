@@ -679,8 +679,7 @@ async function connect (connectOptions: {
 
     registerListener(document, 'pointerlockchange', changeCallback, false)
 
-    // const cameraControlEl = hud
-    const cameraControlEl = document.body
+    const cameraControlEl = document.querySelector('#ui-root')
 
     /** after what time of holding the finger start breaking the block */
     const touchStartBreakingBlockMs = 500
