@@ -13,6 +13,7 @@ const entityMcAssets = McAssets('1.16.4')
 // these files could be copied at build time eg with copy plugin, but copy plugin slows down the config so we copy them there, alternative we could inline it in esbuild config
 const filesToCopy = [
     { from: `${prismarineViewerBase}/public/blocksStates/`, to: 'dist/blocksStates/' },
+    { from: `${prismarineViewerBase}/public/webgl/`, to: 'dist/webgl/' },
     { from: `${prismarineViewerBase}/public/worker.js`, to: 'dist/worker.js' },
     { from: './assets/', to: './dist/' },
     { from: './config.json', to: 'dist/config.json' },
@@ -92,7 +93,7 @@ exports.getSwAdditionalEntries = () => {
 }
 
 exports.moveStorybookFiles = () => {
-    fsExtra.moveSync('storybook-static', 'dist/storybook', {overwrite: true,})
+    fsExtra.moveSync('storybook-static', 'dist/storybook', { overwrite: true, })
     fsExtra.copySync('dist/storybook', '.vercel/output/static/storybook')
 }
 
