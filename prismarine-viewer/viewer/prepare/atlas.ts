@@ -31,11 +31,20 @@ export type JsonAtlas = {
     [file: string]: {
       u: number,
       v: number,
+      su?: number,
+      sv?: number,
+      animatedFrames?: number
     }
   }
 }
 
-export const makeTextureAtlas = (input: string[], getInputData: (name) => { contents: string, tileWidthMult?: number }, tilesCount = input.length, suSvOptimize: 'remove' | null = null): {
+export const makeTextureAtlas = (
+  input: string[],
+  getInputData: (name) => { contents: string, tileWidthMult?: number },
+  tilesCount = input.length,
+  suSvOptimize: 'remove' | null = null,
+  renderAnimated = true
+): {
   image: Buffer,
   canvas: Canvas,
   json: JsonAtlas
@@ -47,7 +56,7 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
   const canvas = new Canvas(imgSize, imgSize, 'png' as any)
   const g = canvas.getContext('2d')
 
-  const texturesIndex = {}
+  const texturesIndex = {} as JsonAtlas['textures']
 
   let offset = 0
   const suSv = tileSize / imgSize
@@ -63,12 +72,12 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
     const renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
     let animatedFrames = 0
     const addDebugText = (x, y) => {
-      // return // disable debug text
+      return // disable debug text
       g.fillStyle = 'black'
       g.font = '8px Arial'
       g.fillText(i, x, y)
     }
-    if (img.height > tileSize) {
+    if (img.height > tileSize && renderAnimated) {
       const frames = img.height / tileSize;
       animatedFrames = frames
       console.log("Animated texture", keyValue, frames)
@@ -92,6 +101,7 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
         su: suSv,
         sv: suSv
       },
+      textureName: cleanName,
       animatedFrames: animatedFrames || undefined
     }
   }

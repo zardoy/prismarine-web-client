@@ -1,12 +1,24 @@
 import { addBlocksSection, removeBlocksSection } from '../../examples/webglRenderer'
+import type { WebglData } from '../prepare/webglData'
+import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
 
 export class WorldRendererWebgl extends WorldRendererCommon {
-  hasWithFrames = undefined as number | undefined
   newChunks = {} as Record<string, any>
+  webglData: WebglData
 
   constructor(numWorkers = 4) {
     super(numWorkers)
+  }
+
+  playgroundGetWebglData () {
+    const playgroundChunk = Object.values(this.newChunks).filter((x: any) => Object.keys(x?.blocks ?? {}).length > 0)?.[0] as any
+    if (!playgroundChunk) return
+    const block = Object.values(playgroundChunk.blocks)?.[0] as any
+    if (!block) return
+    const { textureName } = block
+    if (!textureName) return
+    return this.webglData[textureName]
   }
 
   handleWorkerMessage (data: any): void {
@@ -16,11 +28,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
       if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 
       addBlocksSection(data.key, data.geometry)
-      const blocks = Object.values(data.geometry.blocks) as any[]
-      const animatedFrames = blocks.find((x: any) => {
-        return x.animatedFrames
-      });
-      this.hasWithFrames = animatedFrames?.animatedFrames
+      // const blocks = Object.values(data.geometry.blocks) as any[]
       this.newChunks[data.key] = data.geometry
     }
   }
@@ -28,6 +36,12 @@ export class WorldRendererWebgl extends WorldRendererCommon {
   updatePosDataChunk (key: string) {
   }
 
+  updateTexturesData (): void {
+    super.updateTexturesData()
+    loadJSON(`/webgl/${this.texturesVersion}.json`, (json) => {
+      this.webglData = json
+    })
+  }
 
   updateShowChunksBorder (value: boolean) {
     // todo

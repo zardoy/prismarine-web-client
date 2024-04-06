@@ -21,6 +21,8 @@ globalThis.THREE = THREE
 //@ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { renderPlayground } from './TouchControls2'
+import { WorldRendererWebgl } from '../viewer/lib/worldrendererWebgl'
+import { TextureAnimation } from './TextureAnimation'
 
 const gui = new GUI()
 
@@ -260,7 +262,7 @@ async function main () {
   const cameraPos = targetPos.offset(2, 2, 2)
   const pitch = THREE.MathUtils.degToRad(-45)
   const yaw = THREE.MathUtils.degToRad(45)
-  // viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+  viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
   // viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
   viewer.camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z)
   // controls.update()
@@ -297,6 +299,7 @@ async function main () {
 
   params.block ||= 'stone'
 
+  let textureAnimation: TextureAnimation | undefined
   const onUpdate = {
     block () {
       metadataFolder.destroy()
@@ -365,7 +368,24 @@ async function main () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     },
     animationTick () {
-      setAnimationTick(params.animationTick, viewer.world.hasWithFrames - 1)
+      const webgl = (viewer.world as WorldRendererWebgl).playgroundGetWebglData()
+      if (!webgl?.animation) {
+        setAnimationTick(0)
+        return
+      }
+      if (params.animationTick === -1) {
+        textureAnimation = new TextureAnimation(new Proxy({} as any, {
+          set (t, p, v) {
+            if (p === 'tick') {
+              setAnimationTick(v)
+            }
+            return true
+          }
+        }), webgl.animation, webgl.animation.framesCount)
+      } else {
+        setAnimationTick(params.animationTick)
+        textureAnimation = undefined
+      }
     }
   }
 
@@ -430,8 +450,15 @@ async function main () {
     window.requestAnimationFrame(animate2)
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
-    const frames = viewer.world.hasWithFrames ? viewer.world.hasWithFrames - 1 : 0;
-    animationController.max(frames)
+    // const frames = viewer.world.hasWithFrames ? viewer.world.hasWithFrames - 1 : 0;
+    const webgl = (viewer.world as WorldRendererWebgl).playgroundGetWebglData()
+    if (webgl?.animation) {
+      params.animationTick = -1
+      animationController.show()
+      animationController.max(webgl.animation.framesCount)
+    } else {
+      animationController.hide()
+    }
     onUpdate.animationTick()
   })
   animate2()
@@ -454,11 +481,11 @@ async function main () {
   // })
   // #endregion
 
+  let time = performance.now()
   const continuousUpdate = () => {
-    if (continuousRender) {
-      animate()
-    }
-    // requestAnimationFrame(continuousUpdate)
+    textureAnimation?.step(performance.now() - time)
+    time = performance.now()
+    requestAnimationFrame(continuousUpdate)
   }
   continuousUpdate()
 

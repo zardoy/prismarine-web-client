@@ -5,11 +5,12 @@ import mcAssets from 'minecraft-assets'
 import fs from 'fs-extra'
 import { prepareMoreGeneratedBlocks } from './moreGeneratedBlocks'
 import { generateItemsAtlases } from './genItemsAtlas'
+import { prepareWebglData } from './webglData'
 
 const publicPath = path.resolve(__dirname, '../../public')
 
 const texturesPath = path.join(publicPath, 'textures')
-if (fs.existsSync(texturesPath) && !process.argv.includes('-f')) {
+if (fs.existsSync(texturesPath) && !process.argv.includes('-f') && !process.argv.includes('-l')) {
   console.log('textures folder already exists, skipping...')
   process.exit(0)
 }
@@ -17,12 +18,13 @@ fs.mkdirSync(texturesPath, { recursive: true })
 
 const blockStatesPath = path.join(publicPath, 'blocksStates')
 fs.mkdirSync(blockStatesPath, { recursive: true })
+fs.mkdirSync(path.join(publicPath, 'webgl'), { recursive: true })
 
 const warnings = new Set<string>()
 Promise.resolve().then(async () => {
   generateItemsAtlases()
   console.time('generateTextures')
-  const versions = process.argv.includes('-l') ? mcAssets.versions.at(-1) : mcAssets.versions
+  const versions = process.argv.includes('-l') ? [mcAssets.versions.at(-1)!] : mcAssets.versions
   for (const version of versions as typeof mcAssets['versions']) {
     // for debugging (e.g. when above is overridden)
     if (!versions.includes(version)) {
@@ -41,6 +43,8 @@ Promise.resolve().then(async () => {
 
     const blocksStates = JSON.stringify(prepareBlocksStates(assets, atlas))
     fs.writeFileSync(path.resolve(blockStatesPath, version + '.json'), blocksStates)
+    const webglData = prepareWebglData(path.join(assets.directory, 'blocks'), atlas.json)
+    fs.writeFileSync(path.resolve(publicPath, 'webgl', version + '.json'), JSON.stringify(webglData))
 
     fs.copySync(assets.directory, path.resolve(texturesPath, version), { overwrite: true })
   }
