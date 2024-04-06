@@ -237,6 +237,10 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
+function posInChunk (pos) {
+  return new Vec3(Math.floor(pos.x) & 15, Math.floor(pos.y), Math.floor(pos.z) & 15)
+}
+
 function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
@@ -310,7 +314,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     }
 
     const aos: number[] = []
-    const baseLight = Math.min(15, world.getColumnByPos(block.position).getBlockLight(cursor) + 1 + world.getColumnByPos(block.position).getSkyLight(cursor) + 1) / 15
+    const baseLight = Math.min(15, Math.max(world.getColumnByPos(block.position).getBlockLight(posInChunk(block.position)), world.getColumnByPos(block.position).getSkyLight(posInChunk(block.position))) + 2) / 15
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
