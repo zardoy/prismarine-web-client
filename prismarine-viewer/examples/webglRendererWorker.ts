@@ -88,6 +88,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     cubePositions = new Float32Array(NumberOfCube * 3)
     let cubeTextureIndices = new Float32Array(NumberOfCube * 6);
+    let cubeBiomeColor = new Float32Array(NumberOfCube * 3);
 
 
     // write random coordinates to cube positions xyz ten cubes;
@@ -96,6 +97,9 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
             cubePositions[i] = Math.floor(Math.random() * 1000) - 500;
             cubePositions[i + 1] = Math.floor(Math.random() * 1000) - 500;
             cubePositions[i + 2] = Math.floor(Math.random() * 100) - 100;
+            cubeBiomeColor[i] = (Math.random() ) ;
+            cubeBiomeColor[i + 1] = (Math.random() ) ;
+            cubeBiomeColor[i + 2] = (Math.random() ) ;
             // cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
             // cubeTextureIndices[i / 3] = 0;
         }
@@ -119,6 +123,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     let VAO = gl.createVertexArray();
     let instanceVBO = gl.createBuffer();
     let instanceTextureID = gl.createBuffer();
+    let instanceBiomeColor = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
     gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.DYNAMIC_DRAW); // todo
@@ -126,6 +131,10 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
     gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.DYNAMIC_DRAW); // todo
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
+    gl.bufferData(gl.ARRAY_BUFFER, cubeBiomeColor, gl.DYNAMIC_DRAW); // todo
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     VAO = gl.createVertexArray();
     let VBO = gl.createBuffer();
@@ -162,6 +171,12 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.vertexAttribDivisor(4, 1);
     gl.vertexAttribDivisor(5, 1);
 
+    gl.enableVertexAttribArray(6);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
+    gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 3 * 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.vertexAttribDivisor(6, 1);
+
     updateCubes = (startIndex) => {
         // cubePositionsRaw = [
         //     // for now one cube in front of the camera
@@ -175,10 +190,22 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         globalThis.allBlocksSize = allBlocks.length
         cubePositions = new Float32Array(blocks.length * 3)
         cubeTextureIndices = new Float32Array(blocks.length * 6);
+        cubeBiomeColor = new Float32Array(blocks.length * 3);
         for (let i = 0; i < blocks.length * 3; i += 3) {
             cubePositions[i] = blocks[i / 3][0]
             cubePositions[i + 1] = blocks[i / 3][1]
             cubePositions[i + 2] = blocks[i / 3][2]
+            const block = blocks[i / 3][3] as BlockType
+            if (block.tint) {
+                const [r, g, b] = block.tint
+                cubeBiomeColor[i] = r
+                cubeBiomeColor[i + 1] = g
+                cubeBiomeColor[i + 2] = b
+            } else {
+                cubeBiomeColor[i] = 1
+                cubeBiomeColor[i + 1] = 1
+                cubeBiomeColor[i + 2] = 1
+            }
         }
 
         for (let i = 0; i < blocks.length * 6; i += 6) {
@@ -212,6 +239,10 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         }
         const TEXTURES_SIZE = 6
         gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * TEXTURES_SIZE, cubeTextureIndices); // update buffer content
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
+        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * POS_SIZE, cubeBiomeColor); // update buffer content
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
@@ -304,7 +335,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         }
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
-        gl.clearColor(0.5, 0.5, 0.5, 0.0);
+        gl.clearColor(  0.6784313725490196,  0.8470588235294118, 0.9019607843137255 , 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.clear(gl.DEPTH_BUFFER_BIT)
 

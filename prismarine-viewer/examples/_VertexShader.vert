@@ -6,11 +6,13 @@ layout (location = 2) in float CubeSide;
 layout (location = 3) in vec3 aOffset;
 layout (location = 4) in vec4 aTextureIndex;
 layout (location = 5) in vec2 aTextureIndexPlus;
+layout (location = 6) in vec3 aBiomeColor;
 
 
 
 out vec2 TexCoord;
 flat out float TextureIndex;
+flat out vec3 BiomeColor;
 
 uniform mat4 view;
 uniform mat4 projection;
@@ -45,6 +47,8 @@ void main()
             break;
     }
     TextureIndex += float(tick);
+
+    BiomeColor = aBiomeColor;
 
 
     //CubeSideIndex = CubeSide; //Passing cube side index to fragment shader
