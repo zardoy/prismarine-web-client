@@ -1,20 +1,21 @@
 import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
 import { Vec3 } from 'vec3'
-import { WorldRenderer } from './worldrenderer'
+import { WorldRendererWebgl } from './worldrendererWebgl'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { getVersion } from './version'
 import EventEmitter from 'events'
 import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
 import { sendCameraToWorker } from '../../examples/webglRenderer'
+import { WorldRendererThree } from './worldrendererThree'
 
 export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
   camera: THREE.PerspectiveCamera
-  world: WorldRenderer
+  world: WorldRendererWebgl | WorldRendererThree
   entities: Entities
   primitives: Primitives
   domElement: HTMLCanvasElement
@@ -40,7 +41,7 @@ export class Viewer {
     if (this.enableFXAA) {
       this.enableFxaaScene()
     }
-    this.world = new WorldRenderer(this.scene, numWorkers)
+    this.world = new WorldRendererWebgl(numWorkers)
     this.entities = new Entities(this.scene)
     this.primitives = new Primitives(this.scene, this.camera)
 
@@ -162,7 +163,7 @@ export class Viewer {
     })
     // todo remove and use other architecture instead so data flow is clear
     emitter.on('blockEntities', (blockEntities) => {
-      this.world.blockEntities = blockEntities
+      (this.world as WorldRendererThree).blockEntities = blockEntities
     })
 
     emitter.on('unloadChunk', ({ x, z }) => {
