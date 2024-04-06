@@ -470,10 +470,30 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             }
 
             let textureName = undefined
+            let tint
             const getResult = (side: string): number => {
               const facesOrTexture = findTextureInBlockStates(block.name);
               if (!facesOrTexture) return 0 // todo
-              const result = 'u' in facesOrTexture ? facesOrTexture : facesOrTexture?.[side]?.texture
+              let result
+              if ('u' in facesOrTexture) {
+                result = facesOrTexture
+              } else {
+                result = facesOrTexture?.[side]?.texture
+                const tintindex = facesOrTexture?.[side]?.tintindex
+                if (tintindex === 0) {
+                  if (block.name === 'redstone_wire') {
+                    tint = tints.redstone[`${block.getProperties().power}`]
+                  } else if (block.name === 'birch_leaves' ||
+                    block.name === 'spruce_leaves' ||
+                    block.name === 'lily_pad') {
+                    tint = tints.constant[block.name]
+                  } else if (block.name.includes('leaves') || block.name === 'vine') {
+                    tint = tints.foliage[biome]
+                  } else {
+                    tint = tints.grass[biome]
+                  }
+                }
+              }
               if (!result) return 0 // todo
               if (result.textureName) {
                 textureName = result.textureName
@@ -510,7 +530,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             if (pos.y <= 1) continue // TODO!!
             attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
               textureIndex: textures,
-              textureName
+              textureName,
+              tint
             } satisfies BlockType
           }
 
