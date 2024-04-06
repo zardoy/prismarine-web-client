@@ -8,10 +8,17 @@ import './HealthBar.css'
 
 export default () => {
   const [damaged, setDamaged] = useState(false)
+<<<<<<< HEAD
   const [healthValue, setHealthValue] = useState(10)
   const [food, setFood] = useState(10)
   const [oxygen, setOxygen] = useState(0)
   const [gameMode, setGameMode] = useState<GameMode | ''>('')
+=======
+  const [healthValue, setHealthValue] = useState(20)
+  const [food, setFood] = useState(20)
+  const [oxygen, setOxygen] = useState(20)
+  const [gameMode, setGameMode] = useState('')
+>>>>>>> 42072eb (default values in health provider to 20)
   const [isHardcore, setIsHardcore] = useState(false)
   const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
   const [effectToRemove, setEffectToRemove] = useState<number | null>(null)
