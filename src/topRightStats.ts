@@ -12,6 +12,8 @@ stats2.showPanel(2)
 
 // prod or small screen
 const denseMode = process.env.NODE_ENV === 'production' || window.innerHeight < 500
+const customPanel = document.createElement('div')
+customPanel.style.background = 'rgba(0,0,0,0.5)'
 
 let total = 0
 const addStat = (dom, size = 80) => {
@@ -63,6 +65,26 @@ export const initWithRenderer = (canvas) => {
     }
     child.style.position = ''
   }
+
+  setInterval(() => {
+    let text = ''
+    for (const [key, value] of Object.entries(customStatsTracker)) {
+      text += `${key}: ${value}ms (${Math.ceil(customStatsTrackerCount[key])})\n`
+    }
+
+    customPanel.textContent = text
+    customStatsTracker = {}
+    customStatsTrackerCount = {}
+  }, 1000)
+}
+
+export const appendTime = (label: string, start: number) => {
+  if (hideStats) return
+  const time = performance.now() - start
+  customStatsTracker[label] ??= 0
+  customStatsTracker[label] += time
+  customStatsTrackerCount[label] ??= 0
+  customStatsTrackerCount[label]++
 }
 
 export const statsStart = () => {
