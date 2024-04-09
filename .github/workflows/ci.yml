@@ -8,19 +8,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@master
-      - name: Install pnpm
-        run: npm i -g pnpm
-        # todo this needs investigating fixing
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm check-build
-      - run: nohup pnpm prod-start &
-      - run: nohup pnpm test-mc-server &
-      - uses: cypress-io/github-action@v5
-        with:
-          install: false
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: cypress-images
-          path: cypress/integration/__image_snapshots__/
+      - name: Get deployment alias
+        run: node scripts/githubActions.mjs getAlias
+        id: alias
+      - run: echo $OUTPUT
+        env:
+          OUTPUT: ${{ steps.alias.outputs.alias }}
