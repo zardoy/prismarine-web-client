@@ -97,7 +97,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
 
 
-    let NumberOfCube = isPlayground ? 1_000_000 : 5_000_000
+    let NumberOfCube = isPlayground ? 10_000 : 5_000_000
 
     sidePositions = new Float32Array(NumberOfCube * 3 * 6)
     let sideTextureIndices = new Float32Array(NumberOfCube * 1 * 6);
@@ -106,7 +106,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
 
     // write random coordinates to cube positions xyz ten cubes;
-    if (false) {
+    if (true) {
         for (let i = 0; i < NumberOfCube * 18; i += 18) {
 
             sidePositions[i] = Math.floor(Math.random() * 1000) - 500;
@@ -129,8 +129,8 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
                 }
 
                 sideIndexes[i / 3 + j - 1] = j - 1;
-                //sideTextureIndices[i / 3 + j - 1] = Math.floor(Math.random() * 800);
-                sideTextureIndices[i / 3 + j - 1] = 1;
+                sideTextureIndices[i / 3 + j - 1] = Math.floor(Math.random() * 800);
+                //sideTextureIndices[i / 3 + j - 1] = 1;
             }
 
             // sidePositions[i +3] = sidePositions[i] 
@@ -380,7 +380,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.bindTexture(gl.TEXTURE_2D, texture1);
 
     gl.bindVertexArray(VAO)
-
+    gl.useProgram(program)
     updateSize(gl.canvas.width, gl.canvas.height)
     const renderLoop = (performance) => {
         requestAnimationFrame(renderLoop)
@@ -393,14 +393,15 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
             newWidth = undefined
             newHeight = undefined
             updateSize(gl.canvas.width, gl.canvas.height)
+
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
         }
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
+        
 
         gl.clearColor(0.6784313725490196, 0.8470588235294118, 0.9019607843137255, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.clear(gl.DEPTH_BUFFER_BIT)
 
-        gl.useProgram(program)
 
         gl.uniformMatrix4fv(ViewUniform, false, camera.matrix.invert().elements);
         gl.uniformMatrix4fv(ProjectionUniform, false, camera.projectionMatrix.elements);
