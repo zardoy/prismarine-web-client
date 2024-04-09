@@ -14,5 +14,7 @@ jobs:
         run: node scripts/githubActions.mjs getAlias
         id: alias
       - run: echo $OUTPUT
+        # skip if not defined
+        if: ${{ steps.alias.outputs.alias != '' }}
         env:
           OUTPUT: ${{ steps.alias.outputs.alias }}
