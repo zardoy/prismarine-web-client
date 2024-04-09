@@ -38,7 +38,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     const gl = canvas.getContext('webgl2')!
 
-    const program = createProgram(gl, VertShader, FragShader)
+    const program = createProgram(gl, VertShader, FragShaderOverride || FragShader)
 
     let vertices = new Float32Array([
         -0.5, -0.5, -0.5, 0.0, 0.0, 0.0, // Bottom-let
@@ -264,6 +264,13 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
+    globalThis.fullReset = () => {
+        allBlocks = []
+        globalThis.cleanupFirstChunks()
+        lastNotUpdatedIndex = undefined
+        lastNotUpdatedArrSize = undefined
+    }
+
 
 
     //gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -339,7 +346,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         }
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
-        gl.clearColor(  0.6784313725490196,  0.8470588235294118, 0.9019607843137255 , 0.0);
+        gl.clearColor(0.6784313725490196, 0.8470588235294118, 0.9019607843137255, 0.0);
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.clear(gl.DEPTH_BUFFER_BIT)
 
@@ -405,7 +412,7 @@ let autoTickUpdate = undefined as number | undefined
 onmessage = function (e) {
     if (!started) {
         started = true
-        initWebglRenderer(e.data.canvas, e.data.imageBlob, e.data.isPlayground)
+        initWebglRenderer(e.data.canvas, e.data.imageBlob, e.data.isPlayground, e.data.FragShaderOverride)
         return
     }
     if (e.data.type === 'startRender') {
@@ -420,7 +427,6 @@ onmessage = function (e) {
     }
     if (e.data.type === 'addBlocksSection') {
         const currentLength = allBlocks.length;
-        chunksArrIndexes[e.data.key] = [currentLength, currentLength + e.data.data.length]
         // in: object - name, out: [x, y, z, name]
         const newData = Object.entries(e.data.data.blocks).map(([key, value]) => {
             const [x, y, z] = key.split(',').map(Number)
@@ -428,19 +434,7 @@ onmessage = function (e) {
         })
         // find freeIndexes if possible
         const freeArea = freeArrayIndexes.find(([startIndex, endIndex]) => endIndex - startIndex >= newData.length)
-        // if (freeArea) {
-        //     const [startIndex, endIndex] = freeArea
-        //     allBlocks.splice(startIndex, newData.length, ...newData)
-        //     lastNotUpdatedIndex ??= startIndex
-        //     const freeAreaIndex = freeArrayIndexes.indexOf(freeArea)
-        //     freeArrayIndexes[freeAreaIndex] = [startIndex + newData.length, endIndex]
-        //     if (freeArrayIndexes[freeAreaIndex][0] >= freeArrayIndexes[freeAreaIndex][1]) {
-        //         freeArrayIndexes.splice(freeAreaIndex, 1)
-        //         // todo merge
-        //     }
-        //     lastNotUpdatedArrSize = newData.length
-        //     console.log('using free area', freeArea)
-        // }
+        chunksArrIndexes[e.data.key] = [currentLength, currentLength + newData.length]
         allBlocks.push(...newData)
         lastNotUpdatedIndex ??= currentLength
         // updateCubes?.(currentLength)
@@ -455,11 +449,11 @@ onmessage = function (e) {
         freeArrayIndexes.push([startIndex, endIndex])
 
         // merge freeArrayIndexes TODO
-        // if (freeArrayIndexes.at(-1)[0] === freeArrayIndexes.at(-2)[1]) {
-        //     const [startIndex, endIndex] = freeArrayIndexes.pop()!
-        //     const [startIndex2, endIndex2] = freeArrayIndexes.pop()!
-        //     freeArrayIndexes.push([startIndex2, endIndex])
-        // }
+        if (freeArrayIndexes.at(-1)[0] === freeArrayIndexes.at(-2)?.[1]) {
+            const [startIndex, endIndex] = freeArrayIndexes.pop()!
+            const [startIndex2, endIndex2] = freeArrayIndexes.pop()!
+            freeArrayIndexes.push([startIndex2, endIndex])
+        }
     }
     if (e.data.type === 'camera') {
         camera.rotation.set(e.data.camera.rotation.x, e.data.camera.rotation.y, e.data.camera.rotation.z, 'ZYX')

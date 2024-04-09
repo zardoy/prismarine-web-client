@@ -93,7 +93,8 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
     sendWorkerMessage({
         canvas: offscreen,
         imageBlob,
-        isPlayground
+        isPlayground,
+        FragShaderOverride: localStorage.FragShader
     }, [offscreen])
 
     let oldWidth = window.innerWidth
