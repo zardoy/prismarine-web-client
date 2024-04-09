@@ -49,7 +49,7 @@ jobs:
             Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
             [Playground](${{ steps.deploy.outputs.stdout }}/playground.html)
             [Storybook](${{ steps.deploy.outputs.stdout }}/storybook/)
-      - run: git checkout next scripts/githubActions.mjs
+      # - run: git checkout next scripts/githubActions.mjs
       - name: Get deployment alias
         run: node scripts/githubActions.mjs getAlias
         id: alias
