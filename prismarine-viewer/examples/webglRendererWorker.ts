@@ -32,6 +32,7 @@ const updateSize = (width, height) => {
 
 
 export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, isPlayground: boolean, FragShaderOverride?) => {
+    isPlayground = false
     // blockStates = blockStatesJson
     const textureBitmap = await createImageBitmap(imageBlob)
     const textureWidth = textureBitmap.width
@@ -106,7 +107,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
 
     // write random coordinates to cube positions xyz ten cubes;
-    if (true) {
+    if (isPlayground) {
         for (let i = 0; i < NumberOfCube * 18; i += 18) {
 
             sidePositions[i] = Math.floor(Math.random() * 1000) - 500;
@@ -243,7 +244,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         // up2
         const newSides = allSides.slice(startIndex, lastNotUpdatedArrSize ? startIndex + lastNotUpdatedArrSize : undefined)
         newSides.sort((a, b) => {
-            const getScore = (b: BlockFaceType) => b.isTransparent ? 0 : 1
+            const getScore = (b: BlockFaceType) => b.isTransparent ? 1 : 0
             return getScore(a[3]) - getScore(b[3])
         })
         globalThis.allSidesSize = allSides.length
@@ -393,7 +394,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
             gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
         }
-        
+
 
         gl.clearColor(0.6784313725490196, 0.8470588235294118, 0.9019607843137255, 1);
         gl.clear(gl.COLOR_BUFFER_BIT)

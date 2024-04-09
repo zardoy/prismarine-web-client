@@ -7,7 +7,7 @@ layout (location = 3) in vec3 aOffset;
 layout (location = 4) in float aTextureIndex;
 layout (location = 6) in vec3 aBiomeColor;
 
-//#Define 
+//#Define
 
 out vec2 TexCoord;
 flat out float TextureIndex;
@@ -43,7 +43,7 @@ void main()
             TexCoord = vec2((1.0f-aTexCoord.x), (1.0 - aTexCoord.y));
             //TextureIndex = aTextureIndex.x;
             //TransitionedPos = (vec4(aPos,0.0f) *rotationY(radians(90.0f))).xyz;
-            
+
             TransitionedPos = (vec4(aPos,0.0f) *rotationX(radians(-90.0f))).xyz;
             break;
         case 1:
@@ -58,20 +58,24 @@ void main()
         case 3:
             //TextureIndex = aTextureIndex.z;
             //TexCoord = vec2(aTexCoord.y, (1.0f - aTexCoord.x));
-            
+            TexCoord = vec2(aTexCoord);
             //TransitionedPos = (vec4(aPos,0.0f) *rotationX(radians(-90.0f))).xyz;
-            TransitionedPos = (vec4(aPos,0.0f) *rotationY(radians(90.0f))).xyz;
+            //TransitionedPos = (vec4(aPos,0.0f) *rotationY(radians(90.0f))).xyz;
+            TransitionedPos = (vec4(aPos,0.0f) *rotationX(radians(180.0f))).xyz;
             break;
         case 4:
             //TextureIndex = aTextureIndexPlus.x;
             //TransitionedPos = vec4(aPos,0.0f).xyz;
-            TransitionedPos = (vec4(aPos,0.0f) *rotationY(radians(-90.0f))).xyz;
+            //TransitionedPos = (vec4(aPos,0.0f) *rotationY(radians(-90.0f))).xyz;
+            TransitionedPos = (vec4(aPos,0.0f) *rotationY(radians(90.0f))).xyz;
             break;
         case 5:
             //TextureIndex = aTextureIndexPlus.y;
             //TransitionedPos = vec4(aPos,0.0f).xyz;
-            TexCoord = vec2(aTexCoord);
-            TransitionedPos = (vec4(aPos,0.0f) *rotationX(radians(180.0f))).xyz;
+
+            //TransitionedPos = (vec4(aPos,0.0f) *rotationX(radians(180.0f))).xyz;
+            //TransitionedPos = (vec4(aPos,0.0f) *rotationY(radians(90.0f))).xyz;
+            TransitionedPos = (vec4(aPos,0.0f) *rotationY(radians(-90.0f))).xyz;
             break;
     }
     TextureIndex += float(tick);

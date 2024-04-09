@@ -61,6 +61,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
 
 
   removeColumn (x, z) {
+    return
     console.log('removeColumn', x, z)
     super.removeColumn(x, z)
     for (const key of Object.keys(this.newChunks)) {

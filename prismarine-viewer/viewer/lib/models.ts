@@ -3,6 +3,7 @@ import { BlockStatesOutput } from '../prepare/modelsBuilder'
 import { World } from './world'
 import { Block } from 'prismarine-block'
 import { BlockType } from '../../examples/shared'
+import dataBlocks from '../lib/moreBlockDataGenerated.json'
 
 const tints: any = {}
 let blockStates: BlockStatesOutput
@@ -239,141 +240,141 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
-function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
-  const cullIfIdentical = block.name.indexOf('glass') >= 0
+// function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
+//   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
-  for (const face in element.faces) {
-    const eFace = element.faces[face]
-    const { corners, mask1, mask2 } = elemFaces[face]
-    const dir = matmul3(globalMatrix, elemFaces[face].dir)
+//   for (const face in element.faces) {
+//     const eFace = element.faces[face]
+//     const { corners, mask1, mask2 } = elemFaces[face]
+//     const dir = matmul3(globalMatrix, elemFaces[face].dir)
 
-    if (eFace.cullface) {
-      const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
-      if (neighbor) {
-        if (cullIfIdentical && neighbor.type === block.type) continue
-        if (!neighbor.transparent && neighbor.isCube) continue
-      } else {
-        continue
-      }
-    }
+//     if (eFace.cullface) {
+//       const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
+//       if (neighbor) {
+//         if (cullIfIdentical && neighbor.type === block.type) continue
+//         if (!neighbor.transparent && neighbor.isCube) continue
+//       } else {
+//         continue
+//       }
+//     }
 
-    const minx = element.from[0]
-    const miny = element.from[1]
-    const minz = element.from[2]
-    const maxx = element.to[0]
-    const maxy = element.to[1]
-    const maxz = element.to[2]
+//     const minx = element.from[0]
+//     const miny = element.from[1]
+//     const minz = element.from[2]
+//     const maxx = element.to[0]
+//     const maxy = element.to[1]
+//     const maxz = element.to[2]
 
-    const u = eFace.texture.u
-    const v = eFace.texture.v
-    const su = eFace.texture.su
-    const sv = eFace.texture.sv
+//     const u = eFace.texture.u
+//     const v = eFace.texture.v
+//     const su = eFace.texture.su
+//     const sv = eFace.texture.sv
 
-    const ndx = Math.floor(attr.positions.length / 3)
+//     const ndx = Math.floor(attr.positions.length / 3)
 
-    let tint = [1, 1, 1]
-    if (eFace.tintindex !== undefined) {
-      if (eFace.tintindex === 0) {
-        if (block.name === 'redstone_wire') {
-          tint = tints.redstone[`${block.getProperties().power}`]
-        } else if (block.name === 'birch_leaves' ||
-          block.name === 'spruce_leaves' ||
-          block.name === 'lily_pad') {
-          tint = tints.constant[block.name]
-        } else if (block.name.includes('leaves') || block.name === 'vine') {
-          tint = tints.foliage[biome]
-        } else {
-          tint = tints.grass[biome]
-        }
-      }
-    }
+//     let tint = [1, 1, 1]
+//     if (eFace.tintindex !== undefined) {
+//       if (eFace.tintindex === 0) {
+//         if (block.name === 'redstone_wire') {
+//           tint = tints.redstone[`${block.getProperties().power}`]
+//         } else if (block.name === 'birch_leaves' ||
+//           block.name === 'spruce_leaves' ||
+//           block.name === 'lily_pad') {
+//           tint = tints.constant[block.name]
+//         } else if (block.name.includes('leaves') || block.name === 'vine') {
+//           tint = tints.foliage[biome]
+//         } else {
+//           tint = tints.grass[biome]
+//         }
+//       }
+//     }
 
-    // UV rotation
-    const r = eFace.rotation || 0
-    const uvcs = Math.cos(r * Math.PI / 180)
-    const uvsn = -Math.sin(r * Math.PI / 180)
+//     // UV rotation
+//     const r = eFace.rotation || 0
+//     const uvcs = Math.cos(r * Math.PI / 180)
+//     const uvsn = -Math.sin(r * Math.PI / 180)
 
-    let localMatrix = null as any
-    let localShift = null as any
+//     let localMatrix = null as any
+//     let localShift = null as any
 
-    if (element.rotation) {
-      localMatrix = buildRotationMatrix(
-        element.rotation.axis,
-        element.rotation.angle
-      )
+//     if (element.rotation) {
+//       localMatrix = buildRotationMatrix(
+//         element.rotation.axis,
+//         element.rotation.angle
+//       )
 
-      localShift = vecsub3(
-        element.rotation.origin,
-        matmul3(
-          localMatrix,
-          element.rotation.origin
-        )
-      )
-    }
+//       localShift = vecsub3(
+//         element.rotation.origin,
+//         matmul3(
+//           localMatrix,
+//           element.rotation.origin
+//         )
+//       )
+//     }
 
-    const aos: number[] = []
-    for (const pos of corners) {
-      let vertex = [
-        (pos[0] ? maxx : minx),
-        (pos[1] ? maxy : miny),
-        (pos[2] ? maxz : minz)
-      ]
+//     const aos: number[] = []
+//     for (const pos of corners) {
+//       let vertex = [
+//         (pos[0] ? maxx : minx),
+//         (pos[1] ? maxy : miny),
+//         (pos[2] ? maxz : minz)
+//       ]
 
-      vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
-      vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
-      vertex = vertex.map(v => v / 16)
+//       vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
+//       vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
+//       vertex = vertex.map(v => v / 16)
 
-      attr.positions.push(
-        vertex[0] + (cursor.x & 15) - 8,
-        vertex[1] + (cursor.y & 15) - 8,
-        vertex[2] + (cursor.z & 15) - 8
-      )
+//       attr.positions.push(
+//         vertex[0] + (cursor.x & 15) - 8,
+//         vertex[1] + (cursor.y & 15) - 8,
+//         vertex[2] + (cursor.z & 15) - 8
+//       )
 
-      attr.normals.push(...dir)
+//       attr.normals.push(...dir)
 
-      const baseu = (pos[3] - 0.5) * uvcs - (pos[4] - 0.5) * uvsn + 0.5
-      const basev = (pos[3] - 0.5) * uvsn + (pos[4] - 0.5) * uvcs + 0.5
-      attr.uvs.push(baseu * su + u, basev * sv + v)
+//       const baseu = (pos[3] - 0.5) * uvcs - (pos[4] - 0.5) * uvsn + 0.5
+//       const basev = (pos[3] - 0.5) * uvsn + (pos[4] - 0.5) * uvcs + 0.5
+//       attr.uvs.push(baseu * su + u, basev * sv + v)
 
-      let light = 1
-      if (doAO) {
-        const dx = pos[0] * 2 - 1
-        const dy = pos[1] * 2 - 1
-        const dz = pos[2] * 2 - 1
-        const cornerDir = matmul3(globalMatrix, [dx, dy, dz])
-        const side1Dir = matmul3(globalMatrix, [dx * mask1[0], dy * mask1[1], dz * mask1[2]])
-        const side2Dir = matmul3(globalMatrix, [dx * mask2[0], dy * mask2[1], dz * mask2[2]])
-        const side1 = world.getBlock(cursor.offset(...side1Dir))
-        const side2 = world.getBlock(cursor.offset(...side2Dir))
-        const corner = world.getBlock(cursor.offset(...cornerDir))
+//       let light = 1
+//       if (doAO) {
+//         const dx = pos[0] * 2 - 1
+//         const dy = pos[1] * 2 - 1
+//         const dz = pos[2] * 2 - 1
+//         const cornerDir = matmul3(globalMatrix, [dx, dy, dz])
+//         const side1Dir = matmul3(globalMatrix, [dx * mask1[0], dy * mask1[1], dz * mask1[2]])
+//         const side2Dir = matmul3(globalMatrix, [dx * mask2[0], dy * mask2[1], dz * mask2[2]])
+//         const side1 = world.getBlock(cursor.offset(...side1Dir))
+//         const side2 = world.getBlock(cursor.offset(...side2Dir))
+//         const corner = world.getBlock(cursor.offset(...cornerDir))
 
-        const side1Block = world.shouldMakeAo(side1) ? 1 : 0
-        const side2Block = world.shouldMakeAo(side2) ? 1 : 0
-        const cornerBlock = world.shouldMakeAo(corner) ? 1 : 0
+//         const side1Block = world.shouldMakeAo(side1) ? 1 : 0
+//         const side2Block = world.shouldMakeAo(side2) ? 1 : 0
+//         const cornerBlock = world.shouldMakeAo(corner) ? 1 : 0
 
-        // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
+//         // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
 
-        const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
-        light = (ao + 1) / 4
-        aos.push(ao)
-      }
+//         const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
+//         light = (ao + 1) / 4
+//         aos.push(ao)
+//       }
 
-      attr.colors.push(tint[0] * light, tint[1] * light, tint[2] * light)
-    }
+//       attr.colors.push(tint[0] * light, tint[1] * light, tint[2] * light)
+//     }
 
-    if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
-      attr.indices.push(
-        ndx, ndx + 3, ndx + 2,
-        ndx, ndx + 1, ndx + 3
-      )
-    } else {
-      attr.indices.push(
-        ndx, ndx + 1, ndx + 2,
-        ndx + 2, ndx + 1, ndx + 3
-      )
-    }
-  }
-}
+//     if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
+//       attr.indices.push(
+//         ndx, ndx + 3, ndx + 2,
+//         ndx, ndx + 1, ndx + 3
+//       )
+//     } else {
+//       attr.indices.push(
+//         ndx, ndx + 1, ndx + 2,
+//         ndx + 2, ndx + 1, ndx + 3
+//       )
+//     }
+//   }
+// }
 
 const facesIndexes = {
   down: 0,
@@ -451,8 +452,13 @@ const findTextureInBlockStates = (name): any => {
   return element.faces
 }
 
+const isTransparent = (block: Block) => {
+  return block.transparent || block.material === 'plant' || block.name === 'water' || block.name === 'lava'
+  // return !!dataBlocks.noOcclusions[block.name]
+}
+
 function renderElementNew (world: World, cursor: Vec3, element, doAO: boolean, attr: AttrType, globalMatrix, globalShift, block: Block, biome) {
-  const cullIfIdentical = block.name.indexOf('glass') >= 0
+  const cullIfIdentical = block.name.indexOf('glass') >= 0 || block.name === 'water' || block.name === 'lava'
 
   for (const face in element.faces) {
     const faceIndex = facesIndexes[face]
@@ -465,7 +471,7 @@ function renderElementNew (world: World, cursor: Vec3, element, doAO: boolean, a
       const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
       if (neighbor) {
         if (cullIfIdentical && neighbor.type === block.type) continue
-        if (!neighbor.transparent && neighbor.isCube) continue
+        if (!isTransparent(neighbor) && neighbor.isCube) continue
       } else {
         continue
       }
@@ -532,7 +538,7 @@ function renderElementNew (world: World, cursor: Vec3, element, doAO: boolean, a
     attr.blocks[cursorPos].sides.push({
       face: faceIndex,
       textureIndex: getResult(biome, block, face),
-      isTransparent: block.transparent, // todo
+      isTransparent: isTransparent(block), // todo
       textureName,
       tint
     })
@@ -645,6 +651,22 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           block.variant = getModelVariants(block)
         }
 
+        if (block.name === 'water' || block.name === 'lava') {
+          const textureParticle = block.variant![0].model.textures.particle
+          const tex = { texture: textureParticle, cullface: true, tintindex: 0 };
+          block.variant![0].model.elements.push({
+            from: [0, 0, 0],
+            to: [16, 16, 16],
+            faces: {
+              down: tex,
+              up: tex,
+              north: tex,
+              south: tex,
+              west: tex,
+              east: tex
+            }
+          })
+        }
         //   if (block.name === 'water') {
         //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
         //   } else if (block.name === 'lava') {
