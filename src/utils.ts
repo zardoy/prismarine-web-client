@@ -161,10 +161,18 @@ let prevRenderDistance = options.renderDistance
 export const setRenderDistance = () => {
   assertDefined(worldView)
   const { renderDistance: singleplayerRenderDistance, multiplayerRenderDistance } = options
-  const renderDistance = miscUiState.singleplayer ? singleplayerRenderDistance : multiplayerRenderDistance
+  let renderDistance = miscUiState.singleplayer ? singleplayerRenderDistance : multiplayerRenderDistance
+  const zeroRenderDistance = miscUiState.singleplayer && renderDistance === 0
+  if (zeroRenderDistance) {
+    renderDistance = 1 // mineflayer limitation workaround
+  }
   bot.setSettings({
     viewDistance: renderDistance
   })
+  if (zeroRenderDistance) {
+    localServer!.players[0].view = 0
+    renderDistance = 0
+  }
   worldView.viewDistance = renderDistance
   prevRenderDistance = renderDistance
 }
