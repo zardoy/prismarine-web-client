@@ -532,7 +532,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
               textureIndex: textures,
               textureName,
               tint,
-              isTransparent: block.name.includes('glass') // todo
+              isTransparent: block.name.includes('glass') || block.name.includes('grass') || block.name.includes('leaves') || block.name.includes('fire') // todo
             } satisfies BlockType
           }
 
