@@ -2,7 +2,7 @@ const fns = {
   async getAlias () {
     const aliasesRaw = process.env.ALIASES
     if (!aliasesRaw) throw new Error('No aliases found')
-    const aliases = aliasesRaw.split('\n').map((x) => x.search('='))
+    const aliases = aliasesRaw.split('\n').map((x) => x.split('='))
     const githubActionsPull = process.env.GITHUB_REF.match(/refs\/pull\/(\d+)\/merge/)
     if (!githubActionsPull) throw new Error(`Not a pull request, got ${process.env.GITHUB_REF}`)
     const prNumber = githubActionsPull[1]
