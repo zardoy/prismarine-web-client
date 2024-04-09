@@ -31,11 +31,6 @@ jobs:
         with:
           run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         id: deploy
-      - name: Get deployment alias
-        run: node scripts/githubActions.mjs getAlias
-      - run: echo $OUTPUT
-        env:
-          OUTPUT: ${{ steps.repos.outputs.alias }}
       - name: Set deployment alias
         run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
       # - uses: mshick/add-pr-comment@v2
