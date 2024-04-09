@@ -7,13 +7,17 @@ const fns = {
     if (!githubActionsPull) throw new Error(`Not a pull request, got ${process.env.GITHUB_REF}`)
     const prNumber = githubActionsPull[1]
     const alias = aliases.find((x) => x[0] === prNumber)
-    console.log('aliases', aliases, 'prNumber', prNumber, 'alias', alias)
     if (alias) {
-      console.log('Found alias', alias[1])
       // set github output
-      console.log(`::set-output name=alias::${alias[1]}`)
+      setOutput('alias', alias[1])
     }
   }
+}
+
+function setOutput(key, value) {
+  // Temporary hack until core actions library catches up with github new recommendations
+  const output = process.env['GITHUB_OUTPUT']
+  fs.appendFileSync(output, `${key}=${value}${os.EOL}`)
 }
 
 const fn = fns[process.argv[2]]
