@@ -117,7 +117,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
             sideBiomeColor[i + 1] = (Math.random());
             sideBiomeColor[i + 2] = (Math.random());
             for (let j = 1; j <= 6; j++) {
-                
+
                 if (j != 6) {
                     sidePositions[j * 3 + i] = sidePositions[i]
                     sidePositions[j * 3 + i + 1] = sidePositions[i + 1]
@@ -133,7 +133,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
                 sideTextureIndices[i / 3 + j - 1] = 1;
             }
 
-            // sidePositions[i +3] = sidePositions[i] 
+            // sidePositions[i +3] = sidePositions[i]
             // sidePositions[i + 4] = sidePositions[i + 2]
             // sidePositions[i + 5] = sidePositions[i + 1]
 
@@ -249,6 +249,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         globalThis.allSidesSize = allSides.length
         sidePositions = new Float32Array(newSides.length * 3)
         sideTextureIndices = new Float32Array(newSides.length * 1);
+        sideIndexes = new Float32Array(newSides.length * 1);
         sideBiomeColor = new Float32Array(newSides.length * 3);
         for (let i = 0; i < newSides.length * 3; i += 3) {
             sidePositions[i] = newSides[i / 3][0]
@@ -301,7 +302,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     }
 
     globalThis.updateCubes = updateCubes
-    globalThis.cleanupFirstChunks = () => {
+    const cleanupFirstChunks = () => {
         allSides = []
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
         // empty the buffer
@@ -314,9 +315,8 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
-    globalThis.fullReset = () => {
-        allSides = []
-        globalThis.cleanupFirstChunks()
+    fullReset = () => {
+        cleanupFirstChunks()
         lastNotUpdatedIndex = undefined
         lastNotUpdatedArrSize = undefined
     }
@@ -347,9 +347,6 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, textureWidth, textureHeight, 0, gl.RGBA, gl.UNSIGNED_BYTE, textureBitmap);
-    //gl.generateMipmap(gl.TEXTURE_2D);
-
-    //gl.generateMipmap(gl.TEXTURE_2D);
 
     gl.useProgram(program)
 
@@ -359,7 +356,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     gl.enable(gl.DEPTH_TEST)
     gl.frontFace(gl.CCW)
-     gl.enable(gl.CULL_FACE)
+    gl.enable(gl.CULL_FACE)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -396,7 +393,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         }
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height)
 
-        gl.clearColor(0.6784313725490196, 0.8470588235294118, 0.9019607843137255, 0.0);
+        gl.clearColor(0.6784313725490196, 0.8470588235294118, 0.9019607843137255, 1);
         gl.clear(gl.COLOR_BUFFER_BIT)
         gl.clear(gl.DEPTH_BUFFER_BIT)
 
@@ -408,7 +405,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
         camera.updateMatrix()
         if (!globalThis.stopRendering) {
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 6 * (isPlayground ? NumberOfCube : allSides.length));
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, (isPlayground ? NumberOfCube * 6 : allSides.length));
         }
         //gl.bindVertexArray(null)
 
@@ -423,6 +420,8 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     return canvas
 }
+
+let fullReset
 
 const createProgram = (gl: WebGL2RenderingContext, vertexShader: string, fragmentShader: string) => {
     const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
@@ -487,6 +486,20 @@ onmessage = function (e) {
         })
         // find freeIndexes if possible
         const freeArea = freeArrayIndexes.find(([startIndex, endIndex]) => endIndex - startIndex >= newData.length)
+        if (freeArea) {
+            const [startIndex, endIndex] = freeArea
+            allSides.splice(startIndex, newData.length, ...newData)
+            lastNotUpdatedIndex ??= startIndex
+            const freeAreaIndex = freeArrayIndexes.indexOf(freeArea)
+            freeArrayIndexes[freeAreaIndex] = [startIndex + newData.length, endIndex]
+            if (freeArrayIndexes[freeAreaIndex][0] >= freeArrayIndexes[freeAreaIndex][1]) {
+                freeArrayIndexes.splice(freeAreaIndex, 1)
+                // todo merge
+            }
+            lastNotUpdatedArrSize = newData.length
+            console.log('using free area', freeArea)
+        }
+
         chunksArrIndexes[e.data.key] = [currentLength, currentLength + newData.length]
         allSides.push(...newData)
         lastNotUpdatedIndex ??= currentLength
@@ -524,6 +537,9 @@ onmessage = function (e) {
             autoTickUpdate = undefined
             animationTick = e.data.tick % 20 // todo update automatically in worker
         }
+    }
+    if (e.data.type === 'fullReset') {
+        fullReset()
     }
 }
 
