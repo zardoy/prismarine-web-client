@@ -2,6 +2,7 @@ name: Vercel Deploy Preview
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  ALIASES: ${{ vars.ALIASES }}
 on:
   issue_comment:
     types: [created]
@@ -48,3 +49,9 @@ jobs:
             Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
             [Playground](${{ steps.deploy.outputs.stdout }}/playground.html)
             [Storybook](${{ steps.deploy.outputs.stdout }}/storybook/)
+      - name: Get deployment alias
+        run: node scripts/githubActions.mjs getAlias
+        id: alias
+      - name: Set deployment alias
+        if: ${{ steps.alias.outputs.alias != '' }}
+        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ steps.alias.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
