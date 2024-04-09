@@ -7,6 +7,7 @@ const fns = {
     if (!githubActionsPull) throw new Error(`Not a pull request, got ${process.env.GITHUB_REF}`)
     const prNumber = githubActionsPull[1]
     const alias = aliases.find((x) => x[0] === prNumber)
+    console.log('aliases', aliases, 'prNumber', prNumber, 'alias', alias)
     if (alias) {
       console.log('Found alias', alias[1])
       // set github output
