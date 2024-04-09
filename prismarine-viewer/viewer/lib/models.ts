@@ -18,7 +18,7 @@ for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
 }
 
-function prepareTints(tints) {
+function prepareTints (tints) {
   const map = new Map()
   const defaultValue = tintToGl(tints.default)
   for (let { keys, color } of tints.data) {
@@ -34,7 +34,7 @@ function prepareTints(tints) {
   })
 }
 
-function tintToGl(tint) {
+function tintToGl (tint) {
   const r = (tint >> 16) & 0xff
   const g = (tint >> 8) & 0xff
   const b = tint & 0xff
@@ -110,7 +110,7 @@ const elemFaces = {
   }
 }
 
-function getLiquidRenderHeight(world, block, type) {
+function getLiquidRenderHeight (world, block, type) {
   if (!block || block.type !== type) return 1 / 9
   if (block.metadata === 0) { // source block
     const blockAbove = world.getBlock(block.position.offset(0, 1, 0))
@@ -120,7 +120,7 @@ function getLiquidRenderHeight(world, block, type) {
   return ((block.metadata >= 8 ? 8 : 7 - block.metadata) + 1) / 9
 }
 
-function renderLiquid(world, cursor, texture, type, biome, water, attr) {
+function renderLiquid (world, cursor, texture, type, biome, water, attr) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
@@ -170,17 +170,17 @@ function renderLiquid(world, cursor, texture, type, biome, water, attr) {
   }
 }
 
-function vecadd3(a, b) {
+function vecadd3 (a, b) {
   if (!b) return a
   return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
 }
 
-function vecsub3(a, b) {
+function vecsub3 (a, b) {
   if (!b) return a
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 }
 
-function matmul3(matrix, vector): [number, number, number] {
+function matmul3 (matrix, vector): [number, number, number] {
   if (!matrix) return vector
   return [
     matrix[0][0] * vector[0] + matrix[0][1] * vector[1] + matrix[0][2] * vector[2],
@@ -189,7 +189,7 @@ function matmul3(matrix, vector): [number, number, number] {
   ]
 }
 
-function matmulmat3(a, b) {
+function matmulmat3 (a, b) {
   const te = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
   const a11 = a[0][0]; const a12 = a[1][0]; const a13 = a[2][0]
@@ -215,7 +215,7 @@ function matmulmat3(a, b) {
   return te
 }
 
-function buildRotationMatrix(axis, degree) {
+function buildRotationMatrix (axis, degree) {
   const radians = degree / 180 * Math.PI
   const cos = Math.cos(radians)
   const sin = Math.sin(radians)
@@ -239,7 +239,7 @@ function buildRotationMatrix(axis, degree) {
   return matrix
 }
 
-function renderElement(world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
+function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
   for (const face in element.faces) {
@@ -421,7 +421,7 @@ const getResult = (biome, block, side: string): number => {
   }
   return uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
 }
-function uvToTextureIndex(u, v) {
+function uvToTextureIndex (u, v) {
   const textureWidth = textureSize
   const textureHeight = textureSize
   const tileSize = 16;
@@ -451,7 +451,7 @@ const findTextureInBlockStates = (name): any => {
   return element.faces
 }
 
-function renderElementNew(world: World, cursor: Vec3, element, doAO: boolean, attr: AttrType, globalMatrix, globalShift, block: Block, biome) {
+function renderElementNew (world: World, cursor: Vec3, element, doAO: boolean, attr: AttrType, globalMatrix, globalShift, block: Block, biome) {
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
   for (const face in element.faces) {
@@ -601,7 +601,7 @@ function renderElementNew(world: World, cursor: Vec3, element, doAO: boolean, at
   }
 }
 
-export function getSectionGeometry(sx, sy, sz, world: World) {
+export function getSectionGeometry (sx, sy, sz, world: World) {
   const attr = {
     sx: sx + 8,
     sy: sy + 8,
@@ -644,7 +644,7 @@ export function getSectionGeometry(sx, sy, sz, world: World) {
         if (block.variant === undefined) {
           block.variant = getModelVariants(block)
         }
-        
+
         //   if (block.name === 'water') {
         //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
         //   } else if (block.name === 'lava') {
@@ -673,28 +673,28 @@ export function getSectionGeometry(sx, sy, sz, world: World) {
         for (const variant of block.variant) {
           if (!variant || !variant.model) continue
 
-         // if (block.name === 'water') {
-            // renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
+          // if (block.name === 'water') {
+          // renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
           //} else if (block.name === 'lava') {
-            // renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
-            let globalMatrix = null as any
-            let globalShift = null as any
+          // renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
+          let globalMatrix = null as any
+          let globalShift = null as any
 
-            for (const axis of ['x', 'y', 'z']) {
-              if (axis in variant) {
-                if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -variant[axis])
-                else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -variant[axis]))
-              }
+          for (const axis of ['x', 'y', 'z']) {
+            if (axis in variant) {
+              if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -variant[axis])
+              else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -variant[axis]))
             }
+          }
 
-            if (globalMatrix) {
-              globalShift = [8, 8, 8]
-              globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
-            }
+          if (globalMatrix) {
+            globalShift = [8, 8, 8]
+            globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
+          }
 
-            for (const element of variant.model.elements) {
-              renderElementNew(world, cursor, element, variant.model.ao, attr as any, globalMatrix, globalShift, block, biome)
-            }
+          const elements = variant.model.elements;
+          const element = elements[0]
+          if (element) renderElementNew(world, cursor, element, variant.model.ao, attr as any, globalMatrix, globalShift, block, biome)
         }
       }
     }
@@ -726,11 +726,12 @@ export function getSectionGeometry(sx, sy, sz, world: World) {
   attr.normals = new Float32Array(attr.normals) as any
   attr.colors = new Float32Array(attr.colors) as any
   attr.uvs = new Float32Array(attr.uvs) as any
+  if (Object.keys(attr.blocks).length === 0) return attr
 
   return attr
 }
 
-function parseProperties(properties) {
+function parseProperties (properties) {
   if (typeof properties === 'object') { return properties }
 
   const json = {}
@@ -741,7 +742,7 @@ function parseProperties(properties) {
   return json
 }
 
-function matchProperties(block: Block, /* to match against */properties: Record<string, string | boolean> & { OR }) {
+function matchProperties (block: Block, /* to match against */properties: Record<string, string | boolean> & { OR }) {
   if (!properties) { return true }
 
   properties = parseProperties(properties)
@@ -759,7 +760,7 @@ function matchProperties(block: Block, /* to match against */properties: Record<
   return true
 }
 
-function getModelVariants(block: import('prismarine-block').Block) {
+function getModelVariants (block: import('prismarine-block').Block) {
   // air, cave_air, void_air and so on...
   // full list of invisible & special blocks https://minecraft.wiki/w/Model#Blocks_and_fluids
   if (block.name === '' || block.name === 'air' || block.name.endsWith('_air')) return []

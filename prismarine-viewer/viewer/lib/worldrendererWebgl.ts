@@ -1,4 +1,4 @@
-import { addBlocksSection, removeBlocksSection } from '../../examples/webglRenderer'
+import { addBlocksSection, removeBlocksSection, sendWorkerMessage } from '../../examples/webglRenderer'
 import type { WebglData } from '../prepare/webglData'
 import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
@@ -28,7 +28,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
   }
 
   handleWorkerMessage (data: any): void {
-    if (data.type === 'geometry') {
+    if (data.type === 'geometry' && Object.keys(data.geometry.blocks).length) {
 
       const chunkCoords = data.key.split(',')
       if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
@@ -37,6 +37,12 @@ export class WorldRendererWebgl extends WorldRendererCommon {
       // const blocks = Object.values(data.geometry.blocks) as any[]
       this.newChunks[data.key] = data.geometry
     }
+  }
+
+  chunksReset () {
+    sendWorkerMessage({
+      type: 'fullReset'
+    })
   }
 
   updatePosDataChunk (key: string) {
@@ -55,7 +61,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
 
 
   removeColumn (x, z) {
-    return
+    console.log('removeColumn', x, z)
     super.removeColumn(x, z)
     for (const key of Object.keys(this.newChunks)) {
       const [xSec, _ySec, zSec] = key.split(',').map(Number)

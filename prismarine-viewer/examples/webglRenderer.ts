@@ -6,7 +6,7 @@ let worker
 
 declare const viewer: Viewer
 
-const sendWorkerMessage = (message: any, transfer?: Transferable[]) => {
+export const sendWorkerMessage = (message: any, transfer?: Transferable[]) => {
     worker.postMessage(message, transfer)
     // replacable by onmessage
 }
