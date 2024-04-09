@@ -18,7 +18,12 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build && node scripts/build.js moveStorybookFiles",
     "start-experiments": "vite --config experiments/vite.config.ts",
-    "watch-worker": "node prismarine-viewer/buildWorker.mjs -w"
+    "watch-worker": "node prismarine-viewer/buildWorker.mjs -w",
+    "watch-other-workers": "node buildWorkers.mjs -w",
+    "run-playground": "run-p watch-worker watch-other-workers playground-server watch-playground",
+    "run-all": "run-p start run-playground",
+    "playground-server": "live-server --port=9090 prismarine-viewer/public",
+    "watch-playground": "node prismarine-viewer/esbuild.mjs -w"
   },
   "keywords": [
     "prismarine",
