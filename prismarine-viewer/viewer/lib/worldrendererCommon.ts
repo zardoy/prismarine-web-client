@@ -116,6 +116,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.material.map.onUpdate = () => {
         this.downloadedTextureImage = this.material.map!.image
       }
+      // TODO
       const loadBlockStates = async () => {
         return new Promise(resolve => {
           if (this.customBlockStatesData) return resolve(this.customBlockStatesData)

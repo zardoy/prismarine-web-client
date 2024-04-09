@@ -4,13 +4,13 @@ import * as THREE from 'three'
 import VertShader from './_VertexShader.vert'
 //@ts-ignore
 import FragShader from './_FragmentShader.frag'
-import { BlockType } from './shared'
+import { BlockFaceType, BlockType } from './shared'
 
-let allBlocks = []
+let allSides = [] as [number, number, number, BlockFaceType][]
 let chunksArrIndexes = {}
-let freeArrayIndexes = []
+let freeArrayIndexes = [] as [number, number][]
 let rendering = true
-let cubePositions
+let sidePositions
 let updateCubes: (startIndex: any) => void
 let lastNotUpdatedIndex
 let lastNotUpdatedArrSize
@@ -41,7 +41,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     const program = createProgram(gl, VertShader, FragShaderOverride || FragShader)
 
-    let vertices = new Float32Array([
+    let CubeMesh = new Float32Array([
         -0.5, -0.5, -0.5, 0.0, 0.0, 0.0, // Bottom-let
         0.5, -0.5, -0.5, 1.0, 0.0, 0.0, // bottom-right
         0.5, 0.5, -0.5, 1.0, 1.0, 0.0, // top-right
@@ -85,57 +85,106 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         -0.5, 0.5, -0.5, 0.0, 1.0, 5.0// top-let
     ])
 
+    let SideMesh = new Float32Array([
+        -0.5, -0.5, -0.5, 0.0, 0.0, // Bottom-let
+        0.5, -0.5, -0.5, 1.0, 0.0, // bottom-right
+        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+        -0.5, 0.5, -0.5, 0.0, 1.0, // top-let
+        -0.5, -0.5, -0.5, 0.0, 0.0, // bottom-let
+        // ront ace
+    ])
+
+
+
     let NumberOfCube = isPlayground ? 1_000_000 : 5_000_000
 
-    cubePositions = new Float32Array(NumberOfCube * 3)
-    let cubeTextureIndices = new Float32Array(NumberOfCube * 6);
-    let cubeBiomeColor = new Float32Array(NumberOfCube * 3);
+    sidePositions = new Float32Array(NumberOfCube * 3 * 6)
+    let sideTextureIndices = new Float32Array(NumberOfCube * 1 * 6);
+    let sideIndexes = new Float32Array(NumberOfCube * 1 * 6);
+    let sideBiomeColor = new Float32Array(NumberOfCube * 3 * 6);
 
 
     // write random coordinates to cube positions xyz ten cubes;
-    if (isPlayground) {
-        for (let i = 0; i < NumberOfCube * 3; i += 3) {
-            cubePositions[i] = Math.floor(Math.random() * 1000) - 500;
-            cubePositions[i + 1] = Math.floor(Math.random() * 1000) - 500;
-            cubePositions[i + 2] = Math.floor(Math.random() * 100) - 100;
-            cubeBiomeColor[i] = (Math.random() ) ;
-            cubeBiomeColor[i + 1] = (Math.random() ) ;
-            cubeBiomeColor[i + 2] = (Math.random() ) ;
+    if (false) {
+        for (let i = 0; i < NumberOfCube * 18; i += 18) {
+
+            sidePositions[i] = Math.floor(Math.random() * 1000) - 500;
+            sidePositions[i + 1] = Math.floor(Math.random() * 1000) - 500;
+            sidePositions[i + 2] = Math.floor(Math.random() * 100) - 100;
+
+            sideBiomeColor[i] = (Math.random());
+            sideBiomeColor[i + 1] = (Math.random());
+            sideBiomeColor[i + 2] = (Math.random());
+            for (let j = 1; j <= 6; j++) {
+                
+                if (j != 6) {
+                    sidePositions[j * 3 + i] = sidePositions[i]
+                    sidePositions[j * 3 + i + 1] = sidePositions[i + 1]
+                    sidePositions[j * 3 + i + 2] = sidePositions[i + 2]
+
+                    sideBiomeColor[j * 3 + i] = sideBiomeColor[i]
+                    sideBiomeColor[j * 3 + i + 1] = sideBiomeColor[i + 1]
+                    sideBiomeColor[j * 3 + i + 2] = sideBiomeColor[i + 2]
+                }
+
+                sideIndexes[i / 3 + j - 1] = j - 1;
+                //sideTextureIndices[i / 3 + j - 1] = Math.floor(Math.random() * 800);
+                sideTextureIndices[i / 3 + j - 1] = 1;
+            }
+
+            // sidePositions[i +3] = sidePositions[i] 
+            // sidePositions[i + 4] = sidePositions[i + 2]
+            // sidePositions[i + 5] = sidePositions[i + 1]
+
+            // sideBiomeColor[i] = (Math.random() ) ;
+            // sideBiomeColor[i + 1] = (Math.random() ) ;
+            // sideBiomeColor[i + 2] = (Math.random() ) ;
+
+            // sideIndexes[i/6] = Math.floor(Math.random() * 6);
+            // sideTextureIndices[i/6] = Math.floor(Math.random() * 800);
             // cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
             // cubeTextureIndices[i / 3] = 0;
         }
 
-        for (let i = 0; i < NumberOfCube * 6; i += 6) {
-            cubeTextureIndices[i + 0] = Math.floor(Math.random() * 800);
-            cubeTextureIndices[i + 1] = Math.floor(Math.random() * 800);
-            cubeTextureIndices[i + 2] = Math.floor(Math.random() * 800);
-            cubeTextureIndices[i + 3] = Math.floor(Math.random() * 800);
-            cubeTextureIndices[i + 4] = Math.floor(Math.random() * 800);
-            cubeTextureIndices[i + 5] = Math.floor(Math.random() * 800);
-            // cubeTextureIndices[i / 3] = 0;
-        }
+        // for (let i = 0; i < NumberOfCube * 6; i += 6) {
+        //     sideTextureIndices[i + 0] = Math.floor(Math.random() * 800);
+        //     sideTextureIndices[i + 1] = Math.floor(Math.random() * 800);
+        //     sideTextureIndices[i + 2] = Math.floor(Math.random() * 800);
+        //     sideTextureIndices[i + 3] = Math.floor(Math.random() * 800);
+        //     sideTextureIndices[i + 4] = Math.floor(Math.random() * 800);
+        //     sideTextureIndices[i + 5] = Math.floor(Math.random() * 800);
+        //     // cubeTextureIndices[i / 3] = 0;
+        // }
 
 
     }
-    cubePositions[0] = 0;
-    cubePositions[1] = 0;
-    cubePositions[2] = 0;
+    // cubePositions[0] = 0;
+    // cubePositions[1] = 0;
+    // cubePositions[2] = 0;
 
     let VAO = gl.createVertexArray();
+
+
     let instanceVBO = gl.createBuffer();
     let instanceTextureID = gl.createBuffer();
     let instanceBiomeColor = gl.createBuffer();
+    let instanceCubeSide = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-    gl.bufferData(gl.ARRAY_BUFFER, cubePositions, gl.DYNAMIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, sidePositions, gl.DYNAMIC_DRAW); // todo
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-    gl.bufferData(gl.ARRAY_BUFFER, cubeTextureIndices, gl.DYNAMIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, sideTextureIndices, gl.DYNAMIC_DRAW); // todo
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
-    gl.bufferData(gl.ARRAY_BUFFER, cubeBiomeColor, gl.DYNAMIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, sideBiomeColor, gl.DYNAMIC_DRAW); // todo
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceCubeSide);
+    gl.bufferData(gl.ARRAY_BUFFER, sideIndexes, gl.DYNAMIC_DRAW); // todo
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     VAO = gl.createVertexArray();
     let VBO = gl.createBuffer();
@@ -145,16 +194,16 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.bindVertexArray(VAO);
     gl.bindBuffer(gl.ARRAY_BUFFER, VBO)
     // gl.bindBuffer(gl.ARRAY_BUFFER, VBO_sides)
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW)
+    gl.bufferData(gl.ARRAY_BUFFER, SideMesh, gl.STATIC_DRAW)
 
-    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 6 * 4, 0)
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 5 * 4, 0)
     gl.enableVertexAttribArray(0)
 
-    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 6 * 4, 3 * 4)
+    gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * 4, 3 * 4)
     gl.enableVertexAttribArray(1)
 
-    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 6 * 4, 5 * 4)
-    gl.enableVertexAttribArray(2)
+    //gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 6 * 4, 5 * 4)
+    // gl.enableVertexAttribArray(2)
     //instance data
 
     gl.enableVertexAttribArray(3);
@@ -164,13 +213,13 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.vertexAttribDivisor(3, 1);
 
     gl.enableVertexAttribArray(4);
-    gl.enableVertexAttribArray(5);
+    // gl.enableVertexAttribArray(5);
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-    gl.vertexAttribPointer(4, 4, gl.FLOAT, false, 4 * 6, 0);
-    gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 4 * 6, 4 * 4);
+    gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 4 * 1, 0);
+    // gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 4 * 6, 4 * 4);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.vertexAttribDivisor(4, 1);
-    gl.vertexAttribDivisor(5, 1);
+    // gl.vertexAttribDivisor(5, 1);
 
     gl.enableVertexAttribArray(6);
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
@@ -178,55 +227,52 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.vertexAttribDivisor(6, 1);
 
+    gl.enableVertexAttribArray(6);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
+    gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 3 * 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.vertexAttribDivisor(6, 1);
+
+    gl.enableVertexAttribArray(2);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceCubeSide);
+    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.vertexAttribDivisor(2, 1);
+
     updateCubes = (startIndex) => {
-        // cubePositionsRaw = [
-        //     // for now one cube in front of the camera
-        //     [camera.position.x, camera.position.y, camera.position.z, 'dirt'],
-        //     [camera.position.x + 2, camera.position.y, camera.position.z, 'dirt'],
-        //     [camera.position.x - 2, camera.position.y, camera.position.z, 'dirt'],
-        //     [camera.position.x, camera.position.y, camera.position.z + 2, 'dirt'],
-        //     [camera.position.x, camera.position.y, camera.position.z - 2, 'dirt'],
-        // ]
-        const blocks = allBlocks.slice(startIndex, lastNotUpdatedArrSize ? startIndex + lastNotUpdatedArrSize : undefined)
-        blocks.sort((a, b) => {
-            const getScore = (b: BlockType) => b.isTransparent ? 1 : 0
-            return getScore(b[3]) - getScore(a[3])
+        // up2
+        const newSides = allSides.slice(startIndex, lastNotUpdatedArrSize ? startIndex + lastNotUpdatedArrSize : undefined)
+        newSides.sort((a, b) => {
+            const getScore = (b: BlockFaceType) => b.isTransparent ? 0 : 1
+            return getScore(a[3]) - getScore(b[3])
         })
-        globalThis.allBlocksSize = allBlocks.length
-        cubePositions = new Float32Array(blocks.length * 3)
-        cubeTextureIndices = new Float32Array(blocks.length * 6);
-        cubeBiomeColor = new Float32Array(blocks.length * 3);
-        for (let i = 0; i < blocks.length * 3; i += 3) {
-            cubePositions[i] = blocks[i / 3][0]
-            cubePositions[i + 1] = blocks[i / 3][1]
-            cubePositions[i + 2] = blocks[i / 3][2]
-            const block = blocks[i / 3][3] as BlockType
+        globalThis.allSidesSize = allSides.length
+        sidePositions = new Float32Array(newSides.length * 3)
+        sideTextureIndices = new Float32Array(newSides.length * 1);
+        sideBiomeColor = new Float32Array(newSides.length * 3);
+        for (let i = 0; i < newSides.length * 3; i += 3) {
+            sidePositions[i] = newSides[i / 3][0]
+            sidePositions[i + 1] = newSides[i / 3][1]
+            sidePositions[i + 2] = newSides[i / 3][2]
+            const block = newSides[i / 3][3] as BlockFaceType
             if (block.tint) {
                 const [r, g, b] = block.tint
-                cubeBiomeColor[i] = r
-                cubeBiomeColor[i + 1] = g
-                cubeBiomeColor[i + 2] = b
+                sideBiomeColor[i] = r
+                sideBiomeColor[i + 1] = g
+                sideBiomeColor[i + 2] = b
             } else {
-                cubeBiomeColor[i] = 1
-                cubeBiomeColor[i + 1] = 1
-                cubeBiomeColor[i + 2] = 1
+                sideBiomeColor[i] = 1
+                sideBiomeColor[i + 1] = 1
+                sideBiomeColor[i + 2] = 1
             }
-        }
-
-        for (let i = 0; i < blocks.length * 6; i += 6) {
-            const block = blocks[i / 6][3] as BlockType
-            cubeTextureIndices[i + 0] = block.textureIndex[0]
-            cubeTextureIndices[i + 1] = block.textureIndex[1]
-            cubeTextureIndices[i + 2] = block.textureIndex[2]
-            cubeTextureIndices[i + 3] = block.textureIndex[3]
-            cubeTextureIndices[i + 4] = block.textureIndex[4]
-            cubeTextureIndices[i + 5] = block.textureIndex[5]
+            sideTextureIndices[i / 3] = block.textureIndex
+            sideIndexes[i / 3] = block.face
         }
 
 
         // startIndex = 0 // TODO!
-        console.log('startIndex', startIndex, cubePositions.length, allBlocks.length)
-        const updateBuffersSize = allBlocks.length > NumberOfCube
+        console.log('startIndex', startIndex, sidePositions.length, allSides.length)
+        const updateBuffersSize = allSides.length > NumberOfCube
         if (updateBuffersSize) {
             NumberOfCube += 1_000_000
         }
@@ -234,26 +280,29 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         if (updateBuffersSize) {
             //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NumberOfCube * 3), gl.STATIC_DRAW);
         }
-        const POS_SIZE = 3
-        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * POS_SIZE, cubePositions); // update buffer content
+        const XYZ_SIZE = 3
+        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * XYZ_SIZE, sidePositions); // update buffer content
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
         if (updateBuffersSize) {
             //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NumberOfCube), gl.STATIC_DRAW);
         }
-        const TEXTURES_SIZE = 6
-        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * TEXTURES_SIZE, cubeTextureIndices); // update buffer content
+        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4, sideTextureIndices); // update buffer content
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
-        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * POS_SIZE, cubeBiomeColor); // update buffer content
+        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * XYZ_SIZE, sideBiomeColor); // update buffer content
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, instanceCubeSide);
+        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4, sideIndexes); // update buffer content
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
     }
 
     globalThis.updateCubes = updateCubes
     globalThis.cleanupFirstChunks = () => {
-        allBlocks = []
+        allSides = []
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
         // empty the buffer
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NumberOfCube * 3), gl.STATIC_DRAW); // todo
@@ -266,7 +315,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     }
 
     globalThis.fullReset = () => {
-        allBlocks = []
+        allSides = []
         globalThis.cleanupFirstChunks()
         lastNotUpdatedIndex = undefined
         lastNotUpdatedArrSize = undefined
@@ -310,7 +359,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
     gl.enable(gl.DEPTH_TEST)
     gl.frontFace(gl.CCW)
-    gl.enable(gl.CULL_FACE)
+     gl.enable(gl.CULL_FACE)
     gl.enable(gl.BLEND)
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -359,7 +408,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
         camera.updateMatrix()
         if (!globalThis.stopRendering) {
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 36, isPlayground ? NumberOfCube : allBlocks.length);
+            gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, 6 * (isPlayground ? NumberOfCube : allSides.length));
         }
         //gl.bindVertexArray(null)
 
@@ -427,16 +476,19 @@ onmessage = function (e) {
         newHeight = e.data.newHeight
     }
     if (e.data.type === 'addBlocksSection') {
-        const currentLength = allBlocks.length;
+        const currentLength = allSides.length;
         // in: object - name, out: [x, y, z, name]
-        const newData = Object.entries(e.data.data.blocks).map(([key, value]) => {
+        const newData = Object.entries(e.data.data.blocks).flatMap(([key, value]) => {
             const [x, y, z] = key.split(',').map(Number)
-            return [x, y, z, value as BlockType]
+            const block = value as BlockType
+            return block.sides.map((side) => {
+                return [x, y, z, side] as [number, number, number, BlockFaceType]
+            })
         })
         // find freeIndexes if possible
         const freeArea = freeArrayIndexes.find(([startIndex, endIndex]) => endIndex - startIndex >= newData.length)
         chunksArrIndexes[e.data.key] = [currentLength, currentLength + newData.length]
-        allBlocks.push(...newData)
+        allSides.push(...newData)
         lastNotUpdatedIndex ??= currentLength
         // updateCubes?.(currentLength)
     }
@@ -446,15 +498,15 @@ onmessage = function (e) {
         lastNotUpdatedArrSize = undefined
     }
     if (e.data.type === 'removeBlocksSection') {
-        const [startIndex, endIndex] = chunksArrIndexes[e.data.key]
-        freeArrayIndexes.push([startIndex, endIndex])
+        // const [startIndex, endIndex] = chunksArrIndexes[e.data.key]
+        // freeArrayIndexes.push([startIndex, endIndex])
 
-        // merge freeArrayIndexes TODO
-        if (freeArrayIndexes.at(-1)[0] === freeArrayIndexes.at(-2)?.[1]) {
-            const [startIndex, endIndex] = freeArrayIndexes.pop()!
-            const [startIndex2, endIndex2] = freeArrayIndexes.pop()!
-            freeArrayIndexes.push([startIndex2, endIndex])
-        }
+        // // merge freeArrayIndexes TODO
+        // if (freeArrayIndexes.at(-1)[0] === freeArrayIndexes.at(-2)?.[1]) {
+        //     const [startIndex, endIndex] = freeArrayIndexes.pop()!
+        //     const [startIndex2, endIndex2] = freeArrayIndexes.pop()!
+        //     freeArrayIndexes.push([startIndex2, endIndex])
+        // }
     }
     if (e.data.type === 'camera') {
         camera.rotation.set(e.data.camera.rotation.x, e.data.camera.rotation.y, e.data.camera.rotation.z, 'ZYX')

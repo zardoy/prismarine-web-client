@@ -18,7 +18,7 @@ for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
 }
 
-function prepareTints (tints) {
+function prepareTints(tints) {
   const map = new Map()
   const defaultValue = tintToGl(tints.default)
   for (let { keys, color } of tints.data) {
@@ -34,7 +34,7 @@ function prepareTints (tints) {
   })
 }
 
-function tintToGl (tint) {
+function tintToGl(tint) {
   const r = (tint >> 16) & 0xff
   const g = (tint >> 8) & 0xff
   const b = tint & 0xff
@@ -110,7 +110,7 @@ const elemFaces = {
   }
 }
 
-function getLiquidRenderHeight (world, block, type) {
+function getLiquidRenderHeight(world, block, type) {
   if (!block || block.type !== type) return 1 / 9
   if (block.metadata === 0) { // source block
     const blockAbove = world.getBlock(block.position.offset(0, 1, 0))
@@ -120,7 +120,7 @@ function getLiquidRenderHeight (world, block, type) {
   return ((block.metadata >= 8 ? 8 : 7 - block.metadata) + 1) / 9
 }
 
-function renderLiquid (world, cursor, texture, type, biome, water, attr) {
+function renderLiquid(world, cursor, texture, type, biome, water, attr) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
@@ -170,17 +170,17 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
   }
 }
 
-function vecadd3 (a, b) {
+function vecadd3(a, b) {
   if (!b) return a
   return [a[0] + b[0], a[1] + b[1], a[2] + b[2]]
 }
 
-function vecsub3 (a, b) {
+function vecsub3(a, b) {
   if (!b) return a
   return [a[0] - b[0], a[1] - b[1], a[2] - b[2]]
 }
 
-function matmul3 (matrix, vector): [number, number, number] {
+function matmul3(matrix, vector): [number, number, number] {
   if (!matrix) return vector
   return [
     matrix[0][0] * vector[0] + matrix[0][1] * vector[1] + matrix[0][2] * vector[2],
@@ -189,7 +189,7 @@ function matmul3 (matrix, vector): [number, number, number] {
   ]
 }
 
-function matmulmat3 (a, b) {
+function matmulmat3(a, b) {
   const te = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
   const a11 = a[0][0]; const a12 = a[1][0]; const a13 = a[2][0]
@@ -215,7 +215,7 @@ function matmulmat3 (a, b) {
   return te
 }
 
-function buildRotationMatrix (axis, degree) {
+function buildRotationMatrix(axis, degree) {
   const radians = degree / 180 * Math.PI
   const cos = Math.cos(radians)
   const sin = Math.sin(radians)
@@ -239,7 +239,7 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
-function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
+function renderElement(world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
   for (const face in element.faces) {
@@ -375,7 +375,233 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
   }
 }
 
-export function getSectionGeometry (sx, sy, sz, world: World) {
+const facesIndexes = {
+  down: 0,
+  up: 1,
+  north: 2,
+  south: 3,
+  west: 4,
+  east: 5
+}
+
+type AttrType = {
+  blocks: {
+    [pos: string]: BlockType
+  }
+}
+
+let textureName = undefined
+let tint
+const getResult = (biome, block, side: string): number => {
+  const facesOrTexture = findTextureInBlockStates(block.name);
+  if (!facesOrTexture) return 0 // todo
+  let result
+  if ('u' in facesOrTexture) {
+    result = facesOrTexture
+  } else {
+    result = facesOrTexture?.[side]?.texture
+    const tintindex = facesOrTexture?.[side]?.tintindex
+    if (tintindex === 0) {
+      if (block.name === 'redstone_wire') {
+        tint = tints.redstone[`${block.getProperties().power}`]
+      } else if (block.name === 'birch_leaves' ||
+        block.name === 'spruce_leaves' ||
+        block.name === 'lily_pad') {
+        tint = tints.constant[block.name]
+      } else if (block.name.includes('leaves') || block.name === 'vine') {
+        tint = tints.foliage[biome]
+      } else {
+        tint = tints.grass[biome]
+      }
+    }
+  }
+  if (!result) return 0 // todo
+  if (result.textureName) {
+    textureName = result.textureName
+  }
+  return uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
+}
+function uvToTextureIndex(u, v) {
+  const textureWidth = textureSize
+  const textureHeight = textureSize
+  const tileSize = 16;
+  // Convert UV coordinates to pixel coordinates
+  let x = u * textureWidth;
+  let y = v * textureHeight;
+
+  // Convert pixel coordinates to tile index
+  const tileX = Math.floor(x / tileSize);
+  const tileY = Math.floor(y / tileSize);
+
+  // Calculate texture index
+  const textureIndex = tileY * (textureWidth / tileSize) + tileX;
+
+  return textureIndex;
+}
+
+const findTextureInBlockStates = (name): any => {
+  const vars = blockStates[name]?.variants
+  if (!vars) return blockStates[name]?.multipart?.[0]?.apply?.[0]?.model?.elements?.[0]?.faces?.south?.texture
+  let firstVar = Object.values(vars)[0] as any
+  if (Array.isArray(firstVar)) firstVar = firstVar[0]
+  if (!firstVar) return
+  const [element] = firstVar.model?.elements
+  if (!element) return firstVar.model?.textures?.particle
+  if (!element/*  || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16)) */) return
+  return element.faces
+}
+
+function renderElementNew(world: World, cursor: Vec3, element, doAO: boolean, attr: AttrType, globalMatrix, globalShift, block: Block, biome) {
+  const cullIfIdentical = block.name.indexOf('glass') >= 0
+
+  for (const face in element.faces) {
+    const faceIndex = facesIndexes[face]
+
+    const eFace = element.faces[face]
+    const { corners, mask1, mask2 } = elemFaces[face]
+    const dir = matmul3(globalMatrix, elemFaces[face].dir)
+
+    if (eFace.cullface) {
+      const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
+      if (neighbor) {
+        if (cullIfIdentical && neighbor.type === block.type) continue
+        if (!neighbor.transparent && neighbor.isCube) continue
+      } else {
+        continue
+      }
+    }
+
+    const minx = element.from[0]
+    const miny = element.from[1]
+    const minz = element.from[2]
+    const maxx = element.to[0]
+    const maxy = element.to[1]
+    const maxz = element.to[2]
+
+    const u = eFace.texture.u
+    const v = eFace.texture.v
+    const su = eFace.texture.su
+    const sv = eFace.texture.sv
+
+    // const ndx = Math.floor(attr.positions.length / 3)
+
+    let tint = [1, 1, 1] as [number, number, number]
+    if (eFace.tintindex !== undefined) {
+      if (eFace.tintindex === 0) {
+        if (block.name === 'redstone_wire') {
+          tint = tints.redstone[`${block.getProperties().power}`]
+        } else if (block.name === 'birch_leaves' ||
+          block.name === 'spruce_leaves' ||
+          block.name === 'lily_pad') {
+          tint = tints.constant[block.name]
+        } else if (block.name.includes('leaves') || block.name === 'vine') {
+          tint = tints.foliage[biome]
+        } else {
+          tint = tints.grass[biome]
+        }
+      }
+    }
+
+    // UV rotation
+    const r = eFace.rotation || 0
+    const uvcs = Math.cos(r * Math.PI / 180)
+    const uvsn = -Math.sin(r * Math.PI / 180)
+
+    let localMatrix = null as any
+    let localShift = null as any
+
+    if (element.rotation) {
+      localMatrix = buildRotationMatrix(
+        element.rotation.axis,
+        element.rotation.angle
+      )
+
+      localShift = vecsub3(
+        element.rotation.origin,
+        matmul3(
+          localMatrix,
+          element.rotation.origin
+        )
+      )
+    }
+
+    const cursorPos = `${cursor.x},${cursor.y},${cursor.z}`
+    attr.blocks[cursorPos] ??= {
+      sides: []
+    }
+    attr.blocks[cursorPos].sides.push({
+      face: faceIndex,
+      textureIndex: getResult(biome, block, face),
+      isTransparent: block.transparent, // todo
+      textureName,
+      tint
+    })
+
+    // const aos: number[] = []
+    // for (const pos of corners) {
+    //   let vertex = [
+    //     (pos[0] ? maxx : minx),
+    //     (pos[1] ? maxy : miny),
+    //     (pos[2] ? maxz : minz)
+    //   ]
+
+    //   vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
+    //   vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
+    //   vertex = vertex.map(v => v / 16)
+
+    //   attr.positions.push(
+    //     vertex[0] + (cursor.x & 15) - 8,
+    //     vertex[1] + (cursor.y & 15) - 8,
+    //     vertex[2] + (cursor.z & 15) - 8
+    //   )
+
+    //   attr.normals.push(...dir)
+
+    //   const baseu = (pos[3] - 0.5) * uvcs - (pos[4] - 0.5) * uvsn + 0.5
+    //   const basev = (pos[3] - 0.5) * uvsn + (pos[4] - 0.5) * uvcs + 0.5
+    //   attr.uvs.push(baseu * su + u, basev * sv + v)
+
+    //   let light = 1
+    //   if (doAO) {
+    //     const dx = pos[0] * 2 - 1
+    //     const dy = pos[1] * 2 - 1
+    //     const dz = pos[2] * 2 - 1
+    //     const cornerDir = matmul3(globalMatrix, [dx, dy, dz])
+    //     const side1Dir = matmul3(globalMatrix, [dx * mask1[0], dy * mask1[1], dz * mask1[2]])
+    //     const side2Dir = matmul3(globalMatrix, [dx * mask2[0], dy * mask2[1], dz * mask2[2]])
+    //     const side1 = world.getBlock(cursor.offset(...side1Dir))
+    //     const side2 = world.getBlock(cursor.offset(...side2Dir))
+    //     const corner = world.getBlock(cursor.offset(...cornerDir))
+
+    //     const side1Block = world.shouldMakeAo(side1) ? 1 : 0
+    //     const side2Block = world.shouldMakeAo(side2) ? 1 : 0
+    //     const cornerBlock = world.shouldMakeAo(corner) ? 1 : 0
+
+    //     // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
+
+    //     const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
+    //     light = (ao + 1) / 4
+    //     aos.push(ao)
+    //   }
+
+    //   attr.colors.push(tint[0] * light, tint[1] * light, tint[2] * light)
+    // }
+
+    // if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
+    //   attr.indices.push(
+    //     ndx, ndx + 3, ndx + 2,
+    //     ndx, ndx + 1, ndx + 3
+    //   )
+    // } else {
+    //   attr.indices.push(
+    //     ndx, ndx + 1, ndx + 2,
+    //     ndx + 2, ndx + 1, ndx + 3
+    //   )
+    // }
+  }
+}
+
+export function getSectionGeometry(sx, sy, sz, world: World) {
   const attr = {
     sx: sx + 8,
     sy: sy + 8,
@@ -418,125 +644,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         if (block.variant === undefined) {
           block.variant = getModelVariants(block)
         }
-
-        if (block.name !== 'water' && /* && block.name !== 'lava' *//*  && block.isCube */block.name !== 'air') {
-          let globalMatrix = null as any
-          let globalShift = null as any
-
-          if (block.variant?.model) {
-            for (const axis of ['x', 'y', 'z']) {
-              if (axis in block.variant) {
-                if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -block.variant[axis])
-                else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -block.variant[axis]))
-              }
-            }
-          }
-
-          if (globalMatrix) {
-            globalShift = [8, 8, 8]
-            globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
-          }
-
-          // full cube rendering
-          for (const face in elemFaces) {
-            const cullIfIdentical = block.name.indexOf('glass') >= 0
-
-            // const eFace = element.faces[face]
-            const { corners, mask1, mask2 } = elemFaces[face]
-            const dir = matmul3(globalMatrix, elemFaces[face].dir)
-
-            if (/* eFace.cullface */true) {
-              const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
-              if (neighbor) {
-                if (cullIfIdentical && neighbor.type === block.type) continue
-                if (!neighbor.transparent && neighbor.isCube) continue
-              } else {
-                continue
-              }
-            }
-
-            const pos = block.position
-
-            const findTextureInBlockStates = (name): any => {
-              const vars = blockStates[name]?.variants
-              if (!vars) return blockStates[name]?.multipart?.[0]?.apply?.[0]?.model?.elements?.[0]?.faces?.south?.texture
-              let firstVar = Object.values(vars)[0] as any
-              if (Array.isArray(firstVar)) firstVar = firstVar[0]
-              if (!firstVar) return
-              const [element] = firstVar.model?.elements
-              if (!element) return firstVar.model?.textures?.particle
-              if (!element/*  || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16)) */) return
-              return element.faces
-            }
-
-            let textureName = undefined
-            let tint
-            const getResult = (side: string): number => {
-              const facesOrTexture = findTextureInBlockStates(block.name);
-              if (!facesOrTexture) return 0 // todo
-              let result
-              if ('u' in facesOrTexture) {
-                result = facesOrTexture
-              } else {
-                result = facesOrTexture?.[side]?.texture
-                const tintindex = facesOrTexture?.[side]?.tintindex
-                if (tintindex === 0) {
-                  if (block.name === 'redstone_wire') {
-                    tint = tints.redstone[`${block.getProperties().power}`]
-                  } else if (block.name === 'birch_leaves' ||
-                    block.name === 'spruce_leaves' ||
-                    block.name === 'lily_pad') {
-                    tint = tints.constant[block.name]
-                  } else if (block.name.includes('leaves') || block.name === 'vine') {
-                    tint = tints.foliage[biome]
-                  } else {
-                    tint = tints.grass[biome]
-                  }
-                }
-              }
-              if (!result) return 0 // todo
-              if (result.textureName) {
-                textureName = result.textureName
-              }
-              return uvToTextureIndex(result.u, result.v) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
-            }
-            function uvToTextureIndex (u, v) {
-              const textureWidth = textureSize
-              const textureHeight = textureSize
-              const tileSize = 16;
-              // Convert UV coordinates to pixel coordinates
-              let x = u * textureWidth;
-              let y = v * textureHeight;
-
-              // Convert pixel coordinates to tile index
-              const tileX = Math.floor(x / tileSize);
-              const tileY = Math.floor(y / tileSize);
-
-              // Calculate texture index
-              const textureIndex = tileY * (textureWidth / tileSize) + tileX;
-
-              return textureIndex;
-            }
-            // back, front, left, right, top, bottom
-            const textures = [
-              getResult('north'),
-              getResult('south'),
-              getResult('west'),
-              getResult('east'),
-              getResult('down'),
-              getResult('up')
-            ]
-            if (textures.every(t => t === 0)) continue
-            if (pos.y <= 1) continue // TODO!!
-            attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
-              textureIndex: textures,
-              textureName,
-              tint,
-              isTransparent: block.name.includes('glass') || block.name.includes('grass') || block.name.includes('leaves') || block.name.includes('fire') // todo
-            } satisfies BlockType
-          }
-
-        }
+        
         //   if (block.name === 'water') {
         //     renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
         //   } else if (block.name === 'lava') {
@@ -562,6 +670,32 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         //     }
         //   }
 
+        for (const variant of block.variant) {
+          if (!variant || !variant.model) continue
+
+         // if (block.name === 'water') {
+            // renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
+          //} else if (block.name === 'lava') {
+            // renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
+            let globalMatrix = null as any
+            let globalShift = null as any
+
+            for (const axis of ['x', 'y', 'z']) {
+              if (axis in variant) {
+                if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -variant[axis])
+                else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -variant[axis]))
+              }
+            }
+
+            if (globalMatrix) {
+              globalShift = [8, 8, 8]
+              globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
+            }
+
+            for (const element of variant.model.elements) {
+              renderElementNew(world, cursor, element, variant.model.ao, attr as any, globalMatrix, globalShift, block, biome)
+            }
+        }
       }
     }
   }
@@ -596,7 +730,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   return attr
 }
 
-function parseProperties (properties) {
+function parseProperties(properties) {
   if (typeof properties === 'object') { return properties }
 
   const json = {}
@@ -607,7 +741,7 @@ function parseProperties (properties) {
   return json
 }
 
-function matchProperties (block: Block, /* to match against */properties: Record<string, string | boolean> & { OR }) {
+function matchProperties(block: Block, /* to match against */properties: Record<string, string | boolean> & { OR }) {
   if (!properties) { return true }
 
   properties = parseProperties(properties)
@@ -625,7 +759,7 @@ function matchProperties (block: Block, /* to match against */properties: Record
   return true
 }
 
-function getModelVariants (block: import('prismarine-block').Block) {
+function getModelVariants(block: import('prismarine-block').Block) {
   // air, cave_air, void_air and so on...
   // full list of invisible & special blocks https://minecraft.wiki/w/Model#Blocks_and_fluids
   if (block.name === '' || block.name === 'air' || block.name.endsWith('_air')) return []
