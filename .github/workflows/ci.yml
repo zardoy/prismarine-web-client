@@ -1,6 +1,8 @@
 name: CI
 on:
   pull_request:
+env:
+  ALIASES: ${{ vars.ALIASES }}
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
