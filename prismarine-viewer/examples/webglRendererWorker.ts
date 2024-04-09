@@ -187,6 +187,10 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         //     [camera.position.x, camera.position.y, camera.position.z - 2, 'dirt'],
         // ]
         const blocks = allBlocks.slice(startIndex, lastNotUpdatedArrSize ? startIndex + lastNotUpdatedArrSize : undefined)
+        blocks.sort((a, b) => {
+            const getScore = (b: BlockType) => b.isTransparent ? 1 : 0
+            return getScore(b[3]) - getScore(a[3])
+        })
         globalThis.allBlocksSize = allBlocks.length
         cubePositions = new Float32Array(blocks.length * 3)
         cubeTextureIndices = new Float32Array(blocks.length * 6);

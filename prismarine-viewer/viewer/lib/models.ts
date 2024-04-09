@@ -531,7 +531,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             attr.blocks[`${pos.x},${pos.y},${pos.z}`] = {
               textureIndex: textures,
               textureName,
-              tint
+              tint,
+              isTransparent: block.name.includes('glass') // todo
             } satisfies BlockType
           }
 
