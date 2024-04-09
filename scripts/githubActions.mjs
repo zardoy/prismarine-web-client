@@ -1,3 +1,7 @@
+//@ts-check
+import fs from 'fs'
+import os from 'os'
+
 const fns = {
   async getAlias () {
     const aliasesRaw = process.env.ALIASES
