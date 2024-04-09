@@ -63,6 +63,8 @@ export class World {
 
     column.setBlockStateId(posInChunk(pos.floored()), stateId)
 
+
+
     return true
   }
 
@@ -87,6 +89,12 @@ export class World {
     block.position = loc
     block.biome = this.biomeCache[column.getBiome(locInChunk)] ?? this.biomeCache[1] ?? this.biomeCache[0]
     if (block.name === 'redstone_ore') block.transparent = false
+    if (block.stateId === 0) return block
+    if (block.name === 'lava') {
+      // debugger
+      // const resul = column.getBlockStateId(locInChunk)
+    }
+    // console.log('return block', block.name, stateId)
     return block
   }
 
