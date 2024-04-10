@@ -51,7 +51,8 @@ export default () => {
             levelName: title,
             version,
             generation,
-            'worldFolder': savePath
+            'worldFolder': savePath,
+            gameMode: 0,
           },
         }))
       }}
