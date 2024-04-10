@@ -7,11 +7,14 @@ import FragShader from './_FragmentShader.frag'
 import { BlockFaceType, BlockType } from './shared'
 
 let allSides = [] as [number, number, number, BlockFaceType][]
+let allSidesAdded = 0
+let allSidesUpdated = false
+
 let chunksArrIndexes = {}
 let freeArrayIndexes = [] as [number, number][]
 let rendering = true
 let sidePositions
-let updateCubes: (startIndex: any) => void
+let updateCubes: (startIndex: any, forceUpdate?) => void
 let lastNotUpdatedIndex
 let lastNotUpdatedArrSize
 let animationTick = 0;
@@ -91,14 +94,14 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         0.5, -0.5, -0.5, 1.0, 0.0, // bottom-right
         -0.5, 0.5, -0.5, 0.0, 1.0, // top-let
         0.5, 0.5, -0.5, 1.0, 1.0, // top-right
-       // 0.5, 0.5, -0.5, 1.0, 1.0, // top-right
-       // -0.5, -0.5, -0.5, 0.0, 0.0, // bottom-let
+        // 0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+        // -0.5, -0.5, -0.5, 0.0, 0.0, // bottom-let
         // ront ace
     ])
 
 
 
-    let NumberOfCube = isPlayground ? 10_000 : 1_000_000
+    let NumberOfCube = isPlayground ? 10_000 : 10_000
 
     sidePositions = new Float32Array(NumberOfCube * 3 * 6)
     let sideTextureIndices = new Float32Array(NumberOfCube * 1 * 6);
@@ -172,19 +175,19 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     let instanceCubeSide = gl.createBuffer();
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-    gl.bufferData(gl.ARRAY_BUFFER, sidePositions, gl.DYNAMIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, sidePositions, gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-    gl.bufferData(gl.ARRAY_BUFFER, sideTextureIndices, gl.DYNAMIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, sideTextureIndices, gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
-    gl.bufferData(gl.ARRAY_BUFFER, sideBiomeColor, gl.DYNAMIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, sideBiomeColor, gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceCubeSide);
-    gl.bufferData(gl.ARRAY_BUFFER, sideIndexes, gl.DYNAMIC_DRAW); // todo
+    gl.bufferData(gl.ARRAY_BUFFER, sideIndexes, gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     VAO = gl.createVertexArray();
     let VBO = gl.createBuffer();
@@ -226,7 +229,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.vertexAttribDivisor(6, 1);
 
-    updateCubes = (startIndex) => {
+    updateCubes = (startIndex, forceUpdate) => {
         // up2
         const newSides = allSides.slice(startIndex, lastNotUpdatedArrSize ? startIndex + lastNotUpdatedArrSize : undefined)
         newSides.sort((a, b) => {
@@ -260,32 +263,40 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
         // startIndex = 0 // TODO!
         console.log('startIndex', startIndex, sidePositions.length, allSides.length)
-        const updateBuffersSize = allSides.length > NumberOfCube
-        if (updateBuffersSize) {
+        const prepareBuffersUpdate = allSides.length > NumberOfCube || globalThis.testUpdate
+        globalThis.testUpdate = false
+        if (prepareBuffersUpdate) {
             NumberOfCube += 1_000_000
+            updateCubes(0, true)
+            return
         }
+        globalThis.NumberOfCube = NumberOfCube
+
+        const supplyData = (data, step) => {
+            if (forceUpdate) {
+                globalThis.updatedBufferSize = NumberOfCube
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NumberOfCube * step), gl.STATIC_DRAW);
+            }
+            gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * step, data); // update buffer content
+            const error = gl.getError()
+            if (error) throw new Error("SUBDATA ERROR")
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        }
+
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
-        if (updateBuffersSize) {
-            //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NumberOfCube * 3), gl.STATIC_DRAW);
-        }
-        const XYZ_SIZE = 3
-        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * XYZ_SIZE, sidePositions); // update buffer content
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        supplyData(sidePositions, 3)
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
-        if (updateBuffersSize) {
-            //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(NumberOfCube), gl.STATIC_DRAW);
-        }
-        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4, sideTextureIndices); // update buffer content
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        supplyData(sideTextureIndices, 1)
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
-        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4 * XYZ_SIZE, sideBiomeColor); // update buffer content
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        supplyData(sideBiomeColor, 3)
 
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceCubeSide);
-        gl.bufferSubData(gl.ARRAY_BUFFER, startIndex * 4, sideIndexes); // update buffer content
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        supplyData(sideIndexes, 1)
+
+        allSidesAdded = allSides.length
+        allSidesUpdated = false
     }
 
     globalThis.updateCubes = updateCubes
@@ -368,7 +379,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     updateSize(gl.canvas.width, gl.canvas.height)
     const renderLoop = (performance) => {
         requestAnimationFrame(renderLoop)
-        if (!rendering) return
+        if (!rendering && !allSidesUpdated) return
         // gl.canvas.width = window.innerWidth * window.devicePixelRatio
         // gl.canvas.height = window.innerHeight * window.devicePixelRatio
         if (newWidth || newHeight) {
@@ -393,9 +404,9 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
         camera.updateMatrix()
         if (!globalThis.stopRendering) {
-            gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, (isPlayground ? NumberOfCube * 6 : allSides.length));
+            allSidesUpdated = true
+            gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, (isPlayground ? NumberOfCube * 6 : allSidesAdded));
         }
-        //gl.bindVertexArray(null)
 
         renderedFrames++
     }
@@ -529,6 +540,21 @@ onmessage = function (e) {
     if (e.data.type === 'fullReset') {
         fullReset()
     }
+}
+
+globalThis.testDuplicates = () => {
+    const duplicates = allSides.filter((value, index, self) => self.indexOf(value) !== index)
+    console.log('duplicates', duplicates)
+}
+
+globalThis.exportData = () => {
+    const optimizedData = allSides.map(([x, y, z, side]) => {
+        return [x, y, z, side.face, side.textureIndex]
+    })
+    const json = JSON.stringify(optimizedData)
+    const sizeMb = new Blob([json]).size / 1024 / 1024
+    console.log('size', sizeMb)
+    // return json
 }
 
 setInterval(() => {
