@@ -14,7 +14,7 @@ import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
 // import * as Mathgl from 'math.gl'
 import { findTextureInBlockStates } from '../../src/playerWindows'
-import { initWebglRenderer, setAnimationTick } from './webglRenderer'
+import { initWebglRenderer, loadFixtureSides, setAnimationTick } from './webglRenderer'
 import { renderToDom } from '@zardoy/react-util'
 
 globalThis.THREE = THREE
@@ -73,7 +73,14 @@ async function main () {
   let continuousRender = false
 
   // const { version } = params
-  const version = '1.20.2'
+  let fixtureUrl = qs.get('fixture')
+  let fixture
+  if (fixtureUrl) {
+    console.log('Loading fixture')
+    fixture = await fetch(fixtureUrl).then(r => r.json())
+    console.log('Loaded fixture')
+  }
+  const version = fixture.version ?? '1.20.2'
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
@@ -150,7 +157,7 @@ async function main () {
   viewer.setVersion(version)
   globalThis.viewer = viewer
 
-  await initWebglRenderer(version, () => { }, true)
+  await initWebglRenderer(version, () => { }, !enableControls && !fixture, true)
   const simpleControls = () => {
     let pressedKeys = new Set()
     const loop = () => {
@@ -216,6 +223,27 @@ async function main () {
   }
   simpleControls()
   renderPlayground()
+
+  const writeToIndexedDb = async (name, data) => {
+    const db = await window.indexedDB.open(name, 1)
+    db.onupgradeneeded = (e) => {
+      const db = (e.target as any).result
+      db.createObjectStore(name)
+    }
+    db.onsuccess = (e) => {
+      const db = (e.target as any).result
+      const tx = db.transaction(name, 'readwrite')
+      const store = tx.objectStore(name)
+      store.add(data, name)
+    }
+  }
+
+  if (fixture) {
+    loadFixtureSides(fixture.sides)
+    const pos = fixture.camera[0]
+    viewer.camera.position.set(pos[0], pos[1], pos[2])
+  }
+
   if (!enableControls) return
 
   // Create viewer

@@ -19,6 +19,14 @@ let lastNotUpdatedIndex
 let lastNotUpdatedArrSize
 let animationTick = 0;
 
+const updateCubesWhenAvailable = (pos) => {
+    if (updateCubes) {
+        updateCubes(pos)
+    } else {
+        setTimeout(updateCubesWhenAvailable, 100)
+    }
+}
+
 const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 1000)
 
 let renderedFrames = 0
@@ -101,7 +109,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
 
 
-    let NumberOfCube = isPlayground ? 10_000 : 10_000
+    let NumberOfCube = isPlayground ? 10_000 : 16_000_000
 
     sidePositions = new Float32Array(NumberOfCube * 3 * 6)
     let sideTextureIndices = new Float32Array(NumberOfCube * 1 * 6);
@@ -137,35 +145,9 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
                 //sideTextureIndices[i / 3 + j - 1] = 1;
             }
 
-            // sidePositions[i +3] = sidePositions[i]
-            // sidePositions[i + 4] = sidePositions[i + 2]
-            // sidePositions[i + 5] = sidePositions[i + 1]
-
-            // sideBiomeColor[i] = (Math.random() ) ;
-            // sideBiomeColor[i + 1] = (Math.random() ) ;
-            // sideBiomeColor[i + 2] = (Math.random() ) ;
-
-            // sideIndexes[i/6] = Math.floor(Math.random() * 6);
-            // sideTextureIndices[i/6] = Math.floor(Math.random() * 800);
-            // cubeTextureIndices[i / 3] = Math.floor(Math.random() * 800);
-            // cubeTextureIndices[i / 3] = 0;
         }
 
-        // for (let i = 0; i < NumberOfCube * 6; i += 6) {
-        //     sideTextureIndices[i + 0] = Math.floor(Math.random() * 800);
-        //     sideTextureIndices[i + 1] = Math.floor(Math.random() * 800);
-        //     sideTextureIndices[i + 2] = Math.floor(Math.random() * 800);
-        //     sideTextureIndices[i + 3] = Math.floor(Math.random() * 800);
-        //     sideTextureIndices[i + 4] = Math.floor(Math.random() * 800);
-        //     sideTextureIndices[i + 5] = Math.floor(Math.random() * 800);
-        //     // cubeTextureIndices[i / 3] = 0;
-        // }
-
-
     }
-    // cubePositions[0] = 0;
-    // cubePositions[1] = 0;
-    // cubePositions[2] = 0;
     let VAO = gl.createVertexArray();
 
 
@@ -541,7 +523,18 @@ onmessage = function (e) {
         fullReset()
     }
     if (e.data.type === 'exportData') {
-        postMessage({ type: 'exportData', data: exportData() })
+        const exported = exportData();
+        postMessage({ type: 'exportData', data: exported }, undefined, [exported.sides.buffer])
+    }
+    if (e.data.type === 'loadFixture') {
+        // allSides = e.data.json.map(([x, y, z, face, textureIndex]) => {
+        //     return [x, y, z, { face, textureIndex }] as [number, number, number, BlockFaceType]
+        // })
+        const dataSize = e.data.json.length / 5
+        for (let i = 0; i < e.data.json.length; i += 5) {
+            allSides.push([e.data.json[i], e.data.json[i + 1], e.data.json[i + 2], { face: e.data.json[i + 3], textureIndex: e.data.json[i + 4] }])
+        }
+        updateCubesWhenAvailable(0)
     }
 }
 
@@ -551,13 +544,19 @@ globalThis.testDuplicates = () => {
 }
 
 const exportData = () => {
-    const optimizedData = allSides.map(([x, y, z, side]) => {
-        return [x, y, z, side.face, side.textureIndex]
-    })
-    const json = optimizedData
-    // const sizeMb = new Blob([json]).size / 1024 / 1024
-    // console.log('size', sizeMb)
-    return json
+    // Calculate the total length of the final array
+    const totalLength = allSides.length * 5;
+
+    // Create a new Int16Array with the total length
+    const flatData = new Int16Array(totalLength);
+
+    // Fill the flatData array
+    for (let i = 0; i < allSides.length; i++) {
+        const [x, y, z, side] = allSides[i];
+        flatData.set([x, y, z, side.face, side.textureIndex], i * 5);
+    }
+
+    return { sides: flatData };
 }
 
 setInterval(() => {

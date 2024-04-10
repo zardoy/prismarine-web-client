@@ -47,6 +47,12 @@ export const addBlocksSection = (key, data) => {
     })
 }
 
+export const loadFixtureSides = (json) => {
+    sendWorkerMessage({
+        type: 'loadFixture', json
+    })
+}
+
 export const sendCameraToWorker = () => {
     const cameraData = ['rotation', 'position'].reduce((acc, key) => {
         acc[key] = ['x', 'y', 'z'].reduce((acc2, key2) => {
@@ -68,8 +74,8 @@ export const removeBlocksSection = (key) => {
 }
 
 let playground = false
-export const initWebglRenderer = async (version: string, postRender = () => { }, isPlayground = false) => {
-    playground = isPlayground
+export const initWebglRenderer = async (version: string, postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
+    playground = playgroundModeInWorker
     viewer.setVersion(version)
     await new Promise(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
@@ -94,7 +100,7 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
     sendWorkerMessage({
         canvas: offscreen,
         imageBlob,
-        isPlayground,
+        isPlayground: playgroundModeInWorker,
         FragShaderOverride: localStorage.FragShader
     }, [offscreen])
 
@@ -129,7 +135,7 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
         }
         postRender()
         // TODO! do it in viewer to avoid possible delays
-        if (playground && ['rotation', 'position'].some((key) => oldCamera[key] !== viewer.camera[key])) {
+        if (actuallyPlayground && ['rotation', 'position'].some((key) => oldCamera[key] !== viewer.camera[key])) {
             // TODO fix
             for (const [key, val] of Object.entries(oldCamera)) {
                 for (const key2 of Object.keys(val)) {
@@ -151,17 +157,30 @@ export const setAnimationTick = (tick: number, frames?: number) => {
     })
 }
 
-globalThis.exportData = () => {
+globalThis.exportFixture = () => {
     worker.postMessage({ type: 'exportData' })
     const controller = new AbortController()
-    worker.addEventListener('message', (e) => {
+    worker.addEventListener('message', async (e) => {
+        const receivedData = e.data.data;
+        console.log('received fixture')
+        // await new Promise(resolve => {
+        //     setTimeout(resolve, 0)
+        // })
         try {
             const a = document.createElement('a')
-            const dataObj = e.data
-            const data = JSON.stringify(dataObj)
-            const objectURL = URL.createObjectURL(new Blob([data], { type: 'application/json' }))
+            type Vec3 = [number, number, number]
+            type PlayTimeline = [pos: Vec3, rot: Vec3, time: number]
+            const vec3ToArr = (vec3: { x, y, z }) => [vec3.x, vec3.y, vec3.z] as Vec3
+            // const dataObj = {
+            //     ...receivedData,
+            //     version: viewer.version,
+            //     camera: [vec3ToArr(viewer.camera.position), vec3ToArr(viewer.camera.rotation)],
+            //     playTimeline: [] as PlayTimeline[]
+            // }
+            // split into two chunks
+            const objectURL = URL.createObjectURL(new Blob([receivedData.sides.buffer], { type: 'application/octet-stream' }))
             a.href = objectURL
-            a.download = 'data.json'
+            a.download = 'fixture.bin'
             a.click()
             URL.revokeObjectURL(objectURL)
         } finally {
