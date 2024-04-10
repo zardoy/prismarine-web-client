@@ -9,6 +9,7 @@ import EventEmitter from 'events'
 import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
 import { sendCameraToWorker } from '../../examples/webglRenderer'
 import { WorldRendererThree } from './worldrendererThree'
+import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 
 export class Viewer {
   scene: THREE.Scene
@@ -176,6 +177,10 @@ export class Viewer {
 
     emitter.on('chunkPosUpdate', ({ pos }) => {
       this.world.updateViewerPosition(pos)
+    })
+
+    emitter.on('renderDistance', (d) => {
+      this.world.chunksLength = generateSpiralMatrix(d).length
     })
 
     emitter.emit('listening')

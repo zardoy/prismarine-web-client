@@ -1,3 +1,4 @@
+import { updateStatText } from '../../examples/newStats'
 import { addBlocksSection, removeBlocksSection, sendWorkerMessage } from '../../examples/webglRenderer'
 import type { WebglData } from '../prepare/webglData'
 import { loadJSON } from './utils.web'
@@ -7,6 +8,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
   newChunks = {} as Record<string, any>
   webglData: WebglData
   stopBlockUpdate = false
+  chunksLength = 0
 
   constructor(numWorkers = 4) {
     super(numWorkers)
@@ -34,6 +36,8 @@ export class WorldRendererWebgl extends WorldRendererCommon {
       if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 
       addBlocksSection(data.key, data.geometry)
+      const chunkDistance = Math.round(Math.max(Math.abs((chunkCoords[0]) - this.viewerPosition!.x) / 16, Math.abs(chunkCoords[2] - this.viewerPosition!.y) / 16))
+      updateStatText('loaded-chunks', Object.keys(this.loadedChunks).length + `/${this.chunksLength} chunks (${chunkDistance})`)
       // const blocks = Object.values(data.geometry.blocks) as any[]
       this.newChunks[data.key] = data.geometry
     }

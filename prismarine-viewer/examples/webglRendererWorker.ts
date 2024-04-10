@@ -8,7 +8,7 @@ import { BlockFaceType, BlockType } from './shared'
 
 let allSides = [] as [number, number, number, BlockFaceType][]
 let allSidesAdded = 0
-let allSidesUpdated = false
+let needsSidesUpdate = false
 
 let chunksArrIndexes = {}
 let freeArrayIndexes = [] as [number, number][]
@@ -296,7 +296,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         supplyData(sideIndexes, 1)
 
         allSidesAdded = allSides.length
-        allSidesUpdated = false
+        needsSidesUpdate = true
     }
 
     globalThis.updateCubes = updateCubes
@@ -379,7 +379,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     updateSize(gl.canvas.width, gl.canvas.height)
     const renderLoop = (performance) => {
         requestAnimationFrame(renderLoop)
-        if (!rendering && !allSidesUpdated) return
+        if (!rendering && !needsSidesUpdate) return
         // gl.canvas.width = window.innerWidth * window.devicePixelRatio
         // gl.canvas.height = window.innerHeight * window.devicePixelRatio
         if (newWidth || newHeight) {
@@ -404,8 +404,8 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
         camera.updateMatrix()
         if (!globalThis.stopRendering) {
-            allSidesUpdated = true
             gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, (isPlayground ? NumberOfCube * 6 : allSidesAdded));
+            needsSidesUpdate = false
         }
 
         renderedFrames++
@@ -540,6 +540,9 @@ onmessage = function (e) {
     if (e.data.type === 'fullReset') {
         fullReset()
     }
+    if (e.data.type === 'exportData') {
+        postMessage({ type: 'exportData', data: exportData() })
+    }
 }
 
 globalThis.testDuplicates = () => {
@@ -547,14 +550,14 @@ globalThis.testDuplicates = () => {
     console.log('duplicates', duplicates)
 }
 
-globalThis.exportData = () => {
+const exportData = () => {
     const optimizedData = allSides.map(([x, y, z, side]) => {
         return [x, y, z, side.face, side.textureIndex]
     })
-    const json = JSON.stringify(optimizedData)
-    const sizeMb = new Blob([json]).size / 1024 / 1024
-    console.log('size', sizeMb)
-    // return json
+    const json = optimizedData
+    // const sizeMb = new Blob([json]).size / 1024 / 1024
+    // console.log('size', sizeMb)
+    return json
 }
 
 setInterval(() => {

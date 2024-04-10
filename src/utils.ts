@@ -173,7 +173,7 @@ export const setRenderDistance = () => {
     localServer!.players[0].view = 0
     renderDistance = 0
   }
-  worldView.viewDistance = renderDistance
+  worldView.updateViewDistance(renderDistance)
   prevRenderDistance = renderDistance
 }
 export const reloadChunks = async () => {

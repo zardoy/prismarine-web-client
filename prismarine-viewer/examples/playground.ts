@@ -226,39 +226,6 @@ async function main () {
   window['worldView'] = worldView
   window['viewer'] = viewer
 
-  // const jsonData = await fetch('https://bluecolored.de/bluemap/maps/overworld/tiles/0/x-2/2/z1/6.json?584662').then(r => r.json())
-
-  // const uniforms = {
-  //   distance: { value: 0 },
-  //   sunlightStrength: { value: 1 },
-  //   ambientLight: { value: 0 },
-  //   skyColor: { value: new THREE.Color(0.5, 0.5, 1) },
-  //   voidColor: { value: new THREE.Color(0, 0, 0) },
-  //   hiresTileMap: {
-  //     value: {
-  //       map: null,
-  //       size: 100,
-  //       scale: new THREE.Vector2(1, 1),
-  //       translate: new THREE.Vector2(),
-  //       pos: new THREE.Vector2(),
-  //     }
-  //   }
-
-  // }
-
-  // const shader1 = new THREE.ShaderMaterial({
-  //   uniforms: uniforms,
-  //   vertexShader: [0, 0, 0, 0],
-  //   fragmentShader: fragmentShader,
-  //   transparent: false,
-  //   depthWrite: true,
-  //   depthTest: true,
-  //   vertexColors: true,
-  //   side: THREE.FrontSide,
-  //   wireframe: false
-  // })
-
-
   //@ts-ignore
   // const controls = new OrbitControls(viewer.camera, nullRenderer.domElement)
   // controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)

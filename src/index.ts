@@ -97,6 +97,7 @@ import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
 import { initWebglRenderer } from 'prismarine-viewer/examples/webglRenderer'
+import { addNewStat } from 'prismarine-viewer/examples/newStats'
 // import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 
 window.debug = debug
@@ -391,6 +392,7 @@ async function connect (connectOptions: {
       postRenderFrameFn()
       viewer.update()
     })
+    addNewStat('loaded-chunks')
 
     if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:

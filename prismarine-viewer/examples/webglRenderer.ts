@@ -1,6 +1,7 @@
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { Viewer } from '../viewer/lib/viewer'
 import { options } from '../../src/optionsStorage'
+import { addNewStat } from './newStats'
 
 let worker
 
@@ -89,7 +90,7 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
 
     // replacable by initWebglRenderer
     worker = new Worker('./webglRendererWorker.js')
-    addFpsCounter()
+    addFpsCounters()
     sendWorkerMessage({
         canvas: offscreen,
         imageBlob,
@@ -150,29 +151,48 @@ export const setAnimationTick = (tick: number, frames?: number) => {
     })
 }
 
+globalThis.exportData = () => {
+    worker.postMessage({ type: 'exportData' })
+    const controller = new AbortController()
+    worker.addEventListener('message', (e) => {
+        try {
+            const a = document.createElement('a')
+            const dataObj = e.data
+            const data = JSON.stringify(dataObj)
+            const objectURL = URL.createObjectURL(new Blob([data], { type: 'application/json' }))
+            a.href = objectURL
+            a.download = 'data.json'
+            a.click()
+            URL.revokeObjectURL(objectURL)
+        } finally {
+            controller.abort()
+        }
+    }, { signal: controller.signal })
+}
 
-const addFpsCounter = () => {
-    const fpsCounter = document.createElement('div')
-    fpsCounter.id = 'fps-counter'
-    fpsCounter.style.position = 'fixed'
-    fpsCounter.style.top = '0'
-    fpsCounter.style.right = '0'
-    // gray bg
-    fpsCounter.style.backgroundColor = 'rgba(0, 0, 0, 0.5)'
-    fpsCounter.style.color = 'white'
-    fpsCounter.style.padding = '2px'
-    fpsCounter.style.fontFamily = 'monospace'
-    fpsCounter.style.fontSize = '12px'
-    fpsCounter.style.zIndex = '10000'
-    document.body.appendChild(fpsCounter)
+
+const addFpsCounters = () => {
+    const { updateText } = addNewStat('fps')
     let prevTimeout
     worker.addEventListener('message', (e) => {
         if (e.data.type === 'fps') {
-            fpsCounter.innerText = `FPS: ${e.data.fps}`
+            updateText(`FPS: ${e.data.fps}`)
             if (prevTimeout) clearTimeout(prevTimeout);
             prevTimeout = setTimeout(() => {
-                fpsCounter.innerText = '<hanging>'
+                updateText('<hanging>')
             }, 1002)
         }
     })
+
+    const { updateText: updateText2 } = addNewStat('fps-main', 90, 0, 20)
+    let updates = 0
+    const mainLoop = () => {
+        requestAnimationFrame(mainLoop)
+        updates++
+    }
+    mainLoop()
+    setInterval(() => {
+        updateText2(`Main Loop: ${updates}`)
+        updates = 0
+    }, 1000)
 }
