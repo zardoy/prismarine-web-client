@@ -89,10 +89,10 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     let SideMesh = new Float32Array([
         -0.5, -0.5, -0.5, 0.0, 0.0, // Bottom-let
         0.5, -0.5, -0.5, 1.0, 0.0, // bottom-right
-        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
-        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
         -0.5, 0.5, -0.5, 0.0, 1.0, // top-let
-        -0.5, -0.5, -0.5, 0.0, 0.0, // bottom-let
+        0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+       // 0.5, 0.5, -0.5, 1.0, 1.0, // top-right
+       // -0.5, -0.5, -0.5, 0.0, 0.0, // bottom-let
         // ront ace
     ])
 
@@ -407,7 +407,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
         camera.updateMatrix()
         if (!globalThis.stopRendering) {
-            gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, (isPlayground ? NumberOfCube * 6 : allSides.length));
+            gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, (isPlayground ? NumberOfCube * 6 : allSides.length));
         }
         //gl.bindVertexArray(null)
 
