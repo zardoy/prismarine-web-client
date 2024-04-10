@@ -32,7 +32,7 @@ const updateSize = (width, height) => {
 
 
 export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, isPlayground: boolean, FragShaderOverride?) => {
-    isPlayground = false
+    // isPlayground = false
     // blockStates = blockStatesJson
     const textureBitmap = await createImageBitmap(imageBlob)
     const textureWidth = textureBitmap.width
@@ -98,7 +98,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
 
 
-    let NumberOfCube = isPlayground ? 10_000 : 5_000_000
+    let NumberOfCube = isPlayground ? 10_000 : 1_000_000
 
     sidePositions = new Float32Array(NumberOfCube * 3 * 6)
     let sideTextureIndices = new Float32Array(NumberOfCube * 1 * 6);
@@ -163,7 +163,6 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     // cubePositions[0] = 0;
     // cubePositions[1] = 0;
     // cubePositions[2] = 0;
-
     let VAO = gl.createVertexArray();
 
 
@@ -203,9 +202,11 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * 4, 3 * 4)
     gl.enableVertexAttribArray(1)
 
-    //gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 6 * 4, 5 * 4)
-    // gl.enableVertexAttribArray(2)
-    //instance data
+    gl.enableVertexAttribArray(2);
+    gl.bindBuffer(gl.ARRAY_BUFFER, instanceCubeSide);
+    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 4, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    gl.vertexAttribDivisor(2, 1);
 
     gl.enableVertexAttribArray(3);
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
@@ -214,31 +215,16 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
     gl.vertexAttribDivisor(3, 1);
 
     gl.enableVertexAttribArray(4);
-    // gl.enableVertexAttribArray(5);
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceTextureID);
     gl.vertexAttribPointer(4, 1, gl.FLOAT, false, 4 * 1, 0);
-    // gl.vertexAttribPointer(5, 2, gl.FLOAT, false, 4 * 6, 4 * 4);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.vertexAttribDivisor(4, 1);
-    // gl.vertexAttribDivisor(5, 1);
 
     gl.enableVertexAttribArray(6);
     gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
     gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 3 * 4, 0);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
     gl.vertexAttribDivisor(6, 1);
-
-    gl.enableVertexAttribArray(6);
-    gl.bindBuffer(gl.ARRAY_BUFFER, instanceBiomeColor);
-    gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 3 * 4, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.vertexAttribDivisor(6, 1);
-
-    gl.enableVertexAttribArray(2);
-    gl.bindBuffer(gl.ARRAY_BUFFER, instanceCubeSide);
-    gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 4, 0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    gl.vertexAttribDivisor(2, 1);
 
     updateCubes = (startIndex) => {
         // up2

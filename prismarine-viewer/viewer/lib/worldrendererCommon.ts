@@ -117,22 +117,24 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         this.downloadedTextureImage = this.material.map!.image
       }
       // TODO
-      const loadBlockStates = async () => {
-        return new Promise(resolve => {
-          if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
-          return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
-            this.downloadedBlockStatesData = data
-            // todo
-            this.renderUpdateEmitter.emit('blockStatesDownloaded')
-            resolve(data)
+      setTimeout(() => {
+        const loadBlockStates = async () => {
+          return new Promise(resolve => {
+            if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
+            return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
+              this.downloadedBlockStatesData = data
+              // todo
+              this.renderUpdateEmitter.emit('blockStatesDownloaded')
+              resolve(data)
+            })
           })
-        })
-      }
-      loadBlockStates().then((blockStates) => {
-        for (const worker of this.workers) {
-          worker.postMessage({ type: 'blockStates', json: blockStates, textureSize: texture.image.width })
         }
-      })
+        loadBlockStates().then((blockStates) => {
+          for (const worker of this.workers) {
+            worker.postMessage({ type: 'blockStates', json: blockStates, textureSize: texture.image.width })
+          }
+        })
+      }, 500)
     })
 
   }
