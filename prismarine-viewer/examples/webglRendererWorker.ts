@@ -32,7 +32,7 @@ const updateSize = (width, height) => {
 
 
 export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, isPlayground: boolean, FragShaderOverride?) => {
-    isPlayground = false
+    // isPlayground = false
     // blockStates = blockStatesJson
     const textureBitmap = await createImageBitmap(imageBlob)
     const textureWidth = textureBitmap.width
