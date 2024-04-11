@@ -75,6 +75,9 @@ const defaultOptions = {
   autoRespawn: false,
   mutedSounds: [] as string[],
   plugins: [] as Array<{ enabled: boolean, name: string, description: string, script: string }>,
+  /** Wether to popup sign editor on server action */
+  autoSignEditor: true,
+  wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
 }
 
 const migrateOptions = (options: Partial<AppOptions & Record<string, any>>) => {

@@ -27,7 +27,8 @@ const plugins = [
       build.onLoad({
         filter: /minecraft-data[\/\\]data.js$/,
       }, (args) => {
-        const version = supportedVersions.at(-1);
+        const version = supportedVersions.at(-1)
+        if (!version) throw new Error('unreachable')
         const data = MCData(version)
         const defaultVersionsObj = {
           // default protocol data, needed for auto-version
@@ -46,6 +47,14 @@ const plugins = [
         filter: /^minecraft-assets$/,
       }, () => {
         throw new Error('hit banned package')
+      })
+
+      build.onResolve({
+        filter: /^three$/,
+      }, async ({ kind, resolveDir }) => {
+        return {
+          path: (await build.resolve('three/src/Three.js', { kind, resolveDir })).path,
+        }
       })
     }
   },

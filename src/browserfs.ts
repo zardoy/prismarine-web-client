@@ -60,7 +60,18 @@ fs.promises = new Proxy(Object.fromEntries(['readFile', 'writeFile', 'stat', 'mk
       if (p === 'open' && fsState.isReadonly) {
         args[1] = 'r' // read-only, zipfs throw otherwise
       }
-      return target[p](...args)
+      if (p === 'readFile') {
+        fsState.openReadOperations++
+      } else if (p === 'writeFile') {
+        fsState.openWriteOperations++
+      }
+      return target[p](...args).finally(() => {
+        if (p === 'readFile') {
+          fsState.openReadOperations--
+        } else if (p === 'writeFile') {
+          fsState.openWriteOperations--
+        }
+      })
     }
   }
 })
@@ -77,7 +88,18 @@ fs.promises.open = async (...args) => {
           return
         }
 
+        if (x === 'read') {
+          fsState.openReadOperations++
+        } else if (x === 'write' || x === 'close') {
+          fsState.openWriteOperations++
+        }
         fs[x](fd, ...args, (err, bytesRead, buffer) => {
+          if (x === 'read') {
+            fsState.openReadOperations--
+          } else if (x === 'write' || x === 'close') {
+            // todo that's not correct
+            fsState.openWriteOperations--
+          }
           if (err) throw err
           // todo if readonly probably there is no need to open at all (return some mocked version - check reload)?
           if (x === 'write' && !fsState.isReadonly) {

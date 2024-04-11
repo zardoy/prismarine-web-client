@@ -6,7 +6,7 @@ import { proxy } from 'valtio'
 import { gzip } from 'node-gzip'
 import { options } from './optionsStorage'
 import { nameToMcOfflineUUID, disconnect } from './flyingSquidUtils'
-import { forceCachedDataPaths, forceRedirectPaths, mkdirRecursive } from './browserfs'
+import { existsViaStats, forceCachedDataPaths, forceRedirectPaths, mkdirRecursive } from './browserfs'
 import { isMajorVersionGreater } from './utils'
 
 import { activeModalStacks, insertActiveModalStack, miscUiState } from './globalState'
@@ -17,7 +17,9 @@ export const fsState = proxy({
   isReadonly: false,
   syncFs: false,
   inMemorySave: false,
-  saveLoaded: false
+  saveLoaded: false,
+  openReadOperations: 0,
+  openWriteOperations: 0,
 })
 
 const PROPOSE_BACKUP = true
@@ -154,7 +156,9 @@ export const loadSave = async (root = '/world') => {
   // improve compatibility with community saves
   const rootRemapFiles = ['Warp files']
   for (const rootRemapFile of rootRemapFiles) {
-    forceRedirectPaths[path.join(root, rootRemapFile)] = path.join(root, '..', rootRemapFile)
+    if (await existsViaStats(path.join(root, '..', rootRemapFile))) {
+      forceRedirectPaths[path.join(root, rootRemapFile)] = path.join(root, '..', rootRemapFile)
+    }
   }
 
   // todo reimplement

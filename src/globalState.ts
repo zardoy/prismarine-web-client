@@ -129,6 +129,7 @@ export type AppConfig = {
 export const miscUiState = proxy({
   currentDisplayQr: null as string | null,
   currentTouch: null as boolean | null,
+  hasErrors: false,
   singleplayer: false,
   flyingSquid: false,
   wanOpened: false,

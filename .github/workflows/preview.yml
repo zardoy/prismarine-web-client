@@ -2,6 +2,7 @@ name: Vercel Deploy Preview
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  ALIASES: ${{ vars.ALIASES }}
 on:
   issue_comment:
     types: [created]
@@ -21,6 +22,11 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: refs/pull/${{ github.event.issue.number }}/head
+      - run: npm i -g pnpm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "pnpm"
       - name: Install Global Dependencies
         run: npm install --global vercel pnpm
       - name: Pull Vercel Environment Information
@@ -37,11 +43,20 @@ jobs:
         with:
           run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         id: deploy
-      - name: Set deployment alias
-        # only if on branch next
-        if: github.ref == 'refs/heads/next'
-        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }}
       - uses: mshick/add-pr-comment@v2
         with:
+          refresh-message-position: true
           message: |
             Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
+            [Playground](${{ steps.deploy.outputs.stdout }}/playground.html)
+            [Storybook](${{ steps.deploy.outputs.stdout }}/storybook/)
+      # - run: git checkout next scripts/githubActions.mjs
+      - name: Get deployment alias
+        run: node scripts/githubActions.mjs getAlias
+        id: alias
+        env:
+          ALIASES: ${{ env.ALIASES }}
+          PULL_URL: ${{ github.event.comment.issue.pull_request.url }}
+      - name: Set deployment alias
+        if: ${{ steps.alias.outputs.alias != '' && steps.alias.outputs.alias != 'mcraft.fun' && steps.alias.outputs.alias != 's.mcraft.fun' }}
+        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ steps.alias.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
