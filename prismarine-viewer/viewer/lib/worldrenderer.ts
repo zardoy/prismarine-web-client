@@ -341,6 +341,13 @@ export class WorldRenderer {
     if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16))
   }
 
+  updateLight(chunkX, chunkZ) {
+    // set all sections in the chunk dirty
+    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+      this.setSectionDirty(new Vec3(chunkX, y, chunkZ))
+    }
+  }
+
   setSectionDirty (pos, value = true) {
     this.renderUpdateEmitter.emit('dirty', pos, value)
     this.cleanChunkTextures(pos.x, pos.z) // todo don't do this!

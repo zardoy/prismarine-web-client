@@ -314,7 +314,12 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     }
 
     const aos: number[] = []
-    const baseLight = Math.min(15, Math.max(world.getColumnByPos(block.position).getBlockLight(posInChunk(block.position)), world.getColumnByPos(block.position).getSkyLight(posInChunk(block.position))) + 2) / 15
+    const getLight = (pos) => Math.min(15, Math.max(world.getColumnByPos(pos).getBlockLight(posInChunk(pos)), world.getColumnByPos(pos).getSkyLight(posInChunk(pos))) + 2)
+    let baseLightLevel = getLight(block.position)
+    if (baseLightLevel === 2 && block.transparent) {
+      baseLightLevel = getLight(block.position.offset(0, -1, 0))
+    }
+    const baseLight = baseLightLevel / 15
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),

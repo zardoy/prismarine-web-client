@@ -65,6 +65,11 @@ export class WorldDataEmitter extends EventEmitter {
       },
     } satisfies Partial<BotEvents>
 
+    bot._client.on('update_light', ({ chunkX, chunkZ }) => {
+      const chunkPos = new Vec3(chunkX << 4, 0, chunkZ << 4)
+      this.emitter.emit('updateLight', { pos: chunkPos })
+    })
+
     this.emitter.on('listening', () => {
       this.emitter.emit('blockEntities', new Proxy({}, {
         get (_target, posKey, receiver) {

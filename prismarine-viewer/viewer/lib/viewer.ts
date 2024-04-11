@@ -175,6 +175,10 @@ export class Viewer {
       this.world.updateViewerPosition(pos)
     })
 
+    emitter.on('updateLight', ({ pos }) => {
+      this.world.updateLight(pos.x, pos.z)
+    })
+
     emitter.emit('listening')
 
     this.domElement.addEventListener?.('pointerdown', (evt) => {
