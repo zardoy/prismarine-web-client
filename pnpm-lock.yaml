@@ -274,7 +274,7 @@ importers:
         version: 1.0.0
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: github.com/zardoy/minecraft-inventory-gui/6685fa4a10590a5decef90a454ba0b9e045e7737(@types/react@18.2.20)(react@18.2.0)
+        version: github.com/zardoy/minecraft-inventory-gui/b4400b7a6351a30d3487f01aa73e46bf6d7bdb94(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:PrismarineJS/mineflayer
         version: github.com/PrismarineJS/mineflayer/195b3cbd70a110080af9b77a4659991c5d9e484a
@@ -15971,9 +15971,9 @@ packages:
       vec3: 0.1.8
     dev: false
 
-  github.com/zardoy/minecraft-inventory-gui/6685fa4a10590a5decef90a454ba0b9e045e7737(@types/react@18.2.20)(react@18.2.0):
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/6685fa4a10590a5decef90a454ba0b9e045e7737}
-    id: github.com/zardoy/minecraft-inventory-gui/6685fa4a10590a5decef90a454ba0b9e045e7737
+  github.com/zardoy/minecraft-inventory-gui/b4400b7a6351a30d3487f01aa73e46bf6d7bdb94(@types/react@18.2.20)(react@18.2.0):
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b4400b7a6351a30d3487f01aa73e46bf6d7bdb94}
+    id: github.com/zardoy/minecraft-inventory-gui/b4400b7a6351a30d3487f01aa73e46bf6d7bdb94
     name: minecraft-inventory-gui
     version: 1.0.1
     dependencies:
