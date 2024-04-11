@@ -19,7 +19,7 @@ import { openURL } from '../menus/components/common'
 import { useIsModalActive } from './utils'
 import Button from './Button'
 import Screen from './Screen'
-import './PauseScreen.css'
+import styles from './PauseScreen.module.css'
 
 export default () => {
   const isModalActive = useIsModalActive('pause-screen')
@@ -88,15 +88,15 @@ export default () => {
   if (!isModalActive) return null
   return (
     <Screen title='Game Menu'>
-      <div className='pause-container'>
+      <div className={styles.pause_container}>
         <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
-        <div className="row">
+        <div className={styles.row}>
           <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL)}>GitHub</Button>
           <Button className="button" style={{ width: '98px' }} onClick={() => openURL('https://discord.gg/4Ucm684Fq3')}>Discord</Button>
         </div>
         <Button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</Button>
         {singleplayer ? (
-          <div className="row">
+          <div className={styles.row}>
             <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton()}>
               {wanOpened ? 'Close Wan' : 'Copy Join Link'}
             </Button>

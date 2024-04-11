@@ -8,14 +8,14 @@
   text-shadow: 1px 1px #222;
 }
 
-.pause-container {
+.pause_container {
   display: flex;
   flex-direction: column;
   gap: 4px 0;
   position: absolute;
   left: 50%;
   width: 204px;
-  top: calc(25% + 48px - 16px);
+  top: calc(25%);
   transform: translate(-50%);
 }
 
