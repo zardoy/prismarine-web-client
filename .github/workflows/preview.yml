@@ -45,6 +45,7 @@ jobs:
         id: deploy
       - uses: mshick/add-pr-comment@v2
         with:
+          refresh-message-position: true
           message: |
             Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
             [Playground](${{ steps.deploy.outputs.stdout }}/playground.html)
