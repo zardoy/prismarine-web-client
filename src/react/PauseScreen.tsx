@@ -17,6 +17,7 @@ import { pointerLock } from '../utils'
 import { closeWan, openToWanAndCopyJoinLink, getJoinLink } from '../localServerMultiplayer'
 import { openURL } from '../menus/components/common'
 import { useIsModalActive } from './utils'
+import { showOptionsModal } from './SelectOption'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './PauseScreen.module.css'
@@ -88,7 +89,12 @@ export default () => {
   if (!isModalActive) return null
   return (
     <Screen title='Game Menu'>
-      <div className={styles.pause_container}>
+      <Button 
+        icon={'pixelarticons:folder'} 
+        style={{ position: 'fixed', left: '5px', top: '5px' }} 
+        onClick={async () => openWorldActions()}
+      />
+      <div className={styles.pause_container}> 
         <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
         <div className={styles.row}>
           <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL)}>GitHub</Button>
