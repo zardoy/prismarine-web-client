@@ -59,6 +59,15 @@ export default () => {
   }
 
   useMemo(() => {
+    const css = `
+      :root {
+        --gui-icons: url(${icons}), url(${icons});
+      }
+    `
+    const style = document.createElement('style')
+    style.appendChild(document.createTextNode(css))
+    document.head.appendChild(style)
+
     bot.on('entityHurt', (entity) => {
       if (entity !== bot.entity) return
       onDamage()
@@ -90,10 +99,7 @@ export default () => {
     })
   }, [])
 
-  return <div style={{
-    //@ts-expect-error
-    '--gui-icons': `url(${icons}), url(${icons})`
-  }}>
+  return <div>
     <div className='crosshair'></div>
     <HealthBar
       gameMode={gameMode}

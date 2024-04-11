@@ -4,13 +4,14 @@
   z-index: -1;
   flex-direction: row;
   left: calc(50% - 91px);
-  bottom: 30px;
+  bottom: calc(env(safe-area-inset-bottom) / 2 + 30px);
   --hardcore: 0;
   --kind: 0;
   --lightened: 0;
   --offset: calc(-1 * (52px + (9px * (4 * var(--kind) + var(--lightened) * 2)) ));
   --bg-x: calc(-1 * (16px + 9px * var(--lightened)));
   --bg-y: calc(-1 * var(--hardcore) * 45px);
+  pointer-events: none;
 }
 
 .health.creative {

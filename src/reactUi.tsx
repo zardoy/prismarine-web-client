@@ -29,6 +29,7 @@ import { useIsWidgetActive } from './react/utils'
 import GlobalSearchInput from './GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
+import HotbarRenderApp from './react/HotbarRenderApp'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -132,6 +133,7 @@ const App = () => {
       <GameHud>
         <PauseScreen />
         <HealthBarProvider />
+        <HotbarRenderApp />
       </GameHud>
     </RobustPortal>
   </div>

@@ -5,12 +5,13 @@
   flex-direction: row-reverse;
   left: calc(50% + 91px);
   transform: translate(-100%);
-  bottom: 30px;
+  bottom: calc(env(safe-area-inset-bottom) / 2 + 30px);
   --kind: 0;
   --lightened: 0;
   --offset: calc(-1 * (52px + (9px * (4 * var(--kind) + var(--lightened) * 2))));
   --bg-x: calc(-1 * (16px + 9px * var(--lightened)));
   --bg-y: calc(-1 * 27px);
+  pointer-events: none;
 }
 
 .foodbar.poisoned {

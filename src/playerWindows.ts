@@ -12,6 +12,7 @@ import VillagerGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/conta
 import EnchantingGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/enchanting_table.png'
 import AnvilGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/anvil.png'
 import BeaconGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/beacon.png'
+import WidgetsGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png'
 
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
 import { subscribeKey } from 'valtio/utils'
@@ -58,7 +59,7 @@ export type BlockStates = Record<string, null | {
   }>
 }>
 
-let lastWindow
+let lastWindow: ReturnType<typeof showInventory>
 /** bot version */
 let version: string
 let PrismarineBlock: typeof PrismarineBlockLoader.Block
@@ -198,6 +199,7 @@ const getImageSrc = (path): string | HTMLImageElement => {
     case 'gui/container/enchanting_table': return EnchantingGui
     case 'gui/container/anvil': return AnvilGui
     case 'gui/container/beacon': return BeaconGui
+    case 'gui/widgets': return WidgetsGui
   }
   return Dirt
 }
@@ -326,11 +328,11 @@ const mapSlots = (slots: Array<RenderSlot | Item | null>) => {
   })
 }
 
-const upInventory = (isInventory: boolean) => {
+export const upInventoryItems = (isInventory: boolean, invWindow = lastWindow) => {
   // inv.pwindow.inv.slots[2].displayName = 'test'
   // inv.pwindow.inv.slots[2].blockData = getBlockData('dirt')
   const customSlots = mapSlots((isInventory ? bot.inventory : bot.currentWindow)!.slots)
-  lastWindow.pwindow.setSlots(customSlots)
+  invWindow.pwindow.setSlots(customSlots)
 }
 
 export const onModalClose = (callback: () => any) => {
@@ -370,7 +372,13 @@ const upJei = (search: string) => {
     if (!x.displayName.toLowerCase().includes(search)) return null!
     return new PrismarineItem(x.id, 1)
   }).filter(Boolean)
+  lastWindow.pwindow.win.jeiSlotsPage = 0
   lastWindow.pwindow.win.jeiSlots = mapSlots(matchedSlots)
+}
+
+export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
+  const inv = showInventory(type, getImage, {}, _bot)
+  return inv
 }
 
 const openWindow = (type: string | undefined) => {
@@ -386,12 +394,12 @@ const openWindow = (type: string | undefined) => {
     // might be already closed (event fired)
     if (type !== undefined && bot.currentWindow) bot.currentWindow['close']()
     lastWindow.destroy()
-    lastWindow = null
+    lastWindow = null as any
     miscUiState.displaySearchInput = false
     destroyFn()
   })
   cleanLoadedImagesCache()
-  const inv = showInventory(type, getImage, {}, bot)
+  const inv = openItemsCanvas(type)
   inv.canvas.style.zIndex = '10'
   inv.canvas.style.position = 'fixed'
   inv.canvas.style.inset = '0'
@@ -405,7 +413,7 @@ const openWindow = (type: string | undefined) => {
 
   lastWindow = inv
   const upWindowItems = () => {
-    void Promise.resolve().then(() => upInventory(type === undefined))
+    void Promise.resolve().then(() => upInventoryItems(type === undefined))
   }
   upWindowItems()
 

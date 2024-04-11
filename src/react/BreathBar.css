@@ -9,6 +9,7 @@
   --offset: calc(-1 * 16px);
   --bg-x: calc(-1 * 16px);
   --bg-y: calc(-1 * 18px);
+  pointer-events: none;
 }
 
 .breath {
