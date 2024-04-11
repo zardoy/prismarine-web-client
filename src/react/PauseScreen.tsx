@@ -46,6 +46,17 @@ export default () => {
     hideModal({ reactType: 'pause-screen' })
   }
 
+  const clickWebShareButton = async () => {
+    if (!wanOpened) return
+    try {
+      const url = getJoinLink()
+      const shareData = { url }
+      await navigator.share(shareData)
+    } catch (err) {
+      console.log(`Error: ${err}`)
+    }
+  }
+
   const clickJoinLinkButton = async (qr = false) => {
     if (!qr && wanOpened) {
       closeWan()
@@ -87,32 +98,41 @@ export default () => {
   }
 
   if (!isModalActive) return null
-  return (
-    <Screen title='Game Menu'>
-      <Button 
-        icon={'pixelarticons:folder'} 
-        style={{ position: 'fixed', left: '5px', top: '5px' }} 
-        onClick={async () => openWorldActions()}
-      />
-      <div className={styles.pause_container}> 
-        <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
-        <div className={styles.row}>
-          <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL)}>GitHub</Button>
-          <Button className="button" style={{ width: '98px' }} onClick={() => openURL('https://discord.gg/4Ucm684Fq3')}>Discord</Button>
-        </div>
-        <Button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</Button>
-        {singleplayer ? (
-          <div className={styles.row}>
-            <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton()}>
-              {wanOpened ? 'Close Wan' : 'Copy Join Link'}
-            </Button>
-            <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton(true)}>Copy Link</Button>
-          </div>
-        ) : null}
-        <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
-          {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect'}
-        </Button>
+  return <Screen title='Game Menu'>
+    <Button 
+      icon={'pixelarticons:folder'} 
+      style={{ position: 'fixed', left: '5px', top: '5px' }} 
+      onClick={async () => openWorldActions()}
+    />
+    <div className={styles.pause_container}> 
+      <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
+      <div className={styles.row}>
+        <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL)}>GitHub</Button>
+        <Button className="button" style={{ width: '98px' }} onClick={() => openURL('https://discord.gg/4Ucm684Fq3')}>Discord</Button>
       </div>
-    </Screen>
-  )
+      <Button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</Button>
+      {singleplayer ? (
+        <div className={styles.row}>
+          <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton()}>
+            {wanOpened ? 'Close Wan' : 'Copy Join Link'}
+          </Button>
+          <Button 
+            className="button" 
+            icon={'pixelarticons:arrow-up'} 
+            style={{ width: '20px' }} 
+            onClick={async () => clickWebShareButton()} 
+          />
+          <Button 
+            className="button" 
+            icon={'pixelarticons:dice'} 
+            style={{ width: '20px' }} 
+            onClick={async () => clickJoinLinkButton(true)} 
+          />
+        </div>
+      ) : null}
+      <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
+        {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect'}
+      </Button>
+    </div>
+  </Screen>
 }

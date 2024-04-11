@@ -90,5 +90,6 @@ export default () => {
     right: 0,
     display: 'flex',
     justifyContent: 'center',
+    zIndex: -1,
   }} />
 }
