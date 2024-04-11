@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { Vec3 } from 'vec3'
-import { loadTexture, loadJSON } from './utils'
+import { loadJSON } from './utils'
+import { loadTexture } from './utils.web'
 import { EventEmitter } from 'events'
 import mcDataRaw from 'minecraft-data/data.js'; // handled correctly in esbuild plugin
 import { dynamicMcDataFiles } from '../../buildWorkerConfig.mjs'
@@ -113,28 +114,24 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       texture.minFilter = THREE.NearestFilter
       texture.flipY = false
       this.material.map = texture
-      this.material.map.onUpdate = () => {
-        this.downloadedTextureImage = this.material.map!.image
-      }
-      // TODO
-      setTimeout(() => {
-        const loadBlockStates = async () => {
-          return new Promise(resolve => {
-            if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
-            return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
-              this.downloadedBlockStatesData = data
-              // todo
-              this.renderUpdateEmitter.emit('blockStatesDownloaded')
-              resolve(data)
-            })
+    }, (tex) => {
+      this.downloadedTextureImage = this.material.map!.image
+      const loadBlockStates = async () => {
+        return new Promise(resolve => {
+          if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
+          return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
+            this.downloadedBlockStatesData = data
+            // todo
+            this.renderUpdateEmitter.emit('blockStatesDownloaded')
+            resolve(data)
           })
-        }
-        loadBlockStates().then((blockStates) => {
-          for (const worker of this.workers) {
-            worker.postMessage({ type: 'blockStates', json: blockStates, textureSize: texture.image.width })
-          }
         })
-      }, 500)
+      }
+      loadBlockStates().then((blockStates) => {
+        for (const worker of this.workers) {
+          worker.postMessage({ type: 'blockStates', json: blockStates, textureSize: tex.image.width })
+        }
+      })
     })
 
   }

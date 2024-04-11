@@ -2,9 +2,11 @@
 const THREE = require('three')
 
 const textureCache = {}
-function loadTexture (texture, cb) {
+function loadTexture (texture, cb, onLoad) {
   if (!textureCache[texture]) {
-    textureCache[texture] = new THREE.TextureLoader().load(texture)
+    textureCache[texture] = new THREE.TextureLoader().load(texture, onLoad)
+  } else {
+    onLoad?.()
   }
   cb(textureCache[texture])
 }
