@@ -15,6 +15,7 @@ export const addNewStat = (id: string, width = 80, x = rightOffset, y = 0) => {
     pane.style.fontFamily = 'monospace'
     pane.style.fontSize = '12px'
     pane.style.zIndex = '10000'
+    pane.style.pointerEvents = 'none'
     document.body.appendChild(pane)
     stats[id] = pane
     if (y === 0) { // otherwise it's a custom position
