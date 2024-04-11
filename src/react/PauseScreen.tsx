@@ -51,7 +51,7 @@ export default () => {
     try {
       const url = getJoinLink()
       const shareData = { url }
-      await navigator.share(shareData)
+      await navigator.share?.(shareData)
     } catch (err) {
       console.log(`Error: ${err}`)
     }
@@ -116,12 +116,14 @@ export default () => {
           <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton()}>
             {wanOpened ? 'Close Wan' : 'Copy Join Link'}
           </Button>
-          <Button 
-            className="button" 
-            icon={'pixelarticons:arrow-up'} 
-            style={{ width: '20px' }} 
-            onClick={async () => clickWebShareButton()} 
-          />
+          {navigator.share ? (
+            <Button 
+              className="button" 
+              icon={'pixelarticons:arrow-up'} 
+              style={{ width: '20px' }} 
+              onClick={async () => clickWebShareButton()} 
+            />
+          ) : null}
           <Button 
             className="button" 
             icon={'pixelarticons:dice'} 
