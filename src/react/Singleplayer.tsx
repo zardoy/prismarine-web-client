@@ -51,8 +51,8 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
     <img className={`${styles.world_image} ${iconBase64 ? '' : styles.image_missing}`} src={iconBase64 ? `data:image/png;base64,${iconBase64}` : missingWorldPreview} alt='world preview' />
     <div className={styles.world_info}>
       <div className={styles.world_title} title='level.dat world name'>{title}</div>
-      <div className='muted'>{timeRelativeFormatted} {detail.slice(-30)}</div>
-      <div className='muted'>{sizeFormatted}</div>
+      <div className={styles.world_info_description_line}>{timeRelativeFormatted} {detail.slice(-30)}</div>
+      <div className={styles.world_info_description_line}>{sizeFormatted}</div>
     </div>
   </div>
 }
