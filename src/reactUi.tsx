@@ -20,6 +20,7 @@ import SignEditorProvider from './react/SignEditorProvider'
 import IndicatorEffectsProvider from './react/IndicatorEffectsProvider'
 import PlayerListOverlayProvider from './react/PlayerListOverlayProvider'
 import HealthBarProvider from './react/HealthBarProvider'
+import XPBarProvider from './react/XPBarProvider'
 import DebugOverlayProvider from './react/DebugOverlayProvider'
 import PauseScreen from './react/PauseScreen'
 import SoundMuffler from './react/SoundMuffler'
@@ -132,6 +133,7 @@ const App = () => {
       <NotificationProvider />
       <GameHud>
         <PauseScreen />
+        <XPBarProvider />
         <HealthBarProvider />
         <HotbarRenderApp />
       </GameHud>
