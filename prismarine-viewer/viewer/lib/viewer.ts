@@ -31,7 +31,7 @@ export class Viewer {
   fxaaPass: ShaderPass
   renderPass: RenderPass
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
+  constructor (public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
@@ -115,7 +115,7 @@ export class Viewer {
     if (pos) {
       let y = pos.y + this.playerHeight
       if (this.isSneaking) y -= 0.3
-      new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
+      // new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
     }
     cam.rotation.set(pitch, yaw, roll, 'ZYX')
     sendCameraToWorker()
@@ -197,7 +197,7 @@ export class Viewer {
   }
 
   update () {
-    tweenJs.update()
+    // tweenJs.update()
   }
 
   render () {
