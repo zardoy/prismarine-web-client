@@ -5,6 +5,7 @@ import VertShader from './_VertexShader.vert'
 //@ts-ignore
 import FragShader from './_FragmentShader.frag'
 import { BlockFaceType, BlockType } from './shared'
+import * as tweenJs from '@tweenjs/tween.js'
 
 let allSides = [] as [number, number, number, BlockFaceType][]
 let allSidesAdded = 0
@@ -380,11 +381,12 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         gl.clear(gl.DEPTH_BUFFER_BIT)
 
 
+        tweenJs.update()
+        camera.updateMatrix()
         gl.uniformMatrix4fv(ViewUniform, false, camera.matrix.invert().elements);
         gl.uniformMatrix4fv(ProjectionUniform, false, camera.projectionMatrix.elements);
         gl.uniform1i(TickUniform, animationTick);
 
-        camera.updateMatrix()
         if (!globalThis.stopRendering) {
             gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, (isPlayground ? NumberOfCube * 6 : allSidesAdded));
             needsSidesUpdate = false
@@ -504,7 +506,8 @@ onmessage = function (e) {
     }
     if (e.data.type === 'camera') {
         camera.rotation.set(e.data.camera.rotation.x, e.data.camera.rotation.y, e.data.camera.rotation.z, 'ZYX')
-        camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
+        // camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
+        new tweenJs.Tween(camera.position).to({ x: e.data.camera.position.x, y: e.data.camera.position.y, z: e.data.camera.position.z }, 300).start() // 50
     }
     if (e.data.type === 'animationTick') {
         if (e.data.frames <= 0) {

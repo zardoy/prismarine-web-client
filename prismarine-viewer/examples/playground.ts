@@ -74,13 +74,13 @@ async function main () {
 
   // const { version } = params
   let fixtureUrl = qs.get('fixture')
-  let fixture
+  let fixture: undefined | Record<string, any>
   if (fixtureUrl) {
     console.log('Loading fixture')
     fixture = await fetch(fixtureUrl).then(r => r.json())
     console.log('Loaded fixture')
   }
-  const version = fixture.version ?? '1.20.2'
+  const version = fixture?.version ?? '1.20.2'
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
