@@ -85,11 +85,10 @@ export default () => {
   }
 
   const readPacket = (data, packet) => {
-    if (packet.fullBuffer) {
-      const size = packet.fullBuffer.byteLength
-      receivedTotal.current += size
-      received.current.size += size
-    }
+    const jsonString = JSON.stringify(packet)
+    const { size } = new Blob([jsonString])
+    receivedTotal.current += size
+    received.current.size += size
     received.current.count++
     managePackets('received', packet.name, data)
   }
@@ -121,11 +120,11 @@ export default () => {
 
     bot._client.on('packet', readPacket)
     // Build error: no packets 'packet_name' and 'writePacket'
-    // bot._client.on('packet_name', (packet, data) => readPacket(data, packet)) // custom client
-    // bot._client.on('writePacket', (packet, data) => {
-    //   sent.count++
-    //   managePackets('sent', packet, data)
-    // })
+    bot._client.on('packet_name' as any, (packet, data) => readPacket(data, packet)) // custom client
+    bot._client.on('writePacket' as any, (packet, data) => {
+      sent.current.count++
+      managePackets('sent', packet, data)
+    })
     bot.on('move', () => {
       setEntity(prev => { return { position: bot.entity.position, yaw: bot.entity.yaw, pitch: bot.entity.pitch }})
       setSkyL(prev => bot.world.getSkyLight(bot.entity.position))
