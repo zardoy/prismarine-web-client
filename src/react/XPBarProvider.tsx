@@ -4,8 +4,8 @@ import XPBar from './XPBar'
 
 
 export default () => {
-  const [progress, setProgress] = useState(bot.experience.progress)
-  const [level, setLevel] = useState(bot.experience.level)
+  const [progress, setProgress] = useState(0)
+  const [level, setLevel] = useState(0)
   const [gamemode, setGamemode] = useState<GameMode | ''>('')
 
   useMemo(() => {

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { proxy, useSnapshot } from 'valtio'
 import worldInteractions from '../worldInteractions'
-import './DebugOverlay.css'
+import styles from './DebugOverlay.module.css'
 
 
 const state = proxy({
@@ -77,11 +77,11 @@ export default ({
   if (!show) return null
 
   return <>
-    <div className="debug-left-side">
+    <div className={styles['debug-left-side']}>
       <p>Prismarine Web Client ({version})</p>
       <p>E: {entitiesCount}</p>
       <p>{dimension}</p>
-      <div className="empty"></div>
+      <div className={styles.empty}></div>
       <p>XYZ: {pos.x.toFixed(3)} / {pos.y.toFixed(3)} / {pos.z.toFixed(3)}</p>
       <p>Chunk: {Math.floor(pos.x % 16)} ~ {Math.floor(pos.z % 16)} in {Math.floor(pos.x / 16)} ~ {Math.floor(pos.z / 16)}</p>
       <p>Packets: {packetsString}</p>
@@ -91,13 +91,13 @@ export default ({
 
       <p>Biome: minecraft:{biome}</p>
       <p>Day: {day}</p>
-      <div className="empty"></div>
+      <div className={styles.empty}></div>
       {Object.entries(customEntries).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
     </div>
 
-    <div className="debug-right-side">
+    <div className={styles['debug-right-side']}>
       <p>Renderer: {rendererDevice} powered by three.js r{threejs_revision}</p>
-      <div className="empty"></div>
+      <div className={styles.empty}></div>
       {target ? (<>
         <p>{target.name}</p>
         {
