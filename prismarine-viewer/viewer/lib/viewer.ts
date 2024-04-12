@@ -116,6 +116,7 @@ export class Viewer {
       let y = pos.y + this.playerHeight
       if (this.isSneaking) y -= 0.3
       // new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
+      cam.position.set(pos.x, y, pos.z)
     }
     cam.rotation.set(pitch, yaw, roll, 'ZYX')
     sendCameraToWorker()
