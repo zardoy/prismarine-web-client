@@ -84,7 +84,9 @@
     "workbox-build": "^7.0.0"
   },
   "devDependencies": {
+    "@storybook/addon-actions": "^8.0.8",
     "@storybook/addon-essentials": "^7.4.6",
+    "@storybook/addon-knobs": "^7.0.2",
     "@storybook/addon-links": "^7.4.6",
     "@storybook/blocks": "^7.4.6",
     "@storybook/react": "^7.4.6",

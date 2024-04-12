@@ -1,17 +1,17 @@
-import type { Meta, StoryObj } from '@storybook/react'
-
+import { action } from '@storybook/addon-actions'
+import { withKnobs, number } from '@storybook/addon-knobs'
 import XPBar from './XPBar'
 
-const meta: Meta<typeof XPBar> = {
-  component: XPBar
+export default {
+  title: 'XPBar',
+  component: XPBar,
+  decorators: [withKnobs],
 }
 
-export default meta
-type Story = StoryObj<typeof XPBar>;
-
-export const Primary: Story = {
-  args: {
-    progress: 1,
-    level: 5
-  }
-}
+export const Default = () => (
+  <XPBar
+    progress={number('Progress', 0.5, { range: true, min: 0, max: 1, step: 0.1 })}
+    level={number('Level', 1)}
+    gamemode={'survival'}
+  />
+)
