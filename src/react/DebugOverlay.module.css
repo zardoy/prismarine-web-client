@@ -6,7 +6,7 @@
   position: absolute;
   display: flex;
   flex-direction: column;
-  z-index: 40;
+  z-index: -1;
   pointer-events: none;
 }
 
@@ -22,7 +22,7 @@
   width: 50%;
 }
 
-p {
+.debug-left-side p, .debug-right-side p {
   display: block;
   color: white;
   font-size: 10px;
