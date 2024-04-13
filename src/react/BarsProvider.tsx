@@ -101,7 +101,7 @@ export default () => {
       setOxygen(prev => bot.oxygenLevel)
     })
 
-    bot._client.on('set_slot', (packet) => {
+    bot.inventory.on('updateSlot', (packet) => {
       const armorSlots = new Set([5, 6, 7, 8])
       let points = 0
       for (const slotIndex of armorSlots) {
@@ -111,7 +111,6 @@ export default () => {
         points += armor[armorName[0]][armorName[1]]
       }
       setArmorValue(points)
-      console.log(points)
     })
   }, [])
 
