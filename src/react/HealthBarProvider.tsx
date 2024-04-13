@@ -1,8 +1,10 @@
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import { GameMode } from 'mineflayer'
 import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
+import { armor } from './armorValues'
 import HealthBar from './HealthBar'
 import FoodBar from './FoodBar'
+import ArmorBar from './ArmorBar'
 import BreathBar from './BreathBar'
 import './HealthBar.css'
 
@@ -11,6 +13,7 @@ export default () => {
   const [healthValue, setHealthValue] = useState(10)
   const [food, setFood] = useState(10)
   const [oxygen, setOxygen] = useState(0)
+  const [armorValue, setArmorValue] = useState(0)
   const [gameMode, setGameMode] = useState<GameMode | ''>('')
   const [isHardcore, setIsHardcore] = useState(false)
   const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
@@ -97,6 +100,19 @@ export default () => {
     bot.on('breath', () => {
       setOxygen(prev => bot.oxygenLevel)
     })
+
+    bot._client.on('set_slot', (packet) => {
+      const armorSlots = new Set([5, 6, 7, 8])
+      let points = 0
+      for (const slotIndex of armorSlots) {
+        const item = bot.inventory.slots[slotIndex] ?? null
+        if (!item) continue
+        const armorName = item.name.split('_')
+        points += armor[armorName[0]][armorName[1]]
+      }
+      setArmorValue(points)
+      console.log(points)
+    })
   }, [])
 
   return <div>
@@ -110,6 +126,10 @@ export default () => {
       effectToRemove={effectToRemove}
       effectAdded={effectAdded}
       effectEnded={effectEnded}
+    />
+    <ArmorBar 
+      armorValue={armorValue}
+      style={gameMode !== 'survival' && gameMode !== 'adventure' ? { display: 'none' } : { display: 'flex' }}
     />
     <FoodBar
       gameMode={gameMode}

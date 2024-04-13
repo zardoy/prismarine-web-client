@@ -1,14 +1,16 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useState, useEffect, CSSProperties } from 'react'
 import './ArmorBar.css'
 
 
 export type ArmorBarProps = {
-  armorValue: number
+  armorValue: number,
+  style?: CSSProperties
 }
 
 export default (
   {
-    armorValue
+    armorValue,
+    style
   }: ArmorBarProps) => {
   const armorRef = useRef<HTMLDivElement>(null!)
 
@@ -32,7 +34,7 @@ export default (
     }
   }, [armorValue])
 
-  return <div ref={armorRef} className='armor_container' >
+  return <div style={style ?? {}} ref={armorRef} className='armor_container' >
     {
       Array.from({ length: 10 }, () => 0)
         .map(
