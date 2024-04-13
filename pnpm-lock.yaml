@@ -5,6 +5,7 @@ settings:
   excludeLinksFromLockfile: false
 
 overrides:
+  '@nxg-org/mineflayer-physics-util': 1.5.0
   three: 0.154.0
   diamond-square: github:zardoy/diamond-square
   prismarine-block: github:zardoy/prismarine-block#next-era
@@ -3343,12 +3344,12 @@ packages:
   /@nxg-org/mineflayer-auto-jump@0.6.6:
     resolution: {integrity: sha512-YKM7gtICYfgUmmvoIzLaHAIlIZ/0+mAhu6L5yRhMHJz/9LB9lYZhBAQnqyhhCu8W1xDgOkQes/L3QeNJ6QmqUQ==}
     dependencies:
-      '@nxg-org/mineflayer-physics-util': 1.5.8
+      '@nxg-org/mineflayer-physics-util': 1.5.0
       strict-event-emitter-types: 2.0.0
     dev: false
 
-  /@nxg-org/mineflayer-physics-util@1.5.8:
-    resolution: {integrity: sha512-KmCkAqpUo8BbuRdIBs6+V2hWHehz++PRz3lRwIsb47CuG0u4sgLYh37RY3ifAznC6uWvmPK+q3B4ZXwJzPy1MQ==}
+  /@nxg-org/mineflayer-physics-util@1.5.0:
+    resolution: {integrity: sha512-8PpQ/GjEwAT9dXnx6wS7sW0rPQZ+i5PE8PKhJWFElax0p7SzFutiAqWrG0C/4ZV06/YxISKN8TyoipB+EtPCwQ==}
     dependencies:
       '@nxg-org/mineflayer-util-plugin': 1.8.3
     dev: false

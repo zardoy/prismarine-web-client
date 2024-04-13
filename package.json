@@ -137,6 +137,7 @@
   },
   "pnpm": {
     "overrides": {
+      "@nxg-org/mineflayer-physics-util": "1.5.0",
       "three": "0.154.0",
       "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",

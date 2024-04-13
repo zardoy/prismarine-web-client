@@ -9,6 +9,10 @@ import { miscUiState } from './globalState'
 const updateAutoJump = () => {
   if (!bot?.autoJumper) return
   const autoJump = options.autoJump === 'auto' ? miscUiState.currentTouch && !miscUiState.usingGamepadInput : options.autoJump === 'always'
+  bot.autoJumper.setOpts({
+    jumpIntoWater: false,
+    jumpOnAllEdges: false,
+  })
   if (autoJump) {
     bot.autoJumper.enable()
   } else {
