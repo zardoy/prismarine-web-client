@@ -208,6 +208,13 @@ export const guiOptionsScheme: {
       touchControlsType: {
         values: [['classic', 'Classic'], ['joystick-buttons', 'New']],
       },
+      autoJump: {
+        values: [
+          'always',
+          'auto',
+          'never'
+        ],
+      },
     },
     {
       custom () {

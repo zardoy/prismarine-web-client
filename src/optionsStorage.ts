@@ -70,6 +70,7 @@ const defaultOptions = {
   showCursorBlockInSpectator: false,
   renderEntities: true,
   chatSelect: false,
+  autoJump: 'auto' as 'auto' | 'always' | 'never',
 
   // advanced bot options
   autoRespawn: false,
