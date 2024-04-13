@@ -8,6 +8,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@master
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "pnpm"
       - name: Install pnpm
         run: npm i -g pnpm
         # todo this needs investigating fixing
@@ -25,6 +29,6 @@ jobs:
           name: cypress-images
           path: cypress/integration/__image_snapshots__/
       - run: node scripts/outdatedGitPackages.mjs
-        if: github.ref == 'refs/heads/next'
+        # if: github.ref == 'refs/heads/next'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
