@@ -21,41 +21,56 @@ export default () => {
   const worldsList = []
 
   useEffect(() => {
-    // todo browserfs + notifications to save
-    type ResponseType = {
-      version: {
-        name_raw: string
-      }
-      // display tooltip
-      players: {
-        online: number
-        max: number
-        list: {
+    const update = async () => {
+      // todo browserfs + notifications to save
+      type ResponseType = {
+        version: {
           name_raw: string
-          name_clean: string
-        }[]
+        }
+        // display tooltip
+        players: {
+          online: number
+          max: number
+          list: Array<{
+            name_raw: string
+            name_clean: string
+          }>
+        }
+        icon: string
+        motd: {
+          raw: string
+        }
+        // circle error icon
+        mods?: Array<{ name, version }>
+        // todo display via hammer icon
+        software?: string
+        plugins?: Array<{ name, version }>
       }
-      icon: string
-      motd: {
-        raw: string
+      // const https://api.mcstatus.io/v2/status/java/
+
+      for (const server of serversList) {
+        // eslint-disable-next-line no-await-in-loop
+        await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`).then(async r => r.json()).then((data: ResponseType) => {
+          server.version = data.version.name_raw
+          server.name = data.motd.raw
+          if (data.players) {
+            server.name += ` (${data.players.online}/${data.players.max})`
+          }
+          if (data.mods) {
+            server.name += ' ' + data.mods.map(mod => `${mod.name} ${mod.version}`).join(', ')
+          }
+          if (data.plugins) {
+            server.name += ' ' + data.plugins.map(plugin => `${plugin.name} ${plugin.version}`).join(', ')
+          }
+        })
       }
-      // circle error icon
-      mods?: {name,version}[]
-      // todo display via hammer icon
-      software?: string
-      plugins?: {name, version}[]
     }
-    // const https://api.mcstatus.io/v2/status/java/
-
-    for (const server of serversList) {
-
-      server.
-    }
+    void update()
   })
 
   return <ServersList
-    onWorldAction={() => {}}
-    onGeneralAction={() => {}}
+    onWorldAction={() => { }}
+    onGeneralAction={() => { }}
     worldData={serversList.map(server => ({ title: server.name ?? server.ip, detail: server.version, name: server.ip }))}
   />
 }
