@@ -315,7 +315,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
 }
 
 async function connect (connectOptions: {
-  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string
+  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string; ignoreQs?: boolean
 }) {
   if (miscUiState.gameLoaded) return
   miscUiState.hasErrors = false
@@ -826,6 +826,14 @@ async function connect (connectOptions: {
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
   })
+
+  if (!connectOptions.ignoreQs) {
+    const qs = new URLSearchParams(window.location.search)
+    for (let command of qs.getAll('command')) {
+      if (!command.startsWith('/')) command = `/${command}`
+      bot.chat(command)
+    }
+  }
 }
 
 listenGlobalEvents()
