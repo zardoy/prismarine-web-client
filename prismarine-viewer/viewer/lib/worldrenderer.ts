@@ -39,6 +39,8 @@ export class WorldRenderer {
   droppedFpsPercentage = 0
   initialChunksLoad = true
   enableChunksLoadDelay = false
+  sectionWithGeometry = new Set<string>()
+  skyLight = 15
 
   texturesVersion?: string
 
@@ -64,6 +66,7 @@ export class WorldRenderer {
             this.scene.remove(object)
             dispose3(object)
             delete this.sectionObjects[data.key]
+            this.sectionWithGeometry.delete(data.key)
           }
 
           const chunkCoords = data.key.split(',')
@@ -116,6 +119,7 @@ export class WorldRenderer {
           this.sectionObjects[data.key] = object
           this.updatePosDataChunk(data.key)
           this.scene.add(object)
+          this.sectionWithGeometry.add(data.key)
         } else if (data.type === 'sectionFinished') {
           this.sectionsOutstanding.delete(data.key)
           this.renderUpdateEmitter.emit('update')
@@ -168,6 +172,14 @@ export class WorldRenderer {
     tex.needsUpdate = true
     textures[texturekey] = tex
     return tex
+  }
+
+  // todo - at minimum update sections only where skyLight is used, ideally do only lights attr update on cached pos
+  rerenderAllChunks() { // todo not clear what to do with loading chunks
+    for (const key of this.sectionWithGeometry) {
+      const [x, y, z] = key.split(',').map(Number)
+      this.setSectionDirty(new Vec3(x, y, z))
+    }
   }
 
   renderSign (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
@@ -225,6 +237,7 @@ export class WorldRenderer {
     this.sectionObjects = {}
     this.loadedChunks = {}
     this.sectionsOutstanding = new Set()
+    this.sectionWithGeometry = new Set()
     for (const worker of this.workers) {
       worker.postMessage({ type: 'reset' })
     }
@@ -355,7 +368,7 @@ export class WorldRenderer {
     // This guarantees uniformity accross workers and that a given section
     // is always dispatched to the same worker
     const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
-    this.workers[hash].postMessage({ type: 'dirty', x: pos.x, y: pos.y, z: pos.z, value })
+    this.workers[hash].postMessage({ type: 'dirty', x: pos.x, y: pos.y, z: pos.z, value, skyLight: this.skyLight })
     this.sectionsOutstanding.add(`${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`)
   }
 

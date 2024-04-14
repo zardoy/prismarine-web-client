@@ -15,6 +15,7 @@ const { Vec3 } = require('vec3')
 const { World } = require('./world')
 const { getSectionGeometry, setBlockStates } = require('./models')
 
+/** @type {import ('./world').World} */
 let world = null
 let dirtySections = {}
 let blockStatesReady = false
@@ -43,11 +44,13 @@ self.onmessage = ({ data }) => {
   if (data.type === 'mcData') {
     globalThis.mcData = data.mcData
     world = new World(data.version)
+    // globalThis.world = world
   } else if (data.type === 'blockStates') {
     setBlockStates(data.json)
     blockStatesReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)
+    world.skyLight = data.skyLight
     setSectionDirty(loc, data.value)
   } else if (data.type === 'chunk') {
     world.addColumn(data.x, data.z, data.chunk)

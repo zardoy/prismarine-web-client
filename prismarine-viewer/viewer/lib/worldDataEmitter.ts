@@ -63,6 +63,9 @@ export class WorldDataEmitter extends EventEmitter {
         const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
       },
+      time: () => {
+        this.emitter.emit('time', bot.time.timeOfDay)
+      },
     } satisfies Partial<BotEvents>
 
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {

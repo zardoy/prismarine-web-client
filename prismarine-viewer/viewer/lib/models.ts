@@ -238,33 +238,6 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
-function posInChunk (pos) {
-  return new Vec3(Math.floor(pos.x) & 15, Math.floor(pos.y), Math.floor(pos.z) & 15)
-}
-
-function getLightSectionIndex (pos, minY = 0) {
-  return Math.floor((pos.y - minY) / 16) + 1
-}
-
-// todo export in chunk instead
-const hasChunkSection = (column, pos) => {
-  if (column._getSection) return column._getSection(pos)
-  if (column.sections) return column.sections[pos.y >> 4]
-  if (column.skyLightSections) return column.skyLightSections[getLightSectionIndex(pos, column.minY)]
-}
-
-const getLight = (pos: Vec3, world: World) => {
-  // const key = `${pos.x},${pos.y},${pos.z}`
-  // if (lightsCache.has(key)) return lightsCache.get(key)
-  const column = world.getColumnByPos(pos);
-  if (!column || !hasChunkSection(column, pos)) return 15
-  const result = Math.min(15, Math.max(column.getBlockLight(posInChunk(pos)), column.getSkyLight(posInChunk(pos))) + 2);
-  // lightsCache.set(key, result)
-  return result
-}
-
-globalThis.allowedBlocks = []
-
 function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
@@ -342,9 +315,9 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
 
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
-    let baseLightLevel = getLight(neighborPos, world)
+    let baseLightLevel = world.getLight(neighborPos)
     if (baseLightLevel === 2 && world.getBlock(neighborPos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
-      baseLightLevel = getLight(neighborPos.offset(0, 1, 0), world)
+      baseLightLevel = world.getLight(neighborPos.offset(0, 1, 0))
     }
     const baseLight = baseLightLevel / 15
     for (const pos of corners) {
@@ -483,7 +456,6 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         }
       }
     }
-    globalThis.getLight = (x, y, z) => getLight(new Vec3(x, y, z), world)
   }
 
   let ndx = attr.positions.length / 3

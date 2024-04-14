@@ -10,13 +10,6 @@ function columnKey (x, z) {
   return `${x},${z}`
 }
 
-function posInChunk (pos) {
-  pos = pos.floored()
-  pos.x &= 15
-  pos.z &= 15
-  return pos
-}
-
 function isCube (shapes) {
   if (!shapes || shapes.length !== 1) return false
   const shape = shapes[0]
@@ -31,6 +24,7 @@ export type WorldBlock = Block & {
 
 
 export class World {
+  skyLight = 15
   Chunk: typeof import('prismarine-chunk/types/index').PCChunk
   columns = {} as { [key: string]: import('prismarine-chunk/types/index').PCChunk }
   blockCache = {}
@@ -39,6 +33,22 @@ export class World {
   constructor(version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
+  }
+
+  getLight (pos: Vec3) {
+    // const key = `${pos.x},${pos.y},${pos.z}`
+    // if (lightsCache.has(key)) return lightsCache.get(key)
+    const column = this.getColumnByPos(pos);
+    if (!column || !hasChunkSection(column, pos)) return 15
+    const result = Math.min(
+      15,
+      Math.max(
+        column.getBlockLight(posInChunk(pos)),
+        Math.min(this.skyLight, column.getSkyLight(posInChunk(pos)))
+      ) + 2
+    );
+    // lightsCache.set(key, result)
+    return result
   }
 
   addColumn (x, z, json) {
@@ -104,4 +114,19 @@ export class World {
   shouldMakeAo (block: WorldBlock | null) {
     return block?.isCube && !ignoreAoBlocks.includes(block.name)
   }
+}
+
+// todo export in chunk instead
+const hasChunkSection = (column, pos) => {
+  if (column._getSection) return column._getSection(pos)
+  if (column.sections) return column.sections[pos.y >> 4]
+  if (column.skyLightSections) return column.skyLightSections[getLightSectionIndex(pos, column.minY)]
+}
+
+function posInChunk (pos) {
+  return new Vec3(Math.floor(pos.x) & 15, Math.floor(pos.y), Math.floor(pos.z) & 15)
+}
+
+function getLightSectionIndex (pos, minY = 0) {
+  return Math.floor((pos.y - minY) / 16) + 1
 }
