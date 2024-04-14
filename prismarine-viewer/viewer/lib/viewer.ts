@@ -181,7 +181,8 @@ export class Viewer {
     })
 
     emitter.on('renderDistance', (d) => {
-      this.world.chunksLength = generateSpiralMatrix(d).length
+      this.world.viewDistance = d
+      this.world.chunksLength = d === 0 ? 1 : generateSpiralMatrix(d).length
     })
 
     emitter.emit('listening')

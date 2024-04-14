@@ -31,6 +31,7 @@ export type WorldBlock = Block & {
 }
 
 export class World {
+  outputFormat = 'threeJs' as 'threeJs' | 'webgl'
   Chunk: any/* import('prismarine-chunk/types/index').PCChunk */
   columns = {}
   blockCache = {}

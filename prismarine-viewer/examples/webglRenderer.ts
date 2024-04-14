@@ -35,16 +35,15 @@ export const addBlocksSection = (key, data) => {
     sendWorkerMessage({
         type: 'addBlocksSection', data, key
     })
-    if (isWaitingToUpload) return
-    isWaitingToUpload = true
-    viewer.waitForChunksToRender().then(() => {
-        isWaitingToUpload = false
-        if (allReceived || (true && Object.values(viewer.world.newChunks).length)) {
-            sendWorkerMessage({
-                type: 'addBlocksSectionDone'
-            })
-        }
-    })
+    if (playground && !isWaitingToUpload) {
+        isWaitingToUpload = true
+        // viewer.waitForChunksToRender().then(() => {
+        //     isWaitingToUpload = false
+        //     sendWorkerMessage({
+        //         type: 'addBlocksSectionDone'
+        //     })
+        // })
+    }
 }
 
 export const loadFixtureSides = (json) => {
@@ -75,7 +74,7 @@ export const removeBlocksSection = (key) => {
 
 let playground = false
 export const initWebglRenderer = async (version: string, postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
-    playground = playgroundModeInWorker
+    playground = actuallyPlayground
     await new Promise(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
         // viewer.world.material.map!.image.onload = () => {

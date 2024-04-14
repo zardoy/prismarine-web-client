@@ -811,7 +811,7 @@ function getModelVariants (block: import('prismarine-block').Block) {
   return []
 }
 
-export const setBlockStatesAndData = (_blockStates: BlockStatesOutput | null, _textureSize: number) => {
+export const setRendererData = (_blockStates: BlockStatesOutput | null, _textureSize: number) => {
   textureSize = _textureSize
   blockStates = _blockStates!
 }

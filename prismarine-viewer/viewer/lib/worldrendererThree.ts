@@ -12,6 +12,7 @@ function mod (x, n) {
 }
 
 export class WorldRendererThree extends WorldRendererCommon {
+    outputFormat = 'threeJs' as const
     blockEntities = {}
     sectionObjects: Record<string, THREE.Object3D> = {}
     showChunkBorders = false

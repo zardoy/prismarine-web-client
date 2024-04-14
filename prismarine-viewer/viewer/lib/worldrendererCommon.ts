@@ -6,6 +6,7 @@ import { EventEmitter } from 'events'
 import mcDataRaw from 'minecraft-data/data.js'; // handled correctly in esbuild plugin
 import { dynamicMcDataFiles } from '../../buildWorkerConfig.mjs'
 import { toMajor } from './version.js'
+import { chunkPos } from './simpleUtils'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -20,7 +21,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   active = false
   version = undefined as string | undefined
   loadedChunks = {} as Record<string, boolean>
-  sectionsOutstanding = new Set<string>()
+  finishedChunks = {} as Record<string, boolean>
+  sectionsOutstanding = new Map<string, number>()
   renderUpdateEmitter = new EventEmitter()
   customBlockStatesData = undefined as any
   customTexturesDataUrl = undefined as string | undefined
@@ -33,9 +35,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   initialChunksLoad = true
   enableChunksLoadDelay = false
   texturesVersion?: string
+  viewDistance = -1
+  chunksLength = 0
   // promisesQueue = [] as Promise<any>[]
 
-  constructor(numWorkers: number) {
+  abstract outputFormat: 'threeJs' | 'webgl'
+
+  constructor (numWorkers: number) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
@@ -51,7 +57,27 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           setTimeout(resolve, 0)
         })
         if (data.type === 'sectionFinished') {
-          this.sectionsOutstanding.delete(data.key)
+          if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
+          this.sectionsOutstanding.set(data.key, this.sectionsOutstanding.get(data.key)! - 1)
+          if (this.sectionsOutstanding.get(data.key) === 0) this.sectionsOutstanding.delete(data.key)
+
+          const chunkCoords = data.key.split(',').map(Number)
+          if (this.loadedChunks[`${chunkCoords[0]},${chunkCoords[2]}`]) { // ensure chunk data was added, not a neighbor chunk update
+            const loadingKeys = [...this.sectionsOutstanding.keys()]
+            if (!loadingKeys.some(key => {
+              const [x, y, z] = key.split(',').map(Number)
+              return x === chunkCoords[0] && z === chunkCoords[2]
+            })) {
+              this.finishedChunks[`${chunkCoords[0]},${chunkCoords[2]}`] = true
+            }
+          }
+          if (this.sectionsOutstanding.size === 0) {
+            const allFinished = Object.keys(this.finishedChunks).length === this.chunksLength
+            if (allFinished) {
+              this.allChunksLoaded?.()
+            }
+          }
+
           this.renderUpdateEmitter.emit('update')
         }
       }
@@ -65,13 +91,15 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   /**
    * Optionally update data that are depedendent on the viewer position
    */
-  abstract updatePosDataChunk (key: string): void
+  updatePosDataChunk?(key: string): void
+
+  allChunksLoaded?(): void
 
   updateViewerPosition (pos: Vec3) {
     this.viewerPosition = pos
     for (const [key, value] of Object.entries(this.loadedChunks)) {
       if (!value) continue
-      this.updatePosDataChunk(key)
+      this.updatePosDataChunk?.(key)
     }
   }
 
@@ -81,12 +109,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
+  getDistance (posAbsolute: Vec3) {
+    const [botX, botZ] = chunkPos(this.viewerPosition!)
+    const dx = Math.abs(botX - Math.floor(posAbsolute.x / 16))
+    const dz = Math.abs(botZ - Math.floor(posAbsolute.z / 16))
+    return [dx, dz] as [number, number]
+  }
+
   abstract updateShowChunksBorder (value: boolean): void
 
   resetWorld () {
     this.active = false
     this.loadedChunks = {}
-    this.sectionsOutstanding = new Set()
+    this.sectionsOutstanding = new Map()
     for (const worker of this.workers) {
       worker.postMessage({ type: 'reset' })
     }
@@ -129,7 +164,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       loadBlockStates().then((blockStates) => {
         for (const worker of this.workers) {
-          worker.postMessage({ type: 'blockStates', json: blockStates, textureSize: tex.image.width })
+          worker.postMessage({ type: 'rendererData', json: blockStates, textureSize: tex.image.width, outputFormat: this.outputFormat })
         }
       })
     })
@@ -159,7 +194,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
-  setBlockStateId (pos, stateId) {
+  setBlockStateId (pos: Vec3, stateId: number) {
     for (const worker of this.workers) {
       worker.postMessage({ type: 'blockUpdate', pos, stateId })
     }
@@ -172,14 +207,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16))
   }
 
-  setSectionDirty (pos, value = true) {
+  setSectionDirty (pos: Vec3, value = true) {
+    if (this.viewDistance === -1) throw new Error('viewDistance not set')
+    const distance = this.getDistance(pos)
+    if (distance[0] > this.viewDistance || distance[1] > this.viewDistance) return
+    const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`;
+    // if (this.sectionsOutstanding.has(key)) return
     this.renderUpdateEmitter.emit('dirty', pos, value)
     // Dispatch sections to workers based on position
     // This guarantees uniformity accross workers and that a given section
     // is always dispatched to the same worker
     const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
+    this.sectionsOutstanding.set(key, (this.sectionsOutstanding.get(key) ?? 0) + 1)
     this.workers[hash].postMessage({ type: 'dirty', x: pos.x, y: pos.y, z: pos.z, value })
-    this.sectionsOutstanding.add(`${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`)
   }
 
   // Listen for chunk rendering updates emitted if a worker finished a render and resolve if the number

@@ -1,3 +1,4 @@
+import { Vec3 } from 'vec3'
 import { updateStatText } from '../../examples/newStats'
 import { addBlocksSection, removeBlocksSection, sendWorkerMessage } from '../../examples/webglRenderer'
 import type { WebglData } from '../prepare/webglData'
@@ -5,13 +6,19 @@ import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
 
 export class WorldRendererWebgl extends WorldRendererCommon {
+  outputFormat = 'webgl' as const
   newChunks = {} as Record<string, any>
   webglData: WebglData
   stopBlockUpdate = false
-  chunksLength = 0
+  lastChunkDistance = 0
 
   constructor(numWorkers = 4) {
     super(numWorkers)
+
+    this.renderUpdateEmitter.on('update', () => {
+      const loadedChunks = Object.keys(this.finishedChunks).length;
+      updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance})`)
+    })
   }
 
   playgroundGetWebglData () {
@@ -29,16 +36,25 @@ export class WorldRendererWebgl extends WorldRendererCommon {
     super.setBlockStateId(pos, stateId)
   }
 
+  isWaitingForChunksToRender = false
+
+  allChunksLoaded (): void {
+    console.log('allChunksLoaded')
+    sendWorkerMessage({
+      type: 'addBlocksSectionDone'
+    })
+  }
+
   handleWorkerMessage (data: any): void {
     if (data.type === 'geometry' && Object.keys(data.geometry.blocks).length) {
 
-      const chunkCoords = data.key.split(',')
+      const chunkCoords = data.key.split(',').map(Number) as [number, number, number]
       if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 
       addBlocksSection(data.key, data.geometry)
-      const chunkDistance = Math.round(Math.max(Math.abs((chunkCoords[0]) - this.viewerPosition!.x) / 16, Math.abs(chunkCoords[2] - this.viewerPosition!.y) / 16))
-      updateStatText('loaded-chunks', Object.keys(this.loadedChunks).length + `/${this.chunksLength} chunks (${chunkDistance})`)
-      // const blocks = Object.values(data.geometry.blocks) as any[]
+      this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
+
+      // todo
       this.newChunks[data.key] = data.geometry
     }
   }
@@ -65,7 +81,6 @@ export class WorldRendererWebgl extends WorldRendererCommon {
 
 
   removeColumn (x, z) {
-    return
     console.log('removeColumn', x, z)
     super.removeColumn(x, z)
     for (const key of Object.keys(this.newChunks)) {
