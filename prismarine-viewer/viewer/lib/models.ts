@@ -108,10 +108,10 @@ const elemFaces = {
   }
 }
 
-function getLiquidRenderHeight (world, block, type) {
+function getLiquidRenderHeight (world, block, type, pos) {
   if (!block || block.type !== type) return 1 / 9
   if (block.metadata === 0) { // source block
-    const blockAbove = world.getBlock(block.position.offset(0, 1, 0))
+    const blockAbove = world.getBlock(pos.offset(0, 1, 0))
     if (blockAbove && blockAbove.type === type) return 1
     return 8 / 9
   }
@@ -122,7 +122,8 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
-      heights.push(getLiquidRenderHeight(world, world.getBlock(cursor.offset(x, 0, z)), type))
+      const pos = cursor.offset(x, 0, z);
+      heights.push(getLiquidRenderHeight(world, world.getBlock(pos), type, pos))
     }
   }
   const cornerHeights = [
@@ -241,7 +242,33 @@ function posInChunk (pos) {
   return new Vec3(Math.floor(pos.x) & 15, Math.floor(pos.y), Math.floor(pos.z) & 15)
 }
 
+function getLightSectionIndex (pos, minY = 0) {
+  return Math.floor((pos.y - minY) / 16) + 1
+}
+
+// todo export in chunk instead
+const hasChunkSection = (column, pos) => {
+  if (column._getSection) return column._getSection(pos)
+  if (column.sections) return column.sections[pos.y >> 4]
+  if (column.skyLightSections) return column.skyLightSections[getLightSectionIndex(pos, column.minY)]
+}
+
+const getLight = (pos: Vec3, world: World) => {
+  // const key = `${pos.x},${pos.y},${pos.z}`
+  // if (lightsCache.has(key)) return lightsCache.get(key)
+  const column = world.getColumnByPos(pos);
+  if (!column || !hasChunkSection(column, pos)) return 15
+  const result = Math.min(15, Math.max(column.getBlockLight(posInChunk(pos)), column.getSkyLight(posInChunk(pos))) + 2);
+  // lightsCache.set(key, result)
+  return result
+}
+
+globalThis.allowedBlocks = []
+
 function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
+  const position = cursor
+  // const key = `${position.x},${position.y},${position.z}`
+  // if (!globalThis.allowedBlocks.includes(key)) return
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
   for (const face in element.faces) {
@@ -314,10 +341,10 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     }
 
     const aos: number[] = []
-    const getLight = (pos) => Math.min(15, Math.max(world.getColumnByPos(pos).getBlockLight(posInChunk(pos)), world.getColumnByPos(pos).getSkyLight(posInChunk(pos))) + 2)
-    let baseLightLevel = getLight(block.position)
-    if (baseLightLevel === 2 && block.transparent) {
-      baseLightLevel = getLight(block.position.offset(0, -1, 0))
+    const neighborPos = position.plus(new Vec3(...dir))
+    let baseLightLevel = getLight(neighborPos, world)
+    if (baseLightLevel === 2 && !world.getBlock(neighborPos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
+      baseLightLevel = getLight(neighborPos.offset(0, 1, 0), world)
     }
     const baseLight = baseLightLevel / 15
     for (const pos of corners) {
@@ -456,6 +483,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         }
       }
     }
+    globalThis.getLight = (x, y, z) => getLight(new Vec3(x, y, z), world)
   }
 
   let ndx = attr.positions.length / 3

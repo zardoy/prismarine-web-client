@@ -108,7 +108,7 @@ const buildOptions = {
             for (const outputFile of outputFiles) {
               if (outDir === '../dist/' && outputFile.path.endsWith('.map')) {
                 // skip writing & browser loading sourcemap there, worker debugging should be done in playground
-                continue
+                // continue
               }
               fs.mkdirSync(outDir, { recursive: true })
               fs.writeFileSync(path.join(__dirname, outDir, path.basename(outputFile.path)), outputFile.text)

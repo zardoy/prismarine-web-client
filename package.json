@@ -81,6 +81,7 @@
     "title-case": "3.x",
     "ua-parser-js": "^1.0.37",
     "valtio": "^1.11.1",
+    "vec3": "^0.1.7",
     "workbox-build": "^7.0.0"
   },
   "devDependencies": {

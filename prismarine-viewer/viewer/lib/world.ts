@@ -91,14 +91,14 @@ export class World {
 
     const block = this.blockCache[stateId]
     // block.position = loc // it overrides position of all currently loaded blocks
-    block.biome = this.biomeCache[column.getBiome(locInChunk)] ?? this.biomeCache[1] ?? this.biomeCache[0]
-    if (block.name === 'redstone_ore') block.transparent = false
-    return new Proxy(block, {
-      get: (target, prop) => {
-        if (prop === 'position') return loc
-        return target[prop]
+    Object.defineProperty(block, 'position', {
+      get () {
+        throw new Error('position is not reliable, use pos parameter instead of block.position')
       }
     })
+    block.biome = this.biomeCache[column.getBiome(locInChunk)] ?? this.biomeCache[1] ?? this.biomeCache[0]
+    if (block.name === 'redstone_ore') block.transparent = false
+    return block
   }
 
   shouldMakeAo (block: WorldBlock | null) {
