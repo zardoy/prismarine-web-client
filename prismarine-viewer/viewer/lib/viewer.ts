@@ -39,7 +39,7 @@ export class Viewer {
     if (this.enableFXAA) {
       this.enableFxaaScene()
     }
-    this.world = new WorldRenderer(this.scene, 1)
+    this.world = new WorldRenderer(this.scene, numWorkers)
     this.entities = new Entities(this.scene)
     this.primitives = new Primitives(this.scene, this.camera)
 
