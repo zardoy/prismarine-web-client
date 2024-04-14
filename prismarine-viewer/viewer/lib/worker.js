@@ -1,5 +1,6 @@
 /* global postMessage self */
 
+// todo rename to mesher!
 if (!global.self) {
   // If we are in a node environement, we need to fake some env variables
   /* eslint-disable no-eval */
