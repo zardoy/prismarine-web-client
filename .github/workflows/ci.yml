@@ -8,13 +8,13 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@master
+      - name: Install pnpm
+        run: npm i -g pnpm
+        # todo this needs investigating fixing
       - uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: "pnpm"
-      - name: Install pnpm
-        run: npm i -g pnpm
-        # todo this needs investigating fixing
       - run: pnpm install
       - run: pnpm lint
       - run: pnpm check-build
