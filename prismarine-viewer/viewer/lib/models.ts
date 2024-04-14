@@ -343,7 +343,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
     let baseLightLevel = getLight(neighborPos, world)
-    if (baseLightLevel === 2 && !world.getBlock(neighborPos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
+    if (baseLightLevel === 2 && world.getBlock(neighborPos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
       baseLightLevel = getLight(neighborPos.offset(0, 1, 0), world)
     }
     const baseLight = baseLightLevel / 15
