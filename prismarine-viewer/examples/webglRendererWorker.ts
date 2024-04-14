@@ -7,7 +7,7 @@ import FragShader from './_FragmentShader.frag'
 import { BlockFaceType, BlockType } from './shared'
 import * as tweenJs from '@tweenjs/tween.js'
 
-let allSides = [] as [number, number, number, BlockFaceType][]
+let allSides = [] as ([number, number, number, BlockFaceType] | undefined)[]
 let allSidesAdded = 0
 let needsSidesUpdate = false
 
@@ -216,6 +216,7 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         // up2
         const newSides = allSides.slice(startIndex, lastNotUpdatedArrSize ? startIndex + lastNotUpdatedArrSize : undefined)
         newSides.sort((a, b) => {
+            if (!a || !b) return 0
             const getScore = (b: BlockFaceType) => b.isTransparent ? 1 : 0
             return getScore(a[3]) - getScore(b[3])
         })
@@ -225,10 +226,12 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         sideIndexes = new Float32Array(newSides.length * 1);
         sideBiomeColor = new Float32Array(newSides.length * 3);
         for (let i = 0; i < newSides.length * 3; i += 3) {
-            sidePositions[i] = newSides[i / 3][0]
-            sidePositions[i + 1] = newSides[i / 3][1]
-            sidePositions[i + 2] = newSides[i / 3][2]
-            const block = newSides[i / 3][3] as BlockFaceType
+            const newSide = newSides[i / 3];
+            if (!newSide) continue
+            sidePositions[i] = newSide[0]
+            sidePositions[i + 1] = newSide[1]
+            sidePositions[i + 2] = newSide[2]
+            const block = newSide[3] as BlockFaceType
             if (block.tint) {
                 const [r, g, b] = block.tint
                 sideBiomeColor[i] = r
@@ -280,9 +283,18 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
 
         allSidesAdded = allSides.length
         needsSidesUpdate = true
+        lastNotUpdatedArrSize = undefined
     }
 
     globalThis.updateCubes = updateCubes
+    globalThis.resetHalfScene = () => {
+        for (let i = 0; i < allSides.length / 2; i++) {
+            allSides[i] = undefined
+        }
+        lastNotUpdatedIndex = 0
+        lastNotUpdatedArrSize = allSides.length / 2
+        updateCubes(0)
+    }
     const cleanupFirstChunks = () => {
         allSides = []
         gl.bindBuffer(gl.ARRAY_BUFFER, instanceVBO);
@@ -489,12 +501,19 @@ onmessage = function (e) {
         // updateCubes?.(currentLength)
     }
     if (e.data.type === 'addBlocksSectionDone') {
-        updateCubes?.(lastNotUpdatedIndex)
+        updateCubesWhenAvailable(lastNotUpdatedIndex)
         lastNotUpdatedIndex = undefined
         lastNotUpdatedArrSize = undefined
     }
     if (e.data.type === 'removeBlocksSection') {
-        // const [startIndex, endIndex] = chunksArrIndexes[e.data.key]
+        // fill data with 0
+        const [startIndex, endIndex] = chunksArrIndexes[e.data.key]
+        for (let i = startIndex; i < endIndex; i++) {
+            allSides[i] = undefined
+        }
+        lastNotUpdatedArrSize = endIndex - startIndex
+        updateCubes(startIndex)
+
         // freeArrayIndexes.push([startIndex, endIndex])
 
         // // merge freeArrayIndexes TODO
@@ -507,7 +526,12 @@ onmessage = function (e) {
     if (e.data.type === 'camera') {
         camera.rotation.set(e.data.camera.rotation.x, e.data.camera.rotation.y, e.data.camera.rotation.z, 'ZYX')
         // camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
-        new tweenJs.Tween(camera.position).to({ x: e.data.camera.position.x, y: e.data.camera.position.y, z: e.data.camera.position.z }, 300).start() // 50
+        if (camera.position.x === 0 && camera.position.y === 0 && camera.position.z === 0) {
+            // initial camera position
+            camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
+        } else {
+            new tweenJs.Tween(camera.position).to({ x: e.data.camera.position.x, y: e.data.camera.position.y, z: e.data.camera.position.z }, 50).start()
+        }
     }
     if (e.data.type === 'animationTick') {
         if (e.data.frames <= 0) {
