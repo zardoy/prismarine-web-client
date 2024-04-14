@@ -21,8 +21,8 @@ jobs:
       - run: nohup pnpm prod-start &
       - run: nohup pnpm test-mc-server &
       - uses: cypress-io/github-action@v5
-        with:
-          install: false
+        # with:
+        #   install: false
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
