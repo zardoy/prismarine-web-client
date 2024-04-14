@@ -97,15 +97,15 @@ export class World {
       //@ts-expect-error
       b.isCube = isCube(b.shapes)
       this.blockCache[stateId] = b
+      Object.defineProperty(b, 'position', {
+        get () {
+          throw new Error('position is not reliable, use pos parameter instead of block.position')
+        }
+      })
     }
 
     const block = this.blockCache[stateId]
     // block.position = loc // it overrides position of all currently loaded blocks
-    Object.defineProperty(block, 'position', {
-      get () {
-        throw new Error('position is not reliable, use pos parameter instead of block.position')
-      }
-    })
     block.biome = this.biomeCache[column.getBiome(locInChunk)] ?? this.biomeCache[1] ?? this.biomeCache[0]
     if (block.name === 'redstone_ore') block.transparent = false
     return block
