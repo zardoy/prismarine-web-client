@@ -32,7 +32,7 @@ export type OptionMeta<T = any> = GeneralItem<T & string> & ({
 
 // todo not reactive
 const isDisabled = (id) => {
-  return qsOptions.includes(id)
+  return Object.keys(qsOptions).includes(id)
 }
 
 export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'toggle' }> }) => {
