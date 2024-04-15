@@ -1,9 +1,66 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Transition } from 'react-transition-group'
 import { openItemsCanvas, openPlayerInventory, upInventoryItems } from '../playerWindows'
 import { isGameActive, miscUiState } from '../globalState'
 
+
+const ItemName = ({ slotIndex }: { slotIndex: number }) => {
+  const nodeRef = useRef(null)
+  const [show, setShow] = useState(false)
+  const [itemName, setItemName] = useState('')
+
+  const duration = 300
+
+  const defaultStyle = {
+    position: 'fixed', 
+    bottom: '15%',
+    left: 0,
+    right: 0,
+    fontSize: '0.5rem',
+    textAlign: 'center',
+    transition: `opacity ${duration}ms ease-in-out`,
+    opacity: 0,
+  }
+
+  const transitionStyles = {
+    entering: { opacity: 1 },
+    entered:  { opacity: 1 },
+    exiting:  { opacity: 0 },
+    exited:  { opacity: 0 },
+  }
+
+  useEffect(() => {
+    if (bot.inventory.slots) {
+      const item = bot.inventory.slots[slotIndex]
+      if (item) {
+        setItemName(prev => item.displayName)
+        setShow(prev => true)
+        const id = setTimeout(() => {
+          setShow(prev => false)
+        }, 1500)
+
+        return () => {
+          clearTimeout(id)
+        }
+      } else {
+        setItemName(prev => '')
+      }
+
+    }
+  }, [slotIndex])
+
+  return <Transition nodeRef={nodeRef} in={show} timeout={duration} >
+    {state => (
+      <div ref={nodeRef} style={{ ...defaultStyle, ...transitionStyles[state] }}>
+        {itemName}
+      </div>
+    )}
+  </Transition>
+}
+
 export default () => {
   const container = useRef<HTMLDivElement>(null!)
+  const [slotIndex, setSlotIndex] = useState(0)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -47,6 +104,7 @@ export default () => {
 
     const setSelectedSlot = (index: number) => {
       if (index === bot.quickBarSlot) return
+      setSlotIndex(prev => index + 36)
       bot.setQuickBarSlot(index)
     }
     const heldItemChanged = () => {
@@ -83,13 +141,16 @@ export default () => {
     }
   }, [])
 
-  return <div className='hotbar' ref={container} style={{
-    position: 'fixed',
-    bottom: 'calc(env(safe-area-inset-bottom) / 2)',
-    left: 0,
-    right: 0,
-    display: 'flex',
-    justifyContent: 'center',
-    zIndex: -1,
-  }} />
+  return <> 
+    <ItemName slotIndex={slotIndex} />
+    <div className='hotbar' ref={container} style={{
+      position: 'fixed',
+      bottom: 'calc(env(safe-area-inset-bottom) / 2)',
+      left: 0,
+      right: 0,
+      display: 'flex',
+      justifyContent: 'center',
+      zIndex: -1,
+    }} />
+  </>
 }
