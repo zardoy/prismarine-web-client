@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useMemo } from 'react'
 import nbt from 'prismarine-nbt'
 import { Transition } from 'react-transition-group'
-import { openItemsCanvas, openPlayerInventory, upInventoryItems } from '../playerWindows'
+import { getItemNameRaw, openItemsCanvas, openPlayerInventory, upInventoryItems } from '../playerWindows'
 import { isGameActive, miscUiState } from '../globalState'
 import MessageFormattedString from './MessageFormattedString'
 import SharedHudVars from './SharedHudVars'
@@ -15,7 +15,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   const duration = 300
 
   const defaultStyle = {
-    position: 'fixed', 
+    position: 'fixed',
     bottom: 'calc(var(--safe-area-inset-bottom) + 50px)',
     left: 0,
     right: 0,
@@ -35,24 +35,25 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   useEffect(() => {
     const itemData = itemKey.split('_split_')
     if (!itemKey) {
-      setItemName(prev => '')
+      setItemName('')
     } else if (itemData[3]) {
-      const itemNbt = nbt.simplify(JSON.parse(itemData[3]))
-      if (itemNbt.display) {
-        const itemNameObj = JSON.parse(itemNbt.display.Name)
-        setItemName(prev => itemNameObj)
+      const customDisplay = getItemNameRaw({
+        nbt: JSON.parse(itemData[3]),
+      })
+      if (customDisplay) {
+        setItemName(customDisplay)
       } else {
-        setItemName(prev => itemData[0])
+        setItemName(itemData[0])
       }
     } else {
-      setItemName(prev => itemData[0])
+      setItemName(itemData[0])
     }
-    setShow(prev => true)
+    setShow(true)
     const id = setTimeout(() => {
-      setShow(prev => false)
+      setShow(false)
     }, 1500)
     return () => {
-      setShow(prev => false)
+      setShow(false)
       clearTimeout(id)
     }
   }, [itemKey])
@@ -60,7 +61,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   return <Transition nodeRef={nodeRef} in={show} timeout={duration} >
     {state => (
       <div ref={nodeRef} style={{ ...defaultStyle, ...transitionStyles[state] }}>
-        <MessageFormattedString message={itemName} /> 
+        <MessageFormattedString message={itemName} />
       </div>
     )}
   </Transition>
@@ -113,17 +114,15 @@ export default () => {
     const setSelectedSlot = (index: number) => {
       if (index === bot.quickBarSlot) return
       bot.setQuickBarSlot(index)
-      if (!bot.inventory.slots?.[bot.quickBarSlot + 36]) setItemKey(prev => '')
+      if (!bot.inventory.slots?.[bot.quickBarSlot + 36]) setItemKey('')
     }
     const heldItemChanged = () => {
-      // todo! display selected block text (on active hotbar item slot replace as well)
       inv.inventory.activeHotbarSlot = bot.quickBarSlot
-      // render
 
       if (!bot.inventory.slots?.[bot.quickBarSlot + 36]) return
       const item = bot.inventory.slots[bot.quickBarSlot + 36]!
       const itemNbt = item.nbt ? JSON.stringify(item.nbt) : ''
-      setItemKey(prev => `${item.displayName}_split_${item.type}_split_${item.metadata}_split_${itemNbt}`)
+      setItemKey(`${item.displayName}_split_${item.type}_split_${item.metadata}_split_${itemNbt}`)
     }
     heldItemChanged()
     bot.on('heldItemChanged' as any, heldItemChanged)
@@ -154,7 +153,7 @@ export default () => {
     }
   }, [])
 
-  return <SharedHudVars> 
+  return <SharedHudVars>
     <ItemName itemKey={itemKey} />
     <div className='hotbar' ref={container} style={{
       position: 'fixed',

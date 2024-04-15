@@ -33,7 +33,7 @@ import Generic95 from '../assets/generic_95.png'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
-import { assertDefined } from './utils'
+import { assertDefined, inGameError } from './utils'
 
 export const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
 const loadedImagesCache = new Map<string, HTMLImageElement>()
@@ -292,12 +292,17 @@ type PossibleItemProps = {
   Damage?: number
   display?: { Name?: JsonString } // {"text":"Knife","color":"white","italic":"true"}
 }
-export const getItemName = (item: import('prismarine-item').Item | null) => {
+export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'> | null) => {
   if (!item?.nbt) return
   const itemNbt: PossibleItemProps = nbt.simplify(item.nbt)
   const customName = itemNbt.display?.Name
   if (!customName) return
   const parsed = mojangson.simplify(mojangson.parse(customName))
+  return parsed
+}
+
+const getItemName = (slot: Item | null) => {
+  const parsed = getItemNameRaw(slot)
   // todo display full text renderer from sign renderer
   const text = flat(parsed).map(x => x.text)
   return text
@@ -322,7 +327,7 @@ const mapSlots = (slots: Array<RenderSlot | Item | null>) => {
       const slotCustomProps = renderSlot(slot)
       Object.assign(slot, { ...slotCustomProps, displayName: ('nbt' in slot ? getItemName(slot) : undefined) ?? slot.displayName })
     } catch (err) {
-      console.error(err)
+      inGameError(err)
     }
     return slot
   })
@@ -422,7 +427,7 @@ const openWindow = (type: string | undefined) => {
     // slotItem is the slot from mapSlots
     const itemId = loadedData.itemsByName[slotItem.name]?.id
     if (!itemId) {
-      console.error(`Item for block ${slotItem.name} not found`)
+      inGameError(`Item for block ${slotItem.name} not found`)
       return
     }
     const item = new PrismarineItem(itemId, isRightclick ? 64 : 1, slotItem.metadata)

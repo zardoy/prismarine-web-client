@@ -68,7 +68,9 @@ const GameHud = ({ children }) => {
 
   useEffect(() => {
     customEvents.on('mineflayerBotCreated', () => {
-      setGameLoaded(true)
+      bot.once('inject_allowed', () => {
+        setGameLoaded(true)
+      })
     })
   }, [])
   useEffect(() => {
