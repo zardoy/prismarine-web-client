@@ -38,7 +38,6 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
       setItemName(prev => '')
     } else if (itemData[3]) {
       const itemNbt = nbt.simplify(JSON.parse(itemData[3]))
-      console.log(itemNbt)
       if (itemNbt.display) {
         const itemNameObj = JSON.parse(itemNbt.display.Name)
         setItemName(prev => itemNameObj)
@@ -114,6 +113,7 @@ export default () => {
     const setSelectedSlot = (index: number) => {
       if (index === bot.quickBarSlot) return
       bot.setQuickBarSlot(index)
+      if (!bot.inventory.slots?.[bot.quickBarSlot + 36]) setItemKey(prev => '')
     }
     const heldItemChanged = () => {
       // todo! display selected block text (on active hotbar item slot replace as well)
@@ -121,11 +121,7 @@ export default () => {
       // render
 
       if (!bot.inventory.slots?.[bot.quickBarSlot + 36]) return
-      const item = bot.inventory.slots[bot.quickBarSlot + 36]
-      if (!item) {
-        setItemKey(prev => '')
-        return
-      }
+      const item = bot.inventory.slots[bot.quickBarSlot + 36]!
       const itemNbt = item.nbt ? JSON.stringify(item.nbt) : ''
       setItemKey(prev => `${item.displayName}_split_${item.type}_split_${item.metadata}_split_${itemNbt}`)
     }
