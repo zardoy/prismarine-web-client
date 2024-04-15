@@ -24,11 +24,8 @@ export class Viewer {
   audioListener: THREE.AudioListener
   renderingUntilNoUpdates = false
   processEntityOverrides = (e, overrides) => overrides
-  composer?: EffectComposer
-  fxaaPass: ShaderPass
-  renderPass: RenderPass
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
@@ -36,10 +33,7 @@ export class Viewer {
     this.scene = new THREE.Scene()
     this.scene.matrixAutoUpdate = false // for perf
     this.resetScene()
-    if (this.enableFXAA) {
-      this.enableFxaaScene()
-    }
-    this.world = new WorldRenderer(this.scene, numWorkers)
+    this.world = new WorldRendererThree(this.scene, numWorkers)
     this.entities = new Entities(this.scene)
     this.primitives = new Primitives(this.scene, this.camera)
 
@@ -188,10 +182,6 @@ export class Viewer {
     })
   }
 
-  update () {
-    tweenJs.update()
-  }
-
   render () {
     if (this.composer) {
       this.renderPass.camera = this.camera
@@ -204,35 +194,5 @@ export class Viewer {
 
   async waitForChunksToRender () {
     await this.world.waitForChunksToRender()
-  }
-
-  enableFxaaScene () {
-    let renderTarget
-    if (this.renderer.capabilities.isWebGL2) {
-      // Use float precision depth if possible
-      // see https://github.com/bs-community/skinview3d/issues/111
-      renderTarget = new THREE.WebGLRenderTarget(0, 0, {
-        depthTexture: new THREE.DepthTexture(0, 0, THREE.FloatType),
-      })
-    }
-    this.composer = new EffectComposer(this.renderer, renderTarget)
-    this.renderPass = new RenderPass(this.scene, this.camera)
-    this.composer.addPass(this.renderPass)
-    this.fxaaPass = new ShaderPass(FXAAShader)
-    this.composer.addPass(this.fxaaPass)
-    this.updateComposerSize()
-    this.enableFXAA = true
-  }
-
-  // todo
-  updateComposerSize (): void {
-    if (!this.composer) return
-    const { width, height } = this.renderer.getSize(new THREE.Vector2())
-    this.composer.setSize(width, height)
-    // todo auto-update
-    const pixelRatio = this.renderer.getPixelRatio()
-    this.composer.setPixelRatio(pixelRatio)
-    this.fxaaPass.material.uniforms["resolution"].value.x = 1 / (width * pixelRatio)
-    this.fxaaPass.material.uniforms["resolution"].value.y = 1 / (height * pixelRatio)
   }
 }

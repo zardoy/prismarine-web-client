@@ -10,11 +10,11 @@ You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.
 
 ### Big Features
 
-- Connect to any offline server* (it's possible because of proxy servers, see below)
 - Open any zip world file or even folder in read-write mode!
-- Singleplayer mode with simple world generation
+- Connect to cracked servers* (it's possible because of proxy servers, see below)
+- Singleplayer mode with simple world generations!
 - Works offline
-- Play with friends over global network! (P2P is powered by Peer.js servers)
+- Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
 - Resource pack support
 - even even more!
@@ -31,6 +31,14 @@ You can play almost on any server, supporting offline connections.
 See the [Mineflayer](https://github.com/PrismarineJS/mineflayer) repo for the list of supported versions (should support majority of versions).
 There is a builtin proxy, but you can also host a your one! Just clone the repo, run `pnpm i` (following CONTRIBUTING.MD) and run `pnpm prod-start`, then you can specify `http://localhost:8080` in the proxy field.
 MS account authentication will be supported soon.
+
+### Rendering
+
+#### Three.js Renderer
+
+- Uses WebGL2. Chunks are rendered using Geometry Buffers prepared by 4 mesher workers.
+- Supports FXAA
+- Doesn't support culling
 
 <!-- TODO proxy server communication graph -->
 
