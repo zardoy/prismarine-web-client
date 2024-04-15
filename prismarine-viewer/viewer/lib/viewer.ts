@@ -1,19 +1,22 @@
 import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
 import { Vec3 } from 'vec3'
-import { WorldRenderer } from './worldrenderer'
+import { WorldRendererWebgl } from './worldrendererWebgl'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { getVersion } from './version'
 import EventEmitter from 'events'
 import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
+import { sendCameraToWorker } from '../../examples/webglRenderer'
+import { WorldRendererThree } from './worldrendererThree'
+import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 
 export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
   camera: THREE.PerspectiveCamera
-  world: WorldRenderer
+  world: WorldRendererWebgl/*  | WorldRendererThree */
   entities: Entities
   primitives: Primitives
   domElement: HTMLCanvasElement
@@ -28,7 +31,7 @@ export class Viewer {
   fxaaPass: ShaderPass
   renderPass: RenderPass
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
+  constructor (public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
@@ -39,7 +42,7 @@ export class Viewer {
     if (this.enableFXAA) {
       this.enableFxaaScene()
     }
-    this.world = new WorldRenderer(this.scene, numWorkers)
+    this.world = new WorldRendererWebgl(numWorkers)
     this.entities = new Entities(this.scene)
     this.primitives = new Primitives(this.scene, this.camera)
 
@@ -112,9 +115,11 @@ export class Viewer {
     if (pos) {
       let y = pos.y + this.playerHeight
       if (this.isSneaking) y -= 0.3
-      new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
+      // new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
+      cam.position.set(pos.x, y, pos.z)
     }
     cam.rotation.set(pitch, yaw, roll, 'ZYX')
+    sendCameraToWorker()
   }
 
   playSound (position: Vec3, path: string, volume = 1) {
@@ -160,7 +165,7 @@ export class Viewer {
     })
     // todo remove and use other architecture instead so data flow is clear
     emitter.on('blockEntities', (blockEntities) => {
-      this.world.blockEntities = blockEntities
+      (this.world as unknown as WorldRendererThree).blockEntities = blockEntities
     })
 
     emitter.on('unloadChunk', ({ x, z }) => {
@@ -173,6 +178,11 @@ export class Viewer {
 
     emitter.on('chunkPosUpdate', ({ pos }) => {
       this.world.updateViewerPosition(pos)
+    })
+
+    emitter.on('renderDistance', (d) => {
+      this.world.viewDistance = d
+      this.world.chunksLength = d === 0 ? 1 : generateSpiralMatrix(d).length
     })
 
     emitter.emit('listening')
@@ -189,17 +199,17 @@ export class Viewer {
   }
 
   update () {
-    tweenJs.update()
+    // tweenJs.update()
   }
 
   render () {
-    if (this.composer) {
-      this.renderPass.camera = this.camera
-      this.composer.render()
-    } else {
-      this.renderer.render(this.scene, this.camera)
-    }
-    this.entities.render()
+    // if (this.composer) {
+    //   this.renderPass.camera = this.camera
+    //   this.composer.render()
+    // } else {
+    //   this.renderer.render(this.scene, this.camera)
+    // }
+    // this.entities.render()
   }
 
   async waitForChunksToRender () {

@@ -8,17 +8,19 @@ import styles from './createWorld.module.css'
 
 // const worldTypes = ['default', 'flat', 'largeBiomes', 'amplified', 'customized', 'buffet', 'debug_all_block_states']
 const worldTypes = ['default', 'flat'/* , 'void' */]
+const gameModes = ['survival', 'creative'/* , 'adventure', 'spectator' */]
 
 export const creatingWorldState = proxy({
   title: '',
   type: worldTypes[0],
+  gameMode: gameModes[0],
   version: ''
 })
 
 export default ({ cancelClick, createClick, customizeClick, versions, defaultVersion }) => {
   const [quota, setQuota] = useState('')
 
-  const { title, type, version } = useSnapshot(creatingWorldState)
+  const { title, type, version, gameMode } = useSnapshot(creatingWorldState)
   useEffect(() => {
     creatingWorldState.version = defaultVersion
     void navigator.storage?.estimate?.().then(({ quota, usage }) => {
@@ -54,9 +56,15 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
       <Button onClick={() => {
         const index = worldTypes.indexOf(type)
         creatingWorldState.type = worldTypes[index === worldTypes.length - 1 ? 0 : index + 1]
-      }}>{type}</Button>
-      <Button onClick={() => customizeClick()} disabled>
+      }}>World Type: {type}</Button>
+      {/* <Button onClick={() => customizeClick()} disabled>
         Customize
+      </Button> */}
+      <Button onClick={() => {
+        const index = gameModes.indexOf(gameMode)
+        creatingWorldState.gameMode = gameModes[index === gameModes.length - 1 ? 0 : index + 1]
+      }}>
+        Gamemode: {gameMode}
       </Button>
     </div>
     <div className='muted' style={{ fontSize: 8 }}>Default and other world types are WIP</div>

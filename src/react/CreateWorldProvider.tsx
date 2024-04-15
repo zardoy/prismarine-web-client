@@ -23,7 +23,7 @@ export default () => {
       }}
       createClick={async () => {
         // create new world
-        const { title, type, version } = creatingWorldState
+        const { title, type, version, gameMode } = creatingWorldState
         // todo display path in ui + disable if exist
         const savePath = await uniqueFileNameFromWorldName(title, getWorldsPath())
         await mkdirRecursive(savePath)
@@ -51,7 +51,8 @@ export default () => {
             levelName: title,
             version,
             generation,
-            'worldFolder': savePath
+            'worldFolder': savePath,
+            gameMode: gameMode === 'survival' ? 0 : 1,
           },
         }))
       }}

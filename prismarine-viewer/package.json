@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@tweenjs/tween.js": "^20.0.3",
+    "live-server": "^1.2.2",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
     "canvas": "^2.11.2",

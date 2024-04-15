@@ -41,6 +41,11 @@ const plugins = [
         return {
           contents: `window.mcData ??= ${JSON.stringify(defaultVersionsObj)};module.exports = { pc: window.mcData }`,
           loader: 'js',
+          watchFiles: [
+            // todo
+            'dist/worker.js',
+            'dist/webglRendererWorker.js'
+          ],
         }
       })
       build.onResolve({
@@ -148,8 +153,9 @@ const plugins = [
         //@ts-ignore
         const outputFile = outputFiles.find(x => x.path.endsWith('.js'))
         if (outputFile.hash === prevHash) {
-          console.log('Ignoring reload as contents the same')
-          return
+          // todo also check workers and css
+          // console.log('Ignoring reload as contents the same')
+          // return
         }
         prevHash = outputFile.hash
         let outputText = outputFile.text

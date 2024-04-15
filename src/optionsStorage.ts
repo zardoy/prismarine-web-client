@@ -62,7 +62,9 @@ const defaultOptions = {
   excludeCommunicationDebugEvents: [],
   preventDevReloadWhilePlaying: false,
   numWorkers: 4,
-  localServerOptions: {} as any,
+  localServerOptions: {
+    gameMode: 1
+  } as any,
   preferLoadReadonly: false,
   disableLoadPrompts: false,
   guestUsername: 'guest',

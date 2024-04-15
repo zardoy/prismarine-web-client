@@ -12,10 +12,17 @@ import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
+// import * as Mathgl from 'math.gl'
+import { findTextureInBlockStates } from '../../src/playerWindows'
+import { initWebglRenderer, loadFixtureSides, setAnimationTick } from './webglRenderer'
+import { renderToDom } from '@zardoy/react-util'
 
 globalThis.THREE = THREE
 //@ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { renderPlayground } from './TouchControls2'
+import { WorldRendererWebgl } from '../viewer/lib/worldrendererWebgl'
+import { TextureAnimation } from './TextureAnimation'
 
 const gui = new GUI()
 
@@ -39,7 +46,8 @@ const params = {
   entityRotate: false,
   camera: '',
   playSound () { },
-  blockIsomorphicRenderBundle () { }
+  blockIsomorphicRenderBundle () { },
+  animationTick: 0
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -59,10 +67,20 @@ const setQs = () => {
 
 let ignoreResize = false
 
+const enableControls = new URLSearchParams(window.location.search).get('controls') === 'true'
+
 async function main () {
   let continuousRender = false
 
-  const { version } = params
+  // const { version } = params
+  let fixtureUrl = qs.get('fixture')
+  let fixture: undefined | Record<string, any>
+  if (fixtureUrl) {
+    console.log('Loading fixture')
+    fixture = await fetch(fixtureUrl).then(r => r.json())
+    console.log('Loaded fixture')
+  }
+  const version = fixture?.version ?? '1.20.2'
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
@@ -92,6 +110,7 @@ async function main () {
   gui.add(params, 'skip')
   gui.add(params, 'playSound')
   gui.add(params, 'blockIsomorphicRenderBundle')
+  const animationController = gui.add(params, 'animationTick', -1, 20, 1).listen()
   gui.open(false)
   let metadataFolder = gui.addFolder('metadata')
   // let entityRotationFolder = gui.addFolder('entity metadata')
@@ -112,8 +131,12 @@ async function main () {
   const chunk1 = new Chunk()
   //@ts-ignore
   const chunk2 = new Chunk()
-  chunk1.setBlockStateId(targetPos, 34)
-  chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
+  chunk1.setBlockStateId(targetPos, 1)
+  chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 1)
+  chunk1.setBlockStateId(targetPos.offset(0, 1, 1), 2)
+  // chunk1.setBlockStateId(targetPos.offset(0, 1, 0), 1)
+  // chunk1.setBlockStateId(targetPos.offset(1, 1, 0), 1)
+  // chunk1.setBlockStateId(targetPos.offset(-1, 1, 0), 1)
   const world = new World((chunkX, chunkZ) => {
     // if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
@@ -122,24 +145,108 @@ async function main () {
     return chunk
   })
 
+  let stopUpdate = false
+  // let stopUpdate = true
+
   // await schem.paste(world, new Vec3(0, 60, 0))
 
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
+  const nullRenderer = new THREE.WebGLRenderer({ antialias: true })
+  const viewer = new Viewer(nullRenderer, 1)
+  viewer.world.stopBlockUpdate = stopUpdate
+  viewer.setVersion(version)
+  globalThis.viewer = viewer
 
-  // Create three.js context, add to page
-  const renderer = new THREE.WebGLRenderer({ alpha: true, ...localStorage['renderer'] })
-  renderer.setPixelRatio(window.devicePixelRatio || 1)
-  renderer.setSize(window.innerWidth, window.innerHeight)
-  document.body.appendChild(renderer.domElement)
+  await initWebglRenderer(version, () => { }, !enableControls && !fixture, true)
+  const simpleControls = () => {
+    let pressedKeys = new Set()
+    const loop = () => {
+      // Create a vector that points in the direction the camera is looking
+      let direction = new THREE.Vector3(0, 0, 0);
+      if (pressedKeys.has('KeyW')) {
+        direction.z = -0.5;
+      }
+      if (pressedKeys.has('KeyS')) {
+        direction.z += 0.5
+      }
+      if (pressedKeys.has('KeyA')) {
+        direction.x -= 0.5
+      }
+      if (pressedKeys.has('KeyD')) {
+        direction.x += 0.5
+      }
+
+
+      if (pressedKeys.has('ShiftLeft')) {
+        viewer.camera.position.y -= 0.5
+      }
+      if (pressedKeys.has('Space')) {
+        viewer.camera.position.y += 0.5
+      }
+      direction.applyQuaternion(viewer.camera.quaternion);
+      direction.y = 0;
+      // Add the vector to the camera's position to move the camera
+      viewer.camera.position.add(direction);
+    }
+    setInterval(loop, 1000 / 30)
+    const keys = (e) => {
+      const code = e.code
+      const pressed = e.type === 'keydown'
+      if (pressed) {
+        pressedKeys.add(code)
+      } else {
+        pressedKeys.delete(code)
+      }
+    }
+    window.addEventListener('keydown', keys)
+    window.addEventListener('keyup', keys)
+
+    // mouse
+    const mouse = { x: 0, y: 0 }
+    const mouseMove = (e: PointerEvent) => {
+      if ((e.target as HTMLElement).closest('.lil-gui')) return
+      if (e.buttons === 1 || e.pointerType === 'touch') {
+        viewer.camera.rotation.x -= e.movementY / 100
+        //viewer.camera.
+        viewer.camera.rotation.y -= e.movementX / 100
+        if (viewer.camera.rotation.x < -Math.PI / 2) viewer.camera.rotation.x = -Math.PI / 2
+        if (viewer.camera.rotation.x > Math.PI / 2) viewer.camera.rotation.x = Math.PI / 2
+
+        // yaw += e.movementY / 20;
+        // pitch += e.movementX / 20;
+      }
+      if (e.buttons === 2) {
+        viewer.camera.position.set(0, 0, 0)
+      }
+    }
+    window.addEventListener('pointermove', mouseMove)
+  }
+  simpleControls()
+  renderPlayground()
+
+  const writeToIndexedDb = async (name, data) => {
+    const db = await window.indexedDB.open(name, 1)
+    db.onupgradeneeded = (e) => {
+      const db = (e.target as any).result
+      db.createObjectStore(name)
+    }
+    db.onsuccess = (e) => {
+      const db = (e.target as any).result
+      const tx = db.transaction(name, 'readwrite')
+      const store = tx.objectStore(name)
+      store.add(data, name)
+    }
+  }
+
+  if (fixture) {
+    loadFixtureSides(fixture.sides)
+    const pos = fixture.camera[0]
+    viewer.camera.position.set(pos[0], pos[1], pos[2])
+  }
+
+  if (!enableControls) return
 
   // Create viewer
-  const viewer = new Viewer(renderer, 1)
-  viewer.entities.setDebugMode('basic')
-  viewer.setVersion(version)
-  viewer.entities.onSkinUpdate = () => {
-    viewer.update()
-    viewer.render()
-  }
 
   viewer.listen(worldView)
   // Load chunks
@@ -147,160 +254,17 @@ async function main () {
   window['worldView'] = worldView
   window['viewer'] = viewer
 
-  params.blockIsomorphicRenderBundle = () => {
-    const canvas = renderer.domElement
-    const onlyCurrent = !confirm('Ok - render all blocks, Cancel - render only current one')
-    const sizeRaw = prompt('Size', '512')
-    if (!sizeRaw) return
-    const size = parseInt(sizeRaw)
-    // const size = 512
-
-    ignoreResize = true
-    canvas.width = size
-    canvas.height = size
-    renderer.setSize(size, size)
-
-    //@ts-ignore
-    viewer.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 10)
-    viewer.scene.background = null
-
-    const rad = THREE.MathUtils.degToRad(-120)
-    viewer.directionalLight.position.set(
-      Math.cos(rad),
-      Math.sin(rad),
-      0.2
-    ).normalize()
-    viewer.directionalLight.intensity = 1
-
-    const cameraPos = targetPos.offset(2, 2, 2)
-    const pitch = THREE.MathUtils.degToRad(-30)
-    const yaw = THREE.MathUtils.degToRad(45)
-    viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-    // viewer.camera.lookAt(center.x + 0.5, center.y + 0.5, center.z + 0.5)
-    viewer.camera.position.set(cameraPos.x + 1, cameraPos.y + 0.5, cameraPos.z + 1)
-
-    const allBlocks = mcData.blocksArray.map(b => b.name)
-    // const allBlocks = ['stone', 'warped_slab']
-
-    let blockCount = 1
-    let blockName = allBlocks[0]
-
-    const updateBlock = () => {
-
-      //@ts-ignore
-      // viewer.setBlockStateId(targetPos, mcData.blocksByName[blockName].minStateId)
-      params.block = blockName
-      // todo cleanup (introduce getDefaultState)
-      onUpdate.block()
-      applyChanges(false, true)
-    }
-    viewer.waitForChunksToRender().then(async () => {
-      // wait for next macro task
-      await new Promise(resolve => {
-        setTimeout(resolve, 0)
-      })
-      if (onlyCurrent) {
-        viewer.render()
-        onWorldUpdate()
-      } else {
-        // will be called on every render update
-        viewer.world.renderUpdateEmitter.addListener('update', onWorldUpdate)
-        updateBlock()
-      }
-    })
-
-    const zip = new JSZip()
-    zip.file('description.txt', 'Generated with prismarine-viewer')
-
-    const end = async () => {
-      // download zip file
-
-      const a = document.createElement('a')
-      const blob = await zip.generateAsync({ type: 'blob' })
-      const dataUrlZip = URL.createObjectURL(blob)
-      a.href = dataUrlZip
-      a.download = 'blocks_render.zip'
-      a.click()
-      URL.revokeObjectURL(dataUrlZip)
-      console.log('end')
-
-      viewer.world.renderUpdateEmitter.removeListener('update', onWorldUpdate)
-    }
-
-    async function onWorldUpdate () {
-      // await new Promise(resolve => {
-      //   setTimeout(resolve, 50)
-      // })
-      const dataUrl = canvas.toDataURL('image/png')
-
-      zip.file(`${blockName}.png`, dataUrl.split(',')[1], { base64: true })
-
-      if (onlyCurrent) {
-        end()
-      } else {
-        nextBlock()
-      }
-    }
-    const nextBlock = async () => {
-      blockName = allBlocks[blockCount++]
-      console.log(allBlocks.length, '/', blockCount, blockName)
-      if (blockCount % 5 === 0) {
-        await new Promise(resolve => {
-          setTimeout(resolve, 100)
-        })
-      }
-      if (blockName) {
-        updateBlock()
-      } else {
-        end()
-      }
-    }
-  }
-
-  // const jsonData = await fetch('https://bluecolored.de/bluemap/maps/overworld/tiles/0/x-2/2/z1/6.json?584662').then(r => r.json())
-
-  // const uniforms = {
-  //   distance: { value: 0 },
-  //   sunlightStrength: { value: 1 },
-  //   ambientLight: { value: 0 },
-  //   skyColor: { value: new THREE.Color(0.5, 0.5, 1) },
-  //   voidColor: { value: new THREE.Color(0, 0, 0) },
-  //   hiresTileMap: {
-  //     value: {
-  //       map: null,
-  //       size: 100,
-  //       scale: new THREE.Vector2(1, 1),
-  //       translate: new THREE.Vector2(),
-  //       pos: new THREE.Vector2(),
-  //     }
-  //   }
-
-  // }
-
-  // const shader1 = new THREE.ShaderMaterial({
-  //   uniforms: uniforms,
-  //   vertexShader: [0, 0, 0, 0],
-  //   fragmentShader: fragmentShader,
-  //   transparent: false,
-  //   depthWrite: true,
-  //   depthTest: true,
-  //   vertexColors: true,
-  //   side: THREE.FrontSide,
-  //   wireframe: false
-  // })
-
-
   //@ts-ignore
-  const controls = new OrbitControls(viewer.camera, renderer.domElement)
-  controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+  // const controls = new OrbitControls(viewer.camera, nullRenderer.domElement)
+  // controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
   const cameraPos = targetPos.offset(2, 2, 2)
   const pitch = THREE.MathUtils.degToRad(-45)
   const yaw = THREE.MathUtils.degToRad(45)
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-  viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
-  viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
-  controls.update()
+  // viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+  viewer.camera.position.set(cameraPos.x, cameraPos.y, cameraPos.z)
+  // controls.update()
 
   let blockProps = {}
   let entityOverrides = {}
@@ -315,7 +279,7 @@ async function main () {
       id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
     })
     const enableSkeletonDebug = (obj) => {
-      const {children, isSkeletonHelper} = obj
+      const { children, isSkeletonHelper } = obj
       if (!Array.isArray(children)) return
       if (isSkeletonHelper) {
         obj.visible = true
@@ -332,6 +296,9 @@ async function main () {
     }, TWEEN_DURATION)
   }
 
+  params.block ||= 'stone'
+
+  let textureAnimation: TextureAnimation | undefined
   const onUpdate = {
     block () {
       metadataFolder.destroy()
@@ -398,6 +365,26 @@ async function main () {
     },
     supportBlock () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
+    },
+    animationTick () {
+      const webgl = (viewer.world as WorldRendererWebgl).playgroundGetWebglData()
+      if (!webgl?.animation) {
+        setAnimationTick(0)
+        return
+      }
+      if (params.animationTick === -1) {
+        textureAnimation = new TextureAnimation(new Proxy({} as any, {
+          set (t, p, v) {
+            if (p === 'tick') {
+              setAnimationTick(v)
+            }
+            return true
+          }
+        }), webgl.animation, webgl.animation.framesCount)
+      } else {
+        setAnimationTick(params.animationTick)
+        textureAnimation = undefined
+      }
     }
   }
 
@@ -435,7 +422,9 @@ async function main () {
     if (object === params) {
       if (property === 'camera') return
       onUpdate[property]?.()
-      applyChanges(property === 'metadata')
+      if (property !== 'animationTick') {
+        applyChanges(property === 'metadata')
+      }
     } else {
       applyChanges()
     }
@@ -448,26 +437,36 @@ async function main () {
       update()
     }
     applyChanges(true)
-    gui.openAnimated()
+    // gui.openAnimated()
   })
 
-  const animate = () => {
+  const animate = () => { }
+  const animate2 = () => {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
     viewer.update()
     viewer.render()
-    // window.requestAnimationFrame(animate)
+    window.requestAnimationFrame(animate2)
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
-    animate()
+    // const frames = viewer.world.hasWithFrames ? viewer.world.hasWithFrames - 1 : 0;
+    const webgl = (viewer.world as WorldRendererWebgl).playgroundGetWebglData()
+    if (webgl?.animation) {
+      params.animationTick = -1
+      animationController.show()
+      animationController.max(webgl.animation.framesCount)
+    } else {
+      animationController.hide()
+    }
+    onUpdate.animationTick()
   })
-  animate()
+  animate2()
 
   // #region camera rotation param
   if (params.camera) {
     const [x, y] = params.camera.split(',')
     viewer.camera.rotation.set(parseFloat(x), parseFloat(y), 0, 'ZYX')
-    controls.update()
+    // controls.update()
     console.log(viewer.camera.rotation.x, parseFloat(x))
   }
   const throttledCamQsUpdate = _.throttle(() => {
@@ -475,16 +474,16 @@ async function main () {
     // params.camera = `${camera.rotation.x.toFixed(2)},${camera.rotation.y.toFixed(2)}`
     setQs()
   }, 200)
-  controls.addEventListener('change', () => {
-    throttledCamQsUpdate()
-    animate()
-  })
+  // controls.addEventListener('change', () => {
+  //   throttledCamQsUpdate()
+  //   animate()
+  // })
   // #endregion
 
+  let time = performance.now()
   const continuousUpdate = () => {
-    if (continuousRender) {
-      animate()
-    }
+    textureAnimation?.step(performance.now() - time)
+    time = performance.now()
     requestAnimationFrame(continuousUpdate)
   }
   continuousUpdate()
@@ -499,7 +498,7 @@ async function main () {
     const { camera } = viewer
     viewer.camera.aspect = window.innerWidth / window.innerHeight
     viewer.camera.updateProjectionMatrix()
-    renderer.setSize(window.innerWidth, window.innerHeight)
+    nullRenderer.setSize(window.innerWidth, window.innerHeight)
 
     animate()
   }

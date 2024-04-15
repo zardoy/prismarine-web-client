@@ -1,15 +1,5 @@
 /// <reference types="cypress" />
-import type { AppOptions } from '../../src/optionsStorage'
-
-const cleanVisit = (url?) => {
-  cy.clearLocalStorage()
-  visit(url)
-}
-
-const visit = (url = '/') => {
-  window.localStorage.cypress = 'true'
-  cy.visit(url)
-}
+import { setOptions, cleanVisit, visit } from './shared'
 
 // todo use ssl
 
@@ -28,12 +18,6 @@ const testWorldLoad = () => {
     })
   }).then(() => {
     compareRenderedFlatWorld()
-  })
-}
-
-const setOptions = (options: Partial<AppOptions>) => {
-  cy.window().then(win => {
-    Object.assign(win['options'], options)
   })
 }
 

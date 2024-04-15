@@ -36,6 +36,11 @@ export class WorldDataEmitter extends EventEmitter {
     })
   }
 
+  updateViewDistance (viewDistance: number) {
+    this.viewDistance = viewDistance
+    this.emitter.emit('renderDistance', viewDistance)
+  }
+
   listenToBot (bot: typeof __type_bot) {
     const emitEntity = (e) => {
       if (!e || e === bot.entity) return
@@ -73,6 +78,7 @@ export class WorldDataEmitter extends EventEmitter {
           return bot.world.getBlock(new Vec3(x, y, z)).entity
         },
       }))
+      this.emitter.emit('renderDistance', this.viewDistance)
     })
     // node.js stream data event pattern
     if (this.emitter.listenerCount('blockEntities')) {

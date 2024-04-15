@@ -47,11 +47,14 @@ const buildOptions = {
     http: 'http-browserify',
     stream: 'stream-browserify',
     net: 'net-browserify',
+    'stats.js': 'stats.js/src/Stats.js',
   },
   inject: [],
   metafile: true,
   loader: {
     '.png': 'dataurl',
+    '.vert': 'text',
+    '.frag': 'text'
   },
   plugins: [
     {

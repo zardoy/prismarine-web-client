@@ -5,9 +5,10 @@
   "scripts": {
     "start": "node scripts/build.js copyFilesDev && node scripts/prepareData.mjs && node esbuild.mjs --watch",
     "start-watch-script": "nodemon -w esbuild.mjs --watch",
-    "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod",
+    "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod && node buildWorkers.mjs",
     "check-build": "tsc && pnpm test-unit && pnpm build",
     "test:cypress": "cypress run",
+    "test:cypress:perf": "cypress run --spec cypress/e2e/perf.spec.ts --browser edge",
     "test-unit": "vitest",
     "test:e2e": "start-test http-get://localhost:8080 test:cypress",
     "prod-start": "node server.js",
@@ -17,7 +18,12 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build && node scripts/build.js moveStorybookFiles",
     "start-experiments": "vite --config experiments/vite.config.ts",
-    "watch-worker": "node prismarine-viewer/buildWorker.mjs -w"
+    "watch-worker": "node prismarine-viewer/buildWorker.mjs -w",
+    "watch-other-workers": "node buildWorkers.mjs -w",
+    "run-playground": "run-p watch-worker watch-other-workers playground-server watch-playground",
+    "run-all": "run-p start run-playground",
+    "playground-server": "live-server --port=9090 prismarine-viewer/public",
+    "watch-playground": "node prismarine-viewer/esbuild.mjs -w"
   },
   "keywords": [
     "prismarine",
@@ -56,6 +62,7 @@
     "jszip": "^3.10.1",
     "lit": "^2.8.0",
     "lodash-es": "^4.17.21",
+    "math.gl": "^4.0.0",
     "minecraft-assets": "^1.12.2",
     "minecraft-data": "3.62.0",
     "net-browserify": "github:zardoy/prismarinejs-net-browserify",
@@ -79,6 +86,7 @@
     "stats.js": "^0.17.0",
     "tabbable": "^6.2.0",
     "title-case": "3.x",
+    "twgl.js": "^5.5.4",
     "ua-parser-js": "^1.0.37",
     "valtio": "^1.11.1",
     "workbox-build": "^7.0.0"

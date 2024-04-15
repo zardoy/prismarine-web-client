@@ -21,7 +21,7 @@ const buildOptions = {
   },
   platform: 'browser',
   entryPoints: [path.join(__dirname, './viewer/lib/worker.js')],
-  minify: true,
+  // minify: true,
   logLevel: 'info',
   drop: !watch ? [
     'debugger'
@@ -101,7 +101,7 @@ const buildOptions = {
             resolveDir: process.cwd(),
           }
         })
-        build.onEnd(({metafile, outputFiles}) => {
+        build.onEnd(({ metafile, outputFiles }) => {
           if (!metafile) return
           fs.writeFileSync(path.join(__dirname, './public/metafile.json'), JSON.stringify(metafile))
           for (const outDir of ['../dist/', './public/']) {

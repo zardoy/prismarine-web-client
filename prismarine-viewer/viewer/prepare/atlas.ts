@@ -31,11 +31,20 @@ export type JsonAtlas = {
     [file: string]: {
       u: number,
       v: number,
+      su?: number,
+      sv?: number,
+      animatedFrames?: number
     }
   }
 }
 
-export const makeTextureAtlas = (input: string[], getInputData: (name) => { contents: string, tileWidthMult?: number }, tilesCount = input.length, suSvOptimize: 'remove' | null = null): {
+export const makeTextureAtlas = (
+  input: string[],
+  getInputData: (name) => { contents: string, tileWidthMult?: number },
+  tilesCount = input.length,
+  suSvOptimize: 'remove' | null = null,
+  renderAnimated = true
+): {
   image: Buffer,
   canvas: Canvas,
   json: JsonAtlas
@@ -47,7 +56,7 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
   const canvas = new Canvas(imgSize, imgSize, 'png' as any)
   const g = canvas.getContext('2d')
 
-  const texturesIndex = {}
+  const texturesIndex = {} as JsonAtlas['textures']
 
   let offset = 0
   const suSv = tileSize / imgSize
@@ -61,7 +70,28 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
     const inputData = getInputData(keyValue);
     img.src = inputData.contents
     const renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
-    g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
+    let animatedFrames = 0
+    const addDebugText = (x, y) => {
+      return // disable debug text
+      g.fillStyle = 'black'
+      g.font = '8px Arial'
+      g.fillText(i, x, y)
+    }
+    if (img.height > tileSize && renderAnimated) {
+      const frames = img.height / tileSize;
+      animatedFrames = frames
+      console.log("Animated texture", keyValue, frames)
+      offset += frames - 1
+      for (let i = 0; i < frames; i++) {
+        const x = ((pos + i) % texSize) * tileSize
+        const y = Math.floor((pos + i) / texSize) * tileSize
+        g.drawImage(img, 0, i * tileSize, renderWidth, tileSize, x, y, renderWidth, tileSize)
+        addDebugText(x, y)
+      }
+    } else {
+      g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
+      addDebugText(x, y)
+    }
 
     const cleanName = keyValue.split('.').slice(0, -1).join('.') || keyValue
     texturesIndex[cleanName] = {
@@ -70,7 +100,9 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
       ...suSvOptimize === 'remove' ? {} : {
         su: suSv,
         sv: suSv
-      }
+      },
+      textureName: cleanName,
+      animatedFrames: animatedFrames || undefined
     }
   }
 

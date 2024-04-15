@@ -18,6 +18,7 @@ function posInChunk (pos) {
 }
 
 function isCube (shapes) {
+  return true
   if (!shapes || shapes.length !== 1) return false
   const shape = shapes[0]
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
@@ -30,6 +31,7 @@ export type WorldBlock = Block & {
 }
 
 export class World {
+  outputFormat = 'threeJs' as 'threeJs' | 'webgl'
   Chunk: any/* import('prismarine-chunk/types/index').PCChunk */
   columns = {}
   blockCache = {}
