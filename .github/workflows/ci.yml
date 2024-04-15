@@ -10,19 +10,18 @@ jobs:
         uses: actions/checkout@master
       - name: Install pnpm
         run: npm i -g pnpm
-        # todo this needs investigating fixing
       - uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: "pnpm"
+          # cache: "pnpm"
       - run: pnpm install
       - run: pnpm lint
       - run: pnpm check-build
       - run: nohup pnpm prod-start &
       - run: nohup pnpm test-mc-server &
       - uses: cypress-io/github-action@v5
-        # with:
-        #   install: false
+        with:
+          install: false
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
