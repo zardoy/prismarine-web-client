@@ -6,7 +6,6 @@ import ArmorBar from './ArmorBar'
 
 const meta: Meta<typeof ArmorBar> = {
   component: ArmorBar,
-  decorators: [(story) => <div style={{ '--gui-icons': `url(${icons}), url(${icons})` } as any}>{story()}</div>]
 }
 
 export default meta

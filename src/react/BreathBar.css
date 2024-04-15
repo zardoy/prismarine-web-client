@@ -17,6 +17,7 @@
   height: 9px;
   margin-left: -1px;
   background-position: 20px 20px;
+  background-image: var(--gui-icons);
 }
 
 .breath.full {

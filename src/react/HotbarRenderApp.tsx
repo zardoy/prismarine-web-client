@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Transition } from 'react-transition-group'
 import { openItemsCanvas, openPlayerInventory, upInventoryItems } from '../playerWindows'
 import { isGameActive, miscUiState } from '../globalState'
+import SharedHudVars from './SharedHudVars'
 
 
 const ItemName = ({ slotIndex }: { slotIndex: number }) => {
@@ -13,7 +14,7 @@ const ItemName = ({ slotIndex }: { slotIndex: number }) => {
 
   const defaultStyle = {
     position: 'fixed', 
-    bottom: '15%',
+    bottom: 'calc(var(--safe-area-inset-bottom) + 50px)',
     left: 0,
     right: 0,
     fontSize: '0.5rem',
@@ -38,14 +39,13 @@ const ItemName = ({ slotIndex }: { slotIndex: number }) => {
         const id = setTimeout(() => {
           setShow(prev => false)
         }, 1500)
-
         return () => {
+          setShow(prev => false)
           clearTimeout(id)
         }
       } else {
         setItemName(prev => '')
       }
-
     }
   }, [slotIndex])
 
@@ -141,16 +141,16 @@ export default () => {
     }
   }, [])
 
-  return <> 
+  return <SharedHudVars> 
     <ItemName slotIndex={slotIndex} />
     <div className='hotbar' ref={container} style={{
       position: 'fixed',
-      bottom: 'calc(env(safe-area-inset-bottom) / 2)',
+      bottom: 'calc(var(--safe-area-inset-bottom))',
       left: 0,
       right: 0,
       display: 'flex',
       justifyContent: 'center',
       zIndex: -1,
     }} />
-  </>
+  </SharedHudVars>
 }

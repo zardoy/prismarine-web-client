@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import SharedHudVars from './SharedHudVars'
 import './HealthBar.css'
 
 
@@ -11,7 +12,6 @@ export type HealthBarProps = {
   effectToRemove: number | null,
   effectAdded: (htmlElement: HTMLDivElement | null, effect: number | null) => void,
   effectEnded: (htmlElement: HTMLDivElement | null, effect: number | null) => void,
-
 }
 
 export default (
@@ -96,16 +96,17 @@ export default (
     effectEnded(healthRef.current, effectToRemove)
   }, [effectToRemove])
 
-  return <div ref={healthRef} className='health' >
-    {
-      Array.from({ length: 10 }, () => 0)
-        .map(
-          (num, index) => <div 
-            key={`heart-${index}`}
-            className='heart'></div>
-        )
-    }
-  </div>
-}
+  return <SharedHudVars>
+    <div ref={healthRef} className='health' >
+      {
+        Array.from({ length: 10 }, () => 0)
+          .map(
+            (num, index) => <div 
+              key={`heart-${index}`}
+              className='heart'></div>
+          )
+      }
+    </div>
+  </SharedHudVars>}
 
 

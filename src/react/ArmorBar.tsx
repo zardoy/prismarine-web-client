@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, CSSProperties } from 'react'
+import SharedHudVars from './SharedHudVars'
 import './ArmorBar.css'
 
 
@@ -34,16 +35,18 @@ export default (
     }
   }, [armorValue])
 
-  return <div style={style ?? {}} ref={armorRef} className='armor_container' >
-    {
-      Array.from({ length: 10 }, () => 0)
-        .map(
-          (num, index) => <div 
-            key={`armor-${index}`}
-            className='armor'></div>
-        )
-    }
-  </div>
+  return <SharedHudVars>
+    <div style={style ?? {}} ref={armorRef} className='armor_container' >
+      {
+        Array.from({ length: 10 }, () => 0)
+          .map(
+            (num, index) => <div 
+              key={`armor-${index}`}
+              className='armor'></div>
+          )
+      }
+    </div>
+  </SharedHudVars>
 }
 
 

@@ -62,15 +62,6 @@ export default () => {
   }
 
   useMemo(() => {
-    const css = `
-      :root {
-        --gui-icons: url(${icons}), url(${icons});
-      }
-    `
-    const style = document.createElement('style')
-    style.appendChild(document.createTextNode(css))
-    document.head.appendChild(style)
-
     bot.on('entityHurt', (entity) => {
       if (entity !== bot.entity) return
       onDamage()

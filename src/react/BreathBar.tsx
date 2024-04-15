@@ -1,5 +1,6 @@
 import { useRef, useEffect } from 'react'
 import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
+import SharedHudVars from './SharedHudVars'
 import './BreathBar.css'
 
 
@@ -40,15 +41,17 @@ export default (
     }
   }, [oxygen])
 
-  return <div ref={breathRef} className='breathbar'>
-    {
-      Array.from({ length: 10 }, () => 0)
-        .map(
-          (num, index) => <div
-            key={`breath-${index}`}
-            className='breath'
-            style={{ backgroundImage: `url(${icons})` }}></div>
-        )
-    }
-  </div>
+  return <SharedHudVars>
+    <div ref={breathRef} className='breathbar'>
+      {
+        Array.from({ length: 10 }, () => 0)
+          .map(
+            (num, index) => <div
+              key={`breath-${index}`}
+              className='breath'
+            ></div>
+          )
+      }
+    </div>
+  </SharedHudVars>
 }

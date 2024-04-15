@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from 'react'
+import SharedHudVars from './SharedHudVars'
 import './FoodBar.css'
 
 
@@ -60,14 +61,16 @@ export default (
     effectEnded(foodRef.current, effectToRemove)
   }, [effectToRemove])
 
-  return <div ref={foodRef} className='foodbar' >
-    {
-      Array.from({ length: 10 }, () => 0)
-        .map(
-          (num, index) => <div
-            key={`food-${index}`}
-            className='food'></div>
-        )
-    }
-  </div>
+  return <SharedHudVars> 
+    <div ref={foodRef} className='foodbar' >
+      {
+        Array.from({ length: 10 }, () => 0)
+          .map(
+            (num, index) => <div
+              key={`food-${index}`}
+              className='food'></div>
+          )
+      }
+    </div>
+  </SharedHudVars>
 }
