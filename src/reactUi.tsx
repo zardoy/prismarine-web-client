@@ -157,3 +157,17 @@ renderToDom(<App />, {
   strictMode: false,
   selector: '#react-root',
 })
+
+disableReactProfiling()
+function disableReactProfiling () {
+  //@ts-expect-error
+  window.performance.markOrig = window.performance.mark
+  //@ts-expect-error
+  window.performance.mark = (name, options) => {
+    // ignore react internal marks
+    if (!name.startsWith('⚛') && !localStorage.enableReactProfiling) {
+      //@ts-expect-error
+      window.performance.markOrig(name, options)
+    }
+  }
+}
