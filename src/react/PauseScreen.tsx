@@ -1,21 +1,20 @@
-//@ts-nocheck
-// to fix select!
+import { join } from 'path'
 import { useEffect } from 'react'
-import { useSnapshot } from 'valtio' 
-import { 
-  activeModalStack, 
-  hideCurrentModal, 
-  showModal, 
+import { useSnapshot } from 'valtio'
+import { usedServerPathsV1 } from 'flying-squid/dist/lib/modules/world'
+import {
+  activeModalStack,
+  showModal,
   hideModal,
-  miscUiState, 
-  notification, 
-  openOptionsMenu } from '../globalState'
+  miscUiState,
+  openOptionsMenu
+} from '../globalState'
 import { fsState } from '../loadSave'
-import { saveWorld } from '../builtinCommands'
 import { disconnect } from '../flyingSquidUtils'
-import { pointerLock } from '../utils'
+import { pointerLock, setLoadingScreenStatus } from '../utils'
 import { closeWan, openToWanAndCopyJoinLink, getJoinLink } from '../localServerMultiplayer'
 import { openURL } from '../menus/components/common'
+import { copyFilesAsyncWithProgress, mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'
 import { useIsModalActive } from './utils'
 import { showOptionsModal } from './SelectOption'
 import Button from './Button'
@@ -33,7 +32,7 @@ export default () => {
       showModal({ reactType: 'pause-screen' })
     }
   }
-  
+
   useEffect(() => {
     document.addEventListener('pointerlockchange', handlePointerLockChange)
 
@@ -67,7 +66,7 @@ export default () => {
     }
     if (qr) {
       const joinLink = getJoinLink()
-      miscUiState.currentDisplayQr = joinLink
+      miscUiState.currentDisplayQr = joinLink ?? null
     }
   }
 
@@ -99,15 +98,15 @@ export default () => {
 
   if (!isModalActive) return null
   return <Screen title='Game Menu'>
-    <Button 
-      icon={'pixelarticons:folder'} 
-      style={{ position: 'fixed', left: '5px', top: '5px' }} 
+    <Button
+      icon={'pixelarticons:folder'}
+      style={{ position: 'fixed', top: '5px', left: 'calc(env(safe-area-inset-left) + 5px)' }}
       onClick={async () => openWorldActions()}
     />
-    <div className={styles.pause_container}> 
+    <div className={styles.pause_container}>
       <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
       <div className={styles.row}>
-        <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL)}>GitHub</Button>
+        <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL!)}>GitHub</Button>
         <Button className="button" style={{ width: '98px' }} onClick={() => openURL('https://discord.gg/4Ucm684Fq3')}>Discord</Button>
       </div>
       <Button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</Button>
@@ -116,19 +115,19 @@ export default () => {
           <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton()}>
             {wanOpened ? 'Close Wan' : 'Copy Join Link'}
           </Button>
-          {navigator.share ? (
-            <Button 
-              className="button" 
-              icon={'pixelarticons:arrow-up'} 
-              style={{ width: '20px' }} 
-              onClick={async () => clickWebShareButton()} 
+          {(navigator.share as typeof navigator.share | undefined) ? (
+            <Button
+              className="button"
+              icon={'pixelarticons:arrow-up'}
+              style={{ width: '20px' }}
+              onClick={async () => clickWebShareButton()}
             />
           ) : null}
-          <Button 
-            className="button" 
-            icon={'pixelarticons:dice'} 
-            style={{ width: '20px' }} 
-            onClick={async () => clickJoinLinkButton(true)} 
+          <Button
+            className="button"
+            icon={'pixelarticons:dice'}
+            style={{ width: '20px' }}
+            onClick={async () => clickJoinLinkButton(true)}
           />
         </div>
       ) : null}
