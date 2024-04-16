@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react'
+import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
 import FullScreenWidget from './FullScreenWidget'
 
 export const name = 'signs'
 
 export default () => {
-  const signs = [...viewer.world.chunkTextures.values()].flatMap(textures => {
+  const signs = viewer.world instanceof WorldRendererThree ? [...viewer.world.chunkTextures.values()].flatMap(textures => {
     return Object.entries(textures).map(([signPosKey, texture]) => {
       const pos = signPosKey.split(',').map(Number)
       return <div key={signPosKey}>
@@ -14,7 +15,7 @@ export default () => {
         </div>
       </div>
     })
-  })
+  }) : []
 
   return <FullScreenWidget name='signs' title='Loaded Signs'>
     <div>

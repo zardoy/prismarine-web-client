@@ -34,15 +34,6 @@ export const watchOptionsAfterViewerInit = () => {
   })
 
   watchValue(options, o => {
-    if (o.antiAliasing) {
-      viewer.enableFxaaScene()
-    } else {
-      viewer.enableFXAA = false
-      viewer.composer = undefined
-    }
-  })
-
-  watchValue(options, o => {
     viewer.entities.setVisible(o.renderEntities)
   })
 }
