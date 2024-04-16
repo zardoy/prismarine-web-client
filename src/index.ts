@@ -906,6 +906,7 @@ downloadAndOpenFile().then((downloadAction) => {
 const initialLoader = document.querySelector('.initial-loader') as HTMLElement | null
 if (initialLoader) {
   initialLoader.style.opacity = '0'
+  initialLoader.style.pointerEvents = 'none'
 }
 window.pageLoaded = true
 

@@ -2,6 +2,7 @@ name: Vercel Deploy Next
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  ALIASES: ${{ vars.ALIASES }}
 on:
   push:
     branches:
@@ -31,7 +32,7 @@ jobs:
           run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         id: deploy
       - name: Set deployment alias
-        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
       # - uses: mshick/add-pr-comment@v2
       #   with:
       #     message: |

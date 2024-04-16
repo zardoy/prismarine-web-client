@@ -2,6 +2,7 @@ name: Vercel Deploy Preview
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  ALIASES: ${{ vars.ALIASES }}
 on:
   issue_comment:
     types: [created]
@@ -44,7 +45,18 @@ jobs:
         id: deploy
       - uses: mshick/add-pr-comment@v2
         with:
+          refresh-message-position: true
           message: |
             Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
             [Playground](${{ steps.deploy.outputs.stdout }}/playground.html)
             [Storybook](${{ steps.deploy.outputs.stdout }}/storybook/)
+      # - run: git checkout next scripts/githubActions.mjs
+      - name: Get deployment alias
+        run: node scripts/githubActions.mjs getAlias
+        id: alias
+        env:
+          ALIASES: ${{ env.ALIASES }}
+          PULL_URL: ${{ github.event.comment.issue.pull_request.url }}
+      - name: Set deployment alias
+        if: ${{ steps.alias.outputs.alias != '' && steps.alias.outputs.alias != 'mcraft.fun' && steps.alias.outputs.alias != 's.mcraft.fun' }}
+        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ steps.alias.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
