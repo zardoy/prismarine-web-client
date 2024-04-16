@@ -19,9 +19,38 @@ export class WorldRendererThree extends WorldRendererCommon {
     showChunkBorders = false
     chunkTextures = new Map<string, { [pos: string]: THREE.Texture }>()
     signsCache = new Map<string, any>()
+    composer: EffectComposer<THREE.WebGLRenderTarget<THREE.Texture>>
+    renderPass: RenderPass
 
     constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public camera: THREE.PerspectiveCamera, numWorkers = 4) {
         super(numWorkers)
+
+        this.addRenderPasses()
+    }
+
+    addRenderPasses () {
+        const target = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, {
+            type: THREE.HalfFloatType,
+            format: THREE.RGBAFormat,
+            colorSpace: THREE.SRGBColorSpace,
+        })
+        target.samples = 8
+        this.composer = new EffectComposer(this.renderer)
+        this.renderPass = new RenderPass(this.scene, this.camera)
+        this.composer.addPass(this.renderPass)
+        const unrealBloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 2, 0.5, 0.8)
+        // unrealBloomPass.threshold = 1
+        this.composer.addPass(unrealBloomPass)
+        const waterPass = new WaterPass()
+        waterPass.enabled = true
+        waterPass.clear = false
+        waterPass.setSize(window.innerWidth, window.innerHeight)
+        this.composer.addPass(waterPass)
+        // this.composer.addPass(new GlitchPass())
+        this.handleResize = () => {
+            this.composer.setSize(window.innerWidth, window.innerHeight)
+        }
+        this.handleResize()
     }
 
     /**
@@ -137,7 +166,12 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     render () {
         tweenJs.update()
-        this.renderer.render(this.scene, this.camera)
+        if (this.composer) {
+            this.renderPass.camera = this.camera
+            this.composer.render()
+        } else {
+            this.renderer.render(this.scene, this.camera)
+        }
     }
 
     renderSign (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
@@ -248,3 +282,72 @@ export class WorldRendererThree extends WorldRendererCommon {
         super.setSectionDirty(pos, value)
     }
 }
+
+// class Chunk {
+//     object: THREE.Object3D;
+//     geometry: THREE.BufferGeometry;
+//     mesh: THREE.Mesh;
+//     boxHelper: THREE.BoxHelper;
+//     sectionObjects: { [key: string]: THREE.Object3D };
+//     scene: THREE.Scene;
+//     material: THREE.Material;
+//     showChunkBorders: boolean;
+//     blockEntities: any;
+//     renderSign: Function;
+//     updatePosDataChunk: Function;
+
+//     constructor(data: any) {
+//         this.object = this.sectionObjects[data.key];
+//         if (this.object) {
+//             this.scene.remove(this.object);
+//             dispose3(this.object);
+//             delete this.sectionObjects[data.key];
+//         }
+
+//         const chunkCoords = data.key.split(',');
+//         if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length || !this.active) return;
+
+//         this.geometry = new THREE.BufferGeometry();
+//         this.geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3));
+//         this.geometry.setAttribute('normal', new THREE.BufferAttribute(data.geometry.normals, 3));
+//         this.geometry.setAttribute('color', new THREE.BufferAttribute(data.geometry.colors, 3));
+//         this.geometry.setAttribute('uv', new THREE.BufferAttribute(data.geometry.uvs, 2));
+//         this.geometry.setIndex(data.geometry.indices);
+
+//         this.mesh = new THREE.Mesh(this.geometry, this.material);
+//         this.mesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz);
+//         this.mesh.name = 'mesh';
+//         this.object = new THREE.Group();
+//         this.object.add(this.mesh);
+//         this.boxHelper = new THREE.BoxHelper(this.mesh, 0xffff00);
+//         this.boxHelper.name = 'helper';
+//         this.object.add(this.boxHelper);
+//         this.object.name = 'chunk';
+//         if (!this.showChunkBorders) {
+//             this.boxHelper.visible = false;
+//         }
+
+//         if (Object.keys(data.geometry.signs).length) {
+//             for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
+//                 const [x, y, z] = posKey.split(',');
+//                 const signBlockEntity = this.blockEntities[posKey];
+//                 if (!signBlockEntity) continue;
+//                 const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity));
+//                 if (!sign) continue;
+//                 this.object.add(sign);
+//             }
+//         }
+
+//         this.sectionObjects[data.key] = this.object;
+//         this.updatePosDataChunk(data.key);
+//         this.scene.add(this.object);
+//     }
+
+//     dispose() {
+//         this.geometry.dispose();
+//         this.mesh.geometry.dispose();
+//         this.boxHelper.geometry.dispose();
+//         //@ts-ignore
+//         this.boxHelper.material.dispose();
+//     }
+// }
