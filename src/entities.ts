@@ -12,6 +12,7 @@ const updateAutoJump = () => {
   bot.autoJumper.setOpts({
     jumpIntoWater: false,
     jumpOnAllEdges: false,
+    strictBlockCollision: true,
   })
   if (autoJump) {
     bot.autoJumper.enable()
