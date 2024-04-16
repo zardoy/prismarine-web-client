@@ -122,7 +122,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
-      const pos = cursor.offset(x, 0, z);
+      const pos = cursor.offset(x, 0, z)
       heights.push(getLiquidRenderHeight(world, world.getBlock(pos), type, pos))
     }
   }
@@ -316,9 +316,6 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
     let baseLightLevel = world.getLight(neighborPos)
-    if (baseLightLevel === 2 && world.getBlock(neighborPos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
-      baseLightLevel = world.getLight(neighborPos.offset(0, 1, 0))
-    }
     const baseLight = baseLightLevel / 15
     for (const pos of corners) {
       let vertex = [
@@ -355,6 +352,18 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         const side2 = world.getBlock(cursor.offset(...side2Dir))
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
+        let cornerLightResult = 15
+        if (world.smoothLighting) {
+          const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
+          const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
+          const cornerLight = world.getLight(cursor.plus(new Vec3(...cornerDir)), true)
+          // interpolate
+          cornerLightResult = Math.min(
+            Math.min(side1Light, side2Light),
+            cornerLight
+          )
+        }
+
         const side1Block = world.shouldMakeAo(side1) ? 1 : 0
         const side2Block = world.shouldMakeAo(side2) ? 1 : 0
         const cornerBlock = world.shouldMakeAo(corner) ? 1 : 0
@@ -362,7 +371,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
 
         const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
-        light = (ao + 1) / 4
+        light = (ao + 1) / 4 * cornerLightResult / 15
         aos.push(ao)
       }
 

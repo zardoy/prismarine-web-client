@@ -746,6 +746,7 @@ async function connect (connectOptions: {
 
     console.log('Done!')
 
+    // todo cleanup these
     onGameLoad(async () => {
       if (!viewer.world.downloadedBlockStatesData && !viewer.world.customBlockStatesData) {
         await new Promise<void>(resolve => {
@@ -765,11 +766,14 @@ async function connect (connectOptions: {
   })
 
   if (!connectOptions.ignoreQs) {
-    const qs = new URLSearchParams(window.location.search)
-    for (let command of qs.getAll('command')) {
-      if (!command.startsWith('/')) command = `/${command}`
-      bot.chat(command)
-    }
+    // todo cleanup
+    customEvents.on('gameLoaded', () => {
+      const qs = new URLSearchParams(window.location.search)
+      for (let command of qs.getAll('command')) {
+        if (!command.startsWith('/')) command = `/${command}`
+        bot.chat(command)
+      }
+    })
   }
 }
 

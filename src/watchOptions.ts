@@ -1,6 +1,7 @@
 // not all options are watched here
 
 import { subscribeKey } from 'valtio/utils'
+import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
 import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
 import { miscUiState } from './globalState'
@@ -35,5 +36,18 @@ export const watchOptionsAfterViewerInit = () => {
 
   watchValue(options, o => {
     viewer.entities.setVisible(o.renderEntities)
+  })
+
+  viewer.world.smoothLighting = options.smoothLighting
+  subscribeKey(options, 'smoothLighting', () => {
+    viewer.world.smoothLighting = options.smoothLighting;
+    (viewer.world as WorldRendererThree).rerenderAllChunks()
+  })
+  subscribeKey(options, 'newVersionsLighting', () => {
+    viewer.world.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting;
+    (viewer.world as WorldRendererThree).rerenderAllChunks()
+  })
+  customEvents.on('gameLoaded', () => {
+    viewer.world.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
   })
 }

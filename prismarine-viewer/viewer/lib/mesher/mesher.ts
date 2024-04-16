@@ -50,6 +50,9 @@ self.onmessage = ({ data }) => {
     blockStatesReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)
+    world.skyLight = data.skyLight
+    world.smoothLighting = data.smoothLighting
+    world.enableLighting = data.enableLighting
     setSectionDirty(loc, data.value)
   } else if (data.type === 'chunk') {
     world.addColumn(data.x, data.z, data.chunk)

@@ -24,7 +24,9 @@ export type WorldBlock = Block & {
 
 
 export class World {
+  enableLighting = true
   skyLight = 15
+  smoothLighting = true
   outputFormat = 'threeJs' as 'threeJs' | 'webgl'
   Chunk: typeof import('prismarine-chunk/types/index').PCChunk
   columns = {} as { [key: string]: import('prismarine-chunk/types/index').PCChunk }
@@ -36,19 +38,24 @@ export class World {
     this.biomeCache = mcData(version).biomes
   }
 
-  getLight (pos: Vec3) {
+  getLight (pos: Vec3, isNeighbor = false) {
+    if (!this.enableLighting) return 15
     // const key = `${pos.x},${pos.y},${pos.z}`
     // if (lightsCache.has(key)) return lightsCache.get(key)
-    const column = this.getColumnByPos(pos);
+    const column = this.getColumnByPos(pos)
     if (!column || !hasChunkSection(column, pos)) return 15
-    const result = Math.min(
+    let result = Math.min(
       15,
       Math.max(
         column.getBlockLight(posInChunk(pos)),
         Math.min(this.skyLight, column.getSkyLight(posInChunk(pos)))
       ) + 2
-    );
+    )
     // lightsCache.set(key, result)
+    if (result === 2 && this.getBlock(pos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
+      result = this.getLight(pos.offset(0, 1, 0))
+    }
+    if (isNeighbor && result === 2) result = 15 // TODO
     return result
   }
 
