@@ -72,7 +72,7 @@ const defaultOptions = {
   renderEntities: true,
   chatSelect: false,
   autoJump: 'auto' as 'auto' | 'always' | 'never',
-  parkourMode: false,
+  autoParkour: false,
 
   // advanced bot options
   autoRespawn: false,

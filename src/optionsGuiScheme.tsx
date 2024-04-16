@@ -223,7 +223,7 @@ export const guiOptionsScheme: {
       },
     },
     {
-      parkourMode: {},
+      autoParkour: {},
     }
   ],
   sound: [
