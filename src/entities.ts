@@ -8,10 +8,10 @@ import { miscUiState } from './globalState'
 
 const updateAutoJump = () => {
   if (!bot?.autoJumper) return
-  const autoJump = options.autoJump === 'auto' ? miscUiState.currentTouch && !miscUiState.usingGamepadInput : options.autoJump === 'always'
+  const autoJump = options.parkourMode || (options.autoJump === 'auto' ? miscUiState.currentTouch && !miscUiState.usingGamepadInput : options.autoJump === 'always')
   bot.autoJumper.setOpts({
-    jumpIntoWater: false,
-    jumpOnAllEdges: false,
+    jumpIntoWater: options.parkourMode,
+    jumpOnAllEdges: options.parkourMode,
     // strictBlockCollision: true,
   })
   if (autoJump) {
@@ -21,6 +21,9 @@ const updateAutoJump = () => {
   }
 }
 subscribeKey(options, 'autoJump', () => {
+  updateAutoJump()
+})
+subscribeKey(options, 'parkourMode', () => {
   updateAutoJump()
 })
 subscribeKey(miscUiState, 'usingGamepadInput', () => {
