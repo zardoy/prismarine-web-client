@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "postinstall": "pnpm generate-textures && node buildMesherWorker.mjs",
-    "generate-textures": "tsx viewer/prepare/generateTextures.ts"
+    "generate-textures": "tsx viewer/prepare/postinstall.ts"
   },
   "author": "PrismarineJS",
   "license": "MIT",
