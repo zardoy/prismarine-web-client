@@ -1,5 +1,5 @@
 import { Vec3 } from 'vec3'
-import { BlockStatesOutput } from '../prepare/modelsBuilder'
+import type { BlockStatesOutput } from '../../prepare/modelsBuilder'
 import { World } from './world'
 import { Block } from 'prismarine-block'
 
@@ -546,6 +546,6 @@ function getModelVariants (block: import('prismarine-block').Block) {
   return []
 }
 
-export const setBlockStates = (_blockStates: BlockStatesOutput | null) => {
+export const setRendererData = (_blockStates: BlockStatesOutput | null) => {
   blockStates = _blockStates!
 }

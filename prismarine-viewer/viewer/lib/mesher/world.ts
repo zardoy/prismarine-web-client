@@ -2,7 +2,7 @@ import Chunks from 'prismarine-chunk'
 import mcData from 'minecraft-data'
 import { Block } from "prismarine-block"
 import { Vec3 } from 'vec3'
-import moreBlockDataGeneratedJson from './moreBlockDataGenerated.json'
+import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -25,6 +25,7 @@ export type WorldBlock = Block & {
 
 export class World {
   skyLight = 15
+  outputFormat = 'threeJs' as 'threeJs' | 'webgl'
   Chunk: typeof import('prismarine-chunk/types/index').PCChunk
   columns = {} as { [key: string]: import('prismarine-chunk/types/index').PCChunk }
   blockCache = {}

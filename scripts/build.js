@@ -13,7 +13,7 @@ const entityMcAssets = McAssets('1.16.4')
 // these files could be copied at build time eg with copy plugin, but copy plugin slows down the config so we copy them there, alternative we could inline it in esbuild config
 const filesToCopy = [
     { from: `${prismarineViewerBase}/public/blocksStates/`, to: 'dist/blocksStates/' },
-    { from: `${prismarineViewerBase}/public/worker.js`, to: 'dist/worker.js' },
+    { from: `${prismarineViewerBase}/public/mesher.js`, to: 'dist/mesher.js' },
     { from: './assets/', to: './dist/' },
     { from: './config.json', to: 'dist/config.json' },
     { from: path.join(entityMcAssets.directory, 'entity'), to: 'dist/textures/1.16.4/entity' },
@@ -60,7 +60,8 @@ exports.getSwAdditionalEntries = () => {
         '*.ttf',
         '*.png',
         '*.woff',
-        'worker.js',
+        'mesher.js',
+        'worldSaveWorker.js',
         // todo-low preload entity atlas?
         `textures/${singlePlayerVersion}.png`,
         `textures/1.16.4/entity/squid.png`,
@@ -68,7 +69,8 @@ exports.getSwAdditionalEntries = () => {
     const filesNeedsCacheKey = [
         'index.js',
         'index.css',
-        'worker.js',
+        'mesher.js',
+        'worldSaveWorker.js',
     ]
     const output = []
     console.log('Generating sw additional entries...')
@@ -92,7 +94,7 @@ exports.getSwAdditionalEntries = () => {
 }
 
 exports.moveStorybookFiles = () => {
-    fsExtra.moveSync('storybook-static', 'dist/storybook', {overwrite: true,})
+    fsExtra.moveSync('storybook-static', 'dist/storybook', { overwrite: true, })
     fsExtra.copySync('dist/storybook', '.vercel/output/static/storybook')
 }
 

@@ -1,11 +1,11 @@
 import { CSSProperties, PointerEvent, PointerEventHandler, useEffect, useRef, useState } from 'react'
 import { proxy, ref, useSnapshot } from 'valtio'
-import { contro } from '../controls'
+import { contro, setSneaking } from '../controls'
 import worldInteractions from '../worldInteractions'
 import PixelartIcon from './PixelartIcon'
 import Button from './Button'
 
-export type ButtonName = 'action' | 'sneak' | 'break'
+export type ButtonName = 'action' | 'sneak' | 'break' | 'jump'
 
 type ButtonsPositions = Record<ButtonName, [number, number]>
 
@@ -62,7 +62,8 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
     let active = {
       action: false,
       sneak: bot.getControlState('sneak'),
-      break: false
+      break: false,
+      jump: bot.getControlState('jump'),
     }[name]
     const holdDown = {
       action () {
@@ -71,12 +72,16 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
         document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       },
       sneak () {
-        bot.setControlState('sneak', !bot.getControlState('sneak'))
+        setSneaking(!bot.getControlState('sneak'))
         active = bot.getControlState('sneak')
       },
       break () {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 0 }))
         worldInteractions.update()
+        active = true
+      },
+      jump () {
+        bot.setControlState('jump', true)
         active = true
       }
     }
@@ -88,6 +93,10 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
       break () {
         document.dispatchEvent(new MouseEvent('mouseup', { button: 0 }))
         worldInteractions.update()
+        active = false
+      },
+      jump () {
+        bot.setControlState('jump', false)
         active = false
       }
     }
@@ -192,6 +201,9 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
     </div>
     <div {...buttonProps('sneak')}>
       <PixelartIcon iconName='arrow-down' />
+    </div>
+    <div {...buttonProps('jump')}>
+      <PixelartIcon iconName='arrow-up' />
     </div>
     <div {...buttonProps('break')}>
       <MineIcon />

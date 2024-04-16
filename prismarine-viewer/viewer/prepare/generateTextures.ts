@@ -1,6 +1,6 @@
 import path from 'path'
 import { makeBlockTextureAtlas } from './atlas'
-import { McAssets, prepareBlocksStates } from './modelsBuilder'
+import { prepareBlocksStates } from './modelsBuilder'
 import mcAssets from 'minecraft-assets'
 import fs from 'fs-extra'
 import { prepareMoreGeneratedBlocks } from './moreGeneratedBlocks'
@@ -9,10 +9,6 @@ import { generateItemsAtlases } from './genItemsAtlas'
 const publicPath = path.resolve(__dirname, '../../public')
 
 const texturesPath = path.join(publicPath, 'textures')
-if (fs.existsSync(texturesPath) && !process.argv.includes('-f')) {
-  console.log('textures folder already exists, skipping...')
-  process.exit(0)
-}
 fs.mkdirSync(texturesPath, { recursive: true })
 
 const blockStatesPath = path.join(publicPath, 'blocksStates')
