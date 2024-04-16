@@ -34,6 +34,7 @@ import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './gl
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
 import { assertDefined, inGameError } from './utils'
+import { MessageFormatPart } from './botUtils'
 
 export const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
 const loadedImagesCache = new Map<string, HTMLImageElement>()
@@ -298,11 +299,12 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
   const customName = itemNbt.display?.Name
   if (!customName) return
   const parsed = mojangson.simplify(mojangson.parse(customName))
-  return parsed
+  return parsed as MessageFormatPart
 }
 
 const getItemName = (slot: Item | null) => {
   const parsed = getItemNameRaw(slot)
+  if (!parsed) return
   // todo display full text renderer from sign renderer
   const text = flat(parsed).map(x => x.text)
   return text

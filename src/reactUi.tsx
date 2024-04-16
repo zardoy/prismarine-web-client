@@ -31,6 +31,7 @@ import GlobalSearchInput from './GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
 import HotbarRenderApp from './react/HotbarRenderApp'
+import Crosshair from './react/Crosshair'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -96,6 +97,7 @@ const InGameUi = () => {
       <ScoreboardProvider />
       <IndicatorEffectsProvider />
       <TouchAreasControlsProvider />
+      <Crosshair />
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />

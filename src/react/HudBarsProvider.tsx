@@ -106,7 +106,6 @@ export default () => {
   }, [])
 
   return <div>
-    <div className='crosshair'></div>
     <HealthBar
       gameMode={gameMode}
       isHardcore={isHardcore}
@@ -117,7 +116,7 @@ export default () => {
       effectAdded={effectAdded}
       effectEnded={effectEnded}
     />
-    <ArmorBar 
+    <ArmorBar
       armorValue={armorValue}
       style={gameMode !== 'survival' && gameMode !== 'adventure' ? { display: 'none' } : { display: 'flex' }}
     />
