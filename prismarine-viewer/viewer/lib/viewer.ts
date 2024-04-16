@@ -15,7 +15,7 @@ export class Viewer {
   camera: THREE.PerspectiveCamera
   world: WorldRendererCommon
   entities: Entities
-  primitives: Primitives
+  // primitives: Primitives
   domElement: HTMLCanvasElement
   playerHeight = 1.62
   isSneaking = false
@@ -35,7 +35,7 @@ export class Viewer {
     this.resetScene()
     this.world = new WorldRendererThree(this.scene, this.renderer, this.camera, numWorkers)
     this.entities = new Entities(this.scene)
-    this.primitives = new Primitives(this.scene, this.camera)
+    // this.primitives = new Primitives(this.scene, this.camera)
 
     this.domElement = renderer.domElement
   }
@@ -61,7 +61,7 @@ export class Viewer {
     this.resetScene()
     this.world.resetWorld()
     this.entities.clear()
-    this.primitives.clear()
+    // this.primitives.clear()
   }
 
   setVersion (userVersion: string) {
@@ -70,7 +70,7 @@ export class Viewer {
     this.version = userVersion
     this.world.setVersion(userVersion, texturesVersion)
     this.entities.clear()
-    this.primitives.clear()
+    // this.primitives.clear()
   }
 
   addColumn (x, z, chunk) {
@@ -95,10 +95,6 @@ export class Viewer {
         }
       }
     }))
-  }
-
-  updatePrimitive (p) {
-    this.primitives.update(p)
   }
 
   setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number, roll = 0) {
@@ -144,7 +140,7 @@ export class Viewer {
     })
 
     emitter.on('primitive', (p) => {
-      this.updatePrimitive(p)
+      // this.updatePrimitive(p)
     })
 
     emitter.on('loadChunk', ({ x, z, chunk, worldConfig }) => {

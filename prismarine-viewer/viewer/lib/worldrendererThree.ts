@@ -21,10 +21,6 @@ export class WorldRendererThree extends WorldRendererCommon {
     signsCache = new Map<string, any>()
 
     constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public camera: THREE.PerspectiveCamera, numWorkers = 4) {
-        // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
-        THREE.ColorManagement.enabled = false
-        renderer.outputColorSpace = THREE.LinearSRGBColorSpace
-
         super(numWorkers)
     }
 

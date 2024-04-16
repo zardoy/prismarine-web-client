@@ -1,3 +1,5 @@
+import { statsEnd, statsStart } from '../../../src/topRightStats'
+
 // wrapper for now
 export class ViewerWrapper {
     previousWindowWidth: number
@@ -85,15 +87,17 @@ export class ViewerWrapper {
                 return
             }
         }
+        this.preRender()
+        statsStart()
         // ios bug: viewport dimensions are updated after the resize event
         if (this.previousWindowWidth !== window.innerWidth || this.previousWindowHeight !== window.innerHeight) {
             this.resizeHandler()
             this.previousWindowWidth = window.innerWidth
             this.previousWindowHeight = window.innerHeight
         }
-        this.preRender()
         viewer.render()
         this.renderedFps++
+        statsEnd()
         this.postRender()
     }
 
