@@ -343,9 +343,10 @@ export const upInventoryItems = (isInventory: boolean, invWindow = lastWindow) =
 }
 
 export const onModalClose = (callback: () => any) => {
-  const { length } = activeModalStack
+  const modal = activeModalStack.at(-1)
   const unsubscribe = subscribe(activeModalStack, () => {
-    if (activeModalStack.length < length) {
+    const newModal = activeModalStack.at(-1)
+    if (modal?.reactType !== newModal?.reactType) {
       callback()
       unsubscribe()
     }

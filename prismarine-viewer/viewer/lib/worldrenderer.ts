@@ -254,6 +254,7 @@ export class WorldRenderer {
       this.material.map = texture
       this.material.map.onUpdate = () => {
         this.downloadedTextureImage = this.material.map!.image
+        this.renderUpdateEmitter.emit('textureDownloaded')
       }
     })
 

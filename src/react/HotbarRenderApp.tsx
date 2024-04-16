@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState, useMemo } from 'react'
-import nbt from 'prismarine-nbt'
+import { useEffect, useRef, useState } from 'react'
 import { Transition } from 'react-transition-group'
 import { getItemNameRaw, openItemsCanvas, openPlayerInventory, upInventoryItems } from '../playerWindows'
 import { isGameActive, miscUiState } from '../globalState'
@@ -14,15 +13,16 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
 
   const duration = 300
 
-  const defaultStyle = {
+  const defaultStyle: React.CSSProperties = {
     position: 'fixed',
     bottom: 'calc(var(--safe-area-inset-bottom) + 50px)',
     left: 0,
     right: 0,
-    fontSize: '0.5rem',
+    fontSize: 10,
     textAlign: 'center',
     transition: `opacity ${duration}ms ease-in-out`,
     opacity: 0,
+    pointerEvents: 'none',
   }
 
   const transitionStyles = {
@@ -60,7 +60,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
 
   return <Transition nodeRef={nodeRef} in={show} timeout={duration} >
     {state => (
-      <div ref={nodeRef} style={{ ...defaultStyle, ...transitionStyles[state] }}>
+      <div ref={nodeRef} style={{ ...defaultStyle, ...transitionStyles[state] }} className='item-display-name'>
         <MessageFormattedString message={itemName} />
       </div>
     )}
@@ -90,9 +90,11 @@ export default () => {
     canvasManager.windowHeight = 25
     canvasManager.windowWidth = 210 - (inv.inventory.supportsOffhand ? 0 : 25) + (miscUiState.currentTouch ? 28 : 0)
     container.current.appendChild(inv.canvas)
-    const upWindowItems = () => {
+    const upHotbarItems = () => {
+      if (!viewer.world.downloadedTextureImage && !viewer.world.customTexturesDataUrl) return
       upInventoryItems(true, inv)
     }
+    globalThis.upHotbarItems = upHotbarItems
 
     canvasManager.canvas.onpointerdown = (e) => {
       if (!isGameActive(true)) return
@@ -109,7 +111,8 @@ export default () => {
       bot.setQuickBarSlot(xSlot)
     }
 
-    bot.inventory.on('updateSlot', upWindowItems)
+    bot.inventory.on('updateSlot', upHotbarItems)
+    viewer.world.renderUpdateEmitter.on('textureDownloaded', upHotbarItems)
 
     const setSelectedSlot = (index: number) => {
       if (index === bot.quickBarSlot) return
