@@ -152,6 +152,11 @@ const uiCommand = (command: Command) => {
   }
 }
 
+export const setSneaking = (state: boolean) => {
+  gameAdditionalState.isSneaking = state
+  bot.setControlState('sneak', state)
+}
+
 const onTriggerOrReleased = (command: Command, pressed: boolean) => {
   // always allow release!
   if (pressed && !isGameActive(true)) {
@@ -166,8 +171,7 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         bot.setControlState('jump', pressed)
         break
       case 'general.sneak':
-        gameAdditionalState.isSneaking = pressed
-        bot.setControlState('sneak', pressed)
+        setSneaking(pressed)
         break
       case 'general.sprint':
         // todo add setting to change behavior
