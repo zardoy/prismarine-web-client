@@ -30,6 +30,7 @@
     "@dimaka/interface": "0.0.3-alpha.0",
     "@floating-ui/react": "^0.26.1",
     "@mui/base": "5.0.0-beta.34",
+    "@nxg-org/mineflayer-auto-jump": "^0.7.5",
     "@nxg-org/mineflayer-tracker": "^1.2.1",
     "@react-oauth/google": "^0.12.1",
     "@types/gapi": "^0.0.47",
@@ -101,7 +102,7 @@
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "constants-browserify": "^1.0.0",
-    "contro-max": "^0.1.1",
+    "contro-max": "^0.1.2",
     "crypto-browserify": "^3.12.0",
     "cypress": "^10.11.0",
     "cypress-esbuild-preprocessor": "^1.0.2",
@@ -136,6 +137,7 @@
   },
   "pnpm": {
     "overrides": {
+      "@nxg-org/mineflayer-physics-util": "1.5.8",
       "three": "0.154.0",
       "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
@@ -144,6 +146,9 @@
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
       "minecraft-protocol": "github:zardoy/minecraft-protocol#everything",
       "react": "^18.2.0"
+    },
+    "updateConfig": {
+      "ignoreDependencies": []
     }
   }
 }

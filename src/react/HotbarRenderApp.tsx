@@ -198,7 +198,7 @@ export default () => {
           right: 0,
           display: 'flex',
           justifyContent: 'center',
-          zIndex: hasModals ? 1 : 7,
+          zIndex: hasModals ? 1 : 8,
         }} />
       </SharedHudVars>
     </Portal>

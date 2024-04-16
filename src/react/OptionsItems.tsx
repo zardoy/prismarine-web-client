@@ -2,7 +2,7 @@ import { useSnapshot } from 'valtio'
 import { noCase } from 'change-case'
 import { titleCase } from 'title-case'
 import { useMemo } from 'react'
-import { options } from '../optionsStorage'
+import { options, qsOptions } from '../optionsStorage'
 import Button from './Button'
 import Slider from './Slider'
 import Screen from './Screen'
@@ -29,6 +29,11 @@ export type OptionMeta<T = any> = GeneralItem<T & string> & ({
   type: 'element'
   render: () => React.ReactNode,
 })
+
+// todo not reactive
+const isDisabled = (id) => {
+  return Object.keys(qsOptions).includes(id)
+}
 
 export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'toggle' }> }) => {
   const optionValue = useSnapshot(options)[item.id!]
@@ -74,7 +79,7 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
       }
     }}
     title={item.disabledReason ? `${item.disabledReason} | ${item.tooltip}` : item.tooltip}
-    disabled={!!item.disabledReason}
+    disabled={!!item.disabledReason || isDisabled(item.id!)}
     style={{
       width: 150,
     }}
@@ -89,7 +94,7 @@ export const OptionSlider = ({ item }: { item: Extract<OptionMeta, { type: 'slid
     return undefined // default display
   }, [optionValue])
 
-  return <Slider label={item.text!} value={options[item.id!]} min={item.min} max={item.max} updateValue={(value) => {
+  return <Slider disabledReason={isDisabled(item.id!) ? 'qs' : undefined} label={item.text!} value={options[item.id!]} min={item.min} max={item.max} updateValue={(value) => {
     options[item.id!] = value
   }} unit={item.unit} valueDisplay={valueDisplay} updateOnDragEnd={item.delayApply} />
 }

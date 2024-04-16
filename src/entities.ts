@@ -1,9 +1,39 @@
 import { Entity } from 'prismarine-entity'
 import tracker from '@nxg-org/mineflayer-tracker'
+import { loader as autoJumpPlugin } from '@nxg-org/mineflayer-auto-jump'
+import { subscribeKey } from 'valtio/utils'
 import { options, watchValue } from './optionsStorage'
+import { miscUiState } from './globalState'
+
+
+const updateAutoJump = () => {
+  if (!bot?.autoJumper) return
+  const autoJump = options.autoJump === 'auto' ? miscUiState.currentTouch && !miscUiState.usingGamepadInput : options.autoJump === 'always'
+  bot.autoJumper.setOpts({
+    jumpIntoWater: false,
+    jumpOnAllEdges: false,
+    // strictBlockCollision: true,
+  })
+  if (autoJump) {
+    bot.autoJumper.enable()
+  } else {
+    bot.autoJumper.disable()
+  }
+}
+subscribeKey(options, 'autoJump', () => {
+  updateAutoJump()
+})
+subscribeKey(miscUiState, 'usingGamepadInput', () => {
+  updateAutoJump()
+})
+subscribeKey(miscUiState, 'currentTouch', () => {
+  updateAutoJump()
+})
 
 customEvents.on('gameLoaded', () => {
   bot.loadPlugin(tracker)
+  bot.loadPlugin(autoJumpPlugin)
+  updateAutoJump()
 
   // todo cleanup (move to viewer, also shouldnt be used at all)
   const playerPerAnimation = {} as Record<string, string>
@@ -13,6 +43,7 @@ customEvents.on('gameLoaded', () => {
     window.debugEntityMetadata[e.username] = e
     // todo entity spawn timing issue, check perf
     if (viewer.entities.entities[e.id]?.playerObject) {
+      // todo throttle!
       bot.tracker.trackEntity(e)
       const { playerObject } = viewer.entities.entities[e.id]
       playerObject.backEquipment = e.equipment.some((item) => item?.name === 'elytra') ? 'elytra' : 'cape'
