@@ -15,7 +15,7 @@ import Entity from '../viewer/lib/entity/Entity'
 
 globalThis.THREE = THREE
 //@ts-ignore
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 
 const gui = new GUI()
 
@@ -137,7 +137,6 @@ async function main () {
   viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
   viewer.entities.onSkinUpdate = () => {
-    viewer.update()
     viewer.render()
   }
 
@@ -257,39 +256,6 @@ async function main () {
     }
   }
 
-  // const jsonData = await fetch('https://bluecolored.de/bluemap/maps/overworld/tiles/0/x-2/2/z1/6.json?584662').then(r => r.json())
-
-  // const uniforms = {
-  //   distance: { value: 0 },
-  //   sunlightStrength: { value: 1 },
-  //   ambientLight: { value: 0 },
-  //   skyColor: { value: new THREE.Color(0.5, 0.5, 1) },
-  //   voidColor: { value: new THREE.Color(0, 0, 0) },
-  //   hiresTileMap: {
-  //     value: {
-  //       map: null,
-  //       size: 100,
-  //       scale: new THREE.Vector2(1, 1),
-  //       translate: new THREE.Vector2(),
-  //       pos: new THREE.Vector2(),
-  //     }
-  //   }
-
-  // }
-
-  // const shader1 = new THREE.ShaderMaterial({
-  //   uniforms: uniforms,
-  //   vertexShader: [0, 0, 0, 0],
-  //   fragmentShader: fragmentShader,
-  //   transparent: false,
-  //   depthWrite: true,
-  //   depthTest: true,
-  //   vertexColors: true,
-  //   side: THREE.FrontSide,
-  //   wireframe: false
-  // })
-
-
   //@ts-ignore
   const controls = new OrbitControls(viewer.camera, renderer.domElement)
   controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
@@ -315,7 +281,7 @@ async function main () {
       id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
     })
     const enableSkeletonDebug = (obj) => {
-      const {children, isSkeletonHelper} = obj
+      const { children, isSkeletonHelper } = obj
       if (!Array.isArray(children)) return
       if (isSkeletonHelper) {
         obj.visible = true
@@ -327,7 +293,6 @@ async function main () {
     }
     enableSkeletonDebug(viewer.entities.entities['id'])
     setTimeout(() => {
-      viewer.update()
       viewer.render()
     }, TWEEN_DURATION)
   }
@@ -441,9 +406,6 @@ async function main () {
     }
   })
   viewer.waitForChunksToRender().then(async () => {
-    await new Promise(resolve => {
-      setTimeout(resolve, 0)
-    })
     for (const update of Object.values(onUpdate)) {
       update()
     }
@@ -454,7 +416,6 @@ async function main () {
   const animate = () => {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
-    viewer.update()
     viewer.render()
     // window.requestAnimationFrame(animate)
   }
