@@ -386,6 +386,8 @@ const upJei = (search: string) => {
 
 export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
   const inv = showInventory(type, getImage, {}, _bot)
+  // todo scaling
+  inv.canvasManager.setScale(window.innerWidth < 470 ? 1.5 : window.innerHeight < 480 || window.innerWidth < 760 ? 2 : window.innerHeight < 700 ? 3 : 4)
   return inv
 }
 
@@ -411,8 +413,6 @@ const openWindow = (type: string | undefined) => {
   inv.canvas.style.zIndex = '10'
   inv.canvas.style.position = 'fixed'
   inv.canvas.style.inset = '0'
-  // todo scaling
-  inv.canvasManager.setScale(window.innerWidth < 470 ? 1.5 : window.innerHeight < 480 || window.innerWidth < 760 ? 2 : window.innerHeight < 700 ? 3 : 4)
 
   inv.canvasManager.onClose = () => {
     hideCurrentModal()

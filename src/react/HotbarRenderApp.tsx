@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Transition } from 'react-transition-group'
+import { createPortal } from 'react-dom'
+import { useSnapshot } from 'valtio'
 import { getItemNameRaw, openItemsCanvas, openPlayerInventory, upInventoryItems } from '../playerWindows'
-import { isGameActive, miscUiState } from '../globalState'
+import { activeModalStack, isGameActive, miscUiState } from '../globalState'
 import MessageFormattedString from './MessageFormattedString'
 import SharedHudVars from './SharedHudVars'
 
@@ -70,45 +72,49 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
 export default () => {
   const container = useRef<HTMLDivElement>(null!)
   const [itemKey, setItemKey] = useState('')
+  const hasModals = useSnapshot(activeModalStack).length
 
   useEffect(() => {
     const controller = new AbortController()
 
     const inv = openItemsCanvas('HotbarWin', {
       clickWindow (slot, mouseButton, mode) {
-        // todo fix in canvas
-        // if (slot < 32 || slot > 40) return
-        // bot.setQuickBarSlot(32 - slot)
+        if (mouseButton === 1) {
+          console.log('right click')
+          return
+        }
+        if (slot < 32 || slot > 40) return
+        bot.setQuickBarSlot(slot - bot.inventory.hotbarStart)
       },
     } as any)
     const { canvasManager } = inv
     inv.inventory.supportsOffhand = bot.supportFeature('doesntHaveOffHandSlot')
+    inv.pwindow.disablePicking = true
 
+    canvasManager.children[0].disableHighlight = true
     canvasManager.minimizedWindow = true
     canvasManager.minimizedWindow = true
-    canvasManager.scale = 1
-    canvasManager.windowHeight = 25
-    canvasManager.windowWidth = 210 - (inv.inventory.supportsOffhand ? 0 : 25) + (miscUiState.currentTouch ? 28 : 0)
+    if (canvasManager.scale === 1.5) canvasManager.scale = 1
+    if (canvasManager.scale === 4) canvasManager.scale = 3
+    window.canvasManager = canvasManager
+    // canvasManager.scale = 1
+    canvasManager.windowHeight = 25 * canvasManager.scale
+    canvasManager.windowWidth = (210 - (inv.inventory.supportsOffhand ? 0 : 25) + (miscUiState.currentTouch ? 28 : 0)) * canvasManager.scale
     container.current.appendChild(inv.canvas)
     const upHotbarItems = () => {
       if (!viewer.world.downloadedTextureImage && !viewer.world.customTexturesDataUrl) return
       upInventoryItems(true, inv)
     }
-    globalThis.upHotbarItems = upHotbarItems
 
     canvasManager.canvas.onpointerdown = (e) => {
       if (!isGameActive(true)) return
       const slot = inv.canvasManager.getMousePos(inv.canvas, e)
       // take offhand into account
       if (inv.inventory.supportsOffhand) slot.x -= 25
-      let xSlot = Math.floor((slot.x - 1) / 35)
+      const xSlot = Math.floor((slot.x - 1) / 35)
       if (xSlot === 11) {
         openPlayerInventory()
-        return
       }
-      if (xSlot < 0 || xSlot > 9) return
-      if (xSlot === 9) xSlot = 8 // todo use native canvas events!
-      bot.setQuickBarSlot(xSlot)
     }
 
     bot.inventory.on('updateSlot', upHotbarItems)
@@ -147,25 +153,58 @@ export default () => {
       setSelectedSlot(numPressed - 1)
     }, {
       passive: false,
+      signal: controller.signal
+    })
+
+    let touchStart = 0
+    document.addEventListener('touchstart', (e) => {
+      if ((e.target as HTMLElement).closest('.hotbar')) {
+        touchStart = Date.now()
+      } else {
+        touchStart = 0
+      }
+    })
+    document.addEventListener('touchend', (e) => {
+      if (touchStart && (e.target as HTMLElement).closest('.hotbar') && Date.now() - touchStart > 700) {
+        // drop item
+        bot._client.write('block_dig', {
+          'status': 4,
+          'location': {
+            'x': 0,
+            'z': 0,
+            'y': 0
+          },
+          'face': 0,
+          sequence: 0
+        })
+      }
+      touchStart = 0
     })
 
     return () => {
       inv.destroy()
       controller.abort()
-      // bot.inventory.off('updateSlot', upWindowItems)
     }
   }, [])
 
   return <SharedHudVars>
     <ItemName itemKey={itemKey} />
-    <div className='hotbar' ref={container} style={{
-      position: 'fixed',
-      bottom: 'calc(var(--safe-area-inset-bottom))',
-      left: 0,
-      right: 0,
-      display: 'flex',
-      justifyContent: 'center',
-      zIndex: -1,
-    }} />
+    <Portal>
+      <SharedHudVars>
+        <div className='hotbar' ref={container} style={{
+          position: 'fixed',
+          bottom: 'calc(var(--safe-area-inset-bottom) * 2)',
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          zIndex: hasModals ? 1 : 7,
+        }} />
+      </SharedHudVars>
+    </Portal>
   </SharedHudVars>
+}
+
+const Portal = ({ children, to = document.body }) => {
+  return createPortal(children, to)
 }
