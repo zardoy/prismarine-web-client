@@ -16,8 +16,8 @@ import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 
-// doesnt seem to work for now
-const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
+// todo move this to shared file with component
+export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
 subscribe(customKeymaps, () => {
   localStorage.keymap = JSON.parse(customKeymaps)
 })
@@ -322,11 +322,16 @@ document.addEventListener('keydown', (e) => {
   if (!isGameActive(false)) return
   if (hardcodedPressedKeys.has('F3')) {
     const keybind = f3Keybinds.find((v) => v.key === e.code)
-    if (keybind) keybind.action()
+    if (keybind) {
+      keybind.action()
+      e.stopPropagation()
+    }
     return
   }
 
   hardcodedPressedKeys.add(e.code)
+}, {
+  capture: true,
 })
 document.addEventListener('keyup', (e) => {
   hardcodedPressedKeys.delete(e.code)
