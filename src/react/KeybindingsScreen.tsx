@@ -3,7 +3,7 @@ import Screen from './Screen'
 export default ({
   onBack,
   onReset,
-    onSet,
+  onSet,
   keybindings
 }) => {
   return <Screen title="Keybindings" backdrop>
