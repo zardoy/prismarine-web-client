@@ -521,13 +521,13 @@ async function connect (connectOptions: {
     } else {
       const setupConnectHandlers = () => {
         bot._client.socket.on('connect', () => {
-          console.log('TCP connection established')
+          console.log('WebSocket connection established')
           //@ts-expect-error
           bot._client.socket._ws.addEventListener('close', () => {
-            console.log('TCP connection closed')
+            console.log('WebSocket connection closed')
             setTimeout(() => {
               if (bot) {
-                bot.emit('end', 'TCP connection closed with unknown reason')
+                bot.emit('end', 'WebSocket connection closed with unknown reason')
               }
             })
           })
