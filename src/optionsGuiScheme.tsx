@@ -222,6 +222,9 @@ export const guiOptionsScheme: {
         const { touchControlsType } = useSnapshot(options)
         return <Button label='Setup Touch Buttons' onClick={() => showModal({ reactType: 'touch-buttons-setup' })} inScreen disabled={touchControlsType !== 'joystick-buttons'} />
       },
+    },
+    {
+      autoParkour: {},
     }
   ],
   sound: [
