@@ -21,7 +21,7 @@ import IndicatorEffectsProvider from './react/IndicatorEffectsProvider'
 import PlayerListOverlayProvider from './react/PlayerListOverlayProvider'
 import HudBarsProvider from './react/HudBarsProvider'
 import XPBarProvider from './react/XPBarProvider'
-import DebugOverlayProvider from './react/DebugOverlayProvider'
+import DebugOverlay from './react/DebugOverlay'
 import PauseScreen from './react/PauseScreen'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
@@ -89,7 +89,7 @@ const InGameUi = () => {
     <RobustPortal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
       <DeathScreenProvider />
-      <DebugOverlayProvider />
+      <DebugOverlay />
       <PlayerListOverlayProvider />
       <ChatProvider />
       <SoundMuffler />
