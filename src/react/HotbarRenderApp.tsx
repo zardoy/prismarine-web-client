@@ -43,7 +43,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
         nbt: JSON.parse(itemData[3]),
       })
       if (customDisplay) {
-        setItemName(customDisplay)
+        setItemName(customDisplay[0])
       } else {
         setItemName(itemData[0])
       }
