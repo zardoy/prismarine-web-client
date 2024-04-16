@@ -237,8 +237,10 @@ class DebugOverlay extends LitElement {
       return html`<p>${name}: ${typeof value === 'boolean' ? html`<span style="color: ${value ? 'lightgreen' : 'red'}">${value}</span>` : value}</p>`
     }
 
-    const skyL = this.bot.world.getSkyLight(this.bot.entity.position)
-    const biomeId = this.bot.world.getBiome(this.bot.entity.position)
+    const botBlock = bot.entity.position.floored()
+    const skyL = bot.world.getSkyLight(botBlock)
+    const blockL = bot.world.getBlockLight(botBlock)
+    const biomeId = bot.world.getBiome(botBlock)
 
     return html`
       <div class="debug-left-side">
@@ -251,7 +253,7 @@ class DebugOverlay extends LitElement {
         <p>Packets: ${this.packetsString}</p>
         <p>Facing (viewer): ${rot[0].toFixed(3)} ${rot[1].toFixed(3)}</p>
         <p>Facing (minecraft): ${quadsDescription[minecraftQuad]} (${minecraftYaw.toFixed(1)} ${(rot[1] * -180 / Math.PI).toFixed(1)})</p>
-        <p>Light: ${skyL} (${skyL} sky)</p>
+        <p>Light: ${blockL} (${skyL} sky)</p>
         <!-- todo fix biome -->
         <p>Biome: minecraft:${window.loadedData.biomesArray[biomeId]?.name ?? 'unknown biome'}</p>
         <p>Day: ${this.bot.time.day}</p>

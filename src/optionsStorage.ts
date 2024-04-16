@@ -74,6 +74,8 @@ const defaultOptions = {
   /** Actually might be useful */
   showCursorBlockInSpectator: false,
   renderEntities: true,
+  smoothLighting: true,
+  newVersionsLighting: false,
   chatSelect: false,
   autoJump: 'auto' as 'auto' | 'always' | 'never',
   autoParkour: false,

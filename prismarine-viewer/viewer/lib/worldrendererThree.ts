@@ -176,6 +176,20 @@ export class WorldRendererThree extends WorldRendererCommon {
         return group
     }
 
+    updateLight (chunkX: number, chunkZ: number) {
+        // set all sections in the chunk dirty
+        for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+            this.setSectionDirty(new Vec3(chunkX, y, chunkZ))
+        }
+    }
+
+    rerenderAllChunks () { // todo not clear what to do with loading chunks
+        for (const key of Object.keys(this.sectionObjects)) {
+            const [x, y, z] = key.split(',').map(Number)
+            this.setSectionDirty(new Vec3(x, y, z))
+        }
+    }
+
     updateShowChunksBorder (value: boolean) {
         this.showChunkBorders = value
         for (const object of Object.values(this.sectionObjects)) {

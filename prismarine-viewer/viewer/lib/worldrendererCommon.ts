@@ -37,6 +37,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   texturesVersion?: string
   viewDistance = -1
   chunksLength = 0
+  skyLight = 15
+  smoothLighting = true
+  enableLighting = true
 
   abstract outputFormat: 'threeJs' | 'webgl'
 
@@ -222,7 +225,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // is always dispatched to the same worker
     const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
     this.sectionsOutstanding.set(key, (this.sectionsOutstanding.get(key) ?? 0) + 1)
-    this.workers[hash].postMessage({ type: 'dirty', x: pos.x, y: pos.y, z: pos.z, value })
+    this.workers[hash].postMessage({ type: 'dirty', x: pos.x, y: pos.y, z: pos.z, value, skyLight: this.skyLight, smoothLighting: this.smoothLighting, enableLighting: this.enableLighting })
   }
 
   // Listen for chunk rendering updates emitted if a worker finished a render and resolve if the number

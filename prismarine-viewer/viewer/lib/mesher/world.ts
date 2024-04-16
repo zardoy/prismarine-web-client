@@ -10,13 +10,6 @@ function columnKey (x, z) {
   return `${x},${z}`
 }
 
-function posInChunk (pos) {
-  pos = pos.floored()
-  pos.x &= 15
-  pos.z &= 15
-  return pos
-}
-
 function isCube (shapes) {
   if (!shapes || shapes.length !== 1) return false
   const shape = shapes[0]
@@ -29,21 +22,46 @@ export type WorldBlock = Block & {
   isCube: boolean
 }
 
+
 export class World {
+  enableLighting = true
+  skyLight = 15
+  smoothLighting = true
   outputFormat = 'threeJs' as 'threeJs' | 'webgl'
-  Chunk: any/* import('prismarine-chunk/types/index').PCChunk */
-  columns = {}
+  Chunk: typeof import('prismarine-chunk/types/index').PCChunk
+  columns = {} as { [key: string]: import('prismarine-chunk/types/index').PCChunk }
   blockCache = {}
   biomeCache: { [id: number]: mcData.Biome }
 
   constructor(version) {
-    this.Chunk = Chunks(version)
+    this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
+  }
+
+  getLight (pos: Vec3, isNeighbor = false) {
+    if (!this.enableLighting) return 15
+    // const key = `${pos.x},${pos.y},${pos.z}`
+    // if (lightsCache.has(key)) return lightsCache.get(key)
+    const column = this.getColumnByPos(pos)
+    if (!column || !hasChunkSection(column, pos)) return 15
+    let result = Math.min(
+      15,
+      Math.max(
+        column.getBlockLight(posInChunk(pos)),
+        Math.min(this.skyLight, column.getSkyLight(posInChunk(pos)))
+      ) + 2
+    )
+    // lightsCache.set(key, result)
+    if (result === 2 && this.getBlock(pos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
+      result = this.getLight(pos.offset(0, 1, 0))
+    }
+    if (isNeighbor && result === 2) result = 15 // TODO
+    return result
   }
 
   addColumn (x, z, json) {
     const chunk = this.Chunk.fromJson(json)
-    this.columns[columnKey(x, z)] = chunk
+    this.columns[columnKey(x, z)] = chunk as any
     return chunk
   }
 
@@ -67,6 +85,10 @@ export class World {
     return true
   }
 
+  getColumnByPos (pos: Vec3) {
+    return this.getColumn(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
+  }
+
   getBlock (pos: Vec3): WorldBlock | null {
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
 
@@ -80,12 +102,18 @@ export class World {
 
     if (!this.blockCache[stateId]) {
       const b = column.getBlock(locInChunk)
+      //@ts-expect-error
       b.isCube = isCube(b.shapes)
       this.blockCache[stateId] = b
+      Object.defineProperty(b, 'position', {
+        get () {
+          throw new Error('position is not reliable, use pos parameter instead of block.position')
+        }
+      })
     }
 
     const block = this.blockCache[stateId]
-    block.position = loc
+    // block.position = loc // it overrides position of all currently loaded blocks
     block.biome = this.biomeCache[column.getBiome(locInChunk)] ?? this.biomeCache[1] ?? this.biomeCache[0]
     if (block.name === 'redstone_ore') block.transparent = false
     return block
@@ -94,4 +122,19 @@ export class World {
   shouldMakeAo (block: WorldBlock | null) {
     return block?.isCube && !ignoreAoBlocks.includes(block.name)
   }
+}
+
+// todo export in chunk instead
+const hasChunkSection = (column, pos) => {
+  if (column._getSection) return column._getSection(pos)
+  if (column.sections) return column.sections[pos.y >> 4]
+  if (column.skyLightSections) return column.skyLightSections[getLightSectionIndex(pos, column.minY)]
+}
+
+function posInChunk (pos) {
+  return new Vec3(Math.floor(pos.x) & 15, Math.floor(pos.y), Math.floor(pos.z) & 15)
+}
+
+function getLightSectionIndex (pos, minY = 0) {
+  return Math.floor((pos.y - minY) / 16) + 1
 }

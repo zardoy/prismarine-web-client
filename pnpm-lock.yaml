@@ -184,6 +184,9 @@ importers:
       valtio:
         specifier: ^1.11.1
         version: 1.11.2(@types/react@18.2.20)(react@18.2.0)
+      vec3:
+        specifier: ^0.1.7
+        version: 0.1.8
       workbox-build:
         specifier: ^7.0.0
         version: 7.0.0

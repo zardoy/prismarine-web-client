@@ -71,7 +71,7 @@ Instead I recommend setting `options.debugLogNotFrequentPackets`. Also you can u
 - `viewer.world.sectionObjects` - Object with all active chunk sections (geometries) in the world. Each chunk section is a Three.js mesh or group.
 - `debugSceneChunks` - The same as above, but relative to current bot position (e.g. 0,0 is the current chunk).
 - `debugChangedOptions` - See what options are changed. Don't change options here.
-- `localServer` - Only for singleplayer mode/host. Flying Squid server instance, see it's documentation for more.
+- `localServer`/`server` - Only for singleplayer mode/host. Flying Squid server instance, see it's documentation for more.
 - `localServer.overworld.storageProvider.regions` - See ALL LOADED region files with all raw data.
 
 - `nbt.simplify(someNbt)` - Simplifies nbt data, so it's easier to read.
