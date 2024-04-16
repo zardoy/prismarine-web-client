@@ -30,7 +30,7 @@
     "@dimaka/interface": "0.0.3-alpha.0",
     "@floating-ui/react": "^0.26.1",
     "@mui/base": "5.0.0-beta.34",
-    "@nxg-org/mineflayer-auto-jump": "^0.7.2",
+    "@nxg-org/mineflayer-auto-jump": "^0.7.3",
     "@nxg-org/mineflayer-tracker": "^1.2.1",
     "@react-oauth/google": "^0.12.1",
     "@types/gapi": "^0.0.47",

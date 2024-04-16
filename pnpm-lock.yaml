@@ -29,8 +29,8 @@ importers:
         specifier: 5.0.0-beta.34
         version: 5.0.0-beta.34(@types/react@18.2.20)(react-dom@18.2.0)(react@18.2.0)
       '@nxg-org/mineflayer-auto-jump':
-        specifier: ^0.7.2
-        version: 0.7.2
+        specifier: ^0.7.3
+        version: 0.7.3
       '@nxg-org/mineflayer-tracker':
         specifier: ^1.2.1
         version: 1.2.1
@@ -3341,8 +3341,8 @@ packages:
     dev: false
     optional: true
 
-  /@nxg-org/mineflayer-auto-jump@0.7.2:
-    resolution: {integrity: sha512-HVD8PiimbgRH/zmJKbYBF1ye3/iml2FTNUM99CYhWHLPvZHMny3auBQykVq2oTYEg37JFwiYEyc64ubUbKtGng==}
+  /@nxg-org/mineflayer-auto-jump@0.7.3:
+    resolution: {integrity: sha512-cWdo8QV+AMNfK3Vns9wnmp+IQkqe1e1SAm/aruC1s9/LzZrfstk9EhvthWTv2jgcq2u5f4BB7/buUC/h+bJidg==}
     dependencies:
       '@nxg-org/mineflayer-physics-util': 1.5.8
       strict-event-emitter-types: 2.0.0
