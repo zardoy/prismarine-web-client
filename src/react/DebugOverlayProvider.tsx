@@ -15,14 +15,14 @@ export default () => {
   const received = useRef(defaultPacketsCount)
   const sent = useRef(defaultPacketsCount)
   const receivedTotal = useRef(0)
-  const packetsCountByNamePerSec = useRef({ 
-    received: {} as { [key: string]: number }, 
-    sent: {} as { [key: string]: number } 
-  }) 
-  const packetsCountByName = useRef({ 
-    received: {} as { [key: string]: number }, 
-    sent: {} as { [key: string]: number } 
-  }) 
+  const packetsCountByNamePerSec = useRef({
+    received: {} as { [key: string]: number },
+    sent: {} as { [key: string]: number }
+  })
+  const packetsCountByName = useRef({
+    received: {} as { [key: string]: number },
+    sent: {} as { [key: string]: number }
+  })
   const ignoredPackets = useRef(new Set(''))
   const [packetsString, setPacketsString] = useState('')
   const [showDebug, setShowDebug] = useState(false)
@@ -35,7 +35,6 @@ export default () => {
   const [dimension, setDimension] = useState('')
   const [cursorBlock, setCursorBlock] = useState<typeof worldInteractions.cursorBlock>(null)
   const [rendererDevice, setRendererDevice] = useState('')
-  const [revision, setRevision] = useState('')
 
   const hardcodedListOfDebugPacketsToIgnore = {
     received: [
@@ -147,7 +146,6 @@ export default () => {
     } catch (err) {
       console.warn(err)
     }
-    setRevision(THREE.REVISION)
 
     return () => {
       document.removeEventListener('keydown', handleF3)
@@ -155,8 +153,7 @@ export default () => {
     }
   }, [])
 
-  return <DebugOverlay 
-    show={showDebug}
+  return showDebug && <DebugOverlay
     version={version}
     entitiesCount={entitiesCount}
     dimension={dimension}
@@ -164,8 +161,7 @@ export default () => {
     day={day}
     packetsString={packetsString}
     customEntries={{} as DebugOverlayProps['customEntries']}
-    rendererDevice={rendererDevice}
-    threejs_revision={revision}
+    renderer={`${rendererDevice} powered by three.js v${THREE.REVISION}`}
     target={cursorBlock}
     biome={loadedData.biomesArray[biomeId]?.name ?? 'unknown biome'}
     skyL={skyL}

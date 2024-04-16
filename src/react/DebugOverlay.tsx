@@ -10,9 +10,8 @@ const state = proxy({
 })
 
 export type DebugOverlayProps = {
-  show: boolean,
   version: string,
-  entitiesCount: number, 
+  entitiesCount: number,
   dimension: string,
   entity: {
     position: {
@@ -26,15 +25,13 @@ export type DebugOverlayProps = {
   day: number,
   packetsString: string,
   customEntries: Record<string, any>, // Assuming customEntries is a key-value pair object
-  rendererDevice: string,
   target?: typeof worldInteractions.cursorBlock,
-  threejs_revision: string,
+  renderer: string,
   biome: string,
   skyL: number
 }
 
 export default ({
-  show,
   version,
   entitiesCount,
   dimension,
@@ -42,9 +39,8 @@ export default ({
   day,
   packetsString,
   customEntries,
-  rendererDevice,
   target,
-  threejs_revision,
+  renderer,
   biome,
   skyL
 } : DebugOverlayProps) => {
@@ -74,8 +70,6 @@ export default ({
     minecraftQuad.current = Math.floor(((minecraftYaw.current + 180) / 90 + 0.5) % 4)
   }, [rot[0]])
 
-  if (!show) return null
-
   return <>
     <div className={styles['debug-left-side']}>
       <p>Prismarine Web Client ({version})</p>
@@ -96,7 +90,7 @@ export default ({
     </div>
 
     <div className={styles['debug-right-side']}>
-      <p>Renderer: {rendererDevice} powered by three.js r{threejs_revision}</p>
+      <p>Renderer: {renderer}</p>
       <div className={styles.empty}></div>
       {target ? (<>
         <p>{target.name}</p>
@@ -110,13 +104,13 @@ export default ({
                   ) : value
                 }
               </p>
-            } 
+            }
           )
-        } 
-      </>) 
+        }
+      </>)
         : '' }
       {target ? (
-        <p>Looking at: {target.position.x} {target.position.y} {target.position.z}</p> 
+        <p>Looking at: {target.position.x} {target.position.y} {target.position.z}</p>
       ) : ''}
     </div>
   </>
