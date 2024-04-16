@@ -1,19 +1,19 @@
 import * as THREE from 'three'
-import * as tweenJs from '@tweenjs/tween.js'
 import { Vec3 } from 'vec3'
-import { WorldRenderer } from './worldrenderer'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { getVersion } from './version'
 import EventEmitter from 'events'
-import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
+import { WorldRendererThree } from './worldrendererThree'
+import { generateSpiralMatrix } from 'flying-squid/dist/utils'
+import { WorldRendererCommon } from './worldrendererCommon'
 
 export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
   camera: THREE.PerspectiveCamera
-  world: WorldRenderer
+  world: WorldRendererCommon
   entities: Entities
   primitives: Primitives
   domElement: HTMLCanvasElement
@@ -33,7 +33,7 @@ export class Viewer {
     this.scene = new THREE.Scene()
     this.scene.matrixAutoUpdate = false // for perf
     this.resetScene()
-    this.world = new WorldRendererThree(this.scene, numWorkers)
+    this.world = new WorldRendererThree(this.scene, this.renderer, this.camera, numWorkers)
     this.entities = new Entities(this.scene)
     this.primitives = new Primitives(this.scene, this.camera)
 
@@ -103,12 +103,11 @@ export class Viewer {
 
   setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number, roll = 0) {
     const cam = this.cameraObjectOverride || this.camera
-    if (pos) {
-      let y = pos.y + this.playerHeight
-      if (this.isSneaking) y -= 0.3
-      new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
-    }
-    cam.rotation.set(pitch, yaw, roll, 'ZYX')
+    let yOffset = this.playerHeight
+    if (this.isSneaking) yOffset -= 0.3
+
+    if (this.world instanceof WorldRendererThree) this.world.camera = cam as THREE.PerspectiveCamera
+    this.world.updateCamera(pos?.offset(0, yOffset, 0) ?? null, yaw, pitch)
   }
 
   playSound (position: Vec3, path: string, volume = 1) {
@@ -154,7 +153,7 @@ export class Viewer {
     })
     // todo remove and use other architecture instead so data flow is clear
     emitter.on('blockEntities', (blockEntities) => {
-      this.world.blockEntities = blockEntities
+      if (this.world instanceof WorldRendererThree) this.world.blockEntities = blockEntities
     })
 
     emitter.on('unloadChunk', ({ x, z }) => {
@@ -169,26 +168,16 @@ export class Viewer {
       this.world.updateViewerPosition(pos)
     })
 
-    emitter.emit('listening')
-
-    this.domElement.addEventListener?.('pointerdown', (evt) => {
-      const raycaster = new THREE.Raycaster()
-      const mouse = new THREE.Vector2()
-      mouse.x = (evt.clientX / this.domElement.clientWidth) * 2 - 1
-      mouse.y = -(evt.clientY / this.domElement.clientHeight) * 2 + 1
-      raycaster.setFromCamera(mouse, this.camera)
-      const { ray } = raycaster
-      emitter.emit('mouseClick', { origin: ray.origin, direction: ray.direction, button: evt.button })
+    emitter.on('renderDistance', (d) => {
+      this.world.viewDistance = d
+      this.world.chunksLength = d === 0 ? 1 : generateSpiralMatrix(d).length
     })
+
+    emitter.emit('listening')
   }
 
   render () {
-    if (this.composer) {
-      this.renderPass.camera = this.camera
-      this.composer.render()
-    } else {
-      this.renderer.render(this.scene, this.camera)
-    }
+    this.world.render()
     this.entities.render()
   }
 
