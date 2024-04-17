@@ -111,10 +111,6 @@ export class ViewerWrapper {
         if (this.renderer) {
             this.renderer.setSize(width, height)
         }
-        // canvas updated by renderer
-
-        // if (viewer.composer) {
-        //     viewer.updateComposerSize()
-        // }
+        viewer.world.handleResize()
     }
 }

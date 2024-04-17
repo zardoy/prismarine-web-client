@@ -5,6 +5,7 @@ import { Block } from 'prismarine-block'
 
 const tints: any = {}
 let blockStates: BlockStatesOutput
+let needTiles = false
 
 let tintsData
 try {
@@ -118,6 +119,15 @@ function getLiquidRenderHeight (world, block, type, pos) {
   return ((block.metadata >= 8 ? 8 : 7 - block.metadata) + 1) / 9
 }
 
+const isCube = (block) => {
+  if (!block || block.transparent) return false
+  if (block.isCube) return true
+  if (!block.variant) block.variant = getModelVariants(block)
+  return block.variant.every(v => v?.model?.elements.every(e => {
+    return e.from[0] === 0 && e.from[1] === 0 && e.from[2] === 0 && e.to[0] === 16 && e.to[1] === 16 && e.to[2] === 16
+  }))
+}
+
 function renderLiquid (world, cursor, texture, type, biome, water, attr) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
@@ -137,10 +147,11 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     const { dir, corners } = elemFaces[face]
     const isUp = dir[1] === 1
 
-    const neighbor = world.getBlock(cursor.offset(...dir))
+    const neighborPos = cursor.offset(...dir)
+    const neighbor = world.getBlock(neighborPos)
     if (!neighbor) continue
     if (neighbor.type === type) continue
-    if ((neighbor.isCube && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
+    if ((isCube(neighbor) && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
 
     let tint = [1, 1, 1]
     if (water) {
@@ -149,6 +160,18 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
       else if (Math.abs(dir[2]) > 0) m = 0.8
       tint = tints.water[biome]
       tint = [tint[0] * m, tint[1] * m, tint[2] * m]
+    }
+
+    if (needTiles) {
+      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+        block: 'water',
+        faces: [],
+      }
+      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+        face,
+        neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+        // texture: eFace.texture.name,
+      })
     }
 
     const u = texture.u
@@ -238,6 +261,8 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
+let needRecompute = false
+
 function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
@@ -253,8 +278,9 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
       const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
       if (neighbor) {
         if (cullIfIdentical && neighbor.type === block.type) continue
-        if (!neighbor.transparent && neighbor.isCube) continue
+        if (!neighbor.transparent && isCube(neighbor)) continue
       } else {
+        needRecompute = true
         continue
       }
     }
@@ -378,6 +404,18 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
       attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
     }
 
+    if (needTiles) {
+      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+        block: block.name,
+        faces: [],
+      }
+      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+        face,
+        neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+        // texture: eFace.texture.name,
+      })
+    }
+
     if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
       attr.indices.push(
         ndx, ndx + 3, ndx + 2,
@@ -406,6 +444,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     t_colors: [],
     t_uvs: [],
     indices: [],
+    tiles: {},
     // todo this can be removed here
     signs: {}
   } as Record<string, any>
@@ -438,11 +477,15 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         for (const variant of block.variant) {
           if (!variant || !variant.model) continue
 
-          if (block.name === 'water') {
+          const isWaterlogged = block.getProperties().waterlogged
+          if (block.name === 'water' || isWaterlogged) {
+            const waterBlock = block.name === 'water' ? block : { name: 'water', metadata: 0 }
+            const variant = getModelVariants(waterBlock as any)[0]
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
           } else if (block.name === 'lava') {
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
-          } else {
+          }
+          if (block.name !== "water") {
             let globalMatrix = null as any
             let globalShift = null as any
 
@@ -555,6 +598,7 @@ function getModelVariants (block: import('prismarine-block').Block) {
   return []
 }
 
-export const setRendererData = (_blockStates: BlockStatesOutput | null) => {
+export const setRendererData = (_blockStates: BlockStatesOutput | null, _needTiles = false) => {
   blockStates = _blockStates!
+  needTiles = _needTiles
 }

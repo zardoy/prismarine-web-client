@@ -759,8 +759,14 @@ async function connect (connectOptions: {
 
     if (appStatusState.isError) return
     setLoadingScreenStatus(undefined)
-    void viewer.waitForChunksToRender().then(() => {
-      console.log('All done and ready!')
+    const start = Date.now()
+    let done = false
+    void viewer.world.renderUpdateEmitter.on('update', () => {
+      // todo might not emit as servers simply don't send chunk if it's empty
+      if (!viewer.world.allChunksFinished || done) return
+      done = true
+      console.log('All done and ready! In', (Date.now() - start) / 1000, 's')
+      viewer.render() // ensure the last state is rendered
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
   })

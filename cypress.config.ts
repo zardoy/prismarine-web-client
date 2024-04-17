@@ -6,7 +6,28 @@ export default defineConfig({
   e2e: {
     // We've imported your old cypress plugins here.
     // You may want to clean this up later by importing these.
-    setupNodeEvents(on, config) {
+    setupNodeEvents (on, config) {
+      // https://medium.com/automation-with-donald/get-memory-consumption-of-web-app-with-cypress-84e2656e5a0f
+      on('before:browser:launch', (browser = {
+        name: "",
+        family: "chromium",
+        channel: "",
+        displayName: "",
+        version: "",
+        majorVersion: "",
+        path: "",
+        isHeaded: false,
+        isHeadless: false
+      }, launchOptions) => {
+        if (browser.family === 'chromium' && browser.name !== 'electron') {
+          // auto open devtools
+          launchOptions.args.push('--enable-precise-memory-info')
+        }
+
+        return launchOptions
+
+      })
+
       return require('./cypress/plugins/index.js')(on, config)
     },
     baseUrl: 'http://localhost:8080',

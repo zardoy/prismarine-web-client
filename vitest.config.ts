@@ -6,6 +6,7 @@ export default defineConfig({
     include: [
       '../../src/botUtils.test.ts',
       '../../src/markdownToFormattedText.test.ts',
+      'lib/mesher/test/tests.test.ts',
       'sign-renderer/tests.test.ts'
     ],
   },

@@ -127,8 +127,8 @@ export class World {
 // todo export in chunk instead
 const hasChunkSection = (column, pos) => {
   if (column._getSection) return column._getSection(pos)
-  if (column.sections) return column.sections[pos.y >> 4]
   if (column.skyLightSections) return column.skyLightSections[getLightSectionIndex(pos, column.minY)]
+  if (column.sections) return column.sections[pos.y >> 4]
 }
 
 function posInChunk (pos) {

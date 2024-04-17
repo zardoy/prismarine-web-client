@@ -6,7 +6,7 @@
     "start": "node scripts/build.js copyFilesDev && node scripts/prepareData.mjs && node esbuild.mjs --watch",
     "start-watch-script": "nodemon -w esbuild.mjs --watch",
     "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod",
-    "check-build": "tsc && pnpm test-unit && pnpm build",
+    "check-build": "tsc && pnpm test-unit --run && pnpm build",
     "test:cypress": "cypress run",
     "test-unit": "vitest",
     "test:e2e": "start-test http-get://localhost:8080 test:cypress",
@@ -34,8 +34,7 @@
   "dependencies": {
     "@dimaka/interface": "0.0.3-alpha.0",
     "@floating-ui/react": "^0.26.1",
-    "@mui/base": "5.0.0-beta.34",
-    "@nxg-org/mineflayer-auto-jump": "^0.7.5",
+    "@nxg-org/mineflayer-auto-jump": "^0.7.7",
     "@nxg-org/mineflayer-tracker": "^1.2.1",
     "@react-oauth/google": "^0.12.1",
     "@types/gapi": "^0.0.47",
@@ -151,7 +150,8 @@
       "minecraft-data": "3.62.0",
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
       "minecraft-protocol": "github:zardoy/minecraft-protocol#everything",
-      "react": "^18.2.0"
+      "react": "^18.2.0",
+      "prismarine-chunk": "github:zardoy/prismarine-chunk"
     },
     "updateConfig": {
       "ignoreDependencies": []

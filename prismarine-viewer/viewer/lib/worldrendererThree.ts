@@ -7,6 +7,7 @@ import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon } from './worldrendererCommon'
 import * as tweenJs from '@tweenjs/tween.js'
+import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
 
 function mod (x, n) {
     return ((x % n) + n) % n
@@ -21,6 +22,10 @@ export class WorldRendererThree extends WorldRendererCommon {
     signsCache = new Map<string, any>()
     composer: EffectComposer<THREE.WebGLRenderTarget<THREE.Texture>>
     renderPass: RenderPass
+
+    get tilesRendered () {
+        return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
+    }
 
     constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public camera: THREE.PerspectiveCamera, numWorkers = 4) {
         super(numWorkers)
@@ -116,6 +121,8 @@ export class WorldRendererThree extends WorldRendererCommon {
         boxHelper.name = 'helper'
         object.add(boxHelper)
         object.name = 'chunk'
+        //@ts-ignore
+        object.tilesCount = data.geometry.positions.length / 3 / 4
         if (!this.showChunkBorders) {
             boxHelper.visible = false
         }
