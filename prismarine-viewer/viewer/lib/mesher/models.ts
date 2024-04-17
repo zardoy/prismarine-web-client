@@ -120,7 +120,7 @@ function getLiquidRenderHeight (world, block, type, pos) {
 }
 
 const isCube = (block) => {
-  if (!block) return false
+  if (!block || block.transparent) return false
   if (block.isCube) return true
   if (!block.variant) block.variant = getModelVariants(block)
   return block.variant.every(v => v?.model?.elements.every(e => {
@@ -147,7 +147,8 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     const { dir, corners } = elemFaces[face]
     const isUp = dir[1] === 1
 
-    const neighbor = world.getBlock(cursor.offset(...dir))
+    const neighborPos = cursor.offset(...dir)
+    const neighbor = world.getBlock(neighborPos)
     if (!neighbor) continue
     if (neighbor.type === type) continue
     if ((isCube(neighbor) && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
@@ -159,6 +160,18 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
       else if (Math.abs(dir[2]) > 0) m = 0.8
       tint = tints.water[biome]
       tint = [tint[0] * m, tint[1] * m, tint[2] * m]
+    }
+
+    if (needTiles) {
+      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+        block: 'water',
+        faces: [],
+      }
+      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+        face,
+        neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+        // texture: eFace.texture.name,
+      })
     }
 
     const u = texture.u
@@ -268,6 +281,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         if (!neighbor.transparent && isCube(neighbor)) continue
       } else {
         needRecompute = true
+        continue
       }
     }
 

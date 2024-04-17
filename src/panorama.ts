@@ -69,7 +69,8 @@ export async function addPanoramaCubeMap () {
   shouldDisplayPanorama = true
 
   let time = 0
-  viewer.camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.05, 1000)
+  viewer.camera.fov = 85
+  viewer.camera.near = 0.05
   viewer.camera.updateProjectionMatrix()
   viewer.camera.position.set(0, 0, 0)
   viewer.camera.rotation.set(0, 0, 0)
@@ -119,7 +120,8 @@ export async function addPanoramaCubeMap () {
 export function removePanorama () {
   shouldDisplayPanorama = false
   if (!panoramaCubeMap) return
-  viewer.camera = new THREE.PerspectiveCamera(options.fov, window.innerWidth / window.innerHeight, 0.1, 1000)
+  viewer.camera.fov = options.fov
+  viewer.camera.near = 0.1
   viewer.camera.updateProjectionMatrix()
   viewer.scene.remove(panoramaCubeMap)
   panoramaCubeMap = null
