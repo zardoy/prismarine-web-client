@@ -150,7 +150,8 @@
       "minecraft-data": "3.62.0",
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
       "minecraft-protocol": "github:zardoy/minecraft-protocol#everything",
-      "react": "^18.2.0"
+      "react": "^18.2.0",
+      "prismarine-chunk": "github:zardoy/prismarine-chunk"
     },
     "updateConfig": {
       "ignoreDependencies": []
