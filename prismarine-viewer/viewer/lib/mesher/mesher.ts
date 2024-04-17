@@ -38,6 +38,10 @@ function setSectionDirty (pos, value = true) {
   }
 }
 
+const softCleanup = () => {
+  world.blockCache = {}
+}
+
 self.onmessage = ({ data }) => {
   const globalVar: any = globalThis
 
@@ -58,6 +62,7 @@ self.onmessage = ({ data }) => {
     world.addColumn(data.x, data.z, data.chunk)
   } else if (data.type === 'unloadChunk') {
     world.removeColumn(data.x, data.z)
+    if (Object.keys(world.columns).length === 0) softCleanup()
   } else if (data.type === 'blockUpdate') {
     const loc = new Vec3(data.pos.x, data.pos.y, data.pos.z).floored()
     world.setBlockStateId(loc, data.stateId)

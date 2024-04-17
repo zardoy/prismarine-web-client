@@ -40,7 +40,6 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
       return
     }
     if (!options.volume) return
-    console.debug('play sound', soundId)
     const parts = soundString.split(';')
     const soundVolume = +parts[0]!
     const soundName = parts[1]!

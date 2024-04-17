@@ -168,6 +168,7 @@ export class Viewer {
     emitter.on('renderDistance', (d) => {
       this.world.viewDistance = d
       this.world.chunksLength = d === 0 ? 1 : generateSpiralMatrix(d).length
+      this.world.allChunksFinished = Object.keys(this.world.finishedChunks).length === this.world.chunksLength
     })
 
     emitter.on('updateLight', ({ pos }) => {

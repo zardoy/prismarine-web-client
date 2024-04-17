@@ -40,6 +40,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   skyLight = 15
   smoothLighting = true
   enableLighting = true
+  allChunksFinished = false
+  handleResize = () => { }
 
   abstract outputFormat: 'threeJs' | 'webgl'
 
@@ -76,6 +78,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
             const allFinished = Object.keys(this.finishedChunks).length === this.chunksLength
             if (allFinished) {
               this.allChunksLoaded?.()
+              this.allChunksFinished = true
             }
           }
 
@@ -127,6 +130,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.active = false
     this.loadedChunks = {}
     this.sectionsOutstanding = new Map()
+    this.finishedChunks = {}
+    this.allChunksFinished = false
     for (const worker of this.workers) {
       worker.postMessage({ type: 'reset' })
     }
@@ -198,6 +203,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (const worker of this.workers) {
       worker.postMessage({ type: 'unloadChunk', x, z })
     }
+    this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
+    delete this.finishedChunks[`${x},${z}`]
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
@@ -215,6 +222,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   setSectionDirty (pos: Vec3, value = true) {
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
+    this.allChunksFinished = false
     const distance = this.getDistance(pos)
     if (distance[0] > this.viewDistance || distance[1] > this.viewDistance) return
     const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
