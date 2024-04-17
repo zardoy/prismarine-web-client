@@ -7,6 +7,7 @@ import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon } from './worldrendererCommon'
 import * as tweenJs from '@tweenjs/tween.js'
+import gsap from 'gsap'
 import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
 
 function mod (x, n) {
@@ -20,6 +21,10 @@ export class WorldRendererThree extends WorldRendererCommon {
     showChunkBorders = false
     chunkTextures = new Map<string, { [pos: string]: THREE.Texture }>()
     signsCache = new Map<string, any>()
+    cameraAnimation = {
+        rotation: { x: 0, y: 0, z: 0 },
+        position: { x: 0, y: 0, z: 0 },
+    } as Record<'rotation' | 'position', any>
 
     get tilesRendered () {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -27,6 +32,21 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public camera: THREE.PerspectiveCamera, numWorkers = 4) {
         super(numWorkers)
+
+        globalThis.animation = () => {
+            // view bobbing
+            //@ts-ignore
+            const bobbingAnimation = gsap.timeline({
+                repeat: -1, // Repeat indefinitely
+                // yoyo: true // Reverse the animation on each repeat
+            })
+                .to(this.cameraAnimation.position, { duration: 0.5, y: "+=0.1", x: "+=0.1" }) // Increase y and z by 0.1
+                .to(this.cameraAnimation.rotation, { duration: 0.25, y: "-=0.025" }, '<') // Decrease y rotation by 0.025
+                .to(this.cameraAnimation.position, { duration: 0.5, y: "-=0.1", x: "-=0.1" }) // Decrease y and z by 0.05
+                .to(this.cameraAnimation.rotation, { duration: 0.25, y: "+=0.025" }, '<') // Increase y rotation by 0.025
+            bobbingAnimation.play()
+        }
+
     }
 
     /**
@@ -137,9 +157,11 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     updateCamera (pos: Vec3 | null, yaw: number, pitch: number): void {
         if (pos) {
+            pos = new Vec3(pos.x + this.cameraAnimation.position.x, pos.y + this.cameraAnimation.position.y, pos.z + this.cameraAnimation.position.z)
             new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
         }
         this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+        // this.camera.rotation.set(pitch + this.cameraAnimation.rotation.x, yaw + this.cameraAnimation.rotation.y, 0, 'ZYX')
     }
 
     render () {
