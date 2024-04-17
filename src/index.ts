@@ -315,7 +315,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
 }
 
 async function connect (connectOptions: {
-  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string
+  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string; ignoreQs?: boolean
 }) {
   if (miscUiState.gameLoaded) return
   miscUiState.hasErrors = false
@@ -826,6 +826,14 @@ async function connect (connectOptions: {
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
   })
+
+  if (!connectOptions.ignoreQs) {
+    const qs = new URLSearchParams(window.location.search)
+    for (let command of qs.getAll('command')) {
+      if (!command.startsWith('/')) command = `/${command}`
+      bot.chat(command)
+    }
+  }
 }
 
 listenGlobalEvents()
@@ -863,7 +871,9 @@ document.body.addEventListener('touchend', (e) => {
   activeTouch = undefined
 })
 document.body.addEventListener('touchstart', (e) => {
-  if (!isGameActive(true)) return
+  const ignoreElem = (e.target as HTMLElement).matches('vercel-live-feedback') || (e.target as HTMLElement).closest('.hotbar')
+  if (!isGameActive(true) || ignoreElem) return
+  // we always prevent default behavior to disable magnifier on ios, but by doing so we also disable click events
   e.preventDefault()
   let firstClickable // todo remove composedPath and this workaround when lit-element is fully dropped
   const path = e.composedPath() as Array<{ click?: () => void }>

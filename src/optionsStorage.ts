@@ -3,6 +3,7 @@
 import { proxy, subscribe } from 'valtio/vanilla'
 // weird webpack configuration bug: it cant import valtio/utils in this file
 import { subscribeKey } from 'valtio/utils'
+import { omitObj } from '@zardoy/utils'
 
 const defaultOptions = {
   renderDistance: 2,
@@ -70,6 +71,8 @@ const defaultOptions = {
   showCursorBlockInSpectator: false,
   renderEntities: true,
   chatSelect: false,
+  autoJump: 'auto' as 'auto' | 'always' | 'never',
+  autoParkour: false,
 
   // advanced bot options
   autoRespawn: false,
@@ -79,6 +82,12 @@ const defaultOptions = {
   autoSignEditor: true,
   wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
 }
+
+const qsOptionsRaw = new URLSearchParams(location.search).getAll('setting')
+export const qsOptions = Object.fromEntries(qsOptionsRaw.map(o => {
+  const [key, value] = o.split(':')
+  return [key, JSON.parse(value)]
+}))
 
 const migrateOptions = (options: Partial<AppOptions & Record<string, any>>) => {
   if (options.highPerformanceGpu) {
@@ -96,7 +105,8 @@ export type AppOptions = typeof defaultOptions
 
 export const options: AppOptions = proxy({
   ...defaultOptions,
-  ...migrateOptions(JSON.parse(localStorage.options || '{}'))
+  ...migrateOptions(JSON.parse(localStorage.options || '{}')),
+  ...qsOptions
 })
 
 window.options = window.settings = options
@@ -112,7 +122,8 @@ Object.defineProperty(window, 'debugChangedOptions', {
 })
 
 subscribe(options, () => {
-  localStorage.options = JSON.stringify(options)
+  const saveOptions = omitObj(options, ...Object.keys(qsOptions) as [any])
+  localStorage.options = JSON.stringify(saveOptions)
 })
 
 type WatchValue = <T extends Record<string, any>>(proxy: T, callback: (p: T) => void) => void
