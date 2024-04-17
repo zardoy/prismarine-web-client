@@ -4,13 +4,14 @@ import { showNotification } from './react/NotificationProvider'
 
 export default () => {
   localServer!.on('warpsLoaded', () => {
-    showNotification(`${localServer!.warps.length} Warps loaded`, 'Use /warp <name> to teleport to a warp point.', false, 'label-alt', () => {
+    if (!localServer) return
+    showNotification(`${localServer.warps.length} Warps loaded`, 'Use /warp <name> to teleport to a warp point.', false, 'label-alt', () => {
       chatInputValueGlobal.value = '/warp '
       showModal({ reactType: 'chat' })
     })
-  })
+  });
 
-  localServer.loadChunksOptimized = (chunks) => {
+  (localServer as any).loadChunksOptimized = (chunks) => {
     const workersNum = 5
     const workers = [] as Worker[]
 
@@ -24,7 +25,7 @@ export default () => {
       worker.postMessage({
         type: 'readChunks',
         chunks: chunks.slice(i * chunks.length / workersNum, (i + 1) * chunks.length / workersNum),
-        folder: localServer?.options.worldFolder + '/region'
+        folder: localServer!.options.worldFolder + '/region'
       })
     }
 

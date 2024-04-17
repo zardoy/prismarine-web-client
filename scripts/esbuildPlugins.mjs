@@ -12,6 +12,11 @@ const { supportedVersions } = MCProtocol
 const prod = process.argv.includes('--prod')
 let connectedClients = []
 
+const watchExternal = [
+  'dist/mesher.js',
+  'dist/webglRendererWorker.js'
+]
+
 /** @type {import('esbuild').Plugin[]} */
 const sharedPlugins = [
   {
@@ -41,6 +46,8 @@ const sharedPlugins = [
         return {
           contents: `window.mcData ??= ${JSON.stringify(defaultVersionsObj)};module.exports = { pc: window.mcData }`,
           loader: 'js',
+          // todo use external watchers
+          watchFiles: watchExternal,
         }
       })
       build.onResolve({
@@ -170,8 +177,26 @@ const plugins = [
       let count = 0
       let time
       let prevHash
+
+      let prevWorkersMtime
+      const updateMtime = async () => {
+        const workersMtime = watchExternal.map(file => {
+          try {
+            return fs.statSync(file).mtimeMs
+          } catch (err) {
+            console.log('missing file', file)
+            return 0
+          }
+        })
+        if (workersMtime.some((mtime, i) => mtime !== prevWorkersMtime?.[i])) {
+          prevWorkersMtime = workersMtime
+          return true
+        }
+        return false
+      }
       build.onStart(() => {
         time = Date.now()
+        updateMtime()
       })
       build.onEnd(({ errors, outputFiles: _outputFiles, metafile, warnings }) => {
         /** @type {import('esbuild').OutputFile[]} */
@@ -194,7 +219,9 @@ const plugins = [
         /** @type {import('esbuild').OutputFile} */
         //@ts-ignore
         const outputFile = outputFiles.find(x => x.path.endsWith('.js'))
-        if (outputFile.hash === prevHash) {
+        const updateWorkers = updateMtime()
+        if (outputFile.hash === prevHash && !updateWorkers) {
+          // todo also check workers and css
           console.log('Ignoring reload as contents the same')
           return
         }

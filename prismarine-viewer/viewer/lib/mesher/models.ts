@@ -1,10 +1,11 @@
 import { Vec3 } from 'vec3'
-import { BlockStatesOutput } from '../prepare/modelsBuilder'
+import type { BlockStatesOutput } from '../../prepare/modelsBuilder'
 import { World } from './world'
 import { Block } from 'prismarine-block'
 
 const tints: any = {}
 let blockStates: BlockStatesOutput
+let needTiles = false
 
 let tintsData
 try {
@@ -108,21 +109,31 @@ const elemFaces = {
   }
 }
 
-function getLiquidRenderHeight (world, block, type) {
+function getLiquidRenderHeight (world, block, type, pos) {
   if (!block || block.type !== type) return 1 / 9
   if (block.metadata === 0) { // source block
-    const blockAbove = world.getBlock(block.position.offset(0, 1, 0))
+    const blockAbove = world.getBlock(pos.offset(0, 1, 0))
     if (blockAbove && blockAbove.type === type) return 1
     return 8 / 9
   }
   return ((block.metadata >= 8 ? 8 : 7 - block.metadata) + 1) / 9
 }
 
+const isCube = (block) => {
+  if (!block) return false
+  if (block.isCube) return true
+  if (!block.variant) block.variant = getModelVariants(block)
+  return block.variant.every(v => v?.model?.elements.every(e => {
+    return e.from[0] === 0 && e.from[1] === 0 && e.from[2] === 0 && e.to[0] === 16 && e.to[1] === 16 && e.to[2] === 16
+  }))
+}
+
 function renderLiquid (world, cursor, texture, type, biome, water, attr) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
-      heights.push(getLiquidRenderHeight(world, world.getBlock(cursor.offset(x, 0, z)), type))
+      const pos = cursor.offset(x, 0, z)
+      heights.push(getLiquidRenderHeight(world, world.getBlock(pos), type, pos))
     }
   }
   const cornerHeights = [
@@ -139,7 +150,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     const neighbor = world.getBlock(cursor.offset(...dir))
     if (!neighbor) continue
     if (neighbor.type === type) continue
-    if ((neighbor.isCube && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
+    if ((isCube(neighbor) && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
 
     let tint = [1, 1, 1]
     if (water) {
@@ -237,7 +248,12 @@ function buildRotationMatrix (axis, degree) {
   return matrix
 }
 
+let needRecompute = false
+
 function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
+  const position = cursor
+  // const key = `${position.x},${position.y},${position.z}`
+  // if (!globalThis.allowedBlocks.includes(key)) return
   const cullIfIdentical = block.name.indexOf('glass') >= 0
 
   for (const face in element.faces) {
@@ -249,9 +265,9 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
       const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
       if (neighbor) {
         if (cullIfIdentical && neighbor.type === block.type) continue
-        if (!neighbor.transparent && neighbor.isCube) continue
+        if (!neighbor.transparent && isCube(neighbor)) continue
       } else {
-        continue
+        needRecompute = true
       }
     }
 
@@ -310,6 +326,9 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     }
 
     const aos: number[] = []
+    const neighborPos = position.plus(new Vec3(...dir))
+    let baseLightLevel = world.getLight(neighborPos)
+    const baseLight = baseLightLevel / 15
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
@@ -345,6 +364,18 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         const side2 = world.getBlock(cursor.offset(...side2Dir))
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
+        let cornerLightResult = 15
+        if (world.smoothLighting) {
+          const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
+          const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
+          const cornerLight = world.getLight(cursor.plus(new Vec3(...cornerDir)), true)
+          // interpolate
+          cornerLightResult = Math.min(
+            Math.min(side1Light, side2Light),
+            cornerLight
+          )
+        }
+
         const side1Block = world.shouldMakeAo(side1) ? 1 : 0
         const side2Block = world.shouldMakeAo(side2) ? 1 : 0
         const cornerBlock = world.shouldMakeAo(corner) ? 1 : 0
@@ -352,11 +383,23 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
 
         const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
-        light = (ao + 1) / 4
+        light = (ao + 1) / 4 * cornerLightResult / 15
         aos.push(ao)
       }
 
-      attr.colors.push(tint[0] * light, tint[1] * light, tint[2] * light)
+      attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
+    }
+
+    if (needTiles) {
+      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+        block: block.name,
+        faces: [],
+      }
+      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+        face,
+        neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+        // texture: eFace.texture.name,
+      })
     }
 
     if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
@@ -387,6 +430,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     t_colors: [],
     t_uvs: [],
     indices: [],
+    tiles: {},
     // todo this can be removed here
     signs: {}
   } as Record<string, any>
@@ -419,11 +463,15 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         for (const variant of block.variant) {
           if (!variant || !variant.model) continue
 
-          if (block.name === 'water') {
+          const isWaterlogged = block.getProperties().waterlogged
+          if (block.name === 'water' || isWaterlogged) {
+            const waterBlock = block.name === 'water' ? block : { name: 'water', metadata: 0 }
+            const variant = getModelVariants(waterBlock as any)[0]
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
           } else if (block.name === 'lava') {
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
-          } else {
+          }
+          if (block.name !== "water") {
             let globalMatrix = null as any
             let globalShift = null as any
 
@@ -536,6 +584,7 @@ function getModelVariants (block: import('prismarine-block').Block) {
   return []
 }
 
-export const setBlockStates = (_blockStates: BlockStatesOutput | null) => {
+export const setRendererData = (_blockStates: BlockStatesOutput | null, _needTiles = false) => {
   blockStates = _blockStates!
+  needTiles = _needTiles
 }

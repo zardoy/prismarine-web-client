@@ -36,6 +36,11 @@ export class WorldDataEmitter extends EventEmitter {
     })
   }
 
+  updateViewDistance (viewDistance: number) {
+    this.viewDistance = viewDistance
+    this.emitter.emit('renderDistance', viewDistance)
+  }
+
   listenToBot (bot: typeof __type_bot) {
     const emitEntity = (e) => {
       if (!e || e === bot.entity) return
@@ -63,7 +68,15 @@ export class WorldDataEmitter extends EventEmitter {
         const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
       },
+      time: () => {
+        this.emitter.emit('time', bot.time.timeOfDay)
+      },
     } satisfies Partial<BotEvents>
+
+    bot._client.on('update_light', ({ chunkX, chunkZ }) => {
+      const chunkPos = new Vec3(chunkX * 16, 0, chunkZ * 16)
+      this.loadChunk(chunkPos)
+    })
 
     this.emitter.on('listening', () => {
       this.emitter.emit('blockEntities', new Proxy({}, {
@@ -73,6 +86,7 @@ export class WorldDataEmitter extends EventEmitter {
           return bot.world.getBlock(new Vec3(x, y, z)).entity
         },
       }))
+      this.emitter.emit('renderDistance', this.viewDistance)
     })
     // node.js stream data event pattern
     if (this.emitter.listenerCount('blockEntities')) {
@@ -97,6 +111,7 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async init (pos: Vec3) {
+    this.updateViewDistance(this.viewDistance)
     this.emitter.emit('chunkPosUpdate', { pos })
     const [botX, botZ] = chunkPos(pos)
 

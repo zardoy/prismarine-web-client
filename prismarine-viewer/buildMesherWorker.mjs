@@ -5,7 +5,7 @@ import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
-import { dynamicMcDataFiles } from './buildWorkerConfig.mjs'
+import { dynamicMcDataFiles } from './buildMesherConfig.mjs'
 
 const allowedBundleFiles = ['legacy', 'versions', 'protocolVersions', 'features']
 
@@ -20,7 +20,7 @@ const buildOptions = {
     js: `globalThis.global = globalThis;process = {env: {}, versions: {} };`,
   },
   platform: 'browser',
-  entryPoints: [path.join(__dirname, './viewer/lib/worker.js')],
+  entryPoints: [path.join(__dirname, './viewer/lib/mesher/mesher.ts')],
   minify: true,
   logLevel: 'info',
   drop: !watch ? [
@@ -30,6 +30,9 @@ const buildOptions = {
   write: false,
   metafile: true,
   outdir: path.join(__dirname, './public'),
+  define: {
+    'process.env.BROWSER': '"true"',
+  },
   plugins: [
     {
       name: 'external-json',
@@ -101,14 +104,14 @@ const buildOptions = {
             resolveDir: process.cwd(),
           }
         })
-        build.onEnd(({metafile, outputFiles}) => {
+        build.onEnd(({ metafile, outputFiles }) => {
           if (!metafile) return
           fs.writeFileSync(path.join(__dirname, './public/metafile.json'), JSON.stringify(metafile))
           for (const outDir of ['../dist/', './public/']) {
             for (const outputFile of outputFiles) {
               if (outDir === '../dist/' && outputFile.path.endsWith('.map')) {
                 // skip writing & browser loading sourcemap there, worker debugging should be done in playground
-                continue
+                // continue
               }
               fs.mkdirSync(outDir, { recursive: true })
               fs.writeFileSync(path.join(__dirname, outDir, path.basename(outputFile.path)), outputFile.text)

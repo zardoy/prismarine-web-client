@@ -50,7 +50,10 @@ export const guiOptionsScheme: {
       dayCycleAndLighting: {
         text: 'Day Cycle',
       },
-      antiAliasing: {},
+      smoothLighting: {},
+      newVersionsLighting: {
+        text: 'Lighting in newer versions',
+      }
     },
   ],
   main: [
@@ -208,12 +211,22 @@ export const guiOptionsScheme: {
       touchControlsType: {
         values: [['classic', 'Classic'], ['joystick-buttons', 'New']],
       },
+      autoJump: {
+        values: [
+          'always',
+          'auto',
+          'never'
+        ],
+      },
     },
     {
       custom () {
         const { touchControlsType } = useSnapshot(options)
         return <Button label='Setup Touch Buttons' onClick={() => showModal({ reactType: 'touch-buttons-setup' })} inScreen disabled={touchControlsType !== 'joystick-buttons'} />
       },
+    },
+    {
+      autoParkour: {},
     }
   ],
   sound: [

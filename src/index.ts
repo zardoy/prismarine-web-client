@@ -96,7 +96,7 @@ import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasCon
 import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
-import { generateSpiralMatrix } from 'flying-squid/dist/utils'
+import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 
 window.debug = debug
 window.THREE = THREE
@@ -122,13 +122,11 @@ try {
 
 // renderer.localClippingEnabled = true
 initWithRenderer(renderer.domElement)
-window.renderer = renderer
-let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
-if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
-renderer.setPixelRatio(pixelRatio)
-renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.domElement.id = 'viewer-canvas'
-document.body.appendChild(renderer.domElement)
+const renderWrapper = new ViewerWrapper(renderer.domElement, renderer)
+renderWrapper.addToPage()
+watchValue(options, (o) => {
+  renderWrapper.renderInterval = o.frameLimit ? 1000 / o.frameLimit : 0
+})
 
 const isFirefox = ua.getBrowser().name === 'Firefox'
 if (isFirefox) {
@@ -166,68 +164,6 @@ viewer.entities.entitiesOptions = {
 }
 watchOptionsAfterViewerInit()
 watchTexturepackInViewer(viewer)
-
-let renderInterval: number | false
-watchValue(options, (o) => {
-  renderInterval = o.frameLimit && 1000 / o.frameLimit
-})
-
-let postRenderFrameFn = () => { }
-let delta = 0
-let lastTime = performance.now()
-let previousWindowWidth = window.innerWidth
-let previousWindowHeight = window.innerHeight
-let max = 0
-let rendered = 0
-const renderFrame = (time: DOMHighResTimeStamp) => {
-  if (window.stopLoop) return
-  for (const fn of beforeRenderFrame) fn()
-  window.requestAnimationFrame(renderFrame)
-  if (window.stopRender || renderer.xr.isPresenting) return
-  if (renderInterval) {
-    delta += time - lastTime
-    lastTime = time
-    if (delta > renderInterval) {
-      delta %= renderInterval
-      // continue rendering
-    } else {
-      return
-    }
-  }
-  // ios bug: viewport dimensions are updated after the resize event
-  if (previousWindowWidth !== window.innerWidth || previousWindowHeight !== window.innerHeight) {
-    resizeHandler()
-    previousWindowWidth = window.innerWidth
-    previousWindowHeight = window.innerHeight
-  }
-  statsStart()
-  viewer.update()
-  viewer.render()
-  rendered++
-  postRenderFrameFn()
-  statsEnd()
-}
-renderFrame(performance.now())
-setInterval(() => {
-  if (max > 0) {
-    viewer.world.droppedFpsPercentage = rendered / max
-  }
-  max = Math.max(rendered, max)
-  rendered = 0
-}, 1000)
-
-const resizeHandler = () => {
-  const width = window.innerWidth
-  const height = window.innerHeight
-
-  viewer.camera.aspect = width / height
-  viewer.camera.updateProjectionMatrix()
-  renderer.setSize(width, height)
-
-  if (viewer.composer) {
-    viewer.updateComposerSize()
-  }
-}
 
 const hud = document.getElementById('hud')
 const pauseMenu = document.getElementById('pause-screen')
@@ -316,7 +252,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
 }
 
 async function connect (connectOptions: {
-  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string
+  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string; ignoreQs?: boolean
 }) {
   if (miscUiState.gameLoaded) return
   miscUiState.hasErrors = false
@@ -346,7 +282,7 @@ async function connect (connectOptions: {
     viewer.resetAll()
     localServer = window.localServer = window.server = undefined
 
-    postRenderFrameFn = () => { }
+    renderWrapper.postRender = () => { }
     if (bot) {
       bot.end()
       // ensure mineflayer plugins receive this event for cleanup
@@ -641,7 +577,7 @@ async function connect (connectOptions: {
 
     void initVR()
 
-    postRenderFrameFn = () => {
+    renderWrapper.postRender = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
     }
 
@@ -810,6 +746,7 @@ async function connect (connectOptions: {
 
     console.log('Done!')
 
+    // todo cleanup these
     onGameLoad(async () => {
       if (!viewer.world.downloadedBlockStatesData && !viewer.world.customBlockStatesData) {
         await new Promise<void>(resolve => {
@@ -822,11 +759,28 @@ async function connect (connectOptions: {
 
     if (appStatusState.isError) return
     setLoadingScreenStatus(undefined)
-    void viewer.waitForChunksToRender().then(() => {
-      console.log('All done and ready!')
+    const start = Date.now()
+    let done = false
+    void viewer.world.renderUpdateEmitter.on('update', () => {
+      // todo might not emit as servers simply don't send chunk if it's empty
+      if (!viewer.world.allChunksFinished || done) return
+      done = true
+      console.log('All done and ready! In', (Date.now() - start) / 1000, 's')
+      viewer.render() // ensure the last state is rendered
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
   })
+
+  if (!connectOptions.ignoreQs) {
+    // todo cleanup
+    customEvents.on('gameLoaded', () => {
+      const qs = new URLSearchParams(window.location.search)
+      for (let command of qs.getAll('command')) {
+        if (!command.startsWith('/')) command = `/${command}`
+        bot.chat(command)
+      }
+    })
+  }
 }
 
 listenGlobalEvents()
@@ -864,7 +818,9 @@ document.body.addEventListener('touchend', (e) => {
   activeTouch = undefined
 })
 document.body.addEventListener('touchstart', (e) => {
-  if (!isGameActive(true)) return
+  const ignoreElem = (e.target as HTMLElement).matches('vercel-live-feedback') || (e.target as HTMLElement).closest('.hotbar')
+  if (!isGameActive(true) || ignoreElem) return
+  // we always prevent default behavior to disable magnifier on ios, but by doing so we also disable click events
   e.preventDefault()
   let firstClickable // todo remove composedPath and this workaround when lit-element is fully dropped
   const path = e.composedPath() as Array<{ click?: () => void }>
@@ -920,6 +876,7 @@ downloadAndOpenFile().then((downloadAction) => {
 const initialLoader = document.querySelector('.initial-loader') as HTMLElement | null
 if (initialLoader) {
   initialLoader.style.opacity = '0'
+  initialLoader.style.pointerEvents = 'none'
 }
 window.pageLoaded = true
 

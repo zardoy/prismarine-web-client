@@ -35,8 +35,9 @@ export default () => {
     // todo need to think wisely how to set these values & also move directional light around!
     const colorInt = Math.max(int, 0.1)
     viewer.scene.background = new THREE.Color(dayColor.r * colorInt, dayColor.g * colorInt, dayColor.b * colorInt)
-    viewer.ambientLight.intensity = Math.max(int, 0.25)
-    // directional light
-    viewer.directionalLight.intensity = Math.min(int, 0.5)
+    if (!options.newVersionsLighting && bot.supportFeature('blockStateId')) {
+      viewer.ambientLight.intensity = Math.max(int, 0.25)
+      viewer.directionalLight.intensity = Math.min(int, 0.5)
+    }
   })
 }
