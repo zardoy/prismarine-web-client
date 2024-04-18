@@ -6,6 +6,46 @@ import worldInteractions from '../worldInteractions'
 import styles from './DebugOverlay.module.css'
 
 
+const hardcodedListOfDebugPacketsToIgnore = {
+  received: [
+    'entity_velocity',
+    'sound_effect',
+    'rel_entity_move',
+    'entity_head_rotation',
+    'entity_metadata',
+    'entity_move_look',
+    'teams',
+    'entity_teleport',
+    'entity_look',
+    'ping',
+    'entity_update_attributes',
+    'player_info',
+    'update_time',
+    'animation',
+    'entity_equipment',
+    'entity_destroy',
+    'named_entity_spawn',
+    'update_light',
+    'set_slot',
+    'block_break_animation',
+    'map_chunk',
+    'spawn_entity',
+    'world_particles',
+    'keep_alive',
+    'chat',
+    'playerlist_header',
+    'scoreboard_objective',
+    'scoreboard_score'
+  ],
+  sent: [
+    'pong',
+    'position',
+    'look',
+    'keep_alive',
+    'position_look'
+  ]
+} 
+
 const defaultPacketsCount = {
   count: 0,
   size: 0
@@ -31,12 +71,10 @@ export default () => {
   const [skyL, setSkyL] = useState(0)
   const [biomeId, setBiomeId] = useState(0)
   const [day, setDay] = useState(0)
-  const [version, setVersion] = useState('')
   const [entitiesCount, setEntitiesCount] = useState(0)
   const [dimension, setDimension] = useState('')
   const [cursorBlock, setCursorBlock] = useState<typeof worldInteractions.cursorBlock>(null)
   const [rendererDevice, setRendererDevice] = useState('')
-  const [revision, setRevision] = useState('')
   const minecraftYaw = useRef(0)
   const minecraftQuad = useRef(0)
 
@@ -46,46 +84,6 @@ export default () => {
     'south (towards positive Z)',
     'west (towards negative X)'
   ]
-
-  const hardcodedListOfDebugPacketsToIgnore = {
-    received: [
-      'entity_velocity',
-      'sound_effect',
-      'rel_entity_move',
-      'entity_head_rotation',
-      'entity_metadata',
-      'entity_move_look',
-      'teams',
-      'entity_teleport',
-      'entity_look',
-      'ping',
-      'entity_update_attributes',
-      'player_info',
-      'update_time',
-      'animation',
-      'entity_equipment',
-      'entity_destroy',
-      'named_entity_spawn',
-      'update_light',
-      'set_slot',
-      'block_break_animation',
-      'map_chunk',
-      'spawn_entity',
-      'world_particles',
-      'keep_alive',
-      'chat',
-      'playerlist_header',
-      'scoreboard_objective',
-      'scoreboard_score'
-    ],
-    sent: [
-      'pong',
-      'position',
-      'look',
-      'keep_alive',
-      'position_look'
-    ]
-  } // todo cleanup?
 
   const viewDegToMinecraft = (yaw) => yaw % 360 - 180 * (yaw < 0 ? -1 : 1)
 
@@ -161,7 +159,6 @@ export default () => {
     } catch (err) {
       console.warn(err)
     }
-    setRevision(THREE.REVISION)
 
     return () => {
       document.removeEventListener('keydown', handleF3)
@@ -178,7 +175,7 @@ export default () => {
 
   return <>
     <div className={styles['debug-left-side']}>
-      <p>Prismarine Web Client ({version})</p>
+      <p>Prismarine Web Client ({bot.version})</p>
       <p>E: {entitiesCount}</p>
       <p>{dimension}</p>
       <div className={styles.empty}></div>
@@ -196,7 +193,7 @@ export default () => {
     </div>
 
     <div className={styles['debug-right-side']}>
-      <p>Renderer: {rendererDevice} powered by three.js r{revision}</p>
+      <p>Renderer: {rendererDevice} powered by three.js r{THREE.REVISION}</p>
       <div className={styles.empty}></div>
       {cursorBlock ? (<>
         <p>{cursorBlock.name}</p>

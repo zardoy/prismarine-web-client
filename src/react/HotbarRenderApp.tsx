@@ -39,14 +39,8 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
     if (!itemKey) {
       setItemName('')
     } else if (itemData[3]) {
-      const customDisplay = getItemNameRaw({
-        nbt: JSON.parse(itemData[3]),
-      })
-      if (customDisplay) {
-        setItemName(customDisplay[0])
-      } else {
-        setItemName(itemData[0])
-      }
+      const customDisplay = formatMessage(JSON.parse(itemData[3]))
+      setItemName(customDisplay[0])
     } else {
       setItemName(itemData[0])
     }
@@ -61,11 +55,13 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   }, [itemKey])
 
   return <Transition nodeRef={nodeRef} in={show} timeout={duration} >
-    {state => (
-      <div ref={nodeRef} style={{ ...defaultStyle, ...transitionStyles[state] }} className='item-display-name'>
-        <MessageFormattedString message={itemName} />
-      </div>
-    )}
+    <SharedHudVars>
+      {state => (
+        <div ref={nodeRef} style={{ ...defaultStyle, ...transitionStyles[state] }} className='item-display-name'>
+          <MessageFormattedString message={itemName} />
+        </div>
+      )}
+    </SharedHudVars>
   </Transition>
 }
 
