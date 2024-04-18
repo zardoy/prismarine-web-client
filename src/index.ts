@@ -144,7 +144,9 @@ new THREE.TextureLoader().load(itemsPng, (texture) => {
     const name = loadedData.items[id]?.name
     const uv = itemsAtlases.latest.textures[name]
     if (!uv) {
-      const uvBlock = viewer.world.downloadedBlockStatesData[name]?.variants?.['']?.[0].model?.elements?.[0]?.faces?.north.texture
+      const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
+      if (!variant) return
+      const uvBlock = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces?.north.texture
       if (!uvBlock) return
       return {
         ...uvBlock,

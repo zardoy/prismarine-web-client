@@ -86,7 +86,7 @@ function getEntityMesh (entity, scene, options, overrides) {
 }
 
 export class Entities extends EventEmitter {
-  constructor (scene) {
+  constructor(scene) {
     super()
     this.scene = scene
     this.entities = {}
@@ -279,6 +279,7 @@ export class Entities extends EventEmitter {
         if (item) {
           const textureUv = this.getItemUv?.(item.itemId ?? item.blockId)
           if (textureUv) {
+            // todo use geometry buffer uv instead!
             const { u, v, size, su, sv, texture } = textureUv
             const itemsTexture = texture.clone()
             itemsTexture.flipY = true
