@@ -1,8 +1,6 @@
 import { useRef, useEffect } from 'react'
-import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
 import SharedHudVars from './SharedHudVars'
 import './BreathBar.css'
-
 
 export type BreathBarProps = {
   oxygen: number,

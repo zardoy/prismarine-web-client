@@ -1,69 +1,22 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
-import { proxy, useSnapshot } from 'valtio'
 import { getFixedFilesize } from '../downloadAndOpenFile'
 import { options } from '../optionsStorage'
 import worldInteractions from '../worldInteractions'
 import styles from './DebugOverlay.module.css'
-
-
-const hardcodedListOfDebugPacketsToIgnore = {
-  received: [
-    'entity_velocity',
-    'sound_effect',
-    'rel_entity_move',
-    'entity_head_rotation',
-    'entity_metadata',
-    'entity_move_look',
-    'teams',
-    'entity_teleport',
-    'entity_look',
-    'ping',
-    'entity_update_attributes',
-    'player_info',
-    'update_time',
-    'animation',
-    'entity_equipment',
-    'entity_destroy',
-    'named_entity_spawn',
-    'update_light',
-    'set_slot',
-    'block_break_animation',
-    'map_chunk',
-    'spawn_entity',
-    'world_particles',
-    'keep_alive',
-    'chat',
-    'playerlist_header',
-    'scoreboard_objective',
-    'scoreboard_score'
-  ],
-  sent: [
-    'pong',
-    'position',
-    'look',
-    'keep_alive',
-    'position_look'
-  ]
-} 
-
-const defaultPacketsCount = {
-  count: 0,
-  size: 0
-}
 
 export default () => {
   const received = useRef(defaultPacketsCount)
   const sent = useRef(defaultPacketsCount)
   const customEntries = useRef({} as any)
   const receivedTotal = useRef(0)
-  const packetsCountByNamePerSec = useRef({ 
-    received: {} as { [key: string]: number }, 
-    sent: {} as { [key: string]: number } 
-  }) 
-  const packetsCountByName = useRef({ 
-    received: {} as { [key: string]: number }, 
-    sent: {} as { [key: string]: number } 
-  }) 
+  const packetsCountByNamePerSec = useRef({
+    received: {} as { [key: string]: number },
+    sent: {} as { [key: string]: number }
+  })
+  const packetsCountByName = useRef({
+    received: {} as { [key: string]: number },
+    sent: {} as { [key: string]: number }
+  })
   const ignoredPackets = useRef(new Set([] as any[]))
   const [packetsString, setPacketsString] = useState('')
   const [showDebug, setShowDebug] = useState(false)
@@ -213,8 +166,53 @@ export default () => {
       </>)
         : '' }
       {cursorBlock ? (
-        <p>Looking at: {cursorBlock.position.x} {cursorBlock.position.y} {cursorBlock.position.z}</p> 
+        <p>Looking at: {cursorBlock.position.x} {cursorBlock.position.y} {cursorBlock.position.z}</p>
       ) : ''}
     </div>
   </>
+}
+
+const hardcodedListOfDebugPacketsToIgnore = {
+  received: [
+    'entity_velocity',
+    'sound_effect',
+    'rel_entity_move',
+    'entity_head_rotation',
+    'entity_metadata',
+    'entity_move_look',
+    'teams',
+    'entity_teleport',
+    'entity_look',
+    'ping',
+    'entity_update_attributes',
+    'player_info',
+    'update_time',
+    'animation',
+    'entity_equipment',
+    'entity_destroy',
+    'named_entity_spawn',
+    'update_light',
+    'set_slot',
+    'block_break_animation',
+    'map_chunk',
+    'spawn_entity',
+    'world_particles',
+    'keep_alive',
+    'chat',
+    'playerlist_header',
+    'scoreboard_objective',
+    'scoreboard_score'
+  ],
+  sent: [
+    'pong',
+    'position',
+    'look',
+    'keep_alive',
+    'position_look'
+  ]
+}
+
+const defaultPacketsCount = {
+  count: 0,
+  size: 0
 }

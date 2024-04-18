@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { Transition } from 'react-transition-group'
 import { createPortal } from 'react-dom'
-import mojangson from 'mojangson'
-import nbt from 'prismarine-nbt'
-import { useSnapshot } from 'valtio'
+import { subscribe, useSnapshot } from 'valtio'
 import { getItemNameRaw, openItemsCanvas, openPlayerInventory, upInventoryItems } from '../playerWindows'
 import { activeModalStack, isGameActive, miscUiState } from '../globalState'
-import { MessageFormatPart } from '../botUtils'
-import MessageFormatted from './MessageFormatted'
+import { currentScaling } from '../scaleInterface'
+import { watchUnloadForCleanup } from '../gameUnload'
 import MessageFormattedString from './MessageFormattedString'
 import SharedHudVars from './SharedHudVars'
 
@@ -33,9 +31,9 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
 
   const transitionStyles = {
     entering: { opacity: 1 },
-    entered:  { opacity: 1 },
-    exiting:  { opacity: 0 },
-    exited:  { opacity: 0 },
+    entered: { opacity: 1 },
+    exiting: { opacity: 0 },
+    exited: { opacity: 0 },
   }
 
   useEffect(() => {
@@ -89,8 +87,9 @@ export default () => {
           console.log('right click')
           return
         }
-        if (slot < 32 || slot > 40) return
-        bot.setQuickBarSlot(slot - bot.inventory.hotbarStart)
+        const hotbarSlot = slot - bot.inventory.hotbarStart
+        if (hotbarSlot < 0 || hotbarSlot > 9) return
+        bot.setQuickBarSlot(hotbarSlot)
       },
     } as any)
     const { canvasManager } = inv
@@ -100,12 +99,15 @@ export default () => {
     canvasManager.children[0].disableHighlight = true
     canvasManager.minimizedWindow = true
     canvasManager.minimizedWindow = true
-    if (canvasManager.scale === 1.5) canvasManager.scale = 1
-    if (canvasManager.scale === 4) canvasManager.scale = 3
-    window.canvasManager = canvasManager
-    // canvasManager.scale = 1
-    canvasManager.windowHeight = 25 * canvasManager.scale
-    canvasManager.windowWidth = (210 - (inv.inventory.supportsOffhand ? 0 : 25) + (miscUiState.currentTouch ? 28 : 0)) * canvasManager.scale
+
+    function setSize () {
+      canvasManager.setScale(currentScaling.scale)
+
+      canvasManager.windowHeight = 25 * canvasManager.scale
+      canvasManager.windowWidth = (210 - (inv.inventory.supportsOffhand ? 0 : 25) + (miscUiState.currentTouch ? 28 : 0)) * canvasManager.scale
+    }
+    setSize()
+    watchUnloadForCleanup(subscribe(currentScaling, setSize))
     container.current.appendChild(inv.canvas)
     const upHotbarItems = () => {
       if (!viewer.world.downloadedTextureImage && !viewer.world.customTexturesDataUrl) return
@@ -114,11 +116,8 @@ export default () => {
 
     canvasManager.canvas.onpointerdown = (e) => {
       if (!isGameActive(true)) return
-      const slot = inv.canvasManager.getMousePos(inv.canvas, e)
-      // take offhand into account
-      if (inv.inventory.supportsOffhand) slot.x -= 25
-      const xSlot = Math.floor((slot.x - 1) / 35)
-      if (xSlot === 11) {
+      const pos = inv.canvasManager.getMousePos(inv.canvas, e)
+      if (pos.x > canvasManager.canvas.width - 25) {
         openPlayerInventory()
       }
     }

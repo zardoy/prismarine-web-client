@@ -4,7 +4,6 @@ import { noCase } from 'change-case'
 import mojangson from 'mojangson'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { MessageFormatPart } from '../botUtils'
-import { inGameError } from '../utils'
 import { chatInputValueGlobal } from './ChatContainer'
 import './MessageFormatted.css'
 
@@ -29,7 +28,7 @@ const hoverItemToText = (hoverEvent: MessageFormatPart['hoverEvent']) => {
     }
   } catch (err) {
     // todo report critical error
-    inGameError('Failed to parse message hover' + err.message)
+    reportError?.('Failed to parse message hover' + err.message)
     return undefined
   }
 }

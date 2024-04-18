@@ -22,23 +22,18 @@ export default () => {
 
   const onLongPress = async () => {
     const select = await showOptionsModal('', f3Keybinds.filter(f3Keybind => f3Keybind.mobileTitle).map(f3Keybind => f3Keybind.mobileTitle))
-    console.log('pressed')
-    console.log(select)
     if (!select) return
     const f3Keybind = f3Keybinds.find(f3Keybind => f3Keybind.mobileTitle === select)
     if (f3Keybind) f3Keybind.action()
-  }
-
-  const onClick = () => {
   }
 
   const defaultOptions = {
     shouldPreventDefault: true,
     delay: 500,
   }
-  const longPressEvent = useLongPress(onLongPress, onClick, defaultOptions)
+  const longPressEvent = useLongPress(onLongPress, () => {}, defaultOptions)
 
-  // ios note: just don't use <button> 
+  // ios note: just don't use <button>
   return <div ref={elRef} className={styles['mobile-top-btns']} id="mobile-top">
     <div className={styles['debug-btn']} onPointerDown={(e) => {
       window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))

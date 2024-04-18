@@ -35,6 +35,7 @@ import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
 import { assertDefined, inGameError } from './utils'
 import { MessageFormatPart } from './botUtils'
+import { currentScaling } from './scaleInterface'
 
 export const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
 const loadedImagesCache = new Map<string, HTMLImageElement>()
@@ -390,8 +391,6 @@ const upJei = (search: string) => {
 
 export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
   const inv = showInventory(type, getImage, {}, _bot)
-  // todo scaling
-  inv.canvasManager.setScale(window.innerWidth < 470 ? 1.5 : window.innerHeight < 480 || window.innerWidth < 760 ? 2 : window.innerHeight < 700 ? 3 : 4)
   return inv
 }
 
@@ -414,6 +413,9 @@ const openWindow = (type: string | undefined) => {
   })
   cleanLoadedImagesCache()
   const inv = openItemsCanvas(type)
+  // todo!
+  // inv.canvasManager.setScale(window.innerWidth < 470 ? 1.5 : window.innerHeight < 480 || window.innerWidth < 760 ? 2 : window.innerHeight < 700 ? 3 : 4)
+  inv.canvasManager.setScale(currentScaling.scale)
   inv.canvas.style.zIndex = '10'
   inv.canvas.style.position = 'fixed'
   inv.canvas.style.inset = '0'
