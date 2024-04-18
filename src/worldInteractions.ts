@@ -36,11 +36,13 @@ class WorldInteraction {
   buttons = [false, false, false]
   lastButtons = [false, false, false]
   breakStartTime: number | undefined = 0
+  lastDugBlock: Vec3 | null = null
   cursorBlock: import('prismarine-block').Block | null = null
   blockBreakMesh: THREE.Mesh
   breakTextures: THREE.Texture[]
   lastDigged: number
   lineMaterial: LineMaterial
+  debugStatus: string
 
   oneTimeInit () {
     const loader = new THREE.TextureLoader()
@@ -89,6 +91,9 @@ class WorldInteraction {
         bot.attack(entity)
       }
     })
+    document.addEventListener('blur', (e) => {
+      this.buttons = [false, false, false]
+    })
 
     beforeRenderFrame.push(() => {
       if (this.lineMaterial) {
@@ -106,11 +111,25 @@ class WorldInteraction {
     }
     assertDefined(viewer)
     bot.on('physicsTick', () => { if (this.lastBlockPlaced < 4) this.lastBlockPlaced++ })
-    bot.on('diggingCompleted', () => {
+    bot.on('diggingCompleted', (block) => {
       this.breakStartTime = undefined
+      this.lastDugBlock = block.position
+      // TODO: If the tool and enchantments immediately exceed the hardness times 30, the block breaks with no delay; SO WE NEED TO CHECK THAT
+      // TODO: Any blocks with a breaking time of 0.05
+      this.lastDigged = Date.now()
+      this.debugStatus = 'done'
     })
-    bot.on('diggingAborted', () => {
+    bot.on('diggingAborted', (block) => {
+      if (!this.cursorBlock?.position.equals(block.position)) return
+      this.debugStatus = 'aborted'
+      // if (this.lastDugBlock)
       this.breakStartTime = undefined
+      if (this.buttons[0]) {
+        this.buttons[0] = false
+        this.update()
+        this.buttons[0] = true // trigger again
+      }
+      this.lastDugBlock = null
     })
 
     const upLineMaterial = () => {
@@ -210,6 +229,11 @@ class WorldInteraction {
         bot.stopDigging() // this shouldnt throw anything...
       } catch (e) { } // to be reworked in mineflayer, then remove the try here
     }
+    // We stopped breaking
+    if ((!this.buttons[0] && this.lastButtons[0])) {
+      this.lastDugBlock = null
+      this.debugStatus = 'cancelled'
+    }
 
     const onGround = bot.entity.onGround || bot.game.gameMode === 'creative'
     this.prevOnGround ??= onGround // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down // todo this should be fixed in mineflayer to involve correct calculations when this changes as this is very important when mining straight down
@@ -219,8 +243,10 @@ class WorldInteraction {
       this.buttons[0]
     ) {
       if (cursorBlockDiggable
-        && (!this.lastButtons[0] || (cursorChanged && Date.now() - (this.lastDigged ?? 0) > 100) || onGround !== this.prevOnGround)
+        && (!this.lastButtons[0] || ((cursorChanged || (this.lastDugBlock && !this.lastDugBlock.equals(cursorBlock!.position))) && Date.now() - (this.lastDigged ?? 0) > 300) || onGround !== this.prevOnGround)
         && onGround) {
+        this.lastDugBlock = null
+        this.debugStatus = 'breaking'
         this.currentDigTime = bot.digTime(cursorBlockDiggable)
         this.breakStartTime = performance.now()
         const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
@@ -331,4 +357,6 @@ export const getEntityCursor = () => {
   return entity
 }
 
-export default new WorldInteraction()
+const worldInteraction = new WorldInteraction()
+globalThis.worldInteraction = worldInteraction
+export default worldInteraction
