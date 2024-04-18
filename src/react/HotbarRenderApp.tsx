@@ -117,7 +117,7 @@ export default () => {
     canvasManager.canvas.onpointerdown = (e) => {
       if (!isGameActive(true)) return
       const pos = inv.canvasManager.getMousePos(inv.canvas, e)
-      if (pos.x > canvasManager.canvas.width - 25) {
+      if (pos.x > canvasManager.canvas.width - 30) {
         openPlayerInventory()
       }
     }

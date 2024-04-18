@@ -413,9 +413,8 @@ const openWindow = (type: string | undefined) => {
   })
   cleanLoadedImagesCache()
   const inv = openItemsCanvas(type)
-  // todo!
-  // inv.canvasManager.setScale(window.innerWidth < 470 ? 1.5 : window.innerHeight < 480 || window.innerWidth < 760 ? 2 : window.innerHeight < 700 ? 3 : 4)
-  inv.canvasManager.setScale(currentScaling.scale)
+  // todo
+  inv.canvasManager.setScale(currentScaling.scale === 1 ? 1.5 : currentScaling.scale)
   inv.canvas.style.zIndex = '10'
   inv.canvas.style.position = 'fixed'
   inv.canvas.style.inset = '0'
