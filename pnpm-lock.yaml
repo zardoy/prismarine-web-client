@@ -56,6 +56,9 @@ importers:
       '@zardoy/utils':
         specifier: ^0.0.11
         version: 0.0.11
+      adm-zip:
+        specifier: ^0.5.12
+        version: 0.5.12
       browserfs:
         specifier: github:zardoy/browserfs#build
         version: github.com/zardoy/browserfs/e60ca69e74888e057a96a468afe1d62347d3f56f
@@ -95,9 +98,6 @@ importers:
       google-drive-browserfs:
         specifier: github:zardoy/browserfs#google-drive
         version: github.com/zardoy/browserfs/ab58ae8ef00e3a31db01909e365e6cb5188436e0
-      gsap:
-        specifier: ^3.12.5
-        version: 3.12.5
       iconify-icon:
         specifier: ^1.0.8
         version: 1.0.8
@@ -5754,6 +5754,11 @@ packages:
     engines: {node: '>= 10.0.0'}
     dev: true
 
+  /adm-zip@0.5.12:
+    resolution: {integrity: sha512-6TVU49mK6KZb4qG6xWaaM4C7sA/sgUMLy/JYMOzkcp3BvVLpW0fXDFQiIzAuxFCt/2+xD7fNIiPFAoLZPhVNLQ==}
+    engines: {node: '>=6.0'}
+    dev: false
+
   /aes-js@3.1.2:
     resolution: {integrity: sha512-e5pEa2kBnBOgR4Y/p20pskXI74UEz7de8ZGVo58asOtvSVG5YAbJeELPZxOmt+Bnz3rX753YKhfIn4X4l1PPRQ==}
 
@@ -9401,10 +9406,6 @@ packages:
   /graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
     dev: true
-
-  /gsap@3.12.5:
-    resolution: {integrity: sha512-srBfnk4n+Oe/ZnMIOXt3gT605BX9x5+rh/prT2F1SsNJsU1XuMiP0E2aptW481OnonOGACZWBqseH5Z7csHxhQ==}
-    dev: false
 
   /gunzip-maybe@1.4.2:
     resolution: {integrity: sha512-4haO1M4mLO91PW57BMsDFf75UmwoRX0GkdD+Faw+Lr+r/OZrOCS0pIBwOL1xCKQqnQzbNFGgK2V2CpBUPeFNTw==}
@@ -16121,7 +16122,7 @@ packages:
     version: 1.3.0
     dependencies:
       minecraft-data: 3.62.0
-      prismarine-chunk: github.com/zardoy/prismarine-chunk/3c7e679508cf8ebd1ac4df9a6c22d7cb6c45290b(minecraft-data@3.62.0)
+      prismarine-chunk: github.com/zardoy/prismarine-chunk/f32234a724a5c2482ffbaf85edc5e91c7ab9b38f(minecraft-data@3.62.0)
       random-seed: 0.3.0
       vec3: 0.1.8
     dev: false
@@ -16195,6 +16196,25 @@ packages:
       xxhash-wasm: 0.4.2
     transitivePeerDependencies:
       - minecraft-data
+
+  github.com/zardoy/prismarine-chunk/f32234a724a5c2482ffbaf85edc5e91c7ab9b38f(minecraft-data@3.62.0):
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/f32234a724a5c2482ffbaf85edc5e91c7ab9b38f}
+    id: github.com/zardoy/prismarine-chunk/f32234a724a5c2482ffbaf85edc5e91c7ab9b38f
+    name: prismarine-chunk
+    version: 1.35.0
+    engines: {node: '>=14'}
+    dependencies:
+      prismarine-biome: 1.3.0(minecraft-data@3.62.0)(prismarine-registry@1.7.0)
+      prismarine-block: github.com/zardoy/prismarine-block/ada4ec3fdfbbc1cc20ab01d0e23f0718a77cc1a0
+      prismarine-nbt: 2.5.0
+      prismarine-registry: 1.7.0
+      smart-buffer: 4.2.0
+      uint4: 0.1.2
+      vec3: 0.1.8
+      xxhash-wasm: 0.4.2
+    transitivePeerDependencies:
+      - minecraft-data
+    dev: false
 
   github.com/zardoy/prismarine-provider-anvil/0ddcd9d48574113308e1fbebef60816aced0846f(minecraft-data@3.62.0):
     resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0ddcd9d48574113308e1fbebef60816aced0846f}

@@ -80,7 +80,8 @@ const buildOptions = {
     '.png': 'dataurl',
     '.map': 'empty',
     '.vert': 'text',
-    '.frag': 'text'
+    '.frag': 'text',
+    '.obj': 'text',
   },
   write: false,
   // todo would be better to enable?

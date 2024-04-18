@@ -1,7 +1,6 @@
 import _ from 'lodash'
-import { WorldDataEmitter, Viewer, MapControls } from '../viewer'
+import { WorldDataEmitter, Viewer } from '../viewer'
 import { Vec3 } from 'vec3'
-import { Schematic } from 'prismarine-schematic'
 import BlockLoader from 'prismarine-block'
 import ChunkLoader from 'prismarine-chunk'
 import WorldLoader from 'prismarine-world'
@@ -11,7 +10,7 @@ import { toMajor } from '../viewer/lib/version'
 import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
-import Entity from '../viewer/lib/entity/Entity'
+import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
 
 globalThis.THREE = THREE
 //@ts-ignore
@@ -355,7 +354,7 @@ async function main () {
       //   prev = !prev
       // }, 1000)
 
-      Entity.getStaticData(params.entity)
+      EntityMesh.getStaticData(params.entity)
       // entityRotationFolder.destroy()
       // entityRotationFolder = gui.addFolder('entity metadata')
       // entityRotationFolder.add(params, 'entityRotate')

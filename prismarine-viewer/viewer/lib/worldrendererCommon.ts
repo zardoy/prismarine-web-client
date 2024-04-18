@@ -159,7 +159,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       texture.minFilter = THREE.NearestFilter
       texture.flipY = false
       this.material.map = texture
-    }, (tex) => {
+    }, () => {
       this.downloadedTextureImage = this.material.map!.image
       const loadBlockStates = async () => {
         return new Promise(resolve => {
@@ -174,7 +174,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       loadBlockStates().then((blockStates) => {
         for (const worker of this.workers) {
-          worker.postMessage({ type: 'rendererData', json: blockStates, textureSize: tex.image.width, outputFormat: this.outputFormat })
+          worker.postMessage({ type: 'rendererData', json: blockStates, textureSize: this.material.map!.image.width, outputFormat: this.outputFormat })
         }
       })
     })

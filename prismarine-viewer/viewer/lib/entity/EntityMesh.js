@@ -1,7 +1,9 @@
 //@ts-check
-/* global THREE */
-
-const entities = require('./entities.json')
+import { OBJLoader } from 'three-stdlib'
+import entities from './entities.json'
+import { externalModels } from './objModels'
+import externalTexturesJson from './externalTextures.json'
+// import { loadTexture } from globalThis.isElectron ? '../utils.electron.js' : '../utils';
 const { loadTexture } = globalThis.isElectron ? require('../utils.electron.js') : require('../utils')
 
 const elemFaces = {
@@ -175,7 +177,7 @@ function getMesh (texture, jsonModel, overrides = {}) {
 
   const rootBones = []
   for (const jsonBone of jsonModel.bones) {
-    if (jsonBone.parent) bones[jsonBone.parent].add(bones[jsonBone.name])
+    if (jsonBone.parent && bones[jsonBone.parent]) bones[jsonBone.parent].add(bones[jsonBone.name])
     else {
       rootBones.push(bones[jsonBone.name])
     }
@@ -213,28 +215,136 @@ function getMesh (texture, jsonModel, overrides = {}) {
   return mesh
 }
 
-// TODO!
-const entitiesMap = {
-  // item: null,
-  'glow_squid': 'squid'
+export const knownNotHandled = [
+  'area_effect_cloud', 'block_display',
+  'chest_boat', 'end_crystal',
+  'falling_block', 'furnace_minecart',
+  'giant', 'glow_item_frame',
+  'glow_squid', 'illusioner',
+  'interaction', 'item',
+  'item_display', 'item_frame',
+  'lightning_bolt', 'marker',
+  'painting', 'spawner_minecart',
+  'spectral_arrow', 'text_display',
+  'tnt', 'trader_llama', 'zombie_horse'
+]
+
+export const temporaryMap = {
+  'furnace_minecart': 'minecart',
+  'spawner_minecart': 'minecart',
+  'chest_minecart': 'minecart',
+  'hopper_minecart': 'minecart',
+  'command_block_minecart': 'minecart',
+  'tnt_minecart': 'minecart',
+  'glow_squid': 'squid',
+  'trader_llama': 'llama',
+  'chest_boat': 'boat',
+  'spectral_arrow': 'arrow',
+  'husk': 'zombie',
+  'zombie_horse': 'horse',
+  'donkey': 'horse',
+  'skeleton_horse': 'horse',
+  'mule': 'horse',
+  'ocelot': 'cat',
+  // 'falling_block': 'block',
+  // 'lightning_bolt': 'lightning',
 }
 
-// const unknownEntitiesSet = new Set()
-
 const getEntity = (name) => {
-  let mappedValue = entitiesMap[name]
-  if (mappedValue) name = mappedValue
-
   return entities[name]
 }
 
-class Entity {
-  constructor (version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
-    const e = getEntity(type)
+// const externalModelsTextures = {
+//   allay: 'allay/allay',
+//   axolotl: 'axolotl/axolotl_blue',
+//   blaze: 'blaze',
+//   camel: 'camel/camel',
+//   cat: 'cat/black',
+//   chicken: 'chicken',
+//   cod: 'fish/cod',
+//   creeper: 'creeper/creeper',
+//   dolphin: 'dolphin',
+//   ender_dragon: 'enderdragon/dragon',
+//   enderman: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAAAgCAYAAACinX6EAAAABGdBTUEAALGPC/xhBQAAAY5JREFUaN7lWNESgzAI8yv8/z/tXjZPHSShYitb73rXedo1AQJ0WchY17WhudQZ7TS18Qb5AXtY/yUBO8tXIaCRqRNwXlcgwDJgmAALfBUP8AjYEdHnAZUIAGdvPy+CnobJIVw9DVIPEABawuEyyvYx1sMIMP8fAbUO7ukBImZmCCEP2AhglnRip8vio7MIxYEsaVkdeYNjYfbN/BBA1twP9AxpB0qlMwj48gBP5Ji1rXc8nfBImk6A5+KqShNwdTwgKy0xYRzdS4yoY651W8EDRwGVJEDVITGtjiEAaEBq3o4SwGqRVAKsdVYIsAzDCACV6VwCFMBCpqLvgudzQ6CnjL5afmeX4pdE0LIQuYCBzZbQfT4rC6COUQGn9B3MQ28pSIxDSDdNrKdQSZJ7lDurMeZm6iEjKVENh8cQgBowBFK5gEHhsO3xFA/oKXp6vg8RoHaD2QRkiaDnAYcZAcB+E6GTRVAhQCVJyVImKOUiBLW3KL4jzU2POHp64RIQ/ADO6D6Ry1gl9tlN1Xm+AK8s2jHadDijAAAAAElFTkSuQmCC',
+//   endermite: 'endermite',
+//   fox: 'fox/fox',
+//   frog: 'frog/cold_frog',
+//   ghast: 'ghast/ghast',
+//   goat: 'goat/goat',
+//   guardian: 'guardian',
+//   horse: 'horse/horse_brown',
+//   llama: 'llama/creamy',
+//   minecart: 'minecart',
+//   parrot: 'parrot/parrot_grey',
+//   piglin: 'piglin/piglin',
+//   pillager: 'illager/pillager',
+//   rabbit: 'rabbit/brown',
+//   sheep: 'sheep/sheep',
+//   shulker: 'shulker/shulker',
+//   sniffer: 'sniffer/sniffer',
+//   spider: 'spider/spider',
+//   tadpole: 'tadpole/tadpole',
+//   turtle: 'turtle/big_sea_turtle',
+//   vex: 'illager/vex',
+//   villager: 'villager/villager',
+//   warden: 'warden/warden',
+//   witch: 'witch',
+//   wolf: 'wolf/wolf',
+//   zombie_villager: 'zombie_villager/zombie_villager'
+// }
 
+export class EntityMesh {
+  constructor (version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
+    let originalType = type
+    const mappedValue = temporaryMap[type]
+    if (mappedValue) type = mappedValue
+
+    if (externalModels[type]) {
+      const objLoader = new OBJLoader()
+      let texturePath = externalTexturesJson[type]
+      if (originalType === 'zombie_horse') {
+        texturePath = `textures/${version}/entity/horse/horse_zombie.png`
+      }
+      if (originalType === 'skeleton_horse') {
+        texturePath = `textures/${version}/entity/horse/horse_skeleton.png`
+      }
+      if (originalType === 'donkey') {
+        texturePath = `textures/${version}/entity/horse/donkey.png`
+      }
+      if (originalType === 'mule') {
+        texturePath = `textures/${version}/entity/horse/mule.png`
+      }
+      if (originalType === 'ocelot') {
+        texturePath = `textures/${version}/entity/cat/ocelot.png`
+      }
+      if (!texturePath) throw new Error(`No texture for ${type}`)
+      const texture = new THREE.TextureLoader().load(texturePath)
+      texture.minFilter = THREE.NearestFilter
+      texture.magFilter = THREE.NearestFilter
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+      })
+      const obj = objLoader.parse(externalModels[type])
+      this.mesh = obj
+      obj.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.material = material
+          // todo
+          if (child.name === 'Head layer') child.visible = false
+          if (child.name === 'Head' && overrides.rotation?.head) { // todo
+            child.rotation.x -= (overrides.rotation.head.x ?? 0) * Math.PI / 180
+            child.rotation.y -= (overrides.rotation.head.y ?? 0) * Math.PI / 180
+            child.rotation.z -= (overrides.rotation.head.z ?? 0) * Math.PI / 180
+          }
+        }
+      })
+      return
+    }
+
+    const e = getEntity(type)
     if (!e) {
-      // if (unknownEntitiesSet.has(type)) throw new Error('ignore...')
-      // unknownEntitiesSet.add(type)
+      if (knownNotHandled.includes(type)) return
       throw new Error(`Unknown entity ${type}`)
     }
 
@@ -256,6 +366,12 @@ class Entity {
   }
 
   static getStaticData (name) {
+    name = temporaryMap[name] || name
+    if (externalModels[name]) {
+      return {
+        boneNames: [] // todo
+      }
+    }
     const e = getEntity(name)
     if (!e) throw new Error(`Unknown entity ${name}`)
     return {
@@ -263,5 +379,3 @@ class Entity {
     }
   }
 }
-
-module.exports = Entity

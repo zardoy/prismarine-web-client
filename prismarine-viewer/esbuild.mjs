@@ -52,6 +52,7 @@ const buildOptions = {
   metafile: true,
   loader: {
     '.png': 'dataurl',
+    '.obj': 'text',
   },
   plugins: [
     {
