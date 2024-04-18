@@ -299,14 +299,18 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
   const customName = itemNbt.display?.Name
   if (!customName) return
   const parsed = mojangson.simplify(mojangson.parse(customName))
-  return parsed as MessageFormatPart
+  if (parsed.extra) {
+    return parsed as Record<string, any>
+  } else {
+    return parsed as MessageFormatPart
+  }
 }
 
 const getItemName = (slot: Item | null) => {
   const parsed = getItemNameRaw(slot)
-  if (!parsed) return
+  if (!parsed || parsed['extra']) return
   // todo display full text renderer from sign renderer
-  const text = flat(parsed).map(x => x.text)
+  const text = flat(parsed as MessageFormatPart).map(x => x.text)
   return text
 }
 

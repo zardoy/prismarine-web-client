@@ -14,15 +14,14 @@ import SharedHudVars from './SharedHudVars'
 
 const ItemName = ({ itemKey }: { itemKey: string }) => {
   const nodeRef = useRef(null)
-  const itemNameCache = useRef({} as Record<string, any>)
   const [show, setShow] = useState(false)
-  const [itemName, setItemName] = useState<Record<string, any> | MessageFormatPart[] | string>('')
+  const [itemName, setItemName] = useState<Record<string, any> | string>('')
 
   const duration = 300
 
   const defaultStyle: React.CSSProperties = {
     position: 'fixed',
-    bottom: 'calc(var(--safe-area-inset-bottom) + 50px)',
+    bottom: `calc(var(--safe-area-inset-bottom) + ${bot ? bot.game.gameMode === 'creative' || bot.game.gameMode === 'spectator' ? '35px' : '50px' : '50px'})`,
     left: 0,
     right: 0,
     fontSize: 10,
@@ -40,30 +39,20 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   }
 
   useEffect(() => {
-    if (!Object.keys(itemNameCache.current).includes(itemKey)) {
-      itemNameCache.current[itemKey] = itemName
-    }
-  }, [itemName])
-
-  useEffect(() => {
-    if (Object.keys(itemNameCache.current).includes(itemKey)) {
-      setItemName(itemNameCache.current[itemKey])
-    } else {
-      const itemData = itemKey.split('_split_')
-      if (!itemKey) {
-        setItemName('')
-      } else if (itemData[3]) {
-        const itemNbt = nbt.simplify(JSON.parse(itemData[3]))
-        const customName = itemNbt.display?.Name
-        if (customName) {
-          const parsed = mojangson.simplify(mojangson.parse(customName))
-          setItemName(parsed)
-        } else {
-          setItemName(itemData[0])
-        }
+    const itemData = itemKey.split('_split_')
+    if (!itemKey) {
+      setItemName('')
+    } else if (itemData[3]) {
+      const customDisplay = getItemNameRaw({
+        nbt: JSON.parse(itemData[3])
+      })
+      if (customDisplay) {
+        setItemName(customDisplay)
       } else {
         setItemName(itemData[0])
       }
+    } else {
+      setItemName(itemData[0])
     }
     setShow(true)
     const id = setTimeout(() => {
@@ -79,11 +68,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
     {state => (
       <SharedHudVars>
         <div ref={nodeRef} style={{ ...defaultStyle, ...transitionStyles[state] }} className='item-display-name'>
-          {typeof itemName === 'object' || typeof itemName === 'string' ? (
-            <MessageFormattedString message={itemName} />
-          ) : (
-            <MessageFormatted parts={itemName} />
-          )}
+          <MessageFormattedString message={itemName} />
         </div>
       </SharedHudVars>
     )}

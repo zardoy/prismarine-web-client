@@ -10,7 +10,6 @@ import styles from './MobileTopButtons.module.css'
 export default () => {
   const elRef = useRef<HTMLDivElement | null>(null)
 
-  /** @param {boolean} bl */
   const showMobileControls = (bl) => {
     if (elRef.current) elRef.current.style.display = bl ? 'flex' : 'none'
   }
