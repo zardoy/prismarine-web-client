@@ -86,7 +86,8 @@ import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
-import { hideNotification, notificationProxy } from './react/NotificationProvider'
+import { hideNotification, notificationProxy, showNotification } from './react/NotificationProvider'
+import { saveToBrowserMemory } from './react/PauseScreen'
 
 window.debug = debug
 window.THREE = THREE
@@ -808,6 +809,21 @@ async function connect (connectOptions: {
     })
 
     if (appStatusState.isError) return
+    setTimeout(() => {
+      // todo
+      const qs = new URLSearchParams(window.location.search)
+      if (qs.get('suggest_save')) {
+        showNotification('Suggestion', 'Save the world to keep your progress!', false, undefined, async () => {
+          const savePath = await saveToBrowserMemory()
+          if (!savePath) return
+          const saveName = savePath.split('/').pop()
+          bot.end()
+          // todo hot reload
+          location.search = `loadSave=${saveName}`
+        })
+      }
+    }, 600)
+
     setLoadingScreenStatus(undefined)
     void viewer.waitForChunksToRender().then(() => {
       console.log('All done and ready!')

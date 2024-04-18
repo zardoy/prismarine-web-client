@@ -21,6 +21,27 @@ import Button from './Button'
 import Screen from './Screen'
 import styles from './PauseScreen.module.css'
 
+export const saveToBrowserMemory = async () => {
+  setLoadingScreenStatus('Saving world')
+  try {
+    //@ts-expect-error
+    const { worldFolder } = localServer.options
+    const saveRootPath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
+    await mkdirRecursive(saveRootPath)
+    for (const copyPath of [...usedServerPathsV1, 'icon.png']) {
+      const srcPath = join(worldFolder, copyPath)
+      const savePath = join(saveRootPath, copyPath)
+      // eslint-disable-next-line no-await-in-loop
+      await copyFilesAsyncWithProgress(srcPath, savePath, false)
+    }
+    return saveRootPath
+  } catch (err) {
+    void showOptionsModal(`Error while saving the world: ${err.message}`, [])
+  } finally {
+    setLoadingScreenStatus(undefined)
+  }
+}
+
 export default () => {
   const isModalActive = useIsModalActive('pause-screen')
   const fsStateSnap = useSnapshot(fsState)
@@ -76,23 +97,7 @@ export default () => {
     }
     const action = await showOptionsModal('World actions...', ['Save to browser memory'])
     if (action === 'Save to browser memory') {
-      setLoadingScreenStatus('Saving world')
-      try {
-        //@ts-expect-error
-        const { worldFolder } = localServer.options
-        const saveRootPath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
-        await mkdirRecursive(saveRootPath)
-        for (const copyPath of [...usedServerPathsV1, 'icon.png']) {
-          const srcPath = join(worldFolder, copyPath)
-          const savePath = join(saveRootPath, copyPath)
-          // eslint-disable-next-line no-await-in-loop
-          await copyFilesAsyncWithProgress(srcPath, savePath, false)
-        }
-      } catch (err) {
-        void showOptionsModal(`Error while saving the world: ${err.message}`, [])
-      } finally {
-        setLoadingScreenStatus(undefined)
-      }
+      await saveToBrowserMemory()
     }
   }
 
