@@ -14,6 +14,7 @@ import SharedHudVars from './SharedHudVars'
 
 const ItemName = ({ itemKey }: { itemKey: string }) => {
   const nodeRef = useRef(null)
+  const itemNameCache = useRef({} as Record<string, any>)
   const [show, setShow] = useState(false)
   const [itemName, setItemName] = useState<Record<string, any> | MessageFormatPart[] | string>('')
 
@@ -39,20 +40,30 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   }
 
   useEffect(() => {
-    const itemData = itemKey.split('_split_')
-    if (!itemKey) {
-      setItemName('')
-    } else if (itemData[3]) {
-      const itemNbt = nbt.simplify(JSON.parse(itemData[3]))
-      const customName = itemNbt.display?.Name
-      if (customName) {
-        const parsed = mojangson.simplify(mojangson.parse(customName))
-        setItemName(parsed)
+    if (!Object.keys(itemNameCache.current).includes(itemKey)) {
+      itemNameCache.current[itemKey] = itemName
+    }
+  }, [itemName])
+
+  useEffect(() => {
+    if (Object.keys(itemNameCache.current).includes(itemKey)) {
+      setItemName(itemNameCache.current[itemKey])
+    } else {
+      const itemData = itemKey.split('_split_')
+      if (!itemKey) {
+        setItemName('')
+      } else if (itemData[3]) {
+        const itemNbt = nbt.simplify(JSON.parse(itemData[3]))
+        const customName = itemNbt.display?.Name
+        if (customName) {
+          const parsed = mojangson.simplify(mojangson.parse(customName))
+          setItemName(parsed)
+        } else {
+          setItemName(itemData[0])
+        }
       } else {
         setItemName(itemData[0])
       }
-    } else {
-      setItemName(itemData[0])
     }
     setShow(true)
     const id = setTimeout(() => {
