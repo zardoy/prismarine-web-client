@@ -7,7 +7,7 @@ import './devtools'
 import './entities'
 import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
-import { itemsAtlases, onGameLoad } from './playerWindows'
+import { itemsAtlases, onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 
 import './menus/components/button'
