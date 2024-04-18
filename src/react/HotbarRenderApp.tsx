@@ -21,7 +21,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
 
   const defaultStyle: React.CSSProperties = {
     position: 'fixed',
-    bottom: `calc(var(--safe-area-inset-bottom) + ${bot ? bot.game.gameMode === 'creative' || bot.game.gameMode === 'spectator' ? '35px' : '50px' : '50px'})`,
+    bottom: `calc(var(--safe-area-inset-bottom) + ${bot ? bot.game.gameMode === 'creative' ? '35px' : '50px' : '50px'})`,
     left: 0,
     right: 0,
     fontSize: 10,
