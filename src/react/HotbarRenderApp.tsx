@@ -1,9 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Transition } from 'react-transition-group'
 import { createPortal } from 'react-dom'
+import mojangson from 'mojangson'
+import nbt from 'prismarine-nbt'
 import { useSnapshot } from 'valtio'
 import { getItemNameRaw, openItemsCanvas, openPlayerInventory, upInventoryItems } from '../playerWindows'
 import { activeModalStack, isGameActive, miscUiState } from '../globalState'
+import { MessageFormatPart } from '../botUtils'
+import MessageFormatted from './MessageFormatted'
 import MessageFormattedString from './MessageFormattedString'
 import SharedHudVars from './SharedHudVars'
 
@@ -11,7 +15,7 @@ import SharedHudVars from './SharedHudVars'
 const ItemName = ({ itemKey }: { itemKey: string }) => {
   const nodeRef = useRef(null)
   const [show, setShow] = useState(false)
-  const [itemName, setItemName] = useState<Record<string, any> | string>('')
+  const [itemName, setItemName] = useState<Record<string, any> | MessageFormatPart[] | string>('')
 
   const duration = 300
 
@@ -39,8 +43,14 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
     if (!itemKey) {
       setItemName('')
     } else if (itemData[3]) {
-      const customDisplay = formatMessage(JSON.parse(itemData[3]))
-      setItemName(customDisplay[0])
+      const itemNbt = nbt.simplify(JSON.parse(itemData[3]))
+      const customName = itemNbt.display?.Name
+      if (customName) {
+        const parsed = mojangson.simplify(mojangson.parse(customName))
+        setItemName(parsed)
+      } else {
+        setItemName(itemData[0])
+      }
     } else {
       setItemName(itemData[0])
     }
@@ -55,13 +65,17 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   }, [itemKey])
 
   return <Transition nodeRef={nodeRef} in={show} timeout={duration} >
-    <SharedHudVars>
-      {state => (
+    {state => (
+      <SharedHudVars>
         <div ref={nodeRef} style={{ ...defaultStyle, ...transitionStyles[state] }} className='item-display-name'>
-          <MessageFormattedString message={itemName} />
+          {typeof itemName === 'object' || typeof itemName === 'string' ? (
+            <MessageFormattedString message={itemName} />
+          ) : (
+            <MessageFormatted parts={itemName} />
+          )}
         </div>
-      )}
-    </SharedHudVars>
+      </SharedHudVars>
+    )}
   </Transition>
 }
 
