@@ -74,6 +74,7 @@ export class World {
   }
 
   setBlockStateId (pos: Vec3, stateId) {
+    if (stateId === undefined) throw new Error('stateId is undefined')
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
 
     const column = this.columns[key]
