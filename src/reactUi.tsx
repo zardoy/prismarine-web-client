@@ -22,6 +22,7 @@ import PlayerListOverlayProvider from './react/PlayerListOverlayProvider'
 import HudBarsProvider from './react/HudBarsProvider'
 import XPBarProvider from './react/XPBarProvider'
 import DebugOverlay from './react/DebugOverlay'
+import MobileDebugBtns from './react/MobileDebugBtns'
 import PauseScreen from './react/PauseScreen'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
@@ -90,6 +91,7 @@ const InGameUi = () => {
       {/* apply scaling */}
       <DeathScreenProvider />
       <DebugOverlay />
+      <MobileDebugBtns />
       <PlayerListOverlayProvider />
       <ChatProvider />
       <SoundMuffler />
