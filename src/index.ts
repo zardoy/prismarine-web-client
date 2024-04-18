@@ -27,7 +27,7 @@ import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 
 import itemsPng from 'prismarine-viewer/public/textures/items.png'
-import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
+import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 
 import { options, watchValue } from './optionsStorage'
@@ -90,7 +90,7 @@ import { watchFov } from './rendererUtils'
 import { loadInMemorySave } from './react/SingleplayerProvider'
 
 // side effects
-import { downloadSoundsIfNeeded } from './soundSystem'
+import { downloadSoundsIfNeeded, earlyCheck as earlySoundsMapCheck } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
@@ -379,6 +379,7 @@ async function connect (connectOptions: {
         }
       }
       viewer.setVersion(version)
+      earlySoundsMapCheck()
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
