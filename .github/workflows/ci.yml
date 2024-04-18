@@ -15,8 +15,9 @@ jobs:
           node-version: 18
           # cache: "pnpm"
       - run: pnpm install
-      - run: pnpm lint
       - run: pnpm check-build
+      - run: pnpm test-unit
+      - run: pnpm lint
       - run: nohup pnpm prod-start &
       - run: nohup pnpm test-mc-server &
       - uses: cypress-io/github-action@v5
