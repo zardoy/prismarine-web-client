@@ -4,7 +4,7 @@ import { watchValue } from '../optionsStorage'
 import { showModal, miscUiState, activeModalStack, hideCurrentModal } from '../globalState'
 import { showOptionsModal } from './SelectOption'
 import useLongPress from './useLongPress'
-import styles from './MobileDebugBtns.module.css'
+import styles from './MobileTopButtons.module.css'
 
 
 export default () => {
@@ -18,12 +18,10 @@ export default () => {
   useEffect(() => {
     watchValue(miscUiState, o => {
       showMobileControls(o.currentTouch)
-      // //@ts-expect-error
-      // this.shadowRoot.host.style.display = o.gameLoaded ? 'block' : 'none'
     })
   }, [])
 
-  const onLongPress = async (event: TouchEvent) => {
+  const onLongPress = async () => {
     const select = await showOptionsModal('', f3Keybinds.filter(f3Keybind => f3Keybind.mobileTitle).map(f3Keybind => f3Keybind.mobileTitle))
     console.log('pressed')
     console.log(select)
@@ -47,18 +45,7 @@ export default () => {
       window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
     }}>S</div>
     <div className={styles['debug-btn']} onPointerDown={(e) => {
-      const event = new KeyboardEvent('keydown', {
-        code: 'F3', // Specify the key you want to press
-        keyCode: 114, // Specify the key code if needed
-        which: 114, // Specify the which property if needed
-        ctrlKey: false, // Whether ctrl key is pressed
-        shiftKey: false, // Whether shift key is pressed
-        altKey: false, // Whether alt key is pressed
-        metaKey: false, // Whether meta key (e.g., Command key on Mac) is pressed
-      });
-
-      // Dispatch the event on the document or any other element
-      document.dispatchEvent(event);
+      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'F3' }))
     }} { ...longPressEvent }>F3</div>
     <div className={styles['chat-btn']} onPointerDown={(e) => {
       e.stopPropagation()

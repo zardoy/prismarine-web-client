@@ -6,7 +6,7 @@ interface LongPressOptions {
 }
 
 const useLongPress = (
-  onLongPress: (event: React.MouseEvent | React.TouchEvent) => void,
+  onLongPress: () => void,
   onClick: () => void,
   { shouldPreventDefault = true, delay = 300 }: LongPressOptions = {}
 ) => {
@@ -23,7 +23,7 @@ const useLongPress = (
         target.current = event.target
       }
       timeout.current = window.setTimeout(() => {
-        onLongPress(event)
+        onLongPress()
         setLongPressTriggered(true)
       }, delay)
     },
