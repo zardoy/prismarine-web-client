@@ -379,7 +379,6 @@ async function connect (connectOptions: {
         }
       }
       viewer.setVersion(version)
-      earlySoundsMapCheck()
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
@@ -457,6 +456,7 @@ async function connect (connectOptions: {
       }
     }) as unknown as typeof __type_bot
     window.bot = bot
+    earlySoundsMapCheck()
     if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature

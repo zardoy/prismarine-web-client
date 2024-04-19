@@ -324,9 +324,10 @@ export class EntityMesh {
       const material = new THREE.MeshBasicMaterial({
         map: texture,
         transparent: true,
+        alphaTest: 0.1
       })
       const obj = objLoader.parse(externalModels[type])
-      this.mesh = obj
+      if (type === 'boat') obj.position.y = -1 // todo, should not be hardcoded
       obj.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.material = material
@@ -339,6 +340,7 @@ export class EntityMesh {
           }
         }
       })
+      this.mesh = obj
       return
     }
 
