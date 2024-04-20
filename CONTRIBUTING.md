@@ -2,7 +2,7 @@
 
 After forking the repository, run the following commands to get started:
 
-0. Ensure you have [Node.js](https://nodejs.org) and `pnpm` installed. To install pnpm run `npm i -g pnpm`.
+0. Ensure you have [Node.js](https://nodejs.org) and `pnpm` installed. To install pnpm run `npm i -g pnpm@9.0.4`.
 1. Install dependencies: `pnpm i`
 2. Start the project in development mode: `pnpm start`
 
