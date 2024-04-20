@@ -3,7 +3,7 @@ import * as esbuild from 'esbuild'
 import fs from 'fs'
 // import htmlPlugin from '@chialab/esbuild-plugin-html'
 import server from './server.js'
-import { clients, plugins } from './scripts/esbuildPlugins.mjs'
+import { clients, plugins, startWatchingHmr } from './scripts/esbuildPlugins.mjs'
 import { generateSW } from 'workbox-build'
 import { getSwAdditionalEntries } from './scripts/build.js'
 import { build } from 'esbuild'
@@ -21,11 +21,7 @@ const dev = !prod
 
 const banner = [
   'window.global = globalThis;',
-  // report reload time
-  dev && 'if (sessionStorage.lastReload) { const [rebuild, reloadStart] = sessionStorage.lastReload.split(","); const now = Date.now(); console.log(`rebuild + reload:`, +rebuild, "+", now - reloadStart, "=", ((+rebuild + (now - reloadStart)) / 1000).toFixed(1) + "s");sessionStorage.lastReload = ""; }',
-  // auto-reload
-  dev && 'window.noAutoReload ??= false;(() => new EventSource("/esbuild").onmessage = ({ data: _data }) => { if (!_data) return; const data = JSON.parse(_data); if (!data.update) return;console.log("[esbuild] Page is outdated");document.title = `[O] ${document.title}`;if (window.noAutoReload || localStorage.noAutoReload) return; if (localStorage.autoReloadVisible && document.visibilityState !== "visible") return; sessionStorage.lastReload = `${data.update.time},${Date.now()}`; location.reload() })();'
-].filter(Boolean)
+]
 
 const buildingVersion = new Date().toISOString().split(':')[0]
 
@@ -91,6 +87,7 @@ const buildOptions = {
 if (watch) {
   const ctx = await esbuild.context(buildOptions)
   await ctx.watch()
+  startWatchingHmr()
   server.app.get('/esbuild', (req, res, next) => {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',

@@ -158,6 +158,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     const neighbor = world.getBlock(neighborPos)
     if (!neighbor) continue
     if (neighbor.type === type) continue
+    const isGlass = neighbor.name.includes('glass')
     if ((isCube(neighbor) && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
 
     let tint = [1, 1, 1]
@@ -438,6 +439,8 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
 }
 
 export function getSectionGeometry (sx, sy, sz, world: World) {
+  let delayedRender = [] as (() => void)[]
+
   const attr = {
     sx: sx + 8,
     sy: sy + 8,
@@ -488,7 +491,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           if (block.name === 'water' || isWaterlogged) {
             const waterBlock = block.name === 'water' ? block : { name: 'water', metadata: 0 }
             const variant = getModelVariants(waterBlock as any)[0]
-            renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, true, attr)
+            const pos = cursor.clone()
+            delayedRender.push(() => {
+              renderLiquid(world, pos, variant.model.textures.particle, block.type, biome, true, attr)
+            })
           } else if (block.name === 'lava') {
             renderLiquid(world, cursor, variant.model.textures.particle, block.type, biome, false, attr)
           }
@@ -509,13 +515,25 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             }
 
             for (const element of variant.model.elements) {
-              renderElement(world, cursor, element, variant.model.ao, attr, globalMatrix, globalShift, block, biome)
+              if (block.transparent) {
+                const pos = cursor.clone()
+                delayedRender.push(() => {
+                  renderElement(world, pos, element, variant.model.ao, attr, globalMatrix, globalShift, block, biome)
+                })
+              } else {
+                renderElement(world, cursor, element, variant.model.ao, attr, globalMatrix, globalShift, block, biome)
+              }
             }
           }
         }
       }
     }
   }
+
+  for (const render of delayedRender) {
+    render()
+  }
+  delayedRender = []
 
   let ndx = attr.positions.length / 3
   for (let i = 0; i < attr.t_positions.length / 12; i++) {

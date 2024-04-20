@@ -28,9 +28,8 @@ export class WorldRendererThree extends WorldRendererCommon {
      * Optionally update data that are depedendent on the viewer position
      */
     updatePosDataChunk (key: string) {
-        if (!this.viewerPosition) return
         const [x, y, z] = key.split(',').map(x => Math.floor(+x / 16))
-        const [xPlayer, yPlayer, zPlayer] = this.viewerPosition.toArray().map(x => Math.floor(x / 16))
+        const [xPlayer, yPlayer, zPlayer] = this.camera.position.toArray().map(x => Math.floor(x / 16))
         // sum of distances: x + y + z
         const chunkDistance = Math.abs(x - xPlayer) + Math.abs(y - yPlayer) + Math.abs(z - zPlayer)
         const section = this.sectionObjects[key].children.find(child => child.name === 'mesh')!
@@ -183,6 +182,18 @@ export class WorldRendererThree extends WorldRendererCommon {
         for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
             this.setSectionDirty(new Vec3(chunkX, y, chunkZ))
         }
+    }
+
+    async doHmr () {
+        const oldSections = { ...this.sectionObjects }
+        this.sectionObjects = {} // skip clearing
+        worldView!.unloadAllChunks()
+        this.setVersion(this.version, this.texturesVersion)
+        this.sectionObjects = oldSections
+        // this.rerenderAllChunks()
+
+        // supply new data
+        await worldView!.updatePosition(bot.entity.position, true)
     }
 
     rerenderAllChunks () { // todo not clear what to do with loading chunks

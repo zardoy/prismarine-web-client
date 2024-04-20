@@ -35,7 +35,6 @@ import './reactUi.jsx'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
-import './eruda'
 import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
@@ -96,7 +95,7 @@ import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
-import './hotReload'
+import './devReload'
 
 window.debug = debug
 window.THREE = THREE

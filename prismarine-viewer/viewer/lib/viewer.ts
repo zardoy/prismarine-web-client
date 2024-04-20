@@ -191,6 +191,8 @@ export class Viewer {
         skyLight = ((timeOfDay - 12000) / 6000) * 15
       }
 
+      skyLight = Math.floor(skyLight) // todo: remove this after optimization
+
       if (this.world.mesherConfig.skyLight === skyLight) return
       this.world.mesherConfig.skyLight = skyLight
         ; (this.world as WorldRendererThree).rerenderAllChunks?.()

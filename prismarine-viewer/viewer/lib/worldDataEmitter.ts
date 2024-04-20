@@ -191,6 +191,7 @@ export class WorldDataEmitter extends EventEmitter {
       this.lastPos.update(pos)
       await this._loadChunks(positions)
     } else {
+      this.emitter.emit('chunkPosUpdate', { pos }) // todo-low
       this.lastPos.update(pos)
     }
   }

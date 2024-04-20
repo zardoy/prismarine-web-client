@@ -6,16 +6,33 @@ import * as fs from 'fs'
 import { filesize } from 'filesize'
 import MCProtocol from 'minecraft-protocol'
 import MCData from 'minecraft-data'
+import { throttle } from 'lodash-es'
 
 const { supportedVersions } = MCProtocol
 
 const prod = process.argv.includes('--prod')
 let connectedClients = []
 
-const watchExternal = [
-  // 'dist/mesher.js',
-  // 'dist/webglRendererWorker.js'
-]
+const writeToClients = (data) => {
+  connectedClients.forEach((res) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`)
+    res.flush()
+  })
+}
+
+export const startWatchingHmr = () => {
+  const eventsPerFile = {
+    'mesher.js': 'mesher',
+    // 'dist/webglRendererWorker.js': 'webglRendererWorker',
+  }
+  for (const name of Object.keys(eventsPerFile)) {
+    const file = join('dist', name);
+    if (!fs.existsSync(file)) console.warn(`[missing worker] File ${name} does not exist`)
+    fs.watchFile(file, () => {
+      writeToClients({ replace: { type: eventsPerFile[name] } })
+    })
+  }
+}
 
 /** @type {import('esbuild').Plugin[]} */
 const plugins = [
@@ -46,8 +63,6 @@ const plugins = [
         return {
           contents: `window.mcData ??= ${JSON.stringify(defaultVersionsObj)};module.exports = { pc: window.mcData }`,
           loader: 'js',
-          // todo use external watchers
-          watchFiles: watchExternal,
         }
       })
       build.onResolve({
@@ -153,25 +168,8 @@ const plugins = [
       let time
       let prevHash
 
-      let prevWorkersMtime
-      const updateMtime = async () => {
-        const workersMtime = watchExternal.map(file => {
-          try {
-            return fs.statSync(file).mtimeMs
-          } catch (err) {
-            console.log('missing file', file)
-            return 0
-          }
-        })
-        if (workersMtime.some((mtime, i) => mtime !== prevWorkersMtime?.[i])) {
-          prevWorkersMtime = workersMtime
-          return true
-        }
-        return false
-      }
       build.onStart(() => {
         time = Date.now()
-        updateMtime()
       })
       build.onEnd(({ errors, outputFiles: _outputFiles, metafile, warnings }) => {
         /** @type {import('esbuild').OutputFile[]} */
@@ -181,10 +179,7 @@ const plugins = [
         outputFiles.find(outputFile => outputFile.path)
 
         if (errors.length) {
-          connectedClients.forEach((res) => {
-            res.write(`data: ${JSON.stringify({ errors: errors.map(error => error.text) })}\n\n`)
-            res.flush()
-          })
+          writeToClients({ errors: errors.map(error => error.text) })
           return
         }
 
@@ -194,8 +189,7 @@ const plugins = [
         /** @type {import('esbuild').OutputFile} */
         //@ts-ignore
         const outputFile = outputFiles.find(x => x.path.endsWith('.js'))
-        const updateWorkers = updateMtime()
-        if (outputFile.hash === prevHash && !updateWorkers) {
+        if (outputFile.hash === prevHash) {
           // todo also check workers and css
           console.log('Ignoring reload as contents the same')
           return
@@ -212,10 +206,7 @@ const plugins = [
           return
         }
 
-        connectedClients.forEach((res) => {
-          res.write(`data: ${JSON.stringify({ update: { time: elapsed } })}\n\n`)
-          res.flush()
-        })
+        writeToClients({ update: { time: elapsed } })
         connectedClients.length = 0
       })
     }

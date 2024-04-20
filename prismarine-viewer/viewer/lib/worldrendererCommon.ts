@@ -25,8 +25,7 @@ export type WorldRendererConfig = typeof defaultWorldRendererConfig
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
   worldConfig = { minY: 0, worldHeight: 256 }
-  // todo @sa2urami set alphaTest back to 0.1 and instead properly sort transparent and solid objects (needs to be done in worker too)
-  material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.5 })
+  material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
   @worldCleanup()
   active = false
@@ -58,14 +57,14 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   abstract outputFormat: 'threeJs' | 'webgl'
 
-  constructor (public config: WorldRendererConfig) {
+  constructor(public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
   }
 
-  snapshotInitialValues() {}
+  snapshotInitialValues () { }
 
-  initWorkers(numWorkers = this.config.numWorkers) {
+  initWorkers (numWorkers = this.config.numWorkers) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
@@ -153,7 +152,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
     this.workers = []
   }
-
 
   // new game load happens here
   setVersion (version, texturesVersion = version) {
