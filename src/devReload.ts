@@ -27,7 +27,7 @@ if (process.env.NODE_ENV === 'development') {
         switch (data.replace.type) {
           case 'mesher': {
             if (!worldView || !viewer.world.version || !(viewer.world instanceof WorldRendererThree)) return
-            viewer.world.doHmr()
+            void viewer.world.doHmr()
           }
         }
       }

@@ -602,7 +602,7 @@ async function connect (connectOptions: {
       }
       if (renderer.xr.isPresenting) return // todo
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
-        showModal({reactType: 'pause-screen'})
+        showModal({ reactType: 'pause-screen' })
       }
     }
 
