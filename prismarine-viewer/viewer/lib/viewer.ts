@@ -6,7 +6,7 @@ import { getVersion } from './version'
 import EventEmitter from 'events'
 import { WorldRendererThree } from './worldrendererThree'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
-import { WorldRendererCommon } from './worldrendererCommon'
+import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
 
 export class Viewer {
   scene: THREE.Scene
@@ -19,13 +19,13 @@ export class Viewer {
   domElement: HTMLCanvasElement
   playerHeight = 1.62
   isSneaking = false
-  version: string
+  threeJsWorld: WorldRendererThree
   cameraObjectOverride?: THREE.Object3D // for xr
   audioListener: THREE.AudioListener
   renderingUntilNoUpdates = false
   processEntityOverrides = (e, overrides) => overrides
 
-  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number) {
+  constructor(public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
@@ -33,11 +33,16 @@ export class Viewer {
     this.scene = new THREE.Scene()
     this.scene.matrixAutoUpdate = false // for perf
     this.resetScene()
-    this.world = new WorldRendererThree(this.scene, this.renderer, this.camera, numWorkers)
+    this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, this.camera, worldConfig)
+    this.setWorld()
     this.entities = new Entities(this.scene)
     // this.primitives = new Primitives(this.scene, this.camera)
 
     this.domElement = renderer.domElement
+  }
+
+  setWorld () {
+    this.world = this.threeJsWorld
   }
 
   resetScene () {
@@ -67,7 +72,6 @@ export class Viewer {
   setVersion (userVersion: string) {
     const texturesVersion = getVersion(userVersion)
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
-    this.version = userVersion
     this.world.setVersion(userVersion, texturesVersion)
     this.entities.clear()
     // this.primitives.clear()
@@ -187,8 +191,8 @@ export class Viewer {
         skyLight = ((timeOfDay - 12000) / 6000) * 15
       }
 
-      if (this.world.skyLight === skyLight) return
-      this.world.skyLight = skyLight
+      if (this.world.mesherConfig.skyLight === skyLight) return
+      this.world.mesherConfig.skyLight = skyLight
         ; (this.world as WorldRendererThree).rerenderAllChunks?.()
     })
 

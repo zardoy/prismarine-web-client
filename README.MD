@@ -19,6 +19,13 @@ You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.
 - Resource pack support
 - even even more!
 
+### Recommended Settings
+
+- Controls -> **Raw Input** -> **On** - This will make the controls more precise
+- Controls -> **Touch Controls Type** -> **Joystick**
+- Controls -> **Auto Full Screen** -> **On** - To avoid ctrl+w issue
+- Interface -> **Chat Select** -> **On** - To select chat messages
+
 ### World Loading
 
 Zip files and folders are supported. Just drag and drop them into the browser window. You can open folders in readonly and read-write mode. New chunks may be generated incorrectly for now.

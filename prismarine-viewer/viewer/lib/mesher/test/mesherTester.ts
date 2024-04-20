@@ -1,4 +1,4 @@
-import { setRendererData, getSectionGeometry } from '../models'
+import { setBlockStatesData, getSectionGeometry } from '../models'
 import { World as MesherWorld } from '../world'
 import ChunkLoader from 'prismarine-chunk'
 import { Vec3 } from 'vec3'
@@ -30,7 +30,7 @@ export const setup = (version, initialBlocks: [number[], string][]) => {
         }
     }
 
-    setRendererData(blockStates, true)
+    setBlockStatesData(blockStates, true)
     mesherWorld.addColumn(0, 0, chunk1.toJson())
 
     return {

@@ -3,6 +3,7 @@ import mcData from 'minecraft-data'
 import { Block } from "prismarine-block"
 import { Vec3 } from 'vec3'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
+import { defaultMesherConfig } from './shared'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -24,10 +25,7 @@ export type WorldBlock = Block & {
 
 
 export class World {
-  enableLighting = true
-  skyLight = 15
-  smoothLighting = true
-  outputFormat = 'threeJs' as 'threeJs' | 'webgl'
+  config = defaultMesherConfig
   Chunk: typeof import('prismarine-chunk/types/index').PCChunk
   columns = {} as { [key: string]: import('prismarine-chunk/types/index').PCChunk }
   blockCache = {}
@@ -36,10 +34,12 @@ export class World {
   constructor(version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
+    this.config.version = version
   }
 
   getLight (pos: Vec3, isNeighbor = false) {
-    if (!this.enableLighting) return 15
+    const { enableLighting, skyLight } = this.config
+    if (!enableLighting) return 15
     // const key = `${pos.x},${pos.y},${pos.z}`
     // if (lightsCache.has(key)) return lightsCache.get(key)
     const column = this.getColumnByPos(pos)
@@ -48,7 +48,7 @@ export class World {
       15,
       Math.max(
         column.getBlockLight(posInChunk(pos)),
-        Math.min(this.skyLight, column.getSkyLight(posInChunk(pos)))
+        Math.min(skyLight, column.getSkyLight(posInChunk(pos)))
       ) + 2
     )
     // lightsCache.set(key, result)

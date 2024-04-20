@@ -1,6 +1,6 @@
 import { World } from './world'
 import { Vec3 } from 'vec3'
-import { getSectionGeometry, setRendererData } from './models'
+import { getSectionGeometry, setBlockStatesData } from './models'
 
 if (module.require) {
   // If we are in a node environement, we need to fake some env variables
@@ -39,7 +39,8 @@ function setSectionDirty (pos, value = true) {
 }
 
 const softCleanup = () => {
-  world.blockCache = {}
+  // clean block cache and loaded chunks
+  world = new World(world.config.version)
 }
 
 self.onmessage = ({ data }) => {
@@ -47,16 +48,18 @@ self.onmessage = ({ data }) => {
 
   if (data.type === 'mcData') {
     globalVar.mcData = data.mcData
-    world = new World(data.version)
-  } else if (data.type === 'rendererData') {
-    setRendererData(data.json/* , data.textureSize */)
-    world.outputFormat = data.outputFormat ?? world.outputFormat
+  }
+
+  if (data.config) {
+    world ??= new World(data.config.version)
+    world.config = {...world.config, ...data.config}
+  }
+
+  if (data.type === 'mesherData') {
+    setBlockStatesData(data.json)
     blockStatesReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)
-    world.skyLight = data.skyLight
-    world.smoothLighting = data.smoothLighting
-    world.enableLighting = data.enableLighting
     setSectionDirty(loc, data.value)
   } else if (data.type === 'chunk') {
     world.addColumn(data.x, data.z, data.chunk)

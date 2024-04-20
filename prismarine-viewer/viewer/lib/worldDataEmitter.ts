@@ -151,6 +151,13 @@ export class WorldDataEmitter extends EventEmitter {
     }
   }
 
+  unloadAllChunks () {
+    for (const coords of Object.keys(this.loadedChunks)) {
+      const [x, z] = coords.split(',').map(Number)
+      this.unloadChunk({ x, z })
+    }
+  }
+
   unloadChunk (pos: ChunkPos) {
     this.emitter.emit('unloadChunk', { x: pos.x, z: pos.z })
     delete this.loadedChunks[`${pos.x},${pos.z}`]
@@ -172,7 +179,6 @@ export class WorldDataEmitter extends EventEmitter {
           chunksToUnload.push(p)
         }
       }
-      // todo @sa2urami
       console.log('unloading', chunksToUnload.length, 'total now', Object.keys(this.loadedChunks).length)
       for (const p of chunksToUnload) {
         this.unloadChunk(p)

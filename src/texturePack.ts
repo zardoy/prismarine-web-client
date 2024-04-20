@@ -93,7 +93,7 @@ export const completeTexturePackInstall = async (name?: string) => {
   await fs.promises.writeFile(join(texturePackBasePath, 'name.txt'), name ?? '??', 'utf8')
 
   if (viewer?.world.active) {
-    await genTexturePackTextures(viewer.version)
+    await genTexturePackTextures(viewer.world.version!)
   }
   setLoadingScreenStatus(undefined)
   showNotification('Texturepack installed')

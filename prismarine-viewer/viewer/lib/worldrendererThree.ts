@@ -5,19 +5,14 @@ import { dispose3 } from './dispose'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
-import { WorldRendererCommon } from './worldrendererCommon'
+import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
-
-function mod (x, n) {
-    return ((x % n) + n) % n
-}
 
 export class WorldRendererThree extends WorldRendererCommon {
     outputFormat = 'threeJs' as const
     blockEntities = {}
     sectionObjects: Record<string, THREE.Object3D> = {}
-    showChunkBorders = false
     chunkTextures = new Map<string, { [pos: string]: THREE.Texture }>()
     signsCache = new Map<string, any>()
 
@@ -25,8 +20,8 @@ export class WorldRendererThree extends WorldRendererCommon {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
     }
 
-    constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public camera: THREE.PerspectiveCamera, numWorkers = 4) {
-        super(numWorkers)
+    constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public camera: THREE.PerspectiveCamera, public config: WorldRendererConfig) {
+        super(config)
     }
 
     /**
@@ -94,7 +89,7 @@ export class WorldRendererThree extends WorldRendererCommon {
         object.name = 'chunk'
         //@ts-ignore
         object.tilesCount = data.geometry.positions.length / 3 / 4
-        if (!this.showChunkBorders) {
+        if (!this.config.showChunkBorders) {
             boxHelper.visible = false
         }
         // should not compute it once
@@ -198,7 +193,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     }
 
     updateShowChunksBorder (value: boolean) {
-        this.showChunkBorders = value
+        this.config.showChunkBorders = value
         for (const object of Object.values(this.sectionObjects)) {
             for (const child of object.children) {
                 if (child.name === 'helper') {

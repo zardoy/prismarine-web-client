@@ -57,6 +57,7 @@ const defaultOptions = {
   unimplementedContainers: false,
   dayCycleAndLighting: true,
   loadPlayerSkins: true,
+  lowMemoryMode: false,
   // antiAliasing: false,
 
   showChunkBorders: false, // todo rename option

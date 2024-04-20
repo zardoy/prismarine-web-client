@@ -30,24 +30,30 @@ export const watchOptionsAfterViewerInit = () => {
 
   watchValue(options, o => {
     if (!viewer) return
-    viewer.world.showChunkBorders = o.showChunkBorders
+    viewer.world.config.showChunkBorders = o.showChunkBorders
     viewer.entities.setDebugMode(o.showChunkBorders ? 'basic' : 'none')
+  })
+
+  watchValue(options, o => {
+    if (!viewer) return
+    // todo ideally there shouldnt be this setting and we don't need to send all same chunks to all workers
+    viewer.world.config.numWorkers = o.lowMemoryMode ? 1 : o.numWorkers
   })
 
   watchValue(options, o => {
     viewer.entities.setVisible(o.renderEntities)
   })
 
-  viewer.world.smoothLighting = options.smoothLighting
+  viewer.world.mesherConfig.smoothLighting = options.smoothLighting
   subscribeKey(options, 'smoothLighting', () => {
-    viewer.world.smoothLighting = options.smoothLighting;
+    viewer.world.mesherConfig.smoothLighting = options.smoothLighting;
     (viewer.world as WorldRendererThree).rerenderAllChunks()
   })
   subscribeKey(options, 'newVersionsLighting', () => {
-    viewer.world.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting;
+    viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting;
     (viewer.world as WorldRendererThree).rerenderAllChunks()
   })
   customEvents.on('gameLoaded', () => {
-    viewer.world.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
+    viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
   })
 }

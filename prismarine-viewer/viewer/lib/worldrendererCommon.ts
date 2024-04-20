@@ -7,21 +7,35 @@ import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild p
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajor } from './version.js'
 import { chunkPos } from './simpleUtils'
+import { defaultMesherConfig } from './mesher/shared'
+import { buildCleanupDecorator } from './cleanupDecorator'
 
 function mod (x, n) {
   return ((x % n) + n) % n
 }
+
+export const worldCleanup = buildCleanupDecorator('resetWorld')
+
+export const defaultWorldRendererConfig = {
+  showChunkBorders: false,
+  numWorkers: 4
+}
+
+export type WorldRendererConfig = typeof defaultWorldRendererConfig
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
   worldConfig = { minY: 0, worldHeight: 256 }
   // todo @sa2urami set alphaTest back to 0.1 and instead properly sort transparent and solid objects (needs to be done in worker too)
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.5 })
 
-  showChunkBorders = false
+  @worldCleanup()
   active = false
   version = undefined as string | undefined
+  @worldCleanup()
   loadedChunks = {} as Record<string, boolean>
+  @worldCleanup()
   finishedChunks = {} as Record<string, boolean>
+  @worldCleanup()
   sectionsOutstanding = new Map<string, number>()
   renderUpdateEmitter = new EventEmitter()
   customBlockStatesData = undefined as any
@@ -37,15 +51,21 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   texturesVersion?: string
   viewDistance = -1
   chunksLength = 0
-  skyLight = 15
-  smoothLighting = true
-  enableLighting = true
+  @worldCleanup()
   allChunksFinished = false
   handleResize = () => { }
+  mesherConfig = defaultMesherConfig
 
   abstract outputFormat: 'threeJs' | 'webgl'
 
-  constructor(numWorkers: number) {
+  constructor (public config: WorldRendererConfig) {
+    // this.initWorkers(1) // preload script on page load
+    this.snapshotInitialValues()
+  }
+
+  snapshotInitialValues() {}
+
+  initWorkers(numWorkers = this.config.numWorkers) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
@@ -127,30 +147,36 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   abstract updateShowChunksBorder (value: boolean): void
 
   resetWorld () {
-    this.active = false
-    this.loadedChunks = {}
-    this.sectionsOutstanding = new Map()
-    this.finishedChunks = {}
-    this.allChunksFinished = false
+    // destroy workers
     for (const worker of this.workers) {
-      worker.postMessage({ type: 'reset' })
+      worker.terminate()
     }
+    this.workers = []
   }
 
+
+  // new game load happens here
   setVersion (version, texturesVersion = version) {
     this.version = version
     this.texturesVersion = texturesVersion
     this.resetWorld()
+    this.initWorkers()
     this.active = true
+    this.mesherConfig.outputFormat = this.outputFormat
+    this.mesherConfig.version = this.version!
 
-    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
-    for (const worker of this.workers) {
-      const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
-      mcData.version = JSON.parse(JSON.stringify(mcData.version))
-      worker.postMessage({ type: 'mcData', mcData, version: this.version })
-    }
-
+    this.sendMesherMcData()
     this.updateTexturesData()
+  }
+
+  sendMesherMcData () {
+    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
+    const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
+    mcData.version = JSON.parse(JSON.stringify(mcData.version))
+
+    for (const worker of this.workers) {
+      worker.postMessage({ type: 'mcData', mcData, config: this.mesherConfig })
+    }
   }
 
   updateTexturesData () {
@@ -166,15 +192,20 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
           return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
             this.downloadedBlockStatesData = data
-            // todo
             this.renderUpdateEmitter.emit('blockStatesDownloaded')
             resolve(data)
           })
         })
       }
       loadBlockStates().then((blockStates) => {
+        this.mesherConfig.textureSize = this.material.map!.image.width
+
         for (const worker of this.workers) {
-          worker.postMessage({ type: 'rendererData', json: blockStates, textureSize: this.material.map!.image.width, outputFormat: this.outputFormat })
+          worker.postMessage({
+            type: 'mesherData',
+            json: blockStates,
+            config: this.mesherConfig,
+          })
         }
       })
     })
@@ -182,6 +213,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   addColumn (x, z, chunk) {
+    if (this.workers.length === 0) throw new Error('workers not initialized yet')
     this.initialChunksLoad = false
     this.loadedChunks[`${x},${z}`] = true
     for (const worker of this.workers) {
@@ -224,7 +256,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.allChunksFinished = false
     const distance = this.getDistance(pos)
-    if (distance[0] > this.viewDistance || distance[1] > this.viewDistance) return
+    if (!this.workers.length || distance[0] > this.viewDistance || distance[1] > this.viewDistance) return
     const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
     // if (this.sectionsOutstanding.has(key)) return
     this.renderUpdateEmitter.emit('dirty', pos, value)
@@ -233,7 +265,14 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // is always dispatched to the same worker
     const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
     this.sectionsOutstanding.set(key, (this.sectionsOutstanding.get(key) ?? 0) + 1)
-    this.workers[hash].postMessage({ type: 'dirty', x: pos.x, y: pos.y, z: pos.z, value, skyLight: this.skyLight, smoothLighting: this.smoothLighting, enableLighting: this.enableLighting })
+    this.workers[hash].postMessage({
+      type: 'dirty',
+      x: pos.x,
+      y: pos.y,
+      z: pos.z,
+      value,
+      config: this.mesherConfig,
+    })
   }
 
   // Listen for chunk rendering updates emitted if a worker finished a render and resolve if the number

@@ -135,7 +135,7 @@ if (isFirefox) {
 }
 
 // Create viewer
-const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
+const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
 new THREE.TextureLoader().load(itemsPng, (texture) => {
   viewer.entities.itemsTexture = texture

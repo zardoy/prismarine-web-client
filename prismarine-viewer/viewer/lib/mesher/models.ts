@@ -386,7 +386,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
         let cornerLightResult = 15
-        if (world.smoothLighting) {
+        if (world.config.smoothLighting) {
           const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
           const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
           const cornerLight = world.getLight(cursor.plus(new Vec3(...cornerDir)), true)
@@ -605,7 +605,7 @@ function getModelVariants (block: import('prismarine-block').Block) {
   return []
 }
 
-export const setRendererData = (_blockStates: BlockStatesOutput | null, _needTiles = false) => {
+export const setBlockStatesData = (_blockStates: BlockStatesOutput | null, _needTiles = false) => {
   blockStates = _blockStates!
   needTiles = _needTiles
 }

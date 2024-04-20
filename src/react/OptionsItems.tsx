@@ -6,12 +6,15 @@ import { options, qsOptions } from '../optionsStorage'
 import Button from './Button'
 import Slider from './Slider'
 import Screen from './Screen'
+import { showOptionsModal } from './SelectOption'
 
 type GeneralItem<T extends string | number | boolean> = {
   id?: string
   text?: string,
   disabledReason?: string,
   tooltip?: string
+  // description?: string
+  enableWarning?: string
   willHaveNoEffect?: boolean
   values?: Array<T | [T, string]>
 }
@@ -56,7 +59,11 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
 
   return <Button
     label={`${item.text}: ${valuesTitlesMap[optionValue]}`}
-    onClick={() => {
+    onClick={async () => {
+      if (item.enableWarning && !options[item.id!]) {
+        const result = await showOptionsModal(item.enableWarning, ['Enable'])
+        if (!result) return
+      }
       const { values } = item
       if (values) {
         const getOptionValue = (arrItem) => {
@@ -108,9 +115,17 @@ const RenderOption = ({ item }: { item: OptionMeta }) => {
     item.text ??= titleCase(noCase(item.id))
   }
 
-  if (item.type === 'toggle') return <OptionButton item={item} />
-  if (item.type === 'slider') return <OptionSlider item={item} />
-  if (item.type === 'element') return <OptionElement item={item} />
+  let baseElement = null as React.ReactNode | null
+  if (item.type === 'toggle') baseElement = <OptionButton item={item} />
+  if (item.type === 'slider') baseElement = <OptionSlider item={item} />
+  if (item.type === 'element') baseElement = <OptionElement item={item} />
+  return baseElement
+  // if (!item.description && item.type === 'element') return baseElement
+
+  // return <div>
+  //   {baseElement}
+  //   {item.description && <div style={{ fontSize: 9, color: 'gray' }}>{item.description}</div>}
+  // </div>
 }
 
 interface Props {
