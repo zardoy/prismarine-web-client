@@ -39,7 +39,55 @@ test('Known blocks are not rendered', () => {
     // Fully expected
     expect(invalidBlocks).toMatchInlineSnapshot(`
       {
+        "creeper_head": [
+          0,
+          6,
+        ],
+        "creeper_wall_head": [
+          0,
+          6,
+        ],
+        "dragon_head": [
+          0,
+          6,
+        ],
+        "dragon_wall_head": [
+          0,
+          6,
+        ],
+        "player_head": [
+          0,
+          6,
+        ],
+        "player_wall_head": [
+          0,
+          6,
+        ],
         "powder_snow": [
+          0,
+          6,
+        ],
+        "skeleton_skull": [
+          0,
+          6,
+        ],
+        "skeleton_wall_skull": [
+          0,
+          6,
+        ],
+        "wither_skeleton_skull": [
+          0,
+          6,
+        ],
+        "wither_skeleton_wall_skull": [
+          0,
+          6,
+        ],
+        "zombie_head": [
+          0,
+          6,
+        ],
+        "zombie_wall_head": [
           0,
           6,
         ],
