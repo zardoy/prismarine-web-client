@@ -96,6 +96,7 @@ import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
+import './water'
 
 window.debug = debug
 window.THREE = THREE
