@@ -1,6 +1,5 @@
-import { useRef, useState, useMemo, useEffect } from 'react'
+import { useRef, useState, useMemo } from 'react'
 import { GameMode } from 'mineflayer'
-import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
 import { armor } from './armorValues'
 import HealthBar from './HealthBar'
 import FoodBar from './FoodBar'
@@ -10,11 +9,11 @@ import './HealthBar.css'
 
 export default () => {
   const [damaged, setDamaged] = useState(false)
-  const [healthValue, setHealthValue] = useState(10)
-  const [food, setFood] = useState(10)
-  const [oxygen, setOxygen] = useState(0)
+  const [healthValue, setHealthValue] = useState(bot.health)
+  const [food, setFood] = useState(bot.food)
+  const [oxygen, setOxygen] = useState(bot.oxygenLevel)
   const [armorValue, setArmorValue] = useState(0)
-  const [gameMode, setGameMode] = useState<GameMode | ''>('')
+  const [gameMode, setGameMode] = useState<GameMode | ''>(bot.game.gameMode)
   const [isHardcore, setIsHardcore] = useState(false)
   const [effectToAdd, setEffectToAdd] = useState<number | null>(null)
   const [effectToRemove, setEffectToRemove] = useState<number | null>(null)
@@ -92,7 +91,7 @@ export default () => {
       setOxygen(prev => bot.oxygenLevel)
     })
 
-    bot.inventory.on('updateSlot', (packet) => {
+    const upArmour = () => {
       const armorSlots = new Set([5, 6, 7, 8])
       let points = 0
       for (const slotIndex of armorSlots) {
@@ -102,7 +101,9 @@ export default () => {
         points += armor[armorName[0]][armorName[1]]
       }
       setArmorValue(points)
-    })
+    }
+    bot.inventory.on('updateSlot', upArmour)
+    upArmour()
   }, [])
 
   return <div>
