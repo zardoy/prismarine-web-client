@@ -191,6 +191,8 @@ export default () => {
     return () => {
       inv.destroy()
       controller.abort()
+      viewer.world.renderUpdateEmitter.off('textureDownloaded', upHotbarItems)
+      viewer.world.renderUpdateEmitter.off('blockStatesDownloaded', upHotbarItems)
     }
   }, [])
 
