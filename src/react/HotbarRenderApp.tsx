@@ -122,6 +122,7 @@ export default () => {
       }
     }
 
+    upHotbarItems()
     bot.inventory.on('updateSlot', upHotbarItems)
     viewer.world.renderUpdateEmitter.on('textureDownloaded', upHotbarItems)
 
