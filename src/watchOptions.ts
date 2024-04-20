@@ -14,7 +14,7 @@ watchValue(options, o => {
   document.documentElement.style.setProperty('--chatScale', `${o.chatScale / 100}`)
   document.documentElement.style.setProperty('--chatWidth', `${o.chatWidth}px`)
   document.documentElement.style.setProperty('--chatHeight', `${o.chatHeight}px`)
-  document.documentElement.style.setProperty('--guiScale', `${o.guiScale}`)
+  // gui scale is set in scaleInterface.ts
 })
 
 /** happens once */

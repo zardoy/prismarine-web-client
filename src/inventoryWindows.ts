@@ -12,6 +12,7 @@ import VillagerGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/conta
 import EnchantingGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/enchanting_table.png'
 import AnvilGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/anvil.png'
 import BeaconGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/beacon.png'
+import WidgetsGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png'
 
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
 import { subscribeKey } from 'valtio/utils'
@@ -32,7 +33,9 @@ import Generic95 from '../assets/generic_95.png'
 import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
-import { assertDefined } from './utils'
+import { assertDefined, inGameError } from './utils'
+import { MessageFormatPart } from './botUtils'
+import { currentScaling } from './scaleInterface'
 
 export const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
 const loadedImagesCache = new Map<string, HTMLImageElement>()
@@ -58,7 +61,7 @@ export type BlockStates = Record<string, null | {
   }>
 }>
 
-let lastWindow
+let lastWindow: ReturnType<typeof showInventory>
 /** bot version */
 let version: string
 let PrismarineBlock: typeof PrismarineBlockLoader.Block
@@ -198,6 +201,7 @@ const getImageSrc = (path): string | HTMLImageElement => {
     case 'gui/container/enchanting_table': return EnchantingGui
     case 'gui/container/anvil': return AnvilGui
     case 'gui/container/beacon': return BeaconGui
+    case 'gui/widgets': return WidgetsGui
   }
   return Dirt
 }
@@ -283,6 +287,13 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): { texture: string, blo
       slice: invspriteSlice
     }
   }
+  console.warn(`No render data for ${itemName}`)
+  if (isItem) {
+    return {
+      texture: 'blocks',
+      slice: [0, 0, 16, 16]
+    }
+  }
 }
 
 type JsonString = string
@@ -290,14 +301,24 @@ type PossibleItemProps = {
   Damage?: number
   display?: { Name?: JsonString } // {"text":"Knife","color":"white","italic":"true"}
 }
-export const getItemName = (item: import('prismarine-item').Item | null) => {
+export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'> | null) => {
   if (!item?.nbt) return
   const itemNbt: PossibleItemProps = nbt.simplify(item.nbt)
   const customName = itemNbt.display?.Name
   if (!customName) return
   const parsed = mojangson.simplify(mojangson.parse(customName))
+  if (parsed.extra) {
+    return parsed as Record<string, any>
+  } else {
+    return parsed as MessageFormatPart
+  }
+}
+
+const getItemName = (slot: Item | null) => {
+  const parsed = getItemNameRaw(slot)
+  if (!parsed || parsed['extra']) return
   // todo display full text renderer from sign renderer
-  const text = flat(parsed).map(x => x.text)
+  const text = flat(parsed as MessageFormatPart).map(x => x.text)
   return text
 }
 
@@ -320,23 +341,24 @@ const mapSlots = (slots: Array<RenderSlot | Item | null>) => {
       const slotCustomProps = renderSlot(slot)
       Object.assign(slot, { ...slotCustomProps, displayName: ('nbt' in slot ? getItemName(slot) : undefined) ?? slot.displayName })
     } catch (err) {
-      console.error(err)
+      inGameError(err)
     }
     return slot
   })
 }
 
-const upInventory = (isInventory: boolean) => {
+export const upInventoryItems = (isInventory: boolean, invWindow = lastWindow) => {
   // inv.pwindow.inv.slots[2].displayName = 'test'
   // inv.pwindow.inv.slots[2].blockData = getBlockData('dirt')
   const customSlots = mapSlots((isInventory ? bot.inventory : bot.currentWindow)!.slots)
-  lastWindow.pwindow.setSlots(customSlots)
+  invWindow.pwindow.setSlots(customSlots)
 }
 
 export const onModalClose = (callback: () => any) => {
-  const { length } = activeModalStack
+  const modal = activeModalStack.at(-1)
   const unsubscribe = subscribe(activeModalStack, () => {
-    if (activeModalStack.length < length) {
+    const newModal = activeModalStack.at(-1)
+    if (modal?.reactType !== newModal?.reactType) {
       callback()
       unsubscribe()
     }
@@ -370,7 +392,13 @@ const upJei = (search: string) => {
     if (!x.displayName.toLowerCase().includes(search)) return null!
     return new PrismarineItem(x.id, 1)
   }).filter(Boolean)
+  lastWindow.pwindow.win.jeiSlotsPage = 0
   lastWindow.pwindow.win.jeiSlots = mapSlots(matchedSlots)
+}
+
+export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
+  const inv = showInventory(type, getImage, {}, _bot)
+  return inv
 }
 
 const openWindow = (type: string | undefined) => {
@@ -386,17 +414,17 @@ const openWindow = (type: string | undefined) => {
     // might be already closed (event fired)
     if (type !== undefined && bot.currentWindow) bot.currentWindow['close']()
     lastWindow.destroy()
-    lastWindow = null
+    lastWindow = null as any
     miscUiState.displaySearchInput = false
     destroyFn()
   })
   cleanLoadedImagesCache()
-  const inv = showInventory(type, getImage, {}, bot)
+  const inv = openItemsCanvas(type)
+  // todo
+  inv.canvasManager.setScale(currentScaling.scale === 1 ? 1.5 : currentScaling.scale)
   inv.canvas.style.zIndex = '10'
   inv.canvas.style.position = 'fixed'
   inv.canvas.style.inset = '0'
-  // todo scaling
-  inv.canvasManager.setScale(window.innerWidth < 470 ? 1.5 : window.innerHeight < 480 || window.innerWidth < 760 ? 2 : window.innerHeight < 700 ? 3 : 4)
 
   inv.canvasManager.onClose = () => {
     hideCurrentModal()
@@ -405,7 +433,7 @@ const openWindow = (type: string | undefined) => {
 
   lastWindow = inv
   const upWindowItems = () => {
-    void Promise.resolve().then(() => upInventory(type === undefined))
+    void Promise.resolve().then(() => upInventoryItems(type === undefined))
   }
   upWindowItems()
 
@@ -414,7 +442,7 @@ const openWindow = (type: string | undefined) => {
     // slotItem is the slot from mapSlots
     const itemId = loadedData.itemsByName[slotItem.name]?.id
     if (!itemId) {
-      console.error(`Item for block ${slotItem.name} not found`)
+      inGameError(`Item for block ${slotItem.name} not found`)
       return
     }
     const item = new PrismarineItem(itemId, isRightclick ? 64 : 1, slotItem.metadata)

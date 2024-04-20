@@ -205,6 +205,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
             config: this.mesherConfig,
           })
         }
+        this.renderUpdateEmitter.emit('textureDownloaded')
       })
     })
 

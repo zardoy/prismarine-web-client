@@ -139,6 +139,7 @@ export const guiOptionsScheme: {
     {
       guiScale: {
         max: 4,
+        min: 1,
         unit: '',
         delayApply: true,
       },
