@@ -7,25 +7,16 @@ import './devtools'
 import './entities'
 import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
-import { itemsAtlases, onGameLoad } from './playerWindows'
+import { itemsAtlases, onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 
 import './menus/components/button'
 import './menus/components/edit_box'
-import './menus/components/hotbar'
-import './menus/components/health_bar'
-import './menus/components/food_bar'
-import './menus/components/breath_bar'
-import './menus/components/debug_overlay'
-import './menus/components/playerlist_overlay'
-import './menus/components/bossbars_overlay'
-import './menus/hud'
 import './menus/play_screen'
-import './menus/pause_screen'
-import './menus/keybinds_screen'
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 
+import './scaleInterface'
 import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
@@ -55,10 +46,11 @@ import { defaultsDeep } from 'lodash-es'
 import { initVR } from './vr'
 import {
   activeModalStack,
-  showModal, activeModalStacks,
+  activeModalStacks,
   insertActiveModalStack,
   isGameActive,
   miscUiState,
+  showModal
 } from './globalState'
 
 
@@ -93,7 +85,8 @@ import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
-import { hideNotification, notificationProxy } from './react/NotificationProvider'
+import { hideNotification, notificationProxy, showNotification } from './react/NotificationProvider'
+import { saveToBrowserMemory } from './react/PauseScreen'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 
@@ -166,16 +159,10 @@ viewer.entities.entitiesOptions = {
 watchOptionsAfterViewerInit()
 watchTexturepackInViewer(viewer)
 
-const hud = document.getElementById('hud')
-const pauseMenu = document.getElementById('pause-screen')
-
 let mouseMovePostHandle = (e) => { }
 let lastMouseMove: number
-let debugMenu
 const updateCursor = () => {
   worldInteractions.update()
-  debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
-  debugMenu.cursorBlock = worldInteractions.cursorBlock
 }
 function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
@@ -456,6 +443,7 @@ async function connect (connectOptions: {
     }) as unknown as typeof __type_bot
     window.bot = bot
     earlySoundsMapCheck()
+    customEvents.emit('mineflayerBotCreated')
     if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature
@@ -471,13 +459,13 @@ async function connect (connectOptions: {
     } else {
       const setupConnectHandlers = () => {
         bot._client.socket.on('connect', () => {
-          console.log('TCP connection established')
+          console.log('WebSocket connection established')
           //@ts-expect-error
           bot._client.socket._ws.addEventListener('close', () => {
-            console.log('TCP connection closed')
+            console.log('WebSocket connection closed')
             setTimeout(() => {
               if (bot) {
-                bot.emit('end', 'TCP connection closed with unknown reason')
+                bot.emit('end', 'WebSocket connection closed with unknown reason')
               }
             })
           })
@@ -501,7 +489,6 @@ async function connect (connectOptions: {
   if (!bot) return
 
   const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
-  hud.preload(bot)
 
   // bot.on('inject_allowed', () => {
   //   loadingScreen.maybeRecoverable = false
@@ -573,9 +560,6 @@ async function connect (connectOptions: {
 
     bot.on('physicsTick', () => updateCursor())
 
-    const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
-
-    window.debugMenu = debugMenu
 
     void initVR()
 
@@ -583,13 +567,6 @@ async function connect (connectOptions: {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
     }
 
-    try {
-      const gl = renderer.getContext()
-      debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
-    } catch (err) {
-      console.warn(err)
-      debugMenu.rendererDevice = '???'
-    }
 
     // Link WorldDataEmitter and Viewer
     viewer.listen(worldView)
@@ -625,13 +602,13 @@ async function connect (connectOptions: {
       }
       if (renderer.xr.isPresenting) return // todo
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
-        showModal(pauseMenu)
+        showModal({reactType: 'pause-screen'})
       }
     }
 
     registerListener(document, 'pointerlockchange', changeCallback, false)
 
-    const cameraControlEl = hud
+    const cameraControlEl = document.querySelector('#ui-root')
 
     /** after what time of holding the finger start breaking the block */
     const touchStartBreakingBlockMs = 500
@@ -748,18 +725,31 @@ async function connect (connectOptions: {
 
     console.log('Done!')
 
-    // todo cleanup these
     onGameLoad(async () => {
       if (!viewer.world.downloadedBlockStatesData && !viewer.world.customBlockStatesData) {
         await new Promise<void>(resolve => {
           viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', () => resolve())
         })
       }
-      hud.init(renderer, bot, server.host)
-      hud.style.display = 'block'
+      miscUiState.serverIp = server.host as string | null
     })
 
     if (appStatusState.isError) return
+    setTimeout(() => {
+      // todo
+      const qs = new URLSearchParams(window.location.search)
+      if (qs.get('suggest_save')) {
+        showNotification('Suggestion', 'Save the world to keep your progress!', false, undefined, async () => {
+          const savePath = await saveToBrowserMemory()
+          if (!savePath) return
+          const saveName = savePath.split('/').pop()
+          bot.end()
+          // todo hot reload
+          location.search = `loadSave=${saveName}`
+        })
+      }
+    }, 600)
+
     setLoadingScreenStatus(undefined)
     const start = Date.now()
     let done = false
@@ -851,7 +841,7 @@ void window.fetch('config.json').then(async res => res.json()).then(c => c, (err
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
 
-  window.addEventListener('hud-ready', (e) => {
+  void Promise.resolve().then(() => {
     // try to connect to peer
     const qs = new URLSearchParams(window.location.search)
     const peerId = qs.get('connectPeer')
@@ -868,7 +858,6 @@ downloadAndOpenFile().then((downloadAction) => {
       })
     }
   })
-  if (document.getElementById('hud').isReady) window.dispatchEvent(new Event('hud-ready'))
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)

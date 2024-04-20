@@ -34,6 +34,10 @@
     flex-direction: column;
     font-size: 11px;
 }
+.world_info_description_line {
+  color: #999;
+  white-space: nowrap;
+}
 .world_image {
     height: 100%;
     aspect-ratio: 1;

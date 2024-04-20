@@ -1,0 +1,27 @@
+.title {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translate(-50%);
+  font-size: 10px;
+  color: white;
+  text-shadow: 1px 1px #222;
+}
+
+.pause_container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px 0;
+  position: absolute;
+  left: 50%;
+  width: 204px;
+  top: calc(25%);
+  transform: translate(-50%);
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+}

@@ -1,0 +1,44 @@
+
+.debug-left-side,
+.debug-right-side {
+  padding-left: calc(env(safe-area-inset-left) / 2);
+  padding-right: calc(env(safe-area-inset-right) / 2);
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.debug-left-side {
+  top: 1px;
+  left: 1px;
+}
+
+.debug-right-side {
+  top: 5px;
+  right: 1px;
+  /* limit renderer long text width */
+  width: 50%;
+}
+
+.debug-left-side p, .debug-right-side p {
+  display: block;
+  color: white;
+  font-size: 10px;
+  width: fit-content;
+  line-height: 9px;
+  margin: 0;
+  padding: 0;
+  padding-bottom: 1px;
+  background: rgba(110, 110, 110, 0.5);
+}
+
+.debug-right-side p {
+  margin-left: auto;
+}
+
+.empty {
+  display: block;
+  height: 9px;
+}
