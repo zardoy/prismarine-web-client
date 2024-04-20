@@ -39,7 +39,7 @@ if (process.env.NODE_ENV === 'development') {
   if (isMobile()) {
     // can be changed to require('eruda')
     //@ts-expect-error
-    import('https://cdn.skypack.dev/eruda').default.init()
+    void import('https://cdn.skypack.dev/eruda').then(({ default: eruda }) => eruda.init())
     console.log('JS Loaded in', Date.now() - window.startLoad)
   }
 }
