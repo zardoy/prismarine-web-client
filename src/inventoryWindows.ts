@@ -287,6 +287,13 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): { texture: string, blo
       slice: invspriteSlice
     }
   }
+  console.warn(`No render data for ${itemName}`)
+  if (isItem) {
+    return {
+      texture: 'blocks',
+      slice: [0, 0, 16, 16]
+    }
+  }
 }
 
 type JsonString = string

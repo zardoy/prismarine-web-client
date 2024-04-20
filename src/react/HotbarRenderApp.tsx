@@ -125,6 +125,7 @@ export default () => {
     upHotbarItems()
     bot.inventory.on('updateSlot', upHotbarItems)
     viewer.world.renderUpdateEmitter.on('textureDownloaded', upHotbarItems)
+    viewer.world.renderUpdateEmitter.on('blockStatesDownloaded', upHotbarItems)
 
     const setSelectedSlot = (index: number) => {
       if (index === bot.quickBarSlot) return
