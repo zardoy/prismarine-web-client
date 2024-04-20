@@ -13,8 +13,8 @@ const prod = process.argv.includes('--prod')
 let connectedClients = []
 
 const watchExternal = [
-  'dist/mesher.js',
-  'dist/webglRendererWorker.js'
+  // 'dist/mesher.js',
+  // 'dist/webglRendererWorker.js'
 ]
 
 /** @type {import('esbuild').Plugin[]} */
@@ -55,6 +55,13 @@ const plugins = [
       }, () => {
         throw new Error('hit banned package')
       })
+      build.onLoad({
+        filter: /^prismarine-auth/,
+      }, () => {
+        return {
+          contents: 'module.exports = {}',
+        }
+      })
 
       build.onResolve({
         filter: /^three$/,
@@ -80,11 +87,26 @@ const plugins = [
         }
       })
 
+      const removeNodeModulesSourcemaps = (map) => {
+        const doNotRemove = ['prismarine', 'mineflayer', 'flying-squid', '@jspm/core', 'minecraft']
+        map.sourcesContent.forEach((_, i) => {
+          if (map.sources[i].includes('node_modules') && !doNotRemove.some(x => map.sources[i].includes(x))) {
+            map.sourcesContent[i] = null
+          }
+        })
+      }
+
       build.onEnd(async ({ metafile, outputFiles }) => {
         // write outputFiles
         //@ts-ignore
         for (const file of outputFiles) {
-          await fs.promises.writeFile(file.path, file.contents)
+          let contents = file.text
+          if (file.path.endsWith('.map') && file.text) {
+            const map = JSON.parse(file.text)
+            removeNodeModulesSourcemaps(map)
+            contents = JSON.stringify(map)
+          }
+          await fs.promises.writeFile(file.path, contents)
         }
         if (!prod) return
         // const deps = Object.entries(metafile.inputs).sort(([, a], [, b]) => b.bytes - a.bytes).map(([x, { bytes }]) => [x, filesize(bytes)]).slice(0, 5)
@@ -167,7 +189,7 @@ const plugins = [
         }
 
         // write metafile to disk if needed to analyze
-        // fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
+        fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
 
         /** @type {import('esbuild').OutputFile} */
         //@ts-ignore

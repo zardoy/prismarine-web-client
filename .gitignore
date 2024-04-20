@@ -11,6 +11,7 @@ dist
 .DS_Store
 .idea/
 world
+data*.json
 out
 *.iml
 .vercel

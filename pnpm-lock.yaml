@@ -90,8 +90,8 @@ importers:
         specifier: ^4.18.2
         version: 4.18.2
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.15
-        version: /@zardoy/flying-squid@0.0.15
+        specifier: npm:@zardoy/flying-squid@^0.0.17
+        version: /@zardoy/flying-squid@0.0.17
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -5629,8 +5629,8 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /@zardoy/flying-squid@0.0.15:
-    resolution: {integrity: sha512-VooP9XuzNQVL3y0zlaU5wStRm1vfQIXAzVNHuvMoMgyIyOiD7A59QzVZT93GAoTyUBHTwqweXMPQftjywUy62A==}
+  /@zardoy/flying-squid@0.0.17:
+    resolution: {integrity: sha512-qGCS7aRmMflDdIN7IGLpDc0W2gUYc5OQ45KEn3XtcxwOP0Q7zyvo3mnsD5KSV3n2lyhQ4783Ov8V6J86xea0lw==}
     engines: {node: '>=8'}
     hasBin: true
     dependencies:
@@ -5645,11 +5645,9 @@ packages:
       minecraft-data: 3.62.0
       minecraft-protocol: github.com/zardoy/minecraft-protocol/2c14a686bfe7cbd9a5c87b629b402295ee86219f
       mkdirp: 2.1.6
-      moment: 2.30.1
-      needle: 2.9.1
       node-gzip: 1.1.2
       node-rsa: 1.1.1
-      prismarine-chunk: github.com/zardoy/prismarine-chunk/3c7e679508cf8ebd1ac4df9a6c22d7cb6c45290b(minecraft-data@3.62.0)
+      prismarine-chunk: github.com/zardoy/prismarine-chunk/f32234a724a5c2482ffbaf85edc5e91c7ab9b38f(minecraft-data@3.62.0)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.5.0
@@ -11492,10 +11490,6 @@ packages:
     dependencies:
       nearley: 2.20.1
 
-  /moment@2.30.1:
-    resolution: {integrity: sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==}
-    dev: false
-
   /moo@0.5.2:
     resolution: {integrity: sha512-iSAJLHYKnX41mKcJKjqvnAN9sf0LMDTXDEvFv+ffuRR9a1MIuXLjMNL6EsnDHSkKLTWNqQQ5uo61P4EbU4NU+Q==}
 
@@ -11575,18 +11569,6 @@ packages:
       moo: 0.5.2
       railroad-diagrams: 1.0.0
       randexp: 0.4.6
-
-  /needle@2.9.1:
-    resolution: {integrity: sha512-6R9fqJ5Zcmf+uYaFgdIHmLwNldn5HbK8L5ybn7Uz+ylX/rnOsSp1AHcvQSrCaFN+qNM1wpymHqD7mVasEOlHGQ==}
-    engines: {node: '>= 4.4.x'}
-    hasBin: true
-    dependencies:
-      debug: 3.2.7(supports-color@8.1.1)
-      iconv-lite: 0.4.24
-      sax: 1.3.0
-    transitivePeerDependencies:
-      - supports-color
-    dev: false
 
   /negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}

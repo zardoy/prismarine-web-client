@@ -51,7 +51,7 @@ import worldInteractions from './worldInteractions'
 import * as THREE from 'three'
 import MinecraftData, { versionsByMinecraftVersion } from 'minecraft-data'
 import debug from 'debug'
-import _ from 'lodash-es'
+import { defaultsDeep } from 'lodash-es'
 
 import { initVR } from './vr'
 import {
@@ -89,7 +89,6 @@ import { fsState } from './loadSave'
 import { watchFov } from './rendererUtils'
 import { loadInMemorySave } from './react/SingleplayerProvider'
 
-// side effects
 import { downloadSoundsIfNeeded, earlyCheck as earlySoundsMapCheck } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
@@ -97,6 +96,7 @@ import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
+import './hotReload'
 
 window.debug = debug
 window.THREE = THREE
@@ -352,7 +352,7 @@ async function connect (connectOptions: {
   const renderDistance = singleplayer ? renderDistanceSingleplayer : multiplayerRenderDistance
   let localServer
   try {
-    const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
+    const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
       // todo expose cache

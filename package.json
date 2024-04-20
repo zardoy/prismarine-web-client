@@ -18,8 +18,8 @@
     "build-storybook": "storybook build && node scripts/build.js moveStorybookFiles",
     "start-experiments": "vite --config experiments/vite.config.ts",
     "watch-other-workers": "echo NOT IMPLEMENTED",
-    "watch-worker": "node prismarine-viewer/buildMesherWorker.mjs -w",
-    "run-playground": "run-p watch-worker watch-other-workers playground-server watch-playground",
+    "watch-mesher": "node prismarine-viewer/buildMesherWorker.mjs -w",
+    "run-playground": "run-p watch-mesher watch-other-workers playground-server watch-playground",
     "run-all": "run-p start run-playground",
     "playground-server": "live-server --port=9090 prismarine-viewer/public",
     "watch-playground": "node prismarine-viewer/esbuild.mjs -w"
@@ -55,7 +55,7 @@
     "esbuild": "^0.19.3",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.15",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.17",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "iconify-icon": "^1.0.8",
@@ -157,5 +157,6 @@
     "updateConfig": {
       "ignoreDependencies": []
     }
-  }
+  },
+  "packageManager": "pnpm@9.0.0"
 }

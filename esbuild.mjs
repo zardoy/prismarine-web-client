@@ -39,7 +39,7 @@ const buildOptions = {
   // logLevel: 'debug',
   logLevel: 'info',
   platform: 'browser',
-  sourcemap: prod ? true : 'inline',
+  sourcemap: prod ? true : 'linked',
   outdir: 'dist',
   mainFields: [
     'browser', 'module', 'main'
