@@ -56,7 +56,8 @@ export const guiOptionsScheme: {
       },
       lowMemoryMode: {
         text: 'Low Memory Mode',
-        enableWarning: 'Enabling it will make chunks load ~4x slower'
+        enableWarning: 'Enabling it will make chunks load ~4x slower',
+        disabledDuringGame: true
       },
     },
   ],
