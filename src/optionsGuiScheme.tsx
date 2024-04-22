@@ -50,7 +50,7 @@ export const guiOptionsScheme: {
       dayCycleAndLighting: {
         text: 'Day Cycle',
       },
-      smoothLighting: {},
+      // smoothLighting: {},
       newVersionsLighting: {
         text: 'Lighting in newer versions',
       },
