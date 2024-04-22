@@ -1,4 +1,5 @@
 import { ControMax } from 'contro-max/build/controMax'
+import { proxy, subscribe } from 'valtio'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import type { Meta, StoryObj } from '@storybook/react'
 
@@ -15,16 +16,17 @@ const controlOptions = {
   preventDefault: true
 }
 
-const contro = new ControMax({
-  commands: {
+const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
+
+const controEx = new ControMax({
+ commands: {
     general: {
-      jump: [['Space', 'KeyJ'], 'A'],
+      jump: ['Space', 'A'],
       inventory: ['KeyE', 'X'],
       drop: ['KeyQ', 'B'],
       sneak: ['ShiftLeft', 'Right Stick'],
       sprint: ['ControlLeft', 'Left Stick'],
       nextHotbarSlot: [null, 'Left Bumper'],
-
       prevHotbarSlot: [null, 'Right Bumper'],
       attackDestroy: [null, 'Right Trigger'],
       interactPlace: [null, 'Left Trigger'],
@@ -55,10 +57,10 @@ const contro = new ControMax({
   defaultControlOptions: controlOptions,
   target: document,
   captureEvents () {
-    return true
+    return false
   },
   storeProvider: {
-    load: () => { return {} as any },
+    load: () => customKeymaps,
     save () { },
   },
   gamepadPollingInterval: 10
@@ -66,6 +68,6 @@ const contro = new ControMax({
 
 export const Primary: Story = {
   args: {
-    contro: contro
+    contro: controEx
   }
 }
