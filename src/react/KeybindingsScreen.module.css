@@ -1,0 +1,21 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.actionBinds {
+    display: flex;
+}
+
+.actionName {
+    flex-basis: 25%;
+    flex-wrap: wrap;
+}
+

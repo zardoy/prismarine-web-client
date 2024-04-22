@@ -1,37 +1,37 @@
 import { useState } from 'react'
-import { contro } from '../controls'
+import { ControMax } from 'contro-max/build/controMax'
 import Button from './Button'
 import Screen from './Screen'
+import styles from './KeybindingsScreen.module.css'
 
-export default () => {
-  const { commands } = contro.inputSchema
+export default (contro: any) => {
+  const { commands } = contro.contro.inputSchema
   const [awaitingInputType, setAwaitingInputType] = useState(null as null | 'keyboard' | 'gamepad')
 
-  // const
+  const parseActionName = (action: string) => {
+    const parts = action.split(/(?=[A-Z])/)
+		parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
+    const newStr = parts.join(' ')
+    return newStr
+  }
 
   return <Screen title="Keybindings" backdrop>
-    {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
-    <p>Here you can change the keybindings for the game.</p>
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-    }}>
+					 {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
+					 <div className={styles.container} >
       {Object.entries(commands).map(([group, actions]) => {
-        return <div>
-          <h2>{group}</h2>
-          {Object.entries(actions).map(([action, { keys, gamepadButtons }]) => {
-            return <div style={{
-              display: 'flex',
-              gap: 5
-            }}>
+        return <div className={styles.group}>
+								 <div style={{ fontSize: '1.2rem', textAlign: 'center', gridColumn: 'span 2' }}>{group}</div>
+								 {Object.entries(actions).map(([action, { keys, gamepadButtons }]) => {
+									 return <div className={styles.actionBinds}>
+														<div className={styles.actionName}>{parseActionName(action)}</div>
               <Button>{keys.join(', ')}</Button>
               <Button>{gamepadButtons.join(', ')}</Button>
             </div>
-          })}
-        </div>
+								 })}
+							 </div>
       })}
     </div>
-  </Screen>
+				 </Screen>
 }
 
 const AwaitingInputOverlay = ({ isGamepad }) => {

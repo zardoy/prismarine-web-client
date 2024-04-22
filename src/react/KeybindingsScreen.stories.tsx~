@@ -1,0 +1,15 @@
+import type { Meta, StoryObj } from '@storybook/react'
+
+import KeybindingsScreenApp from './KeybindingsScreenApp'
+
+const meta: Meta<typeof KeybindingsScreenApp> = {
+  component: KeybindingsScreenApp
+}
+
+export default meta
+type Story = StoryObj<typeof KeybindingsScreenApp>;
+
+export const Primary: Story = {
+  args: {
+  }
+}
