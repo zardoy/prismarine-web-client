@@ -1,5 +1,5 @@
 .container {
-    width: 60%;
+    width: 420px;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -19,12 +19,20 @@
 }
 
 .actionBinds {
+    position: relative;
     display: flex;
 }
 
 .actionName {
     flex-basis: 40%;
     flex-wrap: wrap;
+}
+
+.undo {
+    position: absolute;
+    left: 34%;
+    
+    flex-basis: 20px;
 }
 
 .button {

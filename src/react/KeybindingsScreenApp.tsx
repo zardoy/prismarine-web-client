@@ -8,16 +8,30 @@ import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
 
 
-export default ({ contro, setBinding }: { contro: typeof controEx, setBinding: (e, group, action) => void }) => {
+export default (
+  {
+    contro,
+    setBinding,
+    resetBinding
+  } : {
+		contro: typeof controEx,
+		setBinding: (e, group, action, buttonNum) => void,
+		resetBinding: (group, action) => void
+	}
+) => {
   const { commands } = contro.inputSchema
+  const { userConfig } = contro
   const [awaitingInputType, setAwaitingInputType] = useState(null as null | 'keyboard' | 'gamepad')
   const [groupName, setGroupName] = useState('')
   const [actionName, setActionName] = useState('')
+  const [buttonNum, setButtonNum] = useState(0)
+	const [, forceUpdate] = useState(false)
 
-  const handleClickKeyboard = (group, action) => {
+  const handleClickKeyboard = (group, action, index) => {
     setAwaitingInputType('keyboard')
     setGroupName(prev => group)
     setActionName(prev => action)
+    setButtonNum(prev => index)
   }
 
   const handleClickGamepad = () => {
@@ -34,7 +48,7 @@ export default ({ contro, setBinding }: { contro: typeof controEx, setBinding: (
   const handleInput = (e) => {
     if (!awaitingInputType) return
     if (e.key !== 'Escape') {
-      setBinding(e, groupName, actionName)
+      setBinding(e, groupName, actionName, buttonNum)
     }
     setAwaitingInputType(null)
   }
@@ -50,7 +64,25 @@ export default ({ contro, setBinding }: { contro: typeof controEx, setBinding: (
 								 {Object.entries(actions).map(([action, { keys, gamepadButtons }]) => {
 								   return <div className={styles.actionBinds}>
 									    <div className={styles.actionName}>{parseActionName(action)}</div>
-									    {[0, 1].map((key, index) => <Button onClick={() => handleClickKeyboard(group, action)} className={styles.button}>{keys[index] ?? ''}</Button>)}
+              {
+                userConfig?.[group]?.[action]?.keys?.length ? <Button
+                  onClick={() => {
+                    setActionName(prev => action)
+                    setGroupName(prev => group)
+										forceUpdate(prev => !prev)
+                    resetBinding(group, action)
+                  }}
+                  className={styles.undo}
+                  icon={'pixelarticons:undo'}
+                />
+                  : null}
+									    {[0, 1].map((key, index) => <Button
+                onClick={() => handleClickKeyboard(group, action, index)}
+                className={styles.button}>
+                {
+                  (userConfig?.[group]?.[action]?.keys?.length !== undefined && userConfig[group]?.[action]?.keys?.[index]) || keys[index]
+                }
+              </Button>)}
 									    <Button className={styles.button}>{gamepadButtons[0]}</Button>
 									  </div>
 								 })}
