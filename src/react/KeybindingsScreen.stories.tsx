@@ -68,8 +68,12 @@ const contro = new ControMax({
 
 const setBinding = (e, group, action) => {
   console.log(`binding is for group ${group} and action is ${action}. Key pressed is ${e.key}`) 
-  contro.userConfig[group][action] = e.code
-  console.log(contro.userConfig[group][action])
+  if (!contro.userConfig) return
+  if (!contro.userConfig[group]) contro.userConfig[group] = {} as any
+  contro.userConfig[group][action] = { keys: null as null | string[], gamepadButtons: null as null | string[] }
+  contro.userConfig[group][action].keys = [e.code]
+  // contro.pressedKeyOrButtonChanged({ key: e.code }, true)
+  console.log(contro.inputSchema.commands.general.jump)
 }
 
 export const Primary: Story = {
