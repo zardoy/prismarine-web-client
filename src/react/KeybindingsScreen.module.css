@@ -14,7 +14,8 @@
 .group-category {
     font-size: 1rem;
     text-align: center;
-    margin-block: 15px; 
+    margin-top: 15px; 
+    margin-bottom: 7px; 
 }
 
 .actionBinds {

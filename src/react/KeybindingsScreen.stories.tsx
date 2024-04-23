@@ -16,10 +16,10 @@ const controlOptions = {
   preventDefault: true
 }
 
-const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
+const customKeymaps = proxy({})
 
-const controEx = new ControMax({
- commands: {
+const contro = new ControMax({
+  commands: {
     general: {
       jump: ['Space', 'A'],
       inventory: ['KeyE', 'X'],
@@ -66,8 +66,15 @@ const controEx = new ControMax({
   gamepadPollingInterval: 10
 })
 
+const setBinding = (e, group, action) => {
+  console.log(`binding is for group ${group} and action is ${action}. Key pressed is ${e.key}`) 
+  contro.userConfig[group][action] = e.code
+  console.log(contro.userConfig[group][action])
+}
+
 export const Primary: Story = {
   args: {
-    contro: controEx
+    contro,
+    setBinding 
   }
 }
