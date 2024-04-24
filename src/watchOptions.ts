@@ -44,7 +44,8 @@ export const watchOptionsAfterViewerInit = () => {
     viewer.entities.setVisible(o.renderEntities)
   })
 
-  viewer.world.mesherConfig.smoothLighting = options.smoothLighting
+  // viewer.world.mesherConfig.smoothLighting = options.smoothLighting
+  viewer.world.mesherConfig.smoothLighting = false // todo not supported for now
   subscribeKey(options, 'smoothLighting', () => {
     viewer.world.mesherConfig.smoothLighting = options.smoothLighting;
     (viewer.world as WorldRendererThree).rerenderAllChunks()

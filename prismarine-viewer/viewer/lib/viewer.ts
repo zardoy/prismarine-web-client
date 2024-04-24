@@ -77,8 +77,8 @@ export class Viewer {
     // this.primitives.clear()
   }
 
-  addColumn (x, z, chunk) {
-    this.world.addColumn(x, z, chunk)
+  addColumn (x, z, chunk, isLightUpdate = false) {
+    this.world.addColumn(x, z, chunk, isLightUpdate)
   }
 
   removeColumn (x: string, z: string) {
@@ -148,9 +148,9 @@ export class Viewer {
       // this.updatePrimitive(p)
     })
 
-    emitter.on('loadChunk', ({ x, z, chunk, worldConfig }) => {
+    emitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
       this.world.worldConfig = worldConfig
-      this.addColumn(x, z, chunk)
+      this.addColumn(x, z, chunk, isLightUpdate)
     })
     // todo remove and use other architecture instead so data flow is clear
     emitter.on('blockEntities', (blockEntities) => {
