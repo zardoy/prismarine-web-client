@@ -3,7 +3,7 @@ import { renderToDom, ErrorBoundary } from '@zardoy/react-util'
 import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { miscUiState } from './globalState'
 import DeathScreenProvider from './react/DeathScreenProvider'
 import OptionsRenderApp from './react/OptionsRenderApp'
@@ -24,7 +24,6 @@ import XPBarProvider from './react/XPBarProvider'
 import DebugOverlay from './react/DebugOverlay'
 import MobileTopButtons from './react/MobileTopButtons'
 import PauseScreen from './react/PauseScreen'
-import KeybindsScreen from './react/KeybindingsScreenApp'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
@@ -34,6 +33,7 @@ import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
 import HotbarRenderApp from './react/HotbarRenderApp'
 import Crosshair from './react/Crosshair'
+import KeybindingsScreenAppProviderApp from './react/KeybindingsScreenAppProviderApp'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -141,6 +141,7 @@ const App = () => {
       <AppStatusProvider />
       <SelectOption />
       <OptionsRenderApp />
+      <KeybindingsScreenAppProviderApp />
       <MainMenuRenderApp />
       <NotificationProvider />
       {/* <GameHud>

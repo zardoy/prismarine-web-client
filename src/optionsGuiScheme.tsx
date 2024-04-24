@@ -180,10 +180,19 @@ export const guiOptionsScheme: {
   ],
   controls: [
     {
-      custom () {
+      custom() {
         return <Category>Keyboard & Mouse</Category>
       },
-      // keybindings
+    },
+    {
+      custom() {
+        return <Button
+          inScreen
+          onClick={() => {
+            showModal({ reactType: 'keybindings', })
+          }}
+        >Keybindings</Button>
+      },
       mouseSensX: {},
       mouseSensY: {
         min: -1,
