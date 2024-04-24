@@ -1,6 +1,6 @@
 import { ControMax } from 'contro-max/build/controMax'
-import { proxy, subscribe } from 'valtio'
-import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
+import { proxy } from 'valtio'
+import { SchemaCommandInput } from 'contro-max/build/types'
 import type { Meta, StoryObj } from '@storybook/react'
 
 import KeybindingsScreenApp from './KeybindingsScreenApp'
@@ -57,7 +57,7 @@ const contro = new ControMax({
   defaultControlOptions: controlOptions,
   target: document,
   captureEvents () {
-    return false
+    return true
   },
   storeProvider: {
     load: () => customKeymaps,
@@ -66,36 +66,53 @@ const contro = new ControMax({
   gamepadPollingInterval: 10
 })
 
-const setBinding = (e, group, action, buttonNum) => {
-  e.preventDefault()
+const setBinding = (data, group, action, buttonNum) => {
   if (!contro.userConfig) return
   if (!contro.userConfig[group]) contro.userConfig[group] = {} as any
   if (!contro.userConfig[group][action]) contro.userConfig[group][action] = { keys: [] as string[], gamepad: [] as string[] }
   
-  switch (contro.userConfig[group][action].keys!.length) {
-    case 0:
-      if (buttonNum === 1 && contro.inputSchema.commands[group][action].keys[0]) {
-        contro.userConfig[group][action].keys!.push(contro.inputSchema.commands[group][action].keys[0], e.code)
-      } else {
-        contro.userConfig[group][action].keys!.push(e.code)
-      }
-      break
-    case 1:
-      if (buttonNum === 0)
-      {contro.userConfig[group][action].keys![0] = e.code}
-      else
-      {contro.userConfig[group][action].keys!.push(e.code)} 
-      break
-    case 2:
-      contro.userConfig[group][action].keys![buttonNum] = e.code
-      break
+  if ('code' in data) {
+    console.log('keyboard')
+    switch (contro.userConfig[group][action].keys!.length) {
+      case 0:
+        if (buttonNum === 1 && contro.inputSchema.commands[group][action].keys[0]) {
+          contro.userConfig[group][action].keys!.push(contro.inputSchema.commands[group][action].keys[0], data.code)
+        } else {
+          contro.userConfig[group][action].keys!.push(data.code)
+        }
+        break
+      case 1:
+        if (buttonNum === 0)
+        {contro.userConfig[group][action].keys![0] = data.code}
+        else
+        {contro.userConfig[group][action].keys!.push(data.code)} 
+        break
+      case 2:
+        contro.userConfig[group][action].keys![buttonNum] = data.code
+        break
+    }
+  } else {
+    console.log('gamepad')
+    if (contro.userConfig[group][action].gamepad?.[0]) {
+      contro.userConfig[group][action].gamepad![0] = data.button
+    } else {
+      contro.userConfig[group][action].gamepad?.push(data.button)
+    }
   }
+  
 }
 
-const resetBinding = (group, action) => {
+const resetBinding = (group, action, inputType) => {
   if (!contro.userConfig?.[group]?.[action]) return
-  contro.userConfig[group][action].keys = [] as string[]
-  console.log(contro.userConfig[group][action].keys)
+  switch (inputType) {
+    case 'keyboard':
+      contro.userConfig[group][action].keys = [] as string[]
+      break
+    case 'gamepad':
+      contro.userConfig[group][action].gamepad = [] as string[]
+      break
+  }
+  
 }
 
 export const Primary: Story = {

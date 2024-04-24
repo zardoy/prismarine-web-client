@@ -1,8 +1,5 @@
-import { useState, useEffect, useRef } from 'react'
-import { ControMax } from 'contro-max/build/controMax'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { contro as controEx, setDoPreventDefault, customKeymaps } from '../controls'
-import { showModal, hideModal } from '../globalState'
-import { useIsModalActive } from './utils'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
@@ -15,8 +12,8 @@ export default (
     resetBinding
   } : {
 		contro: typeof controEx,
-		setBinding: (e, group, action, buttonNum) => void,
-		resetBinding: (group, action) => void
+		setBinding: (e, group, action, buttonNum, inputType?) => void,
+		resetBinding: (group, action, intputType) => void
 	}
 ) => {
   const { commands } = contro.inputSchema
@@ -25,19 +22,15 @@ export default (
   const [groupName, setGroupName] = useState('')
   const [actionName, setActionName] = useState('')
   const [buttonNum, setButtonNum] = useState(0)
-	const [, forceUpdate] = useState(false)
+  const [, forceUpdate] = useState(false)
 
-  const handleClickKeyboard = (group, action, index) => {
-    setAwaitingInputType('keyboard')
+  const handleClick = (group, action, index, type) => {
+    setAwaitingInputType(type)
     setGroupName(prev => group)
     setActionName(prev => action)
     setButtonNum(prev => index)
   }
 
-  const handleClickGamepad = () => {
-    setAwaitingInputType('gamepad')
-  }
- 
   const parseActionName = (action: string) => {
     const parts = action.split(/(?=[A-Z])/)
     parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
@@ -45,19 +38,34 @@ export default (
     return newStr
   }
 
-  const handleInput = (e) => {
-    if (!awaitingInputType) return
-    if (e.key !== 'Escape') {
-      setBinding(e, groupName, actionName, buttonNum)
+  const updateKeyboardBinding = (e) => {
+    if (!e.code || e.key === 'Escape') return
+    setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
+  }
+
+  const updateGamepadBinding = (data) => {
+    if (!data.state && awaitingInputType) {
+      setAwaitingInputType(null)
+      return
     }
+    if ('button' in data) {
+      setBinding(data, groupName, actionName, buttonNum)
+    }
+    
     setAwaitingInputType(null)
   }
+  
+
+  useEffect(() => {
+    contro.on('pressedKeyOrButtonChanged', updateGamepadBinding)
+  }, [groupName, actionName])
+
 
   return <Screen title="Keybindings" backdrop>
 					 {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
-					 <div className={styles.container}
-      onKeyDown={handleInput}
-					 >
+					 <div className={styles.container} 
+      onKeyDown={(e) => updateKeyboardBinding(e)}
+    >
       {Object.entries(commands).map(([group, actions]) => {
         return <div className={styles.group}>
 								 <div className={styles['group-category']}>{group}</div>
@@ -69,21 +77,37 @@ export default (
                   onClick={() => {
                     setActionName(prev => action)
                     setGroupName(prev => group)
-										forceUpdate(prev => !prev)
-                    resetBinding(group, action)
+                    forceUpdate(prev => !prev)
+                    resetBinding(group, action, 'keyboard')
                   }}
-                  className={styles.undo}
+                  className={styles['undo-keyboard']}
                   icon={'pixelarticons:undo'}
                 />
                   : null}
 									    {[0, 1].map((key, index) => <Button
-                onClick={() => handleClickKeyboard(group, action, index)}
+                onClick={() => handleClick(group, action, index, 'keyboard')}
                 className={styles.button}>
                 {
                   (userConfig?.[group]?.[action]?.keys?.length !== undefined && userConfig[group]?.[action]?.keys?.[index]) || keys[index]
                 }
               </Button>)}
-									    <Button className={styles.button}>{gamepadButtons[0]}</Button>
+									    <Button 
+                className={`${styles.button} ${styles['margin-left']}`}
+                onClick={() => handleClick(group, action, 0, 'gamepad')}
+              >{gamepadButtons[0]}</Button>
+              {
+                userConfig?.[group]?.[action]?.gamepad?.length ? <Button
+                  onClick={() => {
+                    setActionName(prev => action)
+                    setGroupName(prev => group)
+                    forceUpdate(prev => !prev)
+                    resetBinding(group, action, 'gamepad')
+                  }}
+                  className={styles['undo-gamepad']}
+                  icon={'pixelarticons:undo'}
+                />
+                  : null
+              }
 									  </div>
 								 })}
 							 </div>

@@ -14,8 +14,8 @@
 .group-category {
     font-size: 1rem;
     text-align: center;
-    margin-top: 15px; 
-    margin-bottom: 7px; 
+    margin-top: 15px;
+    margin-bottom: 7px;
 }
 
 .actionBinds {
@@ -28,18 +28,22 @@
     flex-wrap: wrap;
 }
 
-.undo {
+.undo-keyboard,
+.undo-gamepad {
     position: absolute;
-    left: 34%;
-    
+    left: 33%;
+
     flex-basis: 20px;
+}
+
+.undo-gamepad {
+    left: 76.5%;
 }
 
 .button {
     flex-basis: 20%;
 }
-.button:last-child {
-    margin-left: 10px;
+
+.margin-left {
+    margin-left: 25px;
 }
-
-
