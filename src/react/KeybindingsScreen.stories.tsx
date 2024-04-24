@@ -70,7 +70,7 @@ const setBinding = (data, group, action, buttonNum) => {
   if (!contro.userConfig) return
   if (!contro.userConfig[group]) contro.userConfig[group] = {} as any
   if (!contro.userConfig[group][action]) contro.userConfig[group][action] = { keys: [] as string[], gamepad: [] as string[] }
-  
+
   if ('code' in data) {
     console.log('keyboard')
     switch (contro.userConfig[group][action].keys!.length) {
@@ -82,10 +82,8 @@ const setBinding = (data, group, action, buttonNum) => {
         }
         break
       case 1:
-        if (buttonNum === 0)
-        {contro.userConfig[group][action].keys![0] = data.code}
-        else
-        {contro.userConfig[group][action].keys!.push(data.code)} 
+        if (buttonNum === 0) { contro.userConfig[group][action].keys![0] = data.code }
+        else { contro.userConfig[group][action].keys!.push(data.code) }
         break
       case 2:
         contro.userConfig[group][action].keys![buttonNum] = data.code
@@ -99,7 +97,7 @@ const setBinding = (data, group, action, buttonNum) => {
       contro.userConfig[group][action].gamepad?.push(data.button)
     }
   }
-  
+
 }
 
 const resetBinding = (group, action, inputType) => {
@@ -112,13 +110,14 @@ const resetBinding = (group, action, inputType) => {
       contro.userConfig[group][action].gamepad = [] as string[]
       break
   }
-  
+
 }
 
 export const Primary: Story = {
   args: {
     contro,
     setBinding,
-    resetBinding
+    resetBinding,
+    isPS: true
   }
 }
