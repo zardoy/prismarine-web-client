@@ -23,6 +23,13 @@
     display: flex;
 }
 
+.warning-container {
+    flex-basis: 20%;
+    display: flex;
+    flex-direction: column;
+    height: inherit;
+}
+
 .actionName {
     flex-basis: 40%;
     flex-wrap: wrap;
@@ -31,7 +38,7 @@
 .undo-keyboard,
 .undo-gamepad {
     position: absolute;
-    left: 33%;
+    left: 32.8%;
 
     flex-basis: 20px;
 }
@@ -41,9 +48,26 @@
 }
 
 .button {
-    flex-basis: 20%;
+    width: 100%;
 }
 
 .margin-left {
     margin-left: 25px;
+}
+
+.matched-bind {
+    border: 1px solid red;
+    border-bottom: 1px solid red;
+}
+
+.matched-bind-warning {
+
+    color: yellow;
+    font-family: inherit;
+    font-size: 5px;
+    width: fit-content;
+}
+
+.matched-bind-warning a {
+    color: inherit;
 }

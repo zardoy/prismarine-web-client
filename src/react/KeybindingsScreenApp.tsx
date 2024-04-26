@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { contro as controEx, setDoPreventDefault, customKeymaps } from '../controls'
+import { AllKeyCodes } from 'contro-max/build/types/keyCodes'
+import { GamepadButtonName } from 'contro-max/build/gamepad'
+import PixelartIcon from './PixelartIcon'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
@@ -51,6 +54,7 @@ export default (
 
   const updateKeyboardBinding = (e) => {
     if (!e.code || e.key === 'Escape') return
+    findMatchKeybind(e.code)
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
   }
 
@@ -60,12 +64,35 @@ export default (
       return
     }
     contro.enabled = false
-    Promise.resolve(() => { contro.enabled = true }).catch((error) => {})
+    Promise.resolve(() => { contro.enabled = true }).catch((error) => { })
     if ('button' in data) {
       setBinding(data, groupName, actionName, buttonNum)
     }
 
     setAwaitingInputType(null)
+  }
+
+  const findMatchKeybind = (binding: AllKeyCodes | GamepadButtonName) => {
+    if (contro.userConfig) {
+      for (const [group, actions] of Object.entries(contro.userConfig)) {
+        for (const [action, { keys, gamepad }] of Object.entries(actions)) {
+          if (keys && gamepad) {
+            if (keys.includes(binding as AllKeyCodes) || gamepad.includes(binding as GamepadButtonName)) {
+              const index = keys.findIndex(elem => elem === binding)
+              console.log('match with', group, action, index)
+            }
+          }
+        }
+      }
+    }
+    for (const [group, actions] of Object.entries(commands)) {
+      for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
+        if (keys.includes(binding as AllKeyCodes) || gamepadButtons.includes(binding as GamepadButtonName)) {
+          const index = keys.findIndex(elem => elem === binding)
+          console.log('match with', group, action, index)
+        }
+      }
+    }
   }
 
   useEffect(() => {
@@ -78,6 +105,7 @@ export default (
     <div className={styles.container}
       onKeyDown={(e) => updateKeyboardBinding(e)}
     >
+
       {Object.entries(commands).map(([group, actions]) => {
         return <div className={styles.group}>
           <div className={styles['group-category']}>{group}</div>
@@ -96,27 +124,38 @@ export default (
                   icon={'pixelarticons:undo'}
                 />
                   : null}
-              {[0, 1].map((key, index) => <Button
-                onClick={() => handleClick(group, action, index, 'keyboard')}
-                className={styles.button}>
-                {
-                  (userConfig?.[group]?.[action]?.keys?.length !== undefined
-		    && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
-		    || parseBindingName(keys[index])
-                }
-              </Button>)}
-              <Button
-                className={`${styles.button} ${styles['margin-left']}`}
-                onClick={() => handleClick(group, action, 0, 'gamepad')}
-              >{
-                  isPS
-                    ? gamepadButtons[0] && buttonsMap[gamepadButtons[0]]
-                      ? <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
+
+
+
+              {[0, 1].map((key, index) => <div key={`warning-container-${key}-${index}`} className={styles['warning-container']}>
+                <Button
+                  key={`keyboard-${group}-${action}-${index}`}
+                  onClick={() => handleClick(group, action, index, 'keyboard')}
+                  className={`${styles.button}`}>
+                  {
+                    (userConfig?.[group]?.[action]?.keys?.length !== undefined
+                      && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
+                    || parseBindingName(keys[index])
+                  }
+                </Button>
+                <div className={styles['matched-bind-warning']}><PixelartIcon iconName={'alert'} width={10} /> This bind is already in use. <a href="">Rebind</a></div>
+
+              </div>)}
+              <div key={`warning-container-gamepad-${action}`} className={`${styles['warning-container']}  ${styles['margin-left']}`}>
+                <Button
+                  className={`${styles.button}`}
+                  onClick={() => handleClick(group, action, 0, 'gamepad')}
+                >{
+                    isPS
+                      ? gamepadButtons[0] && buttonsMap[gamepadButtons[0]]
+                        ? <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
+                        : gamepadButtons[0]
                       : gamepadButtons[0]
-                    : gamepadButtons[0]
-                }</Button>
+                  }</Button>
+              </div>
               {
                 userConfig?.[group]?.[action]?.gamepad?.length ? <Button
+                  key={`keyboard-${group}-${action}`}
                   onClick={() => {
                     setActionName(prev => action)
                     setGroupName(prev => group)
