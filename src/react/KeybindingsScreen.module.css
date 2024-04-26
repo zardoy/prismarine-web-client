@@ -61,7 +61,7 @@
 }
 
 .matched-bind-warning {
-
+    display: flex;
     color: yellow;
     font-family: inherit;
     font-size: 5px;
@@ -70,4 +70,14 @@
 
 .matched-bind-warning a {
     color: inherit;
+}
+
+/* ~~~~ custom bindings styles */
+
+.chat-command {
+    font: inherit;
+    color: white;
+    display: block;
+    height: 100%;
+    flex-grow: 1;
 }

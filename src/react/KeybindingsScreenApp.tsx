@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef, useMemo } from 'react'
-import { contro as controEx, setDoPreventDefault, customKeymaps } from '../controls'
+import { useState, useEffect } from 'react'
+import { contro as controEx } from '../controls'
 import { AllKeyCodes } from 'contro-max/build/types/keyCodes'
 import { GamepadButtonName } from 'contro-max/build/gamepad'
 import PixelartIcon from './PixelartIcon'
+import KeybindingsCustom from './KeybindingsCustom'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
-import { images } from './effectsImages'
 
 
 export default (
@@ -138,7 +138,21 @@ export default (
                     || parseBindingName(keys[index])
                   }
                 </Button>
-                <div className={styles['matched-bind-warning']}><PixelartIcon iconName={'alert'} width={10} /> This bind is already in use. <a href="">Rebind</a></div>
+                <div className={styles['matched-bind-warning']}>
+                  <PixelartIcon
+                    iconName={'alert'}
+                    width={5}
+                    styles={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      marginRight: '2px'
+                    }} />
+                  <div>
+                    This bind is already in use: <a href="">Rebind</a>
+
+                  </div>
+                </div>
 
               </div>)}
               <div key={`warning-container-gamepad-${action}`} className={`${styles['warning-container']}  ${styles['margin-left']}`}>
@@ -171,6 +185,7 @@ export default (
           })}
         </div>
       })}
+      <KeybindingsCustom />
     </div>
   </Screen>
 }
