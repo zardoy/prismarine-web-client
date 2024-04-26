@@ -78,7 +78,7 @@ export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & Co
     underlined && messageFormatStylesMap.underlined,
     strikethrough && messageFormatStylesMap.strikethrough,
     obfuscated && messageFormatStylesMap.obfuscated
-  ].filter(Boolean)
+  ].filter(a => a !== false && a !== undefined).filter(Boolean)
 
   return <span title={hoverItemText} style={parseInlineStyle(applyStyles.join(' '))} {...clickProps} {...props}>{text}</span>
 }

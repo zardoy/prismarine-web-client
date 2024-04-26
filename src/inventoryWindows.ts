@@ -389,9 +389,9 @@ const upJei = (search: string) => {
   search = search.toLowerCase()
   // todo fix pre flat
   const matchedSlots = loadedData.itemsArray.map(x => {
-    if (!x.displayName.toLowerCase().includes(search)) return null!
+    if (!x.displayName.toLowerCase().includes(search)) return null
     return new PrismarineItem(x.id, 1)
-  }).filter(Boolean)
+  }).filter(a => a !== null)
   lastWindow.pwindow.win.jeiSlotsPage = 0
   lastWindow.pwindow.win.jeiSlots = mapSlots(matchedSlots)
 }
