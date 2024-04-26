@@ -41,6 +41,14 @@ export default (
     return newStr
   }
 
+  const parseBindingName = (binding: string | undefined) => {
+    if (!binding) return ''
+    const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
+    const parts = cut.split(/(?=[A-Z\d])/)
+    const newStr = parts.reverse().join(' ')
+    return newStr
+  }
+
   const updateKeyboardBinding = (e) => {
     if (!e.code || e.key === 'Escape') return
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
@@ -51,6 +59,8 @@ export default (
       setAwaitingInputType(null)
       return
     }
+    contro.enabled = false
+    Promise.resolve(() => { contro.enabled = true }).catch((error) => {})
     if ('button' in data) {
       setBinding(data, groupName, actionName, buttonNum)
     }
@@ -90,7 +100,9 @@ export default (
                 onClick={() => handleClick(group, action, index, 'keyboard')}
                 className={styles.button}>
                 {
-                  (userConfig?.[group]?.[action]?.keys?.length !== undefined && userConfig[group]?.[action]?.keys?.[index]) || keys[index]
+                  (userConfig?.[group]?.[action]?.keys?.length !== undefined
+		    && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
+		    || parseBindingName(keys[index])
                 }
               </Button>)}
               <Button

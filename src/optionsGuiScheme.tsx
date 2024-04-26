@@ -180,16 +180,16 @@ export const guiOptionsScheme: {
   ],
   controls: [
     {
-      custom() {
+      custom () {
         return <Category>Keyboard & Mouse</Category>
       },
     },
     {
-      custom() {
+      custom () {
         return <Button
           inScreen
           onClick={() => {
-            showModal({ reactType: 'keybindings', })
+            showModal({ reactType: 'keybindings' })
           }}
         >Keybindings</Button>
       },
