@@ -2,16 +2,19 @@ import { useSnapshot } from 'valtio'
 import { noCase } from 'change-case'
 import { titleCase } from 'title-case'
 import { useMemo } from 'react'
-import { options } from '../optionsStorage'
+import { options, qsOptions } from '../optionsStorage'
 import Button from './Button'
 import Slider from './Slider'
 import Screen from './Screen'
+import { showOptionsModal } from './SelectOption'
 
 type GeneralItem<T extends string | number | boolean> = {
   id?: string
   text?: string,
   disabledReason?: string,
   tooltip?: string
+  // description?: string
+  enableWarning?: string
   willHaveNoEffect?: boolean
   values?: Array<T | [T, string]>
 }
@@ -29,6 +32,11 @@ export type OptionMeta<T = any> = GeneralItem<T & string> & ({
   type: 'element'
   render: () => React.ReactNode,
 })
+
+// todo not reactive
+const isDisabled = (id) => {
+  return Object.keys(qsOptions).includes(id)
+}
 
 export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'toggle' }> }) => {
   const optionValue = useSnapshot(options)[item.id!]
@@ -51,7 +59,11 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
 
   return <Button
     label={`${item.text}: ${valuesTitlesMap[optionValue]}`}
-    onClick={() => {
+    onClick={async () => {
+      if (item.enableWarning && !options[item.id!]) {
+        const result = await showOptionsModal(item.enableWarning, ['Enable'])
+        if (!result) return
+      }
       const { values } = item
       if (values) {
         const getOptionValue = (arrItem) => {
@@ -74,7 +86,7 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
       }
     }}
     title={item.disabledReason ? `${item.disabledReason} | ${item.tooltip}` : item.tooltip}
-    disabled={!!item.disabledReason}
+    disabled={!!item.disabledReason || isDisabled(item.id!)}
     style={{
       width: 150,
     }}
@@ -89,7 +101,7 @@ export const OptionSlider = ({ item }: { item: Extract<OptionMeta, { type: 'slid
     return undefined // default display
   }, [optionValue])
 
-  return <Slider label={item.text!} value={options[item.id!]} min={item.min} max={item.max} updateValue={(value) => {
+  return <Slider disabledReason={isDisabled(item.id!) ? 'qs' : undefined} label={item.text!} value={options[item.id!]} min={item.min} max={item.max} updateValue={(value) => {
     options[item.id!] = value
   }} unit={item.unit} valueDisplay={valueDisplay} updateOnDragEnd={item.delayApply} />
 }
@@ -103,9 +115,17 @@ const RenderOption = ({ item }: { item: OptionMeta }) => {
     item.text ??= titleCase(noCase(item.id))
   }
 
-  if (item.type === 'toggle') return <OptionButton item={item} />
-  if (item.type === 'slider') return <OptionSlider item={item} />
-  if (item.type === 'element') return <OptionElement item={item} />
+  let baseElement = null as React.ReactNode | null
+  if (item.type === 'toggle') baseElement = <OptionButton item={item} />
+  if (item.type === 'slider') baseElement = <OptionSlider item={item} />
+  if (item.type === 'element') baseElement = <OptionElement item={item} />
+  return baseElement
+  // if (!item.description && item.type === 'element') return baseElement
+
+  // return <div>
+  //   {baseElement}
+  //   {item.description && <div style={{ fontSize: 9, color: 'gray' }}>{item.description}</div>}
+  // </div>
 }
 
 interface Props {

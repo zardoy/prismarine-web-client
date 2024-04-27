@@ -2,7 +2,7 @@
 const THREE = require('three')
 const TWEEN = require('@tweenjs/tween.js')
 
-const Entity = require('./entity/Entity')
+const Entity = require('./entity/EntityMesh')
 const { dispose3 } = require('./dispose')
 const EventEmitter = require('events')
 import { PlayerObject, PlayerAnimation } from 'skinview3d'
@@ -13,6 +13,7 @@ import { WalkingGeneralSwing } from './entity/animations'
 import { NameTagObject } from 'skinview3d/libs/nametag'
 import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
+import externalTexturesJson from './entity/externalTextures.json'
 
 export const TWEEN_DURATION = 50 // todo should be 100
 
@@ -62,12 +63,14 @@ function getEntityMesh (entity, scene, options, overrides) {
     try {
       // https://github.com/PrismarineJS/prismarine-viewer/pull/410
       const entityName = entity.name.toLowerCase()
-      const e = new Entity('1.16.4', entityName, scene, overrides)
+      const e = new Entity.EntityMesh('1.16.4', entityName, scene, overrides)
 
-      addNametag(entity, options, e.mesh)
-      return e.mesh
+      if (e.mesh) {
+        addNametag(entity, options, e.mesh)
+        return e.mesh
+      }
     } catch (err) {
-      console.log(err)
+      reportError?.(err)
     }
   }
 
@@ -75,6 +78,10 @@ function getEntityMesh (entity, scene, options, overrides) {
   geometry.translate(0, entity.height / 2, 0)
   const material = new THREE.MeshBasicMaterial({ color: 0xff_00_ff })
   const cube = new THREE.Mesh(geometry, material)
+  addNametag({
+    username: entity.name,
+    height: entity.height,
+  }, options, cube)
   return cube
 }
 
@@ -257,6 +264,11 @@ export class Entities extends EventEmitter {
   }
 
   update (/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
+    let isPlayerModel = entity.name === 'player'
+    if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
+      isPlayerModel = true
+      overrides.texture = `textures/1.16.4/entity/${entity.name === 'zombie_villager' ? 'zombie_villager/zombie_villager.png' : `zombie/${entity.name}.png`}`
+    }
     if (!this.entities[entity.id] && !entity.delete) {
       const group = new THREE.Group()
       let mesh
@@ -267,6 +279,7 @@ export class Entities extends EventEmitter {
         if (item) {
           const textureUv = this.getItemUv?.(item.itemId ?? item.blockId)
           if (textureUv) {
+            // todo use geometry buffer uv instead!
             const { u, v, size, su, sv, texture } = textureUv
             const itemsTexture = texture.clone()
             itemsTexture.flipY = true
@@ -313,7 +326,7 @@ export class Entities extends EventEmitter {
             }
           }
         }
-      } else if (entity.name === 'player') {
+      } else if (isPlayerModel) {
         // CREATE NEW PLAYER ENTITY
         const wrapper = new THREE.Group()
         /** @type {PlayerObject & { animation?: PlayerAnimation }} */
@@ -369,8 +382,8 @@ export class Entities extends EventEmitter {
 
       this.emit('add', entity)
 
-      if (entity.name === 'player') {
-        this.updatePlayerSkin(entity.id, '', stevePng)
+      if (isPlayerModel) {
+        this.updatePlayerSkin(entity.id, '', overrides?.texture || stevePng)
       }
       this.setDebugMode(this.debugMode, group)
       this.setVisible(this.visible, group)

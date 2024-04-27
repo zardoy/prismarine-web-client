@@ -2,6 +2,7 @@ name: Vercel Deploy Next
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  ALIASES: ${{ vars.ALIASES }}
 on:
   push:
     branches:
@@ -15,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Install Global Dependencies
-        run: npm install --global vercel pnpm
+        run: npm install --global vercel pnpm@9.0.4
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
       - name: Build Project Artifacts
@@ -31,7 +32,7 @@ jobs:
           run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         id: deploy
       - name: Set deployment alias
-        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }}
+        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
       # - uses: mshick/add-pr-comment@v2
       #   with:
       #     message: |

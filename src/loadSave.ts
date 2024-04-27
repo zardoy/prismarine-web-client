@@ -17,7 +17,9 @@ export const fsState = proxy({
   isReadonly: false,
   syncFs: false,
   inMemorySave: false,
-  saveLoaded: false
+  saveLoaded: false,
+  openReadOperations: 0,
+  openWriteOperations: 0,
 })
 
 const PROPOSE_BACKUP = true
@@ -83,8 +85,10 @@ export const loadSave = async (root = '/world') => {
     const qs = new URLSearchParams(window.location.search)
     version = qs.get('mapVersion') ?? levelDat.Version?.Name
     if (!version) {
-      const newVersion = disablePrompts ? '1.8.8' : prompt(`In 1.8 and before world save doesn't contain version info, please enter version you want to use to load the world.\nSupported versions ${supportedVersions.join(', ')}`, '1.8.8')
-      if (!newVersion) return
+      // const newVersion = disablePrompts ? '1.8.8' : prompt(`In 1.8 and before world save doesn't contain version info, please enter version you want to use to load the world.\nSupported versions ${supportedVersions.join(', ')}`, '1.8.8')
+      // if (!newVersion) return
+      // todo detect world load issues
+      const newVersion = '1.8.8'
       version = newVersion
     }
     const lastSupportedVersion = supportedVersions.at(-1)!
@@ -108,7 +112,7 @@ export const loadSave = async (root = '/world') => {
       isFlat = levelDat.generatorName === 'flat'
     }
     if (!isFlat && levelDat.generatorName !== 'default' && levelDat.generatorName !== 'customized') {
-      warnings.push(`Generator ${levelDat.generatorName} may not be supported yet`)
+      // warnings.push(`Generator ${levelDat.generatorName} may not be supported yet, be careful of new chunks writes`)
     }
 
     const playerUuid = nameToMcOfflineUUID(options.localUsername)
@@ -148,7 +152,7 @@ export const loadSave = async (root = '/world') => {
 
   if (!fsState.isReadonly && !fsState.inMemorySave && !disablePrompts) {
     // todo allow also to ctrl+s
-    alert('Note: the world is saved only on /save or disconnect! Ensure you have backup!')
+    alert('Note: the world is saved on interval, /save or disconnect! Ensure you have backup and be careful of new chunks writes!')
   }
 
   // improve compatibility with community saves

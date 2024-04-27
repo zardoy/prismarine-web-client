@@ -2,11 +2,13 @@
 const THREE = require('three')
 
 const textureCache = {}
-function loadTexture (texture, cb) {
-  if (!textureCache[texture]) {
-    textureCache[texture] = new THREE.TextureLoader().load(texture)
+function loadTexture (texture, cb, onLoad) {
+  const cached = textureCache[texture]
+  if (!cached) {
+    textureCache[texture] = new THREE.TextureLoader().load(texture, onLoad)
   }
   cb(textureCache[texture])
+  if (cached) onLoad?.()
 }
 
 function loadJSON (url, callback) {

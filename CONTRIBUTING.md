@@ -2,7 +2,7 @@
 
 After forking the repository, run the following commands to get started:
 
-0. Ensure you have [Node.js](https://nodejs.org) and `pnpm` installed. To install pnpm run `npm i -g pnpm`.
+0. Ensure you have [Node.js](https://nodejs.org) and `pnpm` installed. To install pnpm run `npm i -g pnpm@9.0.4`.
 1. Install dependencies: `pnpm i`
 2. Start the project in development mode: `pnpm start`
 
@@ -27,16 +27,17 @@ You can get a description of packets for the latest protocol version from <https
 
 Also there are [src/generatedClientPackets.ts](src/generatedClientPackets.ts) and [src/generatedServerPackets.ts](src/generatedServerPackets.ts) files that have definitions of packets that come from the server and the client respectively. These files are generated from the protocol files. Protocol, blocks info and other data go from <https://github.com/prismarineJS/minecraft-data> repository.
 
-### Would be useful to have
+## A few other notes
 
-- cleanup folder & modules structure, cleanup playground code
-
-A few other notes:
-
-- Use `next` branch for development and as base & target branch for pull requests if possible.
 - To link dependency locally e.g. flying-squid add this to `pnpm` > `overrides` of root package.json: `"flying-squid": "file:../space-squid",` (with some modules `pnpm link` also works)
 
+- Press `Y` to reload application into the same world (server, local world or random singleplayer world)
+- To start React profiling disable `REACT_APP_PROFILING` code first.
 - It's recommended to use debugger for debugging. VSCode has a great debugger built-in. If debugger is slow, you can use `--no-sources` flag that would allow browser to speedup .map file parsing.
 - Some data are cached between restarts. If you see something doesn't work after upgrading dependencies, try to clear the by simply removing the `dist` folder.
 - The same folder `dist` is used for both development and production builds, so be careful when deploying the project.
 - Use `start-prod` script to start the project in production mode after running the `build` script to build the project.
+
+### Would be useful to have
+
+- cleanup folder & modules structure, cleanup playground code
