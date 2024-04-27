@@ -97,8 +97,11 @@ export default (
   }
 
   useEffect(() => {
-    // todo: cleanup?
     contro.on('pressedKeyOrButtonChanged', updateGamepadBinding)
+
+    return () => {
+      contro.off('pressedKeyOrButtonChanged', updateGamepadBinding)
+    }
   }, [groupName, actionName])
 
 
