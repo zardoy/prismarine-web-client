@@ -57,12 +57,12 @@ const contro = new ControMax({
 }, {
   defaultControlOptions: controlOptions,
   target: document,
-  captureEvents() {
+  captureEvents () {
     return true
   },
   storeProvider: {
     load: () => customKeymaps,
-    save() { },
+    save () { },
   },
   gamepadPollingInterval: 10
 })
@@ -70,13 +70,18 @@ const contro = new ControMax({
 const setBinding = (data, group, action, buttonNum) => {
   if (!contro.userConfig) return
   if (!contro.userConfig[group]) contro.userConfig[group] = {} as any
-  if (!contro.userConfig[group][action]) contro.userConfig[group][action] = { keys: [] as string[], gamepad: [] as string[] }
+  if (!contro.userConfig[group][action]) contro.userConfig[group][action] = { 
+    keys: undefined as string[] | undefined, 
+    gamepad: undefined as string[] | undefined 
+  }
 
   if ('code' in data) {
-    console.log('keyboard')
+    if (!contro.userConfig[group][action].keys) contro.userConfig[group][action].keys = [] as string[]
     switch (contro.userConfig[group][action].keys!.length) {
       case 0:
-        if (buttonNum === 1 && contro.inputSchema.commands[group][action].keys) {
+        if (buttonNum === 1 
+          && contro.inputSchema.commands[group][action] 
+          && contro.inputSchema.commands[group][action].keys) {
           contro.userConfig[group][action].keys!.push(contro.inputSchema.commands[group][action].keys[0], data.code)
         } else {
           contro.userConfig[group][action].keys!.push(data.code)
@@ -90,15 +95,14 @@ const setBinding = (data, group, action, buttonNum) => {
         contro.userConfig[group][action].keys![buttonNum] = data.code
         break
     }
-  } else {
-    console.log('gamepad')
+  } else if ('button' in data) {
+    if (!contro.userConfig[group][action].gamepad) contro.userConfig[group][action].gamepad = [] as string[]
     if (contro.userConfig[group][action].gamepad?.[0]) {
       contro.userConfig[group][action].gamepad![0] = data.button
     } else {
       contro.userConfig[group][action].gamepad?.push(data.button)
     }
   }
-
 }
 
 const resetBinding = (group, action, inputType) => {
@@ -111,7 +115,6 @@ const resetBinding = (group, action, inputType) => {
       contro.userConfig[group][action].gamepad = [] as string[]
       break
   }
-
 }
 
 export const Primary: Story = {

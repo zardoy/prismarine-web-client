@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react'
-import { contro as controEx } from '../controls'
 import { AllKeyCodes } from 'contro-max/build/types/keyCodes'
 import { GamepadButtonName } from 'contro-max/build/gamepad'
+import { is } from 'cypress/types/bluebird'
+import { contro as controEx } from '../controls'
 import PixelartIcon from './PixelartIcon'
 import KeybindingsCustom from './KeybindingsCustom'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
-import { is } from 'cypress/types/bluebird'
 
 
 export default (
@@ -79,7 +79,7 @@ export default (
         for (const [action, { keys, gamepad }] of Object.entries(actions)) {
           if (keys && gamepad) {
             if (keys.includes(binding as AllKeyCodes) || gamepad.includes(binding as GamepadButtonName)) {
-              const index = keys.findIndex(elem => elem === binding)
+              const index = keys.indexOf(binding)
               console.log('match with', group, action, index)
             }
           }
@@ -89,7 +89,7 @@ export default (
     for (const [group, actions] of Object.entries(commands)) {
       for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
         if (keys.includes(binding as AllKeyCodes) || gamepadButtons.includes(binding as GamepadButtonName)) {
-          const index = keys.findIndex(elem => elem === binding)
+          const index = keys.indexOf(binding as AllKeyCodes)
           console.log('match with', group, action, index)
         }
       }
@@ -107,11 +107,11 @@ export default (
       onKeyDown={(e) => updateKeyboardBinding(e)}
     >
 
-      {Object.entries(commands).map(([group, actions]) => {
-        return <div className={styles.group}>
+      {Object.entries(commands).map(([group, actions], index) => {
+        return <div key={`group-container-${group}-${index}`} className={styles.group}>
           <div className={styles['group-category']}>{group}</div>
           {Object.entries(actions).map(([action, { keys, gamepadButtons }]) => {
-            return <div className={styles.actionBinds}>
+            return <div key={`action-container-${action}`} className={styles.actionBinds}>
               <div className={styles.actionName}>{parseActionName(action)}</div>
               {
                 userConfig?.[group]?.[action]?.keys?.length ? <Button
@@ -129,6 +129,7 @@ export default (
 
 
               {[0, 1].map((key, index) => <ButtonWithMatchesAlert
+                key={`keyboard-${group}-${action}-${index}`}
                 group={group}
                 action={action}
                 index={index}
@@ -141,6 +142,7 @@ export default (
                 isPS={isPS}
               />)}
               <ButtonWithMatchesAlert
+                key={`gamepad-${group}-${action}`}
                 group={group}
                 action={action}
                 index={0}
@@ -176,6 +178,7 @@ export default (
         awaitingInputType={awaitingInputType}
         setAwaitingInputType={setAwaitingInputType}
         setGroupName={setGroupName}
+        setBinding={setBinding}
         setActionName={setActionName}
         setButtonNum={setButtonNum}
         handleClick={handleClick}
@@ -210,22 +213,31 @@ export const ButtonWithMatchesAlert = ({
         onClick={() => handleClick(group, action, index, inputType)}
         className={`${styles.button}`}>
         {
-          (userConfig?.[group]?.[action]?.keys?.length !== undefined
+          (userConfig?.[group]?.[action]?.keys?.length 
             && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
-          || parseBindingName(keys[index])
+          || (keys && keys.length && parseBindingName(keys[index]))
+          || ''
         }
       </Button>
       :
       <Button
-        className={`${styles.button}`}
-        onClick={() => handleClick(group, action, 0, 'gamepad')}
-      >{
-          isPS
-            ? gamepadButtons[0] && buttonsMap[gamepadButtons[0]]
-              ? <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
-              : gamepadButtons[0]
-            : gamepadButtons[0]
-        }</Button>
+	className={`${styles.button}`}
+	onClick={() => handleClick(group, action, 0, 'gamepad')}
+      >
+	{isPS ? (
+	  gamepadButtons && gamepadButtons[0] ? (
+	    buttonsMap[gamepadButtons[0]] ? (
+	      <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
+	    ) : (
+	      gamepadButtons[0]
+	    )
+	  ) : (
+	    ""
+	  )
+	) : (
+	  gamepadButtons && gamepadButtons[0] ? gamepadButtons[0] : ""
+	)}
+      </Button>
 
     }
     <div className={styles['matched-bind-warning']}>

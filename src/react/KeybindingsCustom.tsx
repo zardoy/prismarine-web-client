@@ -11,6 +11,7 @@ export default (
     commands,
     userConfig,
     awaitingInputType,
+    setBinding,
     setAwaitingInputType,
     setGroupName,
     setActionName,
@@ -27,6 +28,7 @@ export default (
     setGroupName: (state: string) => void,
     setActionName: (state: string) => void,
     setButtonNum: (state: number) => void,
+    setBinding: (e, group, action, buttonNum, inputType?) => void,
     handleClick: (group, action, index, type) => void,
     parseBindingName: (name: string) => string,
     resetBinding: (group, action, inputType) => void,
@@ -35,13 +37,28 @@ export default (
 ) => {
   const [, forceUpdate] = useState(false)
 
+  const addNewChatCommand = (e) => {
+    let chatCommands
+    if (userConfig.custom) {
+      chatCommands = Object.keys(userConfig.custom)
+    } else {
+      chatCommands = [] as string[]
+    }
+    let commandName = 'chat_command_' + generateCode()
+    while (chatCommands.includes(commandName)) {
+      commandName = 'chat_command_' + generateCode()
+    }
+    setBinding({}, 'custom', commandName, 0)
+    forceUpdate(prev => !prev)
+  }
+
   return <>
     <div className={styles.group}>
       <div className={styles['group-category']}>Chat commands</div>
       {userConfig.custom &&
         Object.entries(userConfig.custom)
-          .filter(([action, value]) => action.includes('chat_command'))
           .map(([action, { keys, gamepadButtons }]) => <ChatCommandBind
+            key={`${action}`}
             group={'custom'}
             action={action}
             parseBindingName={parseBindingName}
@@ -58,12 +75,7 @@ export default (
           )}
 
       <Button
-        onClick={(e) => {
-          if (!userConfig.custom) userConfig.custom = {} as any
-          userConfig.custom.chat_command_AAAA_1111 = { keys: [], gamepadButtons: [] }
-          console.log(userConfig)
-          forceUpdate(prev => !prev)
-        }}
+        onClick={addNewChatCommand}
         icon={'pixelarticons:add-box'}
         style={{
           alignSelf: 'center'
@@ -106,11 +118,12 @@ const ChatCommandBind = ({
   forceUpdate
 }) => {
 
+
   return <>
-    <div className={styles.actionBinds} style={{ paddingLeft: '25px' }}>
+    <div key={`${group}-${action}`} className={styles.actionBinds} style={{ paddingLeft: '25px' }}>
       {
         userConfig?.[group]?.[action]?.keys?.length ? <Button
-          key={`keyboard-${group}-${action}`}
+          key={`keyboard-undo-${group}-${action}`}
           onClick={() => {
             setActionName(prev => action)
             setGroupName(prev => group)
@@ -125,6 +138,7 @@ const ChatCommandBind = ({
       }
       {userConfig[group] &&
         [0, 1].map((key, index) => <ButtonWithMatchesAlert
+          key={`keyboard-button-${group}-${action}-${index}`}
           group={group}
           action={action}
           index={index}
@@ -150,6 +164,10 @@ const ChatCommandBind = ({
         isPS={isPS}
       />
       <Button
+        onClick={(e) => {
+          delete userConfig[group][action]
+          forceUpdate(prev => !prev)
+        }}
         icon={'pixelarticons:delete'}
         style={{
           color: 'red',
