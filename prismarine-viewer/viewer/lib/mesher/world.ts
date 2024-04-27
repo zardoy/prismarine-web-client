@@ -114,6 +114,8 @@ export class World {
     }
 
     const block = this.blockCache[stateId]
+    if (block.name === 'flowing_water') block.name = 'water'
+    if (block.name === 'flowing_lava') block.name = 'lava'
     // block.position = loc // it overrides position of all currently loaded blocks
     block.biome = this.biomeCache[column.getBiome(locInChunk)] ?? this.biomeCache[1] ?? this.biomeCache[0]
     if (block.name === 'redstone_ore') block.transparent = false
