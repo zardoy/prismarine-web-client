@@ -108,13 +108,14 @@ export default () => {
     }
     setSize()
     watchUnloadForCleanup(subscribe(currentScaling, setSize))
+    inv.canvas.style.pointerEvents = 'auto'
     container.current.appendChild(inv.canvas)
     const upHotbarItems = () => {
       if (!viewer.world.downloadedTextureImage && !viewer.world.customTexturesDataUrl) return
       upInventoryItems(true, inv)
     }
 
-    canvasManager.canvas.onpointerdown = (e) => {
+    canvasManager.canvas.onclick = (e) => {
       if (!isGameActive(true)) return
       const pos = inv.canvasManager.getMousePos(inv.canvas, e)
       if (canvasManager.canvas.width - pos.x < 35 * inv.canvasManager.scale) {
@@ -209,6 +210,7 @@ export default () => {
         display: 'flex',
         justifyContent: 'center',
         zIndex: hasModals ? 1 : 8,
+        pointerEvents: 'none',
         bottom: 'env(safe-area-inset-bottom)'
       }} />
     </Portal>

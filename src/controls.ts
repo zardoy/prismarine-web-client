@@ -32,7 +32,8 @@ export const contro = new ControMax({
       jump: ['Space', 'A'],
       inventory: ['KeyE', 'X'],
       drop: ['KeyQ', 'B'],
-      sneak: ['ShiftLeft', 'Right Stick'],
+      sneak: ['ShiftLeft'],
+      toggleSneakOrDown: [null, 'Right Stick'],
       sprint: ['ControlLeft', 'Left Stick'],
       nextHotbarSlot: [null, 'Left Bumper'],
       prevHotbarSlot: [null, 'Right Bumper'],
@@ -152,7 +153,7 @@ const uiCommand = (command: Command) => {
   }
 }
 
-export const setSneaking = (state: boolean) => {
+const setSneaking = (state: boolean) => {
   gameAdditionalState.isSneaking = state
   bot.setControlState('sneak', state)
 }
@@ -178,6 +179,14 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         if (pressed) {
           setSprinting(pressed)
         }
+        break
+      case 'general.toggleSneakOrDown':
+        if (gameAdditionalState.isFlying) {
+          setSneaking(pressed)
+        } else if (pressed) {
+          setSneaking(!gameAdditionalState.isSneaking)
+        }
+
         break
       case 'general.attackDestroy':
         document.dispatchEvent(new MouseEvent(pressed ? 'mousedown' : 'mouseup', { button: 0 }))

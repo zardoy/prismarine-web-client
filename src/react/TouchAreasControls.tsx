@@ -1,6 +1,6 @@
-import { CSSProperties, PointerEvent, PointerEventHandler, useEffect, useRef, useState } from 'react'
+import { CSSProperties, PointerEvent, useEffect, useRef } from 'react'
 import { proxy, ref, useSnapshot } from 'valtio'
-import { contro, setSneaking } from '../controls'
+import { contro } from '../controls'
 import worldInteractions from '../worldInteractions'
 import PixelartIcon from './PixelartIcon'
 import Button from './Button'
@@ -56,6 +56,7 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
   const joystickInner = useRef<HTMLDivElement>(null)
 
   const { pointer } = useSnapshot(joystickPointer)
+  // const { isFlying, isSneaking } = useSnapshot(gameAdditionalState)
   const newButtonPositions = { ...buttonsPositions }
 
   const buttonProps = (name: ButtonName) => {
@@ -72,7 +73,10 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
         document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       },
       sneak () {
-        setSneaking(!bot.getControlState('sneak'))
+        void contro.emit('trigger', {
+          command: 'general.toggleSneakOrDown',
+          schema: null as any,
+        })
         active = bot.getControlState('sneak')
       },
       break () {
@@ -81,14 +85,22 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
         active = true
       },
       jump () {
-        bot.setControlState('jump', true)
-        active = true
+        void contro.emit('trigger', {
+          command: 'general.jump',
+          schema: null as any,
+        })
+        active = bot.controlState.jump
       }
     }
     const holdUp = {
       action () {
       },
       sneak () {
+        void contro.emit('release', {
+          command: 'general.toggleSneakOrDown',
+          schema: null as any,
+        })
+        active = bot.getControlState('sneak')
       },
       break () {
         document.dispatchEvent(new MouseEvent('mouseup', { button: 0 }))
@@ -96,8 +108,11 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
         active = false
       },
       jump () {
-        bot.setControlState('jump', false)
-        active = false
+        void contro.emit('release', {
+          command: 'general.jump',
+          schema: null as any,
+        })
+        active = bot.controlState.jump
       }
     }
 
