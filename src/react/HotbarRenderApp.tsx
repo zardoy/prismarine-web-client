@@ -19,7 +19,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
 
   const defaultStyle: React.CSSProperties = {
     position: 'fixed',
-    bottom: `calc(var(--safe-area-inset-bottom) + ${bot ? bot.game.gameMode === 'creative' ? '35px' : '50px' : '50px'})`,
+    bottom: `calc(env(safe-area-inset-bottom) + ${bot ? bot.game.gameMode === 'creative' ? '35px' : '50px' : '50px'})`,
     left: 0,
     right: 0,
     fontSize: 10,
@@ -117,7 +117,7 @@ export default () => {
     canvasManager.canvas.onpointerdown = (e) => {
       if (!isGameActive(true)) return
       const pos = inv.canvasManager.getMousePos(inv.canvas, e)
-      if (pos.x > canvasManager.canvas.width - 30) {
+      if (canvasManager.canvas.width - pos.x < 35 * inv.canvasManager.scale) {
         openPlayerInventory()
       }
     }
@@ -135,7 +135,10 @@ export default () => {
     const heldItemChanged = () => {
       inv.inventory.activeHotbarSlot = bot.quickBarSlot
 
-      if (!bot.inventory.slots?.[bot.quickBarSlot + 36]) return
+      if (!bot.inventory.slots?.[bot.quickBarSlot + 36]) {
+        setItemKey('')
+        return
+      }
       const item = bot.inventory.slots[bot.quickBarSlot + 36]!
       const itemNbt = item.nbt ? JSON.stringify(item.nbt) : ''
       setItemKey(`${item.displayName}_split_${item.type}_split_${item.metadata}_split_${itemNbt}`)
@@ -199,17 +202,15 @@ export default () => {
   return <SharedHudVars>
     <ItemName itemKey={itemKey} />
     <Portal>
-      <SharedHudVars>
-        <div className='hotbar' ref={container} style={{
-          position: 'fixed',
-          bottom: 'calc(var(--safe-area-inset-bottom) * 2)',
-          left: 0,
-          right: 0,
-          display: 'flex',
-          justifyContent: 'center',
-          zIndex: hasModals ? 1 : 8,
-        }} />
-      </SharedHudVars>
+      <div className='hotbar' ref={container} style={{
+        position: 'fixed',
+        left: 0,
+        right: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        zIndex: hasModals ? 1 : 8,
+        bottom: 'env(safe-area-inset-bottom)'
+      }} />
     </Portal>
   </SharedHudVars>
 }
