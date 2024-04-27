@@ -64,9 +64,9 @@ export default (
       setAwaitingInputType(null)
       return
     }
-    contro.enabled = false
-    Promise.resolve(() => { contro.enabled = true }).catch((error) => { })
     if ('button' in data) {
+      contro.enabled = false
+      Promise.resolve(() => { contro.enabled = true }).catch((error) => { })
       setBinding(data, groupName, actionName, buttonNum)
     }
 
@@ -97,6 +97,7 @@ export default (
   }
 
   useEffect(() => {
+    // todo: cleanup?
     contro.on('pressedKeyOrButtonChanged', updateGamepadBinding)
   }, [groupName, actionName])
 
@@ -213,7 +214,7 @@ export const ButtonWithMatchesAlert = ({
         onClick={() => handleClick(group, action, index, inputType)}
         className={`${styles.button}`}>
         {
-          (userConfig?.[group]?.[action]?.keys?.length 
+          (userConfig?.[group]?.[action]?.keys?.length
             && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
           || (keys?.length && parseBindingName(keys[index]))
           || ''
@@ -225,17 +226,17 @@ export const ButtonWithMatchesAlert = ({
         onClick={() => handleClick(group, action, 0, 'gamepad')}
       >
         {isPS ? (
-	  gamepadButtons?.[0] ? (
-	    buttonsMap[gamepadButtons[0]] ? (
-	      <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
-	    ) : (
-	      gamepadButtons[0]
-	    )
-	  ) : (
-	    ''
-	  )
+          gamepadButtons?.[0] ? (
+            buttonsMap[gamepadButtons[0]] ? (
+              <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
+            ) : (
+              gamepadButtons[0]
+            )
+          ) : (
+            ''
+          )
         ) : (
-	  gamepadButtons?.[0] ?? ''
+          gamepadButtons?.[0] ?? ''
         )}
       </Button>
 

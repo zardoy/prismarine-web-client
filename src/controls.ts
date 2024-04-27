@@ -19,7 +19,7 @@ import { getItemFromBlock } from './botUtils'
 // todo move this to shared file with component
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
 subscribe(customKeymaps, () => {
-  localStorage.keymap = JSON.parse(customKeymaps)
+  localStorage.keymap = JSON.stringify(customKeymaps)
 })
 
 const controlOptions = {
