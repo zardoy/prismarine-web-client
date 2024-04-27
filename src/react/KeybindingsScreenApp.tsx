@@ -7,6 +7,7 @@ import KeybindingsCustom from './KeybindingsCustom'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
+import { is } from 'cypress/types/bluebird'
 
 
 export default (
@@ -127,46 +128,30 @@ export default (
 
 
 
-              {[0, 1].map((key, index) => <div key={`warning-container-${key}-${index}`} className={styles['warning-container']}>
-                <Button
-                  key={`keyboard-${group}-${action}-${index}`}
-                  onClick={() => handleClick(group, action, index, 'keyboard')}
-                  className={`${styles.button}`}>
-                  {
-                    (userConfig?.[group]?.[action]?.keys?.length !== undefined
-                      && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
-                    || parseBindingName(keys[index])
-                  }
-                </Button>
-                <div className={styles['matched-bind-warning']}>
-                  <PixelartIcon
-                    iconName={'alert'}
-                    width={5}
-                    styles={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      marginRight: '2px'
-                    }} />
-                  <div>
-                    This bind is already in use: <a href="">Rebind</a>
-
-                  </div>
-                </div>
-
-              </div>)}
-              <div key={`warning-container-gamepad-${action}`} className={`${styles['warning-container']}  ${styles['margin-left']}`}>
-                <Button
-                  className={`${styles.button}`}
-                  onClick={() => handleClick(group, action, 0, 'gamepad')}
-                >{
-                    isPS
-                      ? gamepadButtons[0] && buttonsMap[gamepadButtons[0]]
-                        ? <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
-                        : gamepadButtons[0]
-                      : gamepadButtons[0]
-                  }</Button>
-              </div>
+              {[0, 1].map((key, index) => <ButtonWithMatchesAlert
+                group={group}
+                action={action}
+                index={index}
+                parseBindingName={parseBindingName}
+                handleClick={handleClick}
+                inputType={'keyboard'}
+                keys={keys}
+                userConfig={userConfig}
+                gamepadButtons={gamepadButtons}
+                isPS={isPS}
+              />)}
+              <ButtonWithMatchesAlert
+                group={group}
+                action={action}
+                index={0}
+                parseBindingName={parseBindingName}
+                handleClick={handleClick}
+                inputType={'gamepad'}
+                keys={keys}
+                userConfig={userConfig}
+                gamepadButtons={gamepadButtons}
+                isPS={isPS}
+              />
               {
                 userConfig?.[group]?.[action]?.gamepad?.length ? <Button
                   key={`keyboard-${group}-${action}`}
@@ -185,12 +170,83 @@ export default (
           })}
         </div>
       })}
-      <KeybindingsCustom />
+      <KeybindingsCustom
+        commands={commands}
+        userConfig={userConfig}
+        awaitingInputType={awaitingInputType}
+        setAwaitingInputType={setAwaitingInputType}
+        setGroupName={setGroupName}
+        setActionName={setActionName}
+        setButtonNum={setButtonNum}
+        handleClick={handleClick}
+        resetBinding={resetBinding}
+        parseBindingName={parseBindingName}
+        isPS={isPS}
+      />
     </div>
   </Screen>
 }
 
-const AwaitingInputOverlay = ({ isGamepad }) => {
+export const ButtonWithMatchesAlert = ({
+  group,
+  action,
+  index,
+  parseBindingName,
+  handleClick,
+  inputType,
+  userConfig,
+  keys,
+  gamepadButtons,
+  isPS,
+}) => {
+  return <div
+    key={`warning-container-${inputType}-${action}`}
+    className={`${styles['warning-container']} ${inputType === 'gamepad' ? styles['margin-left'] : ''}`}
+  >
+    {inputType === 'keyboard'
+      ?
+      <Button
+        key={`keyboard-${group}-${action}-${index}`}
+        onClick={() => handleClick(group, action, index, inputType)}
+        className={`${styles.button}`}>
+        {
+          (userConfig?.[group]?.[action]?.keys?.length !== undefined
+            && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
+          || parseBindingName(keys[index])
+        }
+      </Button>
+      :
+      <Button
+        className={`${styles.button}`}
+        onClick={() => handleClick(group, action, 0, 'gamepad')}
+      >{
+          isPS
+            ? gamepadButtons[0] && buttonsMap[gamepadButtons[0]]
+              ? <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
+              : gamepadButtons[0]
+            : gamepadButtons[0]
+        }</Button>
+
+    }
+    <div className={styles['matched-bind-warning']}>
+      <PixelartIcon
+        iconName={'alert'}
+        width={5}
+        styles={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          marginRight: '2px'
+        }} />
+      <div>
+        This bind is already in use: <a href="">Rebind</a>
+
+      </div>
+    </div>
+  </div>
+}
+
+export const AwaitingInputOverlay = ({ isGamepad }) => {
   return <div style={{
     position: 'fixed',
     inset: 0,

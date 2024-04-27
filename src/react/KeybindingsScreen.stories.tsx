@@ -40,7 +40,8 @@ const contro = new ControMax({
     },
     advanced: {
       lockUrl: ['KeyY'],
-    }
+    },
+    custom: {}
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']
@@ -56,12 +57,12 @@ const contro = new ControMax({
 }, {
   defaultControlOptions: controlOptions,
   target: document,
-  captureEvents () {
+  captureEvents() {
     return true
   },
   storeProvider: {
     load: () => customKeymaps,
-    save () { },
+    save() { },
   },
   gamepadPollingInterval: 10
 })
@@ -75,7 +76,7 @@ const setBinding = (data, group, action, buttonNum) => {
     console.log('keyboard')
     switch (contro.userConfig[group][action].keys!.length) {
       case 0:
-        if (buttonNum === 1 && contro.inputSchema.commands[group][action].keys[0]) {
+        if (buttonNum === 1 && contro.inputSchema.commands[group][action].keys) {
           contro.userConfig[group][action].keys!.push(contro.inputSchema.commands[group][action].keys[0], data.code)
         } else {
           contro.userConfig[group][action].keys!.push(data.code)
