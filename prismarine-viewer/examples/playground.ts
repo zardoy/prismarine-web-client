@@ -132,7 +132,7 @@ async function main () {
   document.body.appendChild(renderer.domElement)
 
   // Create viewer
-  const viewer = new Viewer(renderer, 1)
+  const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false })
   viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
   viewer.entities.onSkinUpdate = () => {
