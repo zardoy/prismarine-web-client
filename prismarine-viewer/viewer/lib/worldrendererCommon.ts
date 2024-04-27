@@ -211,7 +211,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   }
 
-  addColumn (x, z, chunk) {
+  addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
     if (this.workers.length === 0) throw new Error('workers not initialized yet')
     this.initialChunksLoad = false
     this.loadedChunks[`${x},${z}`] = true
@@ -222,10 +222,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
       const loc = new Vec3(x, y, z)
       this.setSectionDirty(loc)
-      this.setSectionDirty(loc.offset(-16, 0, 0))
-      this.setSectionDirty(loc.offset(16, 0, 0))
-      this.setSectionDirty(loc.offset(0, 0, -16))
-      this.setSectionDirty(loc.offset(0, 0, 16))
+      if (!isLightUpdate || this.mesherConfig.smoothLighting) {
+        this.setSectionDirty(loc.offset(-16, 0, 0))
+        this.setSectionDirty(loc.offset(16, 0, 0))
+        this.setSectionDirty(loc.offset(0, 0, -16))
+        this.setSectionDirty(loc.offset(0, 0, 16))
+      }
     }
   }
 

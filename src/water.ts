@@ -9,8 +9,8 @@ customEvents.on('gameLoaded', () => {
   watchUnloadForCleanup(cleanup)
 
   const updateInWater = () => {
-    const waterBr = bot.entity.effects.find(effect => loadedData.effects[effect.id].name === 'water_breathing')
-    if (inWater && waterBr) {
+    const waterBr = Object.keys(bot.entity.effects).find((effect: any) => loadedData.effects[effect.id].name === 'water_breathing')
+    if (inWater) {
       viewer.scene.fog = new THREE.Fog(0x00_00_ff, 0.1, waterBr ? 100 : 20) // Set the fog color to blue if the bot is in water.
     } else {
       cleanup()

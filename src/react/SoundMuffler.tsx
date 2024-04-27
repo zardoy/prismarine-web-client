@@ -42,16 +42,16 @@ export default () => {
       <Button onClick={() => setShowMuted(s => !s)}>Show Muted: {showMuted ? 'ON' : 'OFF'}</Button>
       <span style={{ padding: '3px 0' }}>Last World Played</span>
       {Object.entries(lastPlayedSounds.lastServerPlayed).map(([key, value]) => {
-        if (!showMuted && mutedSounds.includes(key)) return null as never
+        if (!showMuted && mutedSounds.includes(key)) return null
         return [key, value.count] as const
-      }).filter(Boolean).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([key, count]) => {
+      }).filter(a => !!a).sort((a, b) => b[1] - a[1]).slice(0, 20).map(([key, count]) => {
         return <SoundRow key={key} sound={key}>
           <span style={{ fontSize: 12, fontWeight: 'bold' }}>{count}</span>
         </SoundRow>
       })}
       <span style={{ padding: '3px 0' }}>Last Client Played</span>
       {lastPlayedSounds.lastClientPlayed.map((key) => {
-        if (!showMuted && mutedSounds.includes(key)) return null as never
+        if (!showMuted && mutedSounds.includes(key)) return null
         return <SoundRow key={key} sound={key} children={undefined} />
       })}
       <Button onClick={() => hideCurrentModal()}>Back</Button>

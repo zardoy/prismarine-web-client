@@ -40,6 +40,7 @@ export default () => {
     }}>S</div>
     <div className={styles['debug-btn']} onPointerDown={(e) => {
       document.dispatchEvent(new KeyboardEvent('keydown', { code: 'F3' }))
+      document.dispatchEvent(new KeyboardEvent('keyup', { code: 'F3' }))
     }} { ...longPressEvent }>F3</div>
     <div className={styles['chat-btn']} onPointerDown={(e) => {
       e.stopPropagation()

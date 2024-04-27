@@ -133,7 +133,7 @@
     "stream-browserify": "^3.0.0",
     "three": "0.154.0",
     "timers-browserify": "^2.0.12",
-    "typescript": "^5.2.2",
+    "typescript": "5.5.0-beta",
     "use-typed-event-listener": "^4.0.2",
     "vitest": "^0.34.6",
     "yaml": "^2.3.2"

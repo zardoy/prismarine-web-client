@@ -75,7 +75,7 @@ export class WorldDataEmitter extends EventEmitter {
 
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {
       const chunkPos = new Vec3(chunkX * 16, 0, chunkZ * 16)
-      this.loadChunk(chunkPos)
+      this.loadChunk(chunkPos, true)
     })
 
     this.emitter.on('listening', () => {
@@ -128,7 +128,7 @@ export class WorldDataEmitter extends EventEmitter {
     }
   }
 
-  async loadChunk (pos: ChunkPos) {
+  async loadChunk (pos: ChunkPos, isLightUpdate = false) {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
     const dz = Math.abs(botZ - Math.floor(pos.z / 16))
@@ -143,7 +143,7 @@ export class WorldDataEmitter extends EventEmitter {
           worldHeight: column['worldHeight'] ?? 256,
         }
         //@ts-ignore
-        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig })
+        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
     } else {
@@ -186,8 +186,8 @@ export class WorldDataEmitter extends EventEmitter {
       const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => {
         const pos = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
         if (!this.loadedChunks[`${pos.x},${pos.z}`]) return pos
-        return undefined!
-      }).filter(Boolean)
+        return undefined
+      }).filter(a => !!a)
       this.lastPos.update(pos)
       await this._loadChunks(positions)
     } else {
