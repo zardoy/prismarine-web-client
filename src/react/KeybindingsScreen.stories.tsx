@@ -70,35 +70,35 @@ const contro = new ControMax({
 const setBinding = (data, group, action, buttonNum) => {
   if (!contro.userConfig) return
   if (!contro.userConfig[group]) contro.userConfig[group] = {} as any
-  if (!contro.userConfig[group][action]) contro.userConfig[group][action] = { 
+  if (!contro.userConfig[group][action]) {contro.userConfig[group][action] = { 
     keys: undefined as string[] | undefined, 
     gamepad: undefined as string[] | undefined 
-  }
+  }}
 
   if ('code' in data) {
     if (!contro.userConfig[group][action].keys) contro.userConfig[group][action].keys = [] as string[]
-    switch (contro.userConfig[group][action].keys!.length) {
+    switch (contro.userConfig[group][action].keys.length) {
       case 0:
         if (buttonNum === 1 
           && contro.inputSchema.commands[group][action] 
           && contro.inputSchema.commands[group][action].keys) {
-          contro.userConfig[group][action].keys!.push(contro.inputSchema.commands[group][action].keys[0], data.code)
+          contro.userConfig[group][action].keys.push(contro.inputSchema.commands[group][action].keys[0], data.code)
         } else {
-          contro.userConfig[group][action].keys!.push(data.code)
+          contro.userConfig[group][action].keys.push(data.code)
         }
         break
       case 1:
-        if (buttonNum === 0) { contro.userConfig[group][action].keys![0] = data.code }
-        else { contro.userConfig[group][action].keys!.push(data.code) }
+        if (buttonNum === 0) { contro.userConfig[group][action].keys[0] = data.code }
+        else { contro.userConfig[group][action].keys.push(data.code) }
         break
       case 2:
-        contro.userConfig[group][action].keys![buttonNum] = data.code
+        contro.userConfig[group][action].keys[buttonNum] = data.code
         break
     }
   } else if ('button' in data) {
     if (!contro.userConfig[group][action].gamepad) contro.userConfig[group][action].gamepad = [] as string[]
     if (contro.userConfig[group][action].gamepad?.[0]) {
-      contro.userConfig[group][action].gamepad![0] = data.button
+      contro.userConfig[group][action].gamepad[0] = data.button
     } else {
       contro.userConfig[group][action].gamepad?.push(data.button)
     }

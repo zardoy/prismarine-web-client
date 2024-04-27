@@ -151,6 +151,21 @@ const ChatCommandBind = ({
           isPS={isPS}
         />)
       }
+      {
+        userConfig?.[group]?.[action]?.gamepad?.length ? <Button
+          key={`gamepad-undo-${group}-${action}`}
+          onClick={() => {
+            setActionName(prev => action)
+            setGroupName(prev => group)
+            forceUpdate(prev => !prev)
+            resetBinding(group, action, 'gamepad')
+          }}
+          className={styles['undo-gamepad']}
+          style={{ left: '44.5%' }}
+          icon={'pixelarticons:undo'}
+        />
+          : null
+      }
       <ButtonWithMatchesAlert
         group={group}
         action={action}
@@ -165,6 +180,7 @@ const ChatCommandBind = ({
       />
       <Button
         onClick={(e) => {
+          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
           delete userConfig[group][action]
           forceUpdate(prev => !prev)
         }}

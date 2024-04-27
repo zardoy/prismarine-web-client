@@ -215,28 +215,28 @@ export const ButtonWithMatchesAlert = ({
         {
           (userConfig?.[group]?.[action]?.keys?.length 
             && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
-          || (keys && keys.length && parseBindingName(keys[index]))
+          || (keys?.length && parseBindingName(keys[index]))
           || ''
         }
       </Button>
       :
       <Button
-	className={`${styles.button}`}
-	onClick={() => handleClick(group, action, 0, 'gamepad')}
+        className={`${styles.button}`}
+        onClick={() => handleClick(group, action, 0, 'gamepad')}
       >
-	{isPS ? (
-	  gamepadButtons && gamepadButtons[0] ? (
+        {isPS ? (
+	  gamepadButtons?.[0] ? (
 	    buttonsMap[gamepadButtons[0]] ? (
 	      <div style={{ marginTop: '3px' }} dangerouslySetInnerHTML={{ __html: buttonsMap[gamepadButtons[0]] }}></div>
 	    ) : (
 	      gamepadButtons[0]
 	    )
 	  ) : (
-	    ""
+	    ''
 	  )
-	) : (
-	  gamepadButtons && gamepadButtons[0] ? gamepadButtons[0] : ""
-	)}
+        ) : (
+	  gamepadButtons?.[0] ?? ''
+        )}
       </Button>
 
     }
