@@ -83,8 +83,8 @@ export const customCommandsConfig = {
       }
     ],
     handler ([code]) {
-      // eslint-disable-next-line no-eval -- this is a feature, not a bug
-      eval(code)
+      // eslint-disable-next-line no-new-func -- this is a feature, not a bug
+      new Function(code)()
     }
   },
   // openCommandsScreen: {}
