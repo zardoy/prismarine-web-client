@@ -50,7 +50,7 @@ export default (
     }
     if ('button' in data) {
       contro.enabled = false
-      Promise.resolve(() => { contro.enabled = true }).catch((error) => { })
+      void Promise.resolve().then(() => { contro.enabled = true })
       setBinding(data, groupName, actionName, buttonNum)
     }
 
