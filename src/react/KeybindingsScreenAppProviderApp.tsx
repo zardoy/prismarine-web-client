@@ -3,54 +3,49 @@ import KeybindingsScreen from './KeybindingsScreenApp'
 import { useIsModalActive } from './utils'
 
 
-const setBinding = (data, group, action, buttonNum) => {
+const setBinding = (data, group, command, buttonNum) => {
   if (!customKeymaps) return
-  if (!customKeymaps[group]) customKeymaps[group] = {} as any
-  if (!customKeymaps[group][action]) {
-    customKeymaps[group][action] = {
-      keys: undefined as string[] | undefined,
-      gamepad: undefined as string[] | undefined
-    }
-  }
+  customKeymaps[group] ??= {}
+  customKeymaps[group][command] ??= {}
 
   if ('code' in data) {
-    if (!customKeymaps[group][action].keys) customKeymaps[group][action].keys = [] as string[]
-    switch (customKeymaps[group][action].keys.length) {
+    if (!customKeymaps[group][command].keys) customKeymaps[group][command].keys = [] as string[]
+    switch (customKeymaps[group][command].keys.length) {
       case 0:
         if (buttonNum === 1
-          && contro.inputSchema.commands[group][action]
-          && contro.inputSchema.commands[group][action].keys) {
-          customKeymaps[group][action].keys.push(contro.inputSchema.commands[group][action].keys[0], data.code)
+          && contro.inputSchema.commands[group][command]
+          && contro.inputSchema.commands[group][command].keys) {
+          customKeymaps[group][command].keys.push(contro.inputSchema.commands[group][command].keys[0], data.code)
         } else {
-          customKeymaps[group][action].keys.push(data.code)
+          customKeymaps[group][command].keys.push(data.code)
         }
         break
       case 1:
-        if (buttonNum === 0) { customKeymaps[group][action].keys[0] = data.code }
-        else { customKeymaps[group][action].keys.push(data.code) }
+        if (buttonNum === 0) { customKeymaps[group][command].keys[0] = data.code }
+        else { customKeymaps[group][command].keys.push(data.code) }
         break
       case 2:
-        customKeymaps[group][action].keys[buttonNum] = data.code
+        customKeymaps[group][command].keys[buttonNum] = data.code
         break
     }
   } else if ('button' in data) {
-    if (!customKeymaps[group][action].gamepad) customKeymaps[group][action].gamepad = [] as string[]
-    if (customKeymaps[group][action].gamepad?.[0]) {
-      customKeymaps[group][action].gamepad[0] = data.button
+    if (!customKeymaps[group][command].gamepad) customKeymaps[group][command].gamepad = [] as string[]
+    if (customKeymaps[group][command].gamepad?.[0]) {
+      customKeymaps[group][command].gamepad[0] = data.button
     } else {
-      customKeymaps[group][action].gamepad?.push(data.button)
+      customKeymaps[group][command].gamepad?.push(data.button)
     }
   }
 }
 
-const resetBinding = (group, action, inputType) => {
-  if (!customKeymaps?.[group]?.[action]) return
+const resetBinding = (group, command, inputType) => {
+  if (!customKeymaps?.[group]?.[command]) return
   switch (inputType) {
     case 'keyboard':
-      customKeymaps[group][action].keys = undefined as string[] | undefined
+      customKeymaps[group][command].keys = undefined as string[] | undefined
       break
     case 'gamepad':
-      customKeymaps[group][action].gamepad = undefined as string[] | undefined
+      customKeymaps[group][command].gamepad = undefined as string[] | undefined
       break
   }
 }

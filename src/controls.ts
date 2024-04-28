@@ -6,6 +6,7 @@ import { proxy, subscribe } from 'valtio'
 import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
+import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
@@ -17,7 +18,7 @@ import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 
 // todo move this to shared file with component
-export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
+export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
 subscribe(customKeymaps, () => {
   localStorage.keymap = JSON.stringify(customKeymaps)
 })

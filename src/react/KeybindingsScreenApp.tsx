@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { AllKeyCodes } from 'contro-max/build/types/keyCodes'
 import { GamepadButtonName } from 'contro-max/build/gamepad'
-import { is } from 'cypress/types/bluebird'
 import { contro as controEx } from '../controls'
 import PixelartIcon from './PixelartIcon'
 import KeybindingsCustom from './KeybindingsCustom'
@@ -36,21 +35,6 @@ export default (
     setGroupName(prev => group)
     setActionName(prev => action)
     setButtonNum(prev => index)
-  }
-
-  const parseActionName = (action: string) => {
-    const parts = action.split(/(?=[A-Z])/)
-    parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
-    const newStr = parts.join(' ')
-    return newStr
-  }
-
-  const parseBindingName = (binding: string | undefined) => {
-    if (!binding) return ''
-    const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
-    const parts = cut.split(/(?=[A-Z\d])/)
-    const newStr = parts.reverse().join(' ')
-    return newStr
   }
 
   const updateKeyboardBinding = (e) => {
@@ -137,7 +121,6 @@ export default (
                 group={group}
                 action={action}
                 index={index}
-                parseBindingName={parseBindingName}
                 handleClick={handleClick}
                 inputType={'keyboard'}
                 keys={keys}
@@ -150,7 +133,6 @@ export default (
                 group={group}
                 action={action}
                 index={0}
-                parseBindingName={parseBindingName}
                 handleClick={handleClick}
                 inputType={'gamepad'}
                 keys={keys}
@@ -198,7 +180,6 @@ export const ButtonWithMatchesAlert = ({
   group,
   action,
   index,
-  parseBindingName,
   handleClick,
   inputType,
   userConfig,
@@ -278,6 +259,19 @@ export const AwaitingInputOverlay = ({ isGamepad }) => {
     {isGamepad ? 'Press the button on the gamepad' : 'Press the key'}.
     Press ESC to cancel.
   </div>
+}
+
+const parseActionName = (action: string) => {
+  const parts = action.split(/(?=[A-Z])/)
+  parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
+  return parts.join(' ')
+}
+
+const parseBindingName = (binding: string | undefined) => {
+  if (!binding) return ''
+  const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
+  const parts = cut.split(/(?=[A-Z\d])/)
+  return parts.reverse().join(' ')
 }
 
 const buttonsMap = {
