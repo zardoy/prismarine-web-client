@@ -3,7 +3,7 @@ import { options } from '../optionsStorage'
 import { OptionsGroupType, guiOptionsScheme } from '../optionsGuiScheme'
 import OptionsItems, { OptionMeta } from './OptionsItems'
 
-const optionValueToType = (optionValue: any, item: OptionMeta) => {
+export const optionValueToType = (optionValue: any, item: OptionMeta) => {
   if (typeof optionValue === 'boolean' || item.values) return 'toggle'
   if (typeof optionValue === 'number') return 'slider'
   if (typeof optionValue === 'string') return 'element'

@@ -290,3 +290,15 @@ const Category = ({ children }) => <div style={{
   textAlign: 'center',
   gridColumn: 'span 2'
 }}>{children}</div>
+
+export const tryFindOptionConfig = (option: keyof AppOptions) => {
+  for (const group of Object.values(guiOptionsScheme)) {
+    for (const optionConfig of group) {
+      if (option in optionConfig) {
+        return optionConfig[option]
+      }
+    }
+  }
+
+  return null
+}

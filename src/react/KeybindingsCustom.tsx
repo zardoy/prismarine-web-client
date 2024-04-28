@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { contro as controEx } from '../controls'
+import { customCommandsConfig } from '../customCommands'
 import { AwaitingInputOverlay, ButtonWithMatchesAlert } from './KeybindingsScreenApp'
 import Button from './Button'
 import PixelartIcon from './PixelartIcon'
 import styles from './KeybindingsScreen.module.css'
-
+import Input from './Input'
 
 export default (
   {
@@ -35,47 +36,88 @@ export default (
     isPS: boolean | undefined
   }
 ) => {
-  const [, forceUpdate] = useState(false)
+  type CustomCommand = {
+    keys: string[],
+    gamepad: string[]
+    type: string
+    inputs: any[]
+  }
+  // todo need to save custom actions to localstorage in the upper component and pass it down parsed to keybindings with config inputs
+  const [customConfig, setCustomConfig] = useState([] as CustomCommand[]/* userConfig.custom */)
+  useEffect(() => {
+    localStorage.setItem('customConfig', JSON.stringify(customConfig))
+    // userConfig.custom = customConfig
+  }, [customConfig])
 
-  const addNewChatCommand = (e) => {
-    let chatCommands
-    if (userConfig.custom) {
-      chatCommands = Object.keys(userConfig.custom)
-    } else {
-      chatCommands = [] as string[]
-    }
-    let commandName = 'chat_command_' + generateCode()
-    while (chatCommands.includes(commandName)) {
-      commandName = 'chat_command_' + generateCode()
-    }
-    setBinding({}, 'custom', commandName, 0)
-    forceUpdate(prev => !prev)
+  const addNewCommand = (type) => {
+    setCustomConfig(prev => [...prev, {
+      keys: [],
+      gamepad: [],
+      type,
+      inputs: []
+    }])
+
+    // setBinding({}, 'custom', commandName, 0)
+  }
+
+  const setInputValue = (indexOption, indexInput, value) => {
+    setCustomConfig(prev => {
+      const newConfig = [...prev]
+      newConfig[indexOption].inputs[indexInput] = value
+      return newConfig
+    })
   }
 
   return <>
     <div className={styles.group}>
+      {Object.entries(customCommandsConfig).map(([group, { input }]) => (
+        <><div key={group} className={styles['group-category']}>{group}</div>
+          {customConfig.filter(x => x.type === group).map(({ keys, gamepad, inputs }, indexOption) => {
+            return <div key={indexOption}>
+              {input.map((obj, indexInput) => {
+                const config = typeof obj === 'function' ? obj(inputs) : obj
+                if (!config) return null
+
+                return config.type === 'select'
+                  ? <select key={indexInput} onChange={(e) => {
+                    setInputValue(indexOption, indexInput, e.target.value)
+                  }}>{config.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+                  : <Input key={indexInput} placeholder={config.placeholder} value={inputs[indexInput]} onChange={(e) => setInputValue(indexOption, indexInput, e.target.value)} />
+              })}
+            </div>
+          })}
+          <Button
+            onClick={() => addNewCommand(group)}
+            icon={'pixelarticons:add-box'}
+            style={{
+              alignSelf: 'center'
+            }}
+          />
+        </>
+      ))}
       <div className={styles['group-category']}>Chat commands</div>
       {userConfig.custom &&
         Object.entries(userConfig.custom)
-          .map(([action, { keys, gamepadButtons }]) => <ChatCommandBind
-            key={`${action}`}
-            group={'custom'}
-            action={action}
-            parseBindingName={parseBindingName}
-            handleClick={handleClick}
-            keys={keys}
-            userConfig={userConfig}
-            gamepadButtons={gamepadButtons}
-            resetBinding={resetBinding}
-            setActionName={setActionName}
-            setGroupName={setGroupName}
-            forceUpdate={forceUpdate}
-            isPS={isPS}
-          />
+          .map(([action, { keys, gamepadButtons }]) =>
+            <ChatCommandBind
+              key={`${action}`}
+              group={'custom'}
+              action={action}
+              parseBindingName={parseBindingName}
+              handleClick={handleClick}
+              keys={keys}
+              userConfig={userConfig}
+              gamepadButtons={gamepadButtons}
+              resetBinding={resetBinding}
+              setActionName={setActionName}
+              setGroupName={setGroupName}
+              forceUpdate={forceUpdate}
+              isPS={isPS}
+            />
           )}
 
       <Button
-        onClick={addNewChatCommand}
+        onClick={addNewCommand}
         icon={'pixelarticons:add-box'}
         style={{
           alignSelf: 'center'
@@ -195,18 +237,3 @@ const ChatCommandBind = ({
       placeholder='Chat command' />
   </>
 }
-
-const generateCode = () => {
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  const digits = '0123456789'
-
-  let code = ''
-  for (let i = 0; i < 4; i++) {
-    const randomLetter = letters.charAt(Math.floor(Math.random() * letters.length))
-    const randomDigit = digits.charAt(Math.floor(Math.random() * digits.length))
-    code += (i < 3) ? randomLetter : '_' + randomDigit
-  }
-
-  return code
-}
-

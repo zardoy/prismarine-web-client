@@ -32,8 +32,10 @@
 }
 
 .actionName {
-    flex-basis: 40%;
+    flex-basis: 23%;
     flex-wrap: wrap;
+    align-self: center;
+    font-size: 13px;
 }
 
 .undo-keyboard,
