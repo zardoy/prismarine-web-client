@@ -111,7 +111,6 @@ export default (
               resetBinding={resetBinding}
               setActionName={setActionName}
               setGroupName={setGroupName}
-              forceUpdate={forceUpdate}
               isPS={isPS}
             />
           )}
@@ -156,8 +155,7 @@ const ChatCommandBind = ({
   isPS,
   setGroupName,
   setActionName,
-  resetBinding,
-  forceUpdate
+  resetBinding
 }) => {
 
 
@@ -169,7 +167,6 @@ const ChatCommandBind = ({
           onClick={() => {
             setActionName(prev => action)
             setGroupName(prev => group)
-            forceUpdate(prev => !prev)
             resetBinding(group, action, 'keyboard')
           }}
           className={styles['undo-keyboard']}
@@ -199,7 +196,6 @@ const ChatCommandBind = ({
           onClick={() => {
             setActionName(prev => action)
             setGroupName(prev => group)
-            forceUpdate(prev => !prev)
             resetBinding(group, action, 'gamepad')
           }}
           className={styles['undo-gamepad']}
@@ -224,7 +220,6 @@ const ChatCommandBind = ({
         onClick={(e) => {
           // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
           delete userConfig[group][action]
-          forceUpdate(prev => !prev)
         }}
         icon={'pixelarticons:delete'}
         style={{

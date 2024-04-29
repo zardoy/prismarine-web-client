@@ -34,6 +34,7 @@
 .actionName {
     flex-basis: 23%;
     flex-wrap: wrap;
+    margin-right: 25px;
     align-self: center;
     font-size: 13px;
 }
@@ -41,13 +42,13 @@
 .undo-keyboard,
 .undo-gamepad {
     position: absolute;
-    left: 32.8%;
+    left: 24%;
 
     flex-basis: 20px;
 }
 
 .undo-gamepad {
-    left: 76.5%;
+    left: 70%;
 }
 
 .button {

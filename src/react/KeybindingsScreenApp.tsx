@@ -123,6 +123,7 @@ export default (
                 index={index}
                 handleClick={handleClick}
                 inputType={'keyboard'}
+                parseBindingName={parseBindingName}
                 keys={keys}
                 userConfig={userConfig}
                 gamepadButtons={gamepadButtons}
@@ -134,6 +135,7 @@ export default (
                 action={action}
                 index={0}
                 handleClick={handleClick}
+                parseBindingName={parseBindingName}
                 inputType={'gamepad'}
                 keys={keys}
                 userConfig={userConfig}
@@ -182,6 +184,7 @@ export const ButtonWithMatchesAlert = ({
   index,
   handleClick,
   inputType,
+  parseBindingName,
   userConfig,
   keys,
   gamepadButtons,
