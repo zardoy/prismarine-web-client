@@ -41,7 +41,8 @@ const contro = new ControMax({
     advanced: {
       lockUrl: ['KeyY'],
     },
-    custom: {}
+    custom: {
+    }
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']
@@ -67,52 +68,49 @@ const contro = new ControMax({
   gamepadPollingInterval: 10
 })
 
-const setBinding = (data, group, action, buttonNum) => {
-  if (!contro.userConfig) return
-  if (!contro.userConfig[group]) contro.userConfig[group] = {} as any
-  if (!contro.userConfig[group][action]) {contro.userConfig[group][action] = { 
-    keys: undefined as string[] | undefined, 
-    gamepad: undefined as string[] | undefined 
-  }}
+const setBinding = (data, group, command, buttonNum) => {
+  if (!customKeymaps) return
+  customKeymaps[group] ??= {}
+  customKeymaps[group][command] ??= {}
 
   if ('code' in data) {
-    if (!contro.userConfig[group][action].keys) contro.userConfig[group][action].keys = [] as string[]
-    switch (contro.userConfig[group][action].keys.length) {
+    if (!customKeymaps[group][command].keys) customKeymaps[group][command].keys = [] as string[]
+    switch (customKeymaps[group][command].keys.length) {
       case 0:
-        if (buttonNum === 1 
-          && contro.inputSchema.commands[group][action] 
-          && contro.inputSchema.commands[group][action].keys) {
-          contro.userConfig[group][action].keys.push(contro.inputSchema.commands[group][action].keys[0], data.code)
+        if (buttonNum === 1
+          && contro.inputSchema.commands[group][command]
+          && contro.inputSchema.commands[group][command].keys) {
+          customKeymaps[group][command].keys.push(contro.inputSchema.commands[group][command].keys[0], data.code)
         } else {
-          contro.userConfig[group][action].keys.push(data.code)
+          customKeymaps[group][command].keys.push(data.code)
         }
         break
       case 1:
-        if (buttonNum === 0) { contro.userConfig[group][action].keys[0] = data.code }
-        else { contro.userConfig[group][action].keys.push(data.code) }
+        if (buttonNum === 0) { customKeymaps[group][command].keys[0] = data.code }
+        else { customKeymaps[group][command].keys.push(data.code) }
         break
       case 2:
-        contro.userConfig[group][action].keys[buttonNum] = data.code
+        customKeymaps[group][command].keys[buttonNum] = data.code
         break
     }
   } else if ('button' in data) {
-    if (!contro.userConfig[group][action].gamepad) contro.userConfig[group][action].gamepad = [] as string[]
-    if (contro.userConfig[group][action].gamepad?.[0]) {
-      contro.userConfig[group][action].gamepad[0] = data.button
+    if (!customKeymaps[group][command].gamepad) customKeymaps[group][command].gamepad = [] as string[]
+    if (customKeymaps[group][command].gamepad?.[0]) {
+      customKeymaps[group][command].gamepad[0] = data.button
     } else {
-      contro.userConfig[group][action].gamepad?.push(data.button)
+      customKeymaps[group][command].gamepad?.push(data.button)
     }
   }
 }
 
-const resetBinding = (group, action, inputType) => {
-  if (!contro.userConfig?.[group]?.[action]) return
+const resetBinding = (group, command, inputType) => {
+  if (!customKeymaps?.[group]?.[command]) return
   switch (inputType) {
     case 'keyboard':
-      contro.userConfig[group][action].keys = [] as string[]
+      customKeymaps[group][command].keys = undefined as string[] | undefined
       break
     case 'gamepad':
-      contro.userConfig[group][action].gamepad = [] as string[]
+      customKeymaps[group][command].gamepad = undefined as string[] | undefined
       break
   }
 }

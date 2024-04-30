@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AllKeyCodes } from 'contro-max/build/types/keyCodes'
 import { GamepadButtonName } from 'contro-max/build/gamepad'
 import { contro as controEx } from '../controls'
@@ -22,6 +22,8 @@ export default (
     isPS?: boolean
   }
 ) => {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
   const { commands } = contro.inputSchema
   const { userConfig } = contro
   const [awaitingInputType, setAwaitingInputType] = useState(null as null | 'keyboard' | 'gamepad')
@@ -39,8 +41,11 @@ export default (
 
   const updateKeyboardBinding = (e) => {
     if (!e.code || e.key === 'Escape') return
-    findMatchKeybind(e.code)
+    // showHideBindingsWarnings(e.code, 'keyboard')
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
+    updateBindMap()
+    updateBindWarnings()
+    console.log(bindsMap.current)
   }
 
   const updateGamepadBinding = (data) => {
@@ -52,33 +57,90 @@ export default (
       contro.enabled = false
       void Promise.resolve().then(() => { contro.enabled = true })
       setBinding(data, groupName, actionName, buttonNum)
+      updateBindMap()
+      updateBindWarnings()
     }
 
     setAwaitingInputType(null)
   }
 
-  const findMatchKeybind = (binding: AllKeyCodes | GamepadButtonName) => {
-    if (contro.userConfig) {
-      for (const [group, actions] of Object.entries(contro.userConfig)) {
-        for (const [action, { keys, gamepad }] of Object.entries(actions)) {
-          if (keys && gamepad) {
-            if (keys.includes(binding as AllKeyCodes) || gamepad.includes(binding as GamepadButtonName)) {
-              const index = keys.indexOf(binding)
-              console.log('match with', group, action, index)
+  const updateBindMap = () => {
+    bindsMap.current = { keyboard: {} as any, gamepad: {} as any }
+    if (userConfig) {
+      for (const [group, actions] of Object.entries(userConfig)) {
+        for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
+          if (keys) {
+            for (const [index, key] of keys.entries()) {
+              bindsMap.current.keyboard[key] ??= []
+              if (!bindsMap.current.keyboard[key].some(obj => obj.group === group && obj.action === action && obj.index === index)) {
+                bindsMap.current.keyboard[key].push({ group, action, index })
+              }
             }
+          }
+          if (gamepadButtons) {
+            bindsMap.current.gamepad[gamepadButtons] ??= []
+            bindsMap.current.gamepad[gamepadButtons].push({ group, action, index: 0 })
           }
         }
       }
     }
     for (const [group, actions] of Object.entries(commands)) {
       for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
-        if (keys.includes(binding as AllKeyCodes) || gamepadButtons.includes(binding as GamepadButtonName)) {
-          const index = keys.indexOf(binding as AllKeyCodes)
-          console.log('match with', group, action, index)
+        if (keys && !userConfig?.[group]?.[action]?.keys) {
+          for (const [index, key] of keys.entries()) {
+            bindsMap.current.keyboard[key] ??= []
+            if (!bindsMap.current.keyboard[key].some(obj => obj.group === group && obj.action === action && obj.index === index)) {
+              bindsMap.current.keyboard[key].push({ group, action, index })
+            }
+          }
+        }
+        if (gamepadButtons && !userConfig?.[group]?.[action]?.gamepad) {
+          bindsMap.current.gamepad[gamepadButtons] ??= []
+          bindsMap.current.gamepad[gamepadButtons].push({ group, action, index: 0 })
         }
       }
     }
   }
+
+  const updateBindWarnings = () => {
+    if (userConfig) {
+      for (const [group, actions] of Object.entries(userConfig)) {
+        for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
+          if (keys) {
+            for (const [index, key] of keys.entries()) {
+              if (!containerRef.current) continue
+              const elem = containerRef.current.querySelector(`#bind-warning-${group}-${action}-keyboard-${index}`)
+              if (!elem) continue
+              if (bindsMap.current.keyboard[key].length > 1) {
+                for (const bind of bindsMap.current.keyboard[key]) {
+                  const currElem = containerRef.current.querySelector(`#bind-warning-${bind.group}-${bind.action}-keyboard-${bind.index}`)
+                  if (!currElem) continue
+                  currElem.style.display = 'flex'
+                }
+              } else {
+                elem.style.display = 'none'
+              }
+            }
+          }
+          if (gamepadButtons) {
+            if (!containerRef.current) return
+            const elem = containerRef.current.querySelector(`#bind-warning-${group}-${action}-keyboard-0`)
+            if (!elem) continue
+            if (bindsMap.current[group]?.[action]?.gamepad[0]) {
+              elem.style.display = 'flex'
+            } else {
+              elem.style.display = 'none'
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // fill binds map
+  useEffect(() => {
+    updateBindMap()
+  }, [])
 
   useEffect(() => {
     contro.on('pressedKeyOrButtonChanged', updateGamepadBinding)
@@ -92,6 +154,7 @@ export default (
   return <Screen title="Keybindings" backdrop>
     {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
     <div className={styles.container}
+      ref={containerRef}
       onKeyDown={(e) => updateKeyboardBinding(e)}
     >
 
@@ -108,6 +171,8 @@ export default (
                     setGroupName(prev => group)
                     forceUpdate(prev => !prev)
                     resetBinding(group, action, 'keyboard')
+                    updateBindMap()
+                    updateBindWarnings()
                   }}
                   className={styles['undo-keyboard']}
                   icon={'pixelarticons:undo'}
@@ -150,6 +215,8 @@ export default (
                     setGroupName(prev => group)
                     forceUpdate(prev => !prev)
                     resetBinding(group, action, 'gamepad')
+                    updateBindMap()
+                    updateBindWarnings()
                   }}
                   className={styles['undo-gamepad']}
                   icon={'pixelarticons:undo'}
@@ -160,20 +227,6 @@ export default (
           })}
         </div>
       })}
-      <KeybindingsCustom
-        commands={commands}
-        userConfig={userConfig}
-        awaitingInputType={awaitingInputType}
-        setAwaitingInputType={setAwaitingInputType}
-        setGroupName={setGroupName}
-        setBinding={setBinding}
-        setActionName={setActionName}
-        setButtonNum={setButtonNum}
-        handleClick={handleClick}
-        resetBinding={resetBinding}
-        parseBindingName={parseBindingName}
-        isPS={isPS}
-      />
     </div>
   </Screen>
 }
@@ -228,7 +281,7 @@ export const ButtonWithMatchesAlert = ({
       </Button>
 
     }
-    <div className={styles['matched-bind-warning']}>
+    <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
       <PixelartIcon
         iconName={'alert'}
         width={5}
@@ -239,8 +292,7 @@ export const ButtonWithMatchesAlert = ({
           marginRight: '2px'
         }} />
       <div>
-        This bind is already in use: <a href="">Rebind</a>
-
+        This bind is already in use: <span></span>
       </div>
     </div>
   </div>
