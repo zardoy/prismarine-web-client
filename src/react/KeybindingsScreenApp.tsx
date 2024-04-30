@@ -40,8 +40,7 @@ export default (
   }
 
   const updateKeyboardBinding = (e) => {
-    if (!e.code || e.key === 'Escape') return
-    // showHideBindingsWarnings(e.code, 'keyboard')
+    if (!e.code || e.key === 'Escape' || !awaitingInputType) return
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
     updateBindMap()
     updateBindWarnings()

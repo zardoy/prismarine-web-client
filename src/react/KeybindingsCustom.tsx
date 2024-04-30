@@ -71,9 +71,50 @@ export default (
   return <>
     <div className={styles.group}>
       {Object.entries(customCommandsConfig).map(([group, { input }]) => (
-        <><div key={group} className={styles['group-category']}>{group}</div>
+        <div className={styles.group}><div key={group} className={styles['group-category']}>{group}</div>
           {customConfig.filter(x => x.type === group).map(({ keys, gamepad, inputs }, indexOption) => {
             return <div key={indexOption}>
+              <div className={styles.actionBinds}>
+                <ButtonWithMatchesAlert
+                  key={`custom-keybind-${indexOption}`}
+                  group={group}
+                  action={indexOption}
+                  index={0}
+                  handleClick={handleClick}
+                  inputType={'keyboard'}
+                  parseBindingName={parseBindingName}
+                  userConfig={userConfig}
+                  keys={keys}
+                  gamepadButtons={gamepad}
+                  isPS={isPS}
+                />
+                <ButtonWithMatchesAlert
+                  key={`custom-keybind-${indexOption}`}
+                  group={group}
+                  action={indexOption}
+                  index={1}
+                  handleClick={handleClick}
+                  inputType={'keyboard'}
+                  parseBindingName={parseBindingName}
+                  userConfig={userConfig}
+                  keys={keys}
+                  gamepadButtons={gamepad}
+                  isPS={isPS}
+                />
+                <ButtonWithMatchesAlert
+                  key={`custom-keybind-${indexOption}`}
+                  group={group}
+                  action={indexOption}
+                  index={1}
+                  handleClick={handleClick}
+                  inputType={'gamepad'}
+                  parseBindingName={parseBindingName}
+                  userConfig={userConfig}
+                  keys={keys}
+                  gamepadButtons={gamepad}
+                  isPS={isPS}
+                />
+              </div>
               {input.map((obj, indexInput) => {
                 const config = typeof obj === 'function' ? obj(inputs) : obj
                 if (!config) return null
@@ -93,142 +134,8 @@ export default (
               alignSelf: 'center'
             }}
           />
-        </>
+        </div>
       ))}
-      <div className={styles['group-category']}>Chat commands</div>
-      {userConfig.custom &&
-        Object.entries(userConfig.custom)
-          .map(([action, { keys, gamepadButtons }]) =>
-            <ChatCommandBind
-              key={`${action}`}
-              group={'custom'}
-              action={action}
-              parseBindingName={parseBindingName}
-              handleClick={handleClick}
-              keys={keys}
-              userConfig={userConfig}
-              gamepadButtons={gamepadButtons}
-              resetBinding={resetBinding}
-              setActionName={setActionName}
-              setGroupName={setGroupName}
-              isPS={isPS}
-            />
-          )}
-
-      <Button
-        onClick={addNewCommand}
-        icon={'pixelarticons:add-box'}
-        style={{
-          alignSelf: 'center'
-        }}
-      />
     </div>
-    <div className={styles.group}>
-      <div className={styles['group-category']}>Custom scripts</div>
-      <Button
-        icon={'pixelarticons:add-box'}
-        style={{
-          alignSelf: 'center'
-        }}
-      />
-    </div>
-    <div className={styles.group}>
-      <div className={styles['group-category']}>Toggle settings</div>
-      <Button
-        icon={'pixelarticons:add-box'}
-        style={{
-          alignSelf: 'center'
-        }}
-      />
-    </div>
-  </>
-}
-
-const ChatCommandBind = ({
-  group,
-  action,
-  parseBindingName,
-  handleClick,
-  userConfig,
-  keys,
-  gamepadButtons,
-  isPS,
-  setGroupName,
-  setActionName,
-  resetBinding
-}) => {
-
-
-  return <>
-    <div key={`${group}-${action}`} className={styles.actionBinds} style={{ paddingLeft: '25px' }}>
-      {
-        userConfig?.[group]?.[action]?.keys?.length ? <Button
-          key={`keyboard-undo-${group}-${action}`}
-          onClick={() => {
-            setActionName(prev => action)
-            setGroupName(prev => group)
-            resetBinding(group, action, 'keyboard')
-          }}
-          className={styles['undo-keyboard']}
-          style={{ left: '1%' }}
-          icon={'pixelarticons:undo'}
-        />
-          : null
-      }
-      {userConfig[group] &&
-        [0, 1].map((key, index) => <ButtonWithMatchesAlert
-          key={`keyboard-button-${group}-${action}-${index}`}
-          group={group}
-          action={action}
-          index={index}
-          parseBindingName={parseBindingName}
-          handleClick={handleClick}
-          inputType={'keyboard'}
-          keys={keys}
-          userConfig={userConfig}
-          gamepadButtons={gamepadButtons}
-          isPS={isPS}
-        />)
-      }
-      {
-        userConfig?.[group]?.[action]?.gamepad?.length ? <Button
-          key={`gamepad-undo-${group}-${action}`}
-          onClick={() => {
-            setActionName(prev => action)
-            setGroupName(prev => group)
-            resetBinding(group, action, 'gamepad')
-          }}
-          className={styles['undo-gamepad']}
-          style={{ left: '44.5%' }}
-          icon={'pixelarticons:undo'}
-        />
-          : null
-      }
-      <ButtonWithMatchesAlert
-        group={group}
-        action={action}
-        index={0}
-        parseBindingName={parseBindingName}
-        handleClick={handleClick}
-        inputType={'gamepad'}
-        keys={keys}
-        userConfig={userConfig}
-        gamepadButtons={gamepadButtons}
-        isPS={isPS}
-      />
-      <Button
-        onClick={(e) => {
-          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-          delete userConfig[group][action]
-        }}
-        icon={'pixelarticons:delete'}
-        style={{
-          color: 'red',
-        }} />
-    </div>
-    <input
-      type="text"
-      className={`${styles['chat-command']}`}
-      placeholder='Chat command' />
   </>
 }
