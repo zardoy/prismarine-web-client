@@ -45,7 +45,6 @@ export default (
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
     updateBindMap()
     updateBindWarnings()
-    console.log(bindsMap.current)
   }
 
   const updateGamepadBinding = (data) => {
@@ -57,8 +56,6 @@ export default (
       contro.enabled = false
       void Promise.resolve().then(() => { contro.enabled = true })
       setBinding(data, groupName, actionName, buttonNum)
-      updateBindMap()
-      updateBindWarnings()
     }
 
     setAwaitingInputType(null)
@@ -66,11 +63,17 @@ export default (
 
   const updateBindMap = () => {
     bindsMap.current = { keyboard: {} as any, gamepad: {} as any }
-    if (userConfig) {
-      for (const [group, actions] of Object.entries(userConfig)) {
+    if (commands) {
+      for (const [group, actions] of Object.entries(commands)) {
         for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
           if (keys) {
-            for (const [index, key] of keys.entries()) {
+            let currKeys
+            if (userConfig?.[group]?.[action]?.keys) {
+              currKeys = userConfig[group][action].keys
+            } else {
+              currKeys = keys
+            }
+            for (const [index, key] of currKeys.entries()) {
               bindsMap.current.keyboard[key] ??= []
               if (!bindsMap.current.keyboard[key].some(obj => obj.group === group && obj.action === action && obj.index === index)) {
                 bindsMap.current.keyboard[key].push({ group, action, index })
@@ -78,59 +81,77 @@ export default (
             }
           }
           if (gamepadButtons) {
-            bindsMap.current.gamepad[gamepadButtons] ??= []
-            bindsMap.current.gamepad[gamepadButtons].push({ group, action, index: 0 })
-          }
-        }
-      }
-    }
-    for (const [group, actions] of Object.entries(commands)) {
-      for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
-        if (keys && !userConfig?.[group]?.[action]?.keys) {
-          for (const [index, key] of keys.entries()) {
-            bindsMap.current.keyboard[key] ??= []
-            if (!bindsMap.current.keyboard[key].some(obj => obj.group === group && obj.action === action && obj.index === index)) {
-              bindsMap.current.keyboard[key].push({ group, action, index })
+            let currButtons
+            if (userConfig?.[group]?.[action]?.gamepad) {
+              currButtons = userConfig[group][action].gamepad
+            } else {
+              currButtons = gamepadButtons
+            }
+            if (currButtons.length > 0) {
+              bindsMap.current.gamepad[currButtons[0]] ??= []
+              bindsMap.current.gamepad[currButtons[0]].push({ group, action, index: 0 })
             }
           }
-        }
-        if (gamepadButtons && !userConfig?.[group]?.[action]?.gamepad) {
-          bindsMap.current.gamepad[gamepadButtons] ??= []
-          bindsMap.current.gamepad[gamepadButtons].push({ group, action, index: 0 })
         }
       }
     }
   }
 
   const updateBindWarnings = () => {
-    if (userConfig) {
-      for (const [group, actions] of Object.entries(userConfig)) {
-        for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
-          if (keys) {
-            for (const [index, key] of keys.entries()) {
-              if (!containerRef.current) continue
-              const elem = containerRef.current.querySelector(`#bind-warning-${group}-${action}-keyboard-${index}`)
-              if (!elem) continue
-              if (bindsMap.current.keyboard[key].length > 1) {
-                for (const bind of bindsMap.current.keyboard[key]) {
-                  const currElem = containerRef.current.querySelector(`#bind-warning-${bind.group}-${bind.action}-keyboard-${bind.index}`)
-                  if (!currElem) continue
-                  currElem.style.display = 'flex'
-                }
-              } else {
-                elem.style.display = 'none'
-              }
-            }
+    if (!commands) return
+    for (const [group, actions] of Object.entries(commands)) {
+      for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
+        if (!containerRef.current) continue
+        if (keys) {
+          let currKeys
+          if (userConfig?.[group]?.[action]?.keys) {
+            currKeys = userConfig[group][action].keys
+          } else {
+            currKeys = keys
           }
-          if (gamepadButtons) {
-            if (!containerRef.current) return
-            const elem = containerRef.current.querySelector(`#bind-warning-${group}-${action}-keyboard-0`)
+          for (const [index, key] of currKeys.entries()) {
+            const elem = containerRef.current.querySelector(`#bind-warning-${group}-${action}-keyboard-${index}`) as HTMLElement
             if (!elem) continue
-            if (bindsMap.current[group]?.[action]?.gamepad[0]) {
-              elem.style.display = 'flex'
+            if (bindsMap.current.keyboard[key].length > 1) {
+              for (const bind of bindsMap.current.keyboard[key]) {
+                const currElem = containerRef.current.querySelector(`#bind-warning-${bind.group}-${bind.action}-keyboard-${bind.index}`) as HTMLElement
+                if (!currElem) continue
+                currElem.style.display = 'flex'
+              }
             } else {
               elem.style.display = 'none'
             }
+          }
+          if (currKeys.length === 1) {
+            const elem = containerRef.current.querySelector(`#bind-warning-${group}-${action}-keyboard-1`) as HTMLElement
+            if (!elem) continue
+            elem.style.display = 'none'
+          }
+          if (currKeys.length === 0) {
+            for (const index of [0, 1]) {
+              const elem = containerRef.current.querySelector(`#bind-warning-${group}-${action}-keyboard-${index}`) as HTMLElement
+              if (!elem) continue
+              elem.style.display = 'none'
+            }
+          }
+        }
+        if (gamepadButtons) {
+          let currButtons
+          if (userConfig?.[group]?.[action]?.gamepad) {
+            currButtons = userConfig[group][action].gamepad
+          } else {
+            currButtons = gamepadButtons
+          }
+          const elem = containerRef.current.querySelector(`#bind-warning-${group}-${action}-gamepad-0`) as HTMLElement
+          if (!elem || !currButtons || currButtons.length === 0) continue
+          if (bindsMap.current.gamepad[currButtons[0]].length > 1) {
+            for (const bind of bindsMap.current.gamepad[currButtons[0]]) {
+              const currElem = containerRef.current.querySelector(`#bind-warning-${bind.group}-${bind.action}-gamepad-${bind.index}`) as HTMLElement
+              if (!currElem) continue
+              currElem.style.display = 'flex'
+            }
+          } else {
+            elem.style.display = 'none'
           }
         }
       }
@@ -227,6 +248,21 @@ export default (
           })}
         </div>
       })}
+
+      <KeybindingsCustom
+        commands={commands}
+        userConfig={userConfig}
+        awaitingInputType={awaitingInputType}
+        setBinding={setBinding}
+        setAwaitingInputType={setAwaitingInputType}
+        setGroupName={setGroupName}
+        setActionName={setActionName}
+        setButtonNum={setButtonNum}
+        handleClick={handleClick}
+        parseBindingName={parseBindingName}
+        resetBinding={resetBinding}
+        isPS={isPS}
+      />
     </div>
   </Screen>
 }
@@ -292,7 +328,7 @@ export const ButtonWithMatchesAlert = ({
           marginRight: '2px'
         }} />
       <div>
-        This bind is already in use: <span></span>
+        This bind is already in use. <span></span>
       </div>
     </div>
   </div>
