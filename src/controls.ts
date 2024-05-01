@@ -49,8 +49,7 @@ export const contro = new ControMax({
     advanced: {
       lockUrl: ['KeyY'],
     },
-    custom: {
-    }
+    custom: {} as any
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']

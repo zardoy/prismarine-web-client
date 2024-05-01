@@ -24,8 +24,8 @@ export default (
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
-  const { commands } = contro.inputSchema
-  const { userConfig } = contro
+  const [commands, setCommands] = useState(contro.inputSchema.commands)
+  const [userConfig, setUserConfig] = useState(contro.userConfig)
   const [awaitingInputType, setAwaitingInputType] = useState(null as null | 'keyboard' | 'gamepad')
   const [groupName, setGroupName] = useState('')
   const [actionName, setActionName] = useState('')
@@ -179,6 +179,7 @@ export default (
     >
 
       {Object.entries(commands).map(([group, actions], index) => {
+        if (group === 'custom') return null
         return <div key={`group-container-${group}-${index}`} className={styles.group}>
           <div className={styles['group-category']}>{group}</div>
           {Object.entries(actions).map(([action, { keys, gamepadButtons }]) => {
@@ -256,6 +257,8 @@ export default (
         setAwaitingInputType={setAwaitingInputType}
         setGroupName={setGroupName}
         setActionName={setActionName}
+        updateBindMap={updateBindMap}
+        updateBindWarnings={updateBindWarnings}
         setButtonNum={setButtonNum}
         handleClick={handleClick}
         parseBindingName={parseBindingName}

@@ -13,8 +13,7 @@ const setBinding = (data, group, command, buttonNum) => {
     switch (customKeymaps[group][command].keys.length) {
       case 0:
         if (buttonNum === 1
-          && contro.inputSchema.commands[group][command]
-          && contro.inputSchema.commands[group][command].keys) {
+          && contro.inputSchema.commands[group]?.[command]?.keys) {
           customKeymaps[group][command].keys.push(contro.inputSchema.commands[group][command].keys[0], data.code)
         } else {
           customKeymaps[group][command].keys.push(data.code)

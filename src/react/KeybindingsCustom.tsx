@@ -17,6 +17,8 @@ export default (
     setGroupName,
     setActionName,
     setButtonNum,
+    updateBindMap,
+    updateBindWarnings,
     handleClick,
     parseBindingName,
     resetBinding,
@@ -30,6 +32,8 @@ export default (
     setActionName: (state: string) => void,
     setButtonNum: (state: number) => void,
     setBinding: (e, group, action, buttonNum, inputType?) => void,
+    updateBindMap: () => void,
+    updateBindWarnings: () => void,
     handleClick: (group, action, index, type) => void,
     parseBindingName: (name: string) => string,
     resetBinding: (group, action, inputType) => void,
@@ -43,27 +47,41 @@ export default (
     inputs: any[]
   }
   // todo need to save custom actions to localstorage in the upper component and pass it down parsed to keybindings with config inputs
-  const [customConfig, setCustomConfig] = useState([] as CustomCommand[]/* userConfig.custom */)
+  const [customConfig, setCustomConfig] = useState({} as Record<string, CustomCommand>)
+  const [, forceUpdate] = useState(false)
   useEffect(() => {
     localStorage.setItem('customConfig', JSON.stringify(customConfig))
-    // userConfig.custom = customConfig
   }, [customConfig])
 
   const addNewCommand = (type) => {
-    setCustomConfig(prev => [...prev, {
-      keys: [],
-      gamepad: [],
-      type,
-      inputs: []
-    }])
+    const newKey = generateUniqueString(Object.keys(customConfig))
+    setCustomConfig(prev => {
+      const newConf = { ...commands.custom }
+      newConf[newKey] = {
+        keys: [] as any[],
+        gamepad: [] as any[],
+        type,
+        inputs: [] as any[]
+      }
+      commands.custom = { ...newConf }
+      const newCustomConf = { ...prev }
+      newCustomConf[newKey] = {
+        keys: undefined as any[] || undefined,
+        gamepad: undefined as any[] || undefined,
+        type,
+        inputs: [] as any[]
+      }
+      return newCustomConf
+    })
 
     // setBinding({}, 'custom', commandName, 0)
   }
 
-  const setInputValue = (indexOption, indexInput, value) => {
+  const setInputValue = (optionKey, indexInput, value) => {
     setCustomConfig(prev => {
-      const newConfig = [...prev]
-      newConfig[indexOption].inputs[indexInput] = value
+      const newConfig = { ...prev }
+      newConfig[optionKey].inputs[indexInput] = value
+      userConfig.custom = { ...newConfig }
       return newConfig
     })
   }
@@ -72,40 +90,40 @@ export default (
     <div className={styles.group}>
       {Object.entries(customCommandsConfig).map(([group, { input }]) => (
         <div className={styles.group}><div key={group} className={styles['group-category']}>{group}</div>
-          {customConfig.filter(x => x.type === group).map(({ keys, gamepad, inputs }, indexOption) => {
+          {Object.entries(customConfig).filter(([key, data]) => data.type === group).map(([commandKey, { keys, gamepad, type, inputs }], indexOption) => {
             return <div key={indexOption}>
-              <div className={styles.actionBinds}>
+              <div style={{ paddingLeft: '20px' }} className={styles.actionBinds}>
+                <Button
+                  onClick={() => {
+                    console.log('reset', group, commandKey)
+                    resetBinding('custom', commandKey, 'keyboard')
+                    updateBindMap()
+                    updateBindWarnings()
+                    forceUpdate(prev => !prev)
+                  }}
+                  className={styles['undo-keyboard']}
+                  style={{ left: '0px' }}
+                  icon={'pixelarticons:undo'}
+                />
+                {[0, 1].map((key, index) => <ButtonWithMatchesAlert
+                  key={`custom-keyboard-${index}`}
+                  group={'custom'}
+                  action={commandKey}
+                  index={index}
+                  handleClick={handleClick}
+                  inputType={'keyboard'}
+                  parseBindingName={parseBindingName}
+                  userConfig={userConfig}
+                  keys={keys}
+                  gamepadButtons={gamepad}
+                  isPS={isPS}
+                />
+                )}
                 <ButtonWithMatchesAlert
-                  key={`custom-keybind-${indexOption}`}
-                  group={group}
-                  action={indexOption}
+                  key={`custom-gamepad-0`}
+                  group={'custom'}
+                  action={commandKey}
                   index={0}
-                  handleClick={handleClick}
-                  inputType={'keyboard'}
-                  parseBindingName={parseBindingName}
-                  userConfig={userConfig}
-                  keys={keys}
-                  gamepadButtons={gamepad}
-                  isPS={isPS}
-                />
-                <ButtonWithMatchesAlert
-                  key={`custom-keybind-${indexOption}`}
-                  group={group}
-                  action={indexOption}
-                  index={1}
-                  handleClick={handleClick}
-                  inputType={'keyboard'}
-                  parseBindingName={parseBindingName}
-                  userConfig={userConfig}
-                  keys={keys}
-                  gamepadButtons={gamepad}
-                  isPS={isPS}
-                />
-                <ButtonWithMatchesAlert
-                  key={`custom-keybind-${indexOption}`}
-                  group={group}
-                  action={indexOption}
-                  index={1}
                   handleClick={handleClick}
                   inputType={'gamepad'}
                   parseBindingName={parseBindingName}
@@ -121,7 +139,7 @@ export default (
 
                 return config.type === 'select'
                   ? <select key={indexInput} onChange={(e) => {
-                    setInputValue(indexOption, indexInput, e.target.value)
+                    setInputValue(commandKey, indexInput, e.target.value)
                   }}>{config.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
                   : <Input key={indexInput} placeholder={config.placeholder} value={inputs[indexInput]} onChange={(e) => setInputValue(indexOption, indexInput, e.target.value)} />
               })}
@@ -138,4 +156,23 @@ export default (
       ))}
     </div>
   </>
+}
+
+
+const generateUniqueString = (arr: string[]) => {
+  const randomLetter = () => {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    return alphabet.charAt(Math.floor(Math.random() * alphabet.length))
+  }
+
+  const randomNumber = () => {
+    return Math.floor(Math.random() * 1000).toString().padStart(4, '0')
+  }
+
+  let newString: string
+  do {
+    newString = `${randomLetter()}${randomLetter()}${randomLetter()}${randomLetter()}-${randomNumber()}`
+  } while (arr.includes(newString))
+
+  return newString
 }
