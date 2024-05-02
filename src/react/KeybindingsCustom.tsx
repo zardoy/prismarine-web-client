@@ -1,87 +1,59 @@
-import { useEffect, useState } from 'react'
-import { contro as controEx } from '../controls'
+import { useState } from 'react'
 import { customCommandsConfig } from '../customCommands'
-import { AwaitingInputOverlay, ButtonWithMatchesAlert } from './KeybindingsScreenApp'
+import { ButtonWithMatchesAlert } from './KeybindingsScreen'
 import Button from './Button'
-import PixelartIcon from './PixelartIcon'
 import styles from './KeybindingsScreen.module.css'
 import Input from './Input'
 
 export default (
   {
-    commands,
     userConfig,
-    awaitingInputType,
-    setBinding,
-    setAwaitingInputType,
-    setGroupName,
     setActionName,
-    setButtonNum,
-    updateBindMap,
-    updateBindWarnings,
-    handleClick,
-    parseBindingName,
-    resetBinding,
-    isPS
+    setGroupName,
+    resetBinding
   }: {
-    commands: any,
     userConfig: any,
-    awaitingInputType: 'keyboard' | 'gamepad' | null,
-    setAwaitingInputType: (state: typeof awaitingInputType) => void,
     setGroupName: (state: string) => void,
     setActionName: (state: string) => void,
-    setButtonNum: (state: number) => void,
-    setBinding: (e, group, action, buttonNum, inputType?) => void,
-    updateBindMap: () => void,
-    updateBindWarnings: () => void,
-    handleClick: (group, action, index, type) => void,
-    parseBindingName: (name: string) => string,
     resetBinding: (group, action, inputType) => void,
-    isPS: boolean | undefined
   }
 ) => {
   type CustomCommand = {
-    keys: string[],
-    gamepad: string[]
+    keys: undefined | string[]
+    gamepad: undefined | string[]
     type: string
     inputs: any[]
   }
-  // todo need to save custom actions to localstorage in the upper component and pass it down parsed to keybindings with config inputs
-  const [customConfig, setCustomConfig] = useState({} as Record<string, CustomCommand>)
-  const [, forceUpdate] = useState(false)
-  useEffect(() => {
-    localStorage.setItem('customConfig', JSON.stringify(customConfig))
-  }, [customConfig])
+  const [customConfig, setCustomConfig] = useState(userConfig.custom || {} as Record<string, CustomCommand>)
 
   const addNewCommand = (type) => {
     const newKey = generateUniqueString(Object.keys(customConfig))
+    const newObj = {
+      keys: [] as string[],
+      gamepad: [] as string[],
+      type,
+      inputs: [] as any[]
+    }
+    userConfig.custom ??= {}
+    userConfig.custom[newKey] = newObj
     setCustomConfig(prev => {
-      const newConf = { ...commands.custom }
-      newConf[newKey] = {
-        keys: [] as any[],
-        gamepad: [] as any[],
-        type,
-        inputs: [] as any[]
-      }
-      commands.custom = { ...newConf }
       const newCustomConf = { ...prev }
       newCustomConf[newKey] = {
-        keys: undefined as any[] || undefined,
-        gamepad: undefined as any[] || undefined,
+        keys: undefined as string[] | undefined,
+        gamepad: undefined as string[] | undefined,
         type,
         inputs: [] as any[]
       }
       return newCustomConf
     })
-
-    // setBinding({}, 'custom', commandName, 0)
   }
 
   const setInputValue = (optionKey, indexInput, value) => {
     setCustomConfig(prev => {
       const newConfig = { ...prev }
+      newConfig[optionKey].inputs = [...prev[optionKey].inputs]
       newConfig[optionKey].inputs[indexInput] = value
-      userConfig.custom = { ...newConfig }
+      userConfig.custom[optionKey].inputs[indexInput] = value
       return newConfig
     })
   }
@@ -90,47 +62,68 @@ export default (
     <div className={styles.group}>
       {Object.entries(customCommandsConfig).map(([group, { input }]) => (
         <div className={styles.group}><div key={group} className={styles['group-category']}>{group}</div>
-          {Object.entries(customConfig).filter(([key, data]) => data.type === group).map(([commandKey, { keys, gamepad, type, inputs }], indexOption) => {
+          {Object.entries(userConfig.custom).filter(([key, data]) => data.type === group).map(([commandKey, { keys, gamepad, type, inputs }], indexOption) => {
             return <div key={indexOption}>
               <div style={{ paddingLeft: '20px' }} className={styles.actionBinds}>
-                <Button
-                  onClick={() => {
-                    console.log('reset', group, commandKey)
-                    resetBinding('custom', commandKey, 'keyboard')
-                    updateBindMap()
-                    updateBindWarnings()
-                    forceUpdate(prev => !prev)
-                  }}
-                  className={styles['undo-keyboard']}
-                  style={{ left: '0px' }}
-                  icon={'pixelarticons:undo'}
-                />
+                {
+                  userConfig?.['custom']?.[commandKey]?.keys ? <Button
+                    onClick={() => {
+                      setActionName(commandKey)
+                      setGroupName(group)
+                      resetBinding('custom', commandKey, 'keyboard')
+                    }}
+                    className={styles['undo-keyboard']}
+                    style={{ left: '0px' }}
+                    icon={'pixelarticons:undo'}
+                  />
+                    : null}
+
                 {[0, 1].map((key, index) => <ButtonWithMatchesAlert
                   key={`custom-keyboard-${index}`}
                   group={'custom'}
                   action={commandKey}
                   index={index}
-                  handleClick={handleClick}
                   inputType={'keyboard'}
-                  parseBindingName={parseBindingName}
-                  userConfig={userConfig}
                   keys={keys}
                   gamepadButtons={gamepad}
-                  isPS={isPS}
                 />
                 )}
+
+                {
+                  userConfig?.['custom']?.[commandKey]?.gamepad ? <Button
+                    onClick={() => {
+                      setActionName(commandKey)
+                      setGroupName(group)
+                      resetBinding('custom', commandKey, 'gamepad')
+                    }}
+                    className={styles['undo-keyboard']}
+                    style={{ left: '44px' }}
+                    icon={'pixelarticons:undo'}
+                  />
+                    : null}
                 <ButtonWithMatchesAlert
                   key={`custom-gamepad-0`}
                   group={'custom'}
                   action={commandKey}
                   index={0}
-                  handleClick={handleClick}
                   inputType={'gamepad'}
-                  parseBindingName={parseBindingName}
-                  userConfig={userConfig}
                   keys={keys}
                   gamepadButtons={gamepad}
-                  isPS={isPS}
+                />
+                <Button
+                  onClick={() => {
+                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                    delete userConfig.custom[commandKey]
+                    setCustomConfig(prev => {
+                      const newConfig = { ...prev }
+                      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                      delete newConfig[commandKey]
+                      return newConfig
+                    })
+                  }}
+
+                  style={{ color: 'red' }}
+                  icon={'pixelarticons:delete'}
                 />
               </div>
               {input.map((obj, indexInput) => {
@@ -141,7 +134,7 @@ export default (
                   ? <select key={indexInput} onChange={(e) => {
                     setInputValue(commandKey, indexInput, e.target.value)
                   }}>{config.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
-                  : <Input key={indexInput} placeholder={config.placeholder} value={inputs[indexInput]} onChange={(e) => setInputValue(indexOption, indexInput, e.target.value)} />
+                  : <Input key={indexInput} rootStyles={{ width: '99%' }} placeholder={config.placeholder} value={inputs[indexInput]} onChange={(e) => setInputValue(commandKey, indexInput, e.target.value)} />
               })}
             </div>
           })}

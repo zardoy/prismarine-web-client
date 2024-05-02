@@ -19,6 +19,7 @@ import { getItemFromBlock } from './botUtils'
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
 subscribe(customKeymaps, () => {
+  //contro.inputSchema.commands.custom = customKeymaps.custom as any // didnt work as I expected
   localStorage.keymap = JSON.stringify(customKeymaps)
 })
 

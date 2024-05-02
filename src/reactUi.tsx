@@ -33,7 +33,7 @@ import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
 import HotbarRenderApp from './react/HotbarRenderApp'
 import Crosshair from './react/Crosshair'
-import KeybindingsScreenAppProviderApp from './react/KeybindingsScreenAppProviderApp'
+import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -141,7 +141,7 @@ const App = () => {
       <AppStatusProvider />
       <SelectOption />
       <OptionsRenderApp />
-      <KeybindingsScreenAppProviderApp />
+      <KeybindingsScreenProvider />
       <MainMenuRenderApp />
       <NotificationProvider />
       {/* <GameHud>
