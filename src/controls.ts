@@ -17,6 +17,7 @@ import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 
+
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
 subscribe(customKeymaps, () => {
   //contro.inputSchema.commands.custom = customKeymaps.custom as any // didnt work as I expected
@@ -50,7 +51,7 @@ export const contro = new ControMax({
     advanced: {
       lockUrl: ['KeyY'],
     },
-    custom: {} as any
+    custom: JSON.parse(localStorage.customCommands || '{}')
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']

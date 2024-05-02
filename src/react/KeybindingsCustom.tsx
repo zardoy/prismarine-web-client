@@ -8,11 +8,13 @@ import Input from './Input'
 export default (
   {
     userConfig,
+    baseConfig,
     setActionName,
     setGroupName,
     resetBinding
   }: {
     userConfig: any,
+    baseConfig: any,
     setGroupName: (state: string) => void,
     setActionName: (state: string) => void,
     resetBinding: (group, action, inputType) => void,
@@ -28,14 +30,20 @@ export default (
 
   const addNewCommand = (type) => {
     const newKey = generateUniqueString(Object.keys(customConfig))
-    const newObj = {
+    userConfig.custom ??= {}
+    userConfig.custom[newKey] = {
+      keys: undefined as string[] | undefined,
+      gamepad: undefined as string[] | undefined,
+      type,
+      inputs: [] as any[]
+    }
+    baseConfig[newKey] = {
       keys: [] as string[],
       gamepad: [] as string[],
       type,
       inputs: [] as any[]
     }
-    userConfig.custom ??= {}
-    userConfig.custom[newKey] = newObj
+    localStorage.setItem('customCommands', JSON.stringify(baseConfig))
     setCustomConfig(prev => {
       const newCustomConf = { ...prev }
       newCustomConf[newKey] = {
@@ -79,7 +87,7 @@ export default (
                     : null}
 
                 {[0, 1].map((key, index) => <ButtonWithMatchesAlert
-                  key={`custom-keyboard-${index}`}
+                  key={`custom-keyboard-${group}-${commandKey}-${index}`}
                   group={'custom'}
                   action={commandKey}
                   index={index}
@@ -102,7 +110,7 @@ export default (
                   />
                     : null}
                 <ButtonWithMatchesAlert
-                  key={`custom-gamepad-0`}
+                  key={`custom-gamepad-${group}-${commandKey}-0`}
                   group={'custom'}
                   action={commandKey}
                   index={0}
@@ -114,6 +122,9 @@ export default (
                   onClick={() => {
                     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                     delete userConfig.custom[commandKey]
+                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+                    delete baseConfig[commandKey]
+                    localStorage.setItem('customCommands', JSON.stringify(baseConfig))
                     setCustomConfig(prev => {
                       const newConfig = { ...prev }
                       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete

@@ -11,8 +11,8 @@ export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx.userConfig,
-    handleClick (group, action, index, type) { },
-    parseBindingName (binding) { }
+    handleClick(group, action, index, type) { },
+    parseBindingName(binding) { }
   }
 )
 
@@ -291,6 +291,7 @@ export default (
 
         <KeybindingsCustom
           userConfig={userConfig}
+          baseConfig={commands.custom}
           setGroupName={setGroupName}
           setActionName={setActionName}
           resetBinding={resetBinding}
