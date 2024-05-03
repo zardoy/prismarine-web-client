@@ -44,19 +44,21 @@ export class World {
     // if (lightsCache.has(key)) return lightsCache.get(key)
     const column = this.getColumnByPos(pos)
     if (!column || !hasChunkSection(column, pos)) return 15
+    let skyLightBlock = column.getSkyLight(posInChunk(pos));
+    if (skyLightBlock === 0) skyLightBlock = column.getSkyLight(posInChunk(pos.offset(0, 1, 0)));
     let result = Math.min(
       15,
       Math.max(
         column.getBlockLight(posInChunk(pos)),
-        Math.min(skyLight, column.getSkyLight(posInChunk(pos)))
-      ) + 2
+        Math.min(skyLight, skyLightBlock)
+      )
     )
     // lightsCache.set(key, result)
     if (result === 2 && this.getBlock(pos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
       result = this.getLight(pos.offset(0, 1, 0))
     }
     if (isNeighbor && result === 2) result = 15 // TODO
-    return result
+    return Math.max(result / 15, 0.25)
   }
 
   addColumn (x, z, json) {
