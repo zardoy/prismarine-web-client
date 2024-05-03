@@ -1,5 +1,6 @@
 // global variables useful for debugging
 
+import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
 import { getEntityCursor } from './worldInteractions'
 
 // Object.defineProperty(window, 'cursorBlock', )
@@ -19,6 +20,6 @@ window.inspectPlayer = () => require('fs').promises.readFile('/world/playerdata/
 
 Object.defineProperty(window, 'debugSceneChunks', {
   get () {
-    return viewer.world.getLoadedChunksRelative(bot.entity.position, true)
+    return (viewer.world as WorldRendererThree).getLoadedChunksRelative?.(bot.entity.position, true)
   },
 })

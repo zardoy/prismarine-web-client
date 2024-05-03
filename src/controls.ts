@@ -9,7 +9,7 @@ import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
-import { openPlayerInventory } from './playerWindows'
+import { openPlayerInventory } from './inventoryWindows'
 import { chatInputValueGlobal } from './react/ChatContainer'
 import { fsState } from './loadSave'
 import { showOptionsModal } from './react/SelectOption'
@@ -32,7 +32,8 @@ export const contro = new ControMax({
       jump: ['Space', 'A'],
       inventory: ['KeyE', 'X'],
       drop: ['KeyQ', 'B'],
-      sneak: ['ShiftLeft', 'Right Stick'],
+      sneak: ['ShiftLeft'],
+      toggleSneakOrDown: [null, 'Right Stick'],
       sprint: ['ControlLeft', 'Left Stick'],
       nextHotbarSlot: [null, 'Left Bumper'],
       prevHotbarSlot: [null, 'Right Bumper'],
@@ -152,6 +153,11 @@ const uiCommand = (command: Command) => {
   }
 }
 
+const setSneaking = (state: boolean) => {
+  gameAdditionalState.isSneaking = state
+  bot.setControlState('sneak', state)
+}
+
 const onTriggerOrReleased = (command: Command, pressed: boolean) => {
   // always allow release!
   if (pressed && !isGameActive(true)) {
@@ -166,14 +172,21 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         bot.setControlState('jump', pressed)
         break
       case 'general.sneak':
-        gameAdditionalState.isSneaking = pressed
-        bot.setControlState('sneak', pressed)
+        setSneaking(pressed)
         break
       case 'general.sprint':
         // todo add setting to change behavior
         if (pressed) {
           setSprinting(pressed)
         }
+        break
+      case 'general.toggleSneakOrDown':
+        if (gameAdditionalState.isFlying) {
+          setSneaking(pressed)
+        } else if (pressed) {
+          setSneaking(!gameAdditionalState.isSneaking)
+        }
+
         break
       case 'general.attackDestroy':
         document.dispatchEvent(new MouseEvent(pressed ? 'mousedown' : 'mouseup', { button: 0 }))

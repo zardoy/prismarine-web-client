@@ -32,17 +32,21 @@ const defaultOptions = {
   touchButtonsPosition: 12,
   touchControlsPositions: {
     action: [
-      90,
-      70
+      70,
+      85
     ],
     sneak: [
       90,
-      90
+      85
     ],
     break: [
       70,
-      70
-    ]
+      65
+    ],
+    jump: [
+      90,
+      65
+    ],
   } as Record<string, [number, number]>,
   touchControlsType: 'classic' as 'classic' | 'joystick-buttons',
   gpuPreference: 'default' as 'default' | 'high-performance' | 'low-power',
@@ -53,7 +57,8 @@ const defaultOptions = {
   unimplementedContainers: false,
   dayCycleAndLighting: true,
   loadPlayerSkins: true,
-  antiAliasing: false,
+  lowMemoryMode: false,
+  // antiAliasing: false,
 
   showChunkBorders: false, // todo rename option
   frameLimit: false as number | false,
@@ -70,6 +75,8 @@ const defaultOptions = {
   /** Actually might be useful */
   showCursorBlockInSpectator: false,
   renderEntities: true,
+  smoothLighting: true,
+  newVersionsLighting: false,
   chatSelect: false,
   autoJump: 'auto' as 'auto' | 'always' | 'never',
   autoParkour: false,
@@ -96,6 +103,9 @@ const migrateOptions = (options: Partial<AppOptions & Record<string, any>>) => {
   }
   if (Object.keys(options.touchControlsPositions ?? {}).length === 0) {
     options.touchControlsPositions = defaultOptions.touchControlsPositions
+  }
+  if (options.touchControlsPositions?.jump === undefined) {
+    options.touchControlsPositions!.jump = defaultOptions.touchControlsPositions.jump
   }
 
   return options

@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@master
       - name: Install pnpm
-        run: npm i -g vercel pnpm
+        run: npm i -g vercel pnpm@9.0.4
       # - run: pnpm install
       # - run: pnpm build
       - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}

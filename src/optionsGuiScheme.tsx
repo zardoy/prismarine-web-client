@@ -50,7 +50,15 @@ export const guiOptionsScheme: {
       dayCycleAndLighting: {
         text: 'Day Cycle',
       },
-      antiAliasing: {},
+      // smoothLighting: {},
+      newVersionsLighting: {
+        text: 'Lighting in newer versions',
+      },
+      lowMemoryMode: {
+        text: 'Low Memory Mode',
+        enableWarning: 'Enabling it will make chunks load ~4x slower',
+        disabledDuringGame: true
+      },
     },
   ],
   main: [
@@ -132,6 +140,7 @@ export const guiOptionsScheme: {
     {
       guiScale: {
         max: 4,
+        min: 1,
         unit: '',
         delayApply: true,
       },
@@ -172,6 +181,9 @@ export const guiOptionsScheme: {
   ],
   controls: [
     {
+      custom () {
+        return <Category>Keyboard & Mouse</Category>
+      },
       // keybindings
       mouseSensX: {},
       mouseSensY: {
@@ -185,15 +197,20 @@ export const guiOptionsScheme: {
         // eslint-disable-next-line no-extra-boolean-cast
         disabledReason: Boolean(document.documentElement.requestPointerLock) ? undefined : 'Your browser does not support pointer lock.',
       },
-      alwaysShowMobileControls: {
-        text: 'Always Mobile Controls',
-      },
       autoFullScreen: {
         tooltip: 'Auto Fullscreen allows you to use Ctrl+W and Escape having to wait/click on screen again.',
         disabledReason: navigator['keyboard'] ? undefined : 'Your browser doesn\'t support keyboard lock API'
       },
       autoExitFullscreen: {
         tooltip: 'Exit fullscreen on escape (pause menu open). But note you can always do it with F11.',
+      },
+    },
+    {
+      custom () {
+        return <Category>Touch Controls</Category>
+      },
+      alwaysShowMobileControls: {
+        text: 'Always Mobile Controls',
       },
       touchButtonsSize: {
         min: 40
@@ -208,13 +225,6 @@ export const guiOptionsScheme: {
       touchControlsType: {
         values: [['classic', 'Classic'], ['joystick-buttons', 'New']],
       },
-      autoJump: {
-        values: [
-          'always',
-          'auto',
-          'never'
-        ],
-      },
     },
     {
       custom () {
@@ -223,6 +233,16 @@ export const guiOptionsScheme: {
       },
     },
     {
+      custom () {
+        return <Category>Auto Jump</Category>
+      },
+      autoJump: {
+        values: [
+          'always',
+          'auto',
+          'never'
+        ],
+      },
       autoParkour: {},
     }
   ],

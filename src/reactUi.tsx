@@ -3,6 +3,7 @@ import { renderToDom, ErrorBoundary } from '@zardoy/react-util'
 import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
+import { useEffect, useMemo, useState } from 'react'
 import { miscUiState } from './globalState'
 import DeathScreenProvider from './react/DeathScreenProvider'
 import OptionsRenderApp from './react/OptionsRenderApp'
@@ -17,6 +18,12 @@ import TitleProvider from './react/TitleProvider'
 import ScoreboardProvider from './react/ScoreboardProvider'
 import SignEditorProvider from './react/SignEditorProvider'
 import IndicatorEffectsProvider from './react/IndicatorEffectsProvider'
+import PlayerListOverlayProvider from './react/PlayerListOverlayProvider'
+import HudBarsProvider from './react/HudBarsProvider'
+import XPBarProvider from './react/XPBarProvider'
+import DebugOverlay from './react/DebugOverlay'
+import MobileTopButtons from './react/MobileTopButtons'
+import PauseScreen from './react/PauseScreen'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
@@ -24,6 +31,8 @@ import { useIsWidgetActive } from './react/utils'
 import GlobalSearchInput from './GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
+import HotbarRenderApp from './react/HotbarRenderApp'
+import Crosshair from './react/Crosshair'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -54,6 +63,25 @@ const DisplayQr = () => {
   </div>
 }
 
+// mounted earlier than ingame ui TODO
+const GameHud = ({ children }) => {
+  const { loadedDataVersion } = useSnapshot(miscUiState)
+  const [gameLoaded, setGameLoaded] = useState(false)
+
+  useEffect(() => {
+    customEvents.on('mineflayerBotCreated', () => {
+      bot.once('inject_allowed', () => {
+        setGameLoaded(true)
+      })
+    })
+  }, [])
+  useEffect(() => {
+    if (!loadedDataVersion) setGameLoaded(false)
+  }, [loadedDataVersion])
+
+  return gameLoaded ? children : null
+}
+
 const InGameUi = () => {
   const { gameLoaded } = useSnapshot(miscUiState)
   if (!gameLoaded) return
@@ -62,12 +90,21 @@ const InGameUi = () => {
     <RobustPortal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
       <DeathScreenProvider />
+      <DebugOverlay />
+      <MobileTopButtons />
+      <PlayerListOverlayProvider />
       <ChatProvider />
       <SoundMuffler />
       <TitleProvider />
       <ScoreboardProvider />
       <IndicatorEffectsProvider />
       <TouchAreasControlsProvider />
+      <Crosshair />
+
+      <PauseScreen />
+      <XPBarProvider />
+      <HudBarsProvider />
+      <HotbarRenderApp />
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />
@@ -105,6 +142,8 @@ const App = () => {
       <OptionsRenderApp />
       <MainMenuRenderApp />
       <NotificationProvider />
+      {/* <GameHud>
+      </GameHud> */}
     </RobustPortal>
   </div>
 }
@@ -121,3 +160,17 @@ renderToDom(<App />, {
   strictMode: false,
   selector: '#react-root',
 })
+
+disableReactProfiling()
+function disableReactProfiling () {
+  //@ts-expect-error
+  window.performance.markOrig = window.performance.mark
+  //@ts-expect-error
+  window.performance.mark = (name, options) => {
+    // ignore react internal marks
+    if (!name.startsWith('⚛') && !localStorage.enableReactProfiling) {
+      //@ts-expect-error
+      window.performance.markOrig(name, options)
+    }
+  }
+}

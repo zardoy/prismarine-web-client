@@ -2,9 +2,10 @@ import { ComponentProps } from 'react'
 import { render } from '@xmcl/text-component'
 import { noCase } from 'change-case'
 import mojangson from 'mojangson'
+import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { MessageFormatPart } from '../botUtils'
-import { openURL } from '../menus/components/common'
 import { chatInputValueGlobal } from './ChatContainer'
+import './MessageFormatted.css'
 
 const hoverItemToText = (hoverEvent: MessageFormatPart['hoverEvent']) => {
   try {
@@ -27,7 +28,7 @@ const hoverItemToText = (hoverEvent: MessageFormatPart['hoverEvent']) => {
     }
   } catch (err) {
     // todo report critical error
-    console.error('Failed to parse message hover', err)
+    reportError?.('Failed to parse message hover' + err.message)
     return undefined
   }
 }
@@ -77,14 +78,14 @@ export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & Co
     underlined && messageFormatStylesMap.underlined,
     strikethrough && messageFormatStylesMap.strikethrough,
     obfuscated && messageFormatStylesMap.obfuscated
-  ].filter(Boolean)
+  ].filter(a => a !== false && a !== undefined).filter(Boolean)
 
   return <span title={hoverItemText} style={parseInlineStyle(applyStyles.join(' '))} {...clickProps} {...props}>{text}</span>
 }
 
 export default ({ parts }: { parts: readonly MessageFormatPart[] }) => {
   return (
-    <span>
+    <span className='formatted-message'>
       {parts.map((part, i) => <MessagePart key={i} part={part} />)}
     </span>
   )

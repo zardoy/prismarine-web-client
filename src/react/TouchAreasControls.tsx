@@ -1,11 +1,11 @@
-import { CSSProperties, PointerEvent, PointerEventHandler, useEffect, useRef, useState } from 'react'
+import { CSSProperties, PointerEvent, useEffect, useRef } from 'react'
 import { proxy, ref, useSnapshot } from 'valtio'
 import { contro } from '../controls'
 import worldInteractions from '../worldInteractions'
 import PixelartIcon from './PixelartIcon'
 import Button from './Button'
 
-export type ButtonName = 'action' | 'sneak' | 'break'
+export type ButtonName = 'action' | 'sneak' | 'break' | 'jump'
 
 type ButtonsPositions = Record<ButtonName, [number, number]>
 
@@ -56,13 +56,15 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
   const joystickInner = useRef<HTMLDivElement>(null)
 
   const { pointer } = useSnapshot(joystickPointer)
+  // const { isFlying, isSneaking } = useSnapshot(gameAdditionalState)
   const newButtonPositions = { ...buttonsPositions }
 
   const buttonProps = (name: ButtonName) => {
     let active = {
       action: false,
       sneak: bot.getControlState('sneak'),
-      break: false
+      break: false,
+      jump: bot.getControlState('jump'),
     }[name]
     const holdDown = {
       action () {
@@ -71,24 +73,46 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
         document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       },
       sneak () {
-        bot.setControlState('sneak', !bot.getControlState('sneak'))
+        void contro.emit('trigger', {
+          command: 'general.toggleSneakOrDown',
+          schema: null as any,
+        })
         active = bot.getControlState('sneak')
       },
       break () {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 0 }))
         worldInteractions.update()
         active = true
+      },
+      jump () {
+        void contro.emit('trigger', {
+          command: 'general.jump',
+          schema: null as any,
+        })
+        active = bot.controlState.jump
       }
     }
     const holdUp = {
       action () {
       },
       sneak () {
+        void contro.emit('release', {
+          command: 'general.toggleSneakOrDown',
+          schema: null as any,
+        })
+        active = bot.getControlState('sneak')
       },
       break () {
         document.dispatchEvent(new MouseEvent('mouseup', { button: 0 }))
         worldInteractions.update()
         active = false
+      },
+      jump () {
+        void contro.emit('release', {
+          command: 'general.jump',
+          schema: null as any,
+        })
+        active = bot.controlState.jump
       }
     }
 
@@ -192,6 +216,9 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
     </div>
     <div {...buttonProps('sneak')}>
       <PixelartIcon iconName='arrow-down' />
+    </div>
+    <div {...buttonProps('jump')}>
+      <PixelartIcon iconName='arrow-up' />
     </div>
     <div {...buttonProps('break')}>
       <MineIcon />

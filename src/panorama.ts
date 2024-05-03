@@ -3,7 +3,7 @@
 import { join } from 'path'
 import fs from 'fs'
 import { subscribeKey } from 'valtio/utils'
-import Entity from 'prismarine-viewer/viewer/lib/entity/Entity'
+import { EntityMesh } from 'prismarine-viewer/viewer/lib/entity/EntityMesh'
 import { fromTexturePackPath, resourcePackState } from './texturePack'
 import { options, watchValue } from './optionsStorage'
 import { miscUiState } from './globalState'
@@ -69,7 +69,8 @@ export async function addPanoramaCubeMap () {
   shouldDisplayPanorama = true
 
   let time = 0
-  viewer.camera = new THREE.PerspectiveCamera(85, window.innerWidth / window.innerHeight, 0.05, 1000)
+  viewer.camera.fov = 85
+  viewer.camera.near = 0.05
   viewer.camera.updateProjectionMatrix()
   viewer.camera.position.set(0, 0, 0)
   viewer.camera.rotation.set(0, 0, 0)
@@ -101,7 +102,7 @@ export async function addPanoramaCubeMap () {
 
   // should be rewritten entirely
   for (let i = 0; i < 20; i++) {
-    const m = new Entity('1.16.4', 'squid').mesh
+    const m = new EntityMesh('1.16.4', 'squid').mesh!
     m.position.set(Math.random() * 30 - 15, Math.random() * 20 - 10, Math.random() * 10 - 17)
     m.rotation.set(0, Math.PI + Math.random(), -Math.PI / 4, 'ZYX')
     const v = Math.random() * 0.01
@@ -119,7 +120,8 @@ export async function addPanoramaCubeMap () {
 export function removePanorama () {
   shouldDisplayPanorama = false
   if (!panoramaCubeMap) return
-  viewer.camera = new THREE.PerspectiveCamera(options.fov, window.innerWidth / window.innerHeight, 0.1, 1000)
+  viewer.camera.fov = options.fov
+  viewer.camera.near = 0.1
   viewer.camera.updateProjectionMatrix()
   viewer.scene.remove(panoramaCubeMap)
   panoramaCubeMap = null

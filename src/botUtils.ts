@@ -114,6 +114,6 @@ const blockToItemRemaps = {
 }
 
 export const getItemFromBlock = (block: import('prismarine-block').Block) => {
-  const item = loadedData.items[blockToItemRemaps[block.name] ?? block.name]
+  const item = loadedData.itemsByName[blockToItemRemaps[block.name] ?? block.name]
   return item
 }

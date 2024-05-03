@@ -7,27 +7,18 @@ import './devtools'
 import './entities'
 import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
-import { itemsAtlases, onGameLoad } from './playerWindows'
+import { itemsAtlases, onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 
 import './menus/components/button'
 import './menus/components/edit_box'
-import './menus/components/hotbar'
-import './menus/components/health_bar'
-import './menus/components/food_bar'
-import './menus/components/breath_bar'
-import './menus/components/debug_overlay'
-import './menus/components/playerlist_overlay'
-import './menus/components/bossbars_overlay'
-import './menus/hud'
 import './menus/play_screen'
-import './menus/pause_screen'
-import './menus/keybinds_screen'
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 
+import './scaleInterface'
 import itemsPng from 'prismarine-viewer/public/textures/items.png'
-import { initWithRenderer, statsEnd, statsStart } from './topRightStats'
+import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 
 import { options, watchValue } from './optionsStorage'
@@ -35,7 +26,6 @@ import './reactUi.jsx'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
-import './eruda'
 import { watchOptionsAfterViewerInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
@@ -51,15 +41,16 @@ import worldInteractions from './worldInteractions'
 import * as THREE from 'three'
 import MinecraftData, { versionsByMinecraftVersion } from 'minecraft-data'
 import debug from 'debug'
-import _ from 'lodash-es'
+import { defaultsDeep } from 'lodash-es'
 
 import { initVR } from './vr'
 import {
   activeModalStack,
-  showModal, activeModalStacks,
+  activeModalStacks,
   insertActiveModalStack,
   isGameActive,
   miscUiState,
+  showModal
 } from './globalState'
 
 
@@ -89,13 +80,16 @@ import { fsState } from './loadSave'
 import { watchFov } from './rendererUtils'
 import { loadInMemorySave } from './react/SingleplayerProvider'
 
-// side effects
-import { downloadSoundsIfNeeded } from './soundSystem'
+import { downloadSoundsIfNeeded, earlyCheck as earlySoundsMapCheck } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
-import { hideNotification, notificationProxy } from './react/NotificationProvider'
+import { hideNotification, notificationProxy, showNotification } from './react/NotificationProvider'
+import { saveToBrowserMemory } from './react/PauseScreen'
+import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
+import './devReload'
+import './water'
 
 window.debug = debug
 window.THREE = THREE
@@ -121,13 +115,11 @@ try {
 
 // renderer.localClippingEnabled = true
 initWithRenderer(renderer.domElement)
-window.renderer = renderer
-let pixelRatio = window.devicePixelRatio || 1 // todo this value is too high on ios, need to check, probably we should use avg, also need to make it configurable
-if (!renderer.capabilities.isWebGL2) pixelRatio = 1 // webgl1 has issues with high pixel ratio (sometimes screen is clipped)
-renderer.setPixelRatio(pixelRatio)
-renderer.setSize(window.innerWidth, window.innerHeight)
-renderer.domElement.id = 'viewer-canvas'
-document.body.appendChild(renderer.domElement)
+const renderWrapper = new ViewerWrapper(renderer.domElement, renderer)
+renderWrapper.addToPage()
+watchValue(options, (o) => {
+  renderWrapper.renderInterval = o.frameLimit ? 1000 / o.frameLimit : 0
+})
 
 const isFirefox = ua.getBrowser().name === 'Firefox'
 if (isFirefox) {
@@ -136,7 +128,7 @@ if (isFirefox) {
 }
 
 // Create viewer
-const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer, options.numWorkers)
+const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
 new THREE.TextureLoader().load(itemsPng, (texture) => {
   viewer.entities.itemsTexture = texture
@@ -145,7 +137,9 @@ new THREE.TextureLoader().load(itemsPng, (texture) => {
     const name = loadedData.items[id]?.name
     const uv = itemsAtlases.latest.textures[name]
     if (!uv) {
-      const uvBlock = viewer.world.downloadedBlockStatesData[name]?.variants?.['']?.[0].model?.elements?.[0]?.faces?.north.texture
+      const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
+      if (!variant) return
+      const uvBlock = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces?.north.texture
       if (!uvBlock) return
       return {
         ...uvBlock,
@@ -166,78 +160,10 @@ viewer.entities.entitiesOptions = {
 watchOptionsAfterViewerInit()
 watchTexturepackInViewer(viewer)
 
-let renderInterval: number | false
-watchValue(options, (o) => {
-  renderInterval = o.frameLimit && 1000 / o.frameLimit
-})
-
-let postRenderFrameFn = () => { }
-let delta = 0
-let lastTime = performance.now()
-let previousWindowWidth = window.innerWidth
-let previousWindowHeight = window.innerHeight
-let max = 0
-let rendered = 0
-const renderFrame = (time: DOMHighResTimeStamp) => {
-  if (window.stopLoop) return
-  for (const fn of beforeRenderFrame) fn()
-  window.requestAnimationFrame(renderFrame)
-  if (window.stopRender || renderer.xr.isPresenting) return
-  if (renderInterval) {
-    delta += time - lastTime
-    lastTime = time
-    if (delta > renderInterval) {
-      delta %= renderInterval
-      // continue rendering
-    } else {
-      return
-    }
-  }
-  // ios bug: viewport dimensions are updated after the resize event
-  if (previousWindowWidth !== window.innerWidth || previousWindowHeight !== window.innerHeight) {
-    resizeHandler()
-    previousWindowWidth = window.innerWidth
-    previousWindowHeight = window.innerHeight
-  }
-  statsStart()
-  viewer.update()
-  viewer.render()
-  rendered++
-  postRenderFrameFn()
-  statsEnd()
-}
-renderFrame(performance.now())
-setInterval(() => {
-  if (max > 0) {
-    viewer.world.droppedFpsPercentage = rendered / max
-  }
-  max = Math.max(rendered, max)
-  rendered = 0
-}, 1000)
-
-const resizeHandler = () => {
-  const width = window.innerWidth
-  const height = window.innerHeight
-
-  viewer.camera.aspect = width / height
-  viewer.camera.updateProjectionMatrix()
-  renderer.setSize(width, height)
-
-  if (viewer.composer) {
-    viewer.updateComposerSize()
-  }
-}
-
-const hud = document.getElementById('hud')
-const pauseMenu = document.getElementById('pause-screen')
-
 let mouseMovePostHandle = (e) => { }
 let lastMouseMove: number
-let debugMenu
 const updateCursor = () => {
   worldInteractions.update()
-  debugMenu ??= hud.shadowRoot.querySelector('#debug-overlay')
-  debugMenu.cursorBlock = worldInteractions.cursorBlock
 }
 function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
@@ -345,7 +271,7 @@ async function connect (connectOptions: {
     viewer.resetAll()
     localServer = window.localServer = window.server = undefined
 
-    postRenderFrameFn = () => { }
+    renderWrapper.postRender = () => { }
     if (bot) {
       bot.end()
       // ensure mineflayer plugins receive this event for cleanup
@@ -413,7 +339,7 @@ async function connect (connectOptions: {
   const renderDistance = singleplayer ? renderDistanceSingleplayer : multiplayerRenderDistance
   let localServer
   try {
-    const serverOptions = _.defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
+    const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
       // todo expose cache
@@ -517,6 +443,8 @@ async function connect (connectOptions: {
       }
     }) as unknown as typeof __type_bot
     window.bot = bot
+    earlySoundsMapCheck()
+    customEvents.emit('mineflayerBotCreated')
     if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
       const _supportFeature = bot.supportFeature
@@ -532,13 +460,13 @@ async function connect (connectOptions: {
     } else {
       const setupConnectHandlers = () => {
         bot._client.socket.on('connect', () => {
-          console.log('TCP connection established')
+          console.log('WebSocket connection established')
           //@ts-expect-error
           bot._client.socket._ws.addEventListener('close', () => {
-            console.log('TCP connection closed')
+            console.log('WebSocket connection closed')
             setTimeout(() => {
               if (bot) {
-                bot.emit('end', 'TCP connection closed with unknown reason')
+                bot.emit('end', 'WebSocket connection closed with unknown reason')
               }
             })
           })
@@ -562,7 +490,6 @@ async function connect (connectOptions: {
   if (!bot) return
 
   const p2pConnectTimeout = p2pMultiplayer ? setTimeout(() => { throw new Error('Spawn timeout. There might be error on the other side, check console.') }, 20_000) : undefined
-  hud.preload(bot)
 
   // bot.on('inject_allowed', () => {
   //   loadingScreen.maybeRecoverable = false
@@ -634,23 +561,13 @@ async function connect (connectOptions: {
 
     bot.on('physicsTick', () => updateCursor())
 
-    const debugMenu = hud.shadowRoot.querySelector('#debug-overlay')
-
-    window.debugMenu = debugMenu
 
     void initVR()
 
-    postRenderFrameFn = () => {
+    renderWrapper.postRender = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
     }
 
-    try {
-      const gl = renderer.getContext()
-      debugMenu.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
-    } catch (err) {
-      console.warn(err)
-      debugMenu.rendererDevice = '???'
-    }
 
     // Link WorldDataEmitter and Viewer
     viewer.listen(worldView)
@@ -686,13 +603,13 @@ async function connect (connectOptions: {
       }
       if (renderer.xr.isPresenting) return // todo
       if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
-        showModal(pauseMenu)
+        showModal({ reactType: 'pause-screen' })
       }
     }
 
     registerListener(document, 'pointerlockchange', changeCallback, false)
 
-    const cameraControlEl = hud
+    const cameraControlEl = document.querySelector('#ui-root')
 
     /** after what time of holding the finger start breaking the block */
     const touchStartBreakingBlockMs = 500
@@ -815,24 +732,47 @@ async function connect (connectOptions: {
           viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', () => resolve())
         })
       }
-      hud.init(renderer, bot, server.host)
-      hud.style.display = 'block'
+      miscUiState.serverIp = server.host as string | null
     })
 
     if (appStatusState.isError) return
+    setTimeout(() => {
+      // todo
+      const qs = new URLSearchParams(window.location.search)
+      if (qs.get('suggest_save')) {
+        showNotification('Suggestion', 'Save the world to keep your progress!', false, undefined, async () => {
+          const savePath = await saveToBrowserMemory()
+          if (!savePath) return
+          const saveName = savePath.split('/').pop()
+          bot.end()
+          // todo hot reload
+          location.search = `loadSave=${saveName}`
+        })
+      }
+    }, 600)
+
     setLoadingScreenStatus(undefined)
-    void viewer.waitForChunksToRender().then(() => {
-      console.log('All done and ready!')
+    const start = Date.now()
+    let done = false
+    void viewer.world.renderUpdateEmitter.on('update', () => {
+      // todo might not emit as servers simply don't send chunk if it's empty
+      if (!viewer.world.allChunksFinished || done) return
+      done = true
+      console.log('All done and ready! In', (Date.now() - start) / 1000, 's')
+      viewer.render() // ensure the last state is rendered
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
   })
 
   if (!connectOptions.ignoreQs) {
-    const qs = new URLSearchParams(window.location.search)
-    for (let command of qs.getAll('command')) {
-      if (!command.startsWith('/')) command = `/${command}`
-      bot.chat(command)
-    }
+    // todo cleanup
+    customEvents.on('gameLoaded', () => {
+      const qs = new URLSearchParams(window.location.search)
+      for (let command of qs.getAll('command')) {
+        if (!command.startsWith('/')) command = `/${command}`
+        bot.chat(command)
+      }
+    })
   }
 }
 
@@ -902,7 +842,7 @@ void window.fetch('config.json').then(async res => res.json()).then(c => c, (err
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
 
-  window.addEventListener('hud-ready', (e) => {
+  void Promise.resolve().then(() => {
     // try to connect to peer
     const qs = new URLSearchParams(window.location.search)
     const peerId = qs.get('connectPeer')
@@ -919,7 +859,6 @@ downloadAndOpenFile().then((downloadAction) => {
       })
     }
   })
-  if (document.getElementById('hud').isReady) window.dispatchEvent(new Event('hud-ready'))
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)
