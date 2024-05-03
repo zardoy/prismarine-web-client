@@ -2,6 +2,8 @@ import { createContext, useState } from 'react'
 import { contro, customKeymaps } from '../controls'
 import KeybindingsScreen from './KeybindingsScreen'
 import { useIsModalActive } from './utils'
+import { getStoredValue, setStoredValue } from './storageProvider'
+import { CustomCommandsMap } from './KeybindingsCustom'
 
 
 const setBinding = (data, group, command, buttonNum) => {
@@ -40,6 +42,31 @@ const bindingActions = {
 
 const BindingActionsContext = createContext(bindingActions)
 
+export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
+  if (customCommands) {
+    setStoredValue('customCommands', customCommands)
+  }
+
+  customCommands ??= getStoredValue('customCommands') ?? {}
+
+  contro.inputSchema.commands.custom = Object.fromEntries(Object.entries(customCommands).map(([key, value]) => {
+    // resolved
+    return [key, {
+      keys: [],
+      gamepadButtons: [],
+    }]
+  }))
+
+  // todo is that needed?
+  contro.userConfig!.custom = Object.fromEntries(Object.entries(customCommands).map(([key, value]) => {
+    // resolved
+    return [key, {
+      keys: value.keys ?? [],
+      gamepad: value.gamepad ?? [],
+    }]
+  }))
+}
+
 export default () => {
   const [bindActions, setBindActions] = useState(bindingActions)
   const isModalActive = useIsModalActive('keybindings')
@@ -47,6 +74,6 @@ export default () => {
 
   const hasPsGamepad = [...(navigator.getGamepads?.() ?? [])].some(gp => gp?.id.match(/playstation|dualsense|dualshock/i)) // todo: use last used gamepad detection
   return <BindingActionsContext.Provider value={bindActions}>
-    <KeybindingsScreen isPS={hasPsGamepad} contro={contro} />
+    <KeybindingsScreen isPS={hasPsGamepad} contro={contro} customCommands={getStoredValue('customCommands') ?? {}} updateCustomCommands={updateCustomBinds} />
   </BindingActionsContext.Provider>
 }

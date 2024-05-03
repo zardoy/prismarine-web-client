@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext } from 'react'
+import { useState, useEffect, useRef, createContext, useContext, ComponentProps } from 'react'
 import { contro as controEx } from '../controls'
 import PixelartIcon from './PixelartIcon'
 import KeybindingsCustom from './KeybindingsCustom'
@@ -7,34 +7,40 @@ import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
 
 
+type HandleClick = (group: string, action: string, index: number, type: string | null) => void
+
 export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx.userConfig,
-    handleClick(group, action, index, type) { },
-    parseBindingName(binding) { }
+    handleClick: (() => { }) as HandleClick,
+    parseBindingName (binding) { }
   }
 )
 
 export default (
   {
     contro,
-    isPS
+    isPS,
+    updateCustomCommands,
+    customCommands
   }: {
     contro: typeof controEx,
-    isPS?: boolean
-  }
+      isPS?: boolean
+
+  } & Pick<ComponentProps<typeof KeybindingsCustom>, 'customCommands' | 'updateCustomCommands'>
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
   const { commands } = contro.inputSchema
-  const [userConfig, setUserConfig] = useState(contro.userConfig)
+  const [userConfig, setUserConfig] = useState(contro.userConfig ?? {})
   const [awaitingInputType, setAwaitingInputType] = useState(null as null | 'keyboard' | 'gamepad')
   const [groupName, setGroupName] = useState('')
   const [actionName, setActionName] = useState('')
   const [buttonNum, setButtonNum] = useState(0)
 
-  const handleClick = (group, action, index, type) => {
+  const handleClick: HandleClick = (group, action, index, type) => {
+    //@ts-expect-error
     setAwaitingInputType(type)
     setGroupName(prev => group)
     setActionName(prev => action)
@@ -46,42 +52,32 @@ export default (
       const newConfig = { ...prev }
       newConfig[group] ??= {}
       newConfig[group][command] ??= {}
-      contro.userConfig![group] ??= {}
-      contro.userConfig![group][command] ??= {}
 
       // keys and buttons should always exist in commands
       const type = 'code' in data ? 'keys' : 'button' in data ? 'gamepad' : null
       if (type) {
-        newConfig[group][command][type] ??= group === 'custom' ? [] as string[] : [...contro.inputSchema.commands[group][command][type]]
+        newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][type]]
         newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
-        contro.userConfig![group][command][type] ??= group === 'custom' ? [] as string[] : [...contro.inputSchema.commands[group][command][type]]
-        contro.userConfig![group][command][type]![buttonIndex] = data.code ?? data.button
       }
 
       return newConfig
     })
   }
 
-  const resetBinding = (group, command, inputType) => {
+  const resetBinding = (group: string, command: string, inputType: string) => {
     if (!userConfig?.[group]?.[command]) return
 
     setUserConfig(prev => {
       const newConfig = { ...prev }
-      switch (inputType) {
-        case 'keyboard':
-          newConfig[group][command].keys = undefined as string[] | undefined
-          contro.userConfig![group][command].keys = undefined as string[] | undefined
-          break
-        case 'gamepad':
-          newConfig[group][command].gamepad = undefined as string[] | undefined
-          contro.userConfig![group][command].gamepad = undefined as string[] | undefined
-          break
-      }
+      const prop = inputType === 'keyboard' ? 'keys' : 'gamepad'
+      newConfig[group][command][prop] = undefined
       return newConfig
     })
   }
 
   useEffect(() => {
+    contro.userConfig = userConfig
+
     updateBindMap()
     updateBindWarnings()
   }, [userConfig])
@@ -291,7 +287,8 @@ export default (
 
         <KeybindingsCustom
           userConfig={userConfig}
-          baseConfig={commands.custom}
+          customCommands={customCommands}
+          updateCustomCommands={updateCustomCommands}
           setGroupName={setGroupName}
           setActionName={setActionName}
           resetBinding={resetBinding}

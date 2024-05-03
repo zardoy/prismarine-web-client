@@ -16,6 +16,7 @@ import { fsState } from './loadSave'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
+import { updateCustomBinds } from './react/KeybindingsScreenProvider'
 
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
@@ -51,7 +52,6 @@ export const contro = new ControMax({
     advanced: {
       lockUrl: ['KeyY'],
     },
-    custom: JSON.parse(localStorage.customCommands || '{}')
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']
@@ -78,6 +78,8 @@ export const contro = new ControMax({
 })
 window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
+
+updateCustomBinds()
 
 export const setDoPreventDefault = (state: boolean) => {
   controlOptions.preventDefault = state

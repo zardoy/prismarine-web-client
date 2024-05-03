@@ -1,49 +1,52 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { customCommandsConfig } from '../customCommands'
 import { ButtonWithMatchesAlert } from './KeybindingsScreen'
 import Button from './Button'
 import styles from './KeybindingsScreen.module.css'
 import Input from './Input'
 
+export type CustomCommand = {
+  keys: undefined | string[]
+  gamepad: undefined | string[]
+  type: string
+  inputs: any[]
+}
+
+export type CustomCommandsMap = Record<string, CustomCommand>
+
 export default (
   {
     userConfig,
-    baseConfig,
+    customCommands,
     setActionName,
     setGroupName,
-    resetBinding
+    resetBinding,
+    updateCustomCommands
   }: {
-    userConfig: any,
-    baseConfig: any,
+    userConfig: UserOverridesConfig,
+    customCommands: CustomCommandsMap,
     setGroupName: (state: string) => void,
     setActionName: (state: string) => void,
-    resetBinding: (group, action, inputType) => void,
+      updateCustomCommands: (newValue: CustomCommandsMap) => void
+      resetBinding: (group, action, inputType) => void,
   }
 ) => {
-  type CustomCommand = {
-    keys: undefined | string[]
-    gamepad: undefined | string[]
-    type: string
-    inputs: any[]
-  }
-  const [customConfig, setCustomConfig] = useState(userConfig.custom || {} as Record<string, CustomCommand>)
+  const [customConfig, setCustomConfig] = useState({ ...customCommands })
+
+  useEffect(() => {
+    updateCustomCommands(customConfig)
+  }, [customConfig])
 
   const addNewCommand = (type) => {
-    const newKey = generateUniqueString(Object.keys(customConfig))
-    userConfig.custom ??= {}
-    userConfig.custom[newKey] = {
-      keys: undefined as string[] | undefined,
-      gamepad: undefined as string[] | undefined,
+    // max key + 1
+    const newKey = String(Math.max(...Object.keys(customCommands).map(Number), 0) + 1)
+    customCommands[newKey] = {
+      keys: [],
+      gamepad: [],
       type,
-      inputs: [] as any[]
+      inputs: []
     }
-    baseConfig[newKey] = {
-      keys: [] as string[],
-      gamepad: [] as string[],
-      type,
-      inputs: [] as any[]
-    }
-    localStorage.setItem('customCommands', JSON.stringify(baseConfig))
     setCustomConfig(prev => {
       const newCustomConf = { ...prev }
       newCustomConf[newKey] = {
@@ -61,7 +64,6 @@ export default (
       const newConfig = { ...prev }
       newConfig[optionKey].inputs = [...prev[optionKey].inputs]
       newConfig[optionKey].inputs[indexInput] = value
-      userConfig.custom[optionKey].inputs[indexInput] = value
       return newConfig
     })
   }
@@ -70,7 +72,7 @@ export default (
     <div className={styles.group}>
       {Object.entries(customCommandsConfig).map(([group, { input }]) => (
         <div className={styles.group}><div key={group} className={styles['group-category']}>{group}</div>
-          {Object.entries(userConfig.custom).filter(([key, data]) => data.type === group).map(([commandKey, { keys, gamepad, type, inputs }], indexOption) => {
+          {Object.entries(customConfig).filter(([key, data]) => data.type === group).map(([commandKey, { keys, gamepad, type, inputs }], indexOption) => {
             return <div key={indexOption}>
               <div style={{ paddingLeft: '20px' }} className={styles.actionBinds}>
                 {
@@ -122,9 +124,6 @@ export default (
                   onClick={() => {
                     // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                     delete userConfig.custom[commandKey]
-                    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-                    delete baseConfig[commandKey]
-                    localStorage.setItem('customCommands', JSON.stringify(baseConfig))
                     setCustomConfig(prev => {
                       const newConfig = { ...prev }
                       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
@@ -160,23 +159,4 @@ export default (
       ))}
     </div>
   </>
-}
-
-
-const generateUniqueString = (arr: string[]) => {
-  const randomLetter = () => {
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    return alphabet.charAt(Math.floor(Math.random() * alphabet.length))
-  }
-
-  const randomNumber = () => {
-    return Math.floor(Math.random() * 1000).toString().padStart(4, '0')
-  }
-
-  let newString: string
-  do {
-    newString = `${randomLetter()}${randomLetter()}${randomLetter()}${randomLetter()}-${randomNumber()}`
-  } while (arr.includes(newString))
-
-  return newString
 }
