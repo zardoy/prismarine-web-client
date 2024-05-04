@@ -18,6 +18,7 @@ jobs:
       - run: pnpm check-build
       - run: pnpm test-unit
       - run: pnpm lint
+      - run: tsx scripts/buildNpmReact.ts
       - run: nohup pnpm prod-start &
       - run: nohup pnpm test-mc-server &
       - uses: cypress-io/github-action@v5

@@ -1,6 +1,7 @@
 // this should actually be moved to mineflayer / prismarine-viewer
 
 import { fromFormattedString, TextComponent } from '@xmcl/text-component'
+import type { IndexedData } from 'minecraft-data'
 
 export type MessageFormatPart = Pick<TextComponent, 'hoverEvent' | 'clickEvent'> & {
   text: string
@@ -26,8 +27,10 @@ type MessageInput = {
   json?: any
 }
 
-// todo move to sign-renderer, replace with prismarine-chat
-export const formatMessage = (message: MessageInput) => {
+const GLOBAL_MC_DATA = window['loadedData'] // TODO
+
+// todo move to sign-renderer, replace with prismarine-chat, fix mcData issue!
+export const formatMessage = (message: MessageInput, mcData: IndexedData = GLOBAL_MC_DATA) => {
   let msglist: MessageFormatPart[] = []
 
   const readMsg = (msg: MessageInput) => {
@@ -47,7 +50,7 @@ export const formatMessage = (message: MessageInput) => {
         ...styles
       })
     } else if (msg.translate) {
-      const tText = window.loadedData.language[msg.translate] ?? msg.translate
+      const tText = mcData.language[msg.translate] ?? msg.translate
 
       if (msg.with) {
         const splitted = tText.split(/%s|%\d+\$s/g)
@@ -114,6 +117,6 @@ const blockToItemRemaps = {
 }
 
 export const getItemFromBlock = (block: import('prismarine-block').Block) => {
-  const item = loadedData.itemsByName[blockToItemRemaps[block.name] ?? block.name]
+  const item = GLOBAL_MC_DATA.itemsByName[blockToItemRemaps[block.name] ?? block.name]
   return item
 }

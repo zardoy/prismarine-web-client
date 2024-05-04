@@ -10,7 +10,7 @@ import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCur
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './inventoryWindows'
-import { chatInputValueGlobal } from './react/ChatContainer'
+import { chatInputValueGlobal } from './react/Chat'
 import { fsState } from './loadSave'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'

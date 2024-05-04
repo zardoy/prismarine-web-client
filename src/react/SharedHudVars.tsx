@@ -1,5 +1,6 @@
 import { CSSProperties, useEffect } from 'react'
 import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
+import widgets from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png'
 
 export default ({ children }) => {
   useEffect(() => {
@@ -8,7 +9,9 @@ export default ({ children }) => {
     // 2. Easier application to globally override icons with custom image (eg from resourcepacks)
     const css = /* css */`
       :root {
+        --widgets-gui-atlas: url(${widgets});
         --gui-icons: url(${icons}), url(${icons});
+        --safe-area-inset-bottom: calc(env(safe-area-inset-bottom) / 2);
       }
     `
     const style = document.createElement('style')
@@ -17,11 +20,5 @@ export default ({ children }) => {
     document.head.appendChild(style)
   }, [])
 
-  const customVars = {
-    '--safe-area-inset-bottom': 'calc(env(safe-area-inset-bottom) / 2)'
-  } as CSSProperties
-
-  return <div
-    style={customVars}
-  >{children}</div>
+  return children
 }

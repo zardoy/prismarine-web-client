@@ -3,9 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
-import './ChatContainer.css'
-import { isIos } from './utils'
-import { reactKeyForMessage } from './Scoreboard'
+import './Chat.css'
+import { isIos, reactKeyForMessage } from './utils'
 
 export type Message = {
   parts: MessageFormatPart[],

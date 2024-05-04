@@ -7,7 +7,7 @@ package-lock.json
 Thumbs.db
 build
 localSettings.mjs
-dist
+dist*
 .DS_Store
 .idea/
 world
@@ -17,3 +17,5 @@ out
 .vercel
 generated
 storybook-static
+
+src/react/npmReactComponents.ts

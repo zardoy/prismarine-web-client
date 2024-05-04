@@ -68,6 +68,9 @@ importers:
       change-case:
         specifier: ^5.1.2
         version: 5.1.2
+      classnames:
+        specifier: ^2.5.1
+        version: 2.5.1
       compression:
         specifier: ^1.7.4
         version: 1.7.4
@@ -3660,8 +3663,8 @@ packages:
   cipher-base@1.0.4:
     resolution: {integrity: sha512-Kkht5ye6ZGmwv40uUDZztayT2ThLQGfnj/T71N/XzeZeo3nf8foyW7zGTsPYkEya3m5f3cAypH+qe7YOrM1U2Q==}
 
-  classnames@2.3.2:
-    resolution: {integrity: sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==}
+  classnames@2.5.1:
+    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
 
   clean-regexp@1.0.0:
     resolution: {integrity: sha512-GfisEZEJvzKrmGWkvfhgzcz/BllN1USeqD2V6tg14OAOgaCD2Z/PUEuxnAZ/nPvmaHRG7a8y77p1T/IRQ4D1Hw==}
@@ -9995,7 +9998,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.2
-      '@types/node': 20.8.0
+      '@types/node': 20.12.7
       '@types/yargs': 17.0.28
       chalk: 4.1.2
 
@@ -11530,11 +11533,11 @@ snapshots:
 
   '@types/cors@2.8.15':
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 20.12.7
 
   '@types/cross-spawn@6.0.3':
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.7
 
   '@types/debug@4.1.12':
     dependencies:
@@ -11583,7 +11586,7 @@ snapshots:
 
   '@types/graceful-fs@4.1.7':
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.7
 
   '@types/http-cache-semantics@4.0.2': {}
 
@@ -11692,7 +11695,7 @@ snapshots:
 
   '@types/resolve@1.17.1':
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.7
 
   '@types/sat@0.0.31': {}
 
@@ -11703,7 +11706,7 @@ snapshots:
   '@types/send@0.17.2':
     dependencies:
       '@types/mime': 1.3.3
-      '@types/node': 20.8.10
+      '@types/node': 20.12.7
 
   '@types/serve-static@1.15.3':
     dependencies:
@@ -12011,7 +12014,7 @@ snapshots:
 
   '@zardoy/react-util@0.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      classnames: 2.3.2
+      classnames: 2.5.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
@@ -12744,7 +12747,7 @@ snapshots:
       inherits: 2.0.4
       safe-buffer: 5.2.1
 
-  classnames@2.3.2: {}
+  classnames@2.5.1: {}
 
   clean-regexp@1.0.0:
     dependencies:
@@ -13443,7 +13446,7 @@ snapshots:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.15
-      '@types/node': 20.8.0
+      '@types/node': 20.12.7
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.4.2
@@ -15041,7 +15044,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.7
-      '@types/node': 20.8.0
+      '@types/node': 20.12.7
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -15058,7 +15061,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.8.0
+      '@types/node': 20.12.7
       chalk: 4.1.2
       ci-info: 3.8.0
       graceful-fs: 4.2.11
@@ -15066,13 +15069,13 @@ snapshots:
 
   jest-worker@26.6.2:
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.7
       merge-stream: 2.0.0
       supports-color: 7.2.0
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.7
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1

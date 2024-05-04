@@ -4,8 +4,8 @@ import { formatMessage } from '../botUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
 import { hideCurrentModal, miscUiState } from '../globalState'
 import { options } from '../optionsStorage'
-import ChatContainer, { Message, fadeMessage } from './ChatContainer'
-import { useIsModalActive } from './utils'
+import Chat, { Message, fadeMessage } from './Chat'
+import { useIsModalActive } from './utilsApp'
 import { hideNotification, showNotification } from './NotificationProvider'
 import { updateLoadedServerData } from './ServersListProvider'
 
@@ -37,7 +37,7 @@ export default () => {
     })
   }, [])
 
-  return <ChatContainer
+  return <Chat
     allowSelection={chatSelect}
     usingTouch={!!usingTouch}
     opacity={(isChatActive ? chatOpacityOpened : chatOpacity) / 100}

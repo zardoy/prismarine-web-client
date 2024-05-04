@@ -1,5 +1,6 @@
 import './Scoreboard.css'
 import MessageFormattedString from './MessageFormattedString'
+import { reactKeyForMessage } from './utils'
 
 
 export type ScoreboardItems = Array<{name: string, value: number, displayName?: any}>
@@ -8,17 +9,14 @@ type ScoreboardProps = {
   title: string,
   items: ScoreboardItems,
   open: boolean
+  style?: React.CSSProperties
 }
 
-export const reactKeyForMessage = (message) => {
-  return typeof message === 'string' ? message : JSON.stringify(message)
-}
-
-export default function Scoreboard ({ title, items, open }: ScoreboardProps) {
+export default function Scoreboard ({ title, items, open, style }: ScoreboardProps) {
 
   if (!open) return null
   return (
-    <div className='scoreboard-container'>
+    <div className='scoreboard-container' style={style}>
       <div className='scoreboard-title'>
         <MessageFormattedString message={title} />
       </div>

@@ -40,7 +40,7 @@ export default (
       {
         Array.from({ length: 10 }, () => 0)
           .map(
-            (num, index) => <div 
+            (num, index) => <div
               key={`armor-${index}`}
               className='armor'></div>
           )
@@ -48,5 +48,3 @@ export default (
     </div>
   </SharedHudVars>
 }
-
-
