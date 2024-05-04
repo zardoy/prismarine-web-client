@@ -44,6 +44,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData }: Prop
       let ip = serverIp.includes(':') ? serverIp : `${serverIp}:${serverPort}`
       ip = ip.replace(/:$/, '')
       onConfirm({
+        name: serverName,
         ip,
         versionOverride,
         proxyOverride,
