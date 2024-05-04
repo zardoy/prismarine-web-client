@@ -55,7 +55,6 @@ it('Loads & renders singleplayer', () => {
 it.only('Joins to server', () => {
   visit('/?ip=localhost&version=1.16.1')
   window.localStorage.version = ''
-  visit()
   // todo replace with data-test
   // cy.get('[data-test-id="servers-screen-button"]').click()
   // cy.get('[data-test-id="server-ip"]').clear().focus().type('localhost')

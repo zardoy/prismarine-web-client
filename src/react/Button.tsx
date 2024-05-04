@@ -15,7 +15,7 @@ interface Props extends React.ComponentProps<'button'> {
 
 void loadSound('button_click.mp3')
 
-export default (({ label, icon, children, inScreen, rootRef, ...args }) => {
+export default (({ label, icon, children, inScreen, rootRef, type = 'button', ...args }) => {
   const onClick = (e) => {
     void playSound('button_click.mp3')
     args.onClick?.(e)
@@ -29,7 +29,7 @@ export default (({ label, icon, children, inScreen, rootRef, ...args }) => {
     args.style.width = 20
   }
 
-  return <button ref={rootRef} {...args} className={classNames(buttonCss.button, args.className)} onClick={onClick}>
+  return <button ref={rootRef} {...args} className={classNames(buttonCss.button, args.className)} onClick={onClick} type={type}>
     {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}
     {label}
     {children}

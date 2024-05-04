@@ -45,7 +45,8 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
       flexDirection: 'column',
       height: '100%'
     }}
-    onSubmit={() => {
+    onSubmit={(e) => {
+      e.preventDefault()
       let ip = serverIp.includes(':') ? serverIp : `${serverIp}:${serverPort}`
       ip = ip.replace(/:$/, '')
       onConfirm({
