@@ -10,28 +10,25 @@ import styles from './singleplayer.module.css'
 import Input from './Input'
 import Button from './Button'
 import Tabs from './Tabs'
+import MessageFormattedString from './MessageFormattedString'
 
 export interface WorldProps {
   name: string
   title: string
-  iconBase64?: string
   size?: number
   lastPlayed?: number
   isFocused?: boolean
   iconSrc?: string
   detail?: string
+  formattedTextOverride?: string
+  worldNameRight?: string
   onFocus?: (name: string) => void
   onInteraction?(interaction: 'enter' | 'space')
-  formattedTextOverride?: string
 }
-<<<<<<< Updated upstream
 
-const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus, onInteraction, iconBase64 }: WorldProps) => {
-=======
-const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus, onInteraction, iconSrc }: WorldProps) => {
->>>>>>> Stashed changes
+const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus, onInteraction, iconSrc, formattedTextOverride, worldNameRight }: WorldProps) => {
   const timeRelativeFormatted = useMemo(() => {
-    if (!lastPlayed) return
+    if (!lastPlayed) return ''
     const formatter = new Intl.RelativeTimeFormat('en', { numeric: 'auto' })
     const diff = Date.now() - lastPlayed
     const minutes = Math.floor(diff / 1000 / 60)
@@ -44,7 +41,7 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
     return formatter.format(-minutes, 'minute')
   }, [lastPlayed])
   const sizeFormatted = useMemo(() => {
-    if (!size) return
+    if (!size) return ''
     return filesize(size)
   }, [size])
 
@@ -54,15 +51,19 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
       onInteraction?.(e.code === 'Enter' ? 'enter' : 'space')
     }
   }} onDoubleClick={() => onInteraction?.('enter')}>
-<<<<<<< Updated upstream
-    <img className={`${styles.world_image} ${iconBase64 ? '' : styles.image_missing}`} src={iconBase64 ? `data:image/png;base64,${iconBase64}` : missingWorldPreview} alt='world preview' />
-=======
-    <img className={styles.world_image} src={iconSrc || missingWorldPreview} />
->>>>>>> Stashed changes
+    <img className={`${styles.world_image} ${iconSrc ? '' : styles.image_missing}`} src={iconSrc ?? missingWorldPreview} alt='world preview' />
     <div className={styles.world_info}>
-      <div className={styles.world_title} title='level.dat world name'>{title}</div>
-      <div className={styles.world_info_description_line}>{timeRelativeFormatted} {detail.slice(-30)}</div>
-      <div className={styles.world_info_description_line}>{sizeFormatted}</div>
+      <div className={styles.world_title}>
+        <div>{title}</div>
+        <div className={styles.world_title_right}>{worldNameRight}</div>
+      </div>
+      {formattedTextOverride ? <div className={styles.world_info_formatted}>
+        <MessageFormattedString message={formattedTextOverride} />
+      </div> :
+        <>
+          <div className={styles.world_info_description_line}>{timeRelativeFormatted} {detail.slice(-30)}</div>
+          <div className={styles.world_info_description_line}>{sizeFormatted}</div>
+        </>}
     </div>
   </div>
 }
@@ -87,9 +88,6 @@ interface Props {
   onGeneralAction (action: 'cancel' | 'create'): void
 }
 
-<<<<<<< Updated upstream
-export default ({ worldData, onGeneralAction, onWorldAction, activeProvider, setActiveProvider, providerActions, providers, disabledProviders, error, isReadonly, warning, warningAction, warningActionLabel }: Props) => {
-=======
 export default ({
   worldData,
   onGeneralAction,
@@ -103,9 +101,9 @@ export default ({
   providers = {},
   disabledProviders,
   error,
-  isReadonly
+  isReadonly,
+  warning, warningAction, warningActionLabel
 }: Props) => {
->>>>>>> Stashed changes
   const containerRef = useRef<any>()
   const firstButton = useRef<HTMLButtonElement>(null)
 
@@ -131,7 +129,7 @@ export default ({
   return <div ref={containerRef}>
     <div className="dirt-bg" />
     <div className={classNames('fullscreen', styles.root)}>
-      <span className={classNames('screen-title', styles.title)}>{serversLayout ? 'Join Java Server' : 'Select Saved World'}</span>
+      <span className={classNames('screen-title', styles.title)}>{serversLayout ? 'Join Java Servers' : 'Select Saved World'}</span>
       {searchRowChildrenOverride || <div style={{ display: 'flex', flexDirection: 'column' }}>
         <Input autoFocus value={search} onChange={({ target: { value } }) => setSearch(value)} />
       </div>}
@@ -184,7 +182,7 @@ export default ({
           <Button onClick={() => onGeneralAction('create')} disabled={isReadonly}>Create New World</Button>
         </div>}
         <div>
-          <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('export', focusedWorld)}>Export</Button>
+          {serversLayout ? <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('edit', focusedWorld)}>Edit</Button> : <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('export', focusedWorld)}>Export</Button>}
           <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('delete', focusedWorld)}>Delete</Button>
           {serversLayout ?
             <Button style={{ width: 100 }} onClick={() => onGeneralAction('create')}>Add</Button> :

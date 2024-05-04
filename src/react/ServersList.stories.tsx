@@ -14,11 +14,14 @@ const meta: Meta<typeof ServersList> = {
       <AddServer onBack={() => {
         setAddOpen(false)
       }}
-      onConfirm={() => { }} /> :
+      onConfirm={(info) => {
+        console.log('add server', info)
+      }} /> :
       <ServersList
         worldData={[{
-          name: '',
+          name: 'test',
           title: 'Server',
+          formattedTextOverride: 'play yes',
         }]}
         joinServer={(ip) => {
           console.log('joinServer', ip)

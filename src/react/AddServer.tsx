@@ -6,6 +6,7 @@ import { useIsSmallWidth } from './simpleHooks'
 
 export interface NewServerInfo {
   ip: string
+  name?: string
   versionOverride?: string
   proxyOverride?: string
   usernameOverride?: string
@@ -16,17 +17,22 @@ interface Props {
   onBack: () => void
   onConfirm: (info: NewServerInfo) => void
   title?: string
+  initialData?: NewServerInfo
 }
 
-export default ({ onBack, onConfirm, title = 'Add a Server' }: Props) => {
-  const [serverIp, setServerIp] = React.useState('')
-  const [serverPort, setServerPort] = React.useState('')
-  const [versionOverride, setVersionOverride] = React.useState('')
-  const [proxyOverride, setProxyOverride] = React.useState('')
-  const [usernameOverride, setUsernameOverride] = React.useState('')
-  const [passwordOverride, setPasswordOverride] = React.useState('')
-  // const smallWidth = useIsSmallWidth()
-  const smallWidth = true
+export default ({ onBack, onConfirm, title = 'Add a Server', initialData }: Props) => {
+  const [serverName, setServerName] = React.useState(initialData?.name ?? '')
+
+  const ipWithoutPort = initialData?.ip.split(':')[0]
+  const port = initialData?.ip.split(':')[1]
+
+  const [serverIp, setServerIp] = React.useState(ipWithoutPort ?? '')
+  const [serverPort, setServerPort] = React.useState(port ?? '')
+  const [versionOverride, setVersionOverride] = React.useState(initialData?.versionOverride ?? '')
+  const [proxyOverride, setProxyOverride] = React.useState(initialData?.proxyOverride ?? '')
+  const [usernameOverride, setUsernameOverride] = React.useState(initialData?.usernameOverride ?? '')
+  const [passwordOverride, setPasswordOverride] = React.useState(initialData?.passwordOverride ?? '')
+  const smallWidth = useIsSmallWidth()
 
   return <Screen title={title} backdrop>
     <form style={{
@@ -35,7 +41,8 @@ export default ({ onBack, onConfirm, title = 'Add a Server' }: Props) => {
       height: '100%'
     }}
     onSubmit={() => {
-      const ip = serverIp.includes(':') ? serverIp : `${serverIp}:${serverPort ?? 25_565}`
+      let ip = serverIp.includes(':') ? serverIp : `${serverIp}:${serverPort}`
+      ip = ip.replace(/:$/, '')
       onConfirm({
         ip,
         versionOverride,
@@ -50,20 +57,14 @@ export default ({ onBack, onConfirm, title = 'Add a Server' }: Props) => {
         gap: 3,
         gridTemplateColumns: smallWidth ? '1fr' : '1fr 1fr'
       }}>
+        <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
         <InputWithLabel required label="Server IP" value={serverIp} onChange={({ target: { value } }) => setServerIp(value)} />
         <InputWithLabel label="Server Port" value={serverPort} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
-        <div style={{ gridColumn: 'span 2' }}>Overrides:</div>
+        <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>
         <InputWithLabel label="Version Override" value={versionOverride} onChange={({ target: { value } }) => setVersionOverride(value)} />
         <InputWithLabel label="Proxy Override" value={proxyOverride} onChange={({ target: { value } }) => setProxyOverride(value)} />
         <InputWithLabel label="Username Override" value={usernameOverride} onChange={({ target: { value } }) => setUsernameOverride(value)} />
         <InputWithLabel label="Password Override" value={passwordOverride} onChange={({ target: { value } }) => setPasswordOverride(value)} />
-      </div>
-      <div style={{
-        marginBottom: 3,
-        display: 'flex',
-        gap: 5,
-        justifyContent: 'center',
-      }}>
         <Button onClick={() => {
           onBack()
         }}>Cancel</Button>

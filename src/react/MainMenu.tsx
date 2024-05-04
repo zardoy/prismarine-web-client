@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { openURL } from '../menus/components/common'
+import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { haveDirectoryPicker } from '../utils'
 import styles from './mainMenu.module.css'
 import Button from './Button'

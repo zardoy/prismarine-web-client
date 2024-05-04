@@ -2,7 +2,6 @@
   "version": 1,
   "defaultHost": "<from-proxy>",
   "defaultProxy": "proxy.mcraft.fun",
-  "defaultVersion": "1.18.2",
   "mapsProvider": "https://maps.mcraft.fun/",
   "promoteServers": [
     {
@@ -11,6 +10,7 @@
     },
     {
       "ip": "go.mineberry.org",
+      "version": "1.18.2",
       "description": "One of the best servers here. Join now!"
     },
     {
