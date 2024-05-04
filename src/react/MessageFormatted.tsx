@@ -137,5 +137,5 @@ export const messageFormatStylesMap = {
   strikethrough: 'text-decoration:line-through',
   underlined: 'text-decoration:underline',
   italic: 'font-style:italic',
-  obfuscated: 'color: #222326;background-color: #222326;'
+  obfuscated: 'filter:blur(2px)',
 }

@@ -85,7 +85,7 @@ export const readWorlds = (abortController: AbortController) => {
           title: levelName ?? folder,
           lastPlayed: levelDat.LastPlayed && longArrayToNumber(levelDat.LastPlayed),
           detail: `${levelDat.Version?.Name ?? 'unknown version'}, ${folder}`,
-          iconBase64,
+          iconSrc: iconBase64 ? `data:image/png;base64,${iconBase64}` : undefined,
           size,
         } satisfies WorldProps
       }))).filter((x, i) => {

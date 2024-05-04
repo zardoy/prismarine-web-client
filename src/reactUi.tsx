@@ -33,6 +33,7 @@ import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
 import HotbarRenderApp from './react/HotbarRenderApp'
 import Crosshair from './react/Crosshair'
+import ServersListProvider from './react/ServersListProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -139,6 +140,7 @@ const App = () => {
       <CreateWorldProvider />
       <AppStatusProvider />
       <SelectOption />
+      <ServersListProvider />
       <OptionsRenderApp />
       <MainMenuRenderApp />
       <NotificationProvider />

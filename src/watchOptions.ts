@@ -2,10 +2,10 @@
 
 import { subscribeKey } from 'valtio/utils'
 import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
+import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
 import { miscUiState } from './globalState'
-import { isMobile } from './menus/components/common'
 
 subscribeKey(options, 'renderDistance', reloadChunks)
 subscribeKey(options, 'multiplayerRenderDistance', reloadChunks)

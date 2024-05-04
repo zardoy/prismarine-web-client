@@ -1,5 +1,5 @@
+import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
-import { isMobile } from './menus/components/common'
 
 if (process.env.NODE_ENV === 'development') {
   if (sessionStorage.lastReload) {
