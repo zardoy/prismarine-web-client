@@ -58,7 +58,9 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData }: Prop
         gap: 3,
         gridTemplateColumns: smallWidth ? '1fr' : '1fr 1fr'
       }}>
-        <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
+        <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>
+          <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
+        </div>
         <InputWithLabel required label="Server IP" value={serverIp} onChange={({ target: { value } }) => setServerIp(value)} />
         <InputWithLabel label="Server Port" value={serverPort} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
         <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>

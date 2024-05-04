@@ -9,6 +9,7 @@ const meta: Meta<typeof ServersList> = {
   component: ServersList,
   render (args) {
     const [addOpen, setAddOpen] = useState(false)
+    const [username, setUsername] = useState('')
 
     return addOpen ?
       <AddServer onBack={() => {
@@ -39,6 +40,8 @@ const meta: Meta<typeof ServersList> = {
             setAddOpen(true)
           }
         }}
+        username={username}
+        setUsername={setUsername}
       />
   },
 }

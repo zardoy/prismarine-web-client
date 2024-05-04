@@ -80,9 +80,9 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
       <div style={{
         // marginTop: 12,
       }}>
-        <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
           <span style={{ color: 'lightgray', fontSize: 14 }}>Proxy:</span>
-          <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 120 }}>
+          <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130 }}>
             <ProxyRender
               {...omitObj(autocomplete.getInputProps(), 'ref')}
               inputRef={autocomplete.getInputProps().ref as any}
@@ -100,8 +100,8 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
               })}
             </ul>}
           </div>
-          <PixelartIcon iconName='user' styles={{ fontSize: 14, color: 'lightgray' }} />
-          <Input rootStyles={{ width: 60 }} value={username} onChange={({ target: { value } }) => setUsername(value)} />
+          <PixelartIcon iconName='user' styles={{ fontSize: 14, color: 'lightgray', marginLeft: 2 }} />
+          <Input rootStyles={{ width: 80 }} value={username} onChange={({ target: { value } }) => setUsername(value)} />
         </div>
       </div>
     }
