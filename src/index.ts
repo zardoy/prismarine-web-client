@@ -542,6 +542,7 @@ async function connect (connectOptions: ConnectOptions) {
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
 
     setLoadingScreenStatus('Placing blocks (starting viewer)')
+    localStorage.lastConnectOptions = JSON.stringify(connectOptions)
     connectOptions.onSuccessfulPlay?.()
     if (connectOptions.autoLoginPassword) {
       bot.chat(`/login ${connectOptions.autoLoginPassword}`)
@@ -835,12 +836,26 @@ void window.fetch('config.json').then(async res => res.json()).then(c => c, (err
   miscUiState.appConfig = config
 })
 
+// qs open actions
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
+  const qs = new URLSearchParams(window.location.search)
+  if (qs.get('reconnect') && process.env.NODE_ENV === 'development') {
+    const ip = qs.get('ip')
+    const lastConnect = JSON.parse(localStorage.lastConnectOptions ?? {})
+    void connect({
+      ...lastConnect, // todo mixing is not good idea
+      ip: ip || undefined
+    })
+    return
+  }
+  if (qs.get('ip') || qs.get('proxy')) {
+    // show server editor for connect or save
+    showModal({ reactType: 'editServer' })
+  }
 
   void Promise.resolve().then(() => {
     // try to connect to peer
-    const qs = new URLSearchParams(window.location.search)
     const peerId = qs.get('connectPeer')
     const version = qs.get('peerVersion')
     if (peerId) {

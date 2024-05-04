@@ -67,7 +67,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
             placement: 'top',
           }}
           onClick={connectToServerAction}
-          data-test-id='connect-screen-button'
+          data-test-id='servers-screen-button'
         >
           Connect to server
         </ButtonWithTooltip>

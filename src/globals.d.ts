@@ -27,7 +27,6 @@ declare const customEvents: import('typed-emitter').default<{
 declare const beforeRenderFrame: Array<() => void>
 
 declare interface Document {
-    getElementById (id): any
     exitPointerLock?(): void
 }
 
@@ -37,14 +36,7 @@ declare namespace JSX {
     }
 }
 
-declare interface DocumentFragment {
-    getElementById (id): HTMLElement & Record<string, any>
-    querySelector (id): HTMLElement & Record<string, any>
-}
-
-declare interface Window extends Record<string, any> {
-
-}
+declare interface Window extends Record<string, any> {}
 
 type StringKeys<T extends object> = Extract<keyof T, string>
 

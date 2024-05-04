@@ -189,12 +189,18 @@ const Inner = () => {
     }
   }, [serverEditScreen])
 
-  if (isEditScreenModal && serverEditScreen) {
+  if (isEditScreenModal) {
     return <AddServer
+      defaults={{
+        proxyOverride: selectedProxy,
+        usernameOverride: defaultUsername,
+      }}
+      parseQs={!serverEditScreen}
       onBack={() => {
         hideCurrentModal()
       }}
       onConfirm={(info) => {
+        if (!serverEditScreen) return
         if (serverEditScreen === true) {
           const server: StoreServerItem = { ...info, lastJoined: Date.now() } // so it appears first
           setServersList(old => [...old, server])
@@ -205,7 +211,18 @@ const Inner = () => {
         }
         setServerEditScreen(null)
       }}
-      initialData={serverEditScreen === true ? undefined : serverEditScreen}
+      initialData={!serverEditScreen || serverEditScreen === true ? undefined : serverEditScreen}
+      onQsConnect={(info) => {
+        const connectOptions: ConnectOptions = {
+          username: info.usernameOverride || defaultUsername,
+          server: info.ip,
+          proxy: info.proxyOverride || selectedProxy,
+          botVersion: info.versionOverride,
+          password: info.passwordOverride,
+          ignoreQs: true,
+        }
+        dispatchEvent(new CustomEvent('connect', { detail: connectOptions }))
+      }}
     />
   }
 
@@ -221,16 +238,16 @@ const Inner = () => {
       }
 
       const lastJoinedUsername = serversListSorted.find(s => s.usernameOverride)?.usernameOverride
-      let username = overrides.username ?? defaultUsername
+      let username = overrides.username || defaultUsername
       if (!username) {
-        username = prompt('Username', lastJoinedUsername ?? '')
+        username = prompt('Username', lastJoinedUsername || '')
         if (!username) return
         setDefaultUsername(username)
       }
       const options = {
         username,
         server: ip,
-        proxy: overrides.proxy ?? selectedProxy,
+        proxy: overrides.proxy || selectedProxy,
         botVersion: overrides.version,
         password: overrides.password,
         ignoreQs: true,
@@ -294,7 +311,7 @@ const Inner = () => {
       const additional = additionalData[server.ip]
       return {
         name: server.index.toString(),
-        title: server.name ?? server.ip,
+        title: server.name || server.ip,
         detail: (server.version ?? '') + ' ' + (server.usernameOverride ?? ''),
         // lastPlayed: server.lastJoined,
         formattedTextOverride: additional?.formattedText,
