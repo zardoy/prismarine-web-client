@@ -87,8 +87,10 @@ class WorldInteraction {
 
       const entity = getEntityCursor()
 
-      if (entity) {
+      if (entity && e.button === 2) {
         bot.attack(entity)
+      } else {
+        // bot
       }
     })
     document.addEventListener('blur', (e) => {

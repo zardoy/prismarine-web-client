@@ -2,6 +2,7 @@ import { join } from 'path'
 import { useEffect } from 'react'
 import { useSnapshot } from 'valtio'
 import { usedServerPathsV1 } from 'flying-squid/dist/lib/modules/world'
+import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import {
   activeModalStack,
   showModal,
@@ -13,9 +14,8 @@ import { fsState } from '../loadSave'
 import { disconnect } from '../flyingSquidUtils'
 import { pointerLock, setLoadingScreenStatus } from '../utils'
 import { closeWan, openToWanAndCopyJoinLink, getJoinLink } from '../localServerMultiplayer'
-import { openURL } from '../menus/components/common'
 import { copyFilesAsyncWithProgress, mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'
-import { useIsModalActive } from './utils'
+import { useIsModalActive } from './utilsApp'
 import { showOptionsModal } from './SelectOption'
 import Button from './Button'
 import Screen from './Screen'

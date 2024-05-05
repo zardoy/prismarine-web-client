@@ -2,7 +2,7 @@ import { useSnapshot } from 'valtio'
 import { activeModalStack, hideModal } from '../globalState'
 import { options } from '../optionsStorage'
 import TouchAreasControls from './TouchAreasControls'
-import { useIsModalActive, useUsingTouch } from './utils'
+import { useIsModalActive, useUsingTouch } from './utilsApp'
 
 export default () => {
   const usingTouch = useUsingTouch()

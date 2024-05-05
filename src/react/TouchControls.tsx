@@ -4,7 +4,7 @@ import { useSnapshot } from 'valtio'
 import { contro } from '../controls'
 import { miscUiState, activeModalStack } from '../globalState'
 import { watchValue, options } from '../optionsStorage'
-import { useUsingTouch } from './utils'
+import { useUsingTouch } from './utilsApp'
 
 // todo
 useInterfaceState.setState({

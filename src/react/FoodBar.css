@@ -12,6 +12,7 @@
   --bg-x: calc(-1 * (16px + 9px * var(--lightened)));
   --bg-y: calc(-1 * 27px);
   pointer-events: none;
+  image-rendering: pixelated;
 }
 
 .foodbar.poisoned {

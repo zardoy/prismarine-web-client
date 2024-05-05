@@ -1,7 +1,7 @@
 import classNames from 'classnames'
-import { FC, Ref } from 'react'
-import { loadSound, playSound } from '../basicSounds'
+import { createContext, FC, Ref, useContext } from 'react'
 import buttonCss from './button.module.css'
+import SharedHudVars from './SharedHudVars'
 
 // testing in storybook from deathscreen
 
@@ -13,11 +13,19 @@ interface Props extends React.ComponentProps<'button'> {
   rootRef?: Ref<HTMLButtonElement>
 }
 
-void loadSound('button_click.mp3')
+const ButtonContext = createContext({
+  onClick () { },
+})
 
-export default (({ label, icon, children, inScreen, rootRef, ...args }) => {
+export const ButtonProvider: FC<{children, onClick}> = ({ children, onClick }) => {
+  return <ButtonContext.Provider value={{ onClick }}>{children}</ButtonContext.Provider>
+}
+
+export default (({ label, icon, children, inScreen, rootRef, type = 'button', ...args }) => {
+  const ctx = useContext(ButtonContext)
+
   const onClick = (e) => {
-    void playSound('button_click.mp3')
+    ctx.onClick()
     args.onClick?.(e)
   }
   if (inScreen) {
@@ -29,9 +37,11 @@ export default (({ label, icon, children, inScreen, rootRef, ...args }) => {
     args.style.width = 20
   }
 
-  return <button ref={rootRef} {...args} className={classNames(buttonCss.button, args.className)} onClick={onClick}>
-    {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}
-    {label}
-    {children}
-  </button>
+  return <SharedHudVars>
+    <button ref={rootRef} {...args} className={classNames(buttonCss.button, args.className)} onClick={onClick} type={type}>
+      {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}
+      {label}
+      {children}
+    </button>
+  </SharedHudVars>
 }) satisfies FC<Props>

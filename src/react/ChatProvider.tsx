@@ -4,8 +4,10 @@ import { formatMessage } from '../botUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
 import { hideCurrentModal, miscUiState } from '../globalState'
 import { options } from '../optionsStorage'
-import ChatContainer, { Message, fadeMessage } from './ChatContainer'
-import { useIsModalActive } from './utils'
+import Chat, { Message, fadeMessage } from './Chat'
+import { useIsModalActive } from './utilsApp'
+import { hideNotification, showNotification } from './NotificationProvider'
+import { updateLoadedServerData } from './ServersListProvider'
 
 export default () => {
   const [messages, setMessages] = useState([] as Message[])
@@ -35,7 +37,7 @@ export default () => {
     })
   }, [])
 
-  return <ChatContainer
+  return <Chat
     allowSelection={chatSelect}
     usingTouch={!!usingTouch}
     opacity={(isChatActive ? chatOpacityOpened : chatOpacity) / 100}
@@ -43,6 +45,17 @@ export default () => {
     opened={isChatActive}
     sendMessage={(message) => {
       const builtinHandled = tryHandleBuiltinCommand(message)
+      if (miscUiState.loadedServerIndex && (message.startsWith('/login') || message.startsWith('/register'))) {
+        showNotification('Click here to save your password in browser for auto-login', undefined, false, undefined, () => {
+          updateLoadedServerData((server) => {
+            server.autoLogin ??= {}
+            const password = message.split(' ')[1]
+            server.autoLogin[miscUiState.username] = password
+            return server
+          })
+          hideNotification()
+        })
+      }
       if (!builtinHandled) {
         bot.chat(message)
       }
@@ -52,7 +65,10 @@ export default () => {
     }}
     fetchCompletionItems={async (triggerKind, completeValue) => {
       if ((triggerKind === 'explicit' || options.autoRequestCompletions)) {
-        let items = await bot.tabComplete(completeValue, true, true)
+        let items = [] as string[]
+        try {
+          items = await bot.tabComplete(completeValue, true, true)
+        } catch (err) {}
         if (typeof items[0] === 'object') {
           // @ts-expect-error
           if (items[0].match) items = items.map(i => i.match)

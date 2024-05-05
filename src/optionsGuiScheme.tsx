@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useSnapshot } from 'valtio'
+import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { miscUiState, openOptionsMenu, showModal } from './globalState'
-import { openURL } from './menus/components/common'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
 import { OptionMeta, OptionSlider } from './react/OptionsItems'
@@ -50,13 +50,14 @@ export const guiOptionsScheme: {
       dayCycleAndLighting: {
         text: 'Day Cycle',
       },
-      smoothLighting: {},
+      // smoothLighting: {},
       newVersionsLighting: {
         text: 'Lighting in newer versions',
       },
       lowMemoryMode: {
         text: 'Low Memory Mode',
-        enableWarning: 'Enabling it will make chunks load ~4x slower'
+        enableWarning: 'Enabling it will make chunks load ~4x slower',
+        disabledDuringGame: true
       },
     },
   ],

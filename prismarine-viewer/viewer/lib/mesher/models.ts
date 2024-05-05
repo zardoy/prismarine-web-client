@@ -387,15 +387,12 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
         let cornerLightResult = 15
-        if (world.config.smoothLighting) {
+        if (/* world.config.smoothLighting */false) { // todo fix
           const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
           const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
           const cornerLight = world.getLight(cursor.plus(new Vec3(...cornerDir)), true)
           // interpolate
-          cornerLightResult = Math.min(
-            Math.min(side1Light, side2Light),
-            cornerLight
-          )
+          cornerLightResult = (side1Light + side2Light + cornerLight) / 3
         }
 
         const side1Block = world.shouldMakeAo(side1) ? 1 : 0
@@ -405,7 +402,8 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
 
         const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
-        light = (ao + 1) / 4 * cornerLightResult / 15
+        // todo light should go upper on lower blocks
+        light = (ao + 1) / 4 * (cornerLightResult / 15)
         aos.push(ao)
       }
 

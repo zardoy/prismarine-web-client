@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 
 import { useEffect, useState } from 'react'
 import { formatMessage } from '../botUtils'
-import Chat, { fadeMessage, chatInputValueGlobal } from './ChatContainer'
+import Chat, { fadeMessage, chatInputValueGlobal } from './Chat'
 import Button from './Button'
 
 window.spamMessage = window.spamMessage ?? ''

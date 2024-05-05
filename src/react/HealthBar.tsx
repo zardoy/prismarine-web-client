@@ -1,41 +1,36 @@
-import { useRef, useState, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import SharedHudVars from './SharedHudVars'
 import './HealthBar.css'
+import { barEffectAdded, barEffectEnded } from './BarsCommon'
 
 
 export type HealthBarProps = {
-  gameMode: string,
+  gameMode?: string,
   isHardcore: boolean,
   damaged: boolean,
   healthValue: number,
-  effectToAdd: number | null,
-  effectToRemove: number | null,
-  effectAdded: (htmlElement: HTMLDivElement | null, effect: number | null) => void,
-  effectEnded: (htmlElement: HTMLDivElement | null, effect: number | null) => void,
+  effectToAdd?: number | null,
+  effectToRemove?: number | null,
+  resetEffects?: () => void
+  style?: React.CSSProperties
 }
 
 export default (
   {
-    gameMode, 
-    isHardcore, 
-    damaged, 
-    healthValue, 
+    gameMode,
+    isHardcore,
+    damaged,
+    healthValue,
     effectToAdd,
     effectToRemove,
-    effectAdded,
-    effectEnded
+    resetEffects,
+    style
   }: HealthBarProps) => {
   const healthRef = useRef<HTMLDivElement | null>(null)
-  const [className, setClassName] = useState('')
 
   useEffect(() => {
     if (healthRef.current) {
       healthRef.current.classList.toggle('creative', gameMode === 'creative' || gameMode === 'spectator')
-      // if (gameMode === 'creative' || gameMode === 'spectator') {
-      //   healthRef.current.classList.add('creative')
-      // } else {
-      //   healthRef.current.classList.remove('creative')
-      // }
     }
   }, [gameMode])
 
@@ -89,24 +84,24 @@ export default (
   }, [healthValue])
 
   useEffect(() => {
-    effectAdded(healthRef.current, effectToAdd)
-  }, [effectToAdd])
-
-  useEffect(() => {
-    effectEnded(healthRef.current, effectToRemove)
-  }, [effectToRemove])
+    if (effectToAdd) {
+      barEffectAdded(healthRef.current, effectToAdd)
+    }
+    if (effectToRemove) {
+      barEffectEnded(healthRef.current, effectToRemove)
+    }
+    resetEffects?.()
+  }, [effectToAdd, effectToRemove])
 
   return <SharedHudVars>
-    <div ref={healthRef} className='health' >
+    <div ref={healthRef} className='health' style={style}>
       {
         Array.from({ length: 10 }, () => 0)
           .map(
-            (num, index) => <div 
+            (num, index) => <div
               key={`heart-${index}`}
               className='heart'></div>
           )
       }
     </div>
   </SharedHudVars>}
-
-

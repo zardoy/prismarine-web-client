@@ -12,6 +12,7 @@
   --bg-x: calc(-1 * (16px + 9px * var(--lightened)));
   --bg-y: calc(-1 * var(--hardcore) * 45px);
   pointer-events: none;
+  image-rendering: pixelated;
 }
 
 .health.creative {

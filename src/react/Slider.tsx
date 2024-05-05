@@ -1,6 +1,7 @@
 // Slider.tsx
 import React, { useState, useEffect } from 'react'
 import styles from './slider.module.css'
+import SharedHudVars from './SharedHudVars'
 
 interface Props extends React.ComponentProps<'div'> {
   label: string;
@@ -47,36 +48,38 @@ const Slider: React.FC<Props> = ({
   }
 
   return (
-    <div className={styles['slider-container']} style={{ width }} {...divProps}>
-      <input
-        type="range"
-        className={styles.slider}
-        min={min}
-        max={max}
-        value={value}
-        disabled={!!disabledReason}
-        onChange={(e) => {
-          const newValue = Number(e.target.value)
-          setValue(newValue)
-          fireValueUpdate(false, newValue)
-        }}
-        // todo improve correct handling of drag end
-        onLostPointerCapture={() => {
-          fireValueUpdate(true)
-        }}
-        onPointerUp={() => {
-          fireValueUpdate(true)
-        }}
-        onKeyUp={() => {
-          fireValueUpdate(true)
-        }}
-      />
-      <div className={styles.disabled} title={disabledReason}></div>
-      <div className={styles['slider-thumb']} style={{ left: `calc((100% * ${ratio}) - (8px * ${ratio}))` }}></div>
-      <label className={styles.label}>
-        {label}: {valueDisplay ?? value} {unit}
-      </label>
-    </div>
+    <SharedHudVars>
+      <div className={styles['slider-container']} style={{ width }} {...divProps}>
+        <input
+          type="range"
+          className={styles.slider}
+          min={min}
+          max={max}
+          value={value}
+          disabled={!!disabledReason}
+          onChange={(e) => {
+            const newValue = Number(e.target.value)
+            setValue(newValue)
+            fireValueUpdate(false, newValue)
+          }}
+          // todo improve correct handling of drag end
+          onLostPointerCapture={() => {
+            fireValueUpdate(true)
+          }}
+          onPointerUp={() => {
+            fireValueUpdate(true)
+          }}
+          onKeyUp={() => {
+            fireValueUpdate(true)
+          }}
+        />
+        <div className={styles.disabled} title={disabledReason}></div>
+        <div className={styles['slider-thumb']} style={{ left: `calc((100% * ${ratio}) - (8px * ${ratio}))` }}></div>
+        <label className={styles.label}>
+          {label}: {valueDisplay ?? value} {unit}
+        </label>
+      </div>
+    </SharedHudVars>
   )
 }
 

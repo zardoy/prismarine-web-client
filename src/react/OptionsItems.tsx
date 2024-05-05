@@ -3,6 +3,7 @@ import { noCase } from 'change-case'
 import { titleCase } from 'title-case'
 import { useMemo } from 'react'
 import { options, qsOptions } from '../optionsStorage'
+import { miscUiState } from '../globalState'
 import Button from './Button'
 import Slider from './Slider'
 import Screen from './Screen'
@@ -12,6 +13,7 @@ type GeneralItem<T extends string | number | boolean> = {
   id?: string
   text?: string,
   disabledReason?: string,
+  disabledDuringGame?: boolean
   tooltip?: string
   // description?: string
   enableWarning?: string
@@ -34,8 +36,8 @@ export type OptionMeta<T = any> = GeneralItem<T & string> & ({
 })
 
 // todo not reactive
-const isDisabled = (id) => {
-  return Object.keys(qsOptions).includes(id)
+const isDisabled = (item: GeneralItem<any>) => {
+  return Object.keys(qsOptions).includes(item.id!)
 }
 
 export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'toggle' }> }) => {
@@ -60,6 +62,10 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
   return <Button
     label={`${item.text}: ${valuesTitlesMap[optionValue]}`}
     onClick={async () => {
+      if (item.disabledReason) {
+        await showOptionsModal(`The option is unavailable. ${item.disabledReason}`, [])
+        return
+      }
       if (item.enableWarning && !options[item.id!]) {
         const result = await showOptionsModal(item.enableWarning, ['Enable'])
         if (!result) return
@@ -86,7 +92,7 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
       }
     }}
     title={item.disabledReason ? `${item.disabledReason} | ${item.tooltip}` : item.tooltip}
-    disabled={!!item.disabledReason || isDisabled(item.id!)}
+    disabled={!!item.disabledReason || isDisabled(item)}
     style={{
       width: 150,
     }}
@@ -101,7 +107,7 @@ export const OptionSlider = ({ item }: { item: Extract<OptionMeta, { type: 'slid
     return undefined // default display
   }, [optionValue])
 
-  return <Slider disabledReason={isDisabled(item.id!) ? 'qs' : undefined} label={item.text!} value={options[item.id!]} min={item.min} max={item.max} updateValue={(value) => {
+  return <Slider disabledReason={isDisabled(item) ? 'qs' : undefined} label={item.text!} value={options[item.id!]} min={item.min} max={item.max} updateValue={(value) => {
     options[item.id!] = value
   }} unit={item.unit} valueDisplay={valueDisplay} updateOnDragEnd={item.delayApply} />
 }
@@ -111,8 +117,12 @@ const OptionElement = ({ item }: { item: Extract<OptionMeta, { type: 'element' }
 }
 
 const RenderOption = ({ item }: { item: OptionMeta }) => {
+  const { gameLoaded } = useSnapshot(miscUiState)
   if (item.id) {
     item.text ??= titleCase(noCase(item.id))
+  }
+  if (item.disabledDuringGame && gameLoaded) {
+    item.disabledReason = 'Cannot be changed during game'
   }
 
   let baseElement = null as React.ReactNode | null

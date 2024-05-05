@@ -26,7 +26,6 @@ html {
 }
 
 body {
-  --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png');
   --title-gui: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/title/minecraft.png');
 }
 

@@ -10,9 +10,6 @@ import initCollisionShapes from './getCollisionShapes'
 import { itemsAtlases, onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 
-import './menus/components/button'
-import './menus/components/edit_box'
-import './menus/play_screen'
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 
@@ -90,6 +87,7 @@ import { saveToBrowserMemory } from './react/PauseScreen'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 import './water'
+import { ConnectOptions } from './connect'
 
 window.debug = debug
 window.THREE = THREE
@@ -240,13 +238,10 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
   }
 }
 
-async function connect (connectOptions: {
-  server?: string; singleplayer?: any; username: string; password?: any; proxy?: any; botVersion?: any; serverOverrides?; serverOverridesFlat?; peerId?: string; ignoreQs?: boolean
-}) {
+async function connect (connectOptions: ConnectOptions) {
   if (miscUiState.gameLoaded) return
   miscUiState.hasErrors = false
   lastConnectOptions.value = connectOptions
-  document.getElementById('play-screen').style = 'display: none;'
   removePanorama()
 
   const { singleplayer } = connectOptions
@@ -331,7 +326,7 @@ async function connect (connectOptions: {
   })
 
   if (proxy) {
-    console.log(`using proxy ${proxy.host}${proxy.port && `:${proxy.port}`}`)
+    console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
 
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
   }
@@ -528,12 +523,6 @@ async function connect (connectOptions: {
   bot.once('login', () => {
     worldInteractions.initBot()
 
-    // server is ok, add it to the history
-    if (!connectOptions.server) return
-    const serverHistory: string[] = JSON.parse(localStorage.getItem('serverHistory') || '[]')
-    serverHistory.unshift(connectOptions.server)
-    localStorage.setItem('serverHistory', JSON.stringify([...new Set(serverHistory)]))
-
     setLoadingScreenStatus('Loading world')
   })
 
@@ -548,10 +537,16 @@ async function connect (connectOptions: {
     window.pathfinder = pathfinder
 
     miscUiState.gameLoaded = true
+    miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''
     customEvents.emit('gameLoaded')
     if (p2pConnectTimeout) clearTimeout(p2pConnectTimeout)
 
     setLoadingScreenStatus('Placing blocks (starting viewer)')
+    localStorage.lastConnectOptions = JSON.stringify(connectOptions)
+    connectOptions.onSuccessfulPlay?.()
+    if (connectOptions.autoLoginPassword) {
+      bot.chat(`/login ${connectOptions.autoLoginPassword}`)
+    }
 
     console.log('bot spawned - starting viewer')
 
@@ -726,6 +721,7 @@ async function connect (connectOptions: {
 
     console.log('Done!')
 
+    // todo
     onGameLoad(async () => {
       if (!viewer.world.downloadedBlockStatesData && !viewer.world.customBlockStatesData) {
         await new Promise<void>(resolve => {
@@ -733,6 +729,7 @@ async function connect (connectOptions: {
         })
       }
       miscUiState.serverIp = server.host as string | null
+      miscUiState.username = username
     })
 
     if (appStatusState.isError) return
@@ -839,12 +836,26 @@ void window.fetch('config.json').then(async res => res.json()).then(c => c, (err
   miscUiState.appConfig = config
 })
 
+// qs open actions
 downloadAndOpenFile().then((downloadAction) => {
   if (downloadAction) return
+  const qs = new URLSearchParams(window.location.search)
+  if (qs.get('reconnect') && process.env.NODE_ENV === 'development') {
+    const ip = qs.get('ip')
+    const lastConnect = JSON.parse(localStorage.lastConnectOptions ?? {})
+    void connect({
+      ...lastConnect, // todo mixing is not good idea
+      ip: ip || undefined
+    })
+    return
+  }
+  if (qs.get('ip') || qs.get('proxy')) {
+    // show server editor for connect or save
+    showModal({ reactType: 'editServer' })
+  }
 
   void Promise.resolve().then(() => {
     // try to connect to peer
-    const qs = new URLSearchParams(window.location.search)
     const peerId = qs.get('connectPeer')
     const version = qs.get('peerVersion')
     if (peerId) {
