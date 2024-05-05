@@ -43,6 +43,6 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .vercel/output/static
           force_orphan: true
-      - run: tsx scripts/buildNpmReact.ts
+      - run: pnpm tsx scripts/buildNpmReact.ts
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
