@@ -40,7 +40,7 @@ fs.promises.readdir(path.resolve(__dirname, '../src/react')).then(async (files) 
 
     const externalize = ['minecraft-assets', 'prismarine-viewer']
     const { metafile } = await build({
-        entryPoints: [path.resolve(__dirname, '../src/react/npmReactEntrypoint.ts')],
+        entryPoints: [path.resolve(__dirname, '../src/react/npmReactComponents.ts')],
         bundle: true,
         outfile: path.resolve(__dirname, '../dist-npm/bundle.esm.js'),
         format: 'esm',

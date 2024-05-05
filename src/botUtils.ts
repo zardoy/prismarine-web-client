@@ -27,9 +27,10 @@ type MessageInput = {
   json?: any
 }
 
-//@ts-expect-error TODO
+const global = globalThis as any
+
 // todo move to sign-renderer, replace with prismarine-chat, fix mcData issue!
-export const formatMessage = (message: MessageInput, mcData: IndexedData = globalThis.loadedData) => {
+export const formatMessage = (message: MessageInput, mcData: IndexedData = global.loadedData) => {
   let msglist: MessageFormatPart[] = []
 
   const readMsg = (msg: MessageInput) => {
@@ -116,7 +117,6 @@ const blockToItemRemaps = {
 }
 
 export const getItemFromBlock = (block: import('prismarine-block').Block) => {
-  //@ts-expect-error
-  const item = globalThis.mcData.itemsByName[blockToItemRemaps[block.name] ?? block.name]
+  const item = global.mcData.itemsByName[blockToItemRemaps[block.name] ?? block.name]
   return item
 }

@@ -6,7 +6,7 @@
         "declaration": true
     },
     "include": [
-        "src/react/npmReactEntrypoint.ts",
+        "src/react/npmReactComponents.ts",
         "src/react/globals.d.ts"
     ]
 }
