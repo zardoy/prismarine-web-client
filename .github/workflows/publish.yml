@@ -33,10 +33,6 @@ jobs:
           pnpx zardoy-release node --footer "This release URL: ${{ steps.deploy.outputs.stdout }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: |
-          pnpx zardoy-release npm
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: cp vercel.json .vercel/output/static/vercel.json
       - uses: peaceiris/actions-gh-pages@v3
         with:
