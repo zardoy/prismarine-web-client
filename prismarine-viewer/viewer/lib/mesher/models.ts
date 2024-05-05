@@ -349,8 +349,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
 
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
-    let baseLightLevel = world.getLight(neighborPos)
-    const baseLight = baseLightLevel / 15
+    const baseLight = world.getLight(neighborPos)
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
@@ -386,7 +385,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
         const side2 = world.getBlock(cursor.offset(...side2Dir))
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
-        let cornerLightResult = 15
+        let cornerLightResult = 1
         if (/* world.config.smoothLighting */false) { // todo fix
           const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
           const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
@@ -403,7 +402,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
 
         const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
         // todo light should go upper on lower blocks
-        light = (ao + 1) / 4 * (cornerLightResult / 15)
+        light = (ao + 1) / 4 * cornerLightResult
         aos.push(ao)
       }
 

@@ -7,6 +7,7 @@ import EventEmitter from 'events'
 import { WorldRendererThree } from './worldrendererThree'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
+import { getSunlightLevel } from './sunlight'
 
 export class Viewer {
   scene: THREE.Scene
@@ -180,22 +181,11 @@ export class Viewer {
     })
 
     emitter.on('time', (timeOfDay) => {
-      let skyLight = 15
-      if (timeOfDay < 0 || timeOfDay > 24000) {
-        throw new Error("Invalid time of day. It should be between 0 and 24000.")
-      } else if (timeOfDay <= 6000 || timeOfDay >= 18000) {
-        skyLight = 15
-      } else if (timeOfDay > 6000 && timeOfDay < 12000) {
-        skyLight = 15 - ((timeOfDay - 6000) / 6000) * 15
-      } else if (timeOfDay >= 12000 && timeOfDay < 18000) {
-        skyLight = ((timeOfDay - 12000) / 6000) * 15
-      }
+      const sunLightLevel = getSunlightLevel(timeOfDay)
 
-      skyLight = Math.floor(skyLight) // todo: remove this after optimization
-
-      if (this.world.mesherConfig.skyLight === skyLight) return
-      this.world.mesherConfig.skyLight = skyLight
-        ; (this.world as WorldRendererThree).rerenderAllChunks?.()
+      if (this.world.mesherConfig.skyLight === sunLightLevel) return
+      this.world.mesherConfig.skyLight = sunLightLevel;
+      (this.world as WorldRendererThree).rerenderAllChunks?.()
     })
 
     emitter.emit('listening')

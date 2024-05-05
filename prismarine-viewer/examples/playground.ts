@@ -111,10 +111,19 @@ async function main () {
   const chunk1 = new Chunk()
   //@ts-ignore
   const chunk2 = new Chunk()
-  chunk1.setBlockStateId(targetPos, 34)
-  chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
+  const addNeighbor = (x, z, light = 15) => {
+    x += 2
+    chunk1.setBlockStateId(targetPos.offset(x, 0, z), 1)
+    chunk1.setBlockLight(targetPos.offset(x, 1, z), light)
+  }
+  addNeighbor(0, 1)
+  addNeighbor(0, -1)
+  addNeighbor(1, 0)
+  addNeighbor(-1, 0)
+  chunk1.setBlockStateId(targetPos.offset(1, 1, 0), mcData.blocksByName['grass'].minStateId)
+  addNeighbor(0, 0, 0)
   const world = new World((chunkX, chunkZ) => {
-    // if (chunkX === 0 && chunkZ === 0) return chunk1
+    if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
     //@ts-ignore
     const chunk = new Chunk()
@@ -124,6 +133,7 @@ async function main () {
   // await schem.paste(world, new Vec3(0, 60, 0))
 
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
+  globalThis.worldView = worldView
 
   // Create three.js context, add to page
   const renderer = new THREE.WebGLRenderer({ alpha: true, ...localStorage['renderer'] })
@@ -132,7 +142,8 @@ async function main () {
   document.body.appendChild(renderer.domElement)
 
   // Create viewer
-  const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false })
+  const viewer = new Viewer(renderer, {showChunkBorders: true, numWorkers: 1,})
+  globalThis.viewer = viewer
   viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
   viewer.entities.onSkinUpdate = () => {
@@ -142,8 +153,6 @@ async function main () {
   viewer.listen(worldView)
   // Load chunks
   await worldView.init(targetPos)
-  window['worldView'] = worldView
-  window['viewer'] = viewer
 
   params.blockIsomorphicRenderBundle = () => {
     const canvas = renderer.domElement
