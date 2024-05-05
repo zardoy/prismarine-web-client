@@ -3,8 +3,9 @@
   position: absolute;
   background-color: rgba(0, 0, 0, 0.3);
   top: 9px;
-  left: 50%;
-  transform: translate(-50%);
+  left: 0;
+  right: 0;
+  margin: auto;
   width: fit-content;
   padding: 1px;
   display: flex;

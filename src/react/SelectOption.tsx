@@ -1,7 +1,7 @@
 import { proxy, useSnapshot } from 'valtio'
 import { hideCurrentModal, showModal } from '../globalState'
 import Screen from './Screen'
-import { useIsModalActive } from './utils'
+import { useIsModalActive } from './utilsApp'
 import Button from './Button'
 
 const state = proxy({

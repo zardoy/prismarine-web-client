@@ -2,7 +2,7 @@ import { useMemo, useEffect, useState, useRef } from 'react'
 import { showModal, hideModal } from '../globalState'
 import { setDoPreventDefault } from '../controls'
 import { options } from '../optionsStorage'
-import { useIsModalActive } from './utils'
+import { useIsModalActive } from './utilsApp'
 import SignEditor, { ResultType } from './SignEditor'
 
 

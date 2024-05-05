@@ -58,7 +58,11 @@ customEvents.on('gameLoaded', () => {
     }
   }
 
+  let lastCall = 0
   bot.on('physicsTick', () => {
+    // throttle, tps: 6
+    if (Date.now() - lastCall < 166) return
+    lastCall = Date.now()
     for (const [id, { tracking, info }] of Object.entries(bot.tracker.trackingData)) {
       if (!tracking) continue
       const e = bot.entities[id]

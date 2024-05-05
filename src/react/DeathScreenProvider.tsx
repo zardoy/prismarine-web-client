@@ -5,7 +5,7 @@ import { MessageFormatPart, formatMessage } from '../botUtils'
 import { showModal, hideModal } from '../globalState'
 import { options } from '../optionsStorage'
 import DeathScreen from './DeathScreen'
-import { useIsModalActive } from './utils'
+import { useIsModalActive } from './utilsApp'
 
 const dieReasonProxy = proxy({ value: null as MessageFormatPart[] | null })
 

@@ -4,7 +4,7 @@
 
 A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
 
-This project is a work in progress, but I consider it to be usable. If you encounter any bugs or usability issues, please report them!
+If you encounter any bugs or usability issues, please report them!
 
 You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
 
@@ -18,6 +18,8 @@ You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.
 - First-class touch (mobile) & controller support
 - Resource pack support
 - even even more!
+
+All components that are in [Storybook](https://mcraft.fun/storybook) are published as npm module and can be used in other projects: [`minecraft-react`](https://npmjs.com/minecraft-react)
 
 ### Recommended Settings
 
@@ -65,7 +67,6 @@ To open the console, press `F12`, or if you are on mobile, you can type `#debug`
 
 It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info.
 
-There is storybook for fast UI development. Run `pnpm storybook` to start it.
 There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
 
 However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:

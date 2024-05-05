@@ -5,7 +5,8 @@ import { ConnectOptions } from '../connect'
 import { hideCurrentModal, miscUiState, showModal } from '../globalState'
 import ServersList from './ServersList'
 import AddServer from './AddServer'
-import { useDidUpdateEffect, useIsModalActive } from './utils'
+import { useDidUpdateEffect } from './utils'
+import { useIsModalActive } from './utilsApp'
 
 interface StoreServerItem {
   ip: string,

@@ -68,6 +68,9 @@ importers:
       change-case:
         specifier: ^5.1.2
         version: 5.1.2
+      classnames:
+        specifier: ^2.5.1
+        version: 2.5.1
       compression:
         specifier: ^1.7.4
         version: 1.7.4
@@ -92,6 +95,9 @@ importers:
       express:
         specifier: ^4.18.2
         version: 4.18.2
+      filesize:
+        specifier: ^10.0.12
+        version: 10.0.12
       flying-squid:
         specifier: npm:@zardoy/flying-squid@^0.0.19
         version: '@zardoy/flying-squid@0.0.19(encoding@0.1.13)'
@@ -116,6 +122,9 @@ importers:
       minecraft-data:
         specifier: 3.62.0
         version: 3.62.0
+      mojangson:
+        specifier: ^2.0.4
+        version: 2.0.4
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
         version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/7d827dba61bd2f9ac9a6086fe2079a0fccadd070
@@ -137,6 +146,9 @@ importers:
       prosemirror-markdown:
         specifier: ^1.12.0
         version: 1.12.0
+      prosemirror-menu:
+        specifier: ^1.2.4
+        version: 1.2.4
       prosemirror-state:
         specifier: ^1.4.3
         version: 1.4.3
@@ -182,6 +194,9 @@ importers:
       ua-parser-js:
         specifier: ^1.0.37
         version: 1.0.37
+      use-typed-event-listener:
+        specifier: ^4.0.2
+        version: 4.0.2(react@18.2.0)(typescript@5.5.0-beta)
       valtio:
         specifier: ^1.11.1
         version: 1.11.2(@types/react@18.2.20)(react@18.2.0)
@@ -262,9 +277,6 @@ importers:
       events:
         specifier: ^3.3.0
         version: 3.3.0
-      filesize:
-        specifier: ^10.0.12
-        version: 10.0.12
       http-browserify:
         specifier: ^1.7.0
         version: 1.7.0
@@ -319,9 +331,6 @@ importers:
       typescript:
         specifier: 5.5.0-beta
         version: 5.5.0-beta
-      use-typed-event-listener:
-        specifier: ^4.0.2
-        version: 4.0.2(react@18.2.0)(typescript@5.5.0-beta)
       vitest:
         specifier: ^0.34.6
         version: 0.34.6(terser@5.19.2)
@@ -3635,8 +3644,8 @@ packages:
   cipher-base@1.0.4:
     resolution: {integrity: sha512-Kkht5ye6ZGmwv40uUDZztayT2ThLQGfnj/T71N/XzeZeo3nf8foyW7zGTsPYkEya3m5f3cAypH+qe7YOrM1U2Q==}
 
-  classnames@2.3.2:
-    resolution: {integrity: sha512-CSbhY4cFEJRe6/GQzIk5qXZ4Jeg5pcsP7b5peFSDpffpe1cqjASH/n9UTjBwOp6XpMSTwQ8Za2K5V02ueA7Tmw==}
+  classnames@2.5.1:
+    resolution: {integrity: sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==}
 
   clean-regexp@1.0.0:
     resolution: {integrity: sha512-GfisEZEJvzKrmGWkvfhgzcz/BllN1USeqD2V6tg14OAOgaCD2Z/PUEuxnAZ/nPvmaHRG7a8y77p1T/IRQ4D1Hw==}
@@ -9968,7 +9977,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.2
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
       '@types/yargs': 17.0.28
       chalk: 4.1.2
 
@@ -11459,11 +11468,11 @@ snapshots:
 
   '@types/cors@2.8.15':
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
 
   '@types/cross-spawn@6.0.3':
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.8
 
   '@types/debug@4.1.12':
     dependencies:
@@ -11512,7 +11521,7 @@ snapshots:
 
   '@types/graceful-fs@4.1.7':
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.8
 
   '@types/http-cache-semantics@4.0.2': {}
 
@@ -11621,7 +11630,7 @@ snapshots:
 
   '@types/resolve@1.17.1':
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.8
 
   '@types/sat@0.0.31': {}
 
@@ -11632,7 +11641,7 @@ snapshots:
   '@types/send@0.17.2':
     dependencies:
       '@types/mime': 1.3.3
-      '@types/node': 20.8.10
+      '@types/node': 20.12.8
 
   '@types/serve-static@1.15.3':
     dependencies:
@@ -11941,7 +11950,7 @@ snapshots:
 
   '@zardoy/react-util@0.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
-      classnames: 2.3.2
+      classnames: 2.5.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
@@ -12674,7 +12683,7 @@ snapshots:
       inherits: 2.0.4
       safe-buffer: 5.2.1
 
-  classnames@2.3.2: {}
+  classnames@2.5.1: {}
 
   clean-regexp@1.0.0:
     dependencies:
@@ -13373,7 +13382,7 @@ snapshots:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.15
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.4.2
@@ -14976,7 +14985,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.7
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -14993,7 +15002,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
       chalk: 4.1.2
       ci-info: 3.8.0
       graceful-fs: 4.2.11
@@ -15001,13 +15010,13 @@ snapshots:
 
   jest-worker@26.6.2:
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.8
       merge-stream: 2.0.0
       supports-color: 7.2.0
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.8
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1

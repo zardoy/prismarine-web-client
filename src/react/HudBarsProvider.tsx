@@ -32,22 +32,6 @@ export default () => {
     }
   }
 
-  const effectAdded = (htmlElement, effect) => {
-    const effectClass = getEffectClass(effect)
-    if (effectClass) {
-      htmlElement.classList.add(effectClass)
-    }
-    setEffectToAdd(null)
-  }
-
-  const effectEnded = (htmlElement, effect) => {
-    const effectClass = getEffectClass(effect)
-    if (effectClass) {
-      htmlElement.classList.remove(effectClass)
-    }
-    setEffectToRemove(null)
-  }
-
   const onDamage = () => {
     setDamaged(prev => true)
     if (hurtTimeout.current) clearTimeout(hurtTimeout.current)
@@ -114,8 +98,10 @@ export default () => {
       healthValue={healthValue}
       effectToAdd={effectToAdd}
       effectToRemove={effectToRemove}
-      effectAdded={effectAdded}
-      effectEnded={effectEnded}
+      resetEffects={() => {
+        setEffectToAdd(null)
+        setEffectToRemove(null)
+      }}
     />
     <ArmorBar
       armorValue={armorValue}
@@ -126,8 +112,10 @@ export default () => {
       food={food}
       effectToAdd={effectToAdd}
       effectToRemove={effectToRemove}
-      effectAdded={effectAdded}
-      effectEnded={effectEnded}
+      resetEffects={() => {
+        setEffectToAdd(null)
+        setEffectToRemove(null)
+      }}
     />
     <BreathBar
       oxygen={gameMode !== 'survival' && gameMode !== 'adventure' ? 0 : oxygen}

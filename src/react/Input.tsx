@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
+import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import styles from './input.module.css'
-import { useUsingTouch } from './utils'
 
 interface Props extends React.ComponentProps<'input'> {
   rootStyles?: React.CSSProperties
@@ -10,11 +10,10 @@ interface Props extends React.ComponentProps<'input'> {
 
 export default ({ autoFocus, rootStyles, inputRef, ...inputProps }: Props) => {
   const ref = useRef<HTMLInputElement>(null!)
-  const isTouch = useUsingTouch()
 
   useEffect(() => {
     if (inputRef) (inputRef as any).current = ref.current
-    if (!autoFocus || isTouch) return // Don't make screen keyboard popup on mobile
+    if (!autoFocus || isMobile()) return // Don't make screen keyboard popup on mobile
     ref.current.focus()
   }, [])
 

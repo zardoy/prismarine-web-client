@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Button from './Button'
-import { useUsingTouch } from './utils'
+import { useUsingTouch } from './utilsApp'
 
 export default () => {
   const [fullScreen, setFullScreen] = useState(false)
