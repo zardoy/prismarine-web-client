@@ -20,7 +20,7 @@ export class WorldRendererThree extends WorldRendererCommon {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
     }
 
-    constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public camera: THREE.PerspectiveCamera, public config: WorldRendererConfig) {
+    constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
         super(config)
     }
 

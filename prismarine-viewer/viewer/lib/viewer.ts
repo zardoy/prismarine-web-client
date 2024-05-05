@@ -38,9 +38,9 @@ export class Viewer {
 
     this.scene = new THREE.Scene()
     this.scene.matrixAutoUpdate = false // for perf
-    this.resetScene()
-    this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, this.camera, worldConfig)
+    this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, worldConfig)
     this.setWorld()
+    this.resetScene()
     this.entities = new Entities(this.scene)
     // this.primitives = new Primitives(this.scene, this.camera)
 

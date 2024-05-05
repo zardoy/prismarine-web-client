@@ -181,14 +181,11 @@ const Inner = () => {
   const isEditScreenModal = useIsModalActive('editServer')
 
   useEffect(() => {
-    if (!isEditScreenModal) {
-      setServerEditScreen(null)
-    }
-  }, [isEditScreenModal])
-
-  useEffect(() => {
     if (serverEditScreen && !isEditScreenModal) {
       showModal({ reactType: 'editServer' })
+    }
+    if (!serverEditScreen && isEditScreenModal) {
+      hideCurrentModal()
     }
   }, [serverEditScreen])
 

@@ -1,6 +1,6 @@
 import { setBlockStatesData, getSectionGeometry } from '../models'
 import { World as MesherWorld } from '../world'
-import ChunkLoader from 'prismarine-chunk'
+import ChunkLoader, { PCChunk } from 'prismarine-chunk'
 import { Vec3 } from 'vec3'
 import MinecraftData from 'minecraft-data'
 
@@ -26,18 +26,25 @@ export const setup = (version, initialBlocks: [number[], string][]) => {
         return {
             centerFaces,
             totalTiles,
-            centerTileNeighbors
+            centerTileNeighbors,
+            faces: sectionGeometry.tiles[`${pos.x},${pos.y},${pos.z}`]?.faces ?? []
         }
     }
 
     setBlockStatesData(blockStates, true)
-    mesherWorld.addColumn(0, 0, chunk1.toJson())
+    const reload = () => {
+        mesherWorld.removeColumn(0, 0)
+        mesherWorld.addColumn(0, 0, chunk1.toJson())
+    }
+    reload()
 
     return {
         mesherWorld,
         getGeometry,
         pos,
-        mcData
+        mcData,
+        reload,
+        chunk: chunk1 as PCChunk
     }
 }
 
