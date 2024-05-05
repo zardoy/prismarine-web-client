@@ -22,7 +22,8 @@ interface StoreServerItem {
 }
 
 type ServerResponse = {
-  version: {
+  online: boolean
+  version?: {
     name_raw: string
   }
   // display tooltip
@@ -34,8 +35,8 @@ type ServerResponse = {
       name_clean: string
     }>
   }
-  icon: string
-  motd: {
+  icon?: string
+  motd?: {
     raw: string
   }
   // todo circle error icon
@@ -159,12 +160,13 @@ const Inner = () => {
         if (isInLocalNetwork) continue
         // eslint-disable-next-line no-await-in-loop
         await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`).then(async r => r.json()).then((data: ServerResponse) => {
-          const versionClean = data.version.name_raw.replace(/^[^\d.]+/, '')
+          const versionClean = data.version?.name_raw.replace(/^[^\d.]+/, '')
+          if (!versionClean) return
           setAdditionalData(old => {
             return ({
               ...old,
               [server.ip]: {
-                formattedText: data.motd.raw,
+                formattedText: data.motd?.raw ?? '',
                 textNameRight: `${versionClean} ${data.players?.online ?? '??'}/${data.players?.max ?? '??'}`,
                 icon: data.icon,
               }

@@ -35,7 +35,8 @@ fs.promises.readdir(path.resolve(__dirname, '../src/react')).then(async (files) 
     const packageJsonRoot = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../package.json'), 'utf-8'))
     const external = Object.keys(packageJson.peerDependencies)
     const dependencies = new Set<string>()
-    const version = packageJsonRoot.version
+    let version = process.argv[2] || packageJsonRoot.version
+    version = version.replace(/^v/, '')
     packageJson.version = version
 
     const externalize = ['minecraft-assets', 'prismarine-viewer']
