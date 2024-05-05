@@ -12,7 +12,6 @@ export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
-  camera: THREE.PerspectiveCamera
   world: WorldRendererCommon
   entities: Entities
   // primitives: Primitives
@@ -24,6 +23,13 @@ export class Viewer {
   audioListener: THREE.AudioListener
   renderingUntilNoUpdates = false
   processEntityOverrides = (e, overrides) => overrides
+
+  get camera () {
+    return this.world.camera
+  }
+  set camera (camera) {
+    this.world.camera = camera
+  }
 
   constructor(public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
