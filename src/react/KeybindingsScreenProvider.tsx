@@ -61,8 +61,8 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
   contro.userConfig!.custom = Object.fromEntries(Object.entries(customCommands).map(([key, value]) => {
     // resolved
     return [key, {
-      keys: value.keys ?? [],
-      gamepad: value.gamepad ?? [],
+      keys: value.keys ?? undefined,
+      gamepad: value.gamepad ?? undefined,
     }]
   }))
 }

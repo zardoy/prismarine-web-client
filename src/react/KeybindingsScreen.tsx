@@ -12,7 +12,7 @@ type HandleClick = (group: string, action: string, index: number, type: string |
 export const Context = createContext(
   {
     isPS: false as boolean | undefined,
-    userConfig: controEx.userConfig,
+    userConfig: controEx?.userConfig ?? {},
     handleClick: (() => { }) as HandleClick,
     parseBindingName (binding) { }
   }
@@ -26,8 +26,7 @@ export default (
     customCommands
   }: {
     contro: typeof controEx,
-      isPS?: boolean
-
+    isPS?: boolean
   } & Pick<ComponentProps<typeof KeybindingsCustom>, 'customCommands' | 'updateCustomCommands'>
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null)

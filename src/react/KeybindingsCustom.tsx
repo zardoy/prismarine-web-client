@@ -28,8 +28,8 @@ export default (
     customCommands: CustomCommandsMap,
     setGroupName: (state: string) => void,
     setActionName: (state: string) => void,
-      updateCustomCommands: (newValue: CustomCommandsMap) => void
-      resetBinding: (group, action, inputType) => void,
+    updateCustomCommands: (newValue: CustomCommandsMap) => void
+    resetBinding: (group, action, inputType) => void,
   }
 ) => {
   const [customConfig, setCustomConfig] = useState({ ...customCommands })
@@ -40,7 +40,7 @@ export default (
 
   const addNewCommand = (type) => {
     // max key + 1
-    const newKey = String(Math.max(...Object.keys(customCommands).map(Number), 0) + 1)
+    const newKey = String(Math.max(...Object.keys(customCommands).map(Number).filter(key => !isNaN(key)), 0) + 1)
     customCommands[newKey] = {
       keys: [],
       gamepad: [],
@@ -60,6 +60,7 @@ export default (
   }
 
   const setInputValue = (optionKey, indexInput, value) => {
+    setCustomConfig(prev => { return { ...userConfig.custom as any } })
     setCustomConfig(prev => {
       const newConfig = { ...prev }
       newConfig[optionKey].inputs = [...prev[optionKey].inputs]
