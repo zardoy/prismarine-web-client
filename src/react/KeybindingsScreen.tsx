@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, createContext, useContext, ComponentProps } from 'react'
+import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { contro as controEx } from '../controls'
 import PixelartIcon from './PixelartIcon'
 import KeybindingsCustom from './KeybindingsCustom'
@@ -12,7 +13,7 @@ type HandleClick = (group: string, action: string, index: number, type: string |
 export const Context = createContext(
   {
     isPS: false as boolean | undefined,
-    userConfig: controEx?.userConfig ?? {},
+    userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
     handleClick: (() => { }) as HandleClick,
     parseBindingName (binding) { }
   }
