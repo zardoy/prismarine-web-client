@@ -59,35 +59,21 @@ export default (
 		})
 	}
 
-	const setInputValue = (optionKey, indexInput, value) => {
-		setCustomConfig(prev => { return { ...userConfig.custom as any } })
-		setCustomConfig(prev => {
-			const newConfig = { ...prev }
-			newConfig[optionKey].inputs = [...prev[optionKey].inputs]
-			newConfig[optionKey].inputs[indexInput] = value
-			return newConfig
-		})
-	}
 
 	return <>
 		<div className={styles.group}>
 			{Object.entries(customCommandsConfig).map(([group, { input }]) => (
 				<div className={styles.group}><div key={group} className={styles['group-category']}>{group}</div>
-					{Object.entries(customConfig).filter(([key, data]) => data.type === group).map(([commandKey, { keys, gamepad, type, inputs }], indexOption) => {
+					{Object.entries(customConfig).filter(([key, data]) => data.type === group).map((commandData, indexOption) => {
 						return <CustomCommandContainer
 							indexOption={indexOption}
+							commandData={commandData}
 							userConfig={userConfig}
 							setActionName={setActionName}
 							setGroupName={setGroupName}
 							resetBinding={resetBinding}
-							commandKey={commandKey}
-							group={group}
-							gamepad={gamepad}
-							keys={keys}
+							groupData={[group, { input }]}
 							setCustomConfig={setCustomConfig}
-							setInputValue={setInputValue}
-							inputs={inputs}
-							input={input}
 						/>
 					})}
 					<Button
@@ -106,20 +92,29 @@ export default (
 const CustomCommandContainer = (
 	{
 		indexOption,
+		commandData,
 		userConfig,
 		setActionName,
 		setGroupName,
 		resetBinding,
-		commandKey,
-		group,
-		gamepad,
-		keys,
 		setCustomConfig,
-		setInputValue,
-		inputs,
-		input
+		groupData
 	}
 ) => {
+
+	const [commandKey, { keys, gamepad, inputs }] = commandData
+	const [group, { input }] = groupData
+
+	const setInputValue = (optionKey, indexInput, value) => {
+		// setCustomConfig(prev => { return { ...userConfig.custom as any } })
+		setCustomConfig(prev => {
+			const newConfig = { ...prev }
+			newConfig[optionKey].inputs = [...prev[optionKey].inputs]
+			newConfig[optionKey].inputs[indexInput] = value
+			return newConfig
+		})
+	}
+
 	return <div style={{ padding: '10px' }} key={indexOption}>
 		{input.map((obj, indexInput) => {
 			const config = typeof obj === 'function' ? obj(inputs) : obj
