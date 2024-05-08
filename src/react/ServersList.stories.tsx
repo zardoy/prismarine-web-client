@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import 'iconify-icon'
 
 import { useState } from 'react'
-import AddServer from './AddServer'
+import AddServerOrConnect from './AddServerOrConnect'
 import ServersList from './ServersList'
 
 const meta: Meta<typeof ServersList> = {
@@ -12,7 +12,7 @@ const meta: Meta<typeof ServersList> = {
     const [username, setUsername] = useState('')
 
     return addOpen ?
-      <AddServer onBack={() => {
+      <AddServerOrConnect onBack={() => {
         setAddOpen(false)
       }}
       onConfirm={(info) => {

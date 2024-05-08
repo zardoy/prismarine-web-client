@@ -103,10 +103,11 @@ world chunks have a *yellow* border, hostile mobs have a *red* outline, passive 
 
 Press `Y` to set query parameters to url of your current game state.
 
-- `?server=<server_address>` - Display connect screen to the server on load
-- `?username=<username>` - Set the username on load
-- `?proxy=<proxy_address>` - Set the proxy server address on load
-- `?version=<version>` - Set the version on load
+- `?ip=<server_address>` - Display connect screen to the server on load
+- `?username=<username>` - Set the username for server
+- `?proxy=<proxy_address>` - Set the proxy server address to use for server
+- `?version=<version>` - Set the version for server
+- `?lockConnect=true` - Disable cancel / save buttons, useful for integrates iframes
 - `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
 <!-- - `?password=<password>` - Set the password on load -->
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)

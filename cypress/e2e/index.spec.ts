@@ -38,7 +38,7 @@ const setOptions = (options: Partial<AppOptions>) => {
 }
 
 it('Loads & renders singleplayer', () => {
-  cleanVisit('/?singleplayer=1')
+  visit('/?singleplayer=1')
   setOptions({
     localServerOptions: {
       generation: {
@@ -52,7 +52,7 @@ it('Loads & renders singleplayer', () => {
   testWorldLoad()
 })
 
-it.only('Joins to server', () => {
+it('Joins to server', () => {
   visit('/?ip=localhost&version=1.16.1')
   window.localStorage.version = ''
   // todo replace with data-test
