@@ -349,8 +349,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
 
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
-    let baseLightLevel = world.getLight(neighborPos)
-    const baseLight = baseLightLevel / 15
+    const baseLight = world.getLight(neighborPos) / 15
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
@@ -418,6 +417,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
       attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
         face,
         neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+        light: baseLight
         // texture: eFace.texture.name,
       })
     }

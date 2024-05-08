@@ -4,7 +4,7 @@ import { qsOptions } from '../optionsStorage'
 import { ConnectOptions } from '../connect'
 import { hideCurrentModal, miscUiState, showModal } from '../globalState'
 import ServersList from './ServersList'
-import AddServer from './AddServer'
+import AddServerOrConnect from './AddServerOrConnect'
 import { useDidUpdateEffect } from './utils'
 import { useIsModalActive } from './utilsApp'
 
@@ -180,20 +180,17 @@ const Inner = () => {
 
   const isEditScreenModal = useIsModalActive('editServer')
 
-  useEffect(() => {
-    if (!isEditScreenModal) {
-      setServerEditScreen(null)
-    }
-  }, [isEditScreenModal])
-
-  useEffect(() => {
+  useDidUpdateEffect(() => {
     if (serverEditScreen && !isEditScreenModal) {
       showModal({ reactType: 'editServer' })
+    }
+    if (!serverEditScreen && isEditScreenModal) {
+      hideCurrentModal()
     }
   }, [serverEditScreen])
 
   if (isEditScreenModal) {
-    return <AddServer
+    return <AddServerOrConnect
       defaults={{
         proxyOverride: selectedProxy,
         usernameOverride: defaultUsername,

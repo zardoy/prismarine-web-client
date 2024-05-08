@@ -54,6 +54,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   allChunksFinished = false
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
+  camera: THREE.PerspectiveCamera
 
   abstract outputFormat: 'threeJs' | 'webgl'
 

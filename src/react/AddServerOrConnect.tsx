@@ -38,6 +38,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
   const [usernameOverride, setUsernameOverride] = React.useState(initialData?.usernameOverride ?? qsParams?.get('username') ?? '')
   const [passwordOverride, setPasswordOverride] = React.useState(initialData?.passwordOverride ?? qsParams?.get('password') ?? '')
   const smallWidth = useIsSmallWidth()
+  const lockConnect = qsParams?.get('lockConnect') === 'true'
 
   return <Screen title={qsParams?.get('ip') ? 'Connect to Server' : title} backdrop>
     <form style={{
@@ -74,10 +75,9 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         <InputWithLabel label="Proxy Override" value={proxyOverride} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={defaults?.proxyOverride} />
         <InputWithLabel label="Username Override" value={usernameOverride} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={defaults?.usernameOverride} />
         <InputWithLabel label="Password Override" value={passwordOverride} onChange={({ target: { value } }) => setPasswordOverride(value)} /* placeholder='For advanced usage only' */ />
-        <Button onClick={() => {
+        {!lockConnect && <><Button onClick={() => {
           onBack()
-        }}>Cancel</Button>
-        <Button type='submit'>Save</Button>
+        } }>Cancel</Button><Button type='submit'>Save</Button></>}
         {qsParams?.get('ip') && <div style={{ gridColumn: smallWidth ? '' : 'span 2', display: 'flex', justifyContent: 'center' }}>
           <Button
             data-test-id='connect-qs'

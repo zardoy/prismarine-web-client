@@ -137,7 +137,7 @@ export default () => {
         </div>
       ) : null}
       <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
-        {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect'}
+        {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect & Reset'}
       </Button>
     </div>
   </Screen>
