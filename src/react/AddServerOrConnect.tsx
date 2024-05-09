@@ -4,7 +4,7 @@ import Input from './Input'
 import Button from './Button'
 import { useIsSmallWidth } from './simpleHooks'
 
-export interface NewServerInfo {
+export interface BaseServerInfo {
   ip: string
   name?: string
   versionOverride?: string
@@ -15,12 +15,12 @@ export interface NewServerInfo {
 
 interface Props {
   onBack: () => void
-  onConfirm: (info: NewServerInfo) => void
+  onConfirm: (info: BaseServerInfo) => void
   title?: string
-  initialData?: NewServerInfo
+  initialData?: BaseServerInfo
   parseQs?: boolean
-  onQsConnect?: (server: NewServerInfo) => void
-  defaults?: Pick<NewServerInfo, 'proxyOverride' | 'usernameOverride'>
+  onQsConnect?: (server: BaseServerInfo) => void
+  defaults?: Pick<BaseServerInfo, 'proxyOverride' | 'usernameOverride'>
 }
 
 export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, defaults }: Props) => {
@@ -33,7 +33,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
 
   const [serverIp, setServerIp] = React.useState(ipWithoutPort ?? qsParams?.get('ip') ?? '')
   const [serverPort, setServerPort] = React.useState(port ?? '')
-  const [versionOverride, setVersionOverride] = React.useState(initialData?.versionOverride ?? qsParams?.get('version') ?? '')
+  const [versionOverride, setVersionOverride] = React.useState(initialData?.versionOverride ?? /* legacy */ initialData?.['version'] ?? qsParams?.get('version') ?? '')
   const [proxyOverride, setProxyOverride] = React.useState(initialData?.proxyOverride ?? qsParams?.get('proxy') ?? '')
   const [usernameOverride, setUsernameOverride] = React.useState(initialData?.usernameOverride ?? qsParams?.get('username') ?? '')
   const [passwordOverride, setPasswordOverride] = React.useState(initialData?.passwordOverride ?? qsParams?.get('password') ?? '')

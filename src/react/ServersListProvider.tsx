@@ -1,22 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
-import { proxy } from 'valtio'
+import { proxy, useSnapshot } from 'valtio'
 import { qsOptions } from '../optionsStorage'
 import { ConnectOptions } from '../connect'
 import { hideCurrentModal, miscUiState, showModal } from '../globalState'
 import ServersList from './ServersList'
-import AddServerOrConnect from './AddServerOrConnect'
+import AddServerOrConnect, { BaseServerInfo } from './AddServerOrConnect'
 import { useDidUpdateEffect } from './utils'
 import { useIsModalActive } from './utilsApp'
 
-interface StoreServerItem {
-  ip: string,
-  name?: string
-  version?: string
+interface StoreServerItem extends BaseServerInfo {
   lastJoined?: number
   description?: string
-  proxyOverride?: string
-  usernameOverride?: string
-  passwordOverride?: string
   optionsOverride?: Record<string, any>
   autoLogin?: Record<string, string>
 }
@@ -69,7 +63,7 @@ const getInitialServersList = () => {
     const legacyLastJoinedServer: StoreServerItem = {
       ip: localStorage['server'],
       passwordOverride: localStorage['password'],
-      version: localStorage['version'],
+      versionOverride: localStorage['version'],
       lastJoined: Date.now()
     }
     servers.push(legacyLastJoinedServer)
@@ -80,7 +74,7 @@ const getInitialServersList = () => {
       servers.push({
         ip: server.ip,
         description: server.description,
-        version: server.version,
+        versionOverride: server.version,
       })
     }
   }
@@ -206,7 +200,8 @@ const Inner = () => {
           setServersList(old => [...old, server])
         } else {
           const index = serversList.indexOf(serverEditScreen)
-          serversList[index] = info
+          const { lastJoined } = serversList[index]
+          serversList[index] = { ...info, lastJoined }
           setServersList([...serversList])
         }
         setServerEditScreen(null)
@@ -248,7 +243,7 @@ const Inner = () => {
         username,
         server: ip,
         proxy: overrides.proxy || selectedProxy,
-        botVersion: overrides.version,
+        botVersion: overrides.versionOverride ?? /* legacy */ overrides['version'],
         password: overrides.password,
         ignoreQs: true,
         autoLoginPassword: server?.autoLogin?.[username],
@@ -312,7 +307,7 @@ const Inner = () => {
       return {
         name: server.index.toString(),
         title: server.name || server.ip,
-        detail: (server.version ?? '') + ' ' + (server.usernameOverride ?? ''),
+        detail: (server.versionOverride ?? '') + ' ' + (server.usernameOverride ?? ''),
         // lastPlayed: server.lastJoined,
         formattedTextOverride: additional?.formattedText,
         worldNameRight: additional?.textNameRight ?? '',

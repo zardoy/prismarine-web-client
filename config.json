@@ -6,6 +6,7 @@
   "promoteServers": [
     {
       "ip": "kaboom.pw",
+      "version": "1.18.2",
       "description": "Chaos and destruction server. Free for everyone."
     },
     {
@@ -15,6 +16,7 @@
     },
     {
       "ip": "play.minemalia.com",
+      "version": "1.18.2",
       "description": "Only login with existing accounts."
     }
   ]
