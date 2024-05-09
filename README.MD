@@ -114,6 +114,9 @@ Press `Y` to set query parameters to url of your current game state.
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
 
+- `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
+- `?setting=<setting_name>:<setting_value>` - Set the and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
+
 ### Notable Things that Power this Project
 
 - [Mineflayer](https://github.com/PrismarineJS/mineflayer) - Handles all client-side communications with the server (including the builtin one) - forked
