@@ -56,10 +56,10 @@ const showModalInner = (modal: Modal) => {
   return true
 }
 
-export const showModal = (elem: (HTMLElement & Record<string, any>) | { reactType: string }) => {
+export const showModal = (elem: /* (HTMLElement & Record<string, any>) |  */{ reactType: string }) => {
   const resolved = elem instanceof HTMLElement ? { elem: ref(elem) } : elem
   const curModal = activeModalStack.at(-1)
-  if (elem === curModal?.elem || (elem.reactType && elem.reactType === curModal?.reactType) || !showModalInner(resolved)) return
+  if (/* elem === curModal?.elem ||  */(elem.reactType && elem.reactType === curModal?.reactType) || !showModalInner(resolved)) return
   if (curModal) defaultModalActions.hide(curModal)
   activeModalStack.push(resolved)
 }
@@ -118,11 +118,12 @@ export const showContextmenu = (items: ContextMenuItem[], { clientX, clientY }) 
 // ---
 
 export type AppConfig = {
-  defaultHost?: string
-  defaultHostSave?: string
+  // defaultHost?: string
+  // defaultHostSave?: string
   defaultProxy?: string
-  defaultProxySave?: string
-  defaultVersion?: string
+  // defaultProxySave?: string
+  // defaultVersion?: string
+  promoteServers?: Array<{ip, description, version?}>
   mapsProvider?: string
 }
 
@@ -130,12 +131,14 @@ export const miscUiState = proxy({
   currentDisplayQr: null as string | null,
   currentTouch: null as boolean | null,
   serverIp: null as string | null,
+  username: '',
   hasErrors: false,
   singleplayer: false,
   flyingSquid: false,
   wanOpened: false,
   /** wether game hud is shown (in playing state) */
   gameLoaded: false,
+  loadedServerIndex: '',
   /** currently trying to load or loaded mc version, after all data is loaded */
   loadedDataVersion: null as string | null,
   appLoaded: false,

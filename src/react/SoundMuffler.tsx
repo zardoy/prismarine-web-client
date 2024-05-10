@@ -5,7 +5,7 @@ import { lastPlayedSounds } from '../soundSystem'
 import { options } from '../optionsStorage'
 import Button from './Button'
 import Screen from './Screen'
-import { useIsModalActive } from './utils'
+import { useIsModalActive } from './utilsApp'
 
 const SoundRow = ({ sound, children }) => {
   const { mutedSounds } = useSnapshot(options)

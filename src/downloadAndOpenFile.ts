@@ -20,9 +20,6 @@ const inner = async () => {
     if (resourcePackState.resourcePackInstalled) {
       if (!confirm(`You are going to install a new resource pack, which will REPLACE the current one: ${await getResourcePackName()} Continue?`)) return
     }
-  } else {
-    const menu = document.getElementById('play-screen')
-    menu.style = 'display: none;'
   }
   const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-25)
   const downloadThing = texturepack ? 'texturepack' : 'world'
@@ -78,7 +75,7 @@ export default async () => {
   try {
     return await inner()
   } catch (err) {
-    setLoadingScreenStatus(`Failed to download. Either refresh page or remove mapUrl param from URL. Reason: ${err.message}`)
+    setLoadingScreenStatus(`Failed to download. Either refresh page or remove map param from URL. Reason: ${err.message}`)
     return true
   }
 }

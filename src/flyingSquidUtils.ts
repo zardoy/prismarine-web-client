@@ -38,4 +38,5 @@ export const disconnect = async () => {
   }
   window.history.replaceState({}, '', `${window.location.pathname}`) // remove qs
   bot.end('You left the server')
+  location.reload()
 }

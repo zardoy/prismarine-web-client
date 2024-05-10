@@ -44,7 +44,7 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
         <>
           {backAction && <Button label="Back" onClick={backAction} />}
           {actionsSlot}
-          <Button onClick={() => window.location.reload()} label="Full Reload" ></Button>
+          <Button onClick={() => window.location.reload()} label="Reset App (recommended)"></Button>
         </>
       )}
     </Screen>

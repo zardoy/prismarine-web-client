@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { openURL } from '../menus/components/common'
+import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { haveDirectoryPicker } from '../utils'
 import styles from './mainMenu.module.css'
 import Button from './Button'
@@ -67,7 +67,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
             placement: 'top',
           }}
           onClick={connectToServerAction}
-          data-test-id='connect-screen-button'
+          data-test-id='servers-screen-button'
         >
           Connect to server
         </ButtonWithTooltip>

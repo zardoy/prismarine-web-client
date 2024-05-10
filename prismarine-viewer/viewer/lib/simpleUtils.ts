@@ -19,6 +19,10 @@ export function openURL (url, newTab = true) {
   }
 }
 
+export const isMobile = () => {
+  return window.matchMedia('(pointer: coarse)').matches || navigator.userAgent.includes('Mobile')
+}
+
 export function chunkPos (pos: { x: number, z: number }) {
   const x = Math.floor(pos.x / 16)
   const z = Math.floor(pos.z / 16)

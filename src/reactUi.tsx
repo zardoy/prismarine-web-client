@@ -27,13 +27,16 @@ import PauseScreen from './react/PauseScreen'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
-import { useIsWidgetActive } from './react/utils'
+import { useIsWidgetActive } from './react/utilsApp'
 import GlobalSearchInput from './GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
 import HotbarRenderApp from './react/HotbarRenderApp'
 import Crosshair from './react/Crosshair'
 import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
+import ButtonAppProvider from './react/ButtonAppProvider'
+import ServersListProvider from './react/ServersListProvider'
+import GamepadUiCursor from './react/GamepadUiCursor'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -112,7 +115,7 @@ const InGameUi = () => {
       <DisplayQr />
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
-      {/* becaues of z-index */}
+      {/* because of z-index */}
       <TouchControls />
       <GlobalSearchInput />
     </RobustPortal>
@@ -132,21 +135,29 @@ const WidgetDisplay = ({ name, Component }) => {
 
 const App = () => {
   return <div>
-    <EnterFullscreenButton />
-    <InGameUi />
-    <RobustPortal to={document.querySelector('#ui-root')}>
-      <AllWidgets />
-      <SingleplayerProvider />
-      <CreateWorldProvider />
-      <AppStatusProvider />
-      <SelectOption />
-      <OptionsRenderApp />
-      <KeybindingsScreenProvider />
-      <MainMenuRenderApp />
-      <NotificationProvider />
-      {/* <GameHud>
-      </GameHud> */}
-    </RobustPortal>
+    <ButtonAppProvider>
+      <EnterFullscreenButton />
+      <InGameUi />
+      <RobustPortal to={document.querySelector('#ui-root')}>
+        <AllWidgets />
+        <SingleplayerProvider />
+        <CreateWorldProvider />
+        <AppStatusProvider />
+        <SelectOption />
+        <ServersListProvider />
+        <OptionsRenderApp />
+        <MainMenuRenderApp />
+        <NotificationProvider />
+        {/* <GameHud>
+        </GameHud> */}
+      </RobustPortal>
+      <RobustPortal to={document.body}>
+        <div className='overlay-top-scaled'>
+          <GamepadUiCursor />
+        </div>
+        <div></div>
+      </RobustPortal>
+    </ButtonAppProvider>
   </div>
 }
 

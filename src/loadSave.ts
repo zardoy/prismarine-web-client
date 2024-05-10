@@ -91,12 +91,13 @@ export const loadSave = async (root = '/world') => {
       const newVersion = '1.8.8'
       version = newVersion
     }
-    const lastSupportedVersion = supportedVersions.at(-1)!
+    // const lastSupportedVersion = supportedVersions.at(-1)!
+    const lastTestedVersion = '1.18.2'
     const firstSupportedVersion = supportedVersions[0]
     const lowerBound = isMajorVersionGreater(firstSupportedVersion, version)
-    const upperBound = isMajorVersionGreater(version, lastSupportedVersion)
+    const upperBound = isMajorVersionGreater(version, lastTestedVersion)
     if (lowerBound || upperBound) {
-      version = prompt(`Version ${version} is not supported, supported versions are ${supportedVersions.join(', ')}, what try to use instead?`, lowerBound ? firstSupportedVersion : lastSupportedVersion)
+      version = prompt(`Version ${version} is not supported, supported versions are ${supportedVersions.join(', ')}, what try to use instead?`, lowerBound ? firstSupportedVersion : lastTestedVersion)
       if (!version) return
     }
     if (levelDat.WorldGenSettings) {

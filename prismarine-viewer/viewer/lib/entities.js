@@ -17,7 +17,7 @@ import externalTexturesJson from './entity/externalTextures.json'
 
 export const TWEEN_DURATION = 50 // todo should be 100
 
-function getUsernameTexture (username, { fontFamily = 'sans-serif' }) {
+function getUsernameTexture(username, { fontFamily = 'sans-serif' }) {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2d context')
@@ -58,7 +58,10 @@ const addNametag = (entity, options, mesh) => {
   }
 }
 
-function getEntityMesh (entity, scene, options, overrides) {
+// todo cleanup
+const nametags = {}
+
+function getEntityMesh(entity, scene, options, overrides) {
   if (entity.name) {
     try {
       // https://github.com/PrismarineJS/prismarine-viewer/pull/410
@@ -78,10 +81,13 @@ function getEntityMesh (entity, scene, options, overrides) {
   geometry.translate(0, entity.height / 2, 0)
   const material = new THREE.MeshBasicMaterial({ color: 0xff_00_ff })
   const cube = new THREE.Mesh(geometry, material)
-  addNametag({
-    username: entity.name,
-    height: entity.height,
-  }, options, cube)
+  const nametagCount = (nametags[entity.name] = (nametags[entity.name] || 0) + 1)
+  if (nametagCount < 6) {
+    addNametag({
+      username: entity.name,
+      height: entity.height,
+    }, options, cube)
+  }
   return cube
 }
 
@@ -99,7 +105,7 @@ export class Entities extends EventEmitter {
     this.getItemUv = undefined
   }
 
-  clear () {
+  clear() {
     for (const mesh of Object.values(this.entities)) {
       this.scene.remove(mesh)
       dispose3(mesh)
@@ -107,7 +113,7 @@ export class Entities extends EventEmitter {
     this.entities = {}
   }
 
-  setDebugMode (mode, /** @type {THREE.Object3D?} */entity = null) {
+  setDebugMode(mode, /** @type {THREE.Object3D?} */entity = null) {
     this.debugMode = mode
     for (const mesh of entity ? [entity] : Object.values(this.entities)) {
       const boxHelper = mesh.children.find(c => c.name === 'debug')
@@ -119,14 +125,14 @@ export class Entities extends EventEmitter {
     }
   }
 
-  setVisible (visible, /** @type {THREE.Object3D?} */entity = null) {
+  setVisible(visible, /** @type {THREE.Object3D?} */entity = null) {
     this.visible = visible
     for (const mesh of entity ? [entity] : Object.values(this.entities)) {
       mesh.visible = visible
     }
   }
 
-  render () {
+  render() {
     const dt = this.clock.getDelta()
     for (const entityId of Object.keys(this.entities)) {
       const playerObject = this.getPlayerObject(entityId)
@@ -136,7 +142,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  getPlayerObject (entityId) {
+  getPlayerObject(entityId) {
     /** @type {(PlayerObject & { animation?: PlayerAnimation }) | undefined} */
     const playerObject = this.entities[entityId]?.playerObject
     return playerObject
@@ -146,7 +152,7 @@ export class Entities extends EventEmitter {
   defaultSteveTexture
 
   // true means use default skin url
-  updatePlayerSkin (entityId, username, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
+  updatePlayerSkin(entityId, username, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
     let playerObject = this.getPlayerObject(entityId)
     if (!playerObject) return
     // const username = this.entities[entityId].username
@@ -229,14 +235,14 @@ export class Entities extends EventEmitter {
       playerObject.cape.map = null
     }
 
-    function isCanvasBlank (canvas) {
+    function isCanvasBlank(canvas) {
       return !canvas.getContext('2d')
         .getImageData(0, 0, canvas.width, canvas.height).data
         .some(channel => channel !== 0)
     }
   }
 
-  playAnimation (entityPlayerId, /** @type {'walking' | 'running' | 'oneSwing' | 'idle'} */animation) {
+  playAnimation(entityPlayerId, /** @type {'walking' | 'running' | 'oneSwing' | 'idle'} */animation) {
     const playerObject = this.getPlayerObject(entityPlayerId)
     if (!playerObject) return
 
@@ -256,14 +262,14 @@ export class Entities extends EventEmitter {
 
   }
 
-  displaySimpleText (jsonLike) {
+  displaySimpleText(jsonLike) {
     if (!jsonLike) return
     const parsed = mojangson.simplify(mojangson.parse(jsonLike))
     const text = flat(parsed).map(x => x.text)
     return text.join('')
   }
 
-  update (/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
+  update(/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
     let isPlayerModel = entity.name === 'player'
     if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
       isPlayerModel = true

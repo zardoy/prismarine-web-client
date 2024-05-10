@@ -26,7 +26,6 @@ html {
 }
 
 body {
-  --widgets-gui-atlas: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png');
   --title-gui: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/title/minecraft.png');
 }
 
@@ -133,6 +132,18 @@ body {
   image-rendering: -o-crisp-edges;
   image-rendering: pixelated;
   -ms-interpolation-mode: nearest-neighbor;
+}
+
+.overlay-top-scaled {
+  position: fixed;
+  inset: 0;
+  transform-origin: top left;
+  transform: scale(var(--guiScale));
+  width: calc(100% / var(--guiScale));
+  height: calc(100% / var(--guiScale));
+  z-index: 80;
+  image-rendering: pixelated;
+  pointer-events: none;
 }
 
 #viewer-canvas {

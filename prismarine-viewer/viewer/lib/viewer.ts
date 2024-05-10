@@ -12,7 +12,6 @@ export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
-  camera: THREE.PerspectiveCamera
   world: WorldRendererCommon
   entities: Entities
   // primitives: Primitives
@@ -25,6 +24,13 @@ export class Viewer {
   renderingUntilNoUpdates = false
   processEntityOverrides = (e, overrides) => overrides
 
+  get camera () {
+    return this.world.camera
+  }
+  set camera (camera) {
+    this.world.camera = camera
+  }
+
   constructor(public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
@@ -32,9 +38,9 @@ export class Viewer {
 
     this.scene = new THREE.Scene()
     this.scene.matrixAutoUpdate = false // for perf
-    this.resetScene()
-    this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, this.camera, worldConfig)
+    this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, worldConfig)
     this.setWorld()
+    this.resetScene()
     this.entities = new Entities(this.scene)
     // this.primitives = new Primitives(this.scene, this.camera)
 

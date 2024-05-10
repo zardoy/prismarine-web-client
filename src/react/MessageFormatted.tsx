@@ -4,7 +4,7 @@ import { noCase } from 'change-case'
 import mojangson from 'mojangson'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { MessageFormatPart } from '../botUtils'
-import { chatInputValueGlobal } from './ChatContainer'
+import { chatInputValueGlobal } from './Chat'
 import './MessageFormatted.css'
 
 const hoverItemToText = (hoverEvent: MessageFormatPart['hoverEvent']) => {
@@ -137,5 +137,5 @@ export const messageFormatStylesMap = {
   strikethrough: 'text-decoration:line-through',
   underlined: 'text-decoration:underline',
   italic: 'font-style:italic',
-  obfuscated: 'color: #222326;background-color: #222326;'
+  obfuscated: 'filter:blur(2px)',
 }

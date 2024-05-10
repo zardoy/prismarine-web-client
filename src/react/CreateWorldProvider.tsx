@@ -3,7 +3,7 @@ import { hideCurrentModal, showModal } from '../globalState'
 import defaultLocalServerOptions from '../defaultLocalServerOptions'
 import { mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'
 import CreateWorld, { WorldCustomize, creatingWorldState } from './CreateWorld'
-import { useIsModalActive } from './utils'
+import { useIsModalActive } from './utilsApp'
 import { getWorldsPath } from './SingleplayerProvider'
 
 export default () => {

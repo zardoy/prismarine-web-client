@@ -1,5 +1,5 @@
 import { showModal } from './globalState'
-import { chatInputValueGlobal } from './react/ChatContainer'
+import { chatInputValueGlobal } from './react/Chat'
 import { showNotification } from './react/NotificationProvider'
 
 export default () => {

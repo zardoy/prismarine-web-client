@@ -4,7 +4,7 @@
 
 A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
 
-This project is a work in progress, but I consider it to be usable. If you encounter any bugs or usability issues, please report them!
+If you encounter any bugs or usability issues, please report them!
 
 You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
 
@@ -18,6 +18,8 @@ You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.
 - First-class touch (mobile) & controller support
 - Resource pack support
 - even even more!
+
+All components that are in [Storybook](https://mcraft.fun/storybook) are published as npm module and can be used in other projects: [`minecraft-react`](https://npmjs.com/minecraft-react)
 
 ### Recommended Settings
 
@@ -65,7 +67,6 @@ To open the console, press `F12`, or if you are on mobile, you can type `#debug`
 
 It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info.
 
-There is storybook for fast UI development. Run `pnpm storybook` to start it.
 There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
 
 However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:
@@ -102,15 +103,19 @@ world chunks have a *yellow* border, hostile mobs have a *red* outline, passive 
 
 Press `Y` to set query parameters to url of your current game state.
 
-- `?server=<server_address>` - Display connect screen to the server on load
-- `?username=<username>` - Set the username on load
-- `?proxy=<proxy_address>` - Set the proxy server address on load
-- `?version=<version>` - Set the version on load
+- `?ip=<server_address>` - Display connect screen to the server on load
+- `?username=<username>` - Set the username for server
+- `?proxy=<proxy_address>` - Set the proxy server address to use for server
+- `?version=<version>` - Set the version for server
+- `?lockConnect=true` - Disable cancel / save buttons, useful for integrates iframes
 - `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
 <!-- - `?password=<password>` - Set the password on load -->
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
+
+- `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
+- `?setting=<setting_name>:<setting_value>` - Set the and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
 
 ### Notable Things that Power this Project
 
