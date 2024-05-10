@@ -35,6 +35,7 @@ import HotbarRenderApp from './react/HotbarRenderApp'
 import Crosshair from './react/Crosshair'
 import ButtonAppProvider from './react/ButtonAppProvider'
 import ServersListProvider from './react/ServersListProvider'
+import GamepadUiCursor from './react/GamepadUiCursor'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -148,6 +149,12 @@ const App = () => {
         <NotificationProvider />
         {/* <GameHud>
         </GameHud> */}
+      </RobustPortal>
+      <RobustPortal to={document.body}>
+        <div className='overlay-top-scaled'>
+          <GamepadUiCursor />
+        </div>
+        <div></div>
       </RobustPortal>
     </ButtonAppProvider>
   </div>

@@ -2,7 +2,7 @@ import { CSSProperties, useEffect } from 'react'
 import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
 import widgets from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png'
 
-export default ({ children }) => {
+export default ({ children }): React.ReactElement => {
   useEffect(() => {
     if (document.getElementById('hud-vars-style')) return
     // 1. Don't inline long data URLs for better DX in elements tab
