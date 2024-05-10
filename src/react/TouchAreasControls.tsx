@@ -40,12 +40,14 @@ export const handleMovementStickDelta = (e?: { clientX, clientY }) => {
   }
 
   joystickPointer.joystickInner!.style.transform = `translate(${x}px, ${y}px)`
+  const vector = {
+    x: x / max,
+    y: 0,
+    z: y / max,
+  }
   void contro.emit('movementUpdate', {
-    vector: {
-      x: x / max,
-      y: 0,
-      z: y / max,
-    },
+    vector,
+    soleVector: vector
   })
 }
 
