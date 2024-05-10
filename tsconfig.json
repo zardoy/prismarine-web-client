@@ -24,7 +24,8 @@
     "include": [
         "src",
         "cypress",
-        "prismarine-viewer/viewer"
+        "prismarine-viewer/viewer",
+		"assets"
     ],
     "exclude": [
         "node_modules",

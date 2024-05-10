@@ -7,19 +7,19 @@ import { CustomCommandsMap } from './KeybindingsCustom'
 
 
 const setBinding = (data, group, command, buttonNum) => {
-  if (!customKeymaps) return
-  customKeymaps[group] ??= {}
-  customKeymaps[group][command] ??= structuredClone(contro.inputSchema.commands[group][command])
+  if (!contro.userConfig) return
+  contro.userConfig[group] ??= {}
+  contro.userConfig[group][command] ??= structuredClone(contro.inputSchema.commands[group][command])
 
   // keys and buttons should always exist in commands
   if ('code' in data) {
-    customKeymaps[group][command].keys ??= []
+    contro.userConfig[group][command].keys ??= []
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    customKeymaps[group][command].keys![buttonNum] = data.code
+    contro.userConfig[group][command].keys![buttonNum] = data.code
   } else if ('button' in data) {
-    customKeymaps[group][command].gamepad ??= []
+    contro.userConfig[group][command].gamepad ??= []
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    customKeymaps[group][command].gamepad![buttonNum] = data.button
+    contro.userConfig[group][command].gamepad![buttonNum] = data.button
   }
 }
 
@@ -63,6 +63,8 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
     return [key, {
       keys: value.keys ?? undefined,
       gamepad: value.gamepad ?? undefined,
+      type: value.type,
+      inputs: value.inputs
     }]
   }))
 }
@@ -74,6 +76,6 @@ export default () => {
 
   const hasPsGamepad = [...(navigator.getGamepads?.() ?? [])].some(gp => gp?.id.match(/playstation|dualsense|dualshock/i)) // todo: use last used gamepad detection
   return <BindingActionsContext.Provider value={bindActions}>
-    <KeybindingsScreen isPS={hasPsGamepad} contro={contro} customCommands={getStoredValue('customCommands') ?? {}} updateCustomCommands={updateCustomBinds} />
+	   <KeybindingsScreen isPS={true} contro={contro} customCommands={getStoredValue('customCommands') ?? {}} updateCustomCommands={updateCustomBinds} />
   </BindingActionsContext.Provider>
 }

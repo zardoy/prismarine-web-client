@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useContext } from 'react'
 import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { customCommandsConfig } from '../customCommands'
-import { ButtonWithMatchesAlert } from './KeybindingsScreen'
+import { ButtonWithMatchesAlert, Context } from './KeybindingsScreen'
 import Button from './Button'
 import styles from './KeybindingsScreen.module.css'
 import Input from './Input'
@@ -17,14 +17,12 @@ export type CustomCommandsMap = Record<string, CustomCommand>
 
 export default (
 	{
-		userConfig,
 		customCommands,
 		setActionName,
 		setGroupName,
 		resetBinding,
 		updateCustomCommands
 	}: {
-		userConfig: UserOverridesConfig,
 		customCommands: CustomCommandsMap,
 		setGroupName: (state: string) => void,
 		setActionName: (state: string) => void,
@@ -32,10 +30,12 @@ export default (
 		resetBinding: (group, action, inputType) => void,
 	}
 ) => {
+	const { userConfig } = useContext(Context)
 	const [customConfig, setCustomConfig] = useState({ ...customCommands })
 
 	useEffect(() => {
 		updateCustomCommands(customConfig)
+		console.log('constom config updated')
 	}, [customConfig])
 
 	const addNewCommand = (type) => {
@@ -68,12 +68,12 @@ export default (
 						return <CustomCommandContainer
 							indexOption={indexOption}
 							commandData={commandData}
-							userConfig={userConfig}
 							setActionName={setActionName}
 							setGroupName={setGroupName}
 							resetBinding={resetBinding}
 							groupData={[group, { input }]}
 							setCustomConfig={setCustomConfig}
+										 customConfig={customConfig}
 						/>
 					})}
 					<Button
@@ -93,14 +93,15 @@ const CustomCommandContainer = (
 	{
 		indexOption,
 		commandData,
-		userConfig,
 		setActionName,
 		setGroupName,
 		resetBinding,
 		setCustomConfig,
+		customConfig,
 		groupData
 	}
 ) => {
+	const { userConfig } = useContext(Context)
 
 	const [commandKey, { keys, gamepad, inputs }] = commandData
 	const [group, { input }] = groupData
@@ -132,7 +133,12 @@ const CustomCommandContainer = (
 					onClick={() => {
 						setActionName(commandKey)
 						setGroupName(group)
-						resetBinding('custom', commandKey, 'keyboard')
+						// resetBinding('custom', commandKey, 'keyboard')
+						setCustomConfig(prev => {
+							const newConfig = { ...prev }
+							newConfig[commandKey]['keys'] = undefined
+							return newConfig
+						})
 					}}
 					className={styles['undo-keyboard']}
 					style={{ position: 'relative', left: '0px' }}
@@ -157,6 +163,11 @@ const CustomCommandContainer = (
 						setActionName(commandKey)
 						setGroupName(group)
 						resetBinding('custom', commandKey, 'gamepad')
+						setCustomConfig(prev => {
+							const newConfig = { ...prev }
+							newConfig[commandKey]['gamepad'] = undefined
+							return newConfig
+						})
 					}}
 					className={styles['undo-keyboard']}
 					style={{ left: '44px' }}
@@ -175,7 +186,7 @@ const CustomCommandContainer = (
 			<Button
 				onClick={() => {
 					// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-					delete userConfig.custom[commandKey]
+					delete userConfig!.custom[commandKey]
 					setCustomConfig(prev => {
 						const newConfig = { ...prev }
 						// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
