@@ -6,8 +6,8 @@ import { subscribeKey } from 'valtio/utils'
 import { omitObj } from '@zardoy/utils'
 
 const defaultOptions = {
-  renderDistance: 2,
-  multiplayerRenderDistance: 2,
+  renderDistance: 3,
+  multiplayerRenderDistance: 3,
   closeConfirmation: true,
   autoFullScreen: false,
   mouseRawInput: false,

@@ -134,6 +134,18 @@ body {
   -ms-interpolation-mode: nearest-neighbor;
 }
 
+.overlay-top-scaled {
+  position: fixed;
+  inset: 0;
+  transform-origin: top left;
+  transform: scale(var(--guiScale));
+  width: calc(100% / var(--guiScale));
+  height: calc(100% / var(--guiScale));
+  z-index: 80;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
 #viewer-canvas {
   position: fixed;
   top: 0;

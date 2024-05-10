@@ -42,8 +42,10 @@ import { defaultsDeep } from 'lodash-es'
 
 import { initVR } from './vr'
 import {
+  AppConfig,
   activeModalStack,
   activeModalStacks,
+  hideModal,
   insertActiveModalStack,
   isGameActive,
   miscUiState,
@@ -88,6 +90,7 @@ import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 import './water'
 import { ConnectOptions } from './connect'
+import { subscribe } from 'valtio'
 
 window.debug = debug
 window.THREE = THREE
@@ -832,7 +835,7 @@ document.body.addEventListener('touchstart', (e) => {
 void window.fetch('config.json').then(async res => res.json()).then(c => c, (error) => {
   console.warn('Failed to load optional app config.json', error)
   return {}
-}).then((config) => {
+}).then((config: AppConfig | {}) => {
   miscUiState.appConfig = config
 })
 
@@ -850,8 +853,27 @@ downloadAndOpenFile().then((downloadAction) => {
     return
   }
   if (qs.get('ip') || qs.get('proxy')) {
-    // show server editor for connect or save
-    showModal({ reactType: 'editServer' })
+    const waitAppConfigLoad = !qs.get('proxy')
+    const openServerEditor = () => {
+      hideModal()
+      // show server editor for connect or save
+      showModal({ reactType: 'editServer' })
+    }
+    showModal({ reactType: 'empty' })
+    if (waitAppConfigLoad) {
+      const unsubscribe = subscribe(miscUiState, checkCanDisplay)
+      checkCanDisplay()
+      // eslint-disable-next-line no-inner-declarations
+      function checkCanDisplay () {
+        if (miscUiState.appConfig) {
+          unsubscribe()
+          openServerEditor()
+          return true
+        }
+      }
+    } else {
+      openServerEditor()
+    }
   }
 
   void Promise.resolve().then(() => {

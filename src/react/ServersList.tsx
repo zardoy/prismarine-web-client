@@ -11,7 +11,7 @@ interface Props extends React.ComponentProps<typeof Singleplayer> {
     username?: string
     password?: string
     proxy?: string
-    version?: string
+    versionOverride?: string
     shouldSave?: boolean
   }) => void
   initialProxies: SavedProxiesLocalStorage
