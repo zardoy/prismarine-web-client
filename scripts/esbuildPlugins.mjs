@@ -116,7 +116,7 @@ const plugins = [
         //@ts-ignore
         for (const file of outputFiles) {
           let contents = file.text
-          if (file.path.endsWith('.map') && file.text) {
+          if (file.path.endsWith('.map') && file.text && !process.env.PROD) {
             const map = JSON.parse(file.text)
             removeNodeModulesSourcemaps(map)
             contents = JSON.stringify(map)

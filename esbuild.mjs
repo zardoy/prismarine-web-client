@@ -17,6 +17,7 @@ fs.writeFileSync('dist/index.html', fs.readFileSync('index.html', 'utf8').replac
 
 const watch = process.argv.includes('--watch') || process.argv.includes('-w')
 const prod = process.argv.includes('--prod')
+if (prod) process.env.PROD = 'true'
 const dev = !prod
 
 const banner = [
