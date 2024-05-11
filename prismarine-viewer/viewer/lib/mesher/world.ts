@@ -44,17 +44,18 @@ export class World {
     // if (lightsCache.has(key)) return lightsCache.get(key)
     const column = this.getColumnByPos(pos)
     if (!column || !hasChunkSection(column, pos)) return 15
+    const posChunk = posInChunk(pos)
     let result = Math.min(
       15,
       Math.max(
-        column.getBlockLight(posInChunk(pos)),
-        Math.min(skyLight, column.getSkyLight(posInChunk(pos)))
+        column.getBlockLight(posChunk),
+        Math.min(skyLight, column.getSkyLight(posChunk))
       ) + 2
     )
     // lightsCache.set(key, result)
-    if (result === 2 && this.getBlock(pos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
-      result = this.getLight(pos.offset(0, 1, 0))
-    }
+    // if (result === 2 && this.getBlock(pos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
+    //   result = this.getLight(pos.offset(0, 1, 0))
+    // }
     if (isNeighbor && result === 2) result = 15 // TODO
     return result
   }
@@ -128,7 +129,8 @@ export class World {
 }
 
 // todo export in chunk instead
-const hasChunkSection = (column, pos) => {
+export const hasChunkSection = (column, pos) => {
+  pos = posInChunk(pos)
   if (column._getSection) return column._getSection(pos)
   if (column.skyLightSections) {
     return column.skyLightSections[getLightSectionIndex(pos, column.minY)] || column.blockLightSections[getLightSectionIndex(pos, column.minY)]

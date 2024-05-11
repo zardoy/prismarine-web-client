@@ -300,6 +300,15 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     const maxy = element.to[1]
     const maxz = element.to[2]
 
+    const isConnectedWithTheBlock = (
+      (face === 'up' && maxy === 16) ||
+      (face === 'down' && miny === 0) ||
+      (face === 'north' && minz === 0) ||
+      (face === 'south' && maxz === 16) ||
+      (face === 'west' && minx === 0) ||
+      (face === 'east' && maxx === 16)
+    )
+
     const u = eFace.texture.u
     const v = eFace.texture.v
     const su = eFace.texture.su
@@ -349,7 +358,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
 
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
-    const baseLight = world.getLight(neighborPos) / 15
+    const baseLight = world.getLight(isConnectedWithTheBlock ? neighborPos : position) / 15
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
