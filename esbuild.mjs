@@ -75,6 +75,7 @@ const buildOptions = {
   loader: {
     // todo use external or resolve issues with duplicating
     '.png': 'dataurl',
+    '.svg': 'dataurl',
     '.map': 'empty',
     '.vert': 'text',
     '.frag': 'text',

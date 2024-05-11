@@ -1,25 +1,27 @@
-import { useState, useEffect, useRef, createContext, useContext, ComponentProps } from 'react'
+import { useState, useEffect, useRef, createContext, useContext, ComponentProps, KeyboardEvent } from 'react'
 import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { contro as controEx } from '../controls'
+import triangle from '../../assets/playstation_triangle_console_controller_gamepad_icon.svg'
+import square from '../../assets/playstation_square_console_controller_gamepad_icon.svg'
+import circle from '../../assets/circle_playstation_console_controller_gamepad_icon.svg'
+import cross from '../../assets/cross_playstation_console_controller_gamepad_icon.svg'
 import PixelartIcon from './PixelartIcon'
 import KeybindingsCustom from './KeybindingsCustom'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
-import triangle from '../../assets/playstation_triangle_console_controller_gamepad_icon.svg'
-import square from '../../assets/playstation_square_console_controller_gamepad_icon.svg'
-import circle from '../../assets/circle_playstation_console_controller_gamepad_icon.svg'
-import cross from '../../assets/cross_playstation_console_controller_gamepad_icon.svg'
 
 
 type HandleClick = (group: string, action: string, index: number, type: string | null) => void
+
+type setBinding = (data: any, group: string, command: string, buttonIndex: number) => void
 
 export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    handleClick: (() => { }) as HandleClick,
-    parseBindingName(binding) { }
+    handleClick: (() => {}) as HandleClick,
+    parseBindingName (binding) {}
   }
 )
 
@@ -30,9 +32,9 @@ export default (
     updateCustomCommands,
     customCommands
   }: {
-    contro: typeof controEx,
-    isPS?: boolean
-  } & Pick<ComponentProps<typeof KeybindingsCustom>, 'customCommands' | 'updateCustomCommands'>
+		contro: typeof controEx,
+		isPS?: boolean
+	} & Pick<ComponentProps<typeof KeybindingsCustom>, 'customCommands' | 'updateCustomCommands'>
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
@@ -51,7 +53,7 @@ export default (
     setButtonNum(prev => index)
   }
 
-  const setBinding = (data, group, command, buttonIndex) => {
+  const setBinding: setBinding = (data, group, command, buttonIndex) => {
     setUserConfig(prev => {
       const newConfig = { ...prev }
       newConfig[group] ??= {}
@@ -61,7 +63,7 @@ export default (
       const type = 'code' in data ? 'keys' : 'button' in data ? 'gamepad' : null
       if (type) {
         newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][type]]
-        newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
+				newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
       }
 
       return newConfig
@@ -81,7 +83,7 @@ export default (
 
   useEffect(() => {
     for (const [group, commands] of Object.entries(userConfig)) {
-      if (group == 'custom') continue
+      if (group === 'custom') continue
       contro.userConfig![group] = Object.fromEntries(Object.entries(commands).map(([key, value]) => {
         return [key, {
           keys: value.keys ?? undefined,
@@ -94,12 +96,12 @@ export default (
     updateBindWarnings()
   }, [userConfig])
 
-  const updateKeyboardBinding = (e) => {
+  const updateKeyboardBinding = (e: KeyboardEvent<HTMLDivElement>) => {
     if (!e.code || e.key === 'Escape' || !awaitingInputType) return
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
   }
 
-  const updateGamepadBinding = (data) => {
+  const updateGamepadBinding = (data: any) => {
     if (!data.state && awaitingInputType) {
       setAwaitingInputType(null)
       return
@@ -259,8 +261,6 @@ export default (
                   />
                     : null}
 
-
-
                 {[0, 1].map((key, index) => <ButtonWithMatchesAlert
                   key={`keyboard-${group}-${action}-${index}`}
                   group={group}
@@ -331,9 +331,9 @@ export const ButtonWithMatchesAlert = ({
         className={`${styles.button}`}>
         {
           (userConfig?.[group]?.[action]?.keys?.length
-            && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
-          || (keys?.length && parseBindingName(keys[index]))
-          || ''
+						&& parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
+						|| (keys?.length && parseBindingName(keys[index]))
+					|| ''
         }
       </Button>
       :
@@ -368,7 +368,7 @@ export const ButtonWithMatchesAlert = ({
           marginRight: '2px'
         }} />
       <div>
-        This bind is already in use. <span></span>
+				This bind is already in use. <span></span>
       </div>
     </div>
   </div>
@@ -388,7 +388,7 @@ export const AwaitingInputOverlay = ({ isGamepad }) => {
   }}
   >
     {isGamepad ? 'Press the button on the gamepad' : 'Press the key'}.
-    Press ESC to cancel.
+		Press ESC to cancel.
   </div>
 }
 

@@ -1,46 +1,10 @@
 import { createContext, useState } from 'react'
 import { contro, customKeymaps } from '../controls'
 import KeybindingsScreen from './KeybindingsScreen'
-import { useIsModalActive } from './utils'
+import { useIsModalActive } from './utilsApp'
 import { getStoredValue, setStoredValue } from './storageProvider'
 import { CustomCommandsMap } from './KeybindingsCustom'
 
-
-const setBinding = (data, group, command, buttonNum) => {
-  if (!contro.userConfig) return
-  contro.userConfig[group] ??= {}
-  contro.userConfig[group][command] ??= structuredClone(contro.inputSchema.commands[group][command])
-
-  // keys and buttons should always exist in commands
-  if ('code' in data) {
-    contro.userConfig[group][command].keys ??= []
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    contro.userConfig[group][command].keys![buttonNum] = data.code
-  } else if ('button' in data) {
-    contro.userConfig[group][command].gamepad ??= []
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-    contro.userConfig[group][command].gamepad![buttonNum] = data.button
-  }
-}
-
-const resetBinding = (group, command, inputType) => {
-  if (!customKeymaps?.[group]?.[command]) return
-  switch (inputType) {
-    case 'keyboard':
-      customKeymaps[group][command].keys = undefined as string[] | undefined
-      break
-    case 'gamepad':
-      customKeymaps[group][command].gamepad = undefined as string[] | undefined
-      break
-  }
-}
-
-const bindingActions = {
-  setBinding,
-  resetBinding
-}
-
-const BindingActionsContext = createContext(bindingActions)
 
 export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
   if (customCommands) {
@@ -54,6 +18,8 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
     return [key, {
       keys: [],
       gamepadButtons: [],
+      type: null,
+      inputs: null
     }]
   }))
 
@@ -69,6 +35,25 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
   }))
 }
 
+export const updateBinds = (commands?: typeof customKeymaps) => {
+  for (const [ group, actions ] of Object.entries(commands!)) {
+    contro.userConfig![group] = Object.fromEntries(Object.entries(actions).map(([key, value]) => {
+      return [key, {
+        keys: value.keys ?? undefined,
+        gamepad: value.gamepad ?? undefined,
+      }]
+    }))
+  }
+
+}
+
+const bindingActions = {
+  updateCustomBinds,
+  updateBinds
+}
+
+const BindingActionsContext = createContext(bindingActions)
+
 export default () => {
   const [bindActions, setBindActions] = useState(bindingActions)
   const isModalActive = useIsModalActive('keybindings')
@@ -76,6 +61,6 @@ export default () => {
 
   const hasPsGamepad = [...(navigator.getGamepads?.() ?? [])].some(gp => gp?.id.match(/playstation|dualsense|dualshock/i)) // todo: use last used gamepad detection
   return <BindingActionsContext.Provider value={bindActions}>
-	   <KeybindingsScreen isPS={true} contro={contro} customCommands={getStoredValue('customCommands') ?? {}} updateCustomCommands={updateCustomBinds} />
+    <KeybindingsScreen isPS={hasPsGamepad} contro={contro} customCommands={getStoredValue('customCommands') ?? {}} updateCustomCommands={updateCustomBinds} />
   </BindingActionsContext.Provider>
 }
