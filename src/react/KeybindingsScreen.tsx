@@ -30,11 +30,10 @@ export default (
   {
     contro,
     isPS,
-    updateCustomCommands,
   }: {
     contro: typeof controEx,
     isPS?: boolean
-  } & Pick<ComponentProps<typeof KeybindingsCustom>, 'updateCustomCommands'>
+  } 
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
@@ -47,11 +46,15 @@ export default (
   const { updateBinds } = useContext(BindingActionsContext)
   const [customCommands, setCustomCommands] = useState(userConfig.custom ?? {})
 
+  const updateCurrBind = (group: string, action: string) => {
+    setGroupName(prev => group)
+    setActionName(prev => action)
+  }
+
   const handleClick: HandleClick = (group, action, index, type) => {
     //@ts-expect-error
     setAwaitingInputType(type)
-    setGroupName(prev => group)
-    setActionName(prev => action)
+    updateCurrBind(group, action)
     setButtonNum(prev => index)
   }
 
@@ -258,8 +261,7 @@ export default (
                 {
                   userConfig?.[group]?.[action]?.keys?.length ? <Button
                     onClick={() => {
-                      setActionName(prev => action)
-                      setGroupName(prev => group)
+                      updateCurrBind(group, action)
                       resetBinding(group, action, 'keyboard')
                     }}
                     className={styles['undo-keyboard']}
@@ -289,8 +291,7 @@ export default (
                   userConfig?.[group]?.[action]?.gamepad?.length ? <Button
                     key={`keyboard-${group}-${action}`}
                     onClick={() => {
-                      setActionName(prev => action)
-                      setGroupName(prev => group)
+                      updateCurrBind(group, action)
                       resetBinding(group, action, 'gamepad')
                     }}
                     className={styles['undo-gamepad']}
@@ -305,9 +306,7 @@ export default (
 
         <KeybindingsCustom
           customCommands={customCommands as CustomCommandsMap}
-          updateCustomCommands={updateCustomCommands}
-          setGroupName={setGroupName}
-          setActionName={setActionName}
+          updateCurrBind={updateCurrBind}
           resetBinding={resetBinding}
         />
       </div>

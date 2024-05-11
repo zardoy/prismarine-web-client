@@ -73,6 +73,6 @@ export default () => {
 
   const hasPsGamepad = [...(navigator.getGamepads?.() ?? [])].some(gp => gp?.id.match(/playstation|dualsense|dualshock/i)) // todo: use last used gamepad detection
   return <BindingActionsContext.Provider value={bindActions}>
-    <KeybindingsScreen isPS={hasPsGamepad} contro={contro} updateCustomCommands={updateCustomBinds} />
+    <KeybindingsScreen isPS={hasPsGamepad} contro={contro} />
   </BindingActionsContext.Provider>
 }

@@ -19,16 +19,12 @@ export type CustomCommandsMap = Record<string, CustomCommand>
 export default (
   {
     customCommands,
-    setActionName,
-    setGroupName,
+    updateCurrBind,
     resetBinding,
-    updateCustomCommands
   }: {
     customCommands: CustomCommandsMap,
-    setGroupName: (state: string) => void,
-    setActionName: (state: string) => void,
-    updateCustomCommands: (newValue: CustomCommandsMap) => void
-    resetBinding: (group, action, inputType) => void,
+    updateCurrBind: (group: string, action: string) => void,
+    resetBinding: (group: string, action: string, inputType: string) => void,
   }
 ) => {
   const { userConfig } = useContext(Context)
@@ -66,8 +62,7 @@ export default (
             return <CustomCommandContainer
               indexOption={indexOption}
               commandData={commandData}
-              setActionName={setActionName}
-              setGroupName={setGroupName}
+              updateCurrBind={updateCurrBind}
               groupData={[group, { input }]}
               setCustomConfig={setCustomConfig}
               customConfig={customConfig}
@@ -91,8 +86,7 @@ const CustomCommandContainer = (
   {
     indexOption,
     commandData,
-    setActionName,
-    setGroupName,
+    updateCurrBind,
     setCustomConfig,
     customConfig,
     resetBinding,
@@ -128,8 +122,7 @@ const CustomCommandContainer = (
       {
         userConfig?.['custom']?.[commandKey]?.keys ? <Button
           onClick={() => {
-            setActionName(commandKey)
-            setGroupName(group)
+            updateCurrBind(group, commandKey)
             resetBinding('custom', commandKey, 'keyboard')
           }}
           className={styles['undo-keyboard']}
@@ -152,8 +145,7 @@ const CustomCommandContainer = (
       {
         userConfig?.['custom']?.[commandKey]?.gamepad ? <Button
           onClick={() => {
-            setActionName(commandKey)
-            setGroupName(group)
+            updateCurrBind(group, commandKey)
             resetBinding('custom', commandKey, 'gamepad')
           }}
           className={styles['undo-keyboard']}
