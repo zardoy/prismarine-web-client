@@ -58,7 +58,6 @@ export default (
     })
   }
 
-
   return <>
     <div className={styles.group}>
       {Object.entries(customCommandsConfig).map(([group, { input }]) => (

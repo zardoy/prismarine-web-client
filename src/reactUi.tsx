@@ -3,7 +3,7 @@ import { renderToDom, ErrorBoundary } from '@zardoy/react-util'
 import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { miscUiState } from './globalState'
 import DeathScreenProvider from './react/DeathScreenProvider'
 import OptionsRenderApp from './react/OptionsRenderApp'
@@ -33,10 +33,10 @@ import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
 import HotbarRenderApp from './react/HotbarRenderApp'
 import Crosshair from './react/Crosshair'
-import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
 import ButtonAppProvider from './react/ButtonAppProvider'
 import ServersListProvider from './react/ServersListProvider'
 import GamepadUiCursor from './react/GamepadUiCursor'
+import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -143,6 +143,7 @@ const App = () => {
         <SingleplayerProvider />
         <CreateWorldProvider />
         <AppStatusProvider />
+        <KeybindingsScreenProvider />
         <SelectOption />
         <ServersListProvider />
         <OptionsRenderApp />
