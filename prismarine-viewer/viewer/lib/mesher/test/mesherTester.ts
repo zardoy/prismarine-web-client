@@ -38,8 +38,22 @@ export const setup = (version, initialBlocks: [number[], string][]) => {
     }
     reload()
 
+    const getLights = () => {
+        return Object.fromEntries(getGeometry().faces.map(({ face, light }) => ([face, light * 15 - 2])))
+    }
+
+    const setLight = (x: number, y: number, z: number, val = 0) => {
+        // create columns first
+        chunk1.setBlockLight(pos.offset(x, y, z), 15)
+        chunk1.setSkyLight(pos.offset(x, y, z), 15)
+        chunk1.setBlockLight(pos.offset(x, y, z), val)
+        chunk1.setSkyLight(pos.offset(x, y, z), 0)
+    }
+
     return {
         mesherWorld,
+        setLight,
+        getLights,
         getGeometry,
         pos,
         mcData,
