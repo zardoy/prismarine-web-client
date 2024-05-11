@@ -6,7 +6,7 @@ import square from '../../assets/playstation_square_console_controller_gamepad_i
 import circle from '../../assets/circle_playstation_console_controller_gamepad_icon.svg'
 import cross from '../../assets/cross_playstation_console_controller_gamepad_icon.svg'
 import PixelartIcon from './PixelartIcon'
-import KeybindingsCustom, { CustomCommandsMap } from './KeybindingsCustom'
+import KeybindingsCustom, { CustomCommand, CustomCommandsMap } from './KeybindingsCustom'
 import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
 import Screen from './Screen'
@@ -44,7 +44,7 @@ export default (
   const [actionName, setActionName] = useState('')
   const [buttonNum, setButtonNum] = useState(0)
   const { updateBinds } = useContext(BindingActionsContext)
-  const [customCommands, setCustomCommands] = useState(userConfig.custom ?? {})
+  const [customCommands, setCustomCommands] = useState<CustomCommandsMap>(userConfig.custom as CustomCommandsMap ?? {})
 
   const updateCurrBind = (group: string, action: string) => {
     setGroupName(prev => group)
@@ -71,8 +71,6 @@ export default (
         newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
       }
 
-      updateBinds(newConfig)
-      setCustomCommands({ ...newConfig.custom })
 
       return newConfig
     })
@@ -85,21 +83,13 @@ export default (
       const newConfig = { ...prev }
       const prop = inputType === 'keyboard' ? 'keys' : 'gamepad'
       newConfig[group][command][prop] = undefined
-      updateBinds(newConfig)
       return newConfig
     })
   }
 
   useEffect(() => {
-    // for (const [group, commands] of Object.entries(userConfig)) {
-    //   if (group === 'custom') continue
-    //   contro.userConfig![group] = Object.fromEntries(Object.entries(commands).map(([key, value]) => {
-    //     return [key, {
-    //       keys: value.keys ?? undefined,
-    //       gamepad: value.gamepad ?? undefined,
-    //     }]
-    //   }))
-    // }
+    updateBinds(userConfig)
+    setCustomCommands({ ...userConfig.custom as CustomCommandsMap })
 
     updateBindMap()
     updateBindWarnings()
