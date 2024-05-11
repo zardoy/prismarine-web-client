@@ -4,7 +4,7 @@ import { Vec3 } from 'vec3'
 import { proxy, subscribe } from 'valtio'
 
 import { ControMax } from 'contro-max/build/controMax'
-import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
+import { CommandEventArgument, InputCommandsSchema, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
@@ -57,6 +57,7 @@ export const contro = new ControMax({
     advanced: {
       lockUrl: ['KeyY'],
     },
+    custom: {} as Record<string, SchemaCommandInput>,
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']

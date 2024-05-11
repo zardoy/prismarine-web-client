@@ -18,8 +18,8 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
     return [key, {
       keys: [],
       gamepadButtons: [],
-      type: null,
-      inputs: null
+      type: '',
+      inputs: []
     }]
   }))
 

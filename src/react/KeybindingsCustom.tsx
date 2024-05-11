@@ -1,6 +1,7 @@
 import { useEffect, useState, useContext } from 'react'
 import { customCommandsConfig } from '../customCommands'
 import { ButtonWithMatchesAlert, Context } from './KeybindingsScreen'
+import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
 import styles from './KeybindingsScreen.module.css'
 import Input from './Input'
@@ -31,21 +32,15 @@ export default (
 ) => {
   const { userConfig } = useContext(Context)
   const [customConfig, setCustomConfig] = useState({ ...customCommands })
+  const { updateCustomBinds } = useContext(BindingActionsContext)
 
   useEffect(() => {
-    updateCustomCommands(customConfig)
-    console.log('constom config updated')
+    updateCustomBinds(customConfig)
   }, [customConfig])
 
-  const addNewCommand = (type) => {
+  const addNewCommand = (type: string) => {
     // max key + 1
-    const newKey = String(Math.max(...Object.keys(customCommands).map(Number).filter(key => !isNaN(key)), 0) + 1)
-    customCommands[newKey] = {
-      keys: [],
-      gamepad: [],
-      type,
-      inputs: []
-    }
+    const newKey = String(Math.max(...Object.keys(customConfig).map(Number).filter(key => !isNaN(key)), 0) + 1)
     setCustomConfig(prev => {
       const newCustomConf = { ...prev }
       newCustomConf[newKey] = {
@@ -71,7 +66,6 @@ export default (
               resetBinding={resetBinding}
               groupData={[group, { input }]}
               setCustomConfig={setCustomConfig}
-              customConfig={customConfig}
             />
           })}
           <Button
@@ -95,7 +89,6 @@ const CustomCommandContainer = (
     setGroupName,
     resetBinding,
     setCustomConfig,
-    customConfig,
     groupData
   }
 ) => {
@@ -105,7 +98,6 @@ const CustomCommandContainer = (
   const [group, { input }] = groupData
 
   const setInputValue = (optionKey, indexInput, value) => {
-    // setCustomConfig(prev => { return { ...userConfig.custom as any } })
     setCustomConfig(prev => {
       const newConfig = { ...prev }
       newConfig[optionKey].inputs = [...prev[optionKey].inputs]

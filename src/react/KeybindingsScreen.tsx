@@ -33,9 +33,9 @@ export default (
     updateCustomCommands,
     customCommands
   }: {
-		contro: typeof controEx,
-		isPS?: boolean
-	} & Pick<ComponentProps<typeof KeybindingsCustom>, 'customCommands' | 'updateCustomCommands'>
+    contro: typeof controEx,
+    isPS?: boolean
+  } & Pick<ComponentProps<typeof KeybindingsCustom>, 'customCommands' | 'updateCustomCommands'>
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
