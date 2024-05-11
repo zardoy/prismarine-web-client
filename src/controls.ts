@@ -22,7 +22,6 @@ import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCu
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
 subscribe(customKeymaps, () => {
-  //contro.inputSchema.commands.custom = customKeymaps.custom as any // didnt work as I expected
   localStorage.keymap = JSON.stringify(customKeymaps)
 })
 
@@ -57,7 +56,7 @@ export const contro = new ControMax({
     advanced: {
       lockUrl: ['KeyY'],
     },
-    custom: {} as Record<string, SchemaCommandInput>,
+    custom: {} as Record<string, SchemaCommandInput & { type: string, input: any[] }>,
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']
@@ -85,7 +84,7 @@ export const contro = new ControMax({
 window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
 
-updateCustomBinds()
+// updateCustomBinds()
 
 export const setDoPreventDefault = (state: boolean) => {
   controlOptions.preventDefault = state

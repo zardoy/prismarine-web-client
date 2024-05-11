@@ -31,7 +31,7 @@ export default (
   }
 ) => {
   const { userConfig } = useContext(Context)
-  const [customConfig, setCustomConfig] = useState({ ...customCommands })
+  const [customConfig, setCustomConfig] = useState({ ...userConfig!.custom as CustomCommandsMap })
   const { updateCustomBinds } = useContext(BindingActionsContext)
 
   useEffect(() => {
@@ -63,9 +63,10 @@ export default (
               commandData={commandData}
               setActionName={setActionName}
               setGroupName={setGroupName}
-              resetBinding={resetBinding}
               groupData={[group, { input }]}
               setCustomConfig={setCustomConfig}
+              customConfig={customConfig}
+              resetBinding={resetBinding}
             />
           })}
           <Button
@@ -87,8 +88,9 @@ const CustomCommandContainer = (
     commandData,
     setActionName,
     setGroupName,
-    resetBinding,
     setCustomConfig,
+    customConfig,
+    resetBinding,
     groupData
   }
 ) => {
@@ -123,12 +125,12 @@ const CustomCommandContainer = (
           onClick={() => {
             setActionName(commandKey)
             setGroupName(group)
-            // resetBinding('custom', commandKey, 'keyboard')
-            setCustomConfig(prev => {
-              const newConfig = { ...prev }
-              newConfig[commandKey]['keys'] = undefined
-              return newConfig
-            })
+            resetBinding('custom', commandKey, 'keyboard')
+            // setCustomConfig(prev => {
+            //   const newConfig = { ...prev }
+            //   newConfig[commandKey]['keys'] = undefined
+            //   return newConfig
+            // })
           }}
           className={styles['undo-keyboard']}
           style={{ position: 'relative', left: '0px' }}
@@ -152,7 +154,7 @@ const CustomCommandContainer = (
           onClick={() => {
             setActionName(commandKey)
             setGroupName(group)
-            resetBinding('custom', commandKey, 'gamepad')
+            // resetBinding('custom', commandKey, 'gamepad')
             setCustomConfig(prev => {
               const newConfig = { ...prev }
               newConfig[commandKey]['gamepad'] = undefined
@@ -175,12 +177,8 @@ const CustomCommandContainer = (
       />
       <Button
         onClick={() => {
-          // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-          delete userConfig!.custom[commandKey]
           setCustomConfig(prev => {
-            const newConfig = { ...prev }
-            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-            delete newConfig[commandKey]
+            const { [commandKey]: commandToRemove, ...newConfig } = prev
             return newConfig
           })
         }}

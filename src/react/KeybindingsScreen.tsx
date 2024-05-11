@@ -6,8 +6,8 @@ import square from '../../assets/playstation_square_console_controller_gamepad_i
 import circle from '../../assets/circle_playstation_console_controller_gamepad_icon.svg'
 import cross from '../../assets/cross_playstation_console_controller_gamepad_icon.svg'
 import PixelartIcon from './PixelartIcon'
-import KeybindingsCustom from './KeybindingsCustom'
-import { BindingActionsContext } from './KeybindingsScreenProvider'
+import KeybindingsCustom, { CustomCommandsMap } from './KeybindingsCustom'
+import { BindingActionsContext, updateCustomBinds } from './KeybindingsScreenProvider'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
@@ -65,10 +65,11 @@ export default (
       const type = 'code' in data ? 'keys' : 'button' in data ? 'gamepad' : null
       if (type) {
         newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][type]]
-				newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
+        newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
       }
 
       updateBinds(newConfig)
+      updateCustomBinds(newConfig.custom as CustomCommandsMap)
 
       return newConfig
     })
@@ -82,6 +83,7 @@ export default (
       const prop = inputType === 'keyboard' ? 'keys' : 'gamepad'
       newConfig[group][command][prop] = undefined
       updateBinds(newConfig)
+      updateCustomBinds(newConfig.custom as CustomCommandsMap)
       return newConfig
     })
   }
