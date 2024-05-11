@@ -7,7 +7,7 @@ import circle from '../../assets/circle_playstation_console_controller_gamepad_i
 import cross from '../../assets/cross_playstation_console_controller_gamepad_icon.svg'
 import PixelartIcon from './PixelartIcon'
 import KeybindingsCustom, { CustomCommandsMap } from './KeybindingsCustom'
-import { BindingActionsContext, updateCustomBinds } from './KeybindingsScreenProvider'
+import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
@@ -31,11 +31,10 @@ export default (
     contro,
     isPS,
     updateCustomCommands,
-    customCommands
   }: {
     contro: typeof controEx,
     isPS?: boolean
-  } & Pick<ComponentProps<typeof KeybindingsCustom>, 'customCommands' | 'updateCustomCommands'>
+  } & Pick<ComponentProps<typeof KeybindingsCustom>, 'updateCustomCommands'>
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
@@ -46,6 +45,7 @@ export default (
   const [actionName, setActionName] = useState('')
   const [buttonNum, setButtonNum] = useState(0)
   const { updateBinds } = useContext(BindingActionsContext)
+  const [customCommands, setCustomCommands] = useState(userConfig.custom ?? {})
 
   const handleClick: HandleClick = (group, action, index, type) => {
     //@ts-expect-error
@@ -69,7 +69,7 @@ export default (
       }
 
       updateBinds(newConfig)
-      updateCustomBinds(newConfig.custom as CustomCommandsMap)
+      setCustomCommands({ ...newConfig.custom })
 
       return newConfig
     })
@@ -83,7 +83,6 @@ export default (
       const prop = inputType === 'keyboard' ? 'keys' : 'gamepad'
       newConfig[group][command][prop] = undefined
       updateBinds(newConfig)
-      updateCustomBinds(newConfig.custom as CustomCommandsMap)
       return newConfig
     })
   }
@@ -305,7 +304,7 @@ export default (
         })}
 
         <KeybindingsCustom
-          customCommands={customCommands}
+          customCommands={customCommands as CustomCommandsMap}
           updateCustomCommands={updateCustomCommands}
           setGroupName={setGroupName}
           setActionName={setActionName}

@@ -6,6 +6,7 @@ import Button from './Button'
 import styles from './KeybindingsScreen.module.css'
 import Input from './Input'
 
+
 export type CustomCommand = {
   keys: undefined | string[]
   gamepad: undefined | string[]
@@ -31,11 +32,15 @@ export default (
   }
 ) => {
   const { userConfig } = useContext(Context)
-  const [customConfig, setCustomConfig] = useState({ ...userConfig!.custom as CustomCommandsMap })
-  const { updateCustomBinds } = useContext(BindingActionsContext)
+  const [customConfig, setCustomConfig] = useState<any>({ ...customCommands })
+  const { updateBinds } = useContext(BindingActionsContext)
 
   useEffect(() => {
-    updateCustomBinds(customConfig)
+    setCustomConfig({ ...customCommands })
+  }, [customCommands])
+
+  useEffect(() => {
+    updateBinds({ ...userConfig, custom: { ...customConfig } })
   }, [customConfig])
 
   const addNewCommand = (type: string) => {
@@ -117,7 +122,7 @@ const CustomCommandContainer = (
         ? <select key={indexInput} onChange={(e) => {
           setInputValue(commandKey, indexInput, e.target.value)
         }}>{config.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
-        : <Input key={indexInput} rootStyles={{ width: '99%' }} placeholder={config.placeholder} value={inputs[indexInput]} onChange={(e) => setInputValue(commandKey, indexInput, e.target.value)} />
+        : <Input key={indexInput} rootStyles={{ width: '99%' }} placeholder={config.placeholder} value={inputs[indexInput] ?? ''} onChange={(e) => setInputValue(commandKey, indexInput, e.target.value)} />
     })}
     <div className={styles.actionBinds}>
       {
@@ -126,11 +131,6 @@ const CustomCommandContainer = (
             setActionName(commandKey)
             setGroupName(group)
             resetBinding('custom', commandKey, 'keyboard')
-            // setCustomConfig(prev => {
-            //   const newConfig = { ...prev }
-            //   newConfig[commandKey]['keys'] = undefined
-            //   return newConfig
-            // })
           }}
           className={styles['undo-keyboard']}
           style={{ position: 'relative', left: '0px' }}
@@ -154,12 +154,7 @@ const CustomCommandContainer = (
           onClick={() => {
             setActionName(commandKey)
             setGroupName(group)
-            // resetBinding('custom', commandKey, 'gamepad')
-            setCustomConfig(prev => {
-              const newConfig = { ...prev }
-              newConfig[commandKey]['gamepad'] = undefined
-              return newConfig
-            })
+            resetBinding('custom', commandKey, 'gamepad')
           }}
           className={styles['undo-keyboard']}
           style={{ left: '44px' }}

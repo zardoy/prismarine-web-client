@@ -14,7 +14,6 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
   customCommands ??= getStoredValue('customCommands') ?? {}
 
   contro.inputSchema.commands.custom = Object.fromEntries(Object.entries(customCommands).map(([key, value]) => {
-    // resolved
     return [key, {
       keys: [],
       gamepadButtons: [],
@@ -23,9 +22,7 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
     }]
   }))
 
-  // todo is that needed?
   contro.userConfig!.custom = Object.fromEntries(Object.entries(customCommands).map(([key, value]) => {
-    // resolved
     return [key, {
       keys: value.keys ?? undefined,
       gamepad: value.gamepad ?? undefined,
@@ -35,14 +32,29 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
   }))
 }
 
-export const updateBinds = (commands?: typeof customKeymaps) => {
-  for (const [ group, actions ] of Object.entries(commands!)) {
-    if (group === 'custom') continue
+export const updateBinds = (commands: any) => {
+  contro.inputSchema.commands.custom = Object.fromEntries(Object.entries(commands?.custom ?? {}).map(([key, value]) => {
+    return [key, {
+      keys: [],
+      gamepadButtons: [],
+      type: '',
+      inputs: []
+    }]
+  }))
+
+  for (const [ group, actions ] of Object.entries(commands)) {
     contro.userConfig![group] = Object.fromEntries(Object.entries(actions).map(([key, value]) => {
-      return [key, {
-        keys: value.keys ?? undefined,
-        gamepad: value.gamepad ?? undefined,
-      }]
+      const newValue = {
+        keys: value?.keys ?? undefined,
+        gamepad: value?.gamepad ?? undefined,
+      }
+
+      if (group === 'custom') {
+        newValue['type'] = (value).type 
+        newValue['inputs'] = (value).inputs 
+      }
+
+      return [key, newValue]
     }))
   }
 }
@@ -61,6 +73,6 @@ export default () => {
 
   const hasPsGamepad = [...(navigator.getGamepads?.() ?? [])].some(gp => gp?.id.match(/playstation|dualsense|dualshock/i)) // todo: use last used gamepad detection
   return <BindingActionsContext.Provider value={bindActions}>
-    <KeybindingsScreen isPS={hasPsGamepad} contro={contro} customCommands={getStoredValue('customCommands') ?? {}} updateCustomCommands={updateCustomBinds} />
+    <KeybindingsScreen isPS={hasPsGamepad} contro={contro} updateCustomCommands={updateCustomBinds} />
   </BindingActionsContext.Provider>
 }
