@@ -37,6 +37,7 @@ export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
 
 export const updateBinds = (commands?: typeof customKeymaps) => {
   for (const [ group, actions ] of Object.entries(commands!)) {
+    if (group === 'custom') continue
     contro.userConfig![group] = Object.fromEntries(Object.entries(actions).map(([key, value]) => {
       return [key, {
         keys: value.keys ?? undefined,
@@ -44,7 +45,6 @@ export const updateBinds = (commands?: typeof customKeymaps) => {
       }]
     }))
   }
-
 }
 
 const bindingActions = {
@@ -52,7 +52,7 @@ const bindingActions = {
   updateBinds
 }
 
-const BindingActionsContext = createContext(bindingActions)
+export const BindingActionsContext = createContext(bindingActions)
 
 export default () => {
   const [bindActions, setBindActions] = useState(bindingActions)

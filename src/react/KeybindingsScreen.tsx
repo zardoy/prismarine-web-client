@@ -7,6 +7,7 @@ import circle from '../../assets/circle_playstation_console_controller_gamepad_i
 import cross from '../../assets/cross_playstation_console_controller_gamepad_icon.svg'
 import PixelartIcon from './PixelartIcon'
 import KeybindingsCustom from './KeybindingsCustom'
+import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './KeybindingsScreen.module.css'
@@ -44,6 +45,7 @@ export default (
   const [groupName, setGroupName] = useState('')
   const [actionName, setActionName] = useState('')
   const [buttonNum, setButtonNum] = useState(0)
+  const { updateBinds } = useContext(BindingActionsContext)
 
   const handleClick: HandleClick = (group, action, index, type) => {
     //@ts-expect-error
@@ -66,6 +68,8 @@ export default (
 				newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
       }
 
+      updateBinds(newConfig)
+
       return newConfig
     })
   }
@@ -77,20 +81,21 @@ export default (
       const newConfig = { ...prev }
       const prop = inputType === 'keyboard' ? 'keys' : 'gamepad'
       newConfig[group][command][prop] = undefined
+      updateBinds(newConfig)
       return newConfig
     })
   }
 
   useEffect(() => {
-    for (const [group, commands] of Object.entries(userConfig)) {
-      if (group === 'custom') continue
-      contro.userConfig![group] = Object.fromEntries(Object.entries(commands).map(([key, value]) => {
-        return [key, {
-          keys: value.keys ?? undefined,
-          gamepad: value.gamepad ?? undefined,
-        }]
-      }))
-    }
+    // for (const [group, commands] of Object.entries(userConfig)) {
+    //   if (group === 'custom') continue
+    //   contro.userConfig![group] = Object.fromEntries(Object.entries(commands).map(([key, value]) => {
+    //     return [key, {
+    //       keys: value.keys ?? undefined,
+    //       gamepad: value.gamepad ?? undefined,
+    //     }]
+    //   }))
+    // }
 
     updateBindMap()
     updateBindWarnings()
@@ -368,7 +373,7 @@ export const ButtonWithMatchesAlert = ({
           marginRight: '2px'
         }} />
       <div>
-				This bind is already in use. <span></span>
+        This bind is already in use. <span></span>
       </div>
     </div>
   </div>
