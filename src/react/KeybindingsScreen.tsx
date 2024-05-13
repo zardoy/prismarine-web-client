@@ -98,6 +98,8 @@ export default (
 
   const updateKeyboardBinding = (e: KeyboardEvent<HTMLDivElement>) => {
     if (!e.code || e.key === 'Escape' || !awaitingInputType) return
+    // contro.enabled = false
+    // void Promise.resolve().then(() => { contro.enabled = true })
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
   }
 

@@ -1,8 +1,20 @@
 import { createContext, useState } from 'react'
 import { contro } from '../controls'
+import { customCommandsConfig } from '../customCommands'
 import KeybindingsScreen from './KeybindingsScreen'
 import { useIsModalActive } from './utilsApp'
 
+
+const customCommandsHandler = (buttonData, handlerData) => {
+  if (!buttonData.state) return
+
+  const codeOrButton = buttonData.code ?? buttonData.button
+  const codeOrButtonSet = handlerData.keys ?? handlerData.gamepad
+  if (!codeOrButtonSet) return
+  if (codeOrButtonSet.includes(codeOrButton)) {
+    handlerData.custonCommandsConfig[handlerData.type].handler(handlerData.inputs)
+  }
+}
 
 export const updateBinds = (commands: any) => {
   contro.inputSchema.commands.custom = Object.fromEntries(Object.entries(commands?.custom ?? {}).map(([key, value]) => {
@@ -28,6 +40,14 @@ export const updateBinds = (commands: any) => {
 
       return [key, newValue]
     }))
+  }
+
+  if (!commands['custom']) return
+
+  for (const [key, customCommandData] of Object.entries(commands.custom)) {
+    contro.on('pressedKeyOrButtonChanged', (buttonData) => { 
+      customCommandsHandler(buttonData, { customCommandsConfig, ...customCommandData }) 
+    })
   }
 }
 
