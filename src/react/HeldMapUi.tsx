@@ -20,13 +20,14 @@ export default () => {
       return canvas.toDataURL('image/png')
     })
 
+    // TODO delete maps!
     const updateHeldMap = () => {
       setDataUrl(null)
       if (!bot.heldItem || !['filled_map', 'map'].includes(bot.heldItem.name)) return
       // setDataUrl(true)
       const mapNumber = (bot.heldItem?.nbt?.value as any)?.map?.value
       // if (!mapNumber) return
-      setDataUrl(bot.mapDownloader.maps[mapNumber] as unknown as string)
+      setDataUrl(bot.mapDownloader.maps?.[mapNumber] as unknown as string)
     }
 
     bot.on('heldItemChanged' as any, () => {
