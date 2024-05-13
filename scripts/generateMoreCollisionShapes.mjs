@@ -1,8 +1,11 @@
+//@ts-check
 import minecraftData from 'minecraft-data'
 import minecraftAssets from 'minecraft-assets'
 import fs from 'fs'
 
-const latestData = minecraftData('1.20.2')
+const latestVersion = minecraftData.versions.pc[0]
+
+const latestData = minecraftData(latestVersion.minecraftVersion)
 
 // dont touch, these are the ones that are already full box
 const fullBoxInteractionShapes = [
@@ -62,7 +65,7 @@ const fullBoxInteractionShapesTemp = [
   'white_wall_banner',
 ]
 
-const shapes = latestData.blockCollisionShapes;
+const shapes = latestData.blockCollisionShapes
 const fullShape = shapes.shapes[1]
 const outputJson = {}
 
@@ -97,8 +100,8 @@ const interestedBlocks = latestData.blocksArray.filter(block => {
 const { blocksStates, blocksModels } = minecraftAssets(latestData.version.minecraftVersion)
 
 const getShapeFromModel = (block,) => {
-  const blockStates = JSON.parse(fs.readFileSync('./prismarine-viewer/public/blocksStates/1.19.1.json'))
-  const blockState = blockStates[block];
+  const blockStates = JSON.parse(fs.readFileSync('./prismarine-viewer/public/blocksStates/1.19.1.json', 'utf8'))
+  const blockState = blockStates[block]
   const perVariant = {}
   for (const [key, variant] of Object.entries(blockState.variants)) {
     // const shapes = (Array.isArray(variant) ? variant : [variant]).flatMap((v) => v.model?.elements).filter(Boolean).map(({ from, to }) => [...from, ...to]).reduce((acc, cur) => {
@@ -146,7 +149,7 @@ outer: for (const interestedBlock of [...interestedBlocksNoStates, ...interested
     }
   }
 
-  const hasStates = interestedBlocksStates.includes(interestedBlock);
+  const hasStates = interestedBlocksStates.includes(interestedBlock)
   if (hasStates) {
     const states = blocksStates[interestedBlock]
     if (!states) {
@@ -159,7 +162,7 @@ outer: for (const interestedBlock of [...interestedBlocksNoStates, ...interested
         continue
       }
       let outputStates = {}
-      for (const {when} of states.multipart) {
+      for (const { when } of states.multipart) {
         if (when) {
           for (const [key, value] of Object.entries(when)) {
             if (key === 'OR') {
