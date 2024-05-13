@@ -252,9 +252,10 @@ const Inner = () => {
         autoLoginPassword: server?.autoLogin?.[username],
         onSuccessfulPlay () {
           if (overrides.shouldSave && !serversList.some(s => s.ip === ip)) {
-            const newServersList = [...serversList, {
+            const newServersList: StoreServerItem[] = [...serversList, {
               ip,
               lastJoined: Date.now(),
+              versionOverride: overrides.versionOverride,
             }]
             // setServersList(newServersList)
             setNewServersList(newServersList) // component is not mounted
