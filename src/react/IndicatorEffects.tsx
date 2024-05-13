@@ -7,9 +7,9 @@ import './IndicatorEffects.css'
 function formatTime (seconds: number): string {
   if (seconds < 0) return ''
   const minutes = Math.floor(seconds / 60)
-  const remainingSeconds = seconds % 60
+  const remainingSeconds = Math.floor(seconds % 60)
   const formattedMinutes = String(minutes).padStart(2, '0')
-  const formattedSeconds = String(remainingSeconds).padStart(2, '0')
+  const formattedSeconds = String(remainingSeconds)
   return `${formattedMinutes}:${formattedSeconds}`
 }
 
@@ -32,10 +32,10 @@ const EffectBox = ({ image, time, level }: Pick<EffectType, 'image' | 'time' | '
         // if time is negative then effect is shown without time.
         // Component should be removed manually with time = 0
         <div className='effect-box__time'>{formattedTime}</div>
-      ) : null }
+      ) : null}
       {level > 0 && level < 256 ? (
         <div className='effect-box__level'>{level + 1}</div>
-      ) : null }
+      ) : null}
     </div>
   </div>
 }
@@ -56,7 +56,7 @@ const indicatorIcons: Record<keyof typeof defaultIndicatorsState, string> = {
   readonlyFiles: 'file-off',
 }
 
-export default ({ indicators, effects }: {indicators: typeof defaultIndicatorsState, effects: readonly EffectType[]}) => {
+export default ({ indicators, effects }: { indicators: typeof defaultIndicatorsState, effects: readonly EffectType[] }) => {
   const effectsRef = useRef(effects)
   useEffect(() => {
     effectsRef.current = effects

@@ -128,6 +128,12 @@ if (isFirefox) {
   document.body.style.setProperty('--thin-if-firefox', 'thin')
 }
 
+const isIphone = ua.getDevice().model === 'iPhone' // todo ipad?
+
+if (isIphone) {
+  document.documentElement.style.setProperty('--hud-bottom-max', '21px') // env-safe-aria-inset-bottom
+}
+
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
@@ -438,7 +444,9 @@ async function connect (connectOptions: ConnectOptions) {
       async versionSelectedHook (client) {
         await downloadMcData(client.version)
         setLoadingScreenStatus(initialLoadingText)
-      }
+      },
+      'mapDownloader-saveToFile': false,
+      // "mapDownloader-saveInternal": false, // do not save into memory, todo must be implemeneted as we do really care of ram
     }) as unknown as typeof __type_bot
     window.bot = bot
     earlySoundsMapCheck()

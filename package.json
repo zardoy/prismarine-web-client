@@ -72,6 +72,7 @@
     "minecraft-assets": "^1.12.2",
     "minecraft-data": "3.65.0",
     "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol",
+    "mineflayer-item-map-downloader": "github:zardoy/mineflayer-item-map-downloader",
     "mojangson": "^2.0.4",
     "net-browserify": "github:zardoy/prismarinejs-net-browserify",
     "node-gzip": "^1.1.2",
