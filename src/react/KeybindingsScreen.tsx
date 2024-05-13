@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext, ComponentProps, KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, createContext, useContext, KeyboardEvent } from 'react'
 import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { contro as controEx } from '../controls'
 import triangle from '../../assets/playstation_triangle_console_controller_gamepad_icon.svg'
