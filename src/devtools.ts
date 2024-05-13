@@ -23,3 +23,23 @@ Object.defineProperty(window, 'debugSceneChunks', {
     return (viewer.world as WorldRendererThree).getLoadedChunksRelative?.(bot.entity.position, true)
   },
 })
+
+window.len = (obj) => Object.keys(obj).length
+
+window.inspectPacket = (packetName, full = false) => {
+  const listener = (...args) => console.log('packet', packetName, full ? args : args[0])
+  const attach = () => {
+    bot?.on(packetName, listener)
+  }
+  attach()
+  customEvents.on('mineflayerBotCreated', attach)
+  const returnobj = {}
+  Object.defineProperty(returnobj, 'detach', {
+    get () {
+      bot?.removeListener(packetName, listener)
+      customEvents.removeListener('mineflayerBotCreated', attach)
+      return true
+    },
+  })
+  return returnobj
+}
