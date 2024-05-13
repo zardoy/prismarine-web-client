@@ -27,16 +27,12 @@ export default (
     resetBinding: (group: string, action: string, inputType: string) => void,
   }
 ) => {
-  const { userConfig } = useContext(Context)
+  const { userConfig, setUserConfig } = useContext(Context)
   const [customConfig, setCustomConfig] = useState<any>({ ...customCommands })
   const { updateBinds } = useContext(BindingActionsContext)
 
   useEffect(() => {
-    setCustomConfig({ ...customCommands })
-  }, [customCommands])
-
-  useEffect(() => {
-    updateBinds({ ...userConfig, custom: { ...customConfig } })
+    setUserConfig({ ...userConfig, custom: { ...customConfig } })
   }, [customConfig])
 
   const addNewCommand = (type: string) => {

@@ -42,7 +42,7 @@ export const updateBinds = (commands: any) => {
     }]
   }))
 
-  for (const [ group, actions ] of Object.entries(commands)) {
+  for (const [group, actions] of Object.entries(commands)) {
     contro.userConfig![group] = Object.fromEntries(Object.entries(actions).map(([key, value]) => {
       const newValue = {
         keys: value?.keys ?? undefined,
@@ -50,8 +50,8 @@ export const updateBinds = (commands: any) => {
       }
 
       if (group === 'custom') {
-        newValue['type'] = (value).type 
-        newValue['inputs'] = (value).inputs 
+        newValue['type'] = (value).type
+        newValue['inputs'] = (value).inputs
       }
 
       return [key, newValue]

@@ -21,6 +21,7 @@ export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
+    setUserConfig (config) {},
     handleClick: (() => {}) as HandleClick,
     parseBindingName (binding) {}
   }
@@ -233,7 +234,7 @@ export default (
   }, [groupName, actionName])
 
 
-  return <Context.Provider value={{ isPS, userConfig: contro.userConfig, handleClick, parseBindingName }}>
+  return <Context.Provider value={{ isPS, userConfig: userConfig, setUserConfig: setUserConfig, handleClick, parseBindingName }}>
     <Screen title="Keybindings" backdrop>
       {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
       <div className={styles.container}
