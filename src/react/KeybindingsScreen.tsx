@@ -6,7 +6,7 @@ import square from '../../assets/playstation_square_console_controller_gamepad_i
 import circle from '../../assets/circle_playstation_console_controller_gamepad_icon.svg'
 import cross from '../../assets/cross_playstation_console_controller_gamepad_icon.svg'
 import PixelartIcon from './PixelartIcon'
-import KeybindingsCustom, { CustomCommand, CustomCommandsMap } from './KeybindingsCustom'
+import KeybindingsCustom, { CustomCommandsMap } from './KeybindingsCustom'
 import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
 import Screen from './Screen'
@@ -234,7 +234,7 @@ export default (
   }, [groupName, actionName])
 
 
-  return <Context.Provider value={{ isPS, userConfig: userConfig, setUserConfig: setUserConfig, handleClick, parseBindingName }}>
+  return <Context.Provider value={{ isPS, userConfig, setUserConfig, handleClick, parseBindingName }}>
     <Screen title="Keybindings" backdrop>
       {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
       <div className={styles.container}
@@ -296,7 +296,7 @@ export default (
         })}
 
         <KeybindingsCustom
-          customCommands={customCommands as CustomCommandsMap}
+          customCommands={customCommands }
           updateCurrBind={updateCurrBind}
           resetBinding={resetBinding}
         />

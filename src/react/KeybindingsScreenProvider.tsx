@@ -1,36 +1,8 @@
 import { createContext, useState } from 'react'
-import { contro, customKeymaps } from '../controls'
+import { contro } from '../controls'
 import KeybindingsScreen from './KeybindingsScreen'
 import { useIsModalActive } from './utilsApp'
-import { getStoredValue, setStoredValue } from './storageProvider'
-import { CustomCommandsMap } from './KeybindingsCustom'
 
-
-export const updateCustomBinds = (customCommands?: CustomCommandsMap) => {
-  if (customCommands) {
-    setStoredValue('customCommands', customCommands)
-  }
-
-  customCommands ??= getStoredValue('customCommands') ?? {}
-
-  contro.inputSchema.commands.custom = Object.fromEntries(Object.entries(customCommands).map(([key, value]) => {
-    return [key, {
-      keys: [],
-      gamepadButtons: [],
-      type: '',
-      inputs: []
-    }]
-  }))
-
-  contro.userConfig!.custom = Object.fromEntries(Object.entries(customCommands).map(([key, value]) => {
-    return [key, {
-      keys: value.keys ?? undefined,
-      gamepad: value.gamepad ?? undefined,
-      type: value.type,
-      inputs: value.inputs
-    }]
-  }))
-}
 
 export const updateBinds = (commands: any) => {
   contro.inputSchema.commands.custom = Object.fromEntries(Object.entries(commands?.custom ?? {}).map(([key, value]) => {
@@ -60,7 +32,6 @@ export const updateBinds = (commands: any) => {
 }
 
 const bindingActions = {
-  updateCustomBinds,
   updateBinds
 }
 

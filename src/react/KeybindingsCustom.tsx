@@ -1,7 +1,6 @@
 import { useEffect, useState, useContext } from 'react'
 import { customCommandsConfig } from '../customCommands'
 import { ButtonWithMatchesAlert, Context } from './KeybindingsScreen'
-import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
 import styles from './KeybindingsScreen.module.css'
 import Input from './Input'
@@ -29,7 +28,6 @@ export default (
 ) => {
   const { userConfig, setUserConfig } = useContext(Context)
   const [customConfig, setCustomConfig] = useState<any>({ ...customCommands })
-  const { updateBinds } = useContext(BindingActionsContext)
 
   useEffect(() => {
     setUserConfig({ ...userConfig, custom: { ...customConfig } })
@@ -61,7 +59,6 @@ export default (
               updateCurrBind={updateCurrBind}
               groupData={[group, { input }]}
               setCustomConfig={setCustomConfig}
-              customConfig={customConfig}
               resetBinding={resetBinding}
             />
           })}
@@ -84,7 +81,6 @@ const CustomCommandContainer = (
     commandData,
     updateCurrBind,
     setCustomConfig,
-    customConfig,
     resetBinding,
     groupData
   }
