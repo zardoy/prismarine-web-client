@@ -197,7 +197,7 @@ class WorldInteraction {
         'minecart', 'boat', 'tnt_minecart', 'chest_minecart', 'hopper_minecart',
         'command_block_minecart', 'armor_stand', 'lead', 'name_tag',
         //
-        'writable_book', 'written_book', 'compass', 'clock', 'filled_map', 'empty_map',
+        'writable_book', 'written_book', 'compass', 'clock', 'filled_map', 'empty_map', 'map',
         'shears', 'carrot_on_a_stick', 'warped_fungus_on_a_stick',
         'spawn_egg', 'trident', 'crossbow', 'elytra', 'shield', 'turtle_helmet',
       ].includes(bot.heldItem.name)
@@ -219,10 +219,10 @@ class WorldInteraction {
             bot.lookAt = oldLookAt
           }).catch(console.warn)
         }
-        this.lastBlockPlaced = 0
       } else {
         bot.activateItem() // todo offhand
       }
+      this.lastBlockPlaced = 0
     }
 
     // Stop break

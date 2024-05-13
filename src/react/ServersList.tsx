@@ -60,14 +60,22 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
   return <Singleplayer {...props}
     firstRowChildrenOverride={<form style={{ width: '100%', display: 'flex', justifyContent: 'center' }} onSubmit={(e) => {
       e.preventDefault()
-      joinServer(serverIp, {
+      let ip = serverIp
+      let version
+      const parts = ip.split(':')
+      if (parts.length > 1 && parts.at(-1)!.includes('.')) {
+        version = parts.at(-1)!
+        ip = parts.slice(0, -1).join(':')
+      }
+      joinServer(ip, {
         shouldSave: save,
+        versionOverride: version,
       })
     }}
     >
       <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
         {/* todo history */}
-        <Input required placeholder='Quick Connect IP' value={serverIp} onChange={({ target: { value } }) => setServerIp(value)} />
+        <Input required placeholder='Quick Connect IP (:version)' value={serverIp} onChange={({ target: { value } }) => setServerIp(value)} />
         <label style={{ fontSize: 10, display: 'flex', alignItems: 'center', gap: 5, height: '100%', marginTop: '-1px' }}>
           <input type='checkbox' checked={save}
             style={{ borderRadius: 0 }}

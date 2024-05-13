@@ -138,6 +138,7 @@ async function main () {
   viewer.entities.onSkinUpdate = () => {
     viewer.render()
   }
+  viewer.world.mesherConfig.enableLighting = false
 
   viewer.listen(worldView)
   // Load chunks

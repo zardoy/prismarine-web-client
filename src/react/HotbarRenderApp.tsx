@@ -211,7 +211,7 @@ export default () => {
         justifyContent: 'center',
         zIndex: hasModals ? 1 : 8,
         pointerEvents: 'none',
-        bottom: 'env(safe-area-inset-bottom)'
+        bottom: 'var(--hud-bottom-raw)'
       }} />
     </Portal>
   </SharedHudVars>

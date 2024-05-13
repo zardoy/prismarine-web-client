@@ -8,10 +8,12 @@ export default ({ children }): React.ReactElement => {
     // 1. Don't inline long data URLs for better DX in elements tab
     // 2. Easier application to globally override icons with custom image (eg from resourcepacks)
     const css = /* css */`
-      :root {
+      html {
         --widgets-gui-atlas: url(${widgets});
         --gui-icons: url(${icons}), url(${icons});
-        --safe-area-inset-bottom: calc(env(safe-area-inset-bottom) / 2);
+        --hud-bottom-max: 0px;
+        --hud-bottom-raw: max(env(safe-area-inset-bottom), var(--hud-bottom-max));
+        --safe-area-inset-bottom: calc(var(--hud-bottom-raw) / 2);
       }
     `
     const style = document.createElement('style')
