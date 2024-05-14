@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, createContext, useContext, KeyboardEvent } from 'react'
 import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { contro as controEx } from '../controls'
+import { hideModal } from '../globalState'
 import triangle from '../../assets/playstation_triangle_console_controller_gamepad_icon.svg'
 import square from '../../assets/playstation_square_console_controller_gamepad_icon.svg'
 import circle from '../../assets/circle_playstation_console_controller_gamepad_icon.svg'
@@ -179,6 +180,10 @@ export default (
         ref={containerRef}
         onKeyDown={(e) => updateKeyboardBinding(e)}
       >
+        <Button 
+          onClick={() => { hideModal() }}
+          style={{ alignSelf: 'center' }}
+        >Back</Button>
 
         {Object.entries(commands).map(([group, actions], index) => {
           if (group === 'custom') return null
