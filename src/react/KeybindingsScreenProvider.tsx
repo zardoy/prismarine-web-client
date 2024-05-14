@@ -1,18 +1,22 @@
-import { createContext, useState } from 'react'
+import { createContext, useState, useEffect } from 'react'
+import { useSnapshot } from 'valtio'
 import { contro } from '../controls'
 import { customCommandsConfig } from '../customCommands'
+import { miscUiState } from '../globalState'
 import KeybindingsScreen from './KeybindingsScreen'
 import { useIsModalActive } from './utilsApp'
+import { CustomCommand } from './KeybindingsCustom'
 
 
-const customCommandsHandler = (buttonData, handlerData) => {
+const customCommandsHandler = (buttonData: { code?: string, button?: string, state: boolean }) => {
   if (!buttonData.state) return
 
   const codeOrButton = buttonData.code ?? buttonData.button
-  const codeOrButtonSet = handlerData.keys ?? handlerData.gamepad
-  if (!codeOrButtonSet) return
-  if (codeOrButtonSet.includes(codeOrButton)) {
-    handlerData.custonCommandsConfig[handlerData.type].handler(handlerData.inputs)
+  const inputType = buttonData.code ? 'keys' : 'gamepad'
+  for (const value of Object.values(contro.userConfig!.custom)) {
+    if (value[inputType]?.includes(codeOrButton!)) {
+      customCommandsConfig[(value as CustomCommand).type].handler((value as CustomCommand).inputs)
+    }
   }
 }
 
@@ -44,11 +48,11 @@ export const updateBinds = (commands: any) => {
 
   if (!commands['custom']) return
 
-  for (const [key, customCommandData] of Object.entries(commands.custom)) {
-    contro.on('pressedKeyOrButtonChanged', (buttonData) => { 
-      customCommandsHandler(buttonData, { customCommandsConfig, ...customCommandData }) 
-    })
-  }
+  //todo: don't trigger handler when setting new binding
+  contro.enabled = false
+  contro.off('pressedKeyOrButtonChanged', customCommandsHandler)
+  contro.on('pressedKeyOrButtonChanged', customCommandsHandler)
+  contro.enabled = true
 }
 
 const bindingActions = {
@@ -60,6 +64,16 @@ export const BindingActionsContext = createContext(bindingActions)
 export default () => {
   const [bindActions, setBindActions] = useState(bindingActions)
   const isModalActive = useIsModalActive('keybindings')
+  const { gameLoaded } = useSnapshot(miscUiState)
+
+  useEffect(() => {
+    if (gameLoaded) {
+      contro.on('pressedKeyOrButtonChanged', customCommandsHandler)
+    } else {
+      contro.off('pressedKeyOrButtonChanged', customCommandsHandler)
+    }
+  }, [gameLoaded])
+
   if (!isModalActive) return null
 
   const hasPsGamepad = [...(navigator.getGamepads?.() ?? [])].some(gp => gp?.id.match(/playstation|dualsense|dualshock/i)) // todo: use last used gamepad detection

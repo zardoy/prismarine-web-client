@@ -98,8 +98,6 @@ export default (
 
   const updateKeyboardBinding = (e: KeyboardEvent<HTMLDivElement>) => {
     if (!e.code || e.key === 'Escape' || !awaitingInputType) return
-    // contro.enabled = false
-    // void Promise.resolve().then(() => { contro.enabled = true })
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
   }
 
@@ -298,7 +296,7 @@ export default (
         })}
 
         <KeybindingsCustom
-          customCommands={customCommands }
+          customCommands={customCommands}
           updateCurrBind={updateCurrBind}
           resetBinding={resetBinding}
         />
