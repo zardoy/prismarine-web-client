@@ -23,7 +23,8 @@ export const Context = createContext(
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
     setUserConfig (config) {},
     handleClick: (() => {}) as HandleClick,
-    parseBindingName (binding) {}
+    parseBindingName (binding) {},
+    bindsMap: { keyboard: {} as any, gamepad: {} as any }
   }
 )
 
@@ -93,7 +94,6 @@ export default (
     setCustomCommands({ ...userConfig.custom as CustomCommandsMap })
 
     updateBindMap()
-    updateBindWarnings()
   }, [userConfig])
 
   const updateKeyboardBinding = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -151,75 +151,6 @@ export default (
     }
   }
 
-  const updateBindWarnings = () => {
-    if (!commands) return
-    for (const [group, actions] of Object.entries(commands)) {
-      for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
-        if (!containerRef.current) continue
-        if (keys) {
-          let currKeys
-          if (userConfig?.[group]?.[action]?.keys) {
-            currKeys = userConfig[group][action].keys
-          } else {
-            currKeys = keys
-          }
-          for (const [index, key] of currKeys.entries()) {
-            const elem = containerRef.current.querySelector<HTMLElement>(`#bind-warning-${group}-${action}-keyboard-${index}`)
-            if (!elem) continue
-            if (bindsMap.current.keyboard[key].length > 1) {
-              for (const bind of bindsMap.current.keyboard[key]) {
-                const currElem = containerRef.current.querySelector<HTMLElement>(`#bind-warning-${bind.group}-${bind.action}-keyboard-${bind.index}`)
-                if (!currElem) continue
-                currElem.style.display = 'flex'
-              }
-            } else {
-              elem.style.display = 'none'
-            }
-          }
-          if (currKeys.length === 1) {
-            const elem = containerRef.current.querySelector<HTMLElement>(`#bind-warning-${group}-${action}-keyboard-1`)
-            if (!elem) continue
-            elem.style.display = 'none'
-          }
-          if (currKeys.length === 0) {
-            for (const index of [0, 1]) {
-              const elem = containerRef.current.querySelector<HTMLElement>(`#bind-warning-${group}-${action}-keyboard-${index}`)
-              if (!elem) continue
-              elem.style.display = 'none'
-            }
-          }
-        } else {
-          const elem = containerRef.current.querySelector<HTMLElement>(`#bind-warning-${group}-${action}-keyboard-1`)
-          if (!elem) continue
-          elem.style.display = 'none'
-        }
-        if (gamepadButtons) {
-          let currButtons
-          if (userConfig?.[group]?.[action]?.gamepad) {
-            currButtons = userConfig[group][action].gamepad
-          } else {
-            currButtons = gamepadButtons
-          }
-          const elem = containerRef.current.querySelector<HTMLElement>(`#bind-warning-${group}-${action}-gamepad-0`)
-          if (!elem || !currButtons || currButtons.length === 0) continue
-          if (bindsMap.current.gamepad[currButtons[0]].length > 1) {
-            for (const bind of bindsMap.current.gamepad[currButtons[0]]) {
-              const currElem = containerRef.current.querySelector<HTMLElement>(`#bind-warning-${bind.group}-${bind.action}-gamepad-${bind.index}`)
-              if (!currElem) continue
-              currElem.style.display = 'flex'
-            }
-          } else {
-            elem.style.display = 'none'
-          }
-        } else {
-          const elem = containerRef.current.querySelector<HTMLElement>(`#bind-warning-${group}-${action}-keyboard-1`)
-          if (!elem) continue
-          elem.style.display = 'none'
-        }
-      }
-    }
-  }
-
   // fill binds map
   useEffect(() => {
     updateBindMap()
@@ -234,7 +165,14 @@ export default (
   }, [groupName, actionName])
 
 
-  return <Context.Provider value={{ isPS, userConfig, setUserConfig, handleClick, parseBindingName }}>
+  return <Context.Provider value={ { 
+    isPS, 
+    userConfig, 
+    setUserConfig, 
+    handleClick, 
+    parseBindingName, 
+    bindsMap: bindsMap.current 
+  }}>
     <Screen title="Keybindings" backdrop>
       {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
       <div className={styles.container}
@@ -313,7 +251,7 @@ export const ButtonWithMatchesAlert = ({
   keys,
   gamepadButtons,
 }) => {
-  const { isPS, userConfig, handleClick, parseBindingName } = useContext(Context)
+  const { isPS, userConfig, handleClick, parseBindingName, bindsMap } = useContext(Context)
 
   return <div
     key={`warning-container-${inputType}-${action}`}
@@ -327,9 +265,9 @@ export const ButtonWithMatchesAlert = ({
         className={`${styles.button}`}>
         {
           (userConfig?.[group]?.[action]?.keys?.length
-						&& parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
-						|| (keys?.length && parseBindingName(keys[index]))
-					|| ''
+            && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
+            || (keys?.length && parseBindingName(keys[index]))
+          || ''
         }
       </Button>
       :
@@ -353,20 +291,30 @@ export const ButtonWithMatchesAlert = ({
       </Button>
 
     }
-    <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
-      <PixelartIcon
-        iconName={'alert'}
-        width={5}
-        styles={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          marginRight: '2px'
-        }} />
-      <div>
+    {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(
+      key => Object.keys(bindsMap[inputType]).includes(key) 
+        && bindsMap[inputType][key].length > 1
+        && bindsMap[inputType][key].some(
+          prop => prop.index === index 
+            && prop.group === group 
+            && prop.action === action
+        )
+    ) ? (
+        <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
+          <PixelartIcon
+            iconName={'alert'}
+            width={5}
+            styles={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: '2px'
+            }} />
+          <div>
         This bind is already in use. <span></span>
-      </div>
-    </div>
+          </div>
+        </div>
+      ) : null}
   </div>
 }
 
