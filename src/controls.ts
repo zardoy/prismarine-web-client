@@ -13,6 +13,8 @@ import { options } from './optionsStorage'
 import { openPlayerInventory } from './inventoryWindows'
 import { chatInputValueGlobal } from './react/Chat'
 import { fsState } from './loadSave'
+import { customCommandsConfig } from './customCommands'
+import { CustomCommand } from './react/KeybindingsCustom'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
@@ -288,6 +290,20 @@ function cycleHotbarSlot (dir: 1 | -1) {
   const newHotbarSlot = (bot.quickBarSlot + dir + 9) % 9
   bot.setQuickBarSlot(newHotbarSlot)
 }
+
+// custom commands hamdler
+const customCommandsHandler = (buttonData: { code?: string, button?: string, state: boolean }) => {
+  if (!buttonData.state || !isGameActive(true)) return
+
+  const codeOrButton = buttonData.code ?? buttonData.button
+  const inputType = buttonData.code ? 'keys' : 'gamepad'
+  for (const value of Object.values(contro.userConfig!.custom)) {
+    if (value[inputType]?.includes(codeOrButton!)) {
+      customCommandsConfig[(value as CustomCommand).type].handler((value as CustomCommand).inputs)
+    }
+  }
+}
+contro.on('pressedKeyOrButtonChanged', customCommandsHandler)
 
 contro.on('trigger', ({ command }) => {
   const willContinue = !isGameActive(true)
