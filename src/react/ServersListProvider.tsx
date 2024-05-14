@@ -114,6 +114,9 @@ export const updateLoadedServerData = (callback: (data: StoreServerItem) => Stor
   setNewServersList(servers)
 }
 
+// todo move to base
+const normalizeIp = (ip: string) => ip.replace(/https?:\/\//, '').replace(/\/(:|$)/, '')
+
 const Inner = () => {
   const [proxies, setProxies] = useState<readonly string[]>(localStorage['proxies'] ? JSON.parse(localStorage['proxies']) : getInitialProxies())
   const [selectedProxy, setSelectedProxy] = useState(localStorage.getItem('selectedProxy') ?? proxies?.[0] ?? '')
@@ -210,7 +213,7 @@ const Inner = () => {
       onQsConnect={(info) => {
         const connectOptions: ConnectOptions = {
           username: info.usernameOverride || defaultUsername,
-          server: info.ip,
+          server: normalizeIp(info.ip),
           proxy: info.proxyOverride || selectedProxy,
           botVersion: info.versionOverride,
           password: info.passwordOverride,
@@ -241,7 +244,7 @@ const Inner = () => {
       }
       const options = {
         username,
-        server: ip,
+        server: normalizeIp(ip),
         proxy: overrides.proxy || selectedProxy,
         botVersion: overrides.versionOverride ?? /* legacy */ overrides['version'],
         password: overrides.password,
@@ -249,9 +252,10 @@ const Inner = () => {
         autoLoginPassword: server?.autoLogin?.[username],
         onSuccessfulPlay () {
           if (overrides.shouldSave && !serversList.some(s => s.ip === ip)) {
-            const newServersList = [...serversList, {
+            const newServersList: StoreServerItem[] = [...serversList, {
               ip,
               lastJoined: Date.now(),
+              versionOverride: overrides.versionOverride,
             }]
             // setServersList(newServersList)
             setNewServersList(newServersList) // component is not mounted

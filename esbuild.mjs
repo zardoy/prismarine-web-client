@@ -46,6 +46,9 @@ const buildOptions = {
     // using \n breaks sourcemaps!
     js: banner.join(';'),
   },
+  external: [
+    'sharp'
+  ],
   alias: {
     events: 'events', // make explicit
     buffer: 'buffer',
@@ -56,7 +59,8 @@ const buildOptions = {
     stream: 'stream-browserify',
     net: 'net-browserify',
     assert: 'assert',
-    dns: './src/dns.js'
+    dns: './src/dns.js',
+    // todo write advancedAliases plugin
   },
   inject: [
     './src/shims.js'

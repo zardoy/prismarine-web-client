@@ -37,6 +37,7 @@ import ButtonAppProvider from './react/ButtonAppProvider'
 import ServersListProvider from './react/ServersListProvider'
 import GamepadUiCursor from './react/GamepadUiCursor'
 import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
+import HeldMapUi from './react/HeldMapUi'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -84,6 +85,12 @@ const GameHud = ({ children }) => {
   }, [loadedDataVersion])
 
   return gameLoaded ? children : null
+}
+
+const InGameComponent = ({ children }) => {
+  const { gameLoaded } = useSnapshot(miscUiState)
+  if (!gameLoaded) return null
+  return children
 }
 
 const InGameUi = () => {
@@ -136,6 +143,14 @@ const WidgetDisplay = ({ name, Component }) => {
 const App = () => {
   return <div>
     <ButtonAppProvider>
+      <RobustPortal to={document.body}>
+        <div className='overlay-bottom-scaled'>
+          <InGameComponent>
+            <HeldMapUi />
+          </InGameComponent>
+        </div>
+        <div></div>
+      </RobustPortal>
       <EnterFullscreenButton />
       <InGameUi />
       <RobustPortal to={document.querySelector('#ui-root')}>
@@ -153,6 +168,7 @@ const App = () => {
         </GameHud> */}
       </RobustPortal>
       <RobustPortal to={document.body}>
+        {/* todo correct mounting! */}
         <div className='overlay-top-scaled'>
           <GamepadUiCursor />
         </div>

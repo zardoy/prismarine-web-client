@@ -23,7 +23,7 @@
 
 .world_root {
     height: 40px;
-    width: 300px;
+    width: 308px;
     border: 1px solid transparent;
     display: flex;
     outline: none;
@@ -43,6 +43,7 @@
     flex-direction: column;
     font-size: 11px;
     white-space: nowrap;
+    width: 100%;
 }
 .world_info_formatted {
     font-size: 10px;

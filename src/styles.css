@@ -134,7 +134,7 @@ body {
   -ms-interpolation-mode: nearest-neighbor;
 }
 
-.overlay-top-scaled {
+.overlay-top-scaled, .overlay-bottom-scaled {
   position: fixed;
   inset: 0;
   transform-origin: top left;
@@ -144,6 +144,10 @@ body {
   z-index: 80;
   image-rendering: pixelated;
   pointer-events: none;
+}
+
+.overlay-bottom-scaled {
+  z-index: 1;
 }
 
 #viewer-canvas {

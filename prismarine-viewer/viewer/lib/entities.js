@@ -1,10 +1,10 @@
 //@ts-check
-const THREE = require('three')
-const TWEEN = require('@tweenjs/tween.js')
-
-const Entity = require('./entity/EntityMesh')
-const { dispose3 } = require('./dispose')
-const EventEmitter = require('events')
+import * as THREE from 'three'
+import * as TWEEN from '@tweenjs/tween.js'
+import * as Entity from './entity/EntityMesh'
+import { dispose3 } from './dispose'
+import nbt from 'prismarine-nbt'
+import EventEmitter from 'events'
 import { PlayerObject, PlayerAnimation } from 'skinview3d'
 import { loadSkinToCanvas, loadEarsToCanvasFromSkin, inferModelType, loadCapeToCanvas, loadImage } from 'skinview-utils'
 // todo replace with url
@@ -264,7 +264,7 @@ export class Entities extends EventEmitter {
 
   displaySimpleText(jsonLike) {
     if (!jsonLike) return
-    const parsed = mojangson.simplify(mojangson.parse(jsonLike))
+    const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
     const text = flat(parsed).map(x => x.text)
     return text.join('')
   }

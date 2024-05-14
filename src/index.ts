@@ -128,6 +128,12 @@ if (isFirefox) {
   document.body.style.setProperty('--thin-if-firefox', 'thin')
 }
 
+const isIphone = ua.getDevice().model === 'iPhone' // todo ipad?
+
+if (isIphone) {
+  document.documentElement.style.setProperty('--hud-bottom-max', '21px') // env-safe-aria-inset-bottom
+}
+
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
@@ -438,7 +444,9 @@ async function connect (connectOptions: ConnectOptions) {
       async versionSelectedHook (client) {
         await downloadMcData(client.version)
         setLoadingScreenStatus(initialLoadingText)
-      }
+      },
+      'mapDownloader-saveToFile': false,
+      // "mapDownloader-saveInternal": false, // do not save into memory, todo must be implemeneted as we do really care of ram
     }) as unknown as typeof __type_bot
     window.bot = bot
     earlySoundsMapCheck()
@@ -538,6 +546,15 @@ async function connect (connectOptions: ConnectOptions) {
     window.loadedData = mcData
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
+
+    // patch mineflayer
+    // todo move to mineflayer
+    bot.inventory.on('updateSlot', (index) => {
+      if ((index as unknown as number) === bot.quickBarSlot + bot.inventory.hotbarStart) {
+        //@ts-expect-error
+        bot.emit('heldItemChanged')
+      }
+    })
 
     miscUiState.gameLoaded = true
     miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''
