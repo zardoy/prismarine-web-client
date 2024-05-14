@@ -180,6 +180,13 @@ export default (
         ref={containerRef}
         onKeyDown={(e) => updateKeyboardBinding(e)}
       >
+        <div style={{
+          color: 'rgba(255, 255, 255, 0.7)',
+          fontSize: '6px',
+          textAlign: 'center'
+        }}>
+          Note: Left, right and middle click keybindings are hardcoded and cannot be changed currently.
+        </div>
         <Button 
           onClick={() => { hideModal() }}
           style={{ alignSelf: 'center' }}
@@ -330,14 +337,24 @@ export const AwaitingInputOverlay = ({ isGamepad }) => {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'column',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     color: 'white',
     fontSize: 24,
     zIndex: 10
   }}
   >
-    {isGamepad ? 'Press the button on the gamepad' : 'Press the key'}.
-		Press ESC to cancel.
+    <div >
+      {isGamepad ? 'Press the button on the gamepad ' : 'Press the key, side mouse button '}
+      or ESC to cancel.
+    </div>
+    <Button
+      onClick={() => {
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      }}
+    >
+      Cancel
+    </Button>
   </div>
 }
 
