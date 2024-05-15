@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createContext, useContext, KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { contro as controEx } from '../controls'
 import { hideModal } from '../globalState'
@@ -36,7 +36,7 @@ export default (
   }: {
     contro: typeof controEx,
     isPS?: boolean
-  } 
+  }
 ) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
@@ -97,7 +97,7 @@ export default (
     updateBindMap()
   }, [userConfig])
 
-  const updateKeyboardBinding = (e: KeyboardEvent<HTMLDivElement>) => {
+  const updateKeyboardBinding = (e: import('react').KeyboardEvent<HTMLDivElement>) => {
     if (!e.code || e.key === 'Escape' || !awaitingInputType) return
     setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
   }
@@ -166,13 +166,13 @@ export default (
   }, [groupName, actionName])
 
 
-  return <Context.Provider value={ { 
-    isPS, 
-    userConfig, 
-    setUserConfig, 
-    handleClick, 
-    parseBindingName, 
-    bindsMap: bindsMap.current 
+  return <Context.Provider value={ {
+    isPS,
+    userConfig,
+    setUserConfig,
+    handleClick,
+    parseBindingName,
+    bindsMap: bindsMap.current
   }}>
     <Screen title="Keybindings" backdrop>
       {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
@@ -187,7 +187,7 @@ export default (
         }}>
           Note: Left, right and middle click keybindings are hardcoded and cannot be changed currently.
         </div>
-        <Button 
+        <Button
           onClick={() => { hideModal() }}
           style={{ alignSelf: 'center' }}
         >Back</Button>
@@ -304,11 +304,11 @@ export const ButtonWithMatchesAlert = ({
 
     }
     {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(
-      key => Object.keys(bindsMap[inputType]).includes(key) 
+      key => Object.keys(bindsMap[inputType]).includes(key)
         && bindsMap[inputType][key].length > 1
         && bindsMap[inputType][key].some(
-          prop => prop.index === index 
-            && prop.group === group 
+          prop => prop.index === index
+            && prop.group === group
             && prop.action === action
         )
     ) ? (
