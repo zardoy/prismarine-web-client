@@ -22,9 +22,9 @@ export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig(config) { },
+    setUserConfig (config) { },
     handleClick: (() => { }) as HandleClick,
-    parseBindingName(binding) { },
+    parseBindingName (binding) { },
     bindsMap: { keyboard: {} as any, gamepad: {} as any }
   }
 )
@@ -321,21 +321,21 @@ export const ButtonWithMatchesAlert = ({
             && prop.action === action
         )
     ) ? (
-      <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
-        <PixelartIcon
-          iconName={'alert'}
-          width={5}
-          styles={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: '2px'
-          }} />
-        <div>
+        <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
+          <PixelartIcon
+            iconName={'alert'}
+            width={5}
+            styles={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: '2px'
+            }} />
+          <div>
           This bind is already in use. <span></span>
+          </div>
         </div>
-      </div>
-    ) : null}
+      ) : null}
   </div>
 }
 
