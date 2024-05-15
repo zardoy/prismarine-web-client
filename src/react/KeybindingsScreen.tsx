@@ -22,9 +22,9 @@ export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig (config) {},
-    handleClick: (() => {}) as HandleClick,
-    parseBindingName (binding) {},
+    setUserConfig(config) { },
+    handleClick: (() => { }) as HandleClick,
+    parseBindingName(binding) { },
     bindsMap: { keyboard: {} as any, gamepad: {} as any }
   }
 )
@@ -103,7 +103,7 @@ export default (
   }
 
   const updateGamepadBinding = (data: any) => {
-    if (!data.state && awaitingInputType) {
+    if ((!data.state && awaitingInputType) || !awaitingInputType) {
       setAwaitingInputType(null)
       return
     }
@@ -196,6 +196,15 @@ export default (
           if (group === 'custom') return null
           return <div key={`group-container-${group}-${index}`} className={styles.group}>
             <div className={styles['group-category']}>{group}</div>
+            {group === 'general' ? (
+              <div style={{
+                color: 'rgba(255, 255, 255, 0.7)',
+                fontSize: '6px',
+                textAlign: 'center'
+              }}>
+                Note: Left, right and middle click keybindings are hardcoded and cannot be changed currently.
+              </div>
+            ) : null}
             {Object.entries(actions).map(([action, { keys, gamepadButtons }]) => {
               return <div key={`action-container-${action}`} className={styles.actionBinds}>
                 <div className={styles.actionName}>{parseActionName(action)}</div>
@@ -278,7 +287,7 @@ export const ButtonWithMatchesAlert = ({
         {
           (userConfig?.[group]?.[action]?.keys?.length
             && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
-            || (keys?.length && parseBindingName(keys[index]))
+          || (keys?.length && parseBindingName(keys[index]))
           || ''
         }
       </Button>
@@ -312,21 +321,21 @@ export const ButtonWithMatchesAlert = ({
             && prop.action === action
         )
     ) ? (
-        <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
-          <PixelartIcon
-            iconName={'alert'}
-            width={5}
-            styles={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: '2px'
-            }} />
-          <div>
-        This bind is already in use. <span></span>
-          </div>
+      <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
+        <PixelartIcon
+          iconName={'alert'}
+          width={5}
+          styles={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: '2px'
+          }} />
+        <div>
+          This bind is already in use. <span></span>
         </div>
-      ) : null}
+      </div>
+    ) : null}
   </div>
 }
 
