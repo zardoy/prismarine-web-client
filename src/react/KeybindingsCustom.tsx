@@ -54,6 +54,7 @@ export default (
         <div className={styles.group}><div key={group} className={styles['group-category']}>{group}</div>
           {Object.entries(customConfig).filter(([key, data]) => data.type === group).map((commandData, indexOption) => {
             return <CustomCommandContainer
+              key={indexOption}
               indexOption={indexOption}
               commandData={commandData}
               updateCurrBind={updateCurrBind}
@@ -99,7 +100,7 @@ const CustomCommandContainer = (
     })
   }
 
-  return <div style={{ padding: '10px' }} key={indexOption}>
+  return <div style={{ padding: '10px' }}>
     {input.map((obj, indexInput) => {
       const config = typeof obj === 'function' ? obj(inputs) : obj
       if (!config) return null
