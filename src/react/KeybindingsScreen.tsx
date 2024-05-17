@@ -22,9 +22,9 @@ export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig (config) { },
+    setUserConfig(config) { },
     handleClick: (() => { }) as HandleClick,
-    parseBindingName (binding) { },
+    parseBindingName(binding) { return '' as string },
     bindsMap: { keyboard: {} as any, gamepad: {} as any }
   }
 )
@@ -69,9 +69,8 @@ export default (
 
       // keys and buttons should always exist in commands
       const type = 'code' in data ? 'keys' : 'button' in data ? 'gamepad' : null
-      const originalType = type === 'keys' ? 'code' : 'gamepadButtons'
       if (type) {
-        newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][originalType]]
+        newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][type]]
         newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
       }
 
@@ -167,7 +166,7 @@ export default (
   }, [groupName, actionName])
 
 
-  return <Context.Provider value={ {
+  return <Context.Provider value={{
     isPS,
     userConfig,
     setUserConfig,
@@ -267,45 +266,41 @@ export const ButtonWithMatchesAlert = ({
   gamepadButtons,
 }) => {
   const { isPS, userConfig, handleClick, parseBindingName, bindsMap } = useContext(Context)
+  const [buttonSign, setButtonSign] = useState('')
+
+  useEffect(() => {
+    const type = inputType === 'keyboard' ? 'keys' : 'gamepad'
+
+    const customValue = userConfig?.[group]?.[action]?.[type]?.[index]
+    if (customValue) {
+      if (type === 'keys') {
+        setButtonSign(parseBindingName(customValue))
+      } else {
+        setButtonSign(isPS && buttonsMap[customValue] ? buttonsMap[customValue] : customValue)
+      }
+    } else {
+      if (type === 'keys') {
+        setButtonSign(keys?.length ? parseBindingName(keys[index]) : '')
+      } else {
+        setButtonSign(gamepadButtons?.[0] ? 
+          isPS ? 
+            buttonsMap[gamepadButtons[0]] ?? gamepadButtons[0] 
+            : gamepadButtons[0] 
+          : '')
+      }
+    }
+  }, [userConfig, isPS])
 
   return <div
     key={`warning-container-${inputType}-${action}`}
     className={`${styles['warning-container']} ${inputType === 'gamepad' ? styles['margin-left'] : ''}`}
   >
-    {inputType === 'keyboard'
-      ?
-      <Button
-        key={`keyboard-${group}-${action}-${index}`}
-        onClick={() => handleClick(group, action, index, inputType)}
-        className={`${styles.button}`}>
-        {
-          (userConfig?.[group]?.[action]?.keys?.length
-            && parseBindingName(userConfig[group]?.[action]?.keys?.[index]))
-          || (keys?.length && parseBindingName(keys[index]))
-          || ''
-        }
-      </Button>
-      :
-      <Button
-        className={`${styles.button}`}
-        onClick={() => handleClick(group, action, 0, 'gamepad')}
-      >
-        {isPS ? (
-          gamepadButtons?.[0] ? (
-            buttonsMap[gamepadButtons[0]] ? (
-              <img style={{ width: '15px' }} src={buttonsMap[gamepadButtons[0]]} alt='' />
-            ) : (
-              gamepadButtons[0]
-            )
-          ) : (
-            ''
-          )
-        ) : (
-          gamepadButtons?.[0] ?? ''
-        )}
-      </Button>
-
-    }
+    <Button
+      key={`keyboard-${group}-${action}-${index}`}
+      onClick={() => handleClick(group, action, index, inputType)}
+      className={`${styles.button}`}>
+      {buttonSign}
+    </Button>
     {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(
       key => Object.keys(bindsMap[inputType]).includes(key)
         && bindsMap[inputType][key].length > 1
@@ -315,21 +310,21 @@ export const ButtonWithMatchesAlert = ({
             && prop.action === action
         )
     ) ? (
-        <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
-          <PixelartIcon
-            iconName={'alert'}
-            width={5}
-            styles={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: '2px'
-            }} />
-          <div>
+      <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
+        <PixelartIcon
+          iconName={'alert'}
+          width={5}
+          styles={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: '2px'
+          }} />
+        <div>
           This bind is already in use. <span></span>
-          </div>
         </div>
-      ) : null}
+      </div>
+    ) : null}
   </div>
 }
 
