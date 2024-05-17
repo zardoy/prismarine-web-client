@@ -6,6 +6,12 @@
     gap: 10px;
 }
 
+@media (max-width: 500px) {
+    .container {
+        width: 90vw;
+    }
+}
+
 .group {
     display: flex;
     flex-direction: column;

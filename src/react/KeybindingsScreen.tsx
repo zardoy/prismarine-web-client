@@ -181,13 +181,6 @@ export default (
         ref={containerRef}
         onKeyDown={(e) => updateKeyboardBinding(e)}
       >
-        <div style={{
-          color: 'rgba(255, 255, 255, 0.7)',
-          fontSize: '6px',
-          textAlign: 'center'
-        }}>
-          Note: Left, right and middle click keybindings are hardcoded and cannot be changed currently.
-        </div>
         <Button
           onClick={() => { hideModal() }}
           style={{ alignSelf: 'center' }}
