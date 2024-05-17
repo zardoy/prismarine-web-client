@@ -6,7 +6,7 @@
     gap: 10px;
 }
 
-@media (max-width: 500px) {
+@media (max-width: 590px) {
     .container {
         width: 90vw;
     }
@@ -32,35 +32,28 @@
 }
 
 .warning-container {
-    flex-basis: 20%;
+    flex-basis: 25%;
     display: flex;
     flex-direction: column;
     height: inherit;
 }
 
 .actionName {
-    flex-basis: 23%;
+    flex-basis: 30%;
+    margin-right: 5px;
     flex-wrap: wrap;
-    margin-right: 25px;
     align-self: center;
-    font-size: 13px;
+    font-size: 10px;
 }
 
 .undo-keyboard,
 .undo-gamepad {
-    position: absolute;
-    left: 24%;
-
-    flex-basis: 20px;
-}
-
-.undo-gamepad {
-    left: 70%;
+    aspect-ratio: 1;
 }
 
 .button {
     width: 100%;
-    font-size: 8px;
+    font-size: 7px;
 }
 
 .margin-left {

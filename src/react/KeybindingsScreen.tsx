@@ -22,9 +22,9 @@ export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig(config) { },
+    setUserConfig (config) { },
     handleClick: (() => { }) as HandleClick,
-    parseBindingName(binding) { return '' as string },
+    parseBindingName (binding) { return '' as string },
     bindsMap: { keyboard: {} as any, gamepad: {} as any }
   }
 )
@@ -201,16 +201,16 @@ export default (
             {Object.entries(actions).map(([action, { keys, gamepadButtons }]) => {
               return <div key={`action-container-${action}`} className={styles.actionBinds}>
                 <div className={styles.actionName}>{parseActionName(action)}</div>
-                {
-                  userConfig?.[group]?.[action]?.keys?.length ? <Button
-                    onClick={() => {
-                      updateCurrBind(group, action)
-                      resetBinding(group, action, 'keyboard')
-                    }}
-                    className={styles['undo-keyboard']}
-                    icon={'pixelarticons:undo'}
-                  />
-                    : null}
+                
+                <Button
+                  onClick={() => {
+                    updateCurrBind(group, action)
+                    resetBinding(group, action, 'keyboard')
+                  }}
+                  style={{ opacity: userConfig?.[group]?.[action]?.keys?.length ? 1 : 0 }}
+                  className={styles['undo-keyboard']}
+                  icon={'pixelarticons:undo'}
+                />
 
                 {[0, 1].map((key, index) => <ButtonWithMatchesAlert
                   key={`keyboard-${group}-${action}-${index}`}
@@ -221,6 +221,20 @@ export default (
                   keys={keys}
                   gamepadButtons={gamepadButtons}
                 />)}
+
+                <Button
+                  key={`keyboard-${group}-${action}`}
+                  onClick={() => {
+                    updateCurrBind(group, action)
+                    resetBinding(group, action, 'gamepad')
+                  }}
+                  style={{ 
+                    opacity: userConfig?.[group]?.[action]?.gamepad?.length ? 1 : 0,
+                    width: '0px'
+                  }}
+                  className={`${styles['undo-gamepad']} ${styles['margin-left']}`}
+                  icon={'pixelarticons:undo'}
+                />
                 <ButtonWithMatchesAlert
                   key={`gamepad-${group}-${action}`}
                   group={group}
@@ -230,18 +244,6 @@ export default (
                   keys={keys}
                   gamepadButtons={gamepadButtons}
                 />
-                {
-                  userConfig?.[group]?.[action]?.gamepad?.length ? <Button
-                    key={`keyboard-${group}-${action}`}
-                    onClick={() => {
-                      updateCurrBind(group, action)
-                      resetBinding(group, action, 'gamepad')
-                    }}
-                    className={styles['undo-gamepad']}
-                    icon={'pixelarticons:undo'}
-                  />
-                    : null
-                }
               </div>
             })}
           </div>
@@ -278,22 +280,20 @@ export const ButtonWithMatchesAlert = ({
       } else {
         setButtonSign(isPS && buttonsMap[customValue] ? buttonsMap[customValue] : customValue)
       }
+    } else if (type === 'keys') {
+      setButtonSign(keys?.length ? parseBindingName(keys[index]) : '')
     } else {
-      if (type === 'keys') {
-        setButtonSign(keys?.length ? parseBindingName(keys[index]) : '')
-      } else {
-        setButtonSign(gamepadButtons?.[0] ? 
-          isPS ? 
-            buttonsMap[gamepadButtons[0]] ?? gamepadButtons[0] 
-            : gamepadButtons[0] 
-          : '')
-      }
+      setButtonSign(gamepadButtons?.[0] ? 
+        isPS ? 
+          buttonsMap[gamepadButtons[0]] ?? gamepadButtons[0] 
+          : gamepadButtons[0] 
+        : '')
     }
   }, [userConfig, isPS])
 
   return <div
     key={`warning-container-${inputType}-${action}`}
-    className={`${styles['warning-container']} ${inputType === 'gamepad' ? styles['margin-left'] : ''}`}
+    className={`${styles['warning-container']}`}
   >
     <Button
       key={`keyboard-${group}-${action}-${index}`}
@@ -310,21 +310,21 @@ export const ButtonWithMatchesAlert = ({
             && prop.action === action
         )
     ) ? (
-      <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
-        <PixelartIcon
-          iconName={'alert'}
-          width={5}
-          styles={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: '2px'
-          }} />
-        <div>
+        <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
+          <PixelartIcon
+            iconName={'alert'}
+            width={5}
+            styles={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: '2px'
+            }} />
+          <div>
           This bind is already in use. <span></span>
+          </div>
         </div>
-      </div>
-    ) : null}
+      ) : null}
   </div>
 }
 

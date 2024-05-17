@@ -119,7 +119,6 @@ const CustomCommandContainer = (
             resetBinding('custom', commandKey, 'keyboard')
           }}
           className={styles['undo-keyboard']}
-          style={{ position: 'relative', left: '0px' }}
           icon={'pixelarticons:undo'}
         />
           : null}
@@ -135,6 +134,8 @@ const CustomCommandContainer = (
       />
       )}
 
+      <div style={{ marginRight: 'auto' }} ></div>
+
       {
         userConfig?.['custom']?.[commandKey]?.gamepad ? <Button
           onClick={() => {
@@ -142,7 +143,6 @@ const CustomCommandContainer = (
             resetBinding('custom', commandKey, 'gamepad')
           }}
           className={styles['undo-keyboard']}
-          style={{ left: '44px' }}
           icon={'pixelarticons:undo'}
         />
           : null}
