@@ -69,8 +69,9 @@ export default (
 
       // keys and buttons should always exist in commands
       const type = 'code' in data ? 'keys' : 'button' in data ? 'gamepad' : null
+      const inputSchemaType = type === 'gamepad' ? 'gamepadButtons' : type
       if (type) {
-        newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][type]]
+        newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][inputSchemaType!]]
         newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
       }
 
