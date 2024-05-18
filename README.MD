@@ -120,7 +120,7 @@ Press `Y` to set query parameters to url of your current game state.
 ### Notable Things that Power this Project
 
 - [Mineflayer](https://github.com/PrismarineJS/mineflayer) - Handles all client-side communications with the server (including the builtin one) - forked
-- [Flying Squid](https://github.com/prismarineJS/flying-squid) - The builtin server that makes single player possible! Here forked version is used.
+- [Forked Flying Squid (Space Squid)](https://github.com/zardoy/space-squid) - The builtin offline server that makes single player & P2P possible!
 - [Prismarine Provider Anvil](https://github.com/PrismarineJS/prismarine-provider-anvil) - Handles world loading (region format)
 - [Prismarine Physics](https://github.com/PrismarineJS/prismarine-physics) - Does all the physics calculations
 - [Minecraft Protocol](https://github.com/PrismarineJS/node-minecraft-protocol) - Makes connections to servers possible
@@ -129,4 +129,4 @@ Press `Y` to set query parameters to url of your current game state.
 
 ### Alternatives
 
-- [https://github.com/ClassiCube/ClassiCube](ClassiCube - Better C# Rewrite) [https://www.classicube.net/](https://www.classicube.net/server/play/?warned=true)
+- [https://github.com/ClassiCube/ClassiCube](ClassiCube - Better C# Rewrite) [DEMO](https://www.classicube.net/server/play/?warned=true)
