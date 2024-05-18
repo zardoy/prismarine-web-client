@@ -301,7 +301,7 @@ export const ButtonWithMatchesAlert = ({
     className={`${styles['warning-container']}`}
   >
     <Button
-      key={`keyboard-${group}-${action}-${index}`}
+      key={`${inputType}-${group}-${action}-${index}`}
       onClick={() => handleClick(group, action, index, inputType)}
       className={`${styles.button}`}>
       {buttonSign}
@@ -326,7 +326,7 @@ export const ButtonWithMatchesAlert = ({
               marginRight: '2px'
             }} />
           <div>
-          This bind is already in use. <span></span>
+            This bind is already in use. <span></span>
           </div>
         </div>
       ) : null}

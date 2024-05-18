@@ -51,7 +51,8 @@ export default (
   return <>
     <div className={styles.group}>
       {Object.entries(customCommandsConfig).map(([group, { input }]) => (
-        <div className={styles.group}><div key={group} className={styles['group-category']}>{group}</div>
+        <div key={`group-container-${group}`} className={styles.group}>
+          <div key={`category-${group}`} className={styles['group-category']}>{group}</div>
           {Object.entries(customConfig).filter(([key, data]) => data.type === group).map((commandData, indexOption) => {
             return <CustomCommandContainer
               key={indexOption}
@@ -147,7 +148,6 @@ const CustomCommandContainer = (
         />
           : null}
       <ButtonWithMatchesAlert
-        key={`custom-gamepad-${group}-${commandKey}-0`}
         group={'custom'}
         action={commandKey}
         index={0}
