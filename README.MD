@@ -126,3 +126,7 @@ Press `Y` to set query parameters to url of your current game state.
 - [Minecraft Protocol](https://github.com/PrismarineJS/node-minecraft-protocol) - Makes connections to servers possible
 - [Peer.js](https://peerjs.com/) - P2P networking (when you open to wan)
 - [Three.js](https://threejs.org/) - Helping in 3D rendering
+
+### Alternatives
+
+- [https://github.com/ClassiCube/ClassiCube](ClassiCube - Better C# Rewrite) [https://www.classicube.net/](https://www.classicube.net/server/play/?warned=true)
