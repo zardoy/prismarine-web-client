@@ -6,21 +6,24 @@ import { proxy, subscribe } from 'valtio'
 import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
+import { UserOverridesConfig } from 'contro-max/build/types/store'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './inventoryWindows'
 import { chatInputValueGlobal } from './react/Chat'
 import { fsState } from './loadSave'
+import { customCommandsConfig } from './customCommands'
+import { CustomCommand } from './react/KeybindingsCustom'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
 
-// todo move this to shared file with component
-export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
+
+export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
 subscribe(customKeymaps, () => {
-  localStorage.keymap = JSON.parse(customKeymaps)
+  localStorage.keymap = JSON.stringify(customKeymaps)
 })
 
 const controlOptions = {
@@ -53,7 +56,8 @@ export const contro = new ControMax({
     },
     advanced: {
       lockUrl: ['KeyY'],
-    }
+    },
+    custom: {} as Record<string, SchemaCommandInput & { type: string, input: any[] }>,
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']
@@ -80,6 +84,8 @@ export const contro = new ControMax({
 })
 window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
+
+// updateCustomBinds()
 
 export const setDoPreventDefault = (state: boolean) => {
   controlOptions.preventDefault = state
@@ -284,6 +290,20 @@ function cycleHotbarSlot (dir: 1 | -1) {
   const newHotbarSlot = (bot.quickBarSlot + dir + 9) % 9
   bot.setQuickBarSlot(newHotbarSlot)
 }
+
+// custom commands hamdler
+const customCommandsHandler = (buttonData: { code?: string, button?: string, state: boolean }) => {
+  if (!buttonData.state || !isGameActive(true)) return
+
+  const codeOrButton = buttonData.code ?? buttonData.button
+  const inputType = buttonData.code ? 'keys' : 'gamepad'
+  for (const value of Object.values(contro.userConfig!.custom)) {
+    if (value[inputType]?.includes(codeOrButton!)) {
+      customCommandsConfig[(value as CustomCommand).type].handler((value as CustomCommand).inputs)
+    }
+  }
+}
+contro.on('pressedKeyOrButtonChanged', customCommandsHandler)
 
 contro.on('trigger', ({ command }) => {
   const willContinue = !isGameActive(true)
