@@ -130,7 +130,7 @@ const CustomCommandContainer = (
         index={index}
         inputType={'keyboard'}
         keys={keys}
-        gamepadButtons={gamepad}
+        gamepad={gamepad}
       />
       )}
 
@@ -153,7 +153,7 @@ const CustomCommandContainer = (
         index={0}
         inputType={'gamepad'}
         keys={keys}
-        gamepadButtons={gamepad}
+        gamepad={gamepad}
       />
       <Button
         onClick={() => {

@@ -69,12 +69,10 @@ export default (
 
       // keys and buttons should always exist in commands
       const type = 'code' in data ? 'keys' : 'button' in data ? 'gamepad' : null
-      const inputSchemaType = type === 'gamepad' ? 'gamepadButtons' : type
       if (type) {
-        newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][inputSchemaType!]]
+        newConfig[group][command][type] ??= group === 'custom' ? [] : [...contro.inputSchema.commands[group][command][type]]
         newConfig[group][command][type]![buttonIndex] = data.code ?? data.button
       }
-
 
       return newConfig
     })
@@ -98,15 +96,22 @@ export default (
     updateBindMap()
   }, [userConfig])
 
-  const updateKeyboardBinding = (e: import('react').KeyboardEvent<HTMLDivElement>) => {
-    if (!e.code || e.key === 'Escape' || !awaitingInputType) return
-    setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
-  }
+  // const updateKeyboardBinding = (e: import('react').KeyboardEvent<HTMLDivElement>) => {
+  //   if (!e.code || e.key === 'Escape' || !awaitingInputType) return
+  //   setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
+  // }
 
-  const updateGamepadBinding = (data: any) => {
+  const updateBinding = (data: any) => {
     if ((!data.state && awaitingInputType) || !awaitingInputType) {
       setAwaitingInputType(null)
       return
+    }
+    if ('code' in data) {
+      if (data.code === 'Escape' || ['Mouse0', 'Mouse1', 'Mouse2'].includes(data.code)) {
+        setAwaitingInputType(null)
+        return
+      }
+      setBinding({ code: data.code, state: true }, groupName, actionName, buttonNum)
     }
     if ('button' in data) {
       contro.enabled = false
@@ -121,7 +126,7 @@ export default (
     bindsMap.current = { keyboard: {} as any, gamepad: {} as any }
     if (commands) {
       for (const [group, actions] of Object.entries(commands)) {
-        for (const [action, { keys, gamepadButtons }] of Object.entries(actions)) {
+        for (const [action, { keys, gamepad }] of Object.entries(actions)) {
           if (keys) {
             let currKeys
             if (userConfig?.[group]?.[action]?.keys) {
@@ -136,12 +141,12 @@ export default (
               }
             }
           }
-          if (gamepadButtons) {
+          if (gamepad) {
             let currButtons
             if (userConfig?.[group]?.[action]?.gamepad) {
               currButtons = userConfig[group][action].gamepad
             } else {
-              currButtons = gamepadButtons
+              currButtons = gamepad
             }
             if (currButtons.length > 0) {
               bindsMap.current.gamepad[currButtons[0]] ??= []
@@ -159,12 +164,12 @@ export default (
   }, [])
 
   useEffect(() => {
-    contro.on('pressedKeyOrButtonChanged', updateGamepadBinding)
+    contro.on('pressedKeyOrButtonChanged', updateBinding)
 
     return () => {
-      contro.off('pressedKeyOrButtonChanged', updateGamepadBinding)
+      contro.off('pressedKeyOrButtonChanged', updateBinding)
     }
-  }, [groupName, actionName])
+  }, [groupName, actionName, awaitingInputType])
 
 
   return <Context.Provider value={{
@@ -179,7 +184,6 @@ export default (
       {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
       <div className={styles.container}
         ref={containerRef}
-        onKeyDown={(e) => updateKeyboardBinding(e)}
       >
         <Button
           onClick={() => { hideModal() }}
@@ -199,7 +203,7 @@ export default (
                 Note: Left, right and middle click keybindings are hardcoded and cannot be changed currently.
               </div>
             ) : null}
-            {Object.entries(actions).map(([action, { keys, gamepadButtons }]) => {
+            {Object.entries(actions).map(([action, { keys, gamepad }]) => {
               return <div key={`action-container-${action}`} className={styles.actionBinds}>
                 <div className={styles.actionName}>{parseActionName(action)}</div>
                 
@@ -220,7 +224,7 @@ export default (
                   index={index}
                   inputType={'keyboard'}
                   keys={keys}
-                  gamepadButtons={gamepadButtons}
+                  gamepad={gamepad}
                 />)}
 
                 <Button
@@ -243,7 +247,7 @@ export default (
                   index={0}
                   inputType={'gamepad'}
                   keys={keys}
-                  gamepadButtons={gamepadButtons}
+                  gamepad={gamepad}
                 />
               </div>
             })}
@@ -266,7 +270,7 @@ export const ButtonWithMatchesAlert = ({
   index,
   inputType,
   keys,
-  gamepadButtons,
+  gamepad,
 }) => {
   const { isPS, userConfig, handleClick, parseBindingName, bindsMap } = useContext(Context)
   const [buttonSign, setButtonSign] = useState('')
@@ -284,10 +288,10 @@ export const ButtonWithMatchesAlert = ({
     } else if (type === 'keys') {
       setButtonSign(keys?.length ? parseBindingName(keys[index]) : '')
     } else {
-      setButtonSign(gamepadButtons?.[0] ? 
+      setButtonSign(gamepad?.[0] ? 
         isPS ? 
-          buttonsMap[gamepadButtons[0]] ?? gamepadButtons[0] 
-          : gamepadButtons[0] 
+          buttonsMap[gamepad[0]] ?? gamepad[0] 
+          : gamepad[0] 
         : '')
     }
   }, [userConfig, isPS])

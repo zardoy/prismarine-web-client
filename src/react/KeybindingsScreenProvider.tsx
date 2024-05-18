@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react'
+import { createContext, useState } from 'react'
 import { contro } from '../controls'
 import KeybindingsScreen from './KeybindingsScreen'
 import { useIsModalActive } from './utilsApp'
@@ -8,7 +8,7 @@ export const updateBinds = (commands: any) => {
   contro.inputSchema.commands.custom = Object.fromEntries(Object.entries(commands?.custom ?? {}).map(([key, value]) => {
     return [key, {
       keys: [],
-      gamepadButtons: [],
+      gamepad: [],
       type: '',
       inputs: []
     }]
