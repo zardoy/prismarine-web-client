@@ -184,7 +184,16 @@ export const guiOptionsScheme: {
       custom () {
         return <Category>Keyboard & Mouse</Category>
       },
-      // keybindings
+    },
+    {
+      custom () {
+        return <Button
+          inScreen
+          onClick={() => {
+            showModal({ reactType: 'keybindings' })
+          }}
+        >Keybindings</Button>
+      },
       mouseSensX: {},
       mouseSensY: {
         min: -1,
@@ -282,3 +291,15 @@ const Category = ({ children }) => <div style={{
   textAlign: 'center',
   gridColumn: 'span 2'
 }}>{children}</div>
+
+export const tryFindOptionConfig = (option: keyof AppOptions) => {
+  for (const group of Object.values(guiOptionsScheme)) {
+    for (const optionConfig of group) {
+      if (option in optionConfig) {
+        return optionConfig[option]
+      }
+    }
+  }
+
+  return null
+}

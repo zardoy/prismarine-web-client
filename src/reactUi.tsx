@@ -36,6 +36,7 @@ import Crosshair from './react/Crosshair'
 import ButtonAppProvider from './react/ButtonAppProvider'
 import ServersListProvider from './react/ServersListProvider'
 import GamepadUiCursor from './react/GamepadUiCursor'
+import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
 import HeldMapUi from './react/HeldMapUi'
 
 const RobustPortal = ({ children, to }) => {
@@ -157,6 +158,7 @@ const App = () => {
         <SingleplayerProvider />
         <CreateWorldProvider />
         <AppStatusProvider />
+        <KeybindingsScreenProvider />
         <SelectOption />
         <ServersListProvider />
         <OptionsRenderApp />
