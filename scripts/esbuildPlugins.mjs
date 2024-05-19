@@ -35,7 +35,7 @@ export const startWatchingHmr = () => {
 }
 
 /** @type {import('esbuild').Plugin[]} */
-const plugins = [
+const sharedPlugins = [
   {
     name: 'strict-aliases',
     setup (build) {
@@ -87,6 +87,53 @@ const plugins = [
       })
     }
   },
+  {
+    name: 'fix-dynamic-require',
+    setup (build) {
+      build.onResolve({
+        filter: /1\.14\/chunk/,
+      }, async ({ resolveDir, path }) => {
+        if (!resolveDir.includes('prismarine-provider-anvil')) return
+        return {
+          namespace: 'fix-dynamic-require',
+          path,
+          pluginData: {
+            resolvedPath: `${join(resolveDir, path)}.js`,
+            resolveDir
+          },
+        }
+      })
+      build.onLoad({
+        filter: /.+/,
+        namespace: 'fix-dynamic-require',
+      }, async ({ pluginData: { resolvedPath, resolveDir } }) => {
+        const resolvedFile = await fs.promises.readFile(resolvedPath, 'utf8')
+        return {
+          contents: resolvedFile.replace("require(`prismarine-chunk/src/pc/common/BitArray${noSpan ? 'NoSpan' : ''}`)", "noSpan ? require(`prismarine-chunk/src/pc/common/BitArray`) : require(`prismarine-chunk/src/pc/common/BitArrayNoSpan`)"),
+          resolveDir,
+          loader: 'js',
+        }
+      })
+    }
+  },
+  polyfillNode({
+    polyfills: {
+      fs: false,
+      dns: false,
+      crypto: false,
+      events: false,
+      http: false,
+      stream: false,
+      buffer: false,
+      perf_hooks: false,
+      net: false,
+      assert: false,
+    },
+  })
+]
+
+/** @type {import('esbuild').Plugin[]} */
+const plugins = [
   {
     name: 'data-assets',
     setup (build) {
@@ -270,35 +317,6 @@ const plugins = [
     }
   },
   {
-    name: 'fix-dynamic-require',
-    setup (build) {
-      build.onResolve({
-        filter: /1\.14\/chunk/,
-      }, async ({ resolveDir, path }) => {
-        if (!resolveDir.includes('prismarine-provider-anvil')) return
-        return {
-          namespace: 'fix-dynamic-require',
-          path,
-          pluginData: {
-            resolvedPath: `${join(resolveDir, path)}.js`,
-            resolveDir
-          },
-        }
-      })
-      build.onLoad({
-        filter: /.+/,
-        namespace: 'fix-dynamic-require',
-      }, async ({ pluginData: { resolvedPath, resolveDir } }) => {
-        const resolvedFile = await fs.promises.readFile(resolvedPath, 'utf8')
-        return {
-          contents: resolvedFile.replace("require(`prismarine-chunk/src/pc/common/BitArray${noSpan ? 'NoSpan' : ''}`)", "noSpan ? require(`prismarine-chunk/src/pc/common/BitArray`) : require(`prismarine-chunk/src/pc/common/BitArrayNoSpan`)"),
-          resolveDir,
-          loader: 'js',
-        }
-      })
-    }
-  },
-  {
     name: 'react-displayname',
     setup (build) {
       build.onLoad({
@@ -323,20 +341,7 @@ const plugins = [
       })
     }
   },
-  polyfillNode({
-    polyfills: {
-      fs: false,
-      dns: false,
-      crypto: false,
-      events: false,
-      http: false,
-      stream: false,
-      buffer: false,
-      perf_hooks: false,
-      net: false,
-      assert: false,
-    },
-  })
+  ...sharedPlugins
 ]
 
-export { plugins, connectedClients as clients }
+export { plugins, connectedClients as clients, sharedPlugins }

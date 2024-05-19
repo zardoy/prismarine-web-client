@@ -63,7 +63,6 @@ export default ({ indicators, effects }: { indicators: typeof defaultIndicatorsS
   }, [effects])
 
   useEffect(() => {
-    // todo use more precise timer for each effect
     const interval = setInterval(() => {
       for (const [index, effect] of effectsRef.current.entries()) {
         if (effect.time === 0) {
