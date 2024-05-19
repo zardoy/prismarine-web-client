@@ -2,6 +2,8 @@ import { Vec3 } from 'vec3'
 import type { BlockStatesOutput } from '../../prepare/modelsBuilder'
 import { World } from './world'
 import { Block } from 'prismarine-block'
+import legacyJson from 'minecraft-data/minecraft-data/data/pc/common/legacy.json'
+import { versionToNumber } from '../../prepare/utils'
 
 const tints: any = {}
 let blockStates: BlockStatesOutput
@@ -31,6 +33,20 @@ function prepareTints (tints) {
       return target.has(key) ? target.get(key) : defaultValue
     }
   })
+}
+
+function preflatBlockCalculation(block: Block, world: World) {
+  const type = Object.entries(legacyJson.p).find(([name, blocks]) => blocks.includes(block.name))?.[0]
+  if (!type) return
+  switch (type) {
+    case 'directional':
+      const neighbors = [
+        world.getBlock(block.position.offset(0, 0, 1)),
+        world.getBlock(block.position.offset(0, 0, -1)),
+        world.getBlock(block.position.offset(1, 0, 0)),
+        world.getBlock(block.position.offset(-1, 0, 0))
+      ]
+  }
 }
 
 function tintToGl (tint) {
@@ -479,6 +495,12 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         }
         const biome = block.biome.name
         if (block.variant === undefined) {
+          if (world.preflat) {
+            const patchProperties = preflatBlockCalculation(block, world)
+            if (patchProperties) {
+              block._properties = { ...block._properties, ...patchProperties }
+            }
+          }
           block.variant = getModelVariants(block)
         }
 
@@ -602,6 +624,7 @@ function getModelVariants (block: import('prismarine-block').Block) {
   const state = matchedState ?? blockStates.missing_texture
   if (!state) return []
   if (state.variants) {
+    if (versionToNumber(world))
     for (const [properties, variant] of Object.entries(state.variants)) {
       if (!matchProperties(block, properties as any)) continue
       if (variant instanceof Array) return [variant[0]]
