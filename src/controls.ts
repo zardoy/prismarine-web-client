@@ -297,7 +297,7 @@ const customCommandsHandler = (buttonData: { code?: string, button?: string, sta
 
   const codeOrButton = buttonData.code ?? buttonData.button
   const inputType = buttonData.code ? 'keys' : 'gamepad'
-  for (const value of Object.values(contro.userConfig!.custom)) {
+  for (const value of Object.values(contro.userConfig!.custom ?? {})) {
     if (value[inputType]?.includes(codeOrButton!)) {
       customCommandsConfig[(value as CustomCommand).type].handler((value as CustomCommand).inputs)
     }
