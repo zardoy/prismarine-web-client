@@ -40,7 +40,7 @@ export class World {
     this.config.version = version
   }
 
-  getLight (pos: Vec3, isNeighbor = false) {
+  getLight (pos: Vec3, isNeighbor = false, skipMoreChecks = false, curBlockName = '') {
     const { enableLighting, skyLight } = this.config
     if (!enableLighting) return 15
     // const key = `${pos.x},${pos.y},${pos.z}`
@@ -55,8 +55,17 @@ export class World {
       ) + 2
     )
     // lightsCache.set(key, result)
-    if (result === 2 && this.getBlock(pos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
-      result = this.getLight(pos.offset(0, 1, 0))
+    if (result === 2 && [this.getBlock(pos).name, curBlockName].some(x => x.match(/_stairs|slab|glass_pane/)) && !skipMoreChecks) { // todo this is obviously wrong
+      const lights = [
+        this.getLight(pos.offset(0, 1, 0), undefined, true),
+        this.getLight(pos.offset(0, -1, 0), undefined, true),
+        this.getLight(pos.offset(0, 0, 1), undefined, true),
+        this.getLight(pos.offset(0, 0, -1), undefined, true),
+        this.getLight(pos.offset(1, 0, 0), undefined, true),
+        this.getLight(pos.offset(-1, 0, 0), undefined, true)
+      ].filter(x => x !== 2)
+      const min = Math.min(...lights)
+      result = min
     }
     if (isNeighbor && result === 2) result = 15 // TODO
     return result
