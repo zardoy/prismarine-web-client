@@ -4,6 +4,7 @@ import { Block } from "prismarine-block"
 import { Vec3 } from 'vec3'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
 import { defaultMesherConfig } from './shared'
+import legacyJson from '../../../../src/preflatMap.json'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -17,7 +18,7 @@ function isCube (shapes) {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
-export type WorldBlock = Block & {
+export type WorldBlock = Omit<Block, 'position'> & {
   variant?: any
   // todo
   isCube: boolean
@@ -30,10 +31,12 @@ export class World {
   columns = {} as { [key: string]: import('prismarine-chunk/types/index').PCChunk }
   blockCache = {}
   biomeCache: { [id: number]: mcData.Biome }
+  preflat: boolean
 
   constructor(version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
+    this.preflat = !mcData(version).supportFeature('blockStateId')
     this.config.version = version
   }
 
@@ -91,6 +94,8 @@ export class World {
   }
 
   getBlock (pos: Vec3): WorldBlock | null {
+    // for easier testing
+    if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
 
     const column = this.columns[key]
@@ -111,6 +116,23 @@ export class World {
           throw new Error('position is not reliable, use pos parameter instead of block.position')
         }
       })
+      if (this.preflat) {
+        const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || legacyJson.blocks[b.type + ':' + '0']
+        b.name = namePropsStr.split('[')[0]
+        const propsStr = namePropsStr.split('[')?.[1]?.split(']');
+        if (propsStr) {
+          const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
+            let [key, val] = x.split('=') as any
+            if (!isNaN(val)) val = parseInt(val)
+            return [key, val]
+          }))
+          //@ts-ignore
+          b._properties = newProperties
+        } else {
+          //@ts-ignore
+          b._properties = {}
+        }
+      }
     }
 
     const block = this.blockCache[stateId]

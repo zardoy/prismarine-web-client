@@ -7,6 +7,7 @@ import EventEmitter from 'events'
 import { WorldRendererThree } from './worldrendererThree'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
+import { versionToNumber } from '../prepare/utils'
 
 export class Viewer {
   scene: THREE.Scene
@@ -76,7 +77,8 @@ export class Viewer {
   }
 
   setVersion (userVersion: string) {
-    const texturesVersion = getVersion(userVersion)
+    let texturesVersion = getVersion(userVersion)
+    if (versionToNumber(userVersion) < versionToNumber('1.13')) texturesVersion = '1.13.2' // we normalize to post-flatenning in mesher
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
     this.world.setVersion(userVersion, texturesVersion)
     this.entities.clear()
