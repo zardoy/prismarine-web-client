@@ -33,7 +33,6 @@ export const saveServer = async (autoSave = true) => {
 export const disconnect = async () => {
   if (localServer) {
     await saveServer()
-    //@ts-expect-error todo expose!
     void localServer.quit() // todo investigate we should await
   }
   window.history.replaceState({}, '', `${window.location.pathname}`) // remove qs
