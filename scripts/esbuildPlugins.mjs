@@ -7,8 +7,9 @@ import { filesize } from 'filesize'
 import MCProtocol from 'minecraft-protocol'
 import MCData from 'minecraft-data'
 import { throttle } from 'lodash-es'
+import { fileURLToPath } from 'url'
 
-const __dirname = dirname(new URL(import.meta.url).pathname)
+const __dirname = dirname(fileURLToPath(new URL(import.meta.url)))
 const { supportedVersions } = MCProtocol
 
 const prod = process.argv.includes('--prod')
