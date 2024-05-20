@@ -55,7 +55,7 @@ export class World {
       ) + 2
     )
     // lightsCache.set(key, result)
-    if (result === 2 && [this.getBlock(pos).name, curBlockName].some(x => x.match(/_stairs|slab|glass_pane/)) && !skipMoreChecks) { // todo this is obviously wrong
+    if (result === 2 && [this.getBlock(pos)?.name ?? '', curBlockName].some(x => x.match(/_stairs|slab|glass_pane/)) && !skipMoreChecks) { // todo this is obviously wrong
       const lights = [
         this.getLight(pos.offset(0, 1, 0), undefined, true),
         this.getLight(pos.offset(0, -1, 0), undefined, true),
