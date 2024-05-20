@@ -1,7 +1,9 @@
 import { Vec3 } from 'vec3'
 import type { BlockStatesOutput } from '../../prepare/modelsBuilder'
 import { World } from './world'
-import { Block } from 'prismarine-block'
+import { WorldBlock as Block } from './world'
+import legacyJson from '../../../../src/preflatMap.json'
+import { versionToNumber } from '../../prepare/utils'
 
 const tints: any = {}
 let blockStates: BlockStatesOutput
@@ -31,6 +33,53 @@ function prepareTints (tints) {
       return target.has(key) ? target.get(key) : defaultValue
     }
   })
+}
+
+const calculatedBlocksEntries = Object.entries(legacyJson.clientCalculatedBlocks);
+export function preflatBlockCalculation (block: Block, world: World, position: Vec3) {
+  const type = calculatedBlocksEntries.find(([name, blocks]) => blocks.includes(block.name))?.[0]
+  if (!type) return
+  switch (type) {
+    case 'directional': {
+      const isSolidConnection = !block.name.includes('redstone') && !block.name.includes('tripwire')
+      const neighbors = [
+        world.getBlock(position.offset(0, 0, 1)),
+        world.getBlock(position.offset(0, 0, -1)),
+        world.getBlock(position.offset(1, 0, 0)),
+        world.getBlock(position.offset(-1, 0, 0))
+      ]
+      // set needed props to true: east:'false',north:'false',south:'false',west:'false'
+      const props = {}
+      for (const [i, neighbor] of neighbors.entries()) {
+        const isConnectedToSolid = isSolidConnection ? (neighbor && !neighbor.transparent) : false
+        if (isConnectedToSolid || neighbor?.name === block.name) {
+          props[['south', 'north', 'east', 'west'][i]] = 'true'
+        }
+      }
+      return props
+    }
+    // case 'gate_in_wall': {}
+    case 'block_snowy': {
+      const aboveIsSnow = world.getBlock(position.offset(0, 1, 0))?.name === 'snow'
+      return {
+        snowy: `${aboveIsSnow}`
+      }
+    }
+    case 'door': {
+      // upper half matches lower in
+      const half = block.getProperties().half
+      if (half === 'upper') {
+        // copy other properties
+        const lower = world.getBlock(position.offset(0, -1, 0))
+        if (lower?.name === block.name) {
+          return {
+            ...lower.getProperties(),
+            half: 'upper'
+          }
+        }
+      }
+    }
+  }
 }
 
 function tintToGl (tint) {
@@ -349,7 +398,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
 
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
-    const baseLight = world.getLight(neighborPos) / 15
+    const baseLight = world.getLight(neighborPos, undefined, undefined, block.name) / 15
     for (const pos of corners) {
       let vertex = [
         (pos[0] ? maxx : minx),
@@ -462,7 +511,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
-        if (block.name.includes('_sign')) {
+        if (block.name.includes('_sign') || block.name === 'sign') {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
           const facingRotationMap = {
@@ -478,7 +527,24 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           }
         }
         const biome = block.biome.name
-        if (block.variant === undefined) {
+
+        let preflatRecomputeVariant = !!(block as any)._originalProperties
+        if (world.preflat) {
+          const patchProperties = preflatBlockCalculation(block, world, cursor)
+          if (patchProperties) {
+            //@ts-ignore
+            block._originalProperties ??= block._properties
+            //@ts-ignore
+            block._properties = { ...block._originalProperties, ...patchProperties }
+            preflatRecomputeVariant = true
+          } else {
+            //@ts-ignore
+            block._properties = block._originalProperties ?? block._properties
+            //@ts-ignore
+            block._originalProperties = undefined
+          }
+        }
+        if (block.variant === undefined || preflatRecomputeVariant) {
           block.variant = getModelVariants(block)
         }
 
@@ -592,7 +658,7 @@ function matchProperties (block: Block, /* to match against */properties: Record
   return true
 }
 
-function getModelVariants (block: import('prismarine-block').Block) {
+function getModelVariants (block: Block) {
   // air, cave_air, void_air and so on...
   // full list of invisible & special blocks https://minecraft.wiki/w/Model#Blocks_and_fluids
   if (block.name === '' || block.name === 'air' || block.name.endsWith('_air')) return []
