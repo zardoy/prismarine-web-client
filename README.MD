@@ -34,6 +34,8 @@ Zip files and folders are supported. Just drag and drop them into the browser wi
 In case of opening zip files they are stored in your ram entirely, so there is a ~300mb file limit on IOS.
 Whatever offline mode you used (zip, folder, just single player), you can always export world with the `/export` command typed in the game chat.
 
+![docs-assets/singleplayer-future-city-1-10-2.jpg](./docs-assets/singleplayer-future-city-1-10-2.jpg)
+
 ### Servers
 
 You can play almost on any server, supporting offline connections.
@@ -46,8 +48,9 @@ MS account authentication will be supported soon.
 #### Three.js Renderer
 
 - Uses WebGL2. Chunks are rendered using Geometry Buffers prepared by 4 mesher workers.
-- Supports FXAA
-- Doesn't support culling
+- Entities & text rendering
+- Supports resource packs
+- Doesn't support occlusion culling
 
 <!-- TODO proxy server communication graph -->
 
