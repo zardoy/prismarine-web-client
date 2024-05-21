@@ -1,13 +1,12 @@
 /// <reference types="@webgpu/types" />
 import * as THREE from 'three'
-
-//@ts-ignore
-import VertShader from './_VertexShader.vert'
-//@ts-ignore
-import FragShader from './_FragmentShader.frag'
 import { BlockFaceType, BlockType } from './shared'
 import * as tweenJs from '@tweenjs/tween.js'
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from './cube'
+//@ts-ignore
+import VertShader from './Cube.vert.wgsl'
+//@ts-ignore
+import FragShader from './Cube.frag.wgsl'
 
 let allSides = [] as ([number, number, number, BlockFaceType] | undefined)[]
 let allSidesAdded = 0
@@ -46,214 +45,210 @@ const updateSize = (width, height) => {
 }
 
 
-export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, isPlayground: boolean, FragShaderOverride?) => {
-    // isPlayground = false
-    // blockStates = blockStatesJson
-    const textureBitmap = await createImageBitmap(imageBlob)
-    const textureWidth = textureBitmap.width
-    const textureHeight = textureBitmap.height
+class WebgpuRendererWorker {
+    device: GPUDevice
+    renderPassDescriptor: GPURenderPassDescriptor
+    uniformBindGroup: GPUBindGroup
+    uniformBuffer: GPUBuffer
+    ctx: GPUCanvasContext
+    verticesBuffer: GPUBuffer
+    pipeline: GPURenderPipeline
 
-    const adapter = await navigator.gpu.requestAdapter()
-    const device = await adapter.requestDevice()
+    constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public FragShaderOverride?) {
+        this.init()
+    }
 
-    const ctx = canvas.getContext('webgpu')!
+    async init () {
+        const { canvas, imageBlob, isPlayground, FragShaderOverride } = this
 
-    const presentationFormat = navigator.gpu.getPreferredCanvasFormat()
+        updateSize(canvas.width, canvas.height)
+        // export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, isPlayground: boolean, FragShaderOverride?) => {
+        // isPlayground = false
+        // blockStates = blockStatesJson
+        const textureBitmap = await createImageBitmap(imageBlob)
+        const textureWidth = textureBitmap.width
+        const textureHeight = textureBitmap.height
 
-    ctx.configure({
-        device,
-        format: presentationFormat,
-        alphaMode: 'premultiplied',
-    })
+        const adapter = await navigator.gpu.requestAdapter()
+        this.device = await adapter.requestDevice()
+        const { device } = this
 
-    const verticesBuffer = device.createBuffer({
-        size: cubeVertexArray.byteLength,
-        usage: GPUBufferUsage.VERTEX,
-        mappedAtCreation: true,
-    })
-    new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray)
-    verticesBuffer.unmap()
+        const ctx = this.ctx = canvas.getContext('webgpu')!
 
-    const code = /* wgsl */ `
-    struct Uniforms {
-        modelViewProjectionMatrix : mat4x4f,
-      }
+        const presentationFormat = navigator.gpu.getPreferredCanvasFormat()
 
-      @group(0) @binding(0) var<uniform> uniforms : Uniforms;
-      @group(0) @binding(1) var mySampler: sampler;
-      @group(0) @binding(2) var myTexture: texture_2d<f32>;
-
-      struct VertexOutput {
-        @builtin(position) Position : vec4f,
-        @location(0) fragUV : vec2f,
-      }
-
-      @vertex
-      fn vertex_main(
-        @location(0) position : vec4f,
-        @location(1) uv : vec2f
-      ) -> VertexOutput {
-        return VertexOutput(uniforms.modelViewProjectionMatrix * position, uv);
-      }
-
-      @fragment
-      fn fragment_main(@location(0) fragUV: vec2f) -> @location(0) vec4f {
-        return textureSample(myTexture, mySampler, fragUV);
-      }
-    `
-
-    const trianglePipeline = device.createRenderPipeline({
-        layout: 'auto',
-        vertex: {
-            module: device.createShaderModule({
-                code: VertShader
-            }),
-        },
-        fragment: {
-            module: device.createShaderModule({
-                code: FragShaderOverride || FragShader
-            }),
-            targets: [
-                {
-                    format: presentationFormat,
-                },
-            ],
-        },
-        primitive: {
-            topology: 'triangle-list',
-        },
-    })
-
-    const pipeline = device.createRenderPipeline({
-        layout: 'auto',
-        vertex: {
-            module: device.createShaderModule({
-                code,
-            }),
-            buffers: [
-                {
-                    arrayStride: cubeVertexSize,
-                    attributes: [
-                        {
-                            // position
-                            shaderLocation: 0,
-                            offset: cubePositionOffset,
-                            format: 'float32x4',
-                        },
-                        {
-                            // uv
-                            shaderLocation: 1,
-                            offset: cubeUVOffset,
-                            format: 'float32x2',
-                        },
-                    ],
-                },
-            ],
-        },
-        fragment: {
-            module: device.createShaderModule({
-                code,
-            }),
-            targets: [
-                {
-                    format: presentationFormat,
-                },
-            ],
-        },
-        primitive: {
-            topology: 'triangle-list',
-            cullMode: 'back',
-        },
-        depthStencil: {
-            depthWriteEnabled: true,
-            depthCompare: 'less',
-            format: 'depth24plus',
-        },
-    })
-
-    const depthTexture = device.createTexture({
-        size: [canvas.width, canvas.height],
-        format: 'depth24plus',
-        usage: GPUTextureUsage.RENDER_ATTACHMENT,
-    })
-
-    const uniformBufferSize = 4 * 16 // 4x4 matrix
-    const uniformBuffer = device.createBuffer({
-        size: uniformBufferSize,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    })
-
-    // Fetch the image and upload it into a GPUTexture.
-    let cubeTexture: GPUTexture
-    {
-        cubeTexture = device.createTexture({
-            size: [textureBitmap.width, textureBitmap.height, 1],
-            format: 'rgba8unorm',
-            usage:
-                GPUTextureUsage.TEXTURE_BINDING |
-                GPUTextureUsage.COPY_DST |
-                GPUTextureUsage.RENDER_ATTACHMENT,
+        ctx.configure({
+            device,
+            format: presentationFormat,
+            alphaMode: 'premultiplied',
         })
-        device.queue.copyExternalImageToTexture(
-            { source: textureBitmap },
-            { texture: cubeTexture },
-            [textureBitmap.width, textureBitmap.height]
-        )
-    }
 
-    const sampler = device.createSampler({
-        magFilter: 'linear',
-        minFilter: 'linear',
-    })
+        const verticesBuffer = device.createBuffer({
+            size: cubeVertexArray.byteLength,
+            usage: GPUBufferUsage.VERTEX,
+            mappedAtCreation: true,
+        })
+        this.verticesBuffer = verticesBuffer
+        new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray)
+        verticesBuffer.unmap()
 
-    const uniformBindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-            {
-                binding: 0,
-                resource: {
-                    buffer: uniformBuffer,
+        const vertexCode = VertShader
+
+        const fragmentCode = FragShader
+
+        const pipeline = device.createRenderPipeline({
+            layout: 'auto',
+            vertex: {
+                module: device.createShaderModule({
+                    code: vertexCode,
+                }),
+                buffers: [
+                    {
+                        arrayStride: cubeVertexSize,
+                        attributes: [
+                            {
+                                // position
+                                shaderLocation: 0,
+                                offset: cubePositionOffset,
+                                format: 'float32x4',
+                            },
+                            {
+                                // uv
+                                shaderLocation: 1,
+                                offset: cubeUVOffset,
+                                format: 'float32x2',
+                            },
+                        ],
+                    },
+                ],
+            },
+            fragment: {
+                module: device.createShaderModule({
+                    code: fragmentCode,
+                }),
+                targets: [
+                    {
+                        format: presentationFormat,
+                        blend: {
+                            color: {
+                                srcFactor: 'src-alpha',
+                                dstFactor: 'one-minus-src-alpha',
+                                operation: 'add',
+                            },
+                            alpha: {
+                                srcFactor: 'src-alpha',
+                                dstFactor: 'one-minus-src-alpha',
+                                operation: 'add',
+                            }
+                        },
+                    },
+                ],
+            },
+            primitive: {
+                topology: 'triangle-list',
+                //cullMode: 'back',
+
+            },
+            depthStencil: {
+                depthWriteEnabled: true,
+                depthCompare: 'less',
+                format: 'depth24plus',
+            },
+
+        })
+        this.pipeline = pipeline
+
+        const depthTexture = device.createTexture({
+            size: [canvas.width, canvas.height],
+            format: 'depth24plus',
+            usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        })
+
+        const uniformBufferSize = 4 * 16 // 4x4 matrix
+        this.uniformBuffer = device.createBuffer({
+            size: uniformBufferSize,
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        })
+
+        // Fetch the image and upload it into a GPUTexture.
+        let cubeTexture: GPUTexture
+        {
+            cubeTexture = device.createTexture({
+                size: [textureBitmap.width, textureBitmap.height, 1],
+                format: 'rgba8unorm',
+                usage:
+                    GPUTextureUsage.TEXTURE_BINDING |
+                    GPUTextureUsage.COPY_DST |
+                    GPUTextureUsage.RENDER_ATTACHMENT,
+            })
+            device.queue.copyExternalImageToTexture(
+                { source: textureBitmap },
+                { texture: cubeTexture },
+                [textureBitmap.width, textureBitmap.height]
+            )
+        }
+
+        const sampler = device.createSampler({
+            magFilter: 'linear',
+            minFilter: 'linear',
+        })
+
+        this.uniformBindGroup = device.createBindGroup({
+            layout: pipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: this.uniformBuffer,
+                    },
                 },
-            },
-            {
-                binding: 1,
-                resource: sampler,
-            },
-            {
-                binding: 2,
-                resource: cubeTexture.createView(),
-            },
-        ],
-    })
+                {
+                    binding: 1,
+                    resource: sampler,
+                },
+                {
+                    binding: 2,
+                    resource: cubeTexture.createView(),
+                },
+            ],
+        })
 
-    const renderPassDescriptor: GPURenderPassDescriptor = {
-        colorAttachments: [
-            {
-                view: undefined, // Assigned later
+        this.renderPassDescriptor = {
+            colorAttachments: [
+                {
+                    view: undefined, // Assigned later
 
-                clearValue: [0.5, 0.5, 0.5, 1.0],
-                loadOp: 'clear',
-                storeOp: 'store',
+                    clearValue: [0.5, 0.5, 0.5, 1.0],
+                    loadOp: 'clear',
+                    storeOp: 'store',
+                },
+            ],
+            depthStencilAttachment: {
+                view: depthTexture.createView(),
+
+                depthClearValue: 1.0,
+                depthLoadOp: 'clear',
+                depthStoreOp: 'store',
             },
-        ],
-        depthStencilAttachment: {
-            view: depthTexture.createView(),
+        }
 
-            depthClearValue: 1.0,
-            depthLoadOp: 'clear',
-            depthStoreOp: 'store',
-        },
+        this.loop()
+
+        return canvas
     }
 
-    const loop = () => {
+    loop () {
+        const { device, uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
+
         const now = Date.now()
         tweenJs.update()
 
         const modelViewProjectionMat4 = new THREE.Matrix4()
+        camera.updateMatrix()
         const projectionMatrix = camera.projectionMatrix
         modelViewProjectionMat4.multiplyMatrices(projectionMatrix, camera.matrix.invert())
         const modelViewProjection = new Float32Array(modelViewProjectionMat4.elements)
-        globalThis.modelViewProjection = modelViewProjection
+        // globalThis.modelViewProjection = modelViewProjection
         device.queue.writeBuffer(
             uniformBuffer,
             0,
@@ -275,72 +270,15 @@ export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: Im
         device.queue.submit([commandEncoder.finish()])
         renderedFrames++
         if (rendering) {
-            requestAnimationFrame(loop)
+            requestAnimationFrame(() => this.loop())
         }
     }
-
-    const triangleLoop = () => {
-        const commandEncoder = device.createCommandEncoder()
-        const textureView = ctx.getCurrentTexture().createView()
-
-        const renderPassDescriptor: GPURenderPassDescriptor = {
-            colorAttachments: [
-                {
-                    view: textureView,
-                    clearValue: [0, 0, 0, 1],
-                    loadOp: 'clear',
-                    storeOp: 'store',
-                },
-            ],
-        }
-
-        const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
-        passEncoder.setPipeline(trianglePipeline)
-        passEncoder.draw(3)
-        passEncoder.end()
-
-        device.queue.submit([commandEncoder.finish()])
-        requestAnimationFrame(triangleLoop)
-    }
-
-    // loop()
-    triangleLoop()
-
-    return canvas
 }
 
 let fullReset
 
-const createProgram = (gl: WebGL2RenderingContext, vertexShader: string, fragmentShader: string) => {
-    const createShader = (gl: WebGL2RenderingContext, type: number, source: string) => {
-        const shaderName = type === gl.VERTEX_SHADER ? 'vertex' : 'fragment'
-        const shader = gl.createShader(type)!
-        gl.shaderSource(shader, source)
-        gl.compileShader(shader)
+let webglRendererWorker: WebgpuRendererWorker | undefined
 
-        const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS)
-        if (!success) {
-            const info = gl.getShaderInfoLog(shader)
-            gl.deleteShader(shader)
-            throw new Error(`Shader ${shaderName} compile error: ` + info)
-        }
-        return shader
-    }
-
-
-
-    const program = gl.createProgram()!
-    gl.attachShader(program, createShader(gl, gl.VERTEX_SHADER, vertexShader)!)
-    gl.attachShader(program, createShader(gl, gl.FRAGMENT_SHADER, fragmentShader)!)
-    gl.linkProgram(program)
-    const linkSuccess = gl.getProgramParameter(program, gl.LINK_STATUS)
-    if (!linkSuccess) {
-        const info = gl.getProgramInfoLog(program)
-        gl.deleteProgram(program)
-        throw new Error('Program link error: ' + info)
-    }
-    return program
-}
 
 let started = false
 let newWidth: number | undefined
@@ -349,7 +287,7 @@ let autoTickUpdate = undefined as number | undefined
 onmessage = function (e) {
     if (!started) {
         started = true
-        initWebglRenderer(e.data.canvas, e.data.imageBlob, e.data.isPlayground, e.data.FragShaderOverride)
+        webglRendererWorker = new WebgpuRendererWorker(e.data.canvas, e.data.imageBlob, e.data.isPlayground, e.data.FragShaderOverride)
         return
     }
     if (e.data.type === 'startRender') {
@@ -361,6 +299,7 @@ onmessage = function (e) {
     if (e.data.type === 'resize') {
         newWidth = e.data.newWidth
         newHeight = e.data.newHeight
+        updateSize(newWidth, newHeight)
     }
     if (e.data.type === 'addBlocksSection') {
         const currentLength = allSides.length

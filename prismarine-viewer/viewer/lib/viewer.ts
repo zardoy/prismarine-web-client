@@ -7,7 +7,7 @@ import { Primitives } from './primitives'
 import { getVersion } from './version'
 import EventEmitter from 'events'
 import { EffectComposer, RenderPass, ShaderPass, FXAAShader } from 'three-stdlib'
-import { sendCameraToWorker } from '../../examples/webglRenderer'
+import { sendCameraToWorker } from '../../examples/webgpuRendererMain'
 import { WorldRendererThree } from './worldrendererThree'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 
@@ -31,7 +31,7 @@ export class Viewer {
   fxaaPass: ShaderPass
   renderPass: RenderPass
 
-  constructor (public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
+  constructor(public renderer: THREE.WebGLRenderer, numWorkers?: number, public enableFXAA = false) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace

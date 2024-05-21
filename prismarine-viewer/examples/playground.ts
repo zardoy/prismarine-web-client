@@ -222,6 +222,7 @@ async function main () {
     }
     window.addEventListener('pointermove', mouseMove)
   }
+  viewer.camera.position.set(0, 0, 8)
   simpleControls()
   renderPlayground()
 

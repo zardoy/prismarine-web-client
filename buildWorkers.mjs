@@ -8,7 +8,7 @@ const watch = process.argv.includes('-w')
 const result = await (watch ? context : build)({
     bundle: true,
     platform: 'browser',
-    entryPoints: ['prismarine-viewer/examples/webglRendererWorker.ts'],
+    entryPoints: ['prismarine-viewer/examples/webgpuRendererWorker.ts'],
     outdir: 'prismarine-viewer/public/',
     sourcemap: watch ? 'inline' : 'external',
     minify: !watch,
@@ -33,7 +33,7 @@ const result = await (watch ? context : build)({
     plugins: [
         {
             name: 'writeOutput',
-            setup (build) {
+            setup(build) {
                 build.onEnd(({ outputFiles }) => {
                     for (const file of outputFiles) {
                         for (const dir of ['prismarine-viewer/public', 'dist']) {
@@ -47,7 +47,8 @@ const result = await (watch ? context : build)({
     ],
     loader: {
         '.vert': 'text',
-        '.frag': 'text'
+        '.frag': 'text',
+        '.wgsl': 'text',
     },
     mainFields: [
         'browser', 'module', 'main'
