@@ -49,9 +49,12 @@ class WebgpuRendererWorker {
     device: GPUDevice
     renderPassDescriptor: GPURenderPassDescriptor
     uniformBindGroup: GPUBindGroup
-    uniformBuffer: GPUBuffer
+    UniformBuffer: GPUBuffer
+    ViewUniformBuffer: GPUBuffer
+    ProjectionUniformBuffer: GPUBuffer
     ctx: GPUCanvasContext
     verticesBuffer: GPUBuffer
+    InstancedModelBuffer: GPUBuffer
     pipeline: GPURenderPipeline
 
     constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public FragShaderOverride?) {
@@ -91,9 +94,18 @@ class WebgpuRendererWorker {
         this.verticesBuffer = verticesBuffer
         new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray)
         verticesBuffer.unmap()
+        let ModelMatrix = new THREE.Matrix4()
 
+        const InstancedModelBuffer = device.createBuffer({
+            size: 4 * 4 * 4,
+            usage: GPUBufferUsage.VERTEX,
+            mappedAtCreation: true,
+        })
+        this.InstancedModelBuffer = InstancedModelBuffer
+        new Float32Array(InstancedModelBuffer.getMappedRange()).set(ModelMatrix.elements)
+        InstancedModelBuffer.unmap()
+        //device.StepM
         const vertexCode = VertShader
-
         const fragmentCode = FragShader
 
         const pipeline = device.createRenderPipeline({
@@ -120,6 +132,18 @@ class WebgpuRendererWorker {
                             },
                         ],
                     },
+                    {
+                        arrayStride: 4 * 4 * 4,
+                        attributes: [
+                            {
+                                // ModelMatrix
+                                shaderLocation: 2,
+                                offset: 0,
+                                format: 'float32x4',
+                            }
+                        ],
+                        stepMode: 'instance',
+                    }
                 ],
             },
             fragment: {
@@ -164,8 +188,8 @@ class WebgpuRendererWorker {
             usage: GPUTextureUsage.RENDER_ATTACHMENT,
         })
 
-        const uniformBufferSize = 4 * 16 // 4x4 matrix
-        this.uniformBuffer = device.createBuffer({
+        const uniformBufferSize = 4 * (4 * 4) // 4x4 matrix
+        this.UniformBuffer = device.createBuffer({
             size: uniformBufferSize,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         })
@@ -189,8 +213,8 @@ class WebgpuRendererWorker {
         }
 
         const sampler = device.createSampler({
-            magFilter: 'linear',
-            minFilter: 'linear',
+            magFilter: 'nearest',
+            minFilter: 'nearest',
         })
 
         this.uniformBindGroup = device.createBindGroup({
@@ -199,7 +223,7 @@ class WebgpuRendererWorker {
                 {
                     binding: 0,
                     resource: {
-                        buffer: this.uniformBuffer,
+                        buffer: this.UniformBuffer,
                     },
                 },
                 {
@@ -217,7 +241,6 @@ class WebgpuRendererWorker {
             colorAttachments: [
                 {
                     view: undefined, // Assigned later
-
                     clearValue: [0.5, 0.5, 0.5, 1.0],
                     loadOp: 'clear',
                     storeOp: 'store',
@@ -237,8 +260,16 @@ class WebgpuRendererWorker {
         return canvas
     }
 
+
+    lastCall = performance.now()
+    logged = false
     loop () {
-        const { device, uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
+        if (!rendering) {
+            requestAnimationFrame(() => this.loop())
+            return
+        }
+
+        const { device, UniformBuffer: uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
 
         const now = Date.now()
         tweenJs.update()
@@ -262,15 +293,21 @@ class WebgpuRendererWorker {
 
         const commandEncoder = device.createCommandEncoder()
         const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
+
         passEncoder.setPipeline(pipeline)
         passEncoder.setBindGroup(0, uniformBindGroup)
         passEncoder.setVertexBuffer(0, verticesBuffer)
-        passEncoder.draw(cubeVertexCount)
+        passEncoder.setVertexBuffer(1, this.InstancedModelBuffer)
+        passEncoder.draw(cubeVertexCount, 1)
+
         passEncoder.end()
         device.queue.submit([commandEncoder.finish()])
+
         renderedFrames++
         if (rendering) {
-            requestAnimationFrame(() => this.loop())
+            // this.loop()
+            setTimeout(() => this.loop())
+            // requestAnimationFrame(() => this.loop())
         }
     }
 }
@@ -299,6 +336,7 @@ onmessage = function (e) {
     if (e.data.type === 'resize') {
         newWidth = e.data.newWidth
         newHeight = e.data.newHeight
+
         updateSize(newWidth, newHeight)
     }
     if (e.data.type === 'addBlocksSection') {

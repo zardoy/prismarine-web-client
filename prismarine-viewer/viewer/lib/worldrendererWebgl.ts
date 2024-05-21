@@ -1,6 +1,6 @@
 import { Vec3 } from 'vec3'
 import { updateStatText } from '../../examples/newStats'
-import { addBlocksSection, removeBlocksSection, sendWorkerMessage } from '../../examples/webglRenderer'
+import { addBlocksSection, removeBlocksSection, sendWorkerMessage } from '../../examples/webgpuRendererMain'
 import type { WebglData } from '../prepare/webglData'
 import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
@@ -16,7 +16,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
     super(numWorkers)
 
     this.renderUpdateEmitter.on('update', () => {
-      const loadedChunks = Object.keys(this.finishedChunks).length;
+      const loadedChunks = Object.keys(this.finishedChunks).length
       updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance})`)
     })
   }

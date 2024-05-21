@@ -128,7 +128,7 @@ export const initWebgpuRenderer = async (version: string, postRender = () => { }
             sendWorkerMessage({
                 type: 'resize',
                 newWidth: window.innerWidth * window.devicePixelRatio,
-                height: window.innerHeight * window.devicePixelRatio
+                newHeight: window.innerHeight * window.devicePixelRatio
             })
         }
         postRender()
