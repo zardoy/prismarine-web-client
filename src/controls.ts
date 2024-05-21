@@ -45,6 +45,7 @@ export const contro = new ControMax({
       interactPlace: [null, 'Left Trigger'],
       chat: [['KeyT', 'Enter']],
       command: ['Slash'],
+      swapHands: ['KeyF'],
       selectItem: ['KeyH'] // default will be removed
     },
     ui: {
@@ -337,6 +338,14 @@ contro.on('trigger', ({ command }) => {
       case 'general.toggleSneakOrDown':
       case 'general.sprint':
       case 'general.attackDestroy':
+      case 'general.swapHands': {
+        bot._client.write('entity_action', {
+          entityId: bot.entity.id,
+          actionId: 6,
+          jumpBoost: 0
+        })
+        break
+      }
       case 'general.interactPlace':
         // handled in onTriggerOrReleased
         break
