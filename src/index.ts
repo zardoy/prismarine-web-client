@@ -96,7 +96,7 @@ import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasCon
 import { possiblyHandleStateVariable } from './googledrive'
 import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy } from './react/NotificationProvider'
-import { initWebglRenderer } from 'prismarine-viewer/examples/webglRenderer'
+import { initWebgpuRenderer } from 'prismarine-viewer/examples/webgpuRendererMain'
 import { addNewStat } from 'prismarine-viewer/examples/newStats'
 // import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 
@@ -388,7 +388,7 @@ async function connect (connectOptions: {
     if (downloadVersion) {
       await downloadMcData(downloadVersion)
     }
-    await initWebglRenderer(downloadVersion, () => {
+    await initWebgpuRenderer(downloadVersion, () => {
       postRenderFrameFn()
       viewer.update()
     })

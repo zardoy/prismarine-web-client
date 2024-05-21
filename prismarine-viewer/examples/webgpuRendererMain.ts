@@ -73,7 +73,7 @@ export const removeBlocksSection = (key) => {
 }
 
 let playground = false
-export const initWebglRenderer = async (version: string, postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
+export const initWebgpuRenderer = async (version: string, postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
     playground = actuallyPlayground
     await new Promise(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
@@ -93,7 +93,7 @@ export const initWebglRenderer = async (version: string, postRender = () => { },
     const offscreen = canvas.transferControlToOffscreen()
 
     // replacable by initWebglRenderer
-    worker = new Worker('./webglRendererWorker.js')
+    worker = new Worker('./webgpuRendererWorker.js')
     addFpsCounters()
     sendWorkerMessage({
         canvas: offscreen,
@@ -159,7 +159,7 @@ globalThis.exportFixture = () => {
     worker.postMessage({ type: 'exportData' })
     const controller = new AbortController()
     worker.addEventListener('message', async (e) => {
-        const receivedData = e.data.data;
+        const receivedData = e.data.data
         console.log('received fixture')
         // await new Promise(resolve => {
         //     setTimeout(resolve, 0)
@@ -194,7 +194,7 @@ const addFpsCounters = () => {
     worker.addEventListener('message', (e) => {
         if (e.data.type === 'fps') {
             updateText(`FPS: ${e.data.fps}`)
-            if (prevTimeout) clearTimeout(prevTimeout);
+            if (prevTimeout) clearTimeout(prevTimeout)
             prevTimeout = setTimeout(() => {
                 updateText('<hanging>')
             }, 1002)

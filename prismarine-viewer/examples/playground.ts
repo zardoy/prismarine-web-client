@@ -14,12 +14,12 @@ import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
 // import * as Mathgl from 'math.gl'
 import { findTextureInBlockStates } from '../../src/playerWindows'
-import { initWebglRenderer, loadFixtureSides, setAnimationTick } from './webglRenderer'
+import { initWebgpuRenderer, loadFixtureSides, setAnimationTick } from './webgpuRendererMain'
 import { renderToDom } from '@zardoy/react-util'
 
 globalThis.THREE = THREE
 //@ts-ignore
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { renderPlayground } from './TouchControls2'
 import { WorldRendererWebgl } from '../viewer/lib/worldrendererWebgl'
 import { TextureAnimation } from './TextureAnimation'
@@ -137,6 +137,7 @@ async function main () {
   // chunk1.setBlockStateId(targetPos.offset(0, 1, 0), 1)
   // chunk1.setBlockStateId(targetPos.offset(1, 1, 0), 1)
   // chunk1.setBlockStateId(targetPos.offset(-1, 1, 0), 1)
+  //@ts-ignore
   const world = new World((chunkX, chunkZ) => {
     // if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
@@ -157,14 +158,14 @@ async function main () {
   viewer.setVersion(version)
   globalThis.viewer = viewer
 
-  await initWebglRenderer(version, () => { }, !enableControls && !fixture, true)
+  await initWebgpuRenderer(version, () => { }, !enableControls && !fixture, true)
   const simpleControls = () => {
     let pressedKeys = new Set()
     const loop = () => {
       // Create a vector that points in the direction the camera is looking
-      let direction = new THREE.Vector3(0, 0, 0);
+      let direction = new THREE.Vector3(0, 0, 0)
       if (pressedKeys.has('KeyW')) {
-        direction.z = -0.5;
+        direction.z = -0.5
       }
       if (pressedKeys.has('KeyS')) {
         direction.z += 0.5
@@ -183,10 +184,10 @@ async function main () {
       if (pressedKeys.has('Space')) {
         viewer.camera.position.y += 0.5
       }
-      direction.applyQuaternion(viewer.camera.quaternion);
-      direction.y = 0;
+      direction.applyQuaternion(viewer.camera.quaternion)
+      direction.y = 0
       // Add the vector to the camera's position to move the camera
-      viewer.camera.position.add(direction);
+      viewer.camera.position.add(direction)
     }
     setInterval(loop, 1000 / 30)
     const keys = (e) => {
@@ -244,7 +245,7 @@ async function main () {
     viewer.camera.position.set(pos[0], pos[1], pos[2])
   }
 
-  if (!enableControls) return
+  return
 
   // Create viewer
 
