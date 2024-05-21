@@ -188,6 +188,8 @@ export class Viewer {
     })
 
     emitter.on('time', (timeOfDay) => {
+      this.world.timeUpdated?.(timeOfDay)
+
       let skyLight = 15
       if (timeOfDay < 0 || timeOfDay > 24000) {
         throw new Error("Invalid time of day. It should be between 0 and 24000.")
