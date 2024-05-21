@@ -55,8 +55,8 @@ export default (
   }
 
   const handleClick: HandleClick = (group, action, index, type) => {
-    //@ts-expect-error
-    setAwaitingInputType(type)
+    (document.activeElement as HTMLElement)?.blur()
+    setAwaitingInputType(type as any)
     updateCurrBind(group, action)
     setButtonNum(prev => index)
   }
@@ -96,16 +96,8 @@ export default (
     updateBindMap()
   }, [userConfig])
 
-  // const updateKeyboardBinding = (e: import('react').KeyboardEvent<HTMLDivElement>) => {
-  //   if (!e.code || e.key === 'Escape' || !awaitingInputType) return
-  //   setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
-  // }
-
-  const updateBinding = (data: any) => {
-    if ((!data.state && awaitingInputType) || !awaitingInputType) {
-      setAwaitingInputType(null)
-      return
-    }
+  const updateBinding = (data) => {
+    if (data.state === true || !awaitingInputType) return
     if ('code' in data) {
       if (data.code === 'Escape' || ['Mouse0', 'Mouse1', 'Mouse2'].includes(data.code)) {
         setAwaitingInputType(null)
@@ -164,10 +156,14 @@ export default (
   }, [])
 
   useEffect(() => {
+    if (!awaitingInputType) return
     contro.on('pressedKeyOrButtonChanged', updateBinding)
+    const preventDefault = (e) => e.preventDefault()
+    document.addEventListener('keydown', preventDefault, { passive: false })
 
     return () => {
       contro.off('pressedKeyOrButtonChanged', updateBinding)
+      document.removeEventListener('keydown', preventDefault)
     }
   }, [groupName, actionName, awaitingInputType])
 
@@ -206,7 +202,7 @@ export default (
             {Object.entries(actions).map(([action, { keys, gamepad }]) => {
               return <div key={`action-container-${action}`} className={styles.actionBinds}>
                 <div className={styles.actionName}>{parseActionName(action)}</div>
-                
+
                 <Button
                   onClick={() => {
                     updateCurrBind(group, action)
@@ -233,7 +229,7 @@ export default (
                     updateCurrBind(group, action)
                     resetBinding(group, action, 'gamepad')
                   }}
-                  style={{ 
+                  style={{
                     opacity: userConfig?.[group]?.[action]?.gamepad?.length ? 1 : 0,
                     width: '0px'
                   }}
@@ -288,10 +284,10 @@ export const ButtonWithMatchesAlert = ({
     } else if (type === 'keys') {
       setButtonSign(keys?.length ? parseBindingName(keys[index]) : '')
     } else {
-      setButtonSign(gamepad?.[0] ? 
-        isPS ? 
-          buttonsMap[gamepad[0]] ?? gamepad[0] 
-          : gamepad[0] 
+      setButtonSign(gamepad?.[0] ?
+        isPS ?
+          buttonsMap[gamepad[0]] ?? gamepad[0]
+          : gamepad[0]
         : '')
     }
   }, [userConfig, isPS])
@@ -343,11 +339,13 @@ export const AwaitingInputOverlay = ({ isGamepad }) => {
     flexDirection: 'column',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     color: 'white',
-    fontSize: 24,
-    zIndex: 10
+    fontSize: 20,
+    zIndex: 10,
+    textAlign: 'center',
   }}
+  onContextMenu={e => e.preventDefault()}
   >
-    <div >
+    <div>
       {isGamepad ? 'Press the button on the gamepad ' : 'Press the key, side mouse button '}
       or ESC to cancel.
     </div>

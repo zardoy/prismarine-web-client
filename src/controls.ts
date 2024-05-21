@@ -87,9 +87,13 @@ export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['comma
 
 // updateCustomBinds()
 
-export const setDoPreventDefault = (state: boolean) => {
-  controlOptions.preventDefault = state
+const updateDoPreventDefault = () => {
+  controlOptions.preventDefault = miscUiState.gameLoaded && !activeModalStack.length
 }
+
+subscribe(miscUiState, updateDoPreventDefault)
+subscribe(activeModalStack, updateDoPreventDefault)
+updateDoPreventDefault()
 
 const setSprinting = (state: boolean) => {
   bot.setControlState('sprint', state)
