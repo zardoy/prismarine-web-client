@@ -46,7 +46,6 @@ export default (
   const [awaitingInputType, setAwaitingInputType] = useState(null as null | 'keyboard' | 'gamepad')
   const [groupName, setGroupName] = useState('')
   const [actionName, setActionName] = useState('')
-  const modifier = useRef<ModifierOnlyKeys | null>(null)
   const [buttonNum, setButtonNum] = useState(0)
   const { updateBinds } = useContext(BindingActionsContext)
   const [customCommands, setCustomCommands] = useState<CustomCommandsMap>(userConfig.custom as CustomCommandsMap ?? {})
@@ -97,11 +96,6 @@ export default (
 
     updateBindMap()
   }, [userConfig])
-
-  // const updateKeyboardBinding = (e: import('react').KeyboardEvent<HTMLDivElement>) => {
-  //   if (!e.code || e.key === 'Escape' || !awaitingInputType) return
-  //   setBinding({ code: e.code, state: true }, groupName, actionName, buttonNum)
-  // }
 
   const updateBinding = (data: any) => {
     if ((!data.state && awaitingInputType) || !awaitingInputType) {
