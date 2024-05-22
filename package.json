@@ -160,7 +160,8 @@
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
       "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol",
       "react": "^18.2.0",
-      "prismarine-chunk": "github:zardoy/prismarine-chunk"
+      "prismarine-chunk": "github:zardoy/prismarine-chunk",
+      "contro-max": "file:../contro-max"
     },
     "updateConfig": {
       "ignoreDependencies": []

@@ -22,9 +22,9 @@ export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig (config) { },
+    setUserConfig(config) { },
     handleClick: (() => { }) as HandleClick,
-    parseBindingName (binding) { return '' as string },
+    parseBindingName(binding) { return '' as string },
     bindsMap: { keyboard: {} as any, gamepad: {} as any }
   }
 )
@@ -106,6 +106,7 @@ export default (
       setAwaitingInputType(null)
       return
     }
+
     if ('code' in data) {
       if (data.code === 'Escape' || ['Mouse0', 'Mouse1', 'Mouse2'].includes(data.code)) {
         setAwaitingInputType(null)
@@ -118,8 +119,6 @@ export default (
       void Promise.resolve().then(() => { contro.enabled = true })
       setBinding(data, groupName, actionName, buttonNum)
     }
-
-    setAwaitingInputType(null)
   }
 
   const updateBindMap = () => {
@@ -206,7 +205,7 @@ export default (
             {Object.entries(actions).map(([action, { keys, gamepad }]) => {
               return <div key={`action-container-${action}`} className={styles.actionBinds}>
                 <div className={styles.actionName}>{parseActionName(action)}</div>
-                
+
                 <Button
                   onClick={() => {
                     updateCurrBind(group, action)
@@ -233,7 +232,7 @@ export default (
                     updateCurrBind(group, action)
                     resetBinding(group, action, 'gamepad')
                   }}
-                  style={{ 
+                  style={{
                     opacity: userConfig?.[group]?.[action]?.gamepad?.length ? 1 : 0,
                     width: '0px'
                   }}
@@ -288,10 +287,10 @@ export const ButtonWithMatchesAlert = ({
     } else if (type === 'keys') {
       setButtonSign(keys?.length ? parseBindingName(keys[index]) : '')
     } else {
-      setButtonSign(gamepad?.[0] ? 
-        isPS ? 
-          buttonsMap[gamepad[0]] ?? gamepad[0] 
-          : gamepad[0] 
+      setButtonSign(gamepad?.[0] ?
+        isPS ?
+          buttonsMap[gamepad[0]] ?? gamepad[0]
+          : gamepad[0]
         : '')
     }
   }, [userConfig, isPS])
@@ -315,21 +314,21 @@ export const ButtonWithMatchesAlert = ({
             && prop.action === action
         )
     ) ? (
-        <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
-          <PixelartIcon
-            iconName={'alert'}
-            width={5}
-            styles={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: '2px'
-            }} />
-          <div>
-            This bind is already in use. <span></span>
-          </div>
+      <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
+        <PixelartIcon
+          iconName={'alert'}
+          width={5}
+          styles={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginRight: '2px'
+          }} />
+        <div>
+          This bind is already in use. <span></span>
         </div>
-      ) : null}
+      </div>
+    ) : null}
   </div>
 }
 

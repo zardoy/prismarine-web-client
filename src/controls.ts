@@ -291,7 +291,7 @@ function cycleHotbarSlot (dir: 1 | -1) {
   bot.setQuickBarSlot(newHotbarSlot)
 }
 
-// custom commands hamdler
+// custom commands handler
 const customCommandsHandler = (buttonData: { code?: string, button?: string, state: boolean }) => {
   if (!buttonData.state || !isGameActive(true)) return
 
