@@ -44,6 +44,16 @@ export const guiOptionsScheme: {
       },
     },
     {
+      backgroundRendering: {
+        text: 'Background FPS limit',
+        values: [
+          ['full', 'NO'],
+          ['5fps', '5 FPS'],
+          ['20fps', '20 FPS'],
+        ],
+      },
+    },
+    {
       custom () {
         return <Category>Experimental</Category>
       },

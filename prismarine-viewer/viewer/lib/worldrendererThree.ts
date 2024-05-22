@@ -15,6 +15,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     sectionObjects: Record<string, THREE.Object3D> = {}
     chunkTextures = new Map<string, { [pos: string]: THREE.Texture }>()
     signsCache = new Map<string, any>()
+    starField: StarField
 
     get tilesRendered () {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -22,6 +23,18 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
         super(config)
+        this.starField = new StarField(scene)
+    }
+
+    timeUpdated (newTime: number): void {
+        const nightTime = 13_500
+        const morningStart = 23_000
+        const displayStars = newTime > nightTime && newTime < morningStart
+        if (displayStars && !this.starField.points) {
+            this.starField.addToScene()
+        } else if (!displayStars && this.starField.points) {
+            this.starField.remove()
+        }
     }
 
     /**
@@ -259,5 +272,103 @@ export class WorldRendererThree extends WorldRendererCommon {
     setSectionDirty (pos, value = true) {
         this.cleanChunkTextures(pos.x, pos.z) // todo don't do this!
         super.setSectionDirty(pos, value)
+    }
+}
+
+class StarField {
+    points?: THREE.Points
+
+    constructor(private scene: THREE.Scene) {
+    }
+
+    addToScene () {
+        const radius = 80
+        const depth = 50
+        const count = 7000
+        const factor = 7
+        const saturation = 10
+        const speed = 0.2
+
+        const geometry = new THREE.BufferGeometry()
+
+        const genStar = r => new THREE.Vector3().setFromSpherical(new THREE.Spherical(r, Math.acos(1 - Math.random() * 2), Math.random() * 2 * Math.PI))
+
+        const positions = [] as number[]
+        const colors = [] as number[]
+        const sizes = Array.from({ length: count }, () => (0.5 + 0.5 * Math.random()) * factor)
+        const color = new THREE.Color()
+        let r = radius + depth
+        const increment = depth / count
+        for (let i = 0; i < count; i++) {
+            r -= increment * Math.random()
+            positions.push(...genStar(r).toArray())
+            color.setHSL(i / count, saturation, 0.9)
+            colors.push(color.r, color.g, color.b)
+        }
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
+
+        // Create a material
+        const material = new StarfieldMaterial()
+        material.blending = THREE.AdditiveBlending
+        material.depthTest = false
+        material.transparent = true
+        // material.unifo
+
+        // Create points and add them to the scene
+        this.points = new THREE.Points(geometry, material)
+        this.scene.add(this.points)
+
+        const clock = new THREE.Clock();
+        this.points.onBeforeRender = (renderer, scene, camera) => {
+            this.points!.position.copy(camera.position)
+            material.uniforms.time.value = clock.getElapsedTime() * speed
+        }
+    }
+
+    remove () {
+        if (this.points) {
+            this.points.geometry.dispose();
+            (this.points.material as THREE.Material).dispose();
+
+            this.points = undefined;
+        }
+    }
+}
+
+const version = parseInt(THREE.REVISION.replace(/\D+/g, ''))
+class StarfieldMaterial extends THREE.ShaderMaterial {
+    constructor() {
+        super({
+            uniforms: { time: { value: 0.0 }, fade: { value: 1.0 } },
+            vertexShader: /* glsl */ `
+                uniform float time;
+                attribute float size;
+                varying vec3 vColor;
+                attribute vec3 color;
+                void main() {
+                vColor = color;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 0.5);
+                gl_PointSize = size * (30.0 / -mvPosition.z) * (3.0 + sin(time + 100.0));
+                gl_Position = projectionMatrix * mvPosition;
+            }`,
+            fragmentShader: /* glsl */ `
+                uniform sampler2D pointTexture;
+                uniform float fade;
+                varying vec3 vColor;
+                void main() {
+                float opacity = 1.0;
+                if (fade == 1.0) {
+                    float d = distance(gl_PointCoord, vec2(0.5, 0.5));
+                    opacity = 1.0 / (1.0 + exp(16.0 * (d - 0.25)));
+                }
+                gl_FragColor = vec4(vColor, opacity);
+
+                #include <tonemapping_fragment>
+                #include <${version >= 154 ? 'colorspace_fragment' : 'encodings_fragment'}>
+            }`,
+        })
     }
 }

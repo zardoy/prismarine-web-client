@@ -23,9 +23,9 @@ export const Context = createContext(
   {
     isPS: false as boolean | undefined,
     userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig(config) { },
+    setUserConfig (config) { },
     handleClick: (() => { }) as HandleClick,
-    parseBindingName(binding) { return '' as string },
+    parseBindingName (binding) { return '' as string },
     bindsMap: { keyboard: {} as any, gamepad: {} as any }
   }
 )
@@ -56,8 +56,8 @@ export default (
   }
 
   const handleClick: HandleClick = (group, action, index, type) => {
-    //@ts-expect-error
-    setAwaitingInputType(type)
+    (document.activeElement as HTMLElement)?.blur()
+    setAwaitingInputType(type as any)
     updateCurrBind(group, action)
     setButtonNum(prev => index)
   }
@@ -170,10 +170,14 @@ export default (
   }, [])
 
   useEffect(() => {
+    if (!awaitingInputType) return
     contro.on('pressedKeyOrButtonChanged', updateBinding)
+    const preventDefault = (e) => e.preventDefault()
+    document.addEventListener('keydown', preventDefault, { passive: false })
 
     return () => {
       contro.off('pressedKeyOrButtonChanged', updateBinding)
+      document.removeEventListener('keydown', preventDefault)
     }
   }, [groupName, actionName, awaitingInputType])
 
@@ -321,21 +325,21 @@ export const ButtonWithMatchesAlert = ({
             && prop.action === action
         )
     ) ? (
-      <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
-        <PixelartIcon
-          iconName={'alert'}
-          width={5}
-          styles={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginRight: '2px'
-          }} />
-        <div>
-          This bind is already in use. <span></span>
+        <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
+          <PixelartIcon
+            iconName={'alert'}
+            width={5}
+            styles={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: '2px'
+            }} />
+          <div>
+            This bind is already in use. <span></span>
+          </div>
         </div>
-      </div>
-    ) : null}
+      ) : null}
   </div>
 }
 
@@ -349,11 +353,13 @@ export const AwaitingInputOverlay = ({ isGamepad }) => {
     flexDirection: 'column',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     color: 'white',
-    fontSize: 24,
-    zIndex: 10
+    fontSize: 20,
+    zIndex: 10,
+    textAlign: 'center',
   }}
+  onContextMenu={e => e.preventDefault()}
   >
-    <div >
+    <div>
       {isGamepad ? 'Press the button on the gamepad ' : 'Press the key, side mouse button '}
       or ESC to cancel.
     </div>

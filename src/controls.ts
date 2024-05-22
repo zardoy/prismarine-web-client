@@ -39,12 +39,13 @@ export const contro = new ControMax({
       sneak: ['ShiftLeft'],
       toggleSneakOrDown: [null, 'Right Stick'],
       sprint: ['ControlLeft', 'Left Stick'],
-      nextHotbarSlot: [null, 'Left Bumper'],
-      prevHotbarSlot: [null, 'Right Bumper'],
+      nextHotbarSlot: [null, 'Right Bumper'],
+      prevHotbarSlot: [null, 'Left Bumper'],
       attackDestroy: [null, 'Right Trigger'],
       interactPlace: [null, 'Left Trigger'],
       chat: [['KeyT', 'Enter']],
       command: ['Slash'],
+      swapHands: ['KeyF'],
       selectItem: ['KeyH'] // default will be removed
     },
     ui: {
@@ -87,9 +88,13 @@ export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['comma
 
 // updateCustomBinds()
 
-export const setDoPreventDefault = (state: boolean) => {
-  controlOptions.preventDefault = state
+const updateDoPreventDefault = () => {
+  controlOptions.preventDefault = miscUiState.gameLoaded && !activeModalStack.length
 }
+
+subscribe(miscUiState, updateDoPreventDefault)
+subscribe(activeModalStack, updateDoPreventDefault)
+updateDoPreventDefault()
 
 const setSprinting = (state: boolean) => {
   bot.setControlState('sprint', state)
@@ -297,7 +302,7 @@ const customCommandsHandler = (buttonData: { code?: string, button?: string, sta
 
   const codeOrButton = buttonData.code ?? buttonData.button
   const inputType = buttonData.code ? 'keys' : 'gamepad'
-  for (const value of Object.values(contro.userConfig!.custom)) {
+  for (const value of Object.values(contro.userConfig!.custom ?? {})) {
     if (value[inputType]?.includes(codeOrButton!)) {
       customCommandsConfig[(value as CustomCommand).type].handler((value as CustomCommand).inputs)
     }
@@ -333,6 +338,14 @@ contro.on('trigger', ({ command }) => {
       case 'general.toggleSneakOrDown':
       case 'general.sprint':
       case 'general.attackDestroy':
+      case 'general.swapHands': {
+        bot._client.write('entity_action', {
+          entityId: bot.entity.id,
+          actionId: 6,
+          jumpBoost: 0
+        })
+        break
+      }
       case 'general.interactPlace':
         // handled in onTriggerOrReleased
         break

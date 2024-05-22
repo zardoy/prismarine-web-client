@@ -53,6 +53,7 @@ self.onmessage = ({ data }) => {
   if (data.config) {
     world ??= new World(data.config.version)
     world.config = {...world.config, ...data.config}
+    globalThis.world = world
   }
 
   if (data.type === 'mesherData') {

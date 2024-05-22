@@ -14,7 +14,7 @@ import destroyStage9 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/de
 
 import { Vec3 } from 'vec3'
 import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
-import { isGameActive } from './globalState'
+import { hideCurrentModal, isGameActive, showModal } from './globalState'
 import { assertDefined } from './utils'
 import { options } from './optionsStorage'
 
@@ -201,7 +201,29 @@ class WorldInteraction {
         'shears', 'carrot_on_a_stick', 'warped_fungus_on_a_stick',
         'spawn_egg', 'trident', 'crossbow', 'elytra', 'shield', 'turtle_helmet',
       ].includes(bot.heldItem.name)
-      if (cursorBlock && !activate) {
+      let stop = false
+      if (!bot.controlState.sneak) {
+        if (cursorBlock?.name === 'bed' || cursorBlock?.name.endsWith('_bed')) {
+          stop = true
+          showModal({ reactType: 'bed' })
+          let cancelSleep = true
+          void bot.sleep(cursorBlock).catch((e) => {
+            if (cancelSleep) {
+              hideCurrentModal()
+            }
+            // if (e.message === 'bot is not sleeping') return
+            bot._client.emit('chat', {
+              message: JSON.stringify({
+                text: e.message,
+              })
+            })
+          })
+          setTimeout(() => {
+            cancelSleep = false
+          })
+        }
+      }
+      if (cursorBlock && !activate && !stop) {
         const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
         //@ts-expect-error
         const delta = cursorBlock.intersect.minus(cursorBlock.position)
@@ -219,7 +241,7 @@ class WorldInteraction {
             bot.lookAt = oldLookAt
           }).catch(console.warn)
         }
-      } else {
+      } else if (!stop) {
         bot.activateItem() // todo offhand
       }
       this.lastBlockPlaced = 0

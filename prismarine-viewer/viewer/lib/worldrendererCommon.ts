@@ -123,6 +123,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   allChunksLoaded?(): void
 
+  timeUpdated?(newTime: number): void
+
   updateViewerPosition (pos: Vec3) {
     this.viewerPosition = pos
     for (const [key, value] of Object.entries(this.loadedChunks)) {

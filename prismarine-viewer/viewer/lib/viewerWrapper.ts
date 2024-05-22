@@ -5,9 +5,10 @@ export class ViewerWrapper {
     previousWindowWidth: number
     previousWindowHeight: number
     globalObject = globalThis as any
-    stopRenderOnBlur = true
+    stopRenderOnBlur = false
     addedToPage = false
     renderInterval = 0
+    renderIntervalUnfocused: number | undefined
     fpsInterval
 
     constructor(public canvas: HTMLCanvasElement, public renderer?: THREE.WebGLRenderer) {
@@ -44,7 +45,7 @@ export class ViewerWrapper {
             this.globalObject.requestAnimationFrame(this.render.bind(this))
         }
         if (typeof window !== 'undefined') {
-            // this.trackWindowFocus()
+            this.trackWindowFocus()
         }
     }
 
@@ -77,11 +78,12 @@ export class ViewerWrapper {
         for (const fn of beforeRenderFrame) fn()
         this.globalObject.requestAnimationFrame(this.render.bind(this))
         if (this.globalObject.stopRender || this.renderer?.xr.isPresenting || (this.stopRenderOnBlur && !this.windowFocused)) return
-        if (this.renderInterval) {
+        const renderInterval = (this.windowFocused ? this.renderInterval : this.renderIntervalUnfocused) ?? this.renderInterval
+        if (renderInterval) {
             this.delta += time - this.lastTime
             this.lastTime = time
-            if (this.delta > this.renderInterval) {
-                this.delta %= this.renderInterval
+            if (this.delta > renderInterval) {
+                this.delta %= renderInterval
                 // continue rendering
             } else {
                 return

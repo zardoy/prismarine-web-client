@@ -123,6 +123,11 @@ export const onGameLoad = (onLoad) => {
     // todo hide up to the window itself!
     hideCurrentModal()
   })
+  bot.on('respawn', () => { // todo validate logic against native client (maybe login)
+    if (lastWindow) {
+      hideCurrentModal()
+    }
+  })
 
   customEvents.on('search', (q) => {
     if (!lastWindow) return
@@ -316,10 +321,10 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
 
 const getItemName = (slot: Item | null) => {
   const parsed = getItemNameRaw(slot)
-  if (!parsed || parsed['extra']) return
+  if (!parsed) return
   // todo display full text renderer from sign renderer
   const text = flat(parsed as MessageFormatPart).map(x => x.text)
-  return text
+  return text.join('')
 }
 
 export const renderSlotExternal = (slot) => {
@@ -362,12 +367,15 @@ export const onModalClose = (callback: () => any) => {
       callback()
       unsubscribe()
     }
-  })
+  }, true)
 }
 
 const implementedContainersGuiMap = {
   // todo allow arbitrary size instead!
+  'minecraft:generic_9x1': 'ChestWin',
+  'minecraft:generic_9x2': 'ChestWin',
   'minecraft:generic_9x3': 'ChestWin',
+  'minecraft:generic_9x4': 'Generic95Win',
   'minecraft:generic_9x5': 'Generic95Win',
   // hopper
   'minecraft:generic_5x1': 'HopperWin',
@@ -401,22 +409,29 @@ export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
   return inv
 }
 
+let skipClosePacketSending = false
 const openWindow = (type: string | undefined) => {
   // if (activeModalStack.some(x => x.reactType?.includes?.('player_win:'))) {
   if (activeModalStack.length) { // game is not in foreground, don't close current modal
-    if (type) bot.currentWindow?.['close']()
-    return
+    if (type) {
+      skipClosePacketSending = true
+      hideCurrentModal()
+    } else {
+      bot.currentWindow?.['close']()
+      return
+    }
   }
   showModal({
     reactType: `player_win:${type}`,
   })
   onModalClose(() => {
     // might be already closed (event fired)
-    if (type !== undefined && bot.currentWindow) bot.currentWindow['close']()
+    if (type !== undefined && bot.currentWindow && !skipClosePacketSending) bot.currentWindow['close']()
     lastWindow.destroy()
     lastWindow = null as any
     miscUiState.displaySearchInput = false
     destroyFn()
+    skipClosePacketSending = false
   })
   cleanLoadedImagesCache()
   const inv = openItemsCanvas(type)
