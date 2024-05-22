@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
 import { Vec3 } from 'vec3'
-import { WorldRendererWebgl } from './worldrendererWebgl'
+import { WorldRendererWebgpu } from './worldrendererWebgpu'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { getVersion } from './version'
@@ -16,7 +16,7 @@ export class Viewer {
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
   camera: THREE.PerspectiveCamera
-  world: WorldRendererWebgl/*  | WorldRendererThree */
+  world: WorldRendererWebgpu/*  | WorldRendererThree */
   entities: Entities
   primitives: Primitives
   domElement: HTMLCanvasElement
@@ -42,7 +42,7 @@ export class Viewer {
     if (this.enableFXAA) {
       this.enableFxaaScene()
     }
-    this.world = new WorldRendererWebgl(numWorkers)
+    this.world = new WorldRendererWebgpu(numWorkers)
     this.entities = new Entities(this.scene)
     this.primitives = new Primitives(this.scene, this.camera)
 

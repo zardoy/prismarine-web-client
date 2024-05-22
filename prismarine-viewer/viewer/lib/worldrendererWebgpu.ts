@@ -1,12 +1,12 @@
 import { Vec3 } from 'vec3'
 import { updateStatText } from '../../examples/newStats'
-import { addBlocksSection, removeBlocksSection, sendWorkerMessage } from '../../examples/webgpuRendererMain'
+import { addBlocksSection, removeBlocksSection, webgpuChannel } from '../../examples/webgpuRendererMain'
 import type { WebglData } from '../prepare/webglData'
 import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
 
-export class WorldRendererWebgl extends WorldRendererCommon {
-  outputFormat = 'webgl' as const
+export class WorldRendererWebgpu extends WorldRendererCommon {
+  outputFormat = 'webgpu' as const
   newChunks = {} as Record<string, any>
   webglData: WebglData
   stopBlockUpdate = false
@@ -40,9 +40,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
 
   allChunksLoaded (): void {
     console.log('allChunksLoaded')
-    sendWorkerMessage({
-      type: 'addBlocksSectionDone'
-    })
+    webgpuChannel.addBlocksSectionDone()
   }
 
   handleWorkerMessage (data: any): void {
@@ -60,9 +58,7 @@ export class WorldRendererWebgl extends WorldRendererCommon {
   }
 
   chunksReset () {
-    sendWorkerMessage({
-      type: 'fullReset'
-    })
+    webgpuChannel.fullReset()
   }
 
   updatePosDataChunk (key: string) {

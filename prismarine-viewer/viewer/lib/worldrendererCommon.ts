@@ -3,7 +3,7 @@ import { Vec3 } from 'vec3'
 import { loadJSON } from './utils'
 import { loadTexture } from './utils.web'
 import { EventEmitter } from 'events'
-import mcDataRaw from 'minecraft-data/data.js'; // handled correctly in esbuild plugin
+import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
 import { dynamicMcDataFiles } from '../../buildWorkerConfig.mjs'
 import { toMajor } from './version.js'
 import { chunkPos } from './simpleUtils'
@@ -39,9 +39,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   chunksLength = 0
   // promisesQueue = [] as Promise<any>[]
 
-  abstract outputFormat: 'threeJs' | 'webgl'
+  abstract outputFormat: 'threeJs' | 'webgpu'
 
-  constructor (numWorkers: number) {
+  constructor(numWorkers: number) {
     // init workers
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
@@ -211,7 +211,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     const distance = this.getDistance(pos)
     if (distance[0] > this.viewDistance || distance[1] > this.viewDistance) return
-    const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`;
+    const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
     // if (this.sectionsOutstanding.has(key)) return
     this.renderUpdateEmitter.emit('dirty', pos, value)
     // Dispatch sections to workers based on position

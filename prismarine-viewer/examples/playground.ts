@@ -21,7 +21,7 @@ globalThis.THREE = THREE
 //@ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { renderPlayground } from './TouchControls2'
-import { WorldRendererWebgl } from '../viewer/lib/worldrendererWebgl'
+import { WorldRendererWebgpu } from '../viewer/lib/worldrendererWebgpu'
 import { TextureAnimation } from './TextureAnimation'
 
 const gui = new GUI()
@@ -369,7 +369,7 @@ async function main () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     },
     animationTick () {
-      const webgl = (viewer.world as WorldRendererWebgl).playgroundGetWebglData()
+      const webgl = (viewer.world as WorldRendererWebgpu).playgroundGetWebglData()
       if (!webgl?.animation) {
         setAnimationTick(0)
         return
@@ -452,7 +452,7 @@ async function main () {
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
     // const frames = viewer.world.hasWithFrames ? viewer.world.hasWithFrames - 1 : 0;
-    const webgl = (viewer.world as WorldRendererWebgl).playgroundGetWebglData()
+    const webgl = (viewer.world as WorldRendererWebgpu).playgroundGetWebglData()
     if (webgl?.animation) {
       params.animationTick = -1
       animationController.show()

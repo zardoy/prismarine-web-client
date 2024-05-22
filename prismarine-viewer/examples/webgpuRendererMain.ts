@@ -2,15 +2,14 @@ import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { Viewer } from '../viewer/lib/viewer'
 import { options } from '../../src/optionsStorage'
 import { addNewStat } from './newStats'
+import type { workerProxyType } from './webgpuRendererWorker'
+import { useWorkerProxy } from './workerProxy'
 
-let worker
+let worker: Worker
+
+export let webgpuChannel: typeof workerProxyType['__workerProxy']
 
 declare const viewer: Viewer
-
-export const sendWorkerMessage = (message: any, transfer?: Transferable[]) => {
-    worker.postMessage(message, transfer)
-    // replacable by onmessage
-}
 
 let allReceived = false
 declare const customEvents
@@ -32,9 +31,7 @@ if (typeof customEvents !== 'undefined') {
 
 let isWaitingToUpload = false
 export const addBlocksSection = (key, data) => {
-    sendWorkerMessage({
-        type: 'addBlocksSection', data, key
-    })
+    webgpuChannel.addBlocksSection(data, key)
     if (playground && !isWaitingToUpload) {
         isWaitingToUpload = true
         // viewer.waitForChunksToRender().then(() => {
@@ -47,9 +44,7 @@ export const addBlocksSection = (key, data) => {
 }
 
 export const loadFixtureSides = (json) => {
-    sendWorkerMessage({
-        type: 'loadFixture', json
-    })
+    webgpuChannel.loadFixture(json)
 }
 
 export const sendCameraToWorker = () => {
@@ -60,16 +55,11 @@ export const sendCameraToWorker = () => {
         }, {})
         return acc
     }, {})
-    sendWorkerMessage({
-        type: 'camera',
-        camera: cameraData
-    })
+    webgpuChannel.camera(cameraData)
 }
 
 export const removeBlocksSection = (key) => {
-    sendWorkerMessage({
-        type: 'removeBlocksSection', key
-    })
+    webgpuChannel.removeBlocksSection(key)
 }
 
 let playground = false
@@ -95,12 +85,8 @@ export const initWebgpuRenderer = async (version: string, postRender = () => { }
     // replacable by initWebglRenderer
     worker = new Worker('./webgpuRendererWorker.js')
     addFpsCounters()
-    sendWorkerMessage({
-        canvas: offscreen,
-        imageBlob,
-        isPlayground: playgroundModeInWorker,
-        FragShaderOverride: localStorage.FragShader
-    }, [offscreen])
+    const webgpuChannel = useWorkerProxy<typeof workerProxyType>(worker, true)
+    webgpuChannel.canvas(offscreen, imageBlob, playgroundModeInWorker, localStorage.FragShader)
 
     let oldWidth = window.innerWidth
     let oldHeight = window.innerHeight
@@ -111,11 +97,11 @@ export const initWebgpuRenderer = async (version: string, postRender = () => { }
     let focused = true
     window.addEventListener('focus', () => {
         focused = true
-        sendWorkerMessage({ type: 'startRender' })
+        webgpuChannel.startRender()
     })
     window.addEventListener('blur', () => {
         focused = false
-        sendWorkerMessage({ type: 'stopRender' })
+        webgpuChannel.stopRender()
     })
     const mainLoop = () => {
         requestAnimationFrame(mainLoop)
@@ -125,11 +111,7 @@ export const initWebgpuRenderer = async (version: string, postRender = () => { }
         if (oldWidth !== window.innerWidth || oldHeight !== window.innerHeight) {
             oldWidth = window.innerWidth
             oldHeight = window.innerHeight
-            sendWorkerMessage({
-                type: 'resize',
-                newWidth: window.innerWidth * window.devicePixelRatio,
-                newHeight: window.innerHeight * window.devicePixelRatio
-            })
+            webgpuChannel.resize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio)
         }
         postRender()
         // TODO! do it in viewer to avoid possible delays
@@ -148,11 +130,7 @@ export const initWebgpuRenderer = async (version: string, postRender = () => { }
 }
 
 export const setAnimationTick = (tick: number, frames?: number) => {
-    sendWorkerMessage({
-        type: 'animationTick',
-        tick,
-        frames
-    })
+    webgpuChannel.animationTick(tick, frames)
 }
 
 globalThis.exportFixture = () => {

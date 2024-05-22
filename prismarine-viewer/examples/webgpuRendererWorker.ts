@@ -7,6 +7,7 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 import VertShader from './Cube.vert.wgsl'
 //@ts-ignore
 import FragShader from './Cube.frag.wgsl'
+import { createWorkerProxy } from './workerProxy'
 
 let allSides = [] as ([number, number, number, BlockFaceType] | undefined)[]
 let allSidesAdded = 0
@@ -73,6 +74,7 @@ class WebgpuRendererWorker {
         const textureHeight = textureBitmap.height
 
         const adapter = await navigator.gpu.requestAdapter()
+        if (!adapter) throw new Error('WebGPU not supported')
         this.device = await adapter.requestDevice()
         const { device } = this
 
@@ -240,7 +242,7 @@ class WebgpuRendererWorker {
         this.renderPassDescriptor = {
             colorAttachments: [
                 {
-                    view: undefined, // Assigned later
+                    view: undefined as any, // Assigned later
                     clearValue: [0.5, 0.5, 0.5, 1.0],
                     loadOp: 'clear',
                     storeOp: 'store',
@@ -305,9 +307,7 @@ class WebgpuRendererWorker {
 
         renderedFrames++
         if (rendering) {
-            // this.loop()
-            setTimeout(() => this.loop())
-            // requestAnimationFrame(() => this.loop())
+            requestAnimationFrame(() => this.loop())
         }
     }
 }
@@ -321,28 +321,26 @@ let started = false
 let newWidth: number | undefined
 let newHeight: number | undefined
 let autoTickUpdate = undefined as number | undefined
-onmessage = function (e) {
-    if (!started) {
+export const workerProxyType = createWorkerProxy({
+    canvas (canvas, imageBlob, isPlayground, FragShaderOverride) {
         started = true
-        webglRendererWorker = new WebgpuRendererWorker(e.data.canvas, e.data.imageBlob, e.data.isPlayground, e.data.FragShaderOverride)
-        return
-    }
-    if (e.data.type === 'startRender') {
+        webglRendererWorker = new WebgpuRendererWorker(canvas, imageBlob, isPlayground, FragShaderOverride)
+    },
+    startRender () {
         rendering = true
-    }
-    if (e.data.type === 'stopRender') {
+    },
+    stopRender () {
         rendering = false
-    }
-    if (e.data.type === 'resize') {
-        newWidth = e.data.newWidth
-        newHeight = e.data.newHeight
-
+    },
+    resize (newWidth, newHeight) {
+        newWidth = newWidth
+        newHeight = newHeight
         updateSize(newWidth, newHeight)
-    }
-    if (e.data.type === 'addBlocksSection') {
+    },
+    addBlocksSection (data, key) {
         const currentLength = allSides.length
         // in: object - name, out: [x, y, z, name]
-        const newData = Object.entries(e.data.data.blocks).flatMap(([key, value]) => {
+        const newData = Object.entries(data.blocks).flatMap(([key, value]) => {
             const [x, y, z] = key.split(',').map(Number)
             const block = value as BlockType
             return block.sides.map((side) => {
@@ -365,19 +363,19 @@ onmessage = function (e) {
             console.log('using free area', freeArea)
         }
 
-        chunksArrIndexes[e.data.key] = [currentLength, currentLength + newData.length]
+        chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
         allSides.push(...newData)
         lastNotUpdatedIndex ??= currentLength
         // updateCubes?.(currentLength)
-    }
-    if (e.data.type === 'addBlocksSectionDone') {
+    },
+    addBlocksSectionDone () {
         updateCubesWhenAvailable(lastNotUpdatedIndex)
         lastNotUpdatedIndex = undefined
         lastNotUpdatedArrSize = undefined
-    }
-    if (e.data.type === 'removeBlocksSection') {
+    },
+    removeBlocksSection (key) {
         // fill data with 0
-        const [startIndex, endIndex] = chunksArrIndexes[e.data.key]
+        const [startIndex, endIndex] = chunksArrIndexes[key]
         for (let i = startIndex; i < endIndex; i++) {
             allSides[i] = undefined
         }
@@ -392,48 +390,48 @@ onmessage = function (e) {
         //     const [startIndex2, endIndex2] = freeArrayIndexes.pop()!
         //     freeArrayIndexes.push([startIndex2, endIndex])
         // }
-    }
-    if (e.data.type === 'camera') {
-        camera.rotation.set(e.data.camera.rotation.x, e.data.camera.rotation.y, e.data.camera.rotation.z, 'ZYX')
-        // camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
+    },
+    camera (camera) {
+        camera.rotation.set(camera.rotation.x, camera.rotation.y, camera.rotation.z, 'ZYX')
+        // camera.position.set(camera.position.x, camera.position.y, camera.position.z)
         if (camera.position.x === 0 && camera.position.y === 0 && camera.position.z === 0) {
             // initial camera position
-            camera.position.set(e.data.camera.position.x, e.data.camera.position.y, e.data.camera.position.z)
+            camera.position.set(camera.position.x, camera.position.y, camera.position.z)
         } else {
-            new tweenJs.Tween(camera.position).to({ x: e.data.camera.position.x, y: e.data.camera.position.y, z: e.data.camera.position.z }, 50).start()
+            new tweenJs.Tween(camera.position).to({ x: camera.position.x, y: camera.position.y, z: camera.position.z }, 50).start()
         }
-    }
-    if (e.data.type === 'animationTick') {
-        if (e.data.frames <= 0) {
+    },
+    animationTick (frames, tick) {
+        if (frames <= 0) {
             autoTickUpdate = undefined
             animationTick = 0
             return
         }
-        if (e.data.tick === -1) {
-            autoTickUpdate = e.data.frames
+        if (tick === -1) {
+            autoTickUpdate = frames
         } else {
             autoTickUpdate = undefined
-            animationTick = e.data.tick % 20 // todo update automatically in worker
+            animationTick = tick % 20 // todo update automatically in worker
         }
-    }
-    if (e.data.type === 'fullReset') {
+    },
+    fullReset () {
         fullReset()
-    }
-    if (e.data.type === 'exportData') {
+    },
+    exportData () {
         const exported = exportData()
-        postMessage({ type: 'exportData', data: exported }, undefined, [exported.sides.buffer])
-    }
-    if (e.data.type === 'loadFixture') {
-        // allSides = e.data.json.map(([x, y, z, face, textureIndex]) => {
+        postMessage({ type: 'exportData', data: exported }, undefined as any, [exported.sides.buffer])
+    },
+    loadFixture (json) {
+        // allSides = json.map(([x, y, z, face, textureIndex]) => {
         //     return [x, y, z, { face, textureIndex }] as [number, number, number, BlockFaceType]
         // })
-        const dataSize = e.data.json.length / 5
-        for (let i = 0; i < e.data.json.length; i += 5) {
-            allSides.push([e.data.json[i], e.data.json[i + 1], e.data.json[i + 2], { face: e.data.json[i + 3], textureIndex: e.data.json[i + 4] }])
+        const dataSize = json.length / 5
+        for (let i = 0; i < json.length; i += 5) {
+            allSides.push([json[i], json[i + 1], json[i + 2], { face: json[i + 3], textureIndex: json[i + 4] }])
         }
         updateCubesWhenAvailable(0)
-    }
-}
+    },
+})
 
 globalThis.testDuplicates = () => {
     const duplicates = allSides.filter((value, index, self) => self.indexOf(value) !== index)
@@ -449,7 +447,9 @@ const exportData = () => {
 
     // Fill the flatData array
     for (let i = 0; i < allSides.length; i++) {
-        const [x, y, z, side] = allSides[i]
+        const sideData = allSides[i]
+        if (!sideData) continue
+        const [x, y, z, side] = sideData
         flatData.set([x, y, z, side.face, side.textureIndex], i * 5)
     }
 
