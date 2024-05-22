@@ -323,7 +323,7 @@ class StarField {
 
         const clock = new THREE.Clock();
         this.points.onBeforeRender = (renderer, scene, camera) => {
-            this.points!.position.copy(camera.position)
+            this.points?.position.copy?.(camera.position)
             material.uniforms.time.value = clock.getElapsedTime() * speed
         }
     }
