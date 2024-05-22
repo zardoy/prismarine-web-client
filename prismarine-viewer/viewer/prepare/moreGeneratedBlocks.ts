@@ -419,6 +419,7 @@ const handlers = [
   [/(.+)_wall_sign$/, handleSign],
   [/(.+)_sign$/, handleSign],
   [/^(?:(ender|trapped)_)?chest$/, handleChest],
+  // [/(^|(.+)_)bed$/, handleBed],
   // no-op just suppress warning
   [/(^light|^moving_piston$)/, true],
 ] as const
