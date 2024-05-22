@@ -391,14 +391,13 @@ export const workerProxyType = createWorkerProxy({
         //     freeArrayIndexes.push([startIndex2, endIndex])
         // }
     },
-    camera (camera) {
-        camera.rotation.set(camera.rotation.x, camera.rotation.y, camera.rotation.z, 'ZYX')
-        // camera.position.set(camera.position.x, camera.position.y, camera.position.z)
-        if (camera.position.x === 0 && camera.position.y === 0 && camera.position.z === 0) {
+    camera (newCam) {
+        camera.rotation.set(newCam.rotation.x, newCam.rotation.y, newCam.rotation.z, 'ZYX')
+        if (newCam.position.x === 0 && newCam.position.y === 0 && newCam.position.z === 0) {
             // initial camera position
-            camera.position.set(camera.position.x, camera.position.y, camera.position.z)
+            camera.position.set(newCam.position.x, newCam.position.y, newCam.position.z)
         } else {
-            new tweenJs.Tween(camera.position).to({ x: camera.position.x, y: camera.position.y, z: camera.position.z }, 50).start()
+            new tweenJs.Tween(camera.position).to({ x: newCam.position.x, y: newCam.position.y, z: newCam.position.z }, 50).start()
         }
     },
     animationTick (frames, tick) {

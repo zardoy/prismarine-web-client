@@ -7,7 +7,9 @@ import { useWorkerProxy } from './workerProxy'
 
 let worker: Worker
 
-export let webgpuChannel: typeof workerProxyType['__workerProxy']
+export let webgpuChannel: typeof workerProxyType['__workerProxy'] = new Proxy({}, {
+    get: () => () => { }
+}) as any // placeholder to avoid crashes
 
 declare const viewer: Viewer
 
@@ -85,7 +87,7 @@ export const initWebgpuRenderer = async (version: string, postRender = () => { }
     // replacable by initWebglRenderer
     worker = new Worker('./webgpuRendererWorker.js')
     addFpsCounters()
-    const webgpuChannel = useWorkerProxy<typeof workerProxyType>(worker, true)
+    webgpuChannel = useWorkerProxy<typeof workerProxyType>(worker, true)
     webgpuChannel.canvas(offscreen, imageBlob, playgroundModeInWorker, localStorage.FragShader)
 
     let oldWidth = window.innerWidth
