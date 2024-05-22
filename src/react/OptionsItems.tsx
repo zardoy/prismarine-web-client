@@ -60,6 +60,7 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
   }, [item.values])
 
   return <Button
+    data-setting={item.id}
     label={`${item.text}: ${valuesTitlesMap[optionValue]}`}
     onClick={async () => {
       if (item.disabledReason) {
@@ -107,9 +108,22 @@ export const OptionSlider = ({ item }: { item: Extract<OptionMeta, { type: 'slid
     return undefined // default display
   }, [optionValue])
 
-  return <Slider disabledReason={isDisabled(item) ? 'qs' : undefined} label={item.text!} value={options[item.id!]} min={item.min} max={item.max} updateValue={(value) => {
-    options[item.id!] = value
-  }} unit={item.unit} valueDisplay={valueDisplay} updateOnDragEnd={item.delayApply} />
+  return (
+    <Slider
+      label={item.text!}
+      value={options[item.id!]}
+      data-setting={item.id}
+      disabledReason={isDisabled(item) ? 'qs' : undefined}
+      min={item.min}
+      max={item.max}
+      unit={item.unit}
+      valueDisplay={valueDisplay}
+      updateOnDragEnd={item.delayApply}
+      updateValue={(value) => {
+        options[item.id!] = value
+      }}
+    />
+  )
 }
 
 const OptionElement = ({ item }: { item: Extract<OptionMeta, { type: 'element' }> }) => {

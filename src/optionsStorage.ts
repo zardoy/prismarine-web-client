@@ -50,6 +50,7 @@ const defaultOptions = {
   } as Record<string, [number, number]>,
   touchControlsType: 'classic' as 'classic' | 'joystick-buttons',
   gpuPreference: 'default' as 'default' | 'high-performance' | 'low-power',
+  backgroundRendering: '20fps' as 'full' | '20fps' | '5fps',
   /** @unstable */
   disableAssets: false,
   /** @unstable */

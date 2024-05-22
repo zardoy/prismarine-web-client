@@ -87,6 +87,7 @@ export class WorldDataEmitter extends EventEmitter {
         },
       }))
       this.emitter.emit('renderDistance', this.viewDistance)
+      this.emitter.emit('time', bot.time.timeOfDay)
     })
     // node.js stream data event pattern
     if (this.emitter.listenerCount('blockEntities')) {

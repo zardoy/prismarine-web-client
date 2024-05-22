@@ -38,6 +38,7 @@ import ServersListProvider from './react/ServersListProvider'
 import GamepadUiCursor from './react/GamepadUiCursor'
 import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
 import HeldMapUi from './react/HeldMapUi'
+import BedTime from './react/BedTime'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -116,6 +117,7 @@ const InGameUi = () => {
       <XPBarProvider />
       <HudBarsProvider />
       <HotbarRenderApp />
+      <BedTime />
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />

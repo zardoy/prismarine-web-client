@@ -3,7 +3,7 @@ import { assertDefined } from './utils'
 import { updateBackground } from './water'
 
 export default () => {
-  bot.on('time', () => {
+  const timeUpdated = () => {
     assertDefined(viewer)
     // 0 morning
     const dayTotal = 24_000
@@ -40,5 +40,8 @@ export default () => {
       viewer.ambientLight.intensity = Math.max(int, 0.25)
       viewer.directionalLight.intensity = Math.min(int, 0.5)
     }
-  })
+  }
+
+  bot.on('time', timeUpdated)
+  timeUpdated()
 }

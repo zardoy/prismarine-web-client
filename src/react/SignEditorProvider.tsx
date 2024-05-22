@@ -1,6 +1,5 @@
 import { useMemo, useEffect, useState, useRef } from 'react'
 import { showModal, hideModal } from '../globalState'
-import { setDoPreventDefault } from '../controls'
 import { options } from '../optionsStorage'
 import { useIsModalActive } from './utilsApp'
 import SignEditor, { ResultType } from './SignEditor'
@@ -56,10 +55,6 @@ export default () => {
     text.current[Number(target.dataset.key)] = target.value
     target.setAttribute('maxlength', `${15 + Math.ceil(addLength)}`)
   }
-
-  useEffect(() => {
-    setDoPreventDefault(!isModalActive) // disable e.preventDefault() since we might be using wysiwyg editor which doesn't use textarea and need default browser behavior to ensure characters are being typed in contenteditable container. Ideally we should do e.preventDefault() only when either ctrl, cmd (meta) or alt key is pressed.
-  }, [isModalActive])
 
   useMemo(() => {
     bot._client.on('open_sign_entity', (packet) => {

@@ -5,6 +5,7 @@ import mcAssets from 'minecraft-assets'
 import fs from 'fs-extra'
 import { prepareMoreGeneratedBlocks } from './moreGeneratedBlocks'
 import { generateItemsAtlases } from './genItemsAtlas'
+import { versionToNumber } from './utils'
 
 const publicPath = path.resolve(__dirname, '../../public')
 
@@ -22,6 +23,10 @@ Promise.resolve().then(async () => {
     // for debugging (e.g. when above is overridden)
     if (!mcAssets.versions.includes(version)) {
       throw new Error(`Version ${version} is not supported by minecraft-assets`)
+    }
+    if (versionToNumber(version) < versionToNumber('1.13')) {
+      // we normalize data to 1.13 for pre 1.13 versions
+      continue
     }
     const assets = mcAssets(version)
     const { warnings: _warnings } = await prepareMoreGeneratedBlocks(assets)

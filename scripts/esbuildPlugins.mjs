@@ -7,7 +7,9 @@ import { filesize } from 'filesize'
 import MCProtocol from 'minecraft-protocol'
 import MCData from 'minecraft-data'
 import { throttle } from 'lodash-es'
+import { fileURLToPath } from 'url'
 
+const __dirname = dirname(fileURLToPath(new URL(import.meta.url)))
 const { supportedVersions } = MCProtocol
 
 const prod = process.argv.includes('--prod')
@@ -26,7 +28,7 @@ export const startWatchingHmr = () => {
     // 'dist/webglRendererWorker.js': 'webglRendererWorker',
   }
   for (const name of Object.keys(eventsPerFile)) {
-    const file = join('dist', name);
+    const file = join('dist', name)
     if (!fs.existsSync(file)) console.warn(`[missing worker] File ${name} does not exist`)
     fs.watchFile(file, () => {
       writeToClients({ replace: { type: eventsPerFile[name] } })
@@ -35,7 +37,26 @@ export const startWatchingHmr = () => {
 }
 
 /** @type {import('esbuild').Plugin[]} */
+const mesherSharedPlugins = [
+  {
+    name: 'minecraft-data',
+    setup (build) {
+      build.onLoad({
+        filter: /data[\/\\]pc[\/\\]common[\/\\]legacy.json$/,
+      }, async (args) => {
+        const data = fs.readFileSync(join(__dirname, '../src/preflatMap.json'), 'utf8')
+        return {
+          contents: `module.exports = ${data}`,
+          loader: 'js',
+        }
+      })
+    }
+  }
+]
+
+/** @type {import('esbuild').Plugin[]} */
 const plugins = [
+  ...mesherSharedPlugins,
   {
     name: 'strict-aliases',
     setup (build) {
@@ -339,4 +360,4 @@ const plugins = [
   })
 ]
 
-export { plugins, connectedClients as clients }
+export { plugins, connectedClients as clients, mesherSharedPlugins }
