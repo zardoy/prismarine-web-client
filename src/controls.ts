@@ -6,7 +6,7 @@ import { proxy, subscribe } from 'valtio'
 import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
-import { UserOverridesConfig } from 'contro-max/build/types/store'
+import { UserOverrideCommand, UserOverridesConfig } from 'contro-max/build/types/store'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
@@ -19,6 +19,7 @@ import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
+import { updateBinds } from './react/KeybindingsScreenProvider'
 
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
@@ -86,7 +87,7 @@ export const contro = new ControMax({
 window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
 
-// updateCustomBinds()
+updateBinds(customKeymaps)
 
 const updateDoPreventDefault = () => {
   controlOptions.preventDefault = miscUiState.gameLoaded && !activeModalStack.length
@@ -296,19 +297,18 @@ function cycleHotbarSlot (dir: 1 | -1) {
   bot.setQuickBarSlot(newHotbarSlot)
 }
 
-// custom commands hamdler
-const customCommandsHandler = (buttonData: { code?: string, button?: string, state: boolean }) => {
-  if (!buttonData.state || !isGameActive(true)) return
+// custom commands handler
+const customCommandsHandler = ({ command }) => {
+  const [section, name] = command.split('.')
+  if (!isGameActive(true) || section !== 'custom') return
 
-  const codeOrButton = buttonData.code ?? buttonData.button
-  const inputType = buttonData.code ? 'keys' : 'gamepad'
-  for (const value of Object.values(contro.userConfig!.custom ?? {})) {
-    if (value[inputType]?.includes(codeOrButton!)) {
-      customCommandsConfig[(value as CustomCommand).type].handler((value as CustomCommand).inputs)
-    }
+  if (contro.userConfig?.custom) {
+    customCommandsConfig[(contro.userConfig.custom[name] as CustomCommand).type].handler(
+      (contro.userConfig.custom[name] as CustomCommand).inputs
+    )
   }
 }
-contro.on('pressedKeyOrButtonChanged', customCommandsHandler)
+contro.on('trigger', customCommandsHandler)
 
 contro.on('trigger', ({ command }) => {
   const willContinue = !isGameActive(true)

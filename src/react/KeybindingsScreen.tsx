@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import { UserOverridesConfig } from 'contro-max/build/types/store'
+import { ModifierOnlyKeys } from 'contro-max/build/types/keyCodes'
 import { contro as controEx } from '../controls'
 import { hideModal } from '../globalState'
 import triangle from './ps_icons/playstation_triangle_console_controller_gamepad_icon.svg'
@@ -96,22 +97,35 @@ export default (
     updateBindMap()
   }, [userConfig])
 
-  const updateBinding = (data) => {
-    if (data.state === true || !awaitingInputType) return
+  const updateBinding = (data: any) => {
+    if ((!data.state && awaitingInputType) || !awaitingInputType) {
+      setAwaitingInputType(null)
+      return
+    }
+
+
     if ('code' in data) {
+      if (data.state && [...contro.pressedKeys].includes(data.code)) return
+
       if (data.code === 'Escape' || ['Mouse0', 'Mouse1', 'Mouse2'].includes(data.code)) {
         setAwaitingInputType(null)
         return
       }
-      setBinding({ code: data.code, state: true }, groupName, actionName, buttonNum)
+      const pressedModifiers = [...contro.pressedKeys].filter(
+        key => /^(Meta|Control|Alt|Shift)?$/.test(key)
+      )
+      setBinding(
+        { code: pressedModifiers.length ? `${pressedModifiers[0]}+${data.code}` : data.code, state: true },
+        groupName,
+        actionName,
+        buttonNum
+      )
     }
     if ('button' in data) {
       contro.enabled = false
       void Promise.resolve().then(() => { contro.enabled = true })
       setBinding(data, groupName, actionName, buttonNum)
     }
-
-    setAwaitingInputType(null)
   }
 
   const updateBindMap = () => {
@@ -368,8 +382,12 @@ const parseActionName = (action: string) => {
 const parseBindingName = (binding: string | undefined) => {
   if (!binding) return ''
   const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
-  const parts = cut.split(/(?=[A-Z\d])/)
-  return parts.reverse().join(' ')
+
+  const parts = cut.includes('+') ? cut.split('+') : [cut] 
+  for (let i = 0; i < parts.length; i++) {
+    parts[i] = parts[i].split(/(?=[A-Z\d])/).reverse().join(' ')
+  }
+  return parts.join(' + ')
 }
 
 const buttonsMap = {
