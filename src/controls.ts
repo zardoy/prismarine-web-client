@@ -6,7 +6,7 @@ import { proxy, subscribe } from 'valtio'
 import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
-import { UserOverridesConfig } from 'contro-max/build/types/store'
+import { UserOverrideCommand, UserOverridesConfig } from 'contro-max/build/types/store'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
@@ -19,6 +19,7 @@ import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
+import { updateBinds } from './react/KeybindingsScreenProvider'
 
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
@@ -74,19 +75,19 @@ export const contro = new ControMax({
 }, {
   defaultControlOptions: controlOptions,
   target: document,
-  captureEvents () {
+  captureEvents() {
     return true
   },
   storeProvider: {
     load: () => customKeymaps,
-    save () { },
+    save() { },
   },
   gamepadPollingInterval: 10
 })
 window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
 
-// updateCustomBinds()
+updateBinds(customKeymaps)
 
 const updateDoPreventDefault = () => {
   controlOptions.preventDefault = miscUiState.gameLoaded && !activeModalStack.length
@@ -152,10 +153,10 @@ let lastCommandTrigger = null as { command: string, time: number } | null
 
 const secondActionActivationTimeout = 300
 const secondActionCommands = {
-  'general.jump' () {
+  'general.jump'() {
     toggleFly()
   },
-  'general.forward' () {
+  'general.forward'() {
     setSprinting(true)
   }
 }
@@ -291,7 +292,7 @@ const alwaysPressedHandledCommand = (command: Command) => {
   }
 }
 
-function cycleHotbarSlot (dir: 1 | -1) {
+function cycleHotbarSlot(dir: 1 | -1) {
   const newHotbarSlot = (bot.quickBarSlot + dir + 9) % 9
   bot.setQuickBarSlot(newHotbarSlot)
 }
@@ -417,7 +418,7 @@ contro.on('release', ({ command }) => {
 export const f3Keybinds = [
   {
     key: 'KeyA',
-    action () {
+    action() {
       //@ts-expect-error
       const loadedChunks = Object.entries(worldView.loadedChunks).filter(([, v]) => v).map(([key]) => key.split(',').map(Number))
       for (const [x, z] of loadedChunks) {
@@ -439,7 +440,7 @@ export const f3Keybinds = [
   },
   {
     key: 'KeyG',
-    action () {
+    action() {
       options.showChunkBorders = !options.showChunkBorders
       viewer.world.updateShowChunksBorder(options.showChunkBorders)
     },
@@ -447,7 +448,7 @@ export const f3Keybinds = [
   },
   {
     key: 'KeyT',
-    async action () {
+    async action() {
       // waypoints
       const widgetNames = widgets.map(widget => widget.name)
       const widget = await showOptionsModal('Open Widget', widgetNames)
