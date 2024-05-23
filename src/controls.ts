@@ -297,18 +297,17 @@ function cycleHotbarSlot (dir: 1 | -1) {
 }
 
 // custom commands handler
-const customCommandsHandler = (buttonData: { code?: string, button?: string, state: boolean }) => {
-  if (!buttonData.state || !isGameActive(true)) return
+const customCommandsHandler = ({ command }) => {
+  const [section, name] = command.split('.')
+  if (!isGameActive(true) || section !== 'custom') return
 
-  const codeOrButton = buttonData.code ?? buttonData.button
-  const inputType = buttonData.code ? 'keys' : 'gamepad'
-  for (const value of Object.values(contro.userConfig!.custom ?? {})) {
-    if (value[inputType]?.includes(codeOrButton!)) {
-      customCommandsConfig[(value as CustomCommand).type].handler((value as CustomCommand).inputs)
-    }
+  if (contro.userConfig?.custom) {
+    customCommandsConfig[(contro.userConfig.custom[name] as CustomCommand).type].handler(
+      (contro.userConfig.custom[name] as CustomCommand).inputs
+    )
   }
 }
-contro.on('pressedKeyOrButtonChanged', customCommandsHandler)
+contro.on('trigger', customCommandsHandler)
 
 contro.on('trigger', ({ command }) => {
   const willContinue = !isGameActive(true)

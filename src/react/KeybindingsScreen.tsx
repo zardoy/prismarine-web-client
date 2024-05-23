@@ -383,7 +383,7 @@ const parseBindingName = (binding: string | undefined) => {
   if (!binding) return ''
   const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
 
-  const parts =  cut.includes('+') ? cut.split('+') : cut.split(/(?=[A-Z\d])/).reverse() 
+  const parts = cut.includes('+') ? cut.split('+') : cut.split(/(?=[A-Z\d])/).reverse() 
   for (let part of parts) {
     part = part.split(/(?=[A-Z\d])/).join(' ')
   }
