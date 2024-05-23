@@ -15,7 +15,6 @@ overrides:
   minecraft-protocol: github:PrismarineJS/node-minecraft-protocol
   react: ^18.2.0
   prismarine-chunk: github:zardoy/prismarine-chunk
-  contro-max: file:../contro-max
 
 patchedDependencies:
   minecraft-protocol@1.47.0:
@@ -269,8 +268,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       contro-max:
-        specifier: file:/home/nikitix/mc-browser/contro-max
-        version: file:../contro-max(typescript@5.5.0-beta)
+        specifier: ^0.1.7
+        version: 0.1.7(typescript@5.5.0-beta)
       crypto-browserify:
         specifier: ^3.12.0
         version: 3.12.0
@@ -3809,8 +3808,9 @@ packages:
     resolution: {integrity: sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==}
     engines: {node: '>= 0.6'}
 
-  contro-max@file:../contro-max:
-    resolution: {directory: ../contro-max, type: directory}
+  contro-max@0.1.7:
+    resolution: {integrity: sha512-HIYF1Dl50tUyTKaDsX+mPMDv2OjleNMVedYuBTX0n1wKNm9WxjWu2w74ATjz/8fHVL9GgmziIxAlFStd2je6kg==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   convert-source-map@1.9.0:
     resolution: {integrity: sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==}
@@ -12849,7 +12849,7 @@ snapshots:
 
   content-type@1.0.5: {}
 
-  contro-max@file:../contro-max(typescript@5.5.0-beta):
+  contro-max@0.1.7(typescript@5.5.0-beta):
     dependencies:
       events: 3.3.0
       lodash-es: 4.17.21

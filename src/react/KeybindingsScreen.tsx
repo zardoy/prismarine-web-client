@@ -383,11 +383,11 @@ const parseBindingName = (binding: string | undefined) => {
   if (!binding) return ''
   const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
 
-  const parts = cut.includes('+') ? cut.split('+') : cut.split(/(?=[A-Z\d])/).reverse() 
-  for (let part of parts) {
-    part = part.split(/(?=[A-Z\d])/).join(' ')
+  const parts = cut.includes('+') ? cut.split('+') : [cut] 
+  for (let i = 0; i < parts.length; i++) {
+    parts[i] = parts[i].split(/(?=[A-Z\d])/).reverse().join(' ')
   }
-  return parts.join(' ')
+  return parts.join(' + ')
 }
 
 const buttonsMap = {
