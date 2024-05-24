@@ -17,6 +17,7 @@ import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
 import { hideCurrentModal, isGameActive, showModal } from './globalState'
 import { assertDefined } from './utils'
 import { options } from './optionsStorage'
+import { itemBeingUsed } from './react/Crosshair'
 
 function getViewDirection (pitch, yaw) {
   const csPitch = Math.cos(pitch)
@@ -133,6 +134,9 @@ class WorldInteraction {
       }
       this.lastDugBlock = null
     })
+    bot.on('heldItemChanged' as any, () => {
+      itemBeingUsed.name = null
+    })
 
     const upLineMaterial = () => {
       const inCreative = bot.game.gameMode === 'creative'
@@ -191,16 +195,20 @@ class WorldInteraction {
 
     // Place / interact / activate
     if (this.buttons[2] && this.lastBlockPlaced >= 4) {
-      const activate = bot.heldItem && ['egg', 'fishing_rod', 'firework_rocket',
-        'fire_charge', 'snowball', 'ender_pearl', 'experience_bottle', 'potion',
-        'glass_bottle', 'bucket', 'water_bucket', 'lava_bucket', 'milk_bucket',
-        'minecart', 'boat', 'tnt_minecart', 'chest_minecart', 'hopper_minecart',
-        'command_block_minecart', 'armor_stand', 'lead', 'name_tag',
-        //
-        'writable_book', 'written_book', 'compass', 'clock', 'filled_map', 'empty_map', 'map',
-        'shears', 'carrot_on_a_stick', 'warped_fungus_on_a_stick',
-        'spawn_egg', 'trident', 'crossbow', 'elytra', 'shield', 'turtle_helmet',
-      ].includes(bot.heldItem.name)
+      const activatableItems = (itemName: string) => {
+        return ['egg', 'fishing_rod', 'firework_rocket',
+          'fire_charge', 'snowball', 'ender_pearl', 'experience_bottle', 'potion',
+          'glass_bottle', 'bucket', 'water_bucket', 'lava_bucket', 'milk_bucket',
+          'minecart', 'boat', 'tnt_minecart', 'chest_minecart', 'hopper_minecart',
+          'command_block_minecart', 'armor_stand', 'lead', 'name_tag',
+          //
+          'writable_book', 'written_book', 'compass', 'clock', 'filled_map', 'empty_map', 'map',
+          'shears', 'carrot_on_a_stick', 'warped_fungus_on_a_stick',
+          'spawn_egg', 'trident', 'crossbow', 'elytra', 'shield', 'turtle_helmet', 'bow', 'crossbow', 'bucket_of_cod',
+          ...loadedData.foodsArray.map((f) => f.name),
+        ].includes(itemName)
+      }
+      const activate = bot.heldItem && activatableItems(bot.heldItem.name)
       let stop = false
       if (!bot.controlState.sneak) {
         if (cursorBlock?.name === 'bed' || cursorBlock?.name.endsWith('_bed')) {
@@ -223,6 +231,7 @@ class WorldInteraction {
           })
         }
       }
+      // todo placing with offhand
       if (cursorBlock && !activate && !stop) {
         const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
         //@ts-expect-error
@@ -242,9 +251,20 @@ class WorldInteraction {
           }).catch(console.warn)
         }
       } else if (!stop) {
-        bot.activateItem() // todo offhand
+        const offhand = activate ? false : activatableItems(bot.inventory.slots[45]?.name ?? '')
+        bot.activateItem(offhand) // todo offhand
+        itemBeingUsed.name = (offhand ? bot.inventory.slots[45]?.name : bot.heldItem?.name) ?? null
+        itemBeingUsed.hand = offhand ? 1 : 0
       }
       this.lastBlockPlaced = 0
+    }
+    // stop using activated item (cancel)
+    if (itemBeingUsed.name && !this.buttons[2]) {
+      itemBeingUsed.name = null
+      // "only foods and bow can be deactivated" - not true, shields also can be deactivated and client always sends this
+      // if (bot.heldItem && (loadedData.foodsArray.map((f) => f.name).includes(bot.heldItem.name) || bot.heldItem.name === 'bow')) {
+      bot.deactivateItem()
+      // }
     }
 
     // Stop break
