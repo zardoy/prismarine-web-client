@@ -96,7 +96,16 @@ class WebgpuRendererWorker {
         this.verticesBuffer = verticesBuffer
         new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray)
         verticesBuffer.unmap()
-        let ModelMatrix = new THREE.Matrix4()
+
+        let NumberOfCubes = 3
+        //Todo: make this dynamic
+        const ModelMatrix = new Float32Array([
+            0, 1, 0,
+            1, 0, 0,
+            0, 0, 1
+        ])
+
+
 
         const InstancedModelBuffer = device.createBuffer({
             size: 4 * 4 * 4,
@@ -104,7 +113,7 @@ class WebgpuRendererWorker {
             mappedAtCreation: true,
         })
         this.InstancedModelBuffer = InstancedModelBuffer
-        new Float32Array(InstancedModelBuffer.getMappedRange()).set(ModelMatrix.elements)
+        new Float32Array(InstancedModelBuffer.getMappedRange()).set(ModelMatrix)
         InstancedModelBuffer.unmap()
         //device.StepM
         const vertexCode = VertShader
@@ -135,13 +144,13 @@ class WebgpuRendererWorker {
                         ],
                     },
                     {
-                        arrayStride: 4 * 4 * 4,
+                        arrayStride: 3 * 4,
                         attributes: [
                             {
                                 // ModelMatrix
                                 shaderLocation: 2,
                                 offset: 0,
-                                format: 'float32x4',
+                                format: 'float32x3',
                             }
                         ],
                         stepMode: 'instance',
@@ -300,7 +309,7 @@ class WebgpuRendererWorker {
         passEncoder.setBindGroup(0, uniformBindGroup)
         passEncoder.setVertexBuffer(0, verticesBuffer)
         passEncoder.setVertexBuffer(1, this.InstancedModelBuffer)
-        passEncoder.draw(cubeVertexCount, 1)
+        passEncoder.draw(cubeVertexCount, 3)
 
         passEncoder.end()
         device.queue.submit([commandEncoder.finish()])
@@ -337,7 +346,7 @@ export const workerProxyType = createWorkerProxy({
         newHeight = newHeight
         updateSize(newWidth, newHeight)
     },
-    addBlocksSection (data, key) {
+    addBlocksSection (data: { blocks: Record<string, BlockType> }, key: string) {
         const currentLength = allSides.length
         // in: object - name, out: [x, y, z, name]
         const newData = Object.entries(data.blocks).flatMap(([key, value]) => {

@@ -16,11 +16,11 @@ struct VertexOutput {
 fn main(
   //@builtin(instance_index) instanceIdx : u32,
   @location(0) position : vec4f,
-  @location(1) uv : vec2f
-  //@location(2) ModelMatrix : mat4x4f,
+  @location(1) uv : vec2f,
+  @location(2) ModelMatrix : vec3f,
 ) -> VertexOutput {
   var output : VertexOutput;
-  output.Position = uniforms.modelViewProjectionMatrix * position;
+  output.Position = uniforms.modelViewProjectionMatrix * (position +vec4f(ModelMatrix, 0.0));
   //output.Position = uniforms.modelViewProjectionMatrix[instanceIdx] * position;
   output.fragUV = uv;
   output.fragPosition = 0.5 * (position + vec4(1.0, 1.0, 1.0, 1.0));
