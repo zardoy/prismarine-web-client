@@ -54,12 +54,13 @@ const buildOptions = {
   loader: {
     '.png': 'dataurl',
     '.vert': 'text',
-    '.frag': 'text'
+    '.frag': 'text',
+    '.obj': 'text',
   },
   plugins: [
     {
       name: 'minecraft-data',
-      setup (build) {
+      setup(build) {
         build.onLoad({
           filter: /minecraft-data[\/\\]data.js$/,
         }, () => {

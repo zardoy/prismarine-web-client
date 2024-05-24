@@ -6,7 +6,8 @@ import { fsState } from '../loadSave'
 import { guessProblem } from '../guessProblem'
 import AppStatus from './AppStatus'
 import DiveTransition from './DiveTransition'
-import { useDidUpdateEffect, useIsModalActive } from './utils'
+import { useDidUpdateEffect } from './utils'
+import { useIsModalActive } from './utilsApp'
 import Button from './Button'
 
 const initialState = {

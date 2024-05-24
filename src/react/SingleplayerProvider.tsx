@@ -9,7 +9,7 @@ import { haveDirectoryPicker, setLoadingScreenStatus } from '../utils'
 import { exportWorld } from '../builtinCommands'
 import { googleProviderState, useGoogleLogIn, GoogleDriveProvider, isGoogleDriveAvailable, APP_ID } from '../googledrive'
 import Singleplayer, { WorldProps } from './Singleplayer'
-import { useIsModalActive } from './utils'
+import { useIsModalActive } from './utilsApp'
 import { showOptionsModal } from './SelectOption'
 import Input from './Input'
 import GoogleButton from './GoogleButton'
@@ -85,7 +85,7 @@ export const readWorlds = (abortController: AbortController) => {
           title: levelName ?? folder,
           lastPlayed: levelDat.LastPlayed && longArrayToNumber(levelDat.LastPlayed),
           detail: `${levelDat.Version?.Name ?? 'unknown version'}, ${folder}`,
-          iconBase64,
+          iconSrc: iconBase64 ? `data:image/png;base64,${iconBase64}` : undefined,
           size,
         } satisfies WorldProps
       }))).filter((x, i) => {

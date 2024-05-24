@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@master
       - name: Install pnpm
-        run: npm i -g vercel pnpm
+        run: npm i -g vercel pnpm@9.0.4
       # - run: pnpm install
       # - run: pnpm build
       - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
@@ -33,9 +33,16 @@ jobs:
           pnpx zardoy-release node --footer "This release URL: ${{ steps.deploy.outputs.stdout }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # has possible output: tag
+        id: release
+      # has output
       - run: cp vercel.json .vercel/output/static/vercel.json
       - uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .vercel/output/static
           force_orphan: true
+      - run: pnpm tsx scripts/buildNpmReact.ts ${{ steps.release.outputs.tag }}
+        if: steps.release.outputs.tag
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

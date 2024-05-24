@@ -68,7 +68,15 @@ export class WorldDataEmitter extends EventEmitter {
         const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
       },
+      time: () => {
+        this.emitter.emit('time', bot.time.timeOfDay)
+      },
     } satisfies Partial<BotEvents>
+
+    bot._client.on('update_light', ({ chunkX, chunkZ }) => {
+      const chunkPos = new Vec3(chunkX * 16, 0, chunkZ * 16)
+      this.loadChunk(chunkPos, true)
+    })
 
     this.emitter.on('listening', () => {
       this.emitter.emit('blockEntities', new Proxy({}, {
@@ -103,6 +111,7 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async init (pos: Vec3) {
+    this.updateViewDistance(this.viewDistance)
     this.emitter.emit('chunkPosUpdate', { pos })
     const [botX, botZ] = chunkPos(pos)
 
@@ -119,7 +128,7 @@ export class WorldDataEmitter extends EventEmitter {
     }
   }
 
-  async loadChunk (pos: ChunkPos) {
+  async loadChunk (pos: ChunkPos, isLightUpdate = false) {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
     const dz = Math.abs(botZ - Math.floor(pos.z / 16))
@@ -134,11 +143,18 @@ export class WorldDataEmitter extends EventEmitter {
           worldHeight: column['worldHeight'] ?? 256,
         }
         //@ts-ignore
-        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig })
+        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
     } else {
       // console.debug('skipped loading chunk', dx, dz, '>', this.viewDistance)
+    }
+  }
+
+  unloadAllChunks () {
+    for (const coords of Object.keys(this.loadedChunks)) {
+      const [x, z] = coords.split(',').map(Number)
+      this.unloadChunk({ x, z })
     }
   }
 
@@ -163,7 +179,6 @@ export class WorldDataEmitter extends EventEmitter {
           chunksToUnload.push(p)
         }
       }
-      // todo @sa2urami
       console.log('unloading', chunksToUnload.length, 'total now', Object.keys(this.loadedChunks).length)
       for (const p of chunksToUnload) {
         this.unloadChunk(p)
@@ -171,11 +186,12 @@ export class WorldDataEmitter extends EventEmitter {
       const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => {
         const pos = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
         if (!this.loadedChunks[`${pos.x},${pos.z}`]) return pos
-        return undefined!
-      }).filter(Boolean)
+        return undefined
+      }).filter(a => !!a)
       this.lastPos.update(pos)
       await this._loadChunks(positions)
     } else {
+      this.emitter.emit('chunkPosUpdate', { pos }) // todo-low
       this.lastPos.update(pos)
     }
   }

@@ -23,16 +23,35 @@
 
 .world_root {
     height: 40px;
-    width: 300px;
+    width: 308px;
     border: 1px solid transparent;
     display: flex;
     outline: none;
+}
+.world_title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.world_title_right {
+    color: #999;
+    font-size: 9px;
 }
 .world_info {
     margin-left: 3px;
     display: flex;
     flex-direction: column;
     font-size: 11px;
+    white-space: nowrap;
+    width: 100%;
+}
+.world_info_formatted {
+    font-size: 10px;
+    white-space: pre;
+}
+.world_info_description_line {
+  color: #999;
+  white-space: nowrap;
 }
 .world_image {
     height: 100%;

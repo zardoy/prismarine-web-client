@@ -3,7 +3,7 @@ import * as esbuild from 'esbuild'
 import fs from 'fs'
 // import htmlPlugin from '@chialab/esbuild-plugin-html'
 import server from './server.js'
-import { clients, plugins } from './scripts/esbuildPlugins.mjs'
+import { clients, plugins, startWatchingHmr } from './scripts/esbuildPlugins.mjs'
 import { generateSW } from 'workbox-build'
 import { getSwAdditionalEntries } from './scripts/build.js'
 import { build } from 'esbuild'
@@ -17,15 +17,12 @@ fs.writeFileSync('dist/index.html', fs.readFileSync('index.html', 'utf8').replac
 
 const watch = process.argv.includes('--watch') || process.argv.includes('-w')
 const prod = process.argv.includes('--prod')
+if (prod) process.env.PROD = 'true'
 const dev = !prod
 
 const banner = [
   'window.global = globalThis;',
-  // report reload time
-  dev && 'if (sessionStorage.lastReload) { const [rebuild, reloadStart] = sessionStorage.lastReload.split(","); const now = Date.now(); console.log(`rebuild + reload:`, +rebuild, "+", now - reloadStart, "=", ((+rebuild + (now - reloadStart)) / 1000).toFixed(1) + "s");sessionStorage.lastReload = ""; }',
-  // auto-reload
-  dev && 'window.noAutoReload ??= false;(() => new EventSource("/esbuild").onmessage = ({ data: _data }) => { if (!_data) return; const data = JSON.parse(_data); if (!data.update) return;console.log("[esbuild] Page is outdated");document.title = `[O] ${document.title}`;if (window.noAutoReload || localStorage.noAutoReload) return; if (localStorage.autoReloadVisible && document.visibilityState !== "visible") return; sessionStorage.lastReload = `${data.update.time},${Date.now()}`; location.reload() })();'
-].filter(Boolean)
+]
 
 const buildingVersion = new Date().toISOString().split(':')[0]
 
@@ -39,7 +36,7 @@ const buildOptions = {
   // logLevel: 'debug',
   logLevel: 'info',
   platform: 'browser',
-  sourcemap: prod ? true : 'inline',
+  sourcemap: prod ? true : 'linked',
   outdir: 'dist',
   mainFields: [
     'browser', 'module', 'main'
@@ -49,6 +46,9 @@ const buildOptions = {
     // using \n breaks sourcemaps!
     js: banner.join(';'),
   },
+  external: [
+    'sharp'
+  ],
   alias: {
     events: 'events', // make explicit
     buffer: 'buffer',
@@ -59,7 +59,8 @@ const buildOptions = {
     stream: 'stream-browserify',
     net: 'net-browserify',
     assert: 'assert',
-    dns: './src/dns.js'
+    dns: './src/dns.js',
+    // todo write advancedAliases plugin
   },
   inject: [
     './src/shims.js'
@@ -82,6 +83,7 @@ const buildOptions = {
     '.vert': 'text',
     '.frag': 'text',
     '.wgsl': 'text',
+    '.obj': 'text',
   },
   write: false,
   // todo would be better to enable?
@@ -91,6 +93,7 @@ const buildOptions = {
 if (watch) {
   const ctx = await esbuild.context(buildOptions)
   await ctx.watch()
+  startWatchingHmr()
   server.app.get('/esbuild', (req, res, next) => {
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',

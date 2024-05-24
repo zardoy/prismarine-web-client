@@ -9,15 +9,16 @@ import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
-import { openPlayerInventory } from './playerWindows'
-import { chatInputValueGlobal } from './react/ChatContainer'
+import { openPlayerInventory } from './inventoryWindows'
+import { chatInputValueGlobal } from './react/Chat'
 import { fsState } from './loadSave'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
+import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
 
-// doesnt seem to work for now
-const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
+// todo move this to shared file with component
+export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
 subscribe(customKeymaps, () => {
   localStorage.keymap = JSON.parse(customKeymaps)
 })
@@ -32,7 +33,8 @@ export const contro = new ControMax({
       jump: ['Space', 'A'],
       inventory: ['KeyE', 'X'],
       drop: ['KeyQ', 'B'],
-      sneak: ['ShiftLeft', 'Right Stick'],
+      sneak: ['ShiftLeft'],
+      toggleSneakOrDown: [null, 'Right Stick'],
       sprint: ['ControlLeft', 'Left Stick'],
       nextHotbarSlot: [null, 'Left Bumper'],
       prevHotbarSlot: [null, 'Right Bumper'],
@@ -44,7 +46,10 @@ export const contro = new ControMax({
     },
     ui: {
       back: [null/* 'Escape' */, 'B'],
-      click: [null, 'A'],
+      leftClick: [null, 'A'],
+      rightClick: [null, 'Y'],
+      speedupCursor: [null, 'Left Stick'],
+      pauseMenu: [null, 'Start']
     },
     advanced: {
       lockUrl: ['KeyY'],
@@ -65,7 +70,7 @@ export const contro = new ControMax({
   defaultControlOptions: controlOptions,
   target: document,
   captureEvents () {
-    return bot && isGameActive(false)
+    return true
   },
   storeProvider: {
     load: () => customKeymaps,
@@ -85,8 +90,18 @@ const setSprinting = (state: boolean) => {
   gameAdditionalState.isSprinting = state
 }
 
-contro.on('movementUpdate', ({ vector, gamepadIndex }) => {
+contro.on('movementUpdate', ({ vector, soleVector, gamepadIndex }) => {
+  if (gamepadIndex !== undefined && gamepadUiCursorState.display) {
+    const deadzone = 0.1 // TODO make deadzone configurable
+    if (Math.abs(soleVector.x) < deadzone && Math.abs(soleVector.z) < deadzone) {
+      return
+    }
+    moveGamepadCursorByPx(soleVector.x, true)
+    moveGamepadCursorByPx(soleVector.z, false)
+    emitMousemove()
+  }
   miscUiState.usingGamepadInput = gamepadIndex !== undefined
+  if (!bot || !isGameActive(false)) return
   // gamepadIndex will be used for splitscreen in future
   const coordToAction = [
     ['z', -1, 'forward'],
@@ -144,20 +159,82 @@ subscribe(activeModalStack, () => {
   }
 })
 
-const uiCommand = (command: Command) => {
-  if (command === 'ui.back') {
-    hideCurrentModal()
-  } else if (command === 'ui.click') {
-    // todo cursor
+const emitMousemove = () => {
+  const { x, y } = gamepadUiCursorState
+  const xAbs = x / 100 * window.innerWidth
+  const yAbs = y / 100 * window.innerHeight
+  const element = document.elementFromPoint(xAbs, yAbs) as HTMLElement | null
+  if (!element) return
+  element.dispatchEvent(new MouseEvent('mousemove', {
+    clientX: xAbs,
+    clientY: yAbs
+  }))
+}
+
+let lastClickedEl = null as HTMLElement | null
+let lastClickedElTimeout: ReturnType<typeof setTimeout> | undefined
+const inModalCommand = (command: Command, pressed: boolean) => {
+  if (pressed && !gamepadUiCursorState.display) return
+
+  if (pressed) {
+    if (command === 'ui.back') {
+      hideCurrentModal()
+    }
+    if (command === 'ui.leftClick' || command === 'ui.rightClick') {
+      // in percent
+      const { x, y } = gamepadUiCursorState
+      const xAbs = x / 100 * window.innerWidth
+      const yAbs = y / 100 * window.innerHeight
+      const el = document.elementFromPoint(xAbs, yAbs) as HTMLElement
+      if (el) {
+        if (el === lastClickedEl && command === 'ui.leftClick') {
+          el.dispatchEvent(new MouseEvent('dblclick', {
+            bubbles: true,
+            clientX: xAbs,
+            clientY: yAbs
+          }))
+          return
+        }
+        el.dispatchEvent(new MouseEvent('mousedown', {
+          button: command === 'ui.leftClick' ? 0 : 2,
+          bubbles: true,
+          clientX: xAbs,
+          clientY: yAbs
+        }))
+        el.dispatchEvent(new MouseEvent(command === 'ui.leftClick' ? 'click' : 'contextmenu', {
+          bubbles: true,
+          clientX: xAbs,
+          clientY: yAbs
+        }))
+        el.dispatchEvent(new MouseEvent('mouseup', {
+          button: command === 'ui.leftClick' ? 0 : 2,
+          bubbles: true,
+          clientX: xAbs,
+          clientY: yAbs
+        }))
+        el.focus()
+        lastClickedEl = el
+        if (lastClickedElTimeout) clearTimeout(lastClickedElTimeout)
+        lastClickedElTimeout = setTimeout(() => {
+          lastClickedEl = null
+        }, 500)
+      }
+    }
   }
+
+  if (command === 'ui.speedupCursor') {
+    gamepadUiCursorState.multiply = pressed ? 2 : 1
+  }
+}
+
+const setSneaking = (state: boolean) => {
+  gameAdditionalState.isSneaking = state
+  bot.setControlState('sneak', state)
 }
 
 const onTriggerOrReleased = (command: Command, pressed: boolean) => {
   // always allow release!
-  if (pressed && !isGameActive(true)) {
-    uiCommand(command)
-    return
-  }
+  if (!bot || !isGameActive(false)) return
   if (stringStartsWith(command, 'general')) {
     // handle general commands
     // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
@@ -166,14 +243,21 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
         bot.setControlState('jump', pressed)
         break
       case 'general.sneak':
-        gameAdditionalState.isSneaking = pressed
-        bot.setControlState('sneak', pressed)
+        setSneaking(pressed)
         break
       case 'general.sprint':
         // todo add setting to change behavior
         if (pressed) {
           setSprinting(pressed)
         }
+        break
+      case 'general.toggleSneakOrDown':
+        if (gameAdditionalState.isFlying) {
+          setSneaking(pressed)
+        } else if (pressed) {
+          setSneaking(!gameAdditionalState.isSneaking)
+        }
+
         break
       case 'general.attackDestroy':
         document.dispatchEvent(new MouseEvent(pressed ? 'mousedown' : 'mouseup', { button: 0 }))
@@ -186,7 +270,9 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
 }
 
 // im still not sure, maybe need to refactor to handle in inventory instead
-const alwaysHandledCommand = (command: Command) => {
+const alwaysPressedHandledCommand = (command: Command) => {
+  inModalCommand(command, true)
+  // triggered even outside of the game
   if (command === 'general.inventory') {
     if (activeModalStack.at(-1)?.reactType?.startsWith?.('player_win:')) { // todo?
       hideCurrentModal()
@@ -194,9 +280,14 @@ const alwaysHandledCommand = (command: Command) => {
   }
 }
 
+function cycleHotbarSlot (dir: 1 | -1) {
+  const newHotbarSlot = (bot.quickBarSlot + dir + 9) % 9
+  bot.setQuickBarSlot(newHotbarSlot)
+}
+
 contro.on('trigger', ({ command }) => {
   const willContinue = !isGameActive(true)
-  alwaysHandledCommand(command)
+  alwaysPressedHandledCommand(command)
   if (willContinue) return
 
   const secondActionCommand = secondActionCommands[command]
@@ -216,8 +307,15 @@ contro.on('trigger', ({ command }) => {
   onTriggerOrReleased(command, true)
 
   if (stringStartsWith(command, 'general')) {
-    // eslint-disable-next-line @typescript-eslint/switch-exhaustiveness-check
     switch (command) {
+      case 'general.jump':
+      case 'general.sneak':
+      case 'general.toggleSneakOrDown':
+      case 'general.sprint':
+      case 'general.attackDestroy':
+      case 'general.interactPlace':
+        // handled in onTriggerOrReleased
+        break
       case 'general.inventory':
         document.exitPointerLock?.()
         openPlayerInventory()
@@ -245,6 +343,12 @@ contro.on('trigger', ({ command }) => {
       case 'general.selectItem':
         void selectItem()
         break
+      case 'general.nextHotbarSlot':
+        cycleHotbarSlot(1)
+        break
+      case 'general.prevHotbarSlot':
+        cycleHotbarSlot(-1)
+        break
     }
   }
   if (command === 'advanced.lockUrl') {
@@ -265,9 +369,14 @@ contro.on('trigger', ({ command }) => {
     window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
     // return
   }
+
+  if (command === 'ui.pauseMenu') {
+    showModal({ reactType: 'pause-screen' })
+  }
 })
 
 contro.on('release', ({ command }) => {
+  inModalCommand(command, false)
   onTriggerOrReleased(command, false)
 })
 
@@ -326,11 +435,16 @@ document.addEventListener('keydown', (e) => {
   if (!isGameActive(false)) return
   if (hardcodedPressedKeys.has('F3')) {
     const keybind = f3Keybinds.find((v) => v.key === e.code)
-    if (keybind) keybind.action()
+    if (keybind) {
+      keybind.action()
+      e.stopPropagation()
+    }
     return
   }
 
   hardcodedPressedKeys.add(e.code)
+}, {
+  capture: true,
 })
 document.addEventListener('keyup', (e) => {
   hardcodedPressedKeys.delete(e.code)

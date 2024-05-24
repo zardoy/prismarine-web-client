@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Transition } from 'react-transition-group'
-import styles from './diveAnimation.module.css'
+import styles from './DiveTransition.module.css'
 
 // dive animation from framework7
 

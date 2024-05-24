@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "experimentalDecorators": true
   },
   "files": [
     "index.d.ts",

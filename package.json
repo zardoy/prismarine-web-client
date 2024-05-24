@@ -6,7 +6,7 @@
     "start": "node scripts/build.js copyFilesDev && node scripts/prepareData.mjs && node esbuild.mjs --watch",
     "start-watch-script": "nodemon -w esbuild.mjs --watch",
     "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod && node buildWorkers.mjs",
-    "check-build": "tsc && pnpm test-unit && pnpm build",
+    "check-build": "tsc && pnpm build",
     "test:cypress": "cypress run",
     "test:cypress:perf": "cypress run --spec cypress/e2e/perf.spec.ts --browser edge",
     "test-unit": "vitest",
@@ -17,10 +17,10 @@
     "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\"",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build && node scripts/build.js moveStorybookFiles",
-    "start-experiments": "vite --config experiments/vite.config.ts",
-    "watch-worker": "node prismarine-viewer/buildWorker.mjs -w",
-    "watch-other-workers": "node buildWorkers.mjs -w",
-    "run-playground": "run-p watch-worker watch-other-workers playground-server watch-playground",
+    "start-experiments": "vite --config experiments/vite.config.ts --host",
+    "watch-other-workers": "echo NOT IMPLEMENTED",
+    "watch-mesher": "node prismarine-viewer/buildMesherWorker.mjs -w",
+    "run-playground": "run-p watch-mesher watch-other-workers playground-server watch-playground",
     "run-all": "run-p start run-playground",
     "playground-server": "live-server --port=9090 prismarine-viewer/public",
     "watch-playground": "node prismarine-viewer/esbuild.mjs -w"
@@ -30,12 +30,18 @@
     "web",
     "client"
   ],
-  "author": "PrismarineJS",
+  "publish": {
+    "preset": {
+      "publishOnlyIfChanged": true,
+      "runBuild": false
+    }
+  },
   "license": "MIT",
   "dependencies": {
     "@dimaka/interface": "0.0.3-alpha.0",
     "@floating-ui/react": "^0.26.1",
-    "@mui/base": "5.0.0-beta.34",
+    "@mui/base": "5.0.0-beta.40",
+    "@nxg-org/mineflayer-auto-jump": "^0.7.7",
     "@nxg-org/mineflayer-tracker": "^1.2.1",
     "@react-oauth/google": "^0.12.1",
     "@types/gapi": "^0.0.47",
@@ -46,8 +52,10 @@
     "@xmcl/text-component": "^2.1.3",
     "@zardoy/react-util": "^0.2.0",
     "@zardoy/utils": "^0.0.11",
+    "adm-zip": "^0.5.12",
     "browserfs": "github:zardoy/browserfs#build",
     "change-case": "^5.1.2",
+    "classnames": "^2.5.1",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "cypress-plugin-snapshots": "^1.4.4",
@@ -56,16 +64,19 @@
     "esbuild": "^0.19.3",
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.15",
+    "filesize": "^10.0.12",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.20",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "iconify-icon": "^1.0.8",
     "jszip": "^3.10.1",
-    "lit": "^2.8.0",
     "lodash-es": "^4.17.21",
     "math.gl": "^4.0.0",
     "minecraft-assets": "^1.12.2",
-    "minecraft-data": "3.62.0",
+    "minecraft-data": "3.65.0",
+    "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol",
+    "mineflayer-item-map-downloader": "github:zardoy/mineflayer-item-map-downloader",
+    "mojangson": "^2.0.4",
     "net-browserify": "github:zardoy/prismarinejs-net-browserify",
     "node-gzip": "^1.1.2",
     "peerjs": "^1.5.0",
@@ -73,6 +84,7 @@
     "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
     "prosemirror-example-setup": "^1.2.2",
     "prosemirror-markdown": "^1.12.0",
+    "prosemirror-menu": "^1.2.4",
     "prosemirror-state": "^1.4.3",
     "prosemirror-view": "^1.33.1",
     "qrcode.react": "^3.1.0",
@@ -89,7 +101,9 @@
     "title-case": "3.x",
     "twgl.js": "^5.5.4",
     "ua-parser-js": "^1.0.37",
+    "use-typed-event-listener": "^4.0.2",
     "valtio": "^1.11.1",
+    "vec3": "^0.1.7",
     "workbox-build": "^7.0.0"
   },
   "devDependencies": {
@@ -98,8 +112,6 @@
     "@storybook/blocks": "^7.4.6",
     "@storybook/react": "^7.4.6",
     "@storybook/react-vite": "^7.4.6",
-    "@storybook/web-components": "^7.4.6",
-    "@storybook/web-components-vite": "^7.4.6",
     "@types/lodash-es": "^4.17.9",
     "@types/react-transition-group": "^4.4.7",
     "@types/stats.js": "^0.17.1",
@@ -110,14 +122,13 @@
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
     "constants-browserify": "^1.0.0",
-    "contro-max": "^0.1.1",
+    "contro-max": "^0.1.6",
     "crypto-browserify": "^3.12.0",
     "cypress": "^10.11.0",
     "cypress-esbuild-preprocessor": "^1.0.2",
     "eslint": "^8.50.0",
     "eslint-config-zardoy": "^0.2.17",
     "events": "^3.3.0",
-    "filesize": "^10.0.12",
     "http-browserify": "^1.7.0",
     "http-server": "^14.1.1",
     "https-browserify": "^1.0.0",
@@ -135,8 +146,7 @@
     "stream-browserify": "^3.0.0",
     "three": "0.154.0",
     "timers-browserify": "^2.0.12",
-    "typescript": "^5.2.2",
-    "use-typed-event-listener": "^4.0.2",
+    "typescript": "5.5.0-beta",
     "vitest": "^0.34.6",
     "yaml": "^2.3.2"
   },
@@ -145,14 +155,23 @@
   },
   "pnpm": {
     "overrides": {
+      "@nxg-org/mineflayer-physics-util": "1.5.8",
       "three": "0.154.0",
       "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
       "prismarine-world": "github:zardoy/prismarine-world#next-era",
-      "minecraft-data": "3.62.0",
+      "minecraft-data": "3.65.0",
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
-      "minecraft-protocol": "github:zardoy/minecraft-protocol#everything",
-      "react": "^18.2.0"
+      "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol",
+      "react": "^18.2.0",
+      "prismarine-chunk": "github:zardoy/prismarine-chunk"
+    },
+    "updateConfig": {
+      "ignoreDependencies": []
+    },
+    "patchedDependencies": {
+      "minecraft-protocol@1.47.0": "patches/minecraft-protocol@1.47.0.patch"
     }
-  }
+  },
+  "packageManager": "pnpm@9.0.4"
 }

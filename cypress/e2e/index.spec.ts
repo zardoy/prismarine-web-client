@@ -22,7 +22,7 @@ const testWorldLoad = () => {
 }
 
 it('Loads & renders singleplayer', () => {
-  cleanVisit('/?singleplayer=1')
+  visit('/?singleplayer=1')
   setOptions({
     localServerOptions: {
       generation: {
@@ -36,21 +36,20 @@ it('Loads & renders singleplayer', () => {
   testWorldLoad()
 })
 
-it.only('Joins to server', () => {
-  // visit('/?version=1.16.1')
+it('Joins to server', () => {
+  visit('/?ip=localhost&version=1.16.1')
   window.localStorage.version = ''
-  visit()
   // todo replace with data-test
-  cy.get('[data-test-id="connect-screen-button"]', { includeShadowDom: true }).click()
-  cy.get('input#serverip', { includeShadowDom: true }).clear().focus().type('localhost')
-  cy.get('input#botversion', { includeShadowDom: true }).clear().focus().type('1.16.1') // todo needs to fix autoversion
-  cy.get('[data-test-id="connect-to-server"]', { includeShadowDom: true }).click()
+  // cy.get('[data-test-id="servers-screen-button"]').click()
+  // cy.get('[data-test-id="server-ip"]').clear().focus().type('localhost')
+  // cy.get('[data-test-id="version"]').clear().focus().type('1.16.1') // todo needs to fix autoversion
+  cy.get('[data-test-id="connect-qs"]').click()
   testWorldLoad()
 })
 
 it('Loads & renders zip world', () => {
   cleanVisit()
-  cy.get('[data-test-id="select-file-folder"]', { includeShadowDom: true }).click({ shiftKey: true })
+  cy.get('[data-test-id="select-file-folder"]').click({ shiftKey: true })
   cy.get('input[type="file"]').selectFile('cypress/superflat.zip', { force: true })
   testWorldLoad()
 })

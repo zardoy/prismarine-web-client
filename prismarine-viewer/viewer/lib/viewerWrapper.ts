@@ -1,3 +1,5 @@
+import { statsEnd, statsStart } from '../../../src/topRightStats'
+
 // wrapper for now
 export class ViewerWrapper {
     previousWindowWidth: number
@@ -42,7 +44,7 @@ export class ViewerWrapper {
             this.globalObject.requestAnimationFrame(this.render.bind(this))
         }
         if (typeof window !== 'undefined') {
-            this.trackWindowFocus()
+            // this.trackWindowFocus()
         }
     }
 
@@ -68,8 +70,8 @@ export class ViewerWrapper {
     renderedFps = 0
     lastTime = performance.now()
     delta = 0
-    startRender = () => { }
-    endRender = () => { }
+    preRender = () => { }
+    postRender = () => { }
     render (time: DOMHighResTimeStamp) {
         if (this.globalObject.stopLoop) return
         for (const fn of beforeRenderFrame) fn()
@@ -85,17 +87,18 @@ export class ViewerWrapper {
                 return
             }
         }
+        this.preRender()
+        statsStart()
         // ios bug: viewport dimensions are updated after the resize event
         if (this.previousWindowWidth !== window.innerWidth || this.previousWindowHeight !== window.innerHeight) {
             this.resizeHandler()
             this.previousWindowWidth = window.innerWidth
             this.previousWindowHeight = window.innerHeight
         }
-        this.startRender()
-        viewer.update()
         viewer.render()
         this.renderedFps++
-        this.endRender()
+        statsEnd()
+        this.postRender()
     }
 
     resizeHandler () {
@@ -108,10 +111,6 @@ export class ViewerWrapper {
         if (this.renderer) {
             this.renderer.setSize(width, height)
         }
-        // canvas updated by renderer
-
-        if (viewer.composer) {
-            viewer.updateComposerSize()
-        }
+        viewer.world.handleResize()
     }
 }

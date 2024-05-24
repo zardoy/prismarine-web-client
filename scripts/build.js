@@ -14,7 +14,7 @@ const entityMcAssets = McAssets('1.16.4')
 const filesToCopy = [
     { from: `${prismarineViewerBase}/public/blocksStates/`, to: 'dist/blocksStates/' },
     { from: `${prismarineViewerBase}/public/webgl/`, to: 'dist/webgl/' },
-    { from: `${prismarineViewerBase}/public/worker.js`, to: 'dist/worker.js' },
+    { from: `${prismarineViewerBase}/public/mesher.js`, to: 'dist/mesher.js' },
     { from: './assets/', to: './dist/' },
     { from: './config.json', to: 'dist/config.json' },
     { from: path.join(entityMcAssets.directory, 'entity'), to: 'dist/textures/1.16.4/entity' },
@@ -61,7 +61,8 @@ exports.getSwAdditionalEntries = () => {
         '*.ttf',
         '*.png',
         '*.woff',
-        'worker.js',
+        'mesher.js',
+        'worldSaveWorker.js',
         // todo-low preload entity atlas?
         `textures/${singlePlayerVersion}.png`,
         `textures/1.16.4/entity/squid.png`,
@@ -69,7 +70,8 @@ exports.getSwAdditionalEntries = () => {
     const filesNeedsCacheKey = [
         'index.js',
         'index.css',
-        'worker.js',
+        'mesher.js',
+        'worldSaveWorker.js',
     ]
     const output = []
     console.log('Generating sw additional entries...')

@@ -7,12 +7,15 @@ package-lock.json
 Thumbs.db
 build
 localSettings.mjs
-dist
+dist*
 .DS_Store
 .idea/
 world
+data*.json
 out
 *.iml
 .vercel
 generated
 storybook-static
+
+src/react/npmReactComponents.ts

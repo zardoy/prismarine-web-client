@@ -2,8 +2,8 @@ import { test, expect } from 'vitest'
 import mcData from 'minecraft-data'
 import { formatMessage } from './botUtils'
 
-globalThis.window ??= {} as any
-globalThis.window.loadedData ??= mcData('1.20.1')
+//@ts-expect-error
+globalThis.loadedData ??= mcData('1.20.1')
 
 const mapIncludeDefined = (props) => {
   return (x) => {

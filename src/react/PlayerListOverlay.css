@@ -1,0 +1,81 @@
+
+.playerlist-container {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.3);
+  top: 9px;
+  left: 0;
+  right: 0;
+  margin: auto;
+  width: fit-content;
+  padding: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px 0;
+  place-items: center;
+  z-index: 30;
+}
+
+.playerlist-header, .playerlist-footer {
+  font-size: 0.5rem
+}
+
+.playerlist-title {
+  color: white;
+  text-shadow: 1px 1px 0px #3f3f3f;
+  font-size: 10px;
+  margin: 0;
+  padding: 0;
+}
+
+.playerlist-entry {
+  overflow: hidden;
+  color: white;
+  font-size: 10px;
+  margin: 0px;
+  line-height: calc(100% - 1px);
+  text-shadow: 1px 1px 0px #3f3f3f;
+  font-family: mojangles, minecraft, monospace;
+  background: rgba(255, 255, 255, 0.1);
+  width: 100%;
+}
+
+.active-player {
+  color: rgb(42, 204, 237);
+  text-shadow: 1px 1px 0px rgb(4, 44, 67);
+}
+
+.playerlist-ping {
+  text-align: right;
+  float: right;
+  padding-left: 10px;
+}
+
+.playerlist-ping-value {
+  color: rgb(114, 255, 114);
+  text-shadow: 1px 1px 0px rgb(28, 105, 28);
+  float: left;
+  margin: 0;
+  margin-right: 1px;
+}
+
+.playerlist-ping-label {
+  text-shadow: 1px 1px 0px #3f3f3f;
+  color: white;
+  float: right;
+  margin: 0px;
+}
+
+.player-lists {
+  display: flex;
+  flex-direction: row;
+  place-items: center;
+  place-content: center;
+  gap: 0 4px;
+}
+
+.player-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px 0;
+  min-width: 80px;
+}

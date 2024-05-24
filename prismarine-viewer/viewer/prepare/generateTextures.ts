@@ -1,6 +1,6 @@
 import path from 'path'
 import { makeBlockTextureAtlas } from './atlas'
-import { McAssets, prepareBlocksStates } from './modelsBuilder'
+import { prepareBlocksStates } from './modelsBuilder'
 import mcAssets from 'minecraft-assets'
 import fs from 'fs-extra'
 import { prepareMoreGeneratedBlocks } from './moreGeneratedBlocks'

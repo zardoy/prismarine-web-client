@@ -1,7 +1,6 @@
 import _ from 'lodash'
-import { WorldDataEmitter, Viewer, MapControls } from '../viewer'
+import { WorldDataEmitter, Viewer } from '../viewer'
 import { Vec3 } from 'vec3'
-import { Schematic } from 'prismarine-schematic'
 import BlockLoader from 'prismarine-block'
 import ChunkLoader from 'prismarine-chunk'
 import WorldLoader from 'prismarine-world'
@@ -11,7 +10,7 @@ import { toMajor } from '../viewer/lib/version'
 import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
-import Entity from '../viewer/lib/entity/Entity'
+import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
 // import * as Mathgl from 'math.gl'
 import { findTextureInBlockStates } from '../../src/playerWindows'
 import { initWebgpuRenderer, loadFixtureSides, setAnimationTick } from './webgpuRendererMain'
@@ -20,9 +19,6 @@ import { renderToDom } from '@zardoy/react-util'
 globalThis.THREE = THREE
 //@ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import { renderPlayground } from './TouchControls2'
-import { WorldRendererWebgpu } from '../viewer/lib/worldrendererWebgpu'
-import { TextureAnimation } from './TextureAnimation'
 
 const gui = new GUI()
 
@@ -153,7 +149,7 @@ async function main () {
 
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
   const nullRenderer = new THREE.WebGLRenderer({ antialias: true })
-  const viewer = new Viewer(nullRenderer, 1)
+  const viewer = new Viewer(nullRenderer, { numWorkers: 1, showChunkBorders: false })
   viewer.world.stopBlockUpdate = stopUpdate
   viewer.setVersion(version)
   globalThis.viewer = viewer
@@ -293,7 +289,6 @@ async function main () {
     }
     enableSkeletonDebug(viewer.entities.entities['id'])
     setTimeout(() => {
-      viewer.update()
       viewer.render()
     }, TWEEN_DURATION)
   }
@@ -359,7 +354,7 @@ async function main () {
       //   prev = !prev
       // }, 1000)
 
-      Entity.getStaticData(params.entity)
+      EntityMesh.getStaticData(params.entity)
       // entityRotationFolder.destroy()
       // entityRotationFolder = gui.addFolder('entity metadata')
       // entityRotationFolder.add(params, 'entityRotate')
@@ -432,9 +427,6 @@ async function main () {
     }
   })
   viewer.waitForChunksToRender().then(async () => {
-    await new Promise(resolve => {
-      setTimeout(resolve, 0)
-    })
     for (const update of Object.values(onUpdate)) {
       update()
     }
@@ -446,7 +438,6 @@ async function main () {
   const animate2 = () => {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
-    viewer.update()
     viewer.render()
     window.requestAnimationFrame(animate2)
   }

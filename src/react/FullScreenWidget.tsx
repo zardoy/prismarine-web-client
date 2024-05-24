@@ -1,5 +1,5 @@
 import Screen from './Screen'
-import { useIsWidgetActive } from './utils'
+import { useIsWidgetActive } from './utilsApp'
 
 export default ({ name, title, children }) => {
   const isWidgetActive = useIsWidgetActive(name)

@@ -5,35 +5,47 @@ import { dispose3 } from './dispose'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
-import { WorldRendererCommon } from './worldrendererCommon'
 
 function mod (x, n) {
     return ((x % n) + n) % n
 }
+import { WorldRendererCommon } from './worldrendererCommon'
+import * as tweenJs from '@tweenjs/tween.js'
+import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
 
 export class WorldRendererThree extends WorldRendererCommon {
     outputFormat = 'threeJs' as const
     blockEntities = {}
     sectionObjects: Record<string, THREE.Object3D> = {}
-    showChunkBorders = false
     chunkTextures = new Map<string, { [pos: string]: THREE.Texture }>()
     signsCache = new Map<string, any>()
 
-    constructor(public scene: THREE.Scene, numWorkers = 4) {
-        super(numWorkers)
+    get tilesRendered () {
+        return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
+    }
+
+    constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
+        super(config)
     }
 
     /**
      * Optionally update data that are depedendent on the viewer position
      */
     updatePosDataChunk (key: string) {
-        if (!this.viewerPosition) return
         const [x, y, z] = key.split(',').map(x => Math.floor(+x / 16))
-        const [xPlayer, yPlayer, zPlayer] = this.viewerPosition.toArray().map(x => Math.floor(x / 16))
+        const [xPlayer, yPlayer, zPlayer] = this.camera.position.toArray().map(x => Math.floor(x / 16))
         // sum of distances: x + y + z
         const chunkDistance = Math.abs(x - xPlayer) + Math.abs(y - yPlayer) + Math.abs(z - zPlayer)
         const section = this.sectionObjects[key].children.find(child => child.name === 'mesh')!
         section.renderOrder = 500 - chunkDistance
+    }
+
+    updateViewerPosition (pos: Vec3): void {
+        this.viewerPosition = pos
+        for (const [key, value] of Object.entries(this.sectionObjects)) {
+            if (!value) continue
+            this.updatePosDataChunk(key)
+        }
     }
 
     handleWorkerMessage (data: any): void {
@@ -78,7 +90,9 @@ export class WorldRendererThree extends WorldRendererCommon {
         boxHelper.name = 'helper'
         object.add(boxHelper)
         object.name = 'chunk'
-        if (!this.showChunkBorders) {
+        //@ts-ignore
+        object.tilesCount = data.geometry.positions.length / 3 / 4
+        if (!this.config.showChunkBorders) {
             boxHelper.visible = false
         }
         // should not compute it once
@@ -87,7 +101,7 @@ export class WorldRendererThree extends WorldRendererCommon {
                 const [x, y, z] = posKey.split(',')
                 const signBlockEntity = this.blockEntities[posKey]
                 if (!signBlockEntity) continue
-                const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity));
+                const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity))
                 if (!sign) continue
                 object.add(sign)
             }
@@ -104,7 +118,7 @@ export class WorldRendererThree extends WorldRendererCommon {
             textures = {}
             this.chunkTextures.set(`${chunk[0]},${chunk[1]}`, textures)
         }
-        const texturekey = `${position.x},${position.y},${position.z}`;
+        const texturekey = `${position.x},${position.y},${position.z}`
         // todo investigate bug and remove this so don't need to clean in section dirty
         if (textures[texturekey]) return textures[texturekey]
 
@@ -117,6 +131,18 @@ export class WorldRendererThree extends WorldRendererCommon {
         tex.needsUpdate = true
         textures[texturekey] = tex
         return tex
+    }
+
+    updateCamera (pos: Vec3 | null, yaw: number, pitch: number): void {
+        if (pos) {
+            new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
+        }
+        this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+    }
+
+    render () {
+        tweenJs.update()
+        this.renderer.render(this.scene, this.camera)
     }
 
     renderSign (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
@@ -155,8 +181,34 @@ export class WorldRendererThree extends WorldRendererCommon {
         return group
     }
 
+    updateLight (chunkX: number, chunkZ: number) {
+        // set all sections in the chunk dirty
+        for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+            this.setSectionDirty(new Vec3(chunkX, y, chunkZ))
+        }
+    }
+
+    async doHmr () {
+        const oldSections = { ...this.sectionObjects }
+        this.sectionObjects = {} // skip clearing
+        worldView!.unloadAllChunks()
+        this.setVersion(this.version, this.texturesVersion)
+        this.sectionObjects = oldSections
+        // this.rerenderAllChunks()
+
+        // supply new data
+        await worldView!.updatePosition(bot.entity.position, true)
+    }
+
+    rerenderAllChunks () { // todo not clear what to do with loading chunks
+        for (const key of Object.keys(this.sectionObjects)) {
+            const [x, y, z] = key.split(',').map(Number)
+            this.setSectionDirty(new Vec3(x, y, z))
+        }
+    }
+
     updateShowChunksBorder (value: boolean) {
-        this.showChunkBorders = value
+        this.config.showChunkBorders = value
         for (const object of Object.values(this.sectionObjects)) {
             for (const child of object.children) {
                 if (child.name === 'helper') {

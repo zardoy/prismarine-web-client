@@ -8,10 +8,15 @@ import { options } from './optionsStorage'
 import { loadOrPlaySound } from './basicSounds'
 import { showNotification } from './react/NotificationProvider'
 
+const globalObject = window as {
+  allSoundsMap?: Record<string, Record<string, string>>,
+  allSoundsVersionedMap?: Record<string, string[]>,
+}
+
 subscribeKey(miscUiState, 'gameLoaded', async () => {
   if (!miscUiState.gameLoaded) return
   const soundsLegacyMap = window.allSoundsVersionedMap as Record<string, string[]>
-  const allSoundsMap = window.allSoundsMap as Record<string, Record<string, string>>
+  const { allSoundsMap } = globalObject
   const allSoundsMeta = window.allSoundsMeta as { format: string, baseUrl: string }
   if (!allSoundsMap) {
     return
@@ -20,13 +25,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
   // todo also use major versioned hardcoded sounds
   const soundsMap = allSoundsMap[bot.version]
 
-  if (!soundsMap) {
-    console.warn('No sounds map for version', bot.version, 'supported versions are', Object.keys(allSoundsMap).join(', '))
-    showNotification('Warning', 'No sounds map for version ' + bot.version)
-    return
-  }
-
-  if (!miscUiState.gameLoaded || !soundsMap) {
+  if (!soundsMap || !miscUiState.gameLoaded || !soundsMap) {
     return
   }
 
@@ -40,7 +39,6 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
       return
     }
     if (!options.volume) return
-    console.debug('play sound', soundId)
     const parts = soundString.split(';')
     const soundVolume = +parts[0]!
     const soundName = parts[1]!
@@ -122,7 +120,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
   }
 
   const getStepSound = (blockUnder: Block) => {
-    // const soundsMap = window.allSoundsMap?.[bot.version]
+    // const soundsMap = globalObject.allSoundsMap?.[bot.version]
     // if (!soundsMap) return
     // let soundResult = 'block.stone.step'
     // for (const x of Object.keys(soundsMap).map(n => n.split(';')[1])) {
@@ -222,6 +220,31 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
   // })
 })
 
+// todo
+// const music = {
+//   activated: false,
+//   playing: '',
+//   activate () {
+//     const gameMusic = Object.entries(globalObject.allSoundsMap?.[bot.version] ?? {}).find(([id, sound]) => sound.includes('music.game'))
+//     if (!gameMusic) return
+//     const soundPath = gameMusic[0].split(';')[1]
+//     const next = () => {}
+//   }
+// }
+
+export const earlyCheck = () => {
+  const { allSoundsMap } = globalObject
+  if (!allSoundsMap) return
+
+  // todo also use major versioned hardcoded sounds
+  const soundsMap = allSoundsMap[bot.version]
+
+  if (!soundsMap) {
+    console.warn('No sounds map for version', bot.version, 'supported versions are', Object.keys(allSoundsMap).join(', '))
+    showNotification('Warning', 'No sounds map for version ' + bot.version)
+  }
+}
+
 const getVersionedSound = (version: string, item: string, itemsMapSortedEntries: Array<[string, string[]]>) => {
   const verNumber = versionToNumber(version)
   for (const [itemsVer, items] of itemsMapSortedEntries) {
@@ -234,7 +257,7 @@ const getVersionedSound = (version: string, item: string, itemsMapSortedEntries:
 }
 
 export const downloadSoundsIfNeeded = async () => {
-  if (!window.allSoundsMap) {
+  if (!globalObject.allSoundsMap) {
     try {
       await loadScript('./sounds.js')
     } catch (err) {

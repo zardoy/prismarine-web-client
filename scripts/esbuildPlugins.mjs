@@ -6,17 +6,39 @@ import * as fs from 'fs'
 import { filesize } from 'filesize'
 import MCProtocol from 'minecraft-protocol'
 import MCData from 'minecraft-data'
+import { throttle } from 'lodash-es'
 
 const { supportedVersions } = MCProtocol
 
 const prod = process.argv.includes('--prod')
 let connectedClients = []
 
+const writeToClients = (data) => {
+  connectedClients.forEach((res) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`)
+    res.flush()
+  })
+}
+
+export const startWatchingHmr = () => {
+  const eventsPerFile = {
+    'mesher.js': 'mesher',
+    // 'dist/webglRendererWorker.js': 'webglRendererWorker',
+  }
+  for (const name of Object.keys(eventsPerFile)) {
+    const file = join('dist', name)
+    if (!fs.existsSync(file)) console.warn(`[missing worker] File ${name} does not exist`)
+    fs.watchFile(file, () => {
+      writeToClients({ replace: { type: eventsPerFile[name] } })
+    })
+  }
+}
+
 /** @type {import('esbuild').Plugin[]} */
 const plugins = [
   {
     name: 'strict-aliases',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /^minecraft-protocol$/,
       }, async ({ kind, resolveDir }) => {
@@ -53,6 +75,13 @@ const plugins = [
       }, () => {
         throw new Error('hit banned package')
       })
+      build.onLoad({
+        filter: /^prismarine-auth/,
+      }, () => {
+        return {
+          contents: 'module.exports = {}',
+        }
+      })
 
       build.onResolve({
         filter: /^three$/,
@@ -65,7 +94,7 @@ const plugins = [
   },
   {
     name: 'data-assets',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /.*/,
       }, async ({ path, ...rest }) => {
@@ -78,11 +107,26 @@ const plugins = [
         }
       })
 
+      const removeNodeModulesSourcemaps = (map) => {
+        const doNotRemove = ['prismarine', 'mineflayer', 'flying-squid', '@jspm/core', 'minecraft']
+        map.sourcesContent.forEach((_, i) => {
+          if (map.sources[i].includes('node_modules') && !doNotRemove.some(x => map.sources[i].includes(x))) {
+            map.sourcesContent[i] = null
+          }
+        })
+      }
+
       build.onEnd(async ({ metafile, outputFiles }) => {
         // write outputFiles
         //@ts-ignore
         for (const file of outputFiles) {
-          await fs.promises.writeFile(file.path, file.contents)
+          let contents = file.text
+          if (file.path.endsWith('.map') && file.text && !process.env.PROD) {
+            const map = JSON.parse(file.text)
+            removeNodeModulesSourcemaps(map)
+            contents = JSON.stringify(map)
+          }
+          await fs.promises.writeFile(file.path, contents)
         }
         if (!prod) return
         // const deps = Object.entries(metafile.inputs).sort(([, a], [, b]) => b.bytes - a.bytes).map(([x, { bytes }]) => [x, filesize(bytes)]).slice(0, 5)
@@ -101,7 +145,7 @@ const plugins = [
   },
   {
     name: 'prevent-incorrect-linking',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /.+/,
       }, async ({ resolveDir, path, importer, kind, pluginData }) => {
@@ -124,10 +168,11 @@ const plugins = [
   },
   {
     name: 'watch-notify',
-    setup (build) {
+    setup(build) {
       let count = 0
       let time
       let prevHash
+
       build.onStart(() => {
         time = Date.now()
       })
@@ -139,23 +184,20 @@ const plugins = [
         outputFiles.find(outputFile => outputFile.path)
 
         if (errors.length) {
-          connectedClients.forEach((res) => {
-            res.write(`data: ${JSON.stringify({ errors: errors.map(error => error.text) })}\n\n`)
-            res.flush()
-          })
+          writeToClients({ errors: errors.map(error => error.text) })
           return
         }
 
         // write metafile to disk if needed to analyze
-        // fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
+        fs.writeFileSync('dist/meta.json', JSON.stringify(metafile, null, 2))
 
         /** @type {import('esbuild').OutputFile} */
         //@ts-ignore
         const outputFile = outputFiles.find(x => x.path.endsWith('.js'))
         if (outputFile.hash === prevHash) {
           // todo also check workers and css
-          // console.log('Ignoring reload as contents the same')
-          // return
+          console.log('Ignoring reload as contents the same')
+          return
         }
         prevHash = outputFile.hash
         let outputText = outputFile.text
@@ -169,17 +211,14 @@ const plugins = [
           return
         }
 
-        connectedClients.forEach((res) => {
-          res.write(`data: ${JSON.stringify({ update: { time: elapsed } })}\n\n`)
-          res.flush()
-        })
+        writeToClients({ update: { time: elapsed } })
         connectedClients.length = 0
       })
     }
   },
   {
     name: 'esbuild-readdir',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /^esbuild-readdir:.+$/,
       }, ({ resolveDir, path }) => {
@@ -207,7 +246,7 @@ const plugins = [
   },
   {
     name: 'esbuild-import-glob',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /^esbuild-import-glob\(path:(.+),skipFiles:(.+)\)+$/,
       }, ({ resolveDir, path }) => {
@@ -237,7 +276,7 @@ const plugins = [
   },
   {
     name: 'fix-dynamic-require',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /1\.14\/chunk/,
       }, async ({ resolveDir, path }) => {
@@ -266,7 +305,7 @@ const plugins = [
   },
   {
     name: 'react-displayname',
-    setup (build) {
+    setup(build) {
       build.onLoad({
         filter: /.tsx$/,
       }, async ({ path }) => {

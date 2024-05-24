@@ -9,11 +9,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@master
       - name: Install pnpm
-        run: npm i -g pnpm
-        # todo this needs investigating fixing
+        run: npm i -g pnpm@9.0.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          # cache: "pnpm"
       - run: pnpm install
-      - run: pnpm lint
       - run: pnpm check-build
+      - run: pnpm test-unit
+      - run: pnpm lint
+      - run: pnpm tsx scripts/buildNpmReact.ts
       - run: nohup pnpm prod-start &
       - run: nohup pnpm test-mc-server &
       - uses: cypress-io/github-action@v5
@@ -24,3 +29,7 @@ jobs:
         with:
           name: cypress-images
           path: cypress/integration/__image_snapshots__/
+      - run: node scripts/outdatedGitPackages.mjs
+        if: github.ref == 'refs/heads/next'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
