@@ -122,7 +122,7 @@ class WebgpuRendererWorker {
                                 // position
                                 shaderLocation: 0,
                                 offset: cubePositionOffset,
-                                format: 'float32x4',
+                                format: 'float32x3',
                             },
                             {
                                 // uv
@@ -170,7 +170,7 @@ class WebgpuRendererWorker {
             },
             primitive: {
                 topology: 'triangle-list',
-                cullMode: 'back',
+                cullMode: 'front',
 
             },
             depthStencil: {
@@ -255,6 +255,9 @@ class WebgpuRendererWorker {
             },
         }
 
+
+        // always last!
+        rendering = false
         this.loop()
         this.ready = true
 

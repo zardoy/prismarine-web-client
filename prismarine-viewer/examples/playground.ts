@@ -255,10 +255,10 @@ async function main () {
 
   let blocks: Record<string, BlockType> = {}
   let i = 0
-  for (let x = 0; x < 100; x++) {
+  for (let x = 0; x < 1; x++) {
     blocks = {}
-    for (let i = 0; i < 10000; i++) {
-      const max = 1000
+    for (let i = 0; i < 1000; i++) {
+      const max = 100
       const pos = new Vec3(Math.floor(Math.random() * max), Math.floor(Math.random() * max), Math.floor(Math.random() * max))
       const getFace = (face: number) => {
         return {
