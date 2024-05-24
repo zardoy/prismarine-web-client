@@ -14,7 +14,7 @@ import { TWEEN_DURATION } from '../viewer/lib/entities'
 import Entity from '../viewer/lib/entity/Entity'
 // import * as Mathgl from 'math.gl'
 import { findTextureInBlockStates } from '../../src/playerWindows'
-import { initWebgpuRenderer, loadFixtureSides, setAnimationTick } from './webgpuRendererMain'
+import { initWebgpuRenderer, loadFixtureSides, setAnimationTick, webgpuChannel } from './webgpuRendererMain'
 import { renderToDom } from '@zardoy/react-util'
 
 globalThis.THREE = THREE
@@ -23,6 +23,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { renderPlayground } from './TouchControls2'
 import { WorldRendererWebgpu } from '../viewer/lib/worldrendererWebgpu'
 import { TextureAnimation } from './TextureAnimation'
+import { BlockType } from './shared'
 
 const gui = new GUI()
 
@@ -186,6 +187,12 @@ async function main () {
       }
       direction.applyQuaternion(viewer.camera.quaternion)
       direction.y = 0
+
+      if (pressedKeys.has('ShiftLeft')) {
+        direction.y *= 2
+        direction.x *= 2
+        direction.z *= 2
+      }
       // Add the vector to the camera's position to move the camera
       viewer.camera.position.add(direction)
     }
@@ -245,6 +252,34 @@ async function main () {
     const pos = fixture.camera[0]
     viewer.camera.position.set(pos[0], pos[1], pos[2])
   }
+
+  let blocks: Record<string, BlockType> = {}
+  let i = 0
+  for (let x = 0; x < 100; x++) {
+    blocks = {}
+    for (let i = 0; i < 10000; i++) {
+      const max = 1000
+      const pos = new Vec3(Math.floor(Math.random() * max), Math.floor(Math.random() * max), Math.floor(Math.random() * max))
+      const getFace = (face: number) => {
+        return {
+          face,
+          textureIndex: Math.floor(Math.random() * 512)
+        }
+      }
+      blocks[`${pos.x},${pos.y},${pos.z}`] = {
+        sides: [
+          getFace(0),
+          getFace(1),
+          getFace(2),
+          getFace(3),
+          getFace(4),
+          getFace(5)
+        ],
+      }
+    }
+    webgpuChannel.addBlocksSection({ blocks }, `0,0,${i++}`)
+  }
+
 
   return
 

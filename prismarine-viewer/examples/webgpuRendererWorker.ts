@@ -2,7 +2,7 @@
 import * as THREE from 'three'
 import { BlockFaceType, BlockType } from './shared'
 import * as tweenJs from '@tweenjs/tween.js'
-import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from './cube'
+import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from './CubeDef'
 //@ts-ignore
 import VertShader from './Cube.vert.wgsl'
 //@ts-ignore
@@ -17,18 +17,9 @@ let chunksArrIndexes = {}
 let freeArrayIndexes = [] as [number, number][]
 let rendering = true
 let sidePositions
-let updateCubes: (startIndex: any, forceUpdate?) => void
 let lastNotUpdatedIndex
 let lastNotUpdatedArrSize
 let animationTick = 0
-
-const updateCubesWhenAvailable = (pos) => {
-    if (updateCubes) {
-        updateCubes(pos)
-    } else {
-        setTimeout(updateCubesWhenAvailable, 100)
-    }
-}
 
 const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 1000)
 globalThis.camera = camera
@@ -47,6 +38,10 @@ const updateSize = (width, height) => {
 
 
 class WebgpuRendererWorker {
+    static NUMBER_OF_CUBES = 1_000_000
+
+    ready = false
+
     device: GPUDevice
     renderPassDescriptor: GPURenderPassDescriptor
     uniformBindGroup: GPUBindGroup
@@ -88,6 +83,7 @@ class WebgpuRendererWorker {
             alphaMode: 'premultiplied',
         })
 
+
         const verticesBuffer = device.createBuffer({
             size: cubeVertexArray.byteLength,
             usage: GPUBufferUsage.VERTEX,
@@ -97,24 +93,17 @@ class WebgpuRendererWorker {
         new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray)
         verticesBuffer.unmap()
 
-        let NumberOfCubes = 3
-        //Todo: make this dynamic
-        const ModelMatrix = new Float32Array([
-            0, 1, 0,
-            1, 0, 0,
-            0, 0, 1
-        ])
 
 
 
-        const InstancedModelBuffer = device.createBuffer({
-            size: 4 * 4 * 4,
-            usage: GPUBufferUsage.VERTEX,
+
+        this.InstancedModelBuffer = device.createBuffer({
+            size: WebgpuRendererWorker.NUMBER_OF_CUBES * 4 * 4,
+            usage: GPUBufferUsage.VERTEX || GPUBufferUsage.MAP_WRITE,
             mappedAtCreation: true,
         })
-        this.InstancedModelBuffer = InstancedModelBuffer
-        new Float32Array(InstancedModelBuffer.getMappedRange()).set(ModelMatrix)
-        InstancedModelBuffer.unmap()
+
+
         //device.StepM
         const vertexCode = VertShader
         const fragmentCode = FragShader
@@ -181,7 +170,7 @@ class WebgpuRendererWorker {
             },
             primitive: {
                 topology: 'triangle-list',
-                //cullMode: 'back',
+                cullMode: 'back',
 
             },
             depthStencil: {
@@ -267,8 +256,26 @@ class WebgpuRendererWorker {
         }
 
         this.loop()
+        this.ready = true
 
         return canvas
+    }
+
+    updateSides (start) {
+        const positions = [] as number[]
+        for (let i = 0; i < allSides.length / 6; i++) {
+            const side = allSides[i * 6]!
+            positions.push(...[side[0], side[1], side[2]])
+        }
+
+        //Todo: make this dynamic
+        const ModelMatrix = new Float32Array(positions)
+
+
+
+
+        new Float32Array(this.InstancedModelBuffer.getMappedRange()).set(ModelMatrix)
+        this.InstancedModelBuffer.unmap()
     }
 
 
@@ -309,7 +316,7 @@ class WebgpuRendererWorker {
         passEncoder.setBindGroup(0, uniformBindGroup)
         passEncoder.setVertexBuffer(0, verticesBuffer)
         passEncoder.setVertexBuffer(1, this.InstancedModelBuffer)
-        passEncoder.draw(cubeVertexCount, 3)
+        passEncoder.draw(cubeVertexCount, WebgpuRendererWorker.NUMBER_OF_CUBES)
 
         passEncoder.end()
         device.queue.submit([commandEncoder.finish()])
@@ -325,6 +332,13 @@ let fullReset
 
 let webglRendererWorker: WebgpuRendererWorker | undefined
 
+const updateCubesWhenAvailable = (pos) => {
+    if (webglRendererWorker?.ready) {
+        webglRendererWorker.updateSides(pos)
+    } else {
+        setTimeout(updateCubesWhenAvailable, 100)
+    }
+}
 
 let started = false
 let newWidth: number | undefined
@@ -375,7 +389,7 @@ export const workerProxyType = createWorkerProxy({
         chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
         allSides.push(...newData)
         lastNotUpdatedIndex ??= currentLength
-        // updateCubes?.(currentLength)
+        updateCubesWhenAvailable(currentLength)
     },
     addBlocksSectionDone () {
         updateCubesWhenAvailable(lastNotUpdatedIndex)
@@ -389,7 +403,7 @@ export const workerProxyType = createWorkerProxy({
             allSides[i] = undefined
         }
         lastNotUpdatedArrSize = endIndex - startIndex
-        updateCubes(startIndex)
+        updateCubesWhenAvailable(startIndex)
 
         // freeArrayIndexes.push([startIndex, endIndex])
 
