@@ -401,6 +401,11 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
   currentMcAssets.blocksStates[currentBlockName] = blockStates
 }
 
+const handleDecoratedPot = async (dataBase: string, match: RegExpExecArray) => {
+  currentMcAssets.blocksStates[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/decorated_pot.json'), 'utf-8'));
+  currentMcAssets.blocksModels[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockModels/decorated_pot.json'), 'utf-8'));
+}
+
 const handlers = [
   [/(.+)_shulker_box$/, handleShulkerBox],
   [/^shulker_box$/, handleShulkerBox],
@@ -410,6 +415,7 @@ const handlers = [
   [/(.+)_wall_sign$/, handleSign],
   [/(.+)_sign$/, handleSign],
   [/^(?:(ender|trapped)_)?chest$/, handleChest],
+  [/^decorated_pot$/, handleDecoratedPot],
   // [/(^|(.+)_)bed$/, handleBed],
   // no-op just suppress warning
   [/(^light|^moving_piston$)/, true],
