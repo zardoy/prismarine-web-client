@@ -1,6 +1,5 @@
 const THREE = require('three')
 const { MeshLine, MeshLineMaterial } = require('three.meshline')
-const { dispose3 } = require('./dispose')
 
 function getMesh (primitive, camera) {
   if (primitive.type === 'line') {
@@ -48,7 +47,7 @@ function getMesh (primitive, camera) {
 }
 
 class Primitives {
-  constructor (scene, camera) {
+  constructor(scene, camera) {
     this.scene = scene
     this.camera = camera
     this.primitives = {}
@@ -57,7 +56,7 @@ class Primitives {
   clear () {
     for (const mesh of Object.values(this.primitives)) {
       this.scene.remove(mesh)
-      dispose3(mesh)
+      disposeObject(mesh)
     }
     this.primitives = {}
   }
@@ -65,7 +64,7 @@ class Primitives {
   update (primitive) {
     if (this.primitives[primitive.id]) {
       this.scene.remove(this.primitives[primitive.id])
-      dispose3(this.primitives[primitive.id])
+      disposeObject(this.primitives[primitive.id])
       delete this.primitives[primitive.id]
     }
 
