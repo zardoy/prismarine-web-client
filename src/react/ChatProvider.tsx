@@ -74,7 +74,7 @@ export default () => {
           if (items[0].match) items = items.map(i => i.match)
         }
         if (completeValue === '/') {
-          if (!items[0].startsWith('/')) {
+          if (!items[0]?.startsWith('/')) {
             // normalize
             items = items.map(item => `/${item}`)
           }
