@@ -501,6 +501,10 @@ onmessage = function (e) {
         // updateCubes?.(currentLength)
     }
     if (e.data.type === 'addBlocksSectionDone') {
+        // if (pendingUpdate) {
+        //     console.log('Already pending')
+        //     return
+        // }
         updateCubesWhenAvailable(lastNotUpdatedIndex)
         lastNotUpdatedIndex = undefined
         lastNotUpdatedArrSize = undefined
@@ -566,7 +570,11 @@ onmessage = function (e) {
 }
 
 globalThis.testDuplicates = () => {
-    const duplicates = allSides.filter((value, index, self) => self.indexOf(value) !== index)
+    const duplicates = allSides.filter((arr, index, self) => {
+        return index !== self.findIndex((t) => {
+            return t[0] === arr[0] && t[1] === arr[1] && t[2] === arr[2] && t[3].face === arr[3].face
+        })
+    })
     console.log('duplicates', duplicates)
 }
 
