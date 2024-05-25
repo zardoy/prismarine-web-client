@@ -1,5 +1,5 @@
 export type BlockFaceType = {
-    face: number
+    side: number
     textureIndex: number
     textureName?: string
     tint?: [number, number, number]
@@ -7,5 +7,5 @@ export type BlockFaceType = {
 }
 
 export type BlockType = {
-    sides: BlockFaceType[]
+    faces: BlockFaceType[]
 }

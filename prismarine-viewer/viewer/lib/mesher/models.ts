@@ -2,6 +2,7 @@ import { Vec3 } from 'vec3'
 import type { BlockStatesOutput } from '../../prepare/modelsBuilder'
 import { World } from './world'
 import { Block } from 'prismarine-block'
+import { BlockType } from '../../../examples/shared'
 
 const tints: any = {}
 let blockStates: BlockStatesOutput
@@ -15,6 +16,19 @@ try {
 }
 for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
+}
+
+type TestTileData = {
+  block: string
+  faces: {
+    face: string
+    neighbor: string
+    light?: number
+  }[]
+}
+
+type Tiles = {
+  [blockPos: string]: BlockType & TestTileData
 }
 
 function prepareTints (tints) {
@@ -171,11 +185,12 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     }
 
     if (needTiles) {
-      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+      const tiles = attr.tiles as Tiles
+      tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
         block: 'water',
         faces: [],
       }
-      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+      tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
         face,
         neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
         // texture: eFace.texture.name,
@@ -410,12 +425,15 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
     }
 
     if (needTiles) {
-      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+      const tiles = attr.tiles as Tiles
+      tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
         block: block.name,
         faces: [],
       }
-      attr.tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+      tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
         face,
+        side: eFace.texture.side,
+        textureIndex: 0,
         neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
         light: baseLight
         // texture: eFace.texture.name,

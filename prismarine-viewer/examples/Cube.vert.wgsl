@@ -6,7 +6,8 @@ struct Uniforms {
 struct VertexOutput {
   @builtin(position) Position : vec4f,
   @location(0) fragUV : vec2f,
-  @location(1)  TextueIndex: f32
+  @location(1) @interpolate(flat)  TextueIndex: f32,
+  @location(2) @interpolate(flat) ColorBlend : vec3f
 }
 
 @vertex
@@ -14,11 +15,13 @@ fn main(
   @location(0) position : vec4f,
   @location(1) uv : vec2f,
   @location(2) ModelMatrix : vec3f,
-  @location(3) TextureIndex : f32
+  @location(3) TextureIndex : f32,
+  @location(4) ColorBlend : vec3f
 ) -> VertexOutput {
   var output : VertexOutput;
   output.Position = uniforms.ViewProjectionMatrix * (position +vec4f(ModelMatrix, 0.0));
   output.fragUV = uv;
   output.TextueIndex = TextureIndex;
+  output.ColorBlend = ColorBlend;
   return output;
 }

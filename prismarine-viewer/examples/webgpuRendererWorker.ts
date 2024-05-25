@@ -53,6 +53,7 @@ class WebgpuRendererWorker {
     InstancedModelBuffer: GPUBuffer
     pipeline: GPURenderPipeline
     InstancedTextureIndexBuffer: GPUBuffer
+    InstancedColorBuffer: GPUBuffer
 
     constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public FragShaderOverride?) {
         this.init()
@@ -108,6 +109,12 @@ class WebgpuRendererWorker {
             mappedAtCreation: true,
         })
 
+        this.InstancedColorBuffer = device.createBuffer({
+            size: this.NUMBER_OF_CUBES * 4 * 3,
+            usage: GPUBufferUsage.VERTEX || GPUBufferUsage.MAP_WRITE,
+            mappedAtCreation: true,
+        })
+
 
         //device.StepM
         const vertexCode = VertShader
@@ -157,6 +164,18 @@ class WebgpuRendererWorker {
                                 shaderLocation: 3,
                                 offset: 0,
                                 format: 'float32',
+                            }
+                        ],
+                        stepMode: 'instance',
+                    },
+                    {
+                        arrayStride: 3 * 4,
+                        attributes: [
+                            {
+                                // ModelMatrix
+                                shaderLocation: 4,
+                                offset: 0,
+                                format: 'float32x3',
                             }
                         ],
                         stepMode: 'instance',
@@ -217,7 +236,8 @@ class WebgpuRendererWorker {
         {
             cubeTexture = device.createTexture({
                 size: [textureBitmap.width, textureBitmap.height, 1],
-                format: 'rgba8unorm',
+                //format: 'rgba8unorm',
+                format: 'rgb10a2unorm',
                 usage:
                     GPUTextureUsage.TEXTURE_BINDING |
                     GPUTextureUsage.COPY_DST |
@@ -259,7 +279,7 @@ class WebgpuRendererWorker {
             colorAttachments: [
                 {
                     view: undefined as any, // Assigned later
-                    clearValue: [0.5, 0.5, 0.5, 1.0],
+                    clearValue: [0.6784313725490196, 0.8470588235294118, 0.9019607843137255, 1.0],
                     loadOp: 'clear',
                     storeOp: 'store',
                 },
@@ -285,10 +305,12 @@ class WebgpuRendererWorker {
         rendering = true
         const positions = [] as number[]
         let textureIndexes = [] as number[]
+        let colors = [] as number[]
         for (let i = 0; i < allSides.length / 6; i++) {
             const side = allSides[i * 6]!
             positions.push(...[side[0], side[1], side[2]])
             textureIndexes.push(side[3].textureIndex)
+            colors.push(1, 1, 1)
         }
 
         //Todo: make this dynamic
@@ -302,6 +324,9 @@ class WebgpuRendererWorker {
         // same index with length = allSides.length / 6
         new Float32Array(this.InstancedTextureIndexBuffer.getMappedRange()).set(new Float32Array(textureIndexes))
         this.InstancedTextureIndexBuffer.unmap()
+
+        new Float32Array(this.InstancedColorBuffer.getMappedRange()).set(new Float32Array(colors))
+        this.InstancedColorBuffer.unmap()
 
         // this.NUMBER_OF_CUBES = positions.length
     }
@@ -347,6 +372,7 @@ class WebgpuRendererWorker {
         passEncoder.setVertexBuffer(0, verticesBuffer)
         passEncoder.setVertexBuffer(1, this.InstancedModelBuffer)
         passEncoder.setVertexBuffer(2, this.InstancedTextureIndexBuffer)
+        passEncoder.setVertexBuffer(3, this.InstancedColorBuffer)
 
 
         passEncoder.draw(cubeVertexCount, this.NUMBER_OF_CUBES)
@@ -399,7 +425,7 @@ export const workerProxyType = createWorkerProxy({
         const newData = Object.entries(data.blocks).flatMap(([key, value]) => {
             const [x, y, z] = key.split(',').map(Number)
             const block = value as BlockType
-            return block.sides.map((side) => {
+            return block.faces.map((side) => {
                 return [x, y, z, side] as [number, number, number, BlockFaceType]
             })
         })
@@ -482,7 +508,7 @@ export const workerProxyType = createWorkerProxy({
         // })
         const dataSize = json.length / 5
         for (let i = 0; i < json.length; i += 5) {
-            allSides.push([json[i], json[i + 1], json[i + 2], { face: json[i + 3], textureIndex: json[i + 4] }])
+            allSides.push([json[i], json[i + 1], json[i + 2], { side: json[i + 3], textureIndex: json[i + 4] }])
         }
         updateCubesWhenAvailable(0)
     },
@@ -505,7 +531,7 @@ const exportData = () => {
         const sideData = allSides[i]
         if (!sideData) continue
         const [x, y, z, side] = sideData
-        flatData.set([x, y, z, side.face, side.textureIndex], i * 5)
+        flatData.set([x, y, z, side.side, side.textureIndex], i * 5)
     }
 
     return { sides: flatData }

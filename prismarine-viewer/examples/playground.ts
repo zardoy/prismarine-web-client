@@ -12,7 +12,6 @@ import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
 // import * as Mathgl from 'math.gl'
-import { findTextureInBlockStates } from '../../src/playerWindows'
 import { initWebgpuRenderer, loadFixtureSides, setAnimationTick, webgpuChannel } from './webgpuRendererMain'
 import { renderToDom } from '@zardoy/react-util'
 
@@ -261,12 +260,12 @@ async function main () {
       const pos = new Vec3(Math.floor(Math.random() * max), Math.floor(Math.random() * max), Math.floor(Math.random() * max))
       const getFace = (face: number) => {
         return {
-          face,
+          side: face,
           textureIndex: Math.floor(Math.random() * 512)
         }
       }
       blocks[`${pos.x},${pos.y},${pos.z}`] = {
-        sides: [
+        faces: [
           getFace(0),
           getFace(1),
           getFace(2),
