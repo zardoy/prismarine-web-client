@@ -95,10 +95,8 @@ class WebgpuRendererWorker {
 
 
 
-
-
         this.InstancedModelBuffer = device.createBuffer({
-            size: WebgpuRendererWorker.NUMBER_OF_CUBES * 4 * 4,
+            size: this.NUMBER_OF_CUBES * 4 * 4,
             usage: GPUBufferUsage.VERTEX || GPUBufferUsage.MAP_WRITE,
             mappedAtCreation: true,
         })
@@ -143,7 +141,20 @@ class WebgpuRendererWorker {
                             }
                         ],
                         stepMode: 'instance',
-                    }
+                    },
+                    // {
+                    //     arrayStride: 1 * 4,
+                    //     attributes: [
+                    //         {
+                    //             // ModelMatrix
+                    //             shaderLocation: 3,
+                    //             offset: 0,
+                    //             format: 'float32x1',
+                    //         }
+                    //     ],
+                    //     stepMode: 'instance',
+                    // }
+
                 ],
             },
             fragment: {
@@ -260,11 +271,11 @@ class WebgpuRendererWorker {
         rendering = false
         this.loop()
         this.ready = true
-
         return canvas
     }
 
     updateSides (start) {
+        rendering = true
         const positions = [] as number[]
         for (let i = 0; i < allSides.length / 6; i++) {
             const side = allSides[i * 6]!
@@ -276,9 +287,9 @@ class WebgpuRendererWorker {
 
 
 
-
         new Float32Array(this.InstancedModelBuffer.getMappedRange()).set(ModelMatrix)
         this.InstancedModelBuffer.unmap()
+        // this.NUMBER_OF_CUBES = positions.length
     }
 
 
@@ -295,31 +306,35 @@ class WebgpuRendererWorker {
         const now = Date.now()
         tweenJs.update()
 
-        const modelViewProjectionMat4 = new THREE.Matrix4()
+        const ViewProjectionMat4 = new THREE.Matrix4()
         camera.updateMatrix()
         const projectionMatrix = camera.projectionMatrix
-        modelViewProjectionMat4.multiplyMatrices(projectionMatrix, camera.matrix.invert())
-        const modelViewProjection = new Float32Array(modelViewProjectionMat4.elements)
-        // globalThis.modelViewProjection = modelViewProjection
+        ViewProjectionMat4.multiplyMatrices(projectionMatrix, camera.matrix.invert())
+        const ViewProjection = new Float32Array(ViewProjectionMat4.elements)
+        // globalThis.ViewProjection = ViewProjection
         device.queue.writeBuffer(
             uniformBuffer,
             0,
-            modelViewProjection.buffer,
-            modelViewProjection.byteOffset,
-            modelViewProjection.byteLength
+            ViewProjection.buffer,
+            ViewProjection.byteOffset,
+            ViewProjection.byteLength
         )
+
+
+
         renderPassDescriptor.colorAttachments[0].view = ctx
             .getCurrentTexture()
             .createView()
 
         const commandEncoder = device.createCommandEncoder()
-        const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor)
-
+        const passEncoder = commandEncoder.beginRenderPass(this.renderPassDescriptor)
         passEncoder.setPipeline(pipeline)
-        passEncoder.setBindGroup(0, uniformBindGroup)
+        passEncoder.setBindGroup(0, this.uniformBindGroup)
         passEncoder.setVertexBuffer(0, verticesBuffer)
         passEncoder.setVertexBuffer(1, this.InstancedModelBuffer)
-        passEncoder.draw(cubeVertexCount, WebgpuRendererWorker.NUMBER_OF_CUBES)
+
+
+        passEncoder.draw(cubeVertexCount, this.NUMBER_OF_CUBES)
 
         passEncoder.end()
         device.queue.submit([commandEncoder.finish()])
@@ -390,7 +405,7 @@ export const workerProxyType = createWorkerProxy({
         }
 
         chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
-        allSides.push(...newData)
+        allSides.splice(currentLength, 0, ...newData)
         lastNotUpdatedIndex ??= currentLength
         updateCubesWhenAvailable(currentLength)
     },
