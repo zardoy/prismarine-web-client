@@ -52,6 +52,7 @@ class WebgpuRendererWorker {
     verticesBuffer: GPUBuffer
     InstancedModelBuffer: GPUBuffer
     pipeline: GPURenderPipeline
+    InstancedTextureIndexBuffer: GPUBuffer
 
     constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public FragShaderOverride?) {
         this.init()
@@ -96,7 +97,13 @@ class WebgpuRendererWorker {
 
 
         this.InstancedModelBuffer = device.createBuffer({
-            size: this.NUMBER_OF_CUBES * 4 * 4,
+            size: this.NUMBER_OF_CUBES * 4 * 3,
+            usage: GPUBufferUsage.VERTEX || GPUBufferUsage.MAP_WRITE,
+            mappedAtCreation: true,
+        })
+
+        this.InstancedTextureIndexBuffer = device.createBuffer({
+            size: this.NUMBER_OF_CUBES * 4 * 1,
             usage: GPUBufferUsage.VERTEX || GPUBufferUsage.MAP_WRITE,
             mappedAtCreation: true,
         })
@@ -142,18 +149,18 @@ class WebgpuRendererWorker {
                         ],
                         stepMode: 'instance',
                     },
-                    // {
-                    //     arrayStride: 1 * 4,
-                    //     attributes: [
-                    //         {
-                    //             // ModelMatrix
-                    //             shaderLocation: 3,
-                    //             offset: 0,
-                    //             format: 'float32x1',
-                    //         }
-                    //     ],
-                    //     stepMode: 'instance',
-                    // }
+                    {
+                        arrayStride: 1 * 4,
+                        attributes: [
+                            {
+                                // ModelMatrix
+                                shaderLocation: 3,
+                                offset: 0,
+                                format: 'float32',
+                            }
+                        ],
+                        stepMode: 'instance',
+                    }
 
                 ],
             },
@@ -277,9 +284,11 @@ class WebgpuRendererWorker {
     updateSides (start) {
         rendering = true
         const positions = [] as number[]
+        let textureIndexes = [] as number[]
         for (let i = 0; i < allSides.length / 6; i++) {
             const side = allSides[i * 6]!
             positions.push(...[side[0], side[1], side[2]])
+            textureIndexes.push(side[3].textureIndex)
         }
 
         //Todo: make this dynamic
@@ -289,6 +298,11 @@ class WebgpuRendererWorker {
 
         new Float32Array(this.InstancedModelBuffer.getMappedRange()).set(ModelMatrix)
         this.InstancedModelBuffer.unmap()
+
+        // same index with length = allSides.length / 6
+        new Float32Array(this.InstancedTextureIndexBuffer.getMappedRange()).set(new Float32Array(textureIndexes))
+        this.InstancedTextureIndexBuffer.unmap()
+
         // this.NUMBER_OF_CUBES = positions.length
     }
 
@@ -332,6 +346,7 @@ class WebgpuRendererWorker {
         passEncoder.setBindGroup(0, this.uniformBindGroup)
         passEncoder.setVertexBuffer(0, verticesBuffer)
         passEncoder.setVertexBuffer(1, this.InstancedModelBuffer)
+        passEncoder.setVertexBuffer(2, this.InstancedTextureIndexBuffer)
 
 
         passEncoder.draw(cubeVertexCount, this.NUMBER_OF_CUBES)
