@@ -4,7 +4,7 @@
 @fragment
 fn main(
   @location(0) fragUV: vec2f,
-  @location(1) fragPosition: vec4f
+  @location(1)  TextueIndex: f32
 ) -> @location(0) vec4f {
-  return textureSample(myTexture, mySampler, fragUV/64);
+  return textureSample(myTexture, mySampler, fragUV/64.0 + vec2f(TextueIndex%32,TextueIndex/32.0 )/32.0);
 }
