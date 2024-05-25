@@ -4,7 +4,7 @@ import { loadJSON } from './utils'
 import { loadTexture } from './utils.web'
 import { EventEmitter } from 'events'
 import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
-import { dynamicMcDataFiles } from '../../buildWorkerConfig.mjs'
+import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajor } from './version.js'
 import { chunkPos } from './simpleUtils'
 import { defaultMesherConfig } from './mesher/shared'
