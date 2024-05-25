@@ -38,7 +38,7 @@ const updateSize = (width, height) => {
 
 
 class WebgpuRendererWorker {
-    static NUMBER_OF_CUBES = 1_000_000
+    NUMBER_OF_CUBES = 1000
 
     ready = false
 
