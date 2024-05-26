@@ -12,7 +12,7 @@ export const itemBeingUsed = proxy({
 export default () => {
   const { name: usingItem, hand } = useSnapshot(itemBeingUsed)
 
-  const [displayIndicator, setDisplayIndicator] = useState(true)
+  const [displayIndicator, setDisplayIndicator] = useState(false)
   const [indicatorProgress, setIndicatorProgress] = useState(0)
   const [alternativeIndicator, setAlternativeIndicator] = useState(false)
   const boxMaxTimeMs = 1000

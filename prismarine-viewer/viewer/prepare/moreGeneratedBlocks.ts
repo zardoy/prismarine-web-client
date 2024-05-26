@@ -1,18 +1,15 @@
 import Jimp from 'jimp'
 import minecraftData from 'minecraft-data'
-import prismarineRegistry from 'prismarine-registry'
-import {McAssets} from './modelsBuilder'
+import { McAssets } from './modelsBuilder'
 import path from 'path'
 import fs from 'fs'
-import {fileURLToPath} from 'url'
+import { fileURLToPath } from 'url'
 
 // todo refactor
 const twoTileTextures: string[] = []
 let currentImage: Jimp
 let currentBlockName: string
 let currentMcAssets: McAssets
-let isPreFlattening = false
-const postFlatenningRegistry = prismarineRegistry('1.13')
 const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)))
 
 type SidesType = {
@@ -24,9 +21,9 @@ type SidesType = {
   "down": string
 }
 
-const getBlockStates = (name: string, postFlatenningName = name) => {
-  const mcData = isPreFlattening ? postFlatenningRegistry : minecraftData(currentMcAssets.version)
-  return mcData.blocksByName[isPreFlattening ? postFlatenningName : name]?.states
+const getBlockStates = (name: string) => {
+  const mcData = minecraftData(currentMcAssets.version)
+  return mcData.blocksByName[name]?.states
 }
 
 export const addBlockCustomSidesModel = (name: string, sides: SidesType) => {
@@ -124,7 +121,7 @@ const handleShulkerBox = async (dataBase: string, match: RegExpExecArray) => {
 }
 
 const handleSign = async (dataBase: string, match: RegExpExecArray) => {
-  const states = getBlockStates(currentBlockName, currentBlockName === 'wall_sign' ? 'wall_sign' : 'sign')
+  const states = getBlockStates(currentBlockName)
   if (!states) return
 
   const [, signMaterial = ''] = match
@@ -375,17 +372,11 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
     if (modelName.endsWith('_left')) chestTextureName = `${chestTextureName}_left`
     if (modelName.endsWith('_right')) chestTextureName = `${chestTextureName}_right`
 
-    // reading latest version since the texture wasn't changed, but in pre-flatenning need custom mapping for doubled_chest
     const texture = path.join(currentMcAssets.directory, `../1.19.1/entity/chest/${chestTextureName}.png`)
 
     currentImage = await Jimp.read(texture)
 
     const model = structuredClone(chestModels[modelName])
-    // todo < 1.9
-    if (currentMcAssets.version === '1.8.8') {
-      // doesn't have definition of block yet
-      model.parent = undefined
-    }
     model.textures.particle = particle
     const newModelName = `${currentBlockName}_${modelName}`
     for (const variant of blockStatesVariants) {
@@ -411,8 +402,8 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
 }
 
 const handleDecoratedPot = async (dataBase: string, match: RegExpExecArray) => {
-  currentMcAssets.blocksStates[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/decorated_pot.json'), 'utf-8'));
-  currentMcAssets.blocksModels[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockModels/decorated_pot.json'), 'utf-8'));
+  currentMcAssets.blocksStates[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/decorated_pot.json'), 'utf-8'))
+  currentMcAssets.blocksModels[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockModels/decorated_pot.json'), 'utf-8'))
 }
 
 const handlers = [
@@ -444,7 +435,6 @@ export const tryHandleBlockEntity = async (dataBase, blockName) => {
 
 export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
   const mcData = minecraftData(mcAssets.version)
-  isPreFlattening = !mcData.supportFeature('blockStateId')
   const allTheBlocks = mcData.blocksArray.map(x => x.name)
 
   currentMcAssets = mcAssets
