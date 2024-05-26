@@ -40,7 +40,7 @@ export const startWatchingHmr = () => {
 const mesherSharedPlugins = [
   {
     name: 'minecraft-data',
-    setup (build) {
+    setup(build) {
       build.onLoad({
         filter: /data[\/\\]pc[\/\\]common[\/\\]legacy.json$/,
       }, async (args) => {
@@ -59,7 +59,7 @@ const plugins = [
   ...mesherSharedPlugins,
   {
     name: 'strict-aliases',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /^minecraft-protocol$/,
       }, async ({ kind, resolveDir }) => {
@@ -110,7 +110,7 @@ const plugins = [
   },
   {
     name: 'data-assets',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /.*/,
       }, async ({ path, ...rest }) => {
@@ -161,7 +161,7 @@ const plugins = [
   },
   {
     name: 'prevent-incorrect-linking',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /.+/,
       }, async ({ resolveDir, path, importer, kind, pluginData }) => {
@@ -184,7 +184,7 @@ const plugins = [
   },
   {
     name: 'watch-notify',
-    setup (build) {
+    setup(build) {
       let count = 0
       let time
       let prevHash
@@ -234,7 +234,7 @@ const plugins = [
   },
   {
     name: 'esbuild-readdir',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /^esbuild-readdir:.+$/,
       }, ({ resolveDir, path }) => {
@@ -262,7 +262,7 @@ const plugins = [
   },
   {
     name: 'esbuild-import-glob',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /^esbuild-import-glob\(path:(.+),skipFiles:(.+)\)+$/,
       }, ({ resolveDir, path }) => {
@@ -292,7 +292,7 @@ const plugins = [
   },
   {
     name: 'fix-dynamic-require',
-    setup (build) {
+    setup(build) {
       build.onResolve({
         filter: /1\.14\/chunk/,
       }, async ({ resolveDir, path }) => {
@@ -321,7 +321,7 @@ const plugins = [
   },
   {
     name: 'react-displayname',
-    setup (build) {
+    setup(build) {
       build.onLoad({
         filter: /.tsx$/,
       }, async ({ path }) => {

@@ -1,15 +1,5 @@
 /// <reference types="cypress" />
-import type { AppOptions } from '../../src/optionsStorage'
-
-const cleanVisit = (url?) => {
-  cy.clearLocalStorage()
-  visit(url)
-}
-
-const visit = (url = '/') => {
-  window.localStorage.cypress = 'true'
-  cy.visit(url)
-}
+import { setOptions, cleanVisit, visit } from './shared'
 
 // todo use ssl
 
@@ -31,14 +21,8 @@ const testWorldLoad = () => {
   })
 }
 
-const setOptions = (options: Partial<AppOptions>) => {
-  cy.window().then(win => {
-    Object.assign(win['options'], options)
-  })
-}
-
 it('Loads & renders singleplayer', () => {
-  visit('/?singleplayer=1')
+  cleanVisit('/?singleplayer=1')
   setOptions({
     localServerOptions: {
       generation: {
@@ -68,11 +52,4 @@ it('Loads & renders zip world', () => {
   cy.get('[data-test-id="select-file-folder"]').click({ shiftKey: true })
   cy.get('input[type="file"]').selectFile('cypress/superflat.zip', { force: true })
   testWorldLoad()
-})
-
-it.skip('Performance test', () => {
-  // select that world
-  // from -2 85 24
-  // await bot.loadPlugin(pathfinder.pathfinder)
-  // bot.pathfinder.goto(new pathfinder.goals.GoalXZ(28, -28))
 })
