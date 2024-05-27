@@ -652,15 +652,21 @@ window.addEventListener('keydown', (e) => {
 })
 
 window.addEventListener('keydown', (e) => {
-  if (e.code !== 'F2' || e.repeat) return
+  if (e.code !== 'F2' || e.repeat || !isGameActive(true)) return
   e.preventDefault()
   const canvas = document.getElementById('viewer-canvas') as HTMLCanvasElement
   if (!canvas) return
   const link = document.createElement('a')
   link.href = canvas.toDataURL('image/png')
   const date = new Date()
-  link.download = 'screenshot ' + `${date.toLocaleString().replaceAll('.', '-').replace(',', '')}` + '.png'
+  link.download = `screenshot ${date.toLocaleString().replaceAll('.', '-').replace(',', '')}.png`
   link.click()
+})
+
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'F1' || e.repeat || !isGameActive(true)) return
+  e.preventDefault()
+  miscUiState.showUI = !miscUiState.showUI
 })
 
 // #region experimental debug things
