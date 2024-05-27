@@ -108,6 +108,8 @@ let renderer: THREE.WebGLRenderer
 try {
   renderer = new THREE.WebGLRenderer({
     powerPreference: options.gpuPreference,
+    preserveDrawingBuffer: true,
+    logarithmicDepthBuffer: true,
   })
 } catch (err) {
   console.error(err)

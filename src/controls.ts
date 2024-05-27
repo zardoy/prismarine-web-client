@@ -659,7 +659,7 @@ window.addEventListener('keydown', (e) => {
   const link = document.createElement('a')
   link.href = canvas.toDataURL('image/png')
   const date = new Date()
-  link.download = 'screenshot-' + `${date.toLocaleString().replaceAll('.', '-').replace(',', '')}` + '.png'
+  link.download = 'screenshot ' + `${date.toLocaleString().replaceAll('.', '-').replace(',', '')}` + '.png'
   link.click()
 })
 
