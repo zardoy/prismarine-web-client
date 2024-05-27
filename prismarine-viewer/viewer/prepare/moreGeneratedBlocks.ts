@@ -402,18 +402,35 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
   currentMcAssets.blocksStates[currentBlockName] = blockStates
 }
 
-const handleDecoratedPot = async (dataBase: string, match: RegExpExecArray) => {
-  currentMcAssets.blocksStates[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/decorated_pot.json'), 'utf-8'))
-  const blockModel = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockModels/decorated_pot.json'), 'utf-8'))
-  currentImage = await Jimp.read(dataBase + `entity/decorated_pot/decorated_pot_base.png`)
-  // resize from 32x32 to 16x16 without cropping the image
-  // const baseBase64 = await currentImage.clone().resize(16, 16).getBase64Async(Jimp.MIME_PNG)
-  // const baseBase64 = await currentImage.getBase64Async(Jimp.MIME_PNG)
-  blockModel.textures.particle = 'decorated_pot_base'
-  generatedImageTextures['decorated_pot_base'] = `data:image/png;base64,${fs.readFileSync(path.join(dataBase, 'entity/decorated_pot/decorated_pot_base.png'), 'base64')}`
-  // generatedImageTextures['decorated_pot_base'] = baseBase64
-  origSizeTextures['decorated_pot_base'] = true
-  currentMcAssets.blocksModels[currentBlockName] = blockModel
+function getParsedJSON(match: RegExpExecArray, type: string) {
+  const versionParts = currentMcAssets.version.split(".")
+  const version = versionParts[0] + "." + versionParts[1]
+  return JSON.parse(fs.readFileSync(path.join(__dirname, type + '/' + version + '/' + match + '.json'), 'utf-8'));
+}
+
+function getBlockState(match: RegExpExecArray) {
+  return getParsedJSON(match, 'blockStates');
+}
+
+async function loadBlockModelTextures(dataBase: string, blockModel: any) {
+  for (const key in Object.entries(blockModel.textures)) {
+    const texture:string = blockModel.textures[key]
+    currentImage = await Jimp.read(dataBase + texture + '.png')
+    blockModel.textures.particle = texture
+    generatedImageTextures[texture] = `data:image/png;base64,${fs.readFileSync(path.join(dataBase, texture + '.png'), 'base64')}`
+    origSizeTextures[texture] = true
+  }
+}
+
+async function getBlockModel(dataBase: string, match: RegExpExecArray) {
+  const blockModel = getParsedJSON(match, 'blockModels')
+  await loadBlockModelTextures(dataBase, blockModel);
+  return blockModel;
+}
+
+const handleBlockGeneric = async (dataBase: string, match: RegExpExecArray) => {
+  currentMcAssets.blocksStates[currentBlockName] = await getBlockState(match)
+  currentMcAssets.blocksModels[currentBlockName] = await getBlockModel(dataBase, match)
 }
 
 const handlers = [
@@ -425,7 +442,7 @@ const handlers = [
   [/(.+)_wall_sign$/, handleSign],
   [/(.+)_sign$/, handleSign],
   [/^(?:(ender|trapped)_)?chest$/, handleChest],
-  [/^decorated_pot$/, handleDecoratedPot],
+  [/^decorated_pot$/, handleBlockGeneric],
   // [/(^|(.+)_)bed$/, handleBed],
   // no-op just suppress warning
   [/(^light|^moving_piston$)/, true],
