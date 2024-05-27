@@ -95,7 +95,7 @@ const InGameComponent = ({ children }) => {
 }
 
 const InGameUi = () => {
-  const { gameLoaded } = useSnapshot(miscUiState)
+  const { gameLoaded, showUI } = useSnapshot(miscUiState)
   if (!gameLoaded) return
 
   return <>
@@ -107,17 +107,21 @@ const InGameUi = () => {
       <PlayerListOverlayProvider />
       <ChatProvider />
       <SoundMuffler />
-      <TitleProvider />
-      <ScoreboardProvider />
-      <IndicatorEffectsProvider />
+      <div style={{ display: showUI ? 'block' : 'none' }}>
+        <TitleProvider />
+        <ScoreboardProvider />
+        <IndicatorEffectsProvider />
+        <Crosshair />
+      </div>
       <TouchAreasControlsProvider />
-      <Crosshair />
 
       <PauseScreen />
-      <XPBarProvider />
-      <HudBarsProvider />
-      <HotbarRenderApp />
-      <BedTime />
+      <div style={{ display: showUI ? 'block' : 'none' }}>
+        <XPBarProvider />
+        <HudBarsProvider />
+        <BedTime />
+      </div>
+      {showUI && <HotbarRenderApp />}
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />
@@ -143,17 +147,6 @@ const WidgetDisplay = ({ name, Component }) => {
 }
 
 const App = () => {
-  const { showUI } = useSnapshot(miscUiState)
-
-  useEffect(() => { 
-    const uiRoot = document.getElementById('ui-root')
-    if (!uiRoot) return
-    uiRoot.style.display = showUI ? 'block' : 'none'
-    const hotbar = document.querySelector('.hotbar')! 
-    if (!hotbar) return
-    (hotbar as HTMLElement).style.display = showUI ? 'flex' : 'none'
-  }, [showUI])
-
   return <div>
     <ButtonAppProvider>
       <RobustPortal to={document.body}>
