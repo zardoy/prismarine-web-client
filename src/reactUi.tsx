@@ -143,6 +143,8 @@ const WidgetDisplay = ({ name, Component }) => {
 }
 
 const App = () => {
+  const { showUI } = useSnapshot(miscUiState)
+
   return <div>
     <ButtonAppProvider>
       <RobustPortal to={document.body}>
@@ -154,7 +156,7 @@ const App = () => {
         <div></div>
       </RobustPortal>
       <EnterFullscreenButton />
-      <InGameUi />
+      {showUI && <InGameUi />}
       <RobustPortal to={document.querySelector('#ui-root')}>
         <AllWidgets />
         <SingleplayerProvider />
