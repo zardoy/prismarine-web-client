@@ -651,6 +651,18 @@ window.addEventListener('keydown', (e) => {
   }
 })
 
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'F2' || e.repeat) return
+  e.preventDefault()
+  const canvas = document.getElementById('viewer-canvas') as HTMLCanvasElement
+  if (!canvas) return
+  const link = document.createElement('a')
+  link.href = canvas.toDataURL('image/png')
+  const date = new Date()
+  link.download = 'screenshot-' + `${date.toLocaleString().replaceAll('.', '-').replace(',', '')}` + '.png'
+  link.click()
+})
+
 // #region experimental debug things
 window.addEventListener('keydown', (e) => {
   if (e.code === 'F11') {
