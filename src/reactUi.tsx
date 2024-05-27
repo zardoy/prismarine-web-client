@@ -145,6 +145,15 @@ const WidgetDisplay = ({ name, Component }) => {
 const App = () => {
   const { showUI } = useSnapshot(miscUiState)
 
+  useEffect(() => { 
+    const uiRoot = document.getElementById('ui-root')
+    if (!uiRoot) return
+    uiRoot.style.display = showUI ? 'block' : 'none'
+    const hotbar = document.querySelector('.hotbar')! 
+    if (!hotbar) return
+    (hotbar as HTMLElement).style.display = showUI ? 'flex' : 'none'
+  }, [showUI])
+
   return <div>
     <ButtonAppProvider>
       <RobustPortal to={document.body}>
@@ -156,7 +165,7 @@ const App = () => {
         <div></div>
       </RobustPortal>
       <EnterFullscreenButton />
-      {showUI && <InGameUi />}
+      <InGameUi />
       <RobustPortal to={document.querySelector('#ui-root')}>
         <AllWidgets />
         <SingleplayerProvider />
