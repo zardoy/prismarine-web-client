@@ -95,7 +95,7 @@ const InGameComponent = ({ children }) => {
 }
 
 const InGameUi = () => {
-  const { gameLoaded } = useSnapshot(miscUiState)
+  const { gameLoaded, showUI } = useSnapshot(miscUiState)
   if (!gameLoaded) return
 
   return <>
@@ -107,17 +107,21 @@ const InGameUi = () => {
       <PlayerListOverlayProvider />
       <ChatProvider />
       <SoundMuffler />
-      <TitleProvider />
-      <ScoreboardProvider />
-      <IndicatorEffectsProvider />
+      <div style={{ display: showUI ? 'block' : 'none' }}>
+        <TitleProvider />
+        <ScoreboardProvider />
+        <IndicatorEffectsProvider />
+        <Crosshair />
+      </div>
       <TouchAreasControlsProvider />
-      <Crosshair />
 
       <PauseScreen />
-      <XPBarProvider />
-      <HudBarsProvider />
-      <HotbarRenderApp />
-      <BedTime />
+      <div style={{ display: showUI ? 'block' : 'none' }}>
+        <XPBarProvider />
+        <HudBarsProvider />
+        <BedTime />
+      </div>
+      {showUI && <HotbarRenderApp />}
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />
