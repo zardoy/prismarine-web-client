@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 
 // todo refactor
 const twoTileTextures: string[] = []
+const origSizeTextures: string[] = []
 let currentImage: Jimp
 let currentBlockName: string
 let currentMcAssets: McAssets
@@ -82,7 +83,7 @@ const getBlockTexturesFromJimp = async <T extends Record<string, Jimp>> (sides: 
   for (const [side, jimp] of Object.entries(sides)) {
     const textureName = `${textureNameBase}_${side}`
     const sideTexture = withUv ? { uv: [0, 0, jimp.getWidth(), jimp.getHeight()], texture: textureName } : textureName
-    const base64 = await jimp.getBase64Async(jimp.getMIME())
+    const base64Url = await jimp.getBase64Async(jimp.getMIME())
     if (side === 'side') {
       sidesTextures['north'] = sideTexture
       sidesTextures['east'] = sideTexture
@@ -91,7 +92,7 @@ const getBlockTexturesFromJimp = async <T extends Record<string, Jimp>> (sides: 
     } else {
       sidesTextures[side] = sideTexture
     }
-    generatedImageTextures[textureName] = base64
+    generatedImageTextures[textureName] = base64Url
   }
 
   return sidesTextures
@@ -402,8 +403,17 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
 }
 
 const handleDecoratedPot = async (dataBase: string, match: RegExpExecArray) => {
-  currentMcAssets.blocksStates[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/decorated_pot.json'), 'utf-8'));
-  currentMcAssets.blocksModels[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockModels/decorated_pot.json'), 'utf-8'));
+  currentMcAssets.blocksStates[currentBlockName] = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockStates/decorated_pot.json'), 'utf-8'))
+  const blockModel = JSON.parse(fs.readFileSync(path.join(__dirname, 'blockModels/decorated_pot.json'), 'utf-8'))
+  currentImage = await Jimp.read(dataBase + `entity/decorated_pot/decorated_pot_base.png`)
+  // resize from 32x32 to 16x16 without cropping the image
+  // const baseBase64 = await currentImage.clone().resize(16, 16).getBase64Async(Jimp.MIME_PNG)
+  // const baseBase64 = await currentImage.getBase64Async(Jimp.MIME_PNG)
+  blockModel.textures.particle = 'decorated_pot_base'
+  generatedImageTextures['decorated_pot_base'] = `data:image/png;base64,${fs.readFileSync(path.join(dataBase, 'entity/decorated_pot/decorated_pot_base.png'), 'base64')}`
+  // generatedImageTextures['decorated_pot_base'] = baseBase64
+  origSizeTextures['decorated_pot_base'] = true
+  currentMcAssets.blocksModels[currentBlockName] = blockModel
 }
 
 const handlers = [
@@ -468,5 +478,5 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
 }
 
 export const getAdditionalTextures = () => {
-  return { generated: generatedImageTextures, twoTileTextures }
+  return { generated: generatedImageTextures, twoTileTextures, origSizeTextures }
 }
