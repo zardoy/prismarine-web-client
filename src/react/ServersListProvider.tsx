@@ -186,6 +186,12 @@ const Inner = () => {
     }
   }, [serverEditScreen])
 
+  useDidUpdateEffect(() => {
+    if (!isEditScreenModal) {
+      setServerEditScreen(null)
+    }
+  }, [isEditScreenModal])
+
   if (isEditScreenModal) {
     return <AddServerOrConnect
       defaults={{
