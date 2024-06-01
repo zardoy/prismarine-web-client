@@ -101,19 +101,19 @@ const InGameUi = () => {
   return <>
     <RobustPortal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
-      <DeathScreenProvider />
-      <DebugOverlay />
-      <MobileTopButtons />
-      <PlayerListOverlayProvider />
-      <ChatProvider />
-      <SoundMuffler />
       <div style={{ display: showUI ? 'block' : 'none' }}>
+        <DeathScreenProvider />
+        <DebugOverlay />
+        <MobileTopButtons />
+        <PlayerListOverlayProvider />
+        <ChatProvider />
+        <SoundMuffler />
         <TitleProvider />
         <ScoreboardProvider />
         <IndicatorEffectsProvider />
         <Crosshair />
+        <TouchAreasControlsProvider />
       </div>
-      <TouchAreasControlsProvider />
 
       <PauseScreen />
       <div style={{ display: showUI ? 'block' : 'none' }}>
@@ -129,7 +129,7 @@ const InGameUi = () => {
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
       {/* because of z-index */}
-      <TouchControls />
+      {showUI && <TouchControls />}
       <GlobalSearchInput />
     </RobustPortal>
   </>
@@ -147,8 +147,6 @@ const WidgetDisplay = ({ name, Component }) => {
 }
 
 const App = () => {
-  const { showUI } = useSnapshot(miscUiState)
-
   return <div>
     <ButtonAppProvider>
       <RobustPortal to={document.body}>
@@ -160,7 +158,7 @@ const App = () => {
         <div></div>
       </RobustPortal>
       <EnterFullscreenButton />
-      {showUI && <InGameUi />}
+      <InGameUi />
       <RobustPortal to={document.querySelector('#ui-root')}>
         <AllWidgets />
         <SingleplayerProvider />
