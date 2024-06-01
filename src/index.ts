@@ -108,6 +108,8 @@ let renderer: THREE.WebGLRenderer
 try {
   renderer = new THREE.WebGLRenderer({
     powerPreference: options.gpuPreference,
+    preserveDrawingBuffer: true,
+    logarithmicDepthBuffer: true,
   })
 } catch (err) {
   console.error(err)
@@ -142,23 +144,34 @@ new THREE.TextureLoader().load(itemsPng, (texture) => {
   viewer.entities.itemsTexture = texture
   // todo unify
   viewer.entities.getItemUv = (id) => {
-    const name = loadedData.items[id]?.name
-    const uv = itemsAtlases.latest.textures[name]
-    if (!uv) {
-      const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
-      if (!variant) return
-      const uvBlock = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces?.north.texture
-      if (!uvBlock) return
+    try {
+      const name = loadedData.items[id]?.name
+      const uv = itemsAtlases.latest.textures[name]
+      if (!uv) {
+        const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
+        if (!variant) return
+        const faces = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces
+        const uvBlock = faces?.north?.texture ?? faces?.up?.texture ?? faces?.down?.texture ?? faces?.west?.texture ?? faces?.east?.texture ?? faces?.south?.texture
+        if (!uvBlock) return
+        return {
+          ...uvBlock,
+          size: Math.abs(uvBlock.su),
+          texture: viewer.world.material.map
+        }
+      }
       return {
-        ...uvBlock,
-        size: Math.abs(uvBlock.su),
+        ...uv,
+        size: itemsAtlases.latest.size,
+        texture: viewer.entities.itemsTexture
+      }
+    } catch (err) {
+      reportError?.(err)
+      return {
+        u: 0,
+        v: 0,
+        size: 16 / viewer.world.material.map!.image.width,
         texture: viewer.world.material.map
       }
-    }
-    return {
-      ...uv,
-      size: itemsAtlases.latest.size,
-      texture: viewer.entities.itemsTexture
     }
   }
 })

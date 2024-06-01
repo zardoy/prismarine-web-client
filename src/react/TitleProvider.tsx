@@ -23,6 +23,7 @@ export default () => {
   const [openActionBar, setOpenActionBar] = useState(false)
 
   useMemo(() => {
+    // todo move to mineflayer
     bot._client.on('set_title_text', (packet) => {
       setTitle(JSON.parse(packet.text))
       setOpenTitle(true)

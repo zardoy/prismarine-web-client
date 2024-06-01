@@ -1,12 +1,25 @@
 .crosshair {
-    z-index: -1;
-    width: 16px;
-    height: 16px;
-    background: var(--gui-icons);
-    background-size: calc(256px * var(--crosshair-scale));
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    image-rendering: pixelated;
-  }
+  z-index: -1;
+  width: 16px;
+  height: 16px;
+  background: var(--gui-icons);
+  background-size: calc(256px * var(--crosshair-scale));
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.crosshair-indicator {
+  z-index: -1;
+  width: var(--crosshair-indicator-size);
+  height: 1.5px;
+  position: fixed;
+  top: calc(50% + 8px);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: lightgray;
+  pointer-events: none;
+}

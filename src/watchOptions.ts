@@ -57,4 +57,9 @@ export const watchOptionsAfterViewerInit = () => {
   customEvents.on('gameLoaded', () => {
     viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
   })
+
+  watchValue(options, o => {
+    if (!(viewer.world instanceof WorldRendererThree)) return
+    viewer.world.starField.enabled = o.starfieldRendering
+  })
 }

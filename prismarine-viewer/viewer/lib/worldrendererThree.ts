@@ -1,13 +1,13 @@
 import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import nbt from 'prismarine-nbt'
-import { dispose3 } from './dispose'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
+import { disposeObject } from './threeJsUtils'
 
 export class WorldRendererThree extends WorldRendererCommon {
     outputFormat = 'threeJs' as const
@@ -62,7 +62,7 @@ export class WorldRendererThree extends WorldRendererCommon {
         let object: THREE.Object3D = this.sectionObjects[data.key]
         if (object) {
             this.scene.remove(object)
-            dispose3(object)
+            disposeObject(object)
             delete this.sectionObjects[data.key]
         }
 
@@ -263,7 +263,7 @@ export class WorldRendererThree extends WorldRendererCommon {
             const mesh = this.sectionObjects[key]
             if (mesh) {
                 this.scene.remove(mesh)
-                dispose3(mesh)
+                disposeObject(mesh)
             }
             delete this.sectionObjects[key]
         }
@@ -277,11 +277,23 @@ export class WorldRendererThree extends WorldRendererCommon {
 
 class StarField {
     points?: THREE.Points
+    private _enabled = true
+    get enabled () {
+        return this._enabled
+    }
+    set enabled (value) {
+        this._enabled = value
+        if (this.points) {
+            this.points.visible = value
+        }
+    }
 
     constructor(private scene: THREE.Scene) {
     }
 
     addToScene () {
+        if (this.points || !this.enabled) return
+
         const radius = 80
         const depth = 50
         const count = 7000
@@ -315,7 +327,6 @@ class StarField {
         material.blending = THREE.AdditiveBlending
         material.depthTest = false
         material.transparent = true
-        // material.unifo
 
         // Create points and add them to the scene
         this.points = new THREE.Points(geometry, material)
@@ -332,6 +343,7 @@ class StarField {
         if (this.points) {
             this.points.geometry.dispose();
             (this.points.material as THREE.Material).dispose();
+            this.scene.remove(this.points)
 
             this.points = undefined;
         }

@@ -93,7 +93,7 @@ export default () => {
       },
     } as any)
     const { canvasManager } = inv
-    inv.inventory.supportsOffhand = bot.supportFeature('doesntHaveOffHandSlot')
+    inv.inventory.supportsOffhand = !bot.supportFeature('doesntHaveOffHandSlot')
     inv.pwindow.disablePicking = true
 
     canvasManager.children[0].disableHighlight = true

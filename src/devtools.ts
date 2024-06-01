@@ -29,7 +29,7 @@ window.len = (obj) => Object.keys(obj).length
 window.inspectPacket = (packetName, full = false) => {
   const listener = (...args) => console.log('packet', packetName, full ? args : args[0])
   const attach = () => {
-    bot?.on(packetName, listener)
+    bot?._client.on(packetName, listener)
   }
   attach()
   customEvents.on('mineflayerBotCreated', attach)
