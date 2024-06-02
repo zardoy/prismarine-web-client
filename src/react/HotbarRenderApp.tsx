@@ -88,7 +88,7 @@ export default () => {
           return
         }
         const hotbarSlot = slot - bot.inventory.hotbarStart
-        if (hotbarSlot < 0 || hotbarSlot > 9) return
+        if (hotbarSlot < 0 || hotbarSlot > 8) return
         bot.setQuickBarSlot(hotbarSlot)
       },
     } as any)
