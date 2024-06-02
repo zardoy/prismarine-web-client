@@ -73,10 +73,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const src = typeof window === 'undefined' ? `${__dirname}/${workerName}` : workerName
 
       const worker: any = new Worker(src)
-      worker.onmessage = async ({ data }) => {
+      const handleMessage = (data) => {
         if (!this.active) return
         this.handleWorkerMessage(data)
-        await new Promise(resolve => {
+        new Promise(resolve => {
           setTimeout(resolve, 0)
         })
         if (data.type === 'sectionFinished') {
@@ -104,6 +104,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
           this.renderUpdateEmitter.emit('update')
         }
+      }
+      worker.onmessage = ({ data }) => {
+        if (Array.isArray(data)) {
+          data.forEach(handleMessage)
+          return
+        }
+        handleMessage(data)
       }
       if (worker.on) worker.on('message', (data) => { worker.onmessage({ data }) })
       this.workers.push(worker)
@@ -215,6 +222,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
+    if (!this.active) return
     if (this.workers.length === 0) throw new Error('workers not initialized yet')
     this.initialChunksLoad = false
     this.loadedChunks[`${x},${z}`] = true
@@ -256,6 +264,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16))
   }
 
+  queueAwaited = false
+  messagesQueue = {} as { [workerIndex: string]: any[] }
+
   setSectionDirty (pos: Vec3, value = true) {
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.allChunksFinished = false
@@ -269,13 +280,30 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // is always dispatched to the same worker
     const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
     this.sectionsOutstanding.set(key, (this.sectionsOutstanding.get(key) ?? 0) + 1)
-    this.workers[hash].postMessage({
+    this.messagesQueue[hash] ??= []
+    this.messagesQueue[hash].push({
+      // this.workers[hash].postMessage({
       type: 'dirty',
       x: pos.x,
       y: pos.y,
       z: pos.z,
       value,
       config: this.mesherConfig,
+    })
+    this.dispatchMessages()
+  }
+
+  dispatchMessages () {
+    if (this.queueAwaited) return
+    this.queueAwaited = true
+    setTimeout(() => {
+      // group messages and send as one
+      for (const workerIndex in this.messagesQueue) {
+        const worker = this.workers[Number(workerIndex)]
+        worker.postMessage(this.messagesQueue[workerIndex])
+      }
+      this.messagesQueue = {}
+      this.queueAwaited = false
     })
   }
 

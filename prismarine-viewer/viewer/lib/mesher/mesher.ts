@@ -19,6 +19,29 @@ function sectionKey (x, y, z) {
   return `${x},${y},${z}`
 }
 
+const batchMessagesLimit = 100
+
+let queuedMessages = [] as any[]
+let queueWaiting = false
+const postMessage = (data, transferList = []) => {
+  queuedMessages.push({ data, transferList })
+  if (queuedMessages.length > batchMessagesLimit) {
+    drainQueue(0, batchMessagesLimit)
+  }
+  if (queueWaiting) return
+  queueWaiting = true
+  setTimeout(() => {
+    queueWaiting = false
+    drainQueue(0, queuedMessages.length)
+  })
+}
+
+function drainQueue (from, to) {
+  const messages = queuedMessages.slice(from, to)
+  global.postMessage(messages.map(m => m.data), messages.flatMap(m => m.transferList) as unknown as string)
+  queuedMessages = queuedMessages.slice(to)
+}
+
 function setSectionDirty (pos, value = true) {
   const x = Math.floor(pos.x / 16) * 16
   const y = Math.floor(pos.y / 16) * 16
@@ -43,7 +66,7 @@ const softCleanup = () => {
   world = new World(world.config.version)
 }
 
-self.onmessage = ({ data }) => {
+const handleMessage = data => {
   const globalVar: any = globalThis
 
   if (data.type === 'mcData') {
@@ -52,7 +75,7 @@ self.onmessage = ({ data }) => {
 
   if (data.config) {
     world ??= new World(data.config.version)
-    world.config = {...world.config, ...data.config}
+    world.config = { ...world.config, ...data.config }
     globalThis.world = world
   }
 
@@ -78,6 +101,15 @@ self.onmessage = ({ data }) => {
     globalVar.mcData = null
     blockStatesReady = false
   }
+}
+
+self.onmessage = ({ data }) => {
+  if (Array.isArray(data)) {
+    data.forEach(handleMessage)
+    return
+  }
+
+  handleMessage(data)
 }
 
 setInterval(() => {
