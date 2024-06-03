@@ -95,29 +95,33 @@ const InGameComponent = ({ children }) => {
 }
 
 const InGameUi = () => {
-  const { gameLoaded } = useSnapshot(miscUiState)
+  const { gameLoaded, showUI } = useSnapshot(miscUiState)
   if (!gameLoaded) return
 
   return <>
     <RobustPortal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
-      <DeathScreenProvider />
-      <DebugOverlay />
-      <MobileTopButtons />
-      <PlayerListOverlayProvider />
-      <ChatProvider />
-      <SoundMuffler />
-      <TitleProvider />
-      <ScoreboardProvider />
-      <IndicatorEffectsProvider />
-      <TouchAreasControlsProvider />
-      <Crosshair />
+      <div style={{ display: showUI ? 'block' : 'none' }}>
+        <DeathScreenProvider />
+        <DebugOverlay />
+        <MobileTopButtons />
+        <PlayerListOverlayProvider />
+        <ChatProvider />
+        <SoundMuffler />
+        <TitleProvider />
+        <ScoreboardProvider />
+        <IndicatorEffectsProvider />
+        <Crosshair />
+        <TouchAreasControlsProvider />
+      </div>
 
       <PauseScreen />
-      <XPBarProvider />
-      <HudBarsProvider />
-      <HotbarRenderApp />
-      <BedTime />
+      <div style={{ display: showUI ? 'block' : 'none' }}>
+        <XPBarProvider />
+        <HudBarsProvider />
+        <BedTime />
+      </div>
+      {showUI && <HotbarRenderApp />}
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />
@@ -125,7 +129,7 @@ const InGameUi = () => {
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
       {/* because of z-index */}
-      <TouchControls />
+      {showUI && <TouchControls />}
       <GlobalSearchInput />
     </RobustPortal>
   </>
@@ -143,8 +147,6 @@ const WidgetDisplay = ({ name, Component }) => {
 }
 
 const App = () => {
-  const { showUI } = useSnapshot(miscUiState)
-
   return <div>
     <ButtonAppProvider>
       <RobustPortal to={document.body}>
@@ -156,7 +158,7 @@ const App = () => {
         <div></div>
       </RobustPortal>
       <EnterFullscreenButton />
-      {showUI && <InGameUi />}
+      <InGameUi />
       <RobustPortal to={document.querySelector('#ui-root')}>
         <AllWidgets />
         <SingleplayerProvider />

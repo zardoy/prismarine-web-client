@@ -16,6 +16,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     chunkTextures = new Map<string, { [pos: string]: THREE.Texture }>()
     signsCache = new Map<string, any>()
     starField: StarField
+    cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
 
     get tilesRendered () {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -42,16 +43,18 @@ export class WorldRendererThree extends WorldRendererCommon {
      */
     updatePosDataChunk (key: string) {
         const [x, y, z] = key.split(',').map(x => Math.floor(+x / 16))
-        const [xPlayer, yPlayer, zPlayer] = this.camera.position.toArray().map(x => Math.floor(x / 16))
         // sum of distances: x + y + z
-        const chunkDistance = Math.abs(x - xPlayer) + Math.abs(y - yPlayer) + Math.abs(z - zPlayer)
+        const chunkDistance = Math.abs(x - this.cameraSectionPos.x) + Math.abs(y - this.cameraSectionPos.y) + Math.abs(z - this.cameraSectionPos.z)
         const section = this.sectionObjects[key].children.find(child => child.name === 'mesh')!
         section.renderOrder = 500 - chunkDistance
     }
 
     updateViewerPosition (pos: Vec3): void {
         this.viewerPosition = pos
-        for (const [key, value] of Object.entries(this.sectionObjects)) {
+        const cameraPos = this.camera.position.toArray().map(x => Math.floor(x / 16)) as [number, number, number]
+        this.cameraSectionPos = new Vec3(...cameraPos)
+        for (const key in this.sectionObjects) {
+            const value = this.sectionObjects[key]
             if (!value) continue
             this.updatePosDataChunk(key)
         }
@@ -95,7 +98,10 @@ export class WorldRendererThree extends WorldRendererCommon {
         mesh.name = 'mesh'
         object = new THREE.Group()
         object.add(mesh)
-        const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
+        // mesh with static dimensions: 16x16x16
+        const staticChunkMesh = new THREE.Mesh(new THREE.BoxGeometry(16, 16, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0 }))
+        staticChunkMesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
+        const boxHelper = new THREE.BoxHelper(staticChunkMesh, 0xffff00)
         boxHelper.name = 'helper'
         object.add(boxHelper)
         object.name = 'chunk'
@@ -117,6 +123,11 @@ export class WorldRendererThree extends WorldRendererCommon {
         }
         this.sectionObjects[data.key] = object
         this.updatePosDataChunk(data.key)
+        object.matrixAutoUpdate = false
+        mesh.onAfterRender = (renderer, scene, camera, geometry, material, group) => {
+            // mesh.matrixAutoUpdate = false
+        }
+
         this.scene.add(object)
     }
 
@@ -253,6 +264,24 @@ export class WorldRendererThree extends WorldRendererCommon {
         }
     }
 
+    readdChunks () {
+        for (const key of Object.keys(this.sectionObjects)) {
+            this.scene.remove(this.sectionObjects[key])
+        }
+        setTimeout(() => {
+            for (const key of Object.keys(this.sectionObjects)) {
+                this.scene.add(this.sectionObjects[key])
+            }
+        }, 500)
+    }
+
+    disableUpdates (children = this.scene.children) {
+        for (const child of children) {
+            child.matrixWorldNeedsUpdate = false
+            this.disableUpdates(child.children ?? [])
+        }
+    }
+
     removeColumn (x, z) {
         super.removeColumn(x, z)
 
@@ -332,7 +361,7 @@ class StarField {
         this.points = new THREE.Points(geometry, material)
         this.scene.add(this.points)
 
-        const clock = new THREE.Clock();
+        const clock = new THREE.Clock()
         this.points.onBeforeRender = (renderer, scene, camera) => {
             this.points?.position.copy?.(camera.position)
             material.uniforms.time.value = clock.getElapsedTime() * speed
@@ -342,10 +371,10 @@ class StarField {
     remove () {
         if (this.points) {
             this.points.geometry.dispose();
-            (this.points.material as THREE.Material).dispose();
+            (this.points.material as THREE.Material).dispose()
             this.scene.remove(this.points)
 
-            this.points = undefined;
+            this.points = undefined
         }
     }
 }

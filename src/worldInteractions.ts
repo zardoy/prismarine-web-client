@@ -73,6 +73,7 @@ class WorldInteraction {
     this.blockBreakMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), breakMaterial)
     this.blockBreakMesh.visible = false
     this.blockBreakMesh.renderOrder = 999
+    this.blockBreakMesh.name = 'blockBreakMesh'
     viewer.scene.add(this.blockBreakMesh)
 
     // Setup events
