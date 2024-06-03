@@ -230,6 +230,7 @@ const handleSign = async (dataBase: string, match: RegExpExecArray) => {
   twoTileTextures.push(blockTextures.up.texture)
 }
 
+// TODO! should not be there! move to data with signs!
 const chestModels = {
   chest: {
     "parent": "block/block",
@@ -402,19 +403,19 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
   currentMcAssets.blocksStates[currentBlockName] = blockStates
 }
 
-function getParsedJSON(match: RegExpExecArray, type: string) {
+function getParsedJSON (block: string, type: string) {
   const versionParts = currentMcAssets.version.split(".")
   const version = versionParts[0] + "." + versionParts[1]
-  return JSON.parse(fs.readFileSync(path.join(__dirname, type + '/' + version + '/' + match + '.json'), 'utf-8'));
+  return JSON.parse(fs.readFileSync(path.join(__dirname, `${type}/${version}/${block}.json`), 'utf-8'))
 }
 
-function getBlockState(match: RegExpExecArray) {
-  return getParsedJSON(match, 'blockStates');
+function getBlockState (match: string) {
+  return getParsedJSON(match, 'blockStates')
 }
 
-async function loadBlockModelTextures(dataBase: string, blockModel: any) {
+async function loadBlockModelTextures (dataBase: string, blockModel: any) {
   for (const key in Object.entries(blockModel.textures)) {
-    const texture:string = blockModel.textures[key]
+    const texture: string = blockModel.textures[key]
     currentImage = await Jimp.read(dataBase + texture + '.png')
     blockModel.textures.particle = texture
     generatedImageTextures[texture] = `data:image/png;base64,${fs.readFileSync(path.join(dataBase, texture + '.png'), 'base64')}`
@@ -422,15 +423,10 @@ async function loadBlockModelTextures(dataBase: string, blockModel: any) {
   }
 }
 
-async function getBlockModel(dataBase: string, match: RegExpExecArray) {
-  const blockModel = getParsedJSON(match, 'blockModels')
-  await loadBlockModelTextures(dataBase, blockModel);
-  return blockModel;
-}
-
-const handleBlockGeneric = async (dataBase: string, match: RegExpExecArray) => {
-  currentMcAssets.blocksStates[currentBlockName] = await getBlockState(match)
-  currentMcAssets.blocksModels[currentBlockName] = await getBlockModel(dataBase, match)
+async function getBlockModel (dataBase: string, block: string) {
+  const blockModel = getParsedJSON(block, 'blockModels')
+  await loadBlockModelTextures(dataBase, blockModel)
+  return blockModel
 }
 
 const handlers = [
@@ -442,7 +438,6 @@ const handlers = [
   [/(.+)_wall_sign$/, handleSign],
   [/(.+)_sign$/, handleSign],
   [/^(?:(ender|trapped)_)?chest$/, handleChest],
-  [/^decorated_pot$/, handleBlockGeneric],
   // [/(^|(.+)_)bed$/, handleBed],
   // no-op just suppress warning
   [/(^light|^moving_piston$)/, true],
@@ -457,6 +452,21 @@ export const tryHandleBlockEntity = async (dataBase, blockName) => {
       await handler(dataBase, match)
     }
     return true
+  }
+}
+
+const handleExternalData = async (dataBase: string, version: string) => {
+  const [major, minor] = version.split(".")
+  const dataVer = `${major}.${minor}`
+  if (!fs.existsSync(path.join(__dirname, 'data', dataVer))) return
+  const allModels = fs.readdirSync(path.join(__dirname, 'data', dataVer, 'blockModels')).map(x => x.replace('.json', ''))
+  for (const model of allModels) {
+    currentMcAssets.blocksModels[model] = await getBlockModel(dataBase, model)
+  }
+
+  const allBlockStates = fs.readdirSync(path.join(__dirname, 'data', dataVer, 'blockStates')).map(x => x.replace('.json', ''))
+  for (const blockState of allBlockStates) {
+    currentMcAssets.blocksStates[blockState] = await getBlockState(blockState)
   }
 }
 
@@ -479,6 +489,8 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
       console.warn(`[${mcAssets.version}] failed to generate block ${theBlock}`)
     }
   }
+
+  await handleExternalData(mcAssets.directory, mcAssets.version)
 
   const warnings: string[] = []
   for (const [name, model] of Object.entries(mcAssets.blocksModels)) {
