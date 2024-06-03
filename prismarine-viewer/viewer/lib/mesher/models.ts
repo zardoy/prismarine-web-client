@@ -35,7 +35,7 @@ function prepareTints (tints) {
   })
 }
 
-const calculatedBlocksEntries = Object.entries(legacyJson.clientCalculatedBlocks);
+const calculatedBlocksEntries = Object.entries(legacyJson.clientCalculatedBlocks)
 export function preflatBlockCalculation (block: Block, world: World, position: Vec3) {
   const type = calculatedBlocksEntries.find(([name, blocks]) => blocks.includes(block.name))?.[0]
   if (!type) return
@@ -239,9 +239,9 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     for (const pos of corners) {
       const height = cornerHeights[pos[2] * 2 + pos[0]]
       attr.t_positions.push(
-        (pos[0] ? 1 : 0) + (cursor.x & 15) - 8,
-        (pos[1] ? height : 0) + (cursor.y & 15) - 8,
-        (pos[2] ? 1 : 0) + (cursor.z & 15) - 8)
+        (pos[0] ? 0.999 : 0.001) + (cursor.x & 15) - 8,
+        (pos[1] ? height - 0.001 : 0.001) + (cursor.y & 15) - 8,
+        (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8)
       attr.t_normals.push(...dir)
       attr.t_uvs.push(pos[3] * su + u, pos[4] * sv * (pos[1] ? 1 : height) + v)
       attr.t_colors.push(tint[0], tint[1], tint[2])
