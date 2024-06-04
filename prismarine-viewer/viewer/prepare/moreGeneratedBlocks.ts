@@ -403,30 +403,14 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
   currentMcAssets.blocksStates[currentBlockName] = blockStates
 }
 
-function getParsedJSON (block: string, type: string) {
-  const versionParts = currentMcAssets.version.split(".")
-  const version = versionParts[0] + "." + versionParts[1]
-  return JSON.parse(fs.readFileSync(path.join(__dirname, `${type}/${version}/${block}.json`), 'utf-8'))
-}
-
-function getBlockState (match: string) {
-  return getParsedJSON(match, 'blockStates')
-}
-
 async function loadBlockModelTextures (dataBase: string, blockModel: any) {
-  for (const key in Object.entries(blockModel.textures)) {
+  for (const key in blockModel.textures) {
     const texture: string = blockModel.textures[key]
     currentImage = await Jimp.read(dataBase + texture + '.png')
     blockModel.textures.particle = texture
     generatedImageTextures[texture] = `data:image/png;base64,${fs.readFileSync(path.join(dataBase, texture + '.png'), 'base64')}`
     origSizeTextures[texture] = true
   }
-}
-
-async function getBlockModel (dataBase: string, block: string) {
-  const blockModel = getParsedJSON(block, 'blockModels')
-  await loadBlockModelTextures(dataBase, blockModel)
-  return blockModel
 }
 
 const handlers = [
@@ -458,15 +442,22 @@ export const tryHandleBlockEntity = async (dataBase, blockName) => {
 const handleExternalData = async (dataBase: string, version: string) => {
   const [major, minor] = version.split(".")
   const dataVer = `${major}.${minor}`
-  if (!fs.existsSync(path.join(__dirname, 'data', dataVer))) return
-  const allModels = fs.readdirSync(path.join(__dirname, 'data', dataVer, 'blockModels')).map(x => x.replace('.json', ''))
-  for (const model of allModels) {
-    currentMcAssets.blocksModels[model] = await getBlockModel(dataBase, model)
+  const baseDir = path.join(__dirname, 'data', dataVer)
+  if (!fs.existsSync(baseDir)) return
+
+  const blockModelsDir = path.join(baseDir, 'blockModels')
+  const allBlockModels = fs.readdirSync(blockModelsDir).map(x => x.replace('.json', ''))
+  for (const blockModel of allBlockModels) {
+    const model = JSON.parse(fs.readFileSync(path.join(blockModelsDir, blockModel + '.json'), 'utf-8'))
+    currentMcAssets.blocksModels[blockModel] = model
+    await loadBlockModelTextures(dataBase, model)
   }
 
-  const allBlockStates = fs.readdirSync(path.join(__dirname, 'data', dataVer, 'blockStates')).map(x => x.replace('.json', ''))
+  const blockStatesDir = path.join(baseDir, 'blockStates')
+  const allBlockStates = fs.readdirSync(blockStatesDir).map(x => x.replace('.json', ''))
   for (const blockState of allBlockStates) {
-    currentMcAssets.blocksStates[blockState] = await getBlockState(blockState)
+    const state = JSON.parse(fs.readFileSync(path.join(blockStatesDir, blockState + '.json'), 'utf-8'))
+    currentMcAssets.blocksStates[blockState] = state
   }
 }
 
