@@ -186,7 +186,7 @@ let lastMouseMove: number
 const updateCursor = () => {
   worldInteractions.update()
 }
-function onCameraMove(e) {
+function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
   e.stopPropagation?.()
   const now = performance.now()
@@ -212,7 +212,7 @@ contro.on('stickMovement', ({ stick, vector }) => {
   miscUiState.usingGamepadInput = true
 })
 
-function hideCurrentScreens() {
+function hideCurrentScreens () {
   activeModalStacks['main-menu'] = [...activeModalStack]
   insertActiveModalStack('', [])
 }
@@ -220,7 +220,7 @@ function hideCurrentScreens() {
 const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
   void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides, serverOverridesFlat: flattenedServerOverrides })
 }
-function listenGlobalEvents() {
+function listenGlobalEvents () {
   window.addEventListener('connect', e => {
     const options = (e as CustomEvent).detail
     void connect(options)
@@ -261,7 +261,7 @@ const cleanConnectIp = (host: string | undefined, defaultPort: string | undefine
   }
 }
 
-async function connect(connectOptions: ConnectOptions) {
+async function connect (connectOptions: ConnectOptions) {
   if (miscUiState.gameLoaded) return
   miscUiState.hasErrors = false
   lastConnectOptions.value = connectOptions
@@ -444,7 +444,7 @@ async function connect(connectOptions: ConnectOptions) {
       } : {},
       ...singleplayer ? {
         version: serverOptions.version,
-        connect() { },
+        connect () { },
         Client: CustomChannelClient as any,
       } : {},
       username,
@@ -455,7 +455,7 @@ async function connect(connectOptions: ConnectOptions) {
       closeTimeout: 240 * 1000,
       respawn: options.autoRespawn,
       maxCatchupTicks: 0,
-      async versionSelectedHook(client) {
+      async versionSelectedHook (client) {
         await downloadMcData(client.version)
         setLoadingScreenStatus(initialLoadingText)
       },
@@ -613,7 +613,7 @@ async function connect(connectOptions: ConnectOptions) {
     dayCycle()
 
     // Bot position callback
-    function botPosition() {
+    function botPosition () {
       viewer.world.lastCamUpdate = Date.now()
       // this might cause lag, but not sure
       viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)
@@ -633,7 +633,7 @@ async function connect(connectOptions: ConnectOptions) {
       bot.entity.yaw -= x
     }
 
-    function changeCallback() {
+    function changeCallback () {
       if (notificationProxy.id === 'pointerlockchange') {
         hideNotification()
       }
@@ -902,7 +902,7 @@ downloadAndOpenFile().then((downloadAction) => {
       const unsubscribe = subscribe(miscUiState, checkCanDisplay)
       checkCanDisplay()
       // eslint-disable-next-line no-inner-declarations
-      function checkCanDisplay() {
+      function checkCanDisplay () {
         if (miscUiState.appConfig) {
           unsubscribe()
           openServerEditor()
