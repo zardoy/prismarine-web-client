@@ -448,7 +448,7 @@ const handleExternalData = async (dataBase: string, version: string) => {
   const blockModelsDir = path.join(baseDir, 'blockModels')
   const allBlockModels = fs.readdirSync(blockModelsDir).map(x => x.replace('.json', ''))
   for (const blockModel of allBlockModels) {
-    const model = JSON.parse(fs.readFileSync(path.join(blockModelsDir, blockModel + '.json'), 'utf-8'));
+    const model = JSON.parse(fs.readFileSync(path.join(blockModelsDir, blockModel + '.json'), 'utf-8'))
     currentMcAssets.blocksModels[blockModel] = model
     await loadBlockModelTextures(dataBase, model)
   }
@@ -456,7 +456,7 @@ const handleExternalData = async (dataBase: string, version: string) => {
   const blockStatesDir = path.join(baseDir, 'blockStates')
   const allBlockStates = fs.readdirSync(blockStatesDir).map(x => x.replace('.json', ''))
   for (const blockState of allBlockStates) {
-    const state = JSON.parse(fs.readFileSync(path.join(blockStatesDir, blockState + '.json'), 'utf-8'));
+    const state = JSON.parse(fs.readFileSync(path.join(blockStatesDir, blockState + '.json'), 'utf-8'))
     currentMcAssets.blocksStates[blockState] = state
   }
 }
