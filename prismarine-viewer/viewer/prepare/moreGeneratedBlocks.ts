@@ -325,25 +325,30 @@ export const tryHandleBlockEntity = async (dataBase, blockName) => {
   }
 }
 
-async function readBlockModel(dataBase: string, blockModelsDir: string, blockState: any) {
-  for (const key in blockState.variants) {
-    const variant = blockState.variants[key].model;
-    const model = JSON.parse(fs.readFileSync(path.join(blockModelsDir, variant + '.json'), 'utf-8'))
-    currentMcAssets.blocksModels[variant] = model
-    await loadBlockModelTextures(dataBase, model)
-  }
-}
-
-async function readAllBlockStates(dataBase: string, blockStatesDir: string, blockModelsDir: string, version: string) {
+async function readAllBlockStates(blockStatesDir: string) {
   const files = fs.readdirSync(blockStatesDir)
   for (const file of files) {
     if (file.endsWith('.json')) {
       const state = JSON.parse(fs.readFileSync(path.join(blockStatesDir, file), 'utf-8'))
       const name = file.replace('.json', '')
       currentMcAssets.blocksStates[name] = state
-      await readBlockModel(dataBase, blockModelsDir, state)
     } else {
-      await readAllBlockStates(dataBase, path.join(blockStatesDir, file), blockModelsDir, version)
+      await readAllBlockStates(path.join(blockStatesDir, file))
+    }
+  }
+}
+
+async function readAllBlockModels(dataBase: string, blockModelsDir: string, completePath: string) {
+  const actualPath = completePath.length ? completePath + "/" : ""
+  const files = fs.readdirSync(blockModelsDir)
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      const model = JSON.parse(fs.readFileSync(path.join(blockModelsDir, file), 'utf-8'))
+      const name = actualPath + file.replace('.json', '')
+      currentMcAssets.blocksModels[name] = model
+      await loadBlockModelTextures(dataBase, model)
+    } else {
+      await readAllBlockModels(dataBase, path.join(blockModelsDir, file), actualPath + file)
     }
   }
 }
@@ -354,9 +359,9 @@ const handleExternalData = async (dataBase: string, version: string) => {
   const baseDir = path.join(__dirname, 'data', dataVer)
   if (!fs.existsSync(baseDir)) return
 
-  const blockStatesDir = path.join(baseDir, 'blockStates')
-  const blockModelsDir = path.join(baseDir, 'blockModels')
-  await readAllBlockStates(dataBase, blockStatesDir, blockModelsDir, version);
+  await readAllBlockStates(path.join(baseDir, 'blockStates'));
+  await readAllBlockModels(dataBase, path.join(baseDir, 'blockModels'), "");
+
 }
 
 export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {

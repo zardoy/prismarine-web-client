@@ -100,15 +100,6 @@
           ],
           "texture": "#wood"
         },
-        "east": {
-          "uv": [
-            0,
-            0,
-            0,
-            3
-          ],
-          "texture": "#missing"
-        },
         "south": {
           "uv": [
             3.5,
@@ -117,35 +108,6 @@
             6
           ],
           "texture": "#wood"
-        },
-        "west": {
-          "uv": [
-            0,
-            0,
-            0,
-            3
-          ],
-          "texture": "#missing"
-        },
-        "up": {
-          "uv": [
-            0,
-            0,
-            0,
-            6
-          ],
-          "rotation": 90,
-          "texture": "#missing"
-        },
-        "down": {
-          "uv": [
-            0,
-            0,
-            0,
-            6
-          ],
-          "rotation": 270,
-          "texture": "#missing"
         }
       }
     }
