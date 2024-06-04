@@ -1,0 +1,7 @@
+{
+  "credit": "Made with Blockbench by TyBraniff for Bluemaps support.",
+  "parent": "hanging",
+  "textures": {
+    "wood": "entity/signs/hanging/oak"
+  }
+}

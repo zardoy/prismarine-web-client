@@ -1,0 +1,6 @@
+{
+  "parent": "sign/sign",
+  "textures": {
+    "sign": "entity/signs/jungle"
+  }
+}

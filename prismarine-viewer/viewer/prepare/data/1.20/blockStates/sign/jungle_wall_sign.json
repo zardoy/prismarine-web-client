@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=south": {
+      "model": "sign/jungle_wall"
+    },
+    "facing=west": {
+      "model": "sign/jungle_wall",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "sign/jungle_wall",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "sign/jungle_wall",
+      "y": 270
+    }
+  }
+}
