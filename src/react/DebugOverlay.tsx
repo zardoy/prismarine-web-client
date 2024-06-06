@@ -73,7 +73,7 @@ export default () => {
     }
   }
 
-  useMemo(() => {
+  useEffect(() => {
     document.addEventListener('keydown', handleF3)
     const packetsUpdateInterval = setInterval(() => {
       setPacketsString(prev => `↓ ${received.current.count} (${(received.current.size / 1024).toFixed(2)} KB/s, ${getFixedFilesize(receivedTotal.current)}) ↑ ${sent.current.count}`)
