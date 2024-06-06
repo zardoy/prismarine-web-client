@@ -568,15 +568,6 @@ async function connect (connectOptions: ConnectOptions) {
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
 
-    // patch mineflayer
-    // todo move to mineflayer
-    bot.inventory.on('updateSlot', (index) => {
-      if ((index as unknown as number) === bot.quickBarSlot + bot.inventory.hotbarStart) {
-        //@ts-expect-error
-        bot.emit('heldItemChanged')
-      }
-    })
-
     miscUiState.gameLoaded = true
     miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''
     customEvents.emit('gameLoaded')
