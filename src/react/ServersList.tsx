@@ -5,14 +5,12 @@ import Singleplayer from './Singleplayer'
 import Input from './Input'
 import Button from './Button'
 import PixelartIcon from './PixelartIcon'
+import { BaseServerInfo } from './AddServerOrConnect'
 
 interface Props extends React.ComponentProps<typeof Singleplayer> {
-  joinServer: (ip: string, overrides: {
-    username?: string
-    password?: string
-    proxy?: string
-    versionOverride?: string
+  joinServer: (info: BaseServerInfo, additional: {
     shouldSave?: boolean
+    index?: number
   }) => void
   initialProxies: SavedProxiesLocalStorage
   updateProxies: (proxies: SavedProxiesLocalStorage) => void
@@ -67,9 +65,11 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
         version = parts.at(-1)!
         ip = parts.slice(0, -1).join(':')
       }
-      joinServer(ip, {
-        shouldSave: save,
+      joinServer({
+        ip,
         versionOverride: version,
+      }, {
+        shouldSave: save,
       })
     }}
     >
@@ -116,7 +116,9 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
     serversLayout
     onWorldAction={(action, serverName) => {
       if (action === 'load') {
-        joinServer(serverName, {})
+        joinServer({
+          ip: serverName,
+        }, {})
       }
       props.onWorldAction?.(action, serverName)
     }}
