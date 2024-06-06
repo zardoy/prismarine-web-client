@@ -4,7 +4,7 @@ import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { miscUiState } from './globalState'
+import { activeModalStack, miscUiState } from './globalState'
 import DeathScreenProvider from './react/DeathScreenProvider'
 import OptionsRenderApp from './react/OptionsRenderApp'
 import MainMenuRenderApp from './react/MainMenuRenderApp'
@@ -95,7 +95,9 @@ const InGameComponent = ({ children }) => {
 }
 
 const InGameUi = () => {
-  const { gameLoaded, showUI } = useSnapshot(miscUiState)
+  const { gameLoaded, showUI: showUIRaw } = useSnapshot(miscUiState)
+  const hasModals = useSnapshot(activeModalStack).length > 0
+  const showUI = showUIRaw || hasModals
   if (!gameLoaded) return
 
   return <>

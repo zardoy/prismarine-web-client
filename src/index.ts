@@ -451,7 +451,7 @@ async function connect (connectOptions: ConnectOptions) {
       password,
       viewDistance: renderDistance,
       checkTimeoutInterval: 240 * 1000,
-      noPongTimeout: 240 * 1000,
+      // noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
       respawn: options.autoRespawn,
       maxCatchupTicks: 0,
@@ -484,6 +484,13 @@ async function connect (connectOptions: ConnectOptions) {
           //@ts-expect-error
           bot._client.socket._ws.addEventListener('close', () => {
             console.log('WebSocket connection closed')
+            setTimeout(() => {
+              if (bot) {
+                bot.emit('end', 'WebSocket connection closed with unknown reason')
+              }
+            }, 1000)
+          })
+          bot._client.socket.on('close', () => {
             setTimeout(() => {
               if (bot) {
                 bot.emit('end', 'WebSocket connection closed with unknown reason')
