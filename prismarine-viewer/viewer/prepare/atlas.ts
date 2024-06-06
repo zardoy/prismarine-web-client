@@ -49,19 +49,18 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
 
   const texturesIndex = {}
 
-  let skipXY = [] as [x: number, y: number][]
-  let offset = 0
+  let nextX = 0
+  let nextY = 0
+  let rowMaxY = 0
+
+  const goToNextRow = () => {
+    nextX = 0
+    nextY += rowMaxY
+    rowMaxY = 0
+  }
+
   const suSv = tileSize / imgSize
   for (const i in input) {
-    const pos = +i + offset
-    const x = (pos % texSize) * tileSize
-    const y = Math.floor(pos / texSize) * tileSize
-
-    if (skipXY.some(([sx, sy]) => sx === x + 1 && sy === y)) {
-      // todo more offsets
-      offset++
-    }
-
     const img = new Image()
     const keyValue = input[i]
     const inputData = getInputData(keyValue)
@@ -76,16 +75,24 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
       renderHeight = Math.ceil(img.height / tileSize) * tileSize
       su = renderWidth / imgSize
       sv = renderHeight / imgSize
-      if (renderWidth > tileSize) {
-        offset += Math.ceil(renderWidth / tileSize) - 1
-      }
-      if (renderHeight > tileSize) {
-        const skipYs = Math.ceil(renderHeight / tileSize) - 1
-        for (let i = 1; i <= skipYs; i++) {
-          skipXY.push([x, y + i])
-        }
+      if (renderHeight > imgSize || renderWidth > imgSize) {
+        throw new Error('Texture ' + keyValue + ' is too big')
       }
     }
+
+    if (nextX + renderWidth > imgSize) {
+      goToNextRow()
+    }
+
+    const x = nextX
+    const y = nextY
+
+    nextX += renderWidth
+    rowMaxY = Math.max(rowMaxY, renderHeight)
+    if (nextX >= imgSize) {
+      goToNextRow()
+    }
+
     g.drawImage(img, 0, 0, renderWidth, renderHeight, x, y, renderWidth, renderHeight)
 
     const cleanName = keyValue.split('.').slice(0, -1).join('.') || keyValue
