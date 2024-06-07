@@ -231,10 +231,11 @@ const Inner = () => {
   }
 
   return <ServersList
-    joinServer={(indexOrIp, overrides) => {
+    joinServer={(overrides, { shouldSave }) => {
+      const indexOrIp = overrides.ip
       let ip = indexOrIp
       let server: StoreServerItem | undefined
-      if (overrides.shouldSave === undefined) {
+      if (shouldSave === undefined) {
         // hack: inner component doesn't know of overrides for existing servers
         server = serversListSorted.find(s => s.index.toString() === indexOrIp)!
         ip = server.ip
@@ -242,7 +243,7 @@ const Inner = () => {
       }
 
       const lastJoinedUsername = serversListSorted.find(s => s.usernameOverride)?.usernameOverride
-      let username = overrides.username || defaultUsername
+      let username = overrides.usernameOverride || defaultUsername
       if (!username) {
         username = prompt('Username', lastJoinedUsername || '')
         if (!username) return
@@ -251,13 +252,13 @@ const Inner = () => {
       const options = {
         username,
         server: normalizeIp(ip),
-        proxy: overrides.proxy || selectedProxy,
+        proxy: overrides.proxyOverride || selectedProxy,
         botVersion: overrides.versionOverride ?? /* legacy */ overrides['version'],
-        password: overrides.password,
+        password: overrides.passwordOverride,
         ignoreQs: true,
         autoLoginPassword: server?.autoLogin?.[username],
         onSuccessfulPlay () {
-          if (overrides.shouldSave && !serversList.some(s => s.ip === ip)) {
+          if (shouldSave && !serversList.some(s => s.ip === ip)) {
             const newServersList: StoreServerItem[] = [...serversList, {
               ip,
               lastJoined: Date.now(),
@@ -267,7 +268,7 @@ const Inner = () => {
             setNewServersList(newServersList) // component is not mounted
           }
 
-          if (overrides.shouldSave === undefined) { // loading saved
+          if (shouldSave === undefined) { // loading saved
             // find and update
             const server = serversList.find(s => s.ip === ip)
             if (server) {
@@ -286,7 +287,7 @@ const Inner = () => {
             localStorage.setItem('selectedProxy', selectedProxy)
           }
         },
-        serverIndex: overrides.shouldSave ? serversList.length.toString() : indexOrIp // assume last
+        serverIndex: shouldSave ? serversList.length.toString() : indexOrIp // assume last
       } satisfies ConnectOptions
       dispatchEvent(new CustomEvent('connect', { detail: options }))
       // qsOptions

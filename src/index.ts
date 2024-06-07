@@ -498,6 +498,22 @@ async function connect (connectOptions: ConnectOptions) {
             })
           })
         })
+        let i = 0
+        //@ts-expect-error
+        bot.pingProxy = async () => {
+          const curI = ++i
+          return new Promise(resolve => {
+            //@ts-expect-error
+            bot._client.socket._ws.send(`ping:${curI}`)
+            const date = Date.now()
+            const onPong = (received) => {
+              if (received !== curI.toString()) return
+              bot._client.socket.off('pong' as any, onPong)
+              resolve(Date.now() - date)
+            }
+            bot._client.socket.on('pong' as any, onPong)
+          })
+        }
       }
       // socket setup actually can be delayed because of dns lookup
       if (bot._client.socket) {
@@ -567,15 +583,6 @@ async function connect (connectOptions: ConnectOptions) {
     window.loadedData = mcData
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
-
-    // patch mineflayer
-    // todo move to mineflayer
-    bot.inventory.on('updateSlot', (index) => {
-      if ((index as unknown as number) === bot.quickBarSlot + bot.inventory.hotbarStart) {
-        //@ts-expect-error
-        bot.emit('heldItemChanged')
-      }
-    })
 
     miscUiState.gameLoaded = true
     miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''
