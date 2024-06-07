@@ -184,11 +184,11 @@ export class WorldRendererThree extends WorldRendererCommon {
         // todo @sa2urami shouldnt all this be done in worker?
         mesh.scale.set(1, 7 / 16, 1)
         if (isWall) {
-            mesh.position.set(0, 0, -(8 - 1.5) / 16 + 0.001)
+            mesh.position.set(0, 0, -(8 - 1.5) / 16 + 0.151)
         } else {
             // standing
             const faceEnd = 8.75
-            mesh.position.set(0, 0, (faceEnd - 16 / 2) / 16 + 0.001)
+            mesh.position.set(0, 0, (faceEnd - 16 / 2) / 16 + 0.151)
         }
 
         const group = new THREE.Group()
