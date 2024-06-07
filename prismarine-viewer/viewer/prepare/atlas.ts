@@ -123,7 +123,7 @@ export function makeBlockTextureAtlas (mcAssets: McAssets) {
   // const textureFiles = mostEncounteredBlocks.map(x => x + '.png')
   textureFiles.unshift(...localTextures)
 
-  const { generated: additionalTextures, twoTileTextures, origSizeTextures } = getAdditionalTextures()
+  const { generated: additionalTextures, origSizeTextures } = getAdditionalTextures()
   textureFiles.push(...Object.keys(additionalTextures))
 
   const atlas = makeTextureAtlas(textureFiles, name => {
@@ -136,7 +136,7 @@ export function makeBlockTextureAtlas (mcAssets: McAssets) {
 
     return {
       contents,
-      tileWidthMult: twoTileTextures.includes(name) ? 2 : undefined,
+      // tileWidthMult: twoTileTextures.includes(name) ? 2 : undefined,
       origSizeTextures
     }
   })

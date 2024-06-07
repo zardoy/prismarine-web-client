@@ -161,7 +161,7 @@ function prepareModel (model: BlockModel, texturesJson) {
 
   const getFinalTexture = (originalBlockName) => {
     // texture name e.g. blocks/anvil_base
-    const cleanBlockName = cleanupBlockName(originalBlockName);
+    const cleanBlockName = cleanupBlockName(originalBlockName)
     return { ...texturesJson[cleanBlockName], /* __debugName: cleanBlockName */ }
   }
 
@@ -187,10 +187,12 @@ function prepareModel (model: BlockModel, texturesJson) {
     for (const sideName of Object.keys(elem.faces)) {
       const face = elem.faces[sideName]
 
+      const textureRaw = face.texture.charAt(0) === '#'
+        ? finalTextures![face.texture.slice(1)]
+        : getFinalTexture(face.texture)
+      if (!textureRaw) throw new Error(`Texture ${face.texture} in ${JSON.stringify(model.textures)} not found`)
       const finalTexture = deepCopy(
-        face.texture.charAt(0) === '#'
-          ? finalTextures![face.texture.slice(1)]
-          : getFinalTexture(face.texture)
+        textureRaw
       )
 
       const _from = elem.from

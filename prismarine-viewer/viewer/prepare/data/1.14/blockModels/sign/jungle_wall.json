@@ -1,7 +1,7 @@
 {
   "credit": "Made with Blockbench by TyBraniff for Bluemaps support.",
-  "parent": "sign/wall_hanging",
+  "parent": "sign/sign_wall",
   "textures": {
-    "wood": "entity/signs/hanging/jungle"
+    "sign": "entity/signs/jungle"
   }
 }
