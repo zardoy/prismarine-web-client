@@ -355,13 +355,20 @@ async function readAllBlockModels(dataBase: string, blockModelsDir: string, comp
 }
 
 const handleExternalData = async (dataBase: string, version: string, handledBlocks: string[]) => {
-  const [major, minor] = version.split(".")
-  const dataVer = `${major}.${minor}`
-  const baseDir = path.join(__dirname, 'data', dataVer)
-  if (!fs.existsSync(baseDir)) return
+  const versions = fs.readdirSync(dataBase)
+  versions.sort((a, b) => {
+    const [majorA, minorA] = a.split(".")
+    const [majorB, minorB] = a.split(".")
+    return (+majorA - +majorB) || (+minorA - +minorB)
+  });
 
-  await readAllBlockStates(path.join(baseDir, 'blockStates'), handledBlocks)
-  await readAllBlockModels(dataBase, path.join(baseDir, 'blockModels'), "");
+  for (const dataVer of versions) {
+    const baseDir = path.join(__dirname, 'data', dataVer)
+    if (!fs.existsSync(baseDir)) return
+
+    await readAllBlockStates(path.join(baseDir, 'blockStates'), handledBlocks)
+    await readAllBlockModels(dataBase, path.join(baseDir, 'blockModels'), "");
+  }
 }
 
 export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
