@@ -138,7 +138,7 @@ importers:
         version: 2.0.4
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
-        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/2ed580ba422781addd1166ab31eede5914cd5f61
+        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/99434199f25d3c6bbe15833bb78ec40b07c2df6f
       node-gzip:
         specifier: ^1.1.2
         version: 1.1.2
@@ -6220,8 +6220,8 @@ packages:
   nested-error-stacks@2.1.1:
     resolution: {integrity: sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/2ed580ba422781addd1166ab31eede5914cd5f61:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/2ed580ba422781addd1166ab31eede5914cd5f61}
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/99434199f25d3c6bbe15833bb78ec40b07c2df6f:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/99434199f25d3c6bbe15833bb78ec40b07c2df6f}
     version: 0.2.4
 
   nice-try@1.0.5:
@@ -15961,7 +15961,7 @@ snapshots:
 
   nested-error-stacks@2.1.1: {}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/2ed580ba422781addd1166ab31eede5914cd5f61:
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/99434199f25d3c6bbe15833bb78ec40b07c2df6f:
     dependencies:
       body-parser: 1.20.2
       express: 4.18.2
