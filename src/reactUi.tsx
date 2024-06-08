@@ -98,7 +98,7 @@ const InGameUi = () => {
   const { gameLoaded, showUI: showUIRaw } = useSnapshot(miscUiState)
   const hasModals = useSnapshot(activeModalStack).length > 0
   const showUI = showUIRaw || hasModals
-  if (!gameLoaded) return
+  if (!gameLoaded || !bot) return
 
   return <>
     <RobustPortal to={document.querySelector('#ui-root')}>

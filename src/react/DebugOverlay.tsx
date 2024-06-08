@@ -91,6 +91,7 @@ export default () => {
       setDimension(bot.game.dimension)
       setDay(bot.time.day)
       setCursorBlock(worldInteractions.cursorBlock)
+      setEntitiesCount(Object.values(bot.entities).length)
     }, 100)
 
     // @ts-expect-error
@@ -100,12 +101,6 @@ export default () => {
     bot._client.on('writePacket' as any, (name, data) => {
       sent.current.count++
       managePackets('sent', name, data)
-    })
-    bot.on('entitySpawn', () => {
-      setEntitiesCount(Object.values(bot.entities).length)
-    })
-    bot.on('entityGone', () => {
-      setEntitiesCount(Object.values(bot.entities).length)
     })
 
     try {
