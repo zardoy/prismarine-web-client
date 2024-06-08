@@ -41,7 +41,7 @@ export const watchOptionsAfterViewerInit = () => {
   })
 
   watchValue(options, o => {
-    viewer.entities.setVisible(o.renderEntities)
+    viewer.entities.setRendering(o.renderEntities)
   })
 
   // viewer.world.mesherConfig.smoothLighting = options.smoothLighting

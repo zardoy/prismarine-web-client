@@ -451,7 +451,7 @@ async function connect (connectOptions: ConnectOptions) {
       password,
       viewDistance: renderDistance,
       checkTimeoutInterval: 240 * 1000,
-      noPongTimeout: 240 * 1000,
+      // noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
       respawn: options.autoRespawn,
       maxCatchupTicks: 0,
@@ -488,9 +488,32 @@ async function connect (connectOptions: ConnectOptions) {
               if (bot) {
                 bot.emit('end', 'WebSocket connection closed with unknown reason')
               }
+            }, 1000)
+          })
+          bot._client.socket.on('close', () => {
+            setTimeout(() => {
+              if (bot) {
+                bot.emit('end', 'WebSocket connection closed with unknown reason')
+              }
             })
           })
         })
+        let i = 0
+        //@ts-expect-error
+        bot.pingProxy = async () => {
+          const curI = ++i
+          return new Promise(resolve => {
+            //@ts-expect-error
+            bot._client.socket._ws.send(`ping:${curI}`)
+            const date = Date.now()
+            const onPong = (received) => {
+              if (received !== curI.toString()) return
+              bot._client.socket.off('pong' as any, onPong)
+              resolve(Date.now() - date)
+            }
+            bot._client.socket.on('pong' as any, onPong)
+          })
+        }
       }
       // socket setup actually can be delayed because of dns lookup
       if (bot._client.socket) {
@@ -560,15 +583,6 @@ async function connect (connectOptions: ConnectOptions) {
     window.loadedData = mcData
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
-
-    // patch mineflayer
-    // todo move to mineflayer
-    bot.inventory.on('updateSlot', (index) => {
-      if ((index as unknown as number) === bot.quickBarSlot + bot.inventory.hotbarStart) {
-        //@ts-expect-error
-        bot.emit('heldItemChanged')
-      }
-    })
 
     miscUiState.gameLoaded = true
     miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''

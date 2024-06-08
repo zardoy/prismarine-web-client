@@ -68,11 +68,13 @@ class WorldInteraction {
     }
     const breakMaterial = new THREE.MeshBasicMaterial({
       transparent: true,
-      blending: THREE.MultiplyBlending
+      blending: THREE.MultiplyBlending,
+      alphaTest: 0.5,
     })
     this.blockBreakMesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), breakMaterial)
     this.blockBreakMesh.visible = false
     this.blockBreakMesh.renderOrder = 999
+    this.blockBreakMesh.name = 'blockBreakMesh'
     viewer.scene.add(this.blockBreakMesh)
 
     // Setup events
@@ -88,7 +90,7 @@ class WorldInteraction {
 
       const entity = getEntityCursor()
 
-      if (entity && e.button === 2) {
+      if (entity && e.button === 0) {
         bot.attack(entity)
       } else {
         // bot

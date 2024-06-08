@@ -23,6 +23,8 @@ interface Props {
   defaults?: Pick<BaseServerInfo, 'proxyOverride' | 'usernameOverride'>
 }
 
+const ELEMENTS_WIDTH = 190
+
 export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, defaults }: Props) => {
   const qsParams = parseQs ? new URLSearchParams(window.location.search) : undefined
 
@@ -41,24 +43,25 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
   const lockConnect = qsParams?.get('lockConnect') === 'true'
 
   return <Screen title={qsParams?.get('ip') ? 'Connect to Server' : title} backdrop>
-    <form style={{
-      display: 'flex',
-      flexDirection: 'column',
-      height: '100%'
-    }}
-    onSubmit={(e) => {
-      e.preventDefault()
-      let ip = serverIp.includes(':') ? serverIp : `${serverIp}:${serverPort}`
-      ip = ip.replace(/:$/, '')
-      onConfirm({
-        name: serverName,
-        ip,
-        versionOverride,
-        proxyOverride,
-        usernameOverride,
-        passwordOverride
-      })
-    }}
+    <form
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%'
+      }}
+      onSubmit={(e) => {
+        e.preventDefault()
+        let ip = serverIp.includes(':') ? serverIp : `${serverIp}:${serverPort}`
+        ip = ip.replace(/:$/, '')
+        onConfirm({
+          name: serverName,
+          ip,
+          versionOverride,
+          proxyOverride,
+          usernameOverride,
+          passwordOverride
+        })
+      }}
     >
       <div style={{
         display: 'grid',
@@ -75,11 +78,14 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         <InputWithLabel label="Proxy Override" value={proxyOverride} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={defaults?.proxyOverride} />
         <InputWithLabel label="Username Override" value={usernameOverride} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={defaults?.usernameOverride} />
         <InputWithLabel label="Password Override" value={passwordOverride} onChange={({ target: { value } }) => setPasswordOverride(value)} /* placeholder='For advanced usage only' */ />
-        {!lockConnect && <><Button onClick={() => {
-          onBack()
-        } }>Cancel</Button><Button type='submit'>Save</Button></>}
+        {!lockConnect && <>
+          <ButtonWrapper onClick={() => {
+            onBack()
+          }}>Cancel</ButtonWrapper>
+          <ButtonWrapper type='submit'>Save</ButtonWrapper>
+        </>}
         {qsParams?.get('ip') && <div style={{ gridColumn: smallWidth ? '' : 'span 2', display: 'flex', justifyContent: 'center' }}>
-          <Button
+          <ButtonWrapper
             data-test-id='connect-qs'
             onClick={() => {
               onQsConnect?.({
@@ -91,11 +97,17 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
                 passwordOverride
               })
             }}
-          >Connect</Button>
+          >Connect</ButtonWrapper>
         </div>}
       </div>
     </form>
   </Screen>
+}
+
+const ButtonWrapper = ({ ...props }: React.ComponentProps<typeof Button>) => {
+  props.style ??= {}
+  props.style.width = ELEMENTS_WIDTH
+  return <Button {...props} />
 }
 
 const InputWithLabel = ({ label, span, ...props }: React.ComponentProps<typeof Input> & { label, span?}) => {
@@ -105,6 +117,6 @@ const InputWithLabel = ({ label, span, ...props }: React.ComponentProps<typeof I
     gridRow: span ? 'span 2 / span 2' : undefined,
   }}>
     <label style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>{label}</label>
-    <Input {...props} />
+    <Input rootStyles={{ width: ELEMENTS_WIDTH }} {...props} />
   </div>
 }

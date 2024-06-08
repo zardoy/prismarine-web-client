@@ -101,7 +101,7 @@ export const formatMessage = (message: MessageInput, mcData: IndexedData = globa
 
   msglist = msglist.map(msg => {
     // normalize §
-    if (!msg.text.includes('§')) return msg
+    if (!msg.text.includes?.('§')) return msg
     const newMsg = fromFormattedString(msg.text)
     return flat(newMsg)
   }).flat(Infinity)

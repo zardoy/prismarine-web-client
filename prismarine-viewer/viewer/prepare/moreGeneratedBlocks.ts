@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 
 // todo refactor
 const twoTileTextures: string[] = []
+const origSizeTextures: string[] = []
 let currentImage: Jimp
 let currentBlockName: string
 let currentMcAssets: McAssets
@@ -82,7 +83,7 @@ const getBlockTexturesFromJimp = async <T extends Record<string, Jimp>> (sides: 
   for (const [side, jimp] of Object.entries(sides)) {
     const textureName = `${textureNameBase}_${side}`
     const sideTexture = withUv ? { uv: [0, 0, jimp.getWidth(), jimp.getHeight()], texture: textureName } : textureName
-    const base64 = await jimp.getBase64Async(jimp.getMIME())
+    const base64Url = await jimp.getBase64Async(jimp.getMIME())
     if (side === 'side') {
       sidesTextures['north'] = sideTexture
       sidesTextures['east'] = sideTexture
@@ -91,7 +92,7 @@ const getBlockTexturesFromJimp = async <T extends Record<string, Jimp>> (sides: 
     } else {
       sidesTextures[side] = sideTexture
     }
-    generatedImageTextures[textureName] = base64
+    generatedImageTextures[textureName] = base64Url
   }
 
   return sidesTextures
@@ -229,6 +230,7 @@ const handleSign = async (dataBase: string, match: RegExpExecArray) => {
   twoTileTextures.push(blockTextures.up.texture)
 }
 
+// TODO! should not be there! move to data with signs!
 const chestModels = {
   chest: {
     "parent": "block/block",
@@ -401,6 +403,16 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
   currentMcAssets.blocksStates[currentBlockName] = blockStates
 }
 
+async function loadBlockModelTextures (dataBase: string, blockModel: any) {
+  for (const key in blockModel.textures) {
+    const texture: string = blockModel.textures[key]
+    currentImage = await Jimp.read(dataBase + texture + '.png')
+    blockModel.textures.particle = texture
+    generatedImageTextures[texture] = `data:image/png;base64,${fs.readFileSync(path.join(dataBase, texture + '.png'), 'base64')}`
+    origSizeTextures[texture] = true
+  }
+}
+
 const handlers = [
   [/(.+)_shulker_box$/, handleShulkerBox],
   [/^shulker_box$/, handleShulkerBox],
@@ -427,6 +439,28 @@ export const tryHandleBlockEntity = async (dataBase, blockName) => {
   }
 }
 
+const handleExternalData = async (dataBase: string, version: string) => {
+  const [major, minor] = version.split(".")
+  const dataVer = `${major}.${minor}`
+  const baseDir = path.join(__dirname, 'data', dataVer)
+  if (!fs.existsSync(baseDir)) return
+
+  const blockModelsDir = path.join(baseDir, 'blockModels')
+  const allBlockModels = fs.readdirSync(blockModelsDir).map(x => x.replace('.json', ''))
+  for (const blockModel of allBlockModels) {
+    const model = JSON.parse(fs.readFileSync(path.join(blockModelsDir, blockModel + '.json'), 'utf-8'))
+    currentMcAssets.blocksModels[blockModel] = model
+    await loadBlockModelTextures(dataBase, model)
+  }
+
+  const blockStatesDir = path.join(baseDir, 'blockStates')
+  const allBlockStates = fs.readdirSync(blockStatesDir).map(x => x.replace('.json', ''))
+  for (const blockState of allBlockStates) {
+    const state = JSON.parse(fs.readFileSync(path.join(blockStatesDir, blockState + '.json'), 'utf-8'))
+    currentMcAssets.blocksStates[blockState] = state
+  }
+}
+
 export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
   const mcData = minecraftData(mcAssets.version)
   const allTheBlocks = mcData.blocksArray.map(x => x.name)
@@ -447,6 +481,8 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
     }
   }
 
+  await handleExternalData(mcAssets.directory, mcAssets.version)
+
   const warnings: string[] = []
   for (const [name, model] of Object.entries(mcAssets.blocksModels)) {
     if (Object.keys(model).length === 1 && model.textures) {
@@ -462,5 +498,5 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
 }
 
 export const getAdditionalTextures = () => {
-  return { generated: generatedImageTextures, twoTileTextures }
+  return { generated: generatedImageTextures, twoTileTextures, origSizeTextures }
 }

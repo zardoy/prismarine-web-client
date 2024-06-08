@@ -69,7 +69,8 @@ export const guiOptionsScheme: {
         enableWarning: 'Enabling it will make chunks load ~4x slower',
         disabledDuringGame: true
       },
-      starfieldRendering: {}
+      starfieldRendering: {},
+      renderEntities: {},
     },
   ],
   main: [

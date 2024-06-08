@@ -82,7 +82,7 @@ export default () => {
         const item = bot.inventory.slots[slotIndex] ?? null
         if (!item) continue
         const armorName = item.name.split('_')
-        points += armor[armorName[0]][armorName[1]]
+        points += armor[armorName[0]]?.[armorName[1]] ?? 0
       }
       setArmorValue(points)
     }

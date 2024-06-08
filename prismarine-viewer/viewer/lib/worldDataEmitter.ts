@@ -129,6 +129,15 @@ export class WorldDataEmitter extends EventEmitter {
     }
   }
 
+  readdDebug () {
+    const clonedLoadedChunks = { ...this.loadedChunks }
+    this.unloadAllChunks()
+    for (const loadedChunk in clonedLoadedChunks) {
+      const [x, z] = loadedChunk.split(',').map(Number)
+      this.loadChunk(new Vec3(x, 0, z))
+    }
+  }
+
   async loadChunk (pos: ChunkPos, isLightUpdate = false) {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
@@ -187,7 +196,7 @@ export class WorldDataEmitter extends EventEmitter {
       const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => {
         const pos = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
         if (!this.loadedChunks[`${pos.x},${pos.z}`]) return pos
-        return undefined
+        return undefined!
       }).filter(a => !!a)
       this.lastPos.update(pos)
       await this._loadChunks(positions)

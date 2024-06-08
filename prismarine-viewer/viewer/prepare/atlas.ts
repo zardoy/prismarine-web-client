@@ -35,7 +35,7 @@ export type JsonAtlas = {
   }
 }
 
-export const makeTextureAtlas = (input: string[], getInputData: (name) => { contents: string, tileWidthMult?: number }, tilesCount = input.length, suSvOptimize: 'remove' | null = null): {
+export const makeTextureAtlas = (input: string[], getInputData: (name) => { contents: string, tileWidthMult?: number, origSizeTextures?}, tilesCount = input.length, suSvOptimize: 'remove' | null = null): {
   image: Buffer,
   canvas: Canvas,
   json: JsonAtlas
@@ -49,6 +49,7 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
 
   const texturesIndex = {}
 
+  let skipXY = [] as [x: number, y: number][]
   let offset = 0
   const suSv = tileSize / imgSize
   for (const i in input) {
@@ -56,20 +57,44 @@ export const makeTextureAtlas = (input: string[], getInputData: (name) => { cont
     const x = (pos % texSize) * tileSize
     const y = Math.floor(pos / texSize) * tileSize
 
+    if (skipXY.some(([sx, sy]) => sx === x + 1 && sy === y)) {
+      // todo more offsets
+      offset++
+    }
+
     const img = new Image()
-    const keyValue = input[i];
-    const inputData = getInputData(keyValue);
+    const keyValue = input[i]
+    const inputData = getInputData(keyValue)
     img.src = inputData.contents
-    const renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
-    g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
+    let su = suSv
+    let sv = suSv
+    let renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
+    let renderHeight = tileSize
+    if (inputData.origSizeTextures?.[keyValue]) {
+      // todo check have enough space
+      renderWidth = Math.ceil(img.width / tileSize) * tileSize
+      renderHeight = Math.ceil(img.height / tileSize) * tileSize
+      su = renderWidth / imgSize
+      sv = renderHeight / imgSize
+      if (renderWidth > tileSize) {
+        offset += Math.ceil(renderWidth / tileSize) - 1
+      }
+      if (renderHeight > tileSize) {
+        const skipYs = Math.ceil(renderHeight / tileSize) - 1
+        for (let i = 1; i <= skipYs; i++) {
+          skipXY.push([x, y + i])
+        }
+      }
+    }
+    g.drawImage(img, 0, 0, renderWidth, renderHeight, x, y, renderWidth, renderHeight)
 
     const cleanName = keyValue.split('.').slice(0, -1).join('.') || keyValue
     texturesIndex[cleanName] = {
       u: x / imgSize,
       v: y / imgSize,
       ...suSvOptimize === 'remove' ? {} : {
-        su: suSv,
-        sv: suSv
+        su: su,
+        sv: sv
       }
     }
   }
@@ -91,7 +116,7 @@ export function makeBlockTextureAtlas (mcAssets: McAssets) {
   // const textureFiles = mostEncounteredBlocks.map(x => x + '.png')
   textureFiles.unshift(...localTextures)
 
-  const { generated: additionalTextures, twoTileTextures } = getAdditionalTextures()
+  const { generated: additionalTextures, twoTileTextures, origSizeTextures } = getAdditionalTextures()
   textureFiles.push(...Object.keys(additionalTextures))
 
   const atlas = makeTextureAtlas(textureFiles, name => {
@@ -105,6 +130,7 @@ export function makeBlockTextureAtlas (mcAssets: McAssets) {
     return {
       contents,
       tileWidthMult: twoTileTextures.includes(name) ? 2 : undefined,
+      origSizeTextures
     }
   })
   return atlas

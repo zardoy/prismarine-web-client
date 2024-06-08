@@ -77,7 +77,6 @@ test('Known blocks are not rendered', () => {
       "cyan_wall_banner": true,
       "dark_oak_hanging_sign": true,
       "dark_oak_wall_hanging_sign": true,
-      "decorated_pot": true,
       "dragon_head": true,
       "dragon_wall_head": true,
       "end_gateway": true,
