@@ -90,7 +90,7 @@ class WorldInteraction {
 
       const entity = getEntityCursor()
 
-      if (entity && e.button === 2) {
+      if (entity && e.button === 0) {
         bot.attack(entity)
       } else {
         // bot
