@@ -146,7 +146,7 @@ const ProxyRender = ({ status, ip, inputRef, value, setValue, ...props }: {
         paddingLeft: 16,
       }}
       rootStyles={{
-        width: '100%',
+        width: 130
       }}
       value={value}
       // onChange={({ target: { value } }) => setValue?.(value)}
@@ -168,7 +168,7 @@ const ProxyRender = ({ status, ip, inputRef, value, setValue, ...props }: {
         overflow: 'hidden',
         textOverflow: 'ellipsis',
       }}>
-        {ip}
+        {ip.replace(/^https?:\/\//, '')}
       </div>
     </div>
   </div>
