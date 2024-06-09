@@ -267,11 +267,15 @@ export class Entities extends EventEmitter {
 
   }
 
-  displaySimpleText(jsonLike) {
+  parseEntityLabel(jsonLike) {
     if (!jsonLike) return
-    const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
-    const text = flat(parsed).map(x => x.text)
-    return text.join('')
+    try {
+      const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
+      const text = flat(parsed).map(x => x.text)
+      return text.join('')
+    } catch (err) {
+      return jsonLike
+    }
   }
 
   update(/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
@@ -410,7 +414,7 @@ export class Entities extends EventEmitter {
       }
     }
     // not player
-    const displayText = entity.metadata?.[3] && this.displaySimpleText(entity.metadata[2])
+    const displayText = entity.metadata?.[3] && this.parseEntityLabel(entity.metadata[2])
     if (entity.name !== 'player' && displayText) {
       addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
     }
