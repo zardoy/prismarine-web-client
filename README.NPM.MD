@@ -24,7 +24,7 @@ const App = () => {
 }
 ```
 
-See [Storybook](https://mcraft.fun/storybook/) or [Storybook (Mirror link)](https://mcon.vercel.app/storybook/) for more examples and full components list. Also take a look at the full [standalone example](https://github.com/zardoy/prismarine-web-client/tree/experiments/UiStandaloneExample.tsx).
+See [Storybook](https://mcraft.fun/storybook/) or [Storybook (Mirror link)](https://mcon.vercel.app/storybook/) for more examples and full components list. Also take a look at the full [standalone example](https://github.com/zardoy/minecraft-web-client/tree/experiments/UiStandaloneExample.tsx).
 
 There are two types of components:
 

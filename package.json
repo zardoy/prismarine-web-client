@@ -1,5 +1,5 @@
 {
-  "name": "prismarine-web-client",
+  "name": "minecraft-web-client",
   "version": "0.0.0-dev",
   "description": "A minecraft client running in a browser",
   "scripts": {
