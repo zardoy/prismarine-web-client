@@ -6,7 +6,7 @@
     },
     "rotation=1": {
       "model": "sign/mangrove_hanging",
-      "y": 202
+      "y": 202.5
     },
     "rotation=2": {
       "model": "sign/mangrove_hanging",
@@ -14,7 +14,7 @@
     },
     "rotation=3": {
       "model": "sign/mangrove_hanging",
-      "y": 247
+      "y": 247.5
     },
     "rotation=4": {
       "model": "sign/mangrove_hanging",
@@ -22,7 +22,7 @@
     },
     "rotation=5": {
       "model": "sign/mangrove_hanging",
-      "y": 292
+      "y": 292.5
     },
     "rotation=6": {
       "model": "sign/mangrove_hanging",
@@ -30,14 +30,14 @@
     },
     "rotation=7": {
       "model": "sign/mangrove_hanging",
-      "y": 337
+      "y": 337.5
     },
     "rotation=8": {
       "model": "sign/mangrove_hanging"
     },
     "rotation=9": {
       "model": "sign/mangrove_hanging",
-      "y": 22
+      "y": 22.5
     },
     "rotation=10": {
       "model": "sign/mangrove_hanging",
@@ -45,7 +45,7 @@
     },
     "rotation=11": {
       "model": "sign/mangrove_hanging",
-      "y": 67
+      "y": 67.5
     },
     "rotation=12": {
       "model": "sign/mangrove_hanging",
@@ -53,7 +53,7 @@
     },
     "rotation=13": {
       "model": "sign/mangrove_hanging",
-      "y": 112
+      "y": 112.5
     },
     "rotation=14": {
       "model": "sign/mangrove_hanging",
@@ -61,7 +61,7 @@
     },
     "rotation=15": {
       "model": "sign/mangrove_hanging",
-      "y": 157
+      "y": 157.5
     }
   }
 }
