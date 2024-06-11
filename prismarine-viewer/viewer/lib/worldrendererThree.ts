@@ -22,7 +22,7 @@ export class WorldRendererThree extends WorldRendererCommon {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
     }
 
-    constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
+    constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
         super(config)
         this.starField = new StarField(scene)
     }
@@ -181,13 +181,12 @@ export class WorldRendererThree extends WorldRendererCommon {
         const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, }))
         mesh.renderOrder = 999
 
-        // todo @sa2urami shouldnt all this be done in worker?
-        const lineHeight = 7 / 16;
+        const lineHeight = 7 / 16
         const scaleFactor = isHanging ? 1.3 : 1
         mesh.scale.set(1 * scaleFactor, lineHeight * scaleFactor, 1 * scaleFactor)
 
         const thickness = (isHanging ? 2 : 1.5) / 16
-        const wallSpacing = 0.25 / 16;
+        const wallSpacing = 0.25 / 16
         if (isWall && !isHanging) {
             mesh.position.set(0, 0, -0.5 + thickness + wallSpacing + 0.0001)
         } else {
@@ -199,9 +198,9 @@ export class WorldRendererThree extends WorldRendererCommon {
             rotation * (isWall ? 90 : 45 / 2)
         ), 0)
         group.add(mesh)
-        const height = (isHanging ? 10 : 8)/16
+        const height = (isHanging ? 10 : 8) / 16
         const heightOffset = (isHanging ? 0 : isWall ? 4.333 : 9.333) / 16
-        const textPosition =  height/2 + heightOffset
+        const textPosition = height / 2 + heightOffset
         group.position.set(position.x + 0.5, position.y + textPosition, position.z + 0.5)
         return group
     }
@@ -322,7 +321,7 @@ class StarField {
         }
     }
 
-    constructor(private scene: THREE.Scene) {
+    constructor (private scene: THREE.Scene) {
     }
 
     addToScene () {
@@ -386,7 +385,7 @@ class StarField {
 
 const version = parseInt(THREE.REVISION.replace(/\D+/g, ''))
 class StarfieldMaterial extends THREE.ShaderMaterial {
-    constructor() {
+    constructor () {
         super({
             uniforms: { time: { value: 0.0 }, fade: { value: 1.0 } },
             vertexShader: /* glsl */ `
