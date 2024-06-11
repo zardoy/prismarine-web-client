@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "sign/mangrove_wall_hanging",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "sign/mangrove_wall_hanging",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "sign/mangrove_wall_hanging",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "sign/mangrove_wall_hanging"
+    }
+  }
+}

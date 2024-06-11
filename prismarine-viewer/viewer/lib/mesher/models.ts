@@ -520,9 +520,11 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             "west": 1,
             "east": 3
           }
-          const isWall = block.name.endsWith('wall_sign') || block.name.endsWith('hanging_sign')
+          const isWall = block.name.endsWith('wall_sign') || block.name.endsWith('wall_hanging_sign')
+          const isHanging = block.name.endsWith('hanging_sign')
           attr.signs[key] = {
             isWall,
+            isHanging,
             rotation: isWall ? facingRotationMap[props.facing] : +props.rotation
           }
         }
