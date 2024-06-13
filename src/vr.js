@@ -4,7 +4,7 @@ const { XRControllerModelFactory } = require('three/examples/jsm/webxr/XRControl
 const { buttonMap: standardButtonsMap } = require('contro-max/build/gamepad')
 const { activeModalStack, hideModal } = require('./globalState')
 
-async function initVR () {
+async function initVR() {
   const { renderer } = viewer
   if (!('xr' in navigator)) return
   const isSupported = await navigator.xr.isSessionSupported('immersive-vr') && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState
