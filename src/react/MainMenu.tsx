@@ -103,7 +103,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
             icon='pixelarticons:folder'
             onClick={openFileAction}
             initialTooltip={{
-              content: 'Load any 1.8-1.16 Java world' + (haveDirectoryPicker() ? '' : ' (zip)'),
+              content: 'Load any Java world save' + (haveDirectoryPicker() ? '' : ' (zip)!'),
               placement: 'bottom-start',
             }}
           />

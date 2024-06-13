@@ -83,7 +83,7 @@ export class WorldDataEmitter extends EventEmitter {
         get (_target, posKey, receiver) {
           if (typeof posKey !== 'string') return
           const [x, y, z] = posKey.split(',').map(Number)
-          return bot.world.getBlock(new Vec3(x, y, z)).entity
+          return bot.world.getBlock(new Vec3(x, y, z))?.entity
         },
       }))
       this.emitter.emit('renderDistance', this.viewDistance)

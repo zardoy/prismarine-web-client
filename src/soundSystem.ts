@@ -144,10 +144,12 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
       // movement happening
       if (Date.now() - lastStepSound > 300) {
         const blockUnder = bot.world.getBlock(bot.entity.position.offset(0, -1, 0))
-        const stepSound = getStepSound(blockUnder)
-        if (stepSound) {
-          await playHardcodedSound(stepSound, undefined, 0.6)// todo not sure why 0.6
-          lastStepSound = Date.now()
+        if (blockUnder) {
+          const stepSound = getStepSound(blockUnder)
+          if (stepSound) {
+            await playHardcodedSound(stepSound, undefined, 0.6)// todo not sure why 0.6
+            lastStepSound = Date.now()
+          }
         }
       }
     }
