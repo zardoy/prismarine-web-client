@@ -1,13 +1,13 @@
 import { useRef, useEffect } from 'react'
 import { MinimapDrawer } from './MinimapDrawer'
 
-export default () => {
+export default ({ worldColors }: { worldColors: string[][] }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null) 
 
   const drawMap = () => {
     const canvas = canvasRef.current!
     const minimapDrawer = new MinimapDrawer(canvas)
-    minimapDrawer.draw()
+    minimapDrawer.draw(worldColors)
   }
 
   useEffect(() => {

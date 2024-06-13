@@ -4,14 +4,24 @@ import Minimap from './Minimap'
 
 const meta: Meta<typeof Minimap> = {
   component: Minimap,
-  args: {
-  },
 }
 
 export default meta
 type Story = StoryObj<typeof Minimap>;
 
+let worldColors: string[][] = []
+
+const mapSize = 50
+for (let i=0; i<mapSize; i+=1) {
+  worldColors[i] = [] as string[]
+  for (let j=0; j<mapSize; j+=1) {
+    const randColor = Math.floor(Math.random() * 255)
+    worldColors[i][j] = `rgb(${randColor}, ${randColor}, ${randColor})`
+  }
+}
+
 export const Primary: Story = {
   args: {
+    worldColors
   },
 }
