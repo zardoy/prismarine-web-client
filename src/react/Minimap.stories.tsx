@@ -11,7 +11,7 @@ type Story = StoryObj<typeof Minimap>;
 
 let worldColors: string[][] = []
 
-const mapSize = 50
+const mapSize = 10
 for (let i=0; i<mapSize; i+=1) {
   worldColors[i] = [] as string[]
   for (let j=0; j<mapSize; j+=1) {

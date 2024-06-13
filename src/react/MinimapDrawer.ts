@@ -58,7 +58,14 @@ export class MinimapDrawer {
     for (let row=0; row<worldColors.length; row+=1) {
       for (let col=0; col<worldColors[row].length; col+=1) {
         this.ctx.fillStyle = worldColors[row][col]
-        this.ctx.fillRect(left + col, top + row, 1, 1)
+        const rectWidth = Math.floor(this.radius * 2 / worldColors[row].length)
+        const rectHeight = Math.floor(this.radius * 2 / worldColors.length) 
+        this.ctx.fillRect(
+          left + rectWidth * col, 
+          top + rectHeight * row, 
+          rectWidth, 
+          rectHeight
+        )
       }
     }
   }
