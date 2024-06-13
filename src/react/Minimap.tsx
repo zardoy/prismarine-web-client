@@ -1,27 +1,13 @@
 import { useRef, useEffect } from 'react'
+import { MinimapDrawer } from './MinimapDrawer'
 
 export default () => {
   const canvasRef = useRef<HTMLCanvasElement>(null) 
 
   const drawMap = () => {
     const canvas = canvasRef.current!
-    const ctx = canvas.getContext('2d')!
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    const centerX = canvas.width / 2
-    const centerY = canvas.height / 2
-    const radius = 25
-
-    ctx.beginPath()
-
-    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI, false)
-
-    ctx.fillStyle = 'white'
-    ctx.fill()
-
-    ctx.strokeStyle = '#000000'
-    ctx.lineWidth = 1
-    ctx.stroke()
+    const minimapDrawer = new MinimapDrawer(canvas)
+    minimapDrawer.draw()
   }
 
   useEffect(() => {
