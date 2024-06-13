@@ -96,5 +96,22 @@
         "unicorn/filename-case": "off",
         "max-depth": "off"
     },
+    "overrides": [
+        {
+            "files": [
+                "*.js"
+            ],
+            "rules": {
+                "space-before-function-paren": [
+                    "error",
+                    {
+                        "anonymous": "always",
+                        "named": "never",
+                        "asyncArrow": "always"
+                    }
+                ]
+            }
+        }
+    ],
     "root": true
 }
