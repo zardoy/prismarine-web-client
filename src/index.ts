@@ -17,6 +17,7 @@ import './scaleInterface'
 import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
+import PrismarineItem from 'prismarine-item'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -580,6 +581,7 @@ async function connect (connectOptions: ConnectOptions) {
     errorAbortController.abort()
     const mcData = MinecraftData(bot.version)
     window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
+    window.PrismarineItem = PrismarineItem(mcData.version.minecraftVersion!)
     window.loadedData = mcData
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
@@ -825,9 +827,12 @@ listenGlobalEvents()
 watchValue(miscUiState, async s => {
   if (s.appLoaded) { // fs ready
     const qs = new URLSearchParams(window.location.search)
+    const moreServerOptions = {} as Record<string, any>
+    if (qs.has('version')) moreServerOptions.version = qs.get('version')
     if (qs.get('singleplayer') === '1') {
       loadSingleplayer({}, {
-        worldFolder: undefined
+        worldFolder: undefined,
+        ...moreServerOptions
       })
     }
     if (qs.get('loadSave')) {
