@@ -1,0 +1,67 @@
+{
+  "variants": {
+    "rotation=0": {
+      "model": "sign/bamboo"
+    },
+    "rotation=1": {
+      "model": "sign/bamboo",
+      "y": 22.5
+    },
+    "rotation=2": {
+      "model": "sign/bamboo",
+      "y": 45
+    },
+    "rotation=3": {
+      "model": "sign/bamboo",
+      "y": 67.5
+    },
+    "rotation=4": {
+      "model": "sign/bamboo",
+      "y": 90
+    },
+    "rotation=5": {
+      "model": "sign/bamboo",
+      "y": 112.5
+    },
+    "rotation=6": {
+      "model": "sign/bamboo",
+      "y": 135
+    },
+    "rotation=7": {
+      "model": "sign/bamboo",
+      "y": 157.5
+    },
+    "rotation=8": {
+      "model": "sign/bamboo",
+      "y": 180
+    },
+    "rotation=9": {
+      "model": "sign/bamboo",
+      "y": 202.5
+    },
+    "rotation=10": {
+      "model": "sign/bamboo",
+      "y": 225
+    },
+    "rotation=11": {
+      "model": "sign/bamboo",
+      "y": 247.5
+    },
+    "rotation=12": {
+      "model": "sign/bamboo",
+      "y": 270
+    },
+    "rotation=13": {
+      "model": "sign/bamboo",
+      "y": 292.5
+    },
+    "rotation=14": {
+      "model": "sign/bamboo",
+      "y": 315
+    },
+    "rotation=15": {
+      "model": "sign/bamboo",
+      "y": 337.5
+    }
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "name": "prismarine-web-client",
+  "name": "minecraft-web-client",
   "version": "0.0.0-dev",
   "description": "A minecraft client running in a browser",
   "scripts": {
@@ -63,7 +63,7 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
     "filesize": "^10.0.12",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.24",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.29",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "iconify-icon": "^1.0.8",
@@ -100,6 +100,7 @@
     "use-typed-event-listener": "^4.0.2",
     "valtio": "^1.11.1",
     "vec3": "^0.1.7",
+    "wait-on": "^7.2.0",
     "workbox-build": "^7.0.0"
   },
   "devDependencies": {
@@ -113,6 +114,7 @@
     "@types/stats.js": "^0.17.1",
     "@types/three": "0.154.0",
     "@types/ua-parser-js": "^0.7.39",
+    "@types/wait-on": "^5.3.4",
     "@xmcl/installer": "^5.1.0",
     "assert": "^2.0.0",
     "browserify-zlib": "^0.2.0",

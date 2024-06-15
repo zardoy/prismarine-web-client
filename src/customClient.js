@@ -7,12 +7,12 @@ const states = require('minecraft-protocol/src/states')
 
 window.serverDataChannel ??= {}
 export const customCommunication = {
-  sendData (data) {
+  sendData(data) {
     setTimeout(() => {
       window.serverDataChannel[this.isServer ? 'emitClient' : 'emitServer'](data)
     })
   },
-  receiverSetup (processData) {
+  receiverSetup(processData) {
     window.serverDataChannel[this.isServer ? 'emitServer' : 'emitClient'] = (data) => {
       processData(data)
     }
@@ -20,18 +20,18 @@ export const customCommunication = {
 }
 
 class CustomChannelClient extends EventEmitter {
-  constructor (isServer, version) {
+  constructor(isServer, version) {
     super()
     this.version = version
     this.isServer = !!isServer
     this.state = states.HANDSHAKING
   }
 
-  get state () {
+  get state() {
     return this.protocolState
   }
 
-  setSerializer (state) {
+  setSerializer(state) {
     customCommunication.receiverSetup.call(this, (/** @type {{name, params, state?}} */parsed) => {
       if (!options.excludeCommunicationDebugEvents.includes(parsed.name)) {
         debug(`receive in ${this.isServer ? 'server' : 'client'}: ${parsed.name}`)
@@ -42,7 +42,7 @@ class CustomChannelClient extends EventEmitter {
   }
 
   // eslint-disable-next-line @typescript-eslint/adjacent-overload-signatures, grouped-accessor-pairs
-  set state (newProperty) {
+  set state(newProperty) {
     const oldProperty = this.protocolState
     this.protocolState = newProperty
 
@@ -51,12 +51,12 @@ class CustomChannelClient extends EventEmitter {
     this.emit('state', newProperty, oldProperty)
   }
 
-  end (reason) {
+  end(reason) {
     this._endReason = reason
     this.emit('end', this._endReason) // still emits on server side only, doesn't send anything to our client
   }
 
-  write (name, params) {
+  write(name, params) {
     if(!options.excludeCommunicationDebugEvents.includes(name)) {
       debug(`[${this.state}] from ${this.isServer ? 'server' : 'client'}: ` + name)
       debug(params)
@@ -66,11 +66,11 @@ class CustomChannelClient extends EventEmitter {
     customCommunication.sendData.call(this, { name, params, state: this.state })
   }
 
-  writeBundle (packets) {
+  writeBundle(packets) {
     // no-op
   }
 
-  writeRaw (buffer) {
+  writeRaw(buffer) {
     // no-op
   }
 }

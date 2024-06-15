@@ -14,4 +14,4 @@ export const startLocalServer = (serverOptions) => {
 
 // features that flying-squid doesn't support at all
 // todo move & generate in flying-squid
-export const unsupportedLocalServerFeatures = ['transactionPacketExists', 'teleportUsesOwnPacket', 'dimensionDataIsAvailable']
+export const unsupportedLocalServerFeatures = ['transactionPacketExists', 'teleportUsesOwnPacket']

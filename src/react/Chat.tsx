@@ -1,6 +1,5 @@
 import { proxy, subscribe } from 'valtio'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { isCypress } from '../standaloneUtils'
 import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './Chat.css'
@@ -200,7 +199,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
 
   return (
     <>
-      <div className={`chat-wrapper chat-messages-wrapper ${usingTouch ? 'display-mobile' : ''}`} hidden={isCypress()} style={{
+      <div className={`chat-wrapper chat-messages-wrapper ${usingTouch ? 'display-mobile' : ''}`} style={{
         userSelect: opened && allowSelection ? 'text' : undefined,
       }}>
         {opacity && <div ref={chatMessages} className={`chat ${opened ? 'opened' : ''}`} id="chat-messages" style={{ opacity }}>

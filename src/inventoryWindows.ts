@@ -15,9 +15,7 @@ import BeaconGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/contain
 import WidgetsGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png'
 
 import Dirt from 'minecraft-assets/minecraft-assets/data/1.17.1/blocks/dirt.png'
-import { subscribeKey } from 'valtio/utils'
-import MinecraftData, { RecipeItem } from 'minecraft-data'
-import { getVersion } from 'prismarine-viewer/viewer/lib/version'
+import { RecipeItem } from 'minecraft-data'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import itemsLegacyPng from 'prismarine-viewer/public/textures/items-legacy.png'
@@ -311,11 +309,17 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
   const itemNbt: PossibleItemProps = nbt.simplify(item.nbt)
   const customName = itemNbt.display?.Name
   if (!customName) return
-  const parsed = mojangson.simplify(mojangson.parse(customName))
-  if (parsed.extra) {
-    return parsed as Record<string, any>
-  } else {
-    return parsed as MessageFormatPart
+  try {
+    const parsed = mojangson.simplify(mojangson.parse(customName))
+    if (parsed.extra) {
+      return parsed as Record<string, any>
+    } else {
+      return parsed as MessageFormatPart
+    }
+  } catch (err) {
+    return [{
+      text: customName
+    }]
   }
 }
 
@@ -345,6 +349,13 @@ const mapSlots = (slots: Array<RenderSlot | Item | null>) => {
     try {
       const slotCustomProps = renderSlot(slot)
       Object.assign(slot, { ...slotCustomProps, displayName: ('nbt' in slot ? getItemName(slot) : undefined) ?? slot.displayName })
+      //@ts-expect-error
+      slot.toJSON = () => {
+        // Allow to serialize slot to JSON as minecraft-inventory-gui creates icon property as cache (recursively)
+        //@ts-expect-error
+        const { icon, ...rest } = slot
+        return rest
+      }
     } catch (err) {
       inGameError(err)
     }

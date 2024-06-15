@@ -18,6 +18,7 @@ import { hideCurrentModal, isGameActive, showModal } from './globalState'
 import { assertDefined } from './utils'
 import { options } from './optionsStorage'
 import { itemBeingUsed } from './react/Crosshair'
+import { isCypress } from './standaloneUtils'
 
 function getViewDirection (pitch, yaw) {
   const csPitch = Math.cos(pitch)
@@ -84,16 +85,18 @@ class WorldInteraction {
 
     this.lastBlockPlaced = 4 // ticks since last placed
     document.addEventListener('mousedown', (e) => {
-      if (e.isTrusted && !document.pointerLockElement) return
+      if (e.isTrusted && !document.pointerLockElement && !isCypress()) return
       if (!isGameActive(true)) return
       this.buttons[e.button] = true
 
       const entity = getEntityCursor()
 
-      if (entity && e.button === 0) {
-        bot.attack(entity)
-      } else {
-        // bot
+      if (entity) {
+        if (e.button === 0) { // left click
+          bot.attack(entity)
+        } else if (e.button === 2) { // right click
+          void bot.activateEntity(entity)
+        }
       }
     })
     document.addEventListener('blur', (e) => {

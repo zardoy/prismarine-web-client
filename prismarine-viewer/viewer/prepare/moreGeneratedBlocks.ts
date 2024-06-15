@@ -4,9 +4,10 @@ import { McAssets } from './modelsBuilder'
 import path from 'path'
 import fs from 'fs'
 import { fileURLToPath } from 'url'
+import { versionToNumber } from './utils'
 
 // todo refactor
-const twoTileTextures: string[] = []
+const handledBlocks = ['water', 'lava', 'barrier']
 const origSizeTextures: string[] = []
 let currentImage: Jimp
 let currentBlockName: string
@@ -119,115 +120,6 @@ const handleShulkerBox = async (dataBase: string, match: RegExpExecArray) => {
   }
 
   await addSimpleCubeWithSides(shulkerBoxTextures)
-}
-
-const handleSign = async (dataBase: string, match: RegExpExecArray) => {
-  const states = getBlockStates(currentBlockName)
-  if (!states) return
-
-  const [, signMaterial = ''] = match
-  currentImage = await Jimp.read(`${dataBase}entity/${signMaterial ? `signs/${signMaterial}` : 'sign'}.png`)
-  // todo cache
-  const signTextures = {
-    // todo correct mapping
-    // todo alg to fit to the side
-    signboard_side: justCrop(0, 2, 2, 12),
-    face: justCrop(2, 2, 24, 12),
-    up: justCrop(2, 0, 24, 2),
-    support: justCrop(0, 16, 2, 14)
-  }
-  const blockTextures = await getBlockTexturesFromJimp(signTextures, true)
-
-  const isWall = currentBlockName.includes('wall_')
-  const isHanging = currentBlockName.includes('hanging_')
-  const rotationState = states.find(state => state.name === 'rotation')
-  const faceTexture = { texture: blockTextures.face.texture, uv: blockTextures.face.uv }
-  if (isWall || isHanging) {
-    // todo isHanging
-    if (!isHanging) {
-      const facingState = states.find(state => state.name === 'facing')!
-      const facingMap = {
-        south: 0,
-        west: 90,
-        north: 180,
-        east: 270
-      }
-
-      currentMcAssets.blocksStates[currentBlockName] = {
-        "variants": Object.fromEntries(
-          facingState.values!.map((_val, i) => {
-            const val = _val as string
-            return [`facing=${val}`, {
-              "model": currentBlockName,
-              y: facingMap[val],
-            }]
-          })
-        )
-      }
-      currentMcAssets.blocksModels[currentBlockName] = {
-        elements: [
-          {
-            // signboard
-            "from": [0, 4.5, 0],
-            "to": [16, 11.5, 1.5],
-            faces: {
-              south: faceTexture,
-              east: blockTextures.signboard_side,
-              west: blockTextures.signboard_side,
-              up: blockTextures.up,
-              down: blockTextures.up,
-            },
-          }
-        ],
-      }
-    }
-  } else if (rotationState) {
-    currentMcAssets.blocksStates[currentBlockName] = {
-      "variants": Object.fromEntries(
-        Array.from({ length: 16 }).map((_val, i) => {
-          return [`rotation=${i}`, {
-            "model": currentBlockName,
-            y: i * (45 / 2),
-          }]
-        })
-      )
-    }
-
-    const supportTexture = blockTextures.support
-    // TODO fix models.ts, apply textures for signs correctly!
-    // const supportTexture = { texture: supportTextureImg, uv: [0, 0, 16, 16] }
-    currentMcAssets.blocksModels[currentBlockName] = {
-      elements: [
-        {
-          // support post
-          "from": [7.5, 0, 7.5],
-          "to": [8.5, 9, 8.5],
-          faces: {
-            // todo 14
-            north: supportTexture,
-            east: supportTexture,
-            south: supportTexture,
-            west: supportTexture,
-          }
-        },
-        {
-          // signboard
-          "from": [0, 9, 7.25],
-          "to": [16, 16, 8.75],
-          faces: {
-            north: faceTexture,
-            south: faceTexture,
-            east: blockTextures.signboard_side,
-            west: blockTextures.signboard_side,
-            up: blockTextures.up,
-            down: blockTextures.up,
-          },
-        }
-      ],
-    }
-  }
-  twoTileTextures.push(blockTextures.face.texture)
-  twoTileTextures.push(blockTextures.up.texture)
 }
 
 // TODO! should not be there! move to data with signs!
@@ -405,10 +297,10 @@ const handleChest = async (dataBase: string, match: RegExpExecArray) => {
 
 async function loadBlockModelTextures (dataBase: string, blockModel: any) {
   for (const key in blockModel.textures) {
-    const texture: string = blockModel.textures[key]
-    currentImage = await Jimp.read(dataBase + texture + '.png')
+    let texture: string = blockModel.textures[key]
+    const useAssetsPath = !!texture.match(/^[0-9.]+\//)
     blockModel.textures.particle = texture
-    generatedImageTextures[texture] = `data:image/png;base64,${fs.readFileSync(path.join(dataBase, texture + '.png'), 'base64')}`
+    generatedImageTextures[texture] = `data:image/png;base64,${fs.readFileSync(path.join(dataBase, useAssetsPath ? '..' : '', texture + '.png'), 'base64')}`
     origSizeTextures[texture] = true
   }
 }
@@ -416,11 +308,6 @@ async function loadBlockModelTextures (dataBase: string, blockModel: any) {
 const handlers = [
   [/(.+)_shulker_box$/, handleShulkerBox],
   [/^shulker_box$/, handleShulkerBox],
-  [/^sign$/, handleSign],
-  [/^standing_sign$/, handleSign],
-  [/^wall_sign$/, handleSign],
-  [/(.+)_wall_sign$/, handleSign],
-  [/(.+)_sign$/, handleSign],
   [/^(?:(ender|trapped)_)?chest$/, handleChest],
   // [/(^|(.+)_)bed$/, handleBed],
   // no-op just suppress warning
@@ -439,25 +326,58 @@ export const tryHandleBlockEntity = async (dataBase, blockName) => {
   }
 }
 
-const handleExternalData = async (dataBase: string, version: string) => {
-  const [major, minor] = version.split(".")
-  const dataVer = `${major}.${minor}`
-  const baseDir = path.join(__dirname, 'data', dataVer)
-  if (!fs.existsSync(baseDir)) return
+async function readAllBlockStates (blockStatesDir: string) {
+  const files = fs.readdirSync(blockStatesDir)
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      const state = JSON.parse(fs.readFileSync(path.join(blockStatesDir, file), 'utf-8'))
+      const name = file.replace('.json', '')
+      currentMcAssets.blocksStates[name] = state
+      handledBlocks.push(name)
+    } else {
+      await readAllBlockStates(path.join(blockStatesDir, file))
+    }
+  }
+}
 
-  const blockModelsDir = path.join(baseDir, 'blockModels')
-  const allBlockModels = fs.readdirSync(blockModelsDir).map(x => x.replace('.json', ''))
-  for (const blockModel of allBlockModels) {
-    const model = JSON.parse(fs.readFileSync(path.join(blockModelsDir, blockModel + '.json'), 'utf-8'))
-    currentMcAssets.blocksModels[blockModel] = model
-    await loadBlockModelTextures(dataBase, model)
+async function readAllBlockModels (dataBase: string, blockModelsDir: string, completePath: string) {
+  const actualPath = completePath.length ? completePath + "/" : ""
+  const files = fs.readdirSync(blockModelsDir)
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      const model = JSON.parse(fs.readFileSync(path.join(blockModelsDir, file), 'utf-8'))
+      const name = actualPath + file.replace('.json', '')
+      currentMcAssets.blocksModels[name] = model
+      await loadBlockModelTextures(dataBase, model)
+    } else {
+      await readAllBlockModels(dataBase, path.join(blockModelsDir, file), actualPath + file)
+    }
+  }
+}
+
+const handleExternalData = async (assetsPathRoot: string, version: string) => {
+  const currentVersionNumber = versionToNumber(version)
+  const versions = fs.readdirSync(path.join(__dirname, 'data'), { withFileTypes: true })
+    .filter(x => x.isDirectory())
+    .map(x => x.name)
+    .sort((a, b) => versionToNumber(b) - versionToNumber(a))
+
+  const allAssetsVersions = fs.readdirSync(assetsPathRoot, { withFileTypes: true })
+    .filter(x => x.isDirectory())
+    .map(x => x.name)
+    .sort((a, b) => versionToNumber(b) - versionToNumber(a))
+
+  const getAssetsVersion = (version: string) => {
+    return allAssetsVersions[version] ?? allAssetsVersions.find(x => x.startsWith(version))
   }
 
-  const blockStatesDir = path.join(baseDir, 'blockStates')
-  const allBlockStates = fs.readdirSync(blockStatesDir).map(x => x.replace('.json', ''))
-  for (const blockState of allBlockStates) {
-    const state = JSON.parse(fs.readFileSync(path.join(blockStatesDir, blockState + '.json'), 'utf-8'))
-    currentMcAssets.blocksStates[blockState] = state
+  for (const curVer of versions) {
+    const baseDir = path.join(__dirname, 'data', curVer)
+    if (versionToNumber(curVer) > currentVersionNumber) continue
+
+    const assetsVersion = getAssetsVersion(curVer)
+    await readAllBlockStates(path.join(baseDir, 'blockStates'))
+    await readAllBlockModels(path.join(assetsPathRoot, assetsVersion), path.join(baseDir, 'blockModels'), "")
   }
 }
 
@@ -466,7 +386,6 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
   const allTheBlocks = mcData.blocksArray.map(x => x.name)
 
   currentMcAssets = mcAssets
-  const handledBlocks = ['water', 'lava', 'barrier']
   // todo
   const ignoredBlocks = ['skull', 'structure_void', 'banner', 'bed', 'end_portal']
 
@@ -481,7 +400,7 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
     }
   }
 
-  await handleExternalData(mcAssets.directory, mcAssets.version)
+  await handleExternalData(path.join(mcAssets.directory, '..'), mcAssets.version)
 
   const warnings: string[] = []
   for (const [name, model] of Object.entries(mcAssets.blocksModels)) {
@@ -498,5 +417,5 @@ export const prepareMoreGeneratedBlocks = async (mcAssets: McAssets) => {
 }
 
 export const getAdditionalTextures = () => {
-  return { generated: generatedImageTextures, twoTileTextures, origSizeTextures }
+  return { generated: generatedImageTextures, origSizeTextures }
 }

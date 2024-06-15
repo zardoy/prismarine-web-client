@@ -1,2 +1,2 @@
 export * from 'crypto-browserify'
-export function createPublicKey () { }
+export function createPublicKey() { }
