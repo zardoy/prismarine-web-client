@@ -305,10 +305,10 @@ importers:
         version: 1.0.0
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/051b3f7c3d57bfd9e3789e28d2fdbb80f6dfbdd0(@types/react@18.2.20)(react@18.2.0)
+        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b424a566723067d0fb1a4bd70c1fb58a922f2ba4(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
-        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/f80ba0f8ebbcc15d6c44ade84007f8b4a0ee08ec(encoding@0.1.13)
+        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23(encoding@0.1.13)
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -6062,8 +6062,8 @@ packages:
   minecraft-folder-path@1.2.0:
     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/051b3f7c3d57bfd9e3789e28d2fdbb80f6dfbdd0:
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/051b3f7c3d57bfd9e3789e28d2fdbb80f6dfbdd0}
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b424a566723067d0fb1a4bd70c1fb58a922f2ba4:
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b424a566723067d0fb1a4bd70c1fb58a922f2ba4}
     version: 1.0.1
 
   minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc:
@@ -6094,8 +6094,8 @@ packages:
     resolution: {integrity: sha512-QMMNPx4IyZE7ydAzjvGLQLCnQNUOfkk1qVZKxTTS9q3qPTAewz4GhsVUBtbQ8LSbHthe5RcQ1Sgxs4wlIma/Qw==}
     engines: {node: '>=18'}
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/f80ba0f8ebbcc15d6c44ade84007f8b4a0ee08ec:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/f80ba0f8ebbcc15d6c44ade84007f8b4a0ee08ec}
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23:
+    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23}
     version: 4.20.1
     engines: {node: '>=18'}
 
@@ -15731,7 +15731,7 @@ snapshots:
 
   minecraft-folder-path@1.2.0: {}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/051b3f7c3d57bfd9e3789e28d2fdbb80f6dfbdd0(@types/react@18.2.20)(react@18.2.0):
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b424a566723067d0fb1a4bd70c1fb58a922f2ba4(@types/react@18.2.20)(react@18.2.0):
     dependencies:
       valtio: 1.11.2(@types/react@18.2.20)(react@18.2.0)
     transitivePeerDependencies:
@@ -15852,7 +15852,7 @@ snapshots:
       - encoding
       - supports-color
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/f80ba0f8ebbcc15d6c44ade84007f8b4a0ee08ec(encoding@0.1.13):
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23(encoding@0.1.13):
     dependencies:
       minecraft-data: 3.65.0
       minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=2uxevyasyasdavsxuehfavgkjq)(encoding@0.1.13)
