@@ -14,7 +14,7 @@ export default ({ worldColors }: { worldColors: string[][] }) => {
     if (canvasRef.current) {
       drawMap()
     }
-  }, [canvasRef.current])
+  }, [canvasRef.current, worldColors])
 
 
   return <div 

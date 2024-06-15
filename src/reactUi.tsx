@@ -19,6 +19,7 @@ import ScoreboardProvider from './react/ScoreboardProvider'
 import SignEditorProvider from './react/SignEditorProvider'
 import IndicatorEffectsProvider from './react/IndicatorEffectsProvider'
 import PlayerListOverlayProvider from './react/PlayerListOverlayProvider'
+import MinimapProvider from './react/MinimapProvider'
 import HudBarsProvider from './react/HudBarsProvider'
 import XPBarProvider from './react/XPBarProvider'
 import DebugOverlay from './react/DebugOverlay'
@@ -114,6 +115,7 @@ const InGameUi = () => {
         <ScoreboardProvider />
         <IndicatorEffectsProvider />
         <Crosshair />
+        <MinimapProvider />
         <TouchAreasControlsProvider />
       </div>
 
