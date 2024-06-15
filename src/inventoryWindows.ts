@@ -311,11 +311,17 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
   const itemNbt: PossibleItemProps = nbt.simplify(item.nbt)
   const customName = itemNbt.display?.Name
   if (!customName) return
-  const parsed = mojangson.simplify(mojangson.parse(customName))
-  if (parsed.extra) {
-    return parsed as Record<string, any>
-  } else {
-    return parsed as MessageFormatPart
+  try {
+    const parsed = mojangson.simplify(mojangson.parse(customName))
+    if (parsed.extra) {
+      return parsed as Record<string, any>
+    } else {
+      return parsed as MessageFormatPart
+    }
+  } catch (err) {
+    return [{
+      text: customName
+    }]
   }
 }
 
