@@ -91,10 +91,12 @@ class WorldInteraction {
 
       const entity = getEntityCursor()
 
-      if (entity && e.button === 0) {
-        bot.attack(entity)
-      } else {
-        // bot
+      if (entity) {
+        if (e.button === 0) { // left click
+          bot.attack(entity)
+        } else if (e.button === 2) { // right click
+          void bot.activateEntity(entity)
+        }
       }
     })
     document.addEventListener('blur', (e) => {
