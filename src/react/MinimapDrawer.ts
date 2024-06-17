@@ -1,15 +1,17 @@
 import { Vec3 } from 'vec3'
+import { Position } from 'source-map-js'
+import { underive } from 'valtio/utils'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 
 
 type BotType = Omit<import('mineflayer').Bot, 'world' | '_client'> & {
-    world: Omit<import('prismarine-world').world.WorldSync, 'getBlock'> & {
-        getBlock: (pos: import('vec3').Vec3) => import('prismarine-block').Block | null
-    }
-    _client: Omit<import('minecraft-protocol').Client, 'on'> & {
-        write: typeof import('../generatedClientPackets').clientWrite
-        on: typeof import('../generatedServerPackets').clientOn
-    }
+  world: Omit<import('prismarine-world').world.WorldSync, 'getBlock'> & {
+    getBlock: (pos: import('vec3').Vec3) => import('prismarine-block').Block | null
+  }
+  _client: Omit<import('minecraft-protocol').Client, 'on'> & {
+    write: typeof import('../generatedClientPackets').clientWrite
+    on: typeof import('../generatedServerPackets').clientOn
+  }
 }
 
 export class MinimapDrawer {
@@ -17,7 +19,8 @@ export class MinimapDrawer {
   centerY: number
   mapSize: number
   radius: number
-  ctx: CanvasRenderingContext2D 
+  ctx: CanvasRenderingContext2D
+  worldColors: { [key: string]: string }
 
   constructor (
     private readonly canvas: HTMLCanvasElement,
@@ -28,6 +31,7 @@ export class MinimapDrawer {
   ) {
     this.canvas = canvas
     this.ctx = this.canvas.getContext('2d')!
+    this.ctx.imageSmoothingEnabled = false
     this.centerX = centerX ?? this.canvas.width / 2
     this.centerY = centerY ?? this.canvas.height / 2
     this.radius = radius ?? 25
@@ -36,9 +40,9 @@ export class MinimapDrawer {
 
   draw (bot: BotType | undefined) {
     this.ctx.clearRect(
-      this.centerX - this.radius, 
-      this.centerY - this.radius, 
-      this.radius * 2, 
+      this.centerX - this.radius,
+      this.centerY - this.radius,
+      this.radius * 2,
       this.radius * 2
     )
 
@@ -67,20 +71,20 @@ export class MinimapDrawer {
     this.ctx.save()
 
     this.ctx.beginPath()
-    this.ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2, true) 
+    this.ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2, true)
     this.ctx.clip()
 
     for (let row = 0; row < this.mapSize; row += 1) {
       for (let col = 0; col < this.mapSize; col += 1) {
         this.ctx.fillStyle = this.getHighestBlockColor(
-          bot, 
-          bot.entity.position.x - this.mapSize / 2 + row, 
+          bot,
+          bot.entity.position.x - this.mapSize / 2 + row,
           bot.entity.position.z - this.mapSize / 2 + col
         )
         this.ctx.fillRect(
-          left + mapPixel * col, 
-          top + mapPixel * row, 
-          mapPixel, 
+          left + mapPixel * col,
+          top + mapPixel * row,
+          mapPixel,
           mapPixel
         )
       }
@@ -88,13 +92,32 @@ export class MinimapDrawer {
   }
 
   getHighestBlockColor (bot: BotType, x: number, z: number) {
-    let block = null as import('prismarine-block').Block | null 
+    const key = `${x},${z}`
+    if (Object.keys(this.worldColors).includes(key)) {
+      return this.worldColors[key]
+    }
+    let block = null as import('prismarine-block').Block | null
     let { height } = (bot.game as any)
     const airBlocks = new Set(['air', 'cave_air', 'void_air'])
     do {
       block = bot.world.getBlock(new Vec3(x, height, z))
       height -= 1
     } while (airBlocks.has(block?.name ?? ''))
-    return BlockData.colors[block?.name ?? ''] ?? 'white'
-  }  
+    const color = BlockData.colors[block?.name ?? ''] ?? 'white'
+    this.worldColors[key] = color
+    return color
+  }
+
+  getDistance (x1: number, z1: number, x2: number, z2: number): number {
+    return Math.hypot((x2 - x1), (z2 - z1))
+  }
+
+  clearCache (currX: number, currZ: number) {
+    for (const key of Object.keys(this.worldColors)) {
+      const [x, z] = key.split(',').map(Number)
+      if (this.getDistance(x, z, currX, currZ) > this.radius * 5) {
+        delete this.worldColors[`${x},${z}`]
+      }
+    }
+  }
 }

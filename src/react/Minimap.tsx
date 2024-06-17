@@ -9,6 +9,9 @@ export default () => {
   function updateMap () {
     if (drawerRef.current && canvasTick.current % 10 === 0) {
       drawerRef.current.draw(bot)
+      if (canvasTick.current % 300 === 0) {
+        drawerRef.current.clearCache(bot.entity.position.x, bot.entity.position.z)
+      }
     }
     canvasTick.current += 1
   }
