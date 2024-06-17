@@ -15,25 +15,24 @@ export default () => {
       block = bot.world.getBlock(new Vec3(x, height, z))
       height -= 1
     } while (airBlocks.includes(block?.name ?? ''))
-    return height
+    return block.name
   }  
 
   const drawMap = () => {
     const { colors } = BlockData
     const newColors = [] as string[][]
 
-    const mapSize = 24
+    const mapSize = 50
     for (let i = 0; i < mapSize; i += 1) {
       newColors[i] = [] as string[]
       for (let j = 0; j < mapSize; j += 1) {
         const x = bot.entity.position.x - mapSize / 2 + i
         const z = bot.entity.position.z - mapSize / 2 + j
-        const y = getHighestBlock(x, z)
-        const blockName = bot.world.getBlock(new Vec3(x, y, z))?.name
+        const blockName = getHighestBlock(x, z)
         newColors[i][j] = blockName ? colors[blockName] ?? 'white' : 'white'
       }
     }
-    setWorldColors([...newColors])
+    setWorldColors(newColors)
   }
 
   useEffect(() => {
