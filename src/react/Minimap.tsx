@@ -1,20 +1,31 @@
 import { useRef, useEffect } from 'react'
 import { MinimapDrawer } from './MinimapDrawer'
 
-export default ({ worldColors }: { worldColors: string[][] }) => {
+export default () => {
+  const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null) 
+  const drawerRef = useRef<MinimapDrawer | null>(null)
 
-  const drawMap = () => {
-    const canvas = canvasRef.current!
-    const minimapDrawer = new MinimapDrawer(canvas)
-    minimapDrawer.draw(worldColors)
+  function updateMap () {
+    if (drawerRef.current && canvasTick.current % 10 === 0) {
+      drawerRef.current.draw(bot)
+    }
+    canvasTick.current += 1
   }
 
   useEffect(() => {
     if (canvasRef.current) {
-      drawMap()
+      drawerRef.current = new MinimapDrawer(canvasRef.current)
     }
-  }, [canvasRef.current, worldColors])
+  }, [canvasRef.current])
+
+  useEffect(() => {
+    bot.on('move', updateMap)
+
+    return () => {
+      bot.off('move', updateMap)
+    }
+  }, [])
 
 
   return <div 
