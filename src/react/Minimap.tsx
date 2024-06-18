@@ -3,7 +3,7 @@ import { MinimapDrawer } from './MinimapDrawer'
 
 export default () => {
   const canvasTick = useRef(0)
-  const canvasRef = useRef<HTMLCanvasElement>(null) 
+  const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
 
   function updateMap () {
@@ -12,7 +12,7 @@ export default () => {
       console.log(drawerRef.current.worldColors)
       drawerRef.current.draw(bot)
       if (canvasTick.current % 300 === 0) {
-        drawerRef.current.clearCache(bot.entity.position.x, bot.entity.position.z)
+        drawerRef.current.deleteOldWorldColors(bot.entity.position.x, bot.entity.position.z)
       }
     }
     canvasTick.current += 1
@@ -35,7 +35,7 @@ export default () => {
   }, [])
 
 
-  return <div 
+  return <div
     className='minimap'
     style={{
       position: 'absolute',

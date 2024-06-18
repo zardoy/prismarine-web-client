@@ -22,7 +22,7 @@ interface DrawerAdapter extends TypedEventEmitter<{
   getHighestBlockColor: (x: number, z: number) => string
   playerPosition: Position
   warps: WorldWarp
-  setWarp: (name: string, pos: Position, rotation: Position, color: string, disabled: boolean) => void
+  setWarp: (name: string, pos: Position, rotation: Position, dimension: string, color: string, disabled: boolean) => void
 }
 
 export class MinimapDrawer {
@@ -33,7 +33,7 @@ export class MinimapDrawer {
   ctx: CanvasRenderingContext2D
   worldColors: { [key: string]: string } = {}
 
-  constructor(
+  constructor (
     private readonly canvas: HTMLCanvasElement,
     centerX?: number,
     centerY?: number,
@@ -123,10 +123,11 @@ export class MinimapDrawer {
     return Math.hypot((x2 - x1), (z2 - z1))
   }
 
-  clearCache (currX: number, currZ: number) {
-    for (const key in this.worldColors) {
+  deleteOldWorldColors (currX: number, currZ: number) {
+    for (const key of Object.keys(this.worldColors)) {
       const [x, z] = key.split(',').map(Number)
       if (this.getDistance(x, z, currX, currZ) > this.radius * 5) {
+        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete this.worldColors[`${x},${z}`]
       }
     }
