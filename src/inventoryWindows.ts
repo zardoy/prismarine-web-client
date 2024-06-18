@@ -28,12 +28,13 @@ import nbt from 'prismarine-nbt'
 import { splitEvery, equals } from 'rambda'
 import PItem, { Item } from 'prismarine-item'
 import Generic95 from '../assets/generic_95.png'
-import { activeModalStack, hideCurrentModal, miscUiState, showModal } from './globalState'
+import { activeModalStack, hideCurrentModal, hideModal, miscUiState, showModal } from './globalState'
 import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
 import { assertDefined, inGameError } from './utils'
 import { MessageFormatPart } from './botUtils'
 import { currentScaling } from './scaleInterface'
+import { descriptionGenerators, getItemDescription } from './itemsDescriptions'
 
 export const itemsAtlases: ItemsAtlasesOutputJson = _itemsAtlases
 const loadedImagesCache = new Map<string, HTMLImageElement>()
@@ -119,7 +120,9 @@ export const onGameLoad = (onLoad) => {
 
   bot.on('windowClose', () => {
     // todo hide up to the window itself!
-    hideCurrentModal()
+    if (lastWindow) {
+      hideCurrentModal()
+    }
   })
   bot.on('respawn', () => { // todo validate logic against native client (maybe login)
     if (lastWindow) {
@@ -417,6 +420,30 @@ const upJei = (search: string) => {
 
 export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
   const inv = showInventory(type, getImage, {}, _bot)
+  inv.canvasManager.children[0].callbacks.getItemRecipes = (item) => {
+    const allRecipes = getAllItemRecipes(item.name)
+    inv.canvasManager.children[0].messageDisplay = ''
+    const itemDescription = getItemDescription(item)
+    if (!allRecipes?.length && !itemDescription) {
+      inv.canvasManager.children[0].messageDisplay = `No recipes found for ${item.displayName}`
+    }
+    return [...allRecipes ?? [], ...itemDescription ? [
+      [
+        'GenericDescription',
+        mapSlots([item])[0],
+        [],
+        itemDescription
+      ]
+    ] : []]
+  }
+  inv.canvasManager.children[0].callbacks.getItemUsages = (item) => {
+    const allItemUsages = getAllItemUsages(item.name)
+    inv.canvasManager.children[0].messageDisplay = ''
+    if (!allItemUsages?.length) {
+      inv.canvasManager.children[0].messageDisplay = `No usages found for ${item.displayName}`
+    }
+    return allItemUsages
+  }
   return inv
 }
 
@@ -440,6 +467,7 @@ const openWindow = (type: string | undefined) => {
     if (type !== undefined && bot.currentWindow && !skipClosePacketSending) bot.currentWindow['close']()
     lastWindow.destroy()
     lastWindow = null as any
+    window.lastWindow = lastWindow
     miscUiState.displaySearchInput = false
     destroyFn()
     skipClosePacketSending = false
@@ -452,8 +480,13 @@ const openWindow = (type: string | undefined) => {
   inv.canvas.style.position = 'fixed'
   inv.canvas.style.inset = '0'
 
-  inv.canvasManager.onClose = () => {
-    hideCurrentModal()
+  inv.canvasManager.onClose = async () => {
+    await new Promise(resolve => {
+      setTimeout(resolve, 0)
+    })
+    if (activeModalStack.at(-1)?.reactType?.includes('player_win:')) {
+      hideModal(undefined, undefined, { force: true })
+    }
     inv.canvasManager.destroy()
   }
 
@@ -464,6 +497,18 @@ const openWindow = (type: string | undefined) => {
   upWindowItems()
 
   lastWindow.pwindow.touch = miscUiState.currentTouch
+  const oldOnInventoryEvent = lastWindow.pwindow.onInventoryEvent.bind(lastWindow.pwindow)
+  lastWindow.pwindow.onInventoryEvent = (type, containing, windowIndex, inventoryIndex, item) => {
+    if (inv.canvasManager.children[0].currentGuide) {
+      const isRightClick = type === 'rightclick'
+      const isLeftClick = type === 'leftclick'
+      if (isLeftClick || isRightClick) {
+        inv.canvasManager.children[0].showRecipesOrUsages(isLeftClick, item)
+      }
+    } else {
+      oldOnInventoryEvent(type, containing, windowIndex, inventoryIndex, item)
+    }
+  }
   lastWindow.pwindow.onJeiClick = (slotItem, _index, isRightclick) => {
     // slotItem is the slot from mapSlots
     const itemId = loadedData.itemsByName[slotItem.name]?.id
@@ -472,21 +517,25 @@ const openWindow = (type: string | undefined) => {
       return
     }
     const item = new PrismarineItem(itemId, isRightclick ? 64 : 1, slotItem.metadata)
-    const freeSlot = bot.inventory.firstEmptyInventorySlot()
-    if (freeSlot === null) return
-    void bot.creative.setInventorySlot(freeSlot, item)
+    if (bot.game.gameMode === 'creative') {
+      const freeSlot = bot.inventory.firstEmptyInventorySlot()
+      if (freeSlot === null) return
+      void bot.creative.setInventorySlot(freeSlot, item)
+    } else {
+      inv.canvasManager.children[0].showRecipesOrUsages(!isRightclick, mapSlots([item])[0])
+    }
   }
 
-  if (bot.game.gameMode === 'creative') {
-    lastWindow.pwindow.win.jeiSlotsPage = 0
-    // todo workaround so inventory opens immediately (but still lags)
-    setTimeout(() => {
-      upJei('')
-    })
-    miscUiState.displaySearchInput = true
-  } else {
-    lastWindow.pwindow.win.jeiSlots = []
-  }
+  // if (bot.game.gameMode !== 'spectator') {
+  lastWindow.pwindow.win.jeiSlotsPage = 0
+  // todo workaround so inventory opens immediately (though it still lags)
+  setTimeout(() => {
+    upJei('')
+  })
+  miscUiState.displaySearchInput = true
+  // } else {
+  //   lastWindow.pwindow.win.jeiSlots = []
+  // }
 
   if (type === undefined) {
     // player inventory
@@ -552,4 +601,75 @@ const getResultingRecipe = (slots: Array<Item | null>, gridRows: number) => {
   const metadata = typeof result === 'object' && !Array.isArray(result) ? result.metadata : undefined
   const item = new PrismarineItem(id, count, metadata)
   return item
+}
+
+const getAllItemRecipes = (itemName: string) => {
+  const item = loadedData.itemsByName[itemName]
+  if (!item) return
+  const itemId = item.id
+  const recipes = loadedData.recipes[itemId]
+  if (!recipes) return
+  const results = [] as Array<{
+    result: Item,
+    ingredients: Item[],
+    description?: string
+  }>
+
+  // get recipes here
+  for (const recipe of recipes) {
+    const { result } = recipe
+    if (!result) continue
+    const resultId = typeof result === 'number' ? result : Array.isArray(result) ? result[0]! : result.id
+    const resultCount = (typeof result === 'number' ? undefined : Array.isArray(result) ? result[1] : result.count) ?? 1
+    const resultMetadata = typeof result === 'object' && !Array.isArray(result) ? result.metadata : undefined
+    const resultItem = new PrismarineItem(resultId!, resultCount, resultMetadata)
+    if ('inShape' in recipe) {
+      const ingredients = recipe.inShape
+      if (!ingredients) continue
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      const ingredientsItems = ingredients.flatMap(items => items.map(item => new PrismarineItem((item ?? 0) as number, 1)))
+      results.push({ result: resultItem, ingredients: ingredientsItems })
+    }
+    if ('ingredients' in recipe) {
+      const { ingredients } = recipe
+      if (!ingredients) continue
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      const ingredientsItems = ingredients.map(item => new PrismarineItem((item ?? 0) as number, 1))
+      results.push({ result: resultItem, ingredients: ingredientsItems, description: 'Shapeless' })
+    }
+  }
+  return results.map(({ result, ingredients, description }) => {
+    return [
+      'CraftingTableGuide',
+      mapSlots([result])[0],
+      mapSlots(ingredients),
+      description
+    ]
+  })
+}
+
+const getAllItemUsages = (itemName: string) => {
+  const item = loadedData.itemsByName[itemName]
+  if (!item) return
+  const foundRecipeIds = [] as string[]
+
+  for (const [id, recipes] of Object.entries(loadedData.recipes)) {
+    for (const recipe of recipes) {
+      if ('inShape' in recipe) {
+        if (recipe.inShape.some(row => row.includes(item.id))) {
+          foundRecipeIds.push(id)
+        }
+      }
+      if ('ingredients' in recipe) {
+        if (recipe.ingredients.includes(item.id)) {
+          foundRecipeIds.push(id)
+        }
+      }
+    }
+  }
+
+  return foundRecipeIds.flatMap(id => {
+    // todo should use exact match, not include all recipes!
+    return getAllItemRecipes(loadedData.items[id].name)
+  })
 }
