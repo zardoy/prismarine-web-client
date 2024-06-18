@@ -1,8 +1,8 @@
 import { Vec3 } from 'vec3'
 import { Position } from 'source-map-js'
-import { underive } from 'valtio/utils'
+import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
+import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
-
 
 type BotType = Omit<import('mineflayer').Bot, 'world' | '_client'> & {
   world: Omit<import('prismarine-world').world.WorldSync, 'getBlock'> & {
@@ -14,15 +14,26 @@ type BotType = Omit<import('mineflayer').Bot, 'world' | '_client'> & {
   }
 }
 
+interface DrawerAdapter extends TypedEventEmitter<{
+  updateBlockColor: (pos: Position) => void
+  updatePlayerPosition: () => void
+  updateWarps: () => void
+}> {
+  getHighestBlockColor: (x: number, z: number) => string
+  playerPosition: Position
+  warps: WorldWarp
+  setWarp: (name: string, pos: Position, rotation: Position, color: string, disabled: boolean) => void
+}
+
 export class MinimapDrawer {
   centerX: number
   centerY: number
   mapSize: number
   radius: number
   ctx: CanvasRenderingContext2D
-  worldColors: { [key: string]: string }
+  worldColors: { [key: string]: string } = {}
 
-  constructor (
+  constructor(
     private readonly canvas: HTMLCanvasElement,
     centerX?: number,
     centerY?: number,
@@ -48,7 +59,6 @@ export class MinimapDrawer {
 
     if (bot) {
       this.updateWorldColors(bot)
-      console.log(this.worldColors)
     } else {
       this.ctx.strokeStyle = 'black'
       this.ctx.beginPath()
@@ -95,7 +105,6 @@ export class MinimapDrawer {
   getHighestBlockColor (bot: BotType, x: number, z: number) {
     const key = `${x},${z}`
     if (this.worldColors[key]) {
-      console.log('using cashed value')
       return this.worldColors[key]
     }
     let block = null as import('prismarine-block').Block | null
