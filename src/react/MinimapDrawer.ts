@@ -48,6 +48,7 @@ export class MinimapDrawer {
 
     if (bot) {
       this.updateWorldColors(bot)
+      console.log(this.worldColors)
     } else {
       this.ctx.strokeStyle = 'black'
       this.ctx.beginPath()
@@ -93,7 +94,8 @@ export class MinimapDrawer {
 
   getHighestBlockColor (bot: BotType, x: number, z: number) {
     const key = `${x},${z}`
-    if (Object.keys(this.worldColors).includes(key)) {
+    if (this.worldColors[key]) {
+      console.log('using cashed value')
       return this.worldColors[key]
     }
     let block = null as import('prismarine-block').Block | null
@@ -113,7 +115,7 @@ export class MinimapDrawer {
   }
 
   clearCache (currX: number, currZ: number) {
-    for (const key of Object.keys(this.worldColors)) {
+    for (const key in this.worldColors) {
       const [x, z] = key.split(',').map(Number)
       if (this.getDistance(x, z, currX, currZ) > this.radius * 5) {
         delete this.worldColors[`${x},${z}`]

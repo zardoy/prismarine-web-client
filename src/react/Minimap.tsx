@@ -7,7 +7,9 @@ export default () => {
   const drawerRef = useRef<MinimapDrawer | null>(null)
 
   function updateMap () {
+    console.log('test')
     if (drawerRef.current && canvasTick.current % 10 === 0) {
+      console.log(drawerRef.current.worldColors)
       drawerRef.current.draw(bot)
       if (canvasTick.current % 300 === 0) {
         drawerRef.current.clearCache(bot.entity.position.x, bot.entity.position.z)
@@ -23,9 +25,11 @@ export default () => {
   }, [canvasRef.current])
 
   useEffect(() => {
+    console.log('set update')
     bot.on('move', updateMap)
 
     return () => {
+      console.log('delete update')
       bot.off('move', updateMap)
     }
   }, [])
