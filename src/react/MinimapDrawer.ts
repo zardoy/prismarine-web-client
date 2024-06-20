@@ -103,7 +103,9 @@ export class MinimapDrawer {
   }
 
   getHighestBlockColor (bot: BotType, x: number, z: number) {
-    const key = `${x},${z}`
+    const roundX = Math.floor(x)
+    const roundZ = Math.floor(z)
+    const key = `${roundX},${roundZ}`
     if (this.worldColors[key]) {
       return this.worldColors[key]
     }
