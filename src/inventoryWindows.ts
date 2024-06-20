@@ -603,6 +603,8 @@ const getResultingRecipe = (slots: Array<Item | null>, gridRows: number) => {
   return item
 }
 
+const ingredientToItem = (recipeItem) => recipeItem === null ? null : new PrismarineItem(recipeItem, 1)
+
 const getAllItemRecipes = (itemName: string) => {
   const item = loadedData.itemsByName[itemName]
   if (!item) return
@@ -611,7 +613,7 @@ const getAllItemRecipes = (itemName: string) => {
   if (!recipes) return
   const results = [] as Array<{
     result: Item,
-    ingredients: Item[],
+    ingredients: Array<Item | null>,
     description?: string
   }>
 
@@ -626,15 +628,14 @@ const getAllItemRecipes = (itemName: string) => {
     if ('inShape' in recipe) {
       const ingredients = recipe.inShape
       if (!ingredients) continue
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
-      const ingredientsItems = ingredients.flatMap(items => items.map(item => new PrismarineItem((item ?? 0) as number, 1)))
+
+      const ingredientsItems = ingredients.flatMap(items => items.map(item => ingredientToItem(item)))
       results.push({ result: resultItem, ingredients: ingredientsItems })
     }
     if ('ingredients' in recipe) {
       const { ingredients } = recipe
       if (!ingredients) continue
-      // eslint-disable-next-line @typescript-eslint/no-loop-func
-      const ingredientsItems = ingredients.map(item => new PrismarineItem((item ?? 0) as number, 1))
+      const ingredientsItems = ingredients.map(item => ingredientToItem(item))
       results.push({ result: resultItem, ingredients: ingredientsItems, description: 'Shapeless' })
     }
   }
