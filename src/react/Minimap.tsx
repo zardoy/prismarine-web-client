@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import { MinimapDrawer } from './MinimapDrawer'
+import { contro } from '../controls'
 
 export default () => {
   const [fullMapOpened, setFullMapOpened] = useState(false)
@@ -17,9 +18,10 @@ export default () => {
     canvasTick.current += 1
   }
 
-  const openFullMap = () => {
-    setFullMapOpened(true)
+  const toggleFullMap = ({ command }) => {
+    if (command === 'ui.toggleMap') setFullMapOpened(prev => !prev)
   }
+
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
@@ -30,8 +32,11 @@ export default () => {
   useEffect(() => {
     bot.on('move', updateMap)
 
+    contro.on('trigger', toggleFullMap)
+
     return () => {
       bot.off('move', updateMap)
+      contro.off('', toggleFullMap)
     }
   }, [])
 
@@ -41,6 +46,7 @@ export default () => {
       inset: '0px',
       display: 'flex',
       justifyContent: 'center',
+      alignItems: 'center',
       border: '2px solid red'
     }}
   >

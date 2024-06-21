@@ -51,6 +51,7 @@ export const contro = new ControMax({
     },
     ui: {
       back: [null/* 'Escape' */, 'B'],
+      toggleMap: ['KeyM'],
       leftClick: [null, 'A'],
       rightClick: [null, 'Y'],
       speedupCursor: [null, 'Left Stick'],
@@ -75,12 +76,12 @@ export const contro = new ControMax({
 }, {
   defaultControlOptions: controlOptions,
   target: document,
-  captureEvents () {
+  captureEvents() {
     return true
   },
   storeProvider: {
     load: () => customKeymaps,
-    save () { },
+    save() { },
   },
   gamepadPollingInterval: 10
 })
@@ -153,10 +154,10 @@ let lastCommandTrigger = null as { command: string, time: number } | null
 
 const secondActionActivationTimeout = 300
 const secondActionCommands = {
-  'general.jump' () {
+  'general.jump'() {
     toggleFly()
   },
-  'general.forward' () {
+  'general.forward'() {
     setSprinting(true)
   }
 }
@@ -292,7 +293,7 @@ const alwaysPressedHandledCommand = (command: Command) => {
   }
 }
 
-function cycleHotbarSlot (dir: 1 | -1) {
+function cycleHotbarSlot(dir: 1 | -1) {
   const newHotbarSlot = (bot.quickBarSlot + dir + 9) % 9
   bot.setQuickBarSlot(newHotbarSlot)
 }
@@ -418,7 +419,7 @@ contro.on('release', ({ command }) => {
 export const f3Keybinds = [
   {
     key: 'KeyA',
-    action () {
+    action() {
       //@ts-expect-error
       const loadedChunks = Object.entries(worldView.loadedChunks).filter(([, v]) => v).map(([key]) => key.split(',').map(Number))
       for (const [x, z] of loadedChunks) {
@@ -440,7 +441,7 @@ export const f3Keybinds = [
   },
   {
     key: 'KeyG',
-    action () {
+    action() {
       options.showChunkBorders = !options.showChunkBorders
       viewer.world.updateShowChunksBorder(options.showChunkBorders)
     },
@@ -448,7 +449,7 @@ export const f3Keybinds = [
   },
   {
     key: 'KeyT',
-    async action () {
+    async action() {
       // waypoints
       const widgetNames = widgets.map(widget => widget.name)
       const widget = await showOptionsModal('Open Widget', widgetNames)
