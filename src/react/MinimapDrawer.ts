@@ -66,21 +66,7 @@ export class MinimapDrawer {
       this.radius * 2
     )
 
-    // if (bot) {
-      this.updateWorldColors(getHighestBlockColor, x, z)
-    // } else {
-    //   this.ctx.strokeStyle = 'black'
-    //   this.ctx.beginPath()
-    //
-    //   this.ctx.arc(this.centerX, this.centerY, this.radius, 0, 2 * Math.PI, false)
-    //
-    //   this.ctx.fillStyle = 'white'
-    //   this.ctx.fill()
-    //
-    //   this.ctx.strokeStyle = '#000000'
-    //   this.ctx.lineWidth = 1
-    //   this.ctx.stroke()
-    // }
+    this.updateWorldColors(getHighestBlockColor, x, z)
   }
 
   updateWorldColors (

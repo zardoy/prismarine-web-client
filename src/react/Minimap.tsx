@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import { contro } from '../controls'
-import { MinimapDrawer } from './MinimapDrawer'
-import { DrawerAdapter } from './MinimapDrawer' 
+import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
+ 
 
 export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
   const [fullMapOpened, setFullMapOpened] = useState(false)
