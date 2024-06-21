@@ -73,7 +73,6 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
       action () {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 2 }))
         worldInteractions.update()
-        document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       },
       sneak () {
         void contro.emit('trigger', {
@@ -97,6 +96,7 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
     }
     const holdUp = {
       action () {
+        document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       },
       sneak () {
         void contro.emit('release', {
