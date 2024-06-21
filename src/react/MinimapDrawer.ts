@@ -36,9 +36,6 @@ export class MinimapDrawer {
 
   constructor (
     canvas: HTMLCanvasElement,
-    centerX?: number,
-    centerY?: number,
-    mapSize?: number
   ) {
     this.canvas = canvas
   }

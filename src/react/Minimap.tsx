@@ -25,10 +25,8 @@ export default () => {
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
-      console.log('creating canvas')
       drawerRef.current = new MinimapDrawer(canvasRef.current)
     } else if (canvasRef.current && drawerRef.current) {
-      console.log('updating canvas')
       drawerRef.current.canvas = canvasRef.current
     }
   }, [canvasRef.current, fullMapOpened])
