@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
-import { MinimapDrawer } from './MinimapDrawer'
 import { contro } from '../controls'
+import { MinimapDrawer } from './MinimapDrawer'
 
 export default () => {
   const [fullMapOpened, setFullMapOpened] = useState(false)
@@ -25,9 +25,13 @@ export default () => {
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
+      console.log('creating canvas')
       drawerRef.current = new MinimapDrawer(canvasRef.current)
+    } else if (canvasRef.current && drawerRef.current) {
+      console.log('updating canvas')
+      drawerRef.current.canvas = canvasRef.current
     }
-  }, [canvasRef.current])
+  }, [canvasRef.current, fullMapOpened])
 
   useEffect(() => {
     bot.on('move', updateMap)
@@ -36,7 +40,7 @@ export default () => {
 
     return () => {
       bot.off('move', updateMap)
-      contro.off('', toggleFullMap)
+      contro.off('trigger', toggleFullMap)
     }
   }, [])
 
@@ -47,10 +51,18 @@ export default () => {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      border: '2px solid red'
+      border: '2px solid red',
+      backgroundColor: 'rgba(0, 0, 0, 0.4)'
     }}
   >
-    <canvas width={300} height={300} ref={canvasRef}></canvas>
+    <canvas 
+      style={{
+        width: '35%',
+      }}
+      width={150} 
+      height={150} 
+      ref={canvasRef}
+    ></canvas>
 
   </div> : <div
     className='minimap'

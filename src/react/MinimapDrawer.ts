@@ -31,22 +31,30 @@ export class MinimapDrawer {
   mapSize: number
   radius: number
   ctx: CanvasRenderingContext2D
+  _canvas: HTMLCanvasElement
   worldColors: { [key: string]: string } = {}
 
   constructor (
-    private readonly canvas: HTMLCanvasElement,
+    canvas: HTMLCanvasElement,
     centerX?: number,
     centerY?: number,
-    radius?: number,
     mapSize?: number
   ) {
     this.canvas = canvas
-    this.ctx = this.canvas.getContext('2d')!
+  }
+
+  get canvas () {
+    return this._canvas
+  }
+
+  set canvas (canvas: HTMLCanvasElement) {
+    this.ctx = canvas.getContext('2d')!
     this.ctx.imageSmoothingEnabled = false
-    this.centerX = centerX ?? this.canvas.width / 2
-    this.centerY = centerY ?? this.canvas.height / 2
-    this.radius = radius ?? 25
-    this.mapSize = mapSize ?? this.radius * 2
+    this.radius = Math.min(canvas.width, canvas.height) / 2
+    this.mapSize = this.radius * 2
+    this.centerX = canvas.width / 2
+    this.centerY = canvas.height / 2
+    this._canvas = canvas
   }
 
   draw (bot: BotType | undefined) {
