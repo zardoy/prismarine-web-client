@@ -1,25 +1,27 @@
 import { useRef, useEffect, useState } from 'react'
 import { contro } from '../controls'
 import { MinimapDrawer } from './MinimapDrawer'
+import { DrawerAdapter } from './MinimapDrawer' 
 
-export default () => {
+export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
   const [fullMapOpened, setFullMapOpened] = useState(false)
   const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
 
   function updateMap () {
+    if (!adapter) return
     if (drawerRef.current && canvasTick.current % 2 === 0) {
-      drawerRef.current.draw(bot)
+      drawerRef.current.draw(adapter.getHighestBlockColor, adapter.playerPosition.x, adapter.playerPosition.z)
       if (canvasTick.current % 300 === 0) {
-        drawerRef.current.deleteOldWorldColors(bot.entity.position.x, bot.entity.position.z)
+        drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
       }
     }
     canvasTick.current += 1
   }
 
-  const toggleFullMap = ({ command }) => {
-    if (command === 'ui.toggleMap') setFullMapOpened(prev => !prev)
+  const toggleFullMap = () => {
+    setFullMapOpened(prev => !prev)
   }
 
 
@@ -32,15 +34,18 @@ export default () => {
   }, [canvasRef.current, fullMapOpened])
 
   useEffect(() => {
-    bot.on('move', updateMap)
-
-    contro.on('trigger', toggleFullMap)
+    if (adapter) {
+      adapter.on('updateMap', updateMap)
+      adapter.on('toggleFullMap', toggleFullMap)
+    }
 
     return () => {
-      bot.off('move', updateMap)
-      contro.off('trigger', toggleFullMap)
+      if (adapter) {
+        adapter.off('updateMap', updateMap)
+        adapter.off('toggleFullMap', toggleFullMap)
+      }
     }
-  }, [])
+  }, [adapter])
 
   return fullMapOpened ? <div 
     style={{

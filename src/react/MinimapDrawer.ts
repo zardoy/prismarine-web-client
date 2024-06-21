@@ -14,15 +14,15 @@ type BotType = Omit<import('mineflayer').Bot, 'world' | '_client'> & {
   }
 }
 
-interface DrawerAdapter extends TypedEventEmitter<{
-  updateBlockColor: (pos: Position) => void
+export interface DrawerAdapter extends TypedEventEmitter<{
+  updateBlockColor: (pos: Vec3) => void
   updatePlayerPosition: () => void
   updateWarps: () => void
 }> {
   getHighestBlockColor: (x: number, z: number) => string
-  playerPosition: Position
-  warps: WorldWarp
-  setWarp: (name: string, pos: Position, rotation: Position, dimension: string, color: string, disabled: boolean) => void
+  playerPosition: Vec3
+  warps: WorldWarp[]
+  setWarp: (name: string, pos: Vec3, dimension: string, color: string, disabled: boolean) => void
 }
 
 export class MinimapDrawer {
@@ -54,7 +54,11 @@ export class MinimapDrawer {
     this._canvas = canvas
   }
 
-  draw (bot: BotType | undefined) {
+  draw (
+    getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
+    x: number,
+    z: number
+  ) {
     this.ctx.clearRect(
       this.centerX - this.radius,
       this.centerY - this.radius,
@@ -62,24 +66,28 @@ export class MinimapDrawer {
       this.radius * 2
     )
 
-    if (bot) {
-      this.updateWorldColors(bot)
-    } else {
-      this.ctx.strokeStyle = 'black'
-      this.ctx.beginPath()
-
-      this.ctx.arc(this.centerX, this.centerY, this.radius, 0, 2 * Math.PI, false)
-
-      this.ctx.fillStyle = 'white'
-      this.ctx.fill()
-
-      this.ctx.strokeStyle = '#000000'
-      this.ctx.lineWidth = 1
-      this.ctx.stroke()
-    }
+    // if (bot) {
+      this.updateWorldColors(getHighestBlockColor, x, z)
+    // } else {
+    //   this.ctx.strokeStyle = 'black'
+    //   this.ctx.beginPath()
+    //
+    //   this.ctx.arc(this.centerX, this.centerY, this.radius, 0, 2 * Math.PI, false)
+    //
+    //   this.ctx.fillStyle = 'white'
+    //   this.ctx.fill()
+    //
+    //   this.ctx.strokeStyle = '#000000'
+    //   this.ctx.lineWidth = 1
+    //   this.ctx.stroke()
+    // }
   }
 
-  updateWorldColors (bot: BotType) {
+  updateWorldColors (
+    getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
+    x: number,
+    z: number
+  ) {
     const left = this.centerX - this.radius
     const top = this.centerY - this.radius
     const mapPixel = Math.floor(this.radius * 2 / this.mapSize)
@@ -92,10 +100,10 @@ export class MinimapDrawer {
 
     for (let row = 0; row < this.mapSize; row += 1) {
       for (let col = 0; col < this.mapSize; col += 1) {
-        this.ctx.fillStyle = this.getHighestBlockColor(
-          bot,
-          bot.entity.position.x - this.mapSize / 2 + row,
-          bot.entity.position.z - this.mapSize / 2 + col
+        this.ctx.fillStyle = this.getHighestBlockColorCached(
+          getHighestBlockColor,
+          x - this.mapSize / 2 + row,
+          z - this.mapSize / 2 + col
         )
         this.ctx.fillRect(
           left + mapPixel * col,
@@ -107,22 +115,19 @@ export class MinimapDrawer {
     }
   }
 
-  getHighestBlockColor (bot: BotType, x: number, z: number) {
+  getHighestBlockColorCached (
+    getHighestBlockColor: DrawerAdapter['getHighestBlockColor'], 
+    x: number, 
+    z: number
+  ) {
     const roundX = Math.floor(x)
     const roundZ = Math.floor(z)
     const key = `${roundX},${roundZ}`
     if (this.worldColors[key]) {
       return this.worldColors[key]
     }
-    let block = null as import('prismarine-block').Block | null
-    let { height } = (bot.game as any)
-    const airBlocks = new Set(['air', 'cave_air', 'void_air'])
-    do {
-      block = bot.world.getBlock(new Vec3(x, height, z))
-      height -= 1
-    } while (airBlocks.has(block?.name ?? ''))
-    const color = BlockData.colors[block?.name ?? ''] ?? 'white'
-    this.worldColors[key] = color
+    const color = getHighestBlockColor(x, z)
+    if (color !== 'white') this.worldColors[key] = color
     return color
   }
 
