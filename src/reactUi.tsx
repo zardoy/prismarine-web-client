@@ -115,7 +115,6 @@ const InGameUi = () => {
         <ScoreboardProvider />
         <IndicatorEffectsProvider />
         <Crosshair />
-        <TouchAreasControlsProvider />
       </div>
 
       <PauseScreen />
@@ -173,6 +172,7 @@ const App = () => {
         <OptionsRenderApp />
         <MainMenuRenderApp />
         <NotificationProvider />
+        <TouchAreasControlsProvider />
         <NoModalFoundProvider />
         {/* <GameHud>
         </GameHud> */}

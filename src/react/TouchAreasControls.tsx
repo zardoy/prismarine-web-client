@@ -52,6 +52,7 @@ export const handleMovementStickDelta = (e?: { clientX, clientY }) => {
 }
 
 export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup }: Props) => {
+  const bot = window.bot as typeof __type_bot | undefined
   if (setupActive) touchActive = true
 
   const joystickOuter = useRef<HTMLDivElement>(null)
@@ -64,9 +65,9 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
   const buttonProps = (name: ButtonName) => {
     let active = {
       action: false,
-      sneak: bot.getControlState('sneak'),
+      sneak: bot?.getControlState('sneak'),
       break: false,
-      jump: bot.getControlState('jump'),
+      jump: bot?.getControlState('jump'),
     }[name]
     const holdDown = {
       action () {
@@ -79,7 +80,7 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           command: 'general.toggleSneakOrDown',
           schema: null as any,
         })
-        active = bot.getControlState('sneak')
+        active = bot?.getControlState('sneak')
       },
       break () {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 0 }))
@@ -91,7 +92,7 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           command: 'general.jump',
           schema: null as any,
         })
-        active = bot.controlState.jump
+        active = bot?.controlState.jump
       }
     }
     const holdUp = {
@@ -102,7 +103,7 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           command: 'general.toggleSneakOrDown',
           schema: null as any,
         })
-        active = bot.getControlState('sneak')
+        active = bot?.getControlState('sneak')
       },
       break () {
         document.dispatchEvent(new MouseEvent('mouseup', { button: 0 }))
@@ -114,7 +115,7 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           command: 'general.jump',
           schema: null as any,
         })
-        active = bot.controlState.jump
+        active = bot?.controlState.jump
       }
     }
 
