@@ -419,8 +419,8 @@ const upJei = (search: string) => {
 }
 
 export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
-  const inv = showInventory(type, getImage, {}, _bot)
-  inv.canvasManager.children[0].callbacks.getItemRecipes = (item) => {
+  const inv = showInventory(type, getImage, {}, _bot);
+  (inv.canvasManager.children[0].callbacks as any).getItemRecipes = (item) => {
     const allRecipes = getAllItemRecipes(item.name)
     inv.canvasManager.children[0].messageDisplay = ''
     const itemDescription = getItemDescription(item)
@@ -436,7 +436,7 @@ export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
       ]
     ] : []]
   }
-  inv.canvasManager.children[0].callbacks.getItemUsages = (item) => {
+  (inv.canvasManager.children[0].callbacks as any).getItemUsages = (item) => {
     const allItemUsages = getAllItemUsages(item.name)
     inv.canvasManager.children[0].messageDisplay = ''
     if (!allItemUsages?.length) {
@@ -496,7 +496,7 @@ const openWindow = (type: string | undefined) => {
   }
   upWindowItems()
 
-  lastWindow.pwindow.touch = miscUiState.currentTouch
+  lastWindow.pwindow.touch = miscUiState.currentTouch ?? false
   const oldOnInventoryEvent = lastWindow.pwindow.onInventoryEvent.bind(lastWindow.pwindow)
   lastWindow.pwindow.onInventoryEvent = (type, containing, windowIndex, inventoryIndex, item) => {
     if (inv.canvasManager.children[0].currentGuide) {

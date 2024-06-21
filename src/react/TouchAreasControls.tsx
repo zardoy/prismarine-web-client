@@ -161,8 +161,8 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           const elem = e.currentTarget as HTMLElement
           const size = 32
           const scale = getCurrentAppScaling()
-          const xPerc = e.clientX / window.innerWidth * 100 - size / scale
-          const yPerc = e.clientY / window.innerHeight * 100 - size / scale
+          const xPerc = (e.clientX - size / 4 / scale) / window.innerWidth * 100
+          const yPerc = (e.clientY - size / 4 / scale) / window.innerHeight * 100
           elem.style.left = `${xPerc}%`
           elem.style.top = `${yPerc}%`
           newButtonPositions[name] = [xPerc, yPerc]
