@@ -1,0 +1,16 @@
+diff --git a/examples/jsm/webxr/VRButton.js b/examples/jsm/webxr/VRButton.js
+index 6856a21b17aa45d7922bbf776fd2d7e63c7a9b4e..0925b706f7629bd52f0bb5af469536af8f5fce2c 100644
+--- a/examples/jsm/webxr/VRButton.js
++++ b/examples/jsm/webxr/VRButton.js
+@@ -62,7 +62,10 @@ class VRButton {
+ 					// ('local' is always available for immersive sessions and doesn't need to
+ 					// be requested separately.)
+ 
+-					const sessionInit = { optionalFeatures: [ 'local-floor', 'bounded-floor', 'hand-tracking', 'layers' ] };
++					const sessionInit = {
++						optionalFeatures: ['local-floor', 'bounded-floor', 'layers'],
++						domOverlay: { root: document.body },
++					};
+ 					navigator.xr.requestSession( 'immersive-vr', sessionInit ).then( onSessionStarted );
+ 
+ 				} else {
