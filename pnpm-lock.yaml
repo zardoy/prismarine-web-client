@@ -59,8 +59,8 @@ importers:
         specifier: ^2.1.3
         version: 2.1.3
       '@zardoy/react-util':
-        specifier: ^0.2.0
-        version: 0.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^0.2.4
+        version: 0.2.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@zardoy/utils':
         specifier: ^0.0.11
         version: 0.0.11
@@ -3080,12 +3080,12 @@ packages:
     engines: {node: '>=8'}
     hasBin: true
 
-  '@zardoy/react-util@0.2.0':
-    resolution: {integrity: sha512-glABtx54mh4XSaK6BNALWE3mlshPjcPwPsRj/GnOXEA7WJY/6n43iJoukbaYF3758mGZRU5Fq6gklyFjBg0yHQ==}
+  '@zardoy/react-util@0.2.4':
+    resolution: {integrity: sha512-YRBbXi54QOgWGDSn3NLEMMGrWbfL/gn2khxO31HT0WPFB6IW2rSnB4hcy+S/nc+2D6PRNq4kQxGs4vTAe4a7Xg==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     peerDependencies:
       react: ^18.2.0
-      react-dom: ^18.0.0
+      react-dom: '>=18.0.0'
 
   '@zardoy/utils@0.0.11':
     resolution: {integrity: sha512-d6xBnSFCOa98HcL52xSBflJKjKpxfRhtr1eVexy89YujeCHSQhUMmSz9h07xyrulfW60k9tSeYH5reuqoh4l4w==}
@@ -7029,6 +7029,12 @@ packages:
 
   react-fast-compare@3.2.2:
     resolution: {integrity: sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ==}
+
+  react-hook-form@7.52.0:
+    resolution: {integrity: sha512-mJX506Xc6mirzLsmXUJyqlAI3Kj9Ph2RhplYhUVffeOQSnubK2uVqBFOBJmvKikvbFV91pxVXmDiR+QMF19x6A==}
+    engines: {node: '>=12.22.0'}
+    peerDependencies:
+      react: ^18.2.0
 
   react-inspector@6.0.2:
     resolution: {integrity: sha512-x+b7LxhmHXjHoU/VrFAzw5iutsILRoYyDq97EDYdFpPLcvqtEzk4ZSZSQjnFPbr5T57tLXnHcqFYoN1pI6u8uQ==}
@@ -12006,11 +12012,12 @@ snapshots:
       - encoding
       - supports-color
 
-  '@zardoy/react-util@0.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@zardoy/react-util@0.2.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       classnames: 2.5.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
+      react-hook-form: 7.52.0(react@18.2.0)
 
   '@zardoy/utils@0.0.11':
     dependencies:
@@ -16967,6 +16974,10 @@ snapshots:
       react-is: 18.1.0
 
   react-fast-compare@3.2.2: {}
+
+  react-hook-form@7.52.0(react@18.2.0):
+    dependencies:
+      react: 18.2.0
 
   react-inspector@6.0.2(react@18.2.0):
     dependencies:
