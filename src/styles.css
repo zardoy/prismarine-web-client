@@ -163,7 +163,7 @@ body {
   animation-timing-function: ease-in-out;
   animation-fill-mode: forwards;
 }
-#viewer-canvas::xr-overlay {
+body::xr-overlay #viewer-canvas {
   display: none;
 }
 
