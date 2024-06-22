@@ -1,10 +1,11 @@
-import { useRef, useEffect, useState } from 'react'
-import { contro } from '../controls'
+import { useRef, useEffect } from 'react'
+import { showModal, hideModal } from '../globalState'
+import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
  
 
 export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
-  const [fullMapOpened, setFullMapOpened] = useState(false)
+  const fullMapOpened = useIsModalActive('full-map')
   const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
@@ -21,7 +22,11 @@ export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
   }
 
   const toggleFullMap = () => {
-    setFullMapOpened(prev => !prev)
+    if (fullMapOpened) {
+      hideModal({ reactType: 'full-map' })
+    } else {
+      showModal({ reactType: 'full-map' })
+    }
   }
 
 
