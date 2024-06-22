@@ -1,8 +1,6 @@
 import { Vec3 } from 'vec3'
-import { Position } from 'source-map-js'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
-import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 
 type BotType = Omit<import('mineflayer').Bot, 'world' | '_client'> & {
   world: Omit<import('prismarine-world').world.WorldSync, 'getBlock'> & {
@@ -14,11 +12,13 @@ type BotType = Omit<import('mineflayer').Bot, 'world' | '_client'> & {
   }
 }
 
-export interface DrawerAdapter extends TypedEventEmitter<{
+export type MapUpdates = {
   updateBlockColor: (pos: Vec3) => void
   updatePlayerPosition: () => void
   updateWarps: () => void
-}> {
+}
+
+export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   getHighestBlockColor: (x: number, z: number) => string
   playerPosition: Vec3
   warps: WorldWarp[]

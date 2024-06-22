@@ -1,17 +1,13 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Vec3 } from 'vec3'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
 import Minimap from './Minimap'
-import { DrawerAdapter } from './MinimapDrawer'
+import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 
-class DrawerAdapterImpl extends TypedEventEmitter<{
-  updateBlockColor: (pos: Vec3) => void
-  updatePlayerPosition: () => void
-  updateWarps: () => void
-}> implements DrawerAdapter {
+class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
   warps: WorldWarp[]
 
@@ -46,22 +42,18 @@ class DrawerAdapterImpl extends TypedEventEmitter<{
 }
 
 export default () => {
-  const adapter = useRef<DrawerAdapterImpl | null>(null)
+  const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position))
 
   const updateMap = () => {
-    if (!adapter.current) return
-    adapter.current.playerPosition = bot.entity.position
-    adapter.current.emit('updateMap')
+    if (!adapter) return
+    adapter.playerPosition = bot.entity.position
+    adapter.emit('updateMap')
   }
 
   const toggleFullMap = ({ command }) => {
-    if (!adapter.current) return
-    if (command === 'ui.toggleMap') adapter.current.emit('toggleFullMap')
+    if (!adapter) return
+    if (command === 'ui.toggleMap') adapter.emit('toggleFullMap')
   }
-
-  useEffect(() => {
-    adapter.current = new DrawerAdapterImpl(bot.entity.position)
-  }, [])
 
   useEffect(() => {
     bot.on('move', updateMap)
@@ -75,6 +67,6 @@ export default () => {
   }, [])
 
   return <div>
-    <Minimap adapter={adapter.current} />
+    <Minimap adapter={adapter} />
   </div>
 }
