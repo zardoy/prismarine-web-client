@@ -623,8 +623,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   delete attr.t_colors
   delete attr.t_uvs
 
-  attr.positions = new Float32Array(attr.positions) as any
-  attr.normals = new Float32Array(attr.normals) as any
+  attr.positions = new Int8Array(attr.positions) as any
+  attr.normals = new Uint8ClampedArray(attr.normals) as any
   attr.colors = new Float32Array(attr.colors) as any
   attr.uvs = new Float32Array(attr.uvs) as any
 
