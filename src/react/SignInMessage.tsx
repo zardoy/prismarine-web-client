@@ -10,8 +10,9 @@ export default ({
   connectingServer = 'mc.example.comsdlfjsklfjsfjdskfjsj',
   warningText = true,
   expiresEnd = Date.now() + 1000 * 60 * 5,
-  setSaveToken = (() => {}) as ((state: boolean) => void) | undefined,
+  setSaveToken = (() => { }) as ((state: boolean) => void) | undefined,
   defaultSaveToken = true,
+  onCancel = () => { }
 }) => {
   if (connectingServer.length > 30) connectingServer = connectingServer.slice(0, 30) + '...'
   const [timeLeft, setTimeLeft] = useState(``)
@@ -86,8 +87,11 @@ export default ({
         Save account token in this browser
       </label>}
     </div>
-    <Button style={{
-      marginTop: -5,
-    }}>Cancel</Button>
+    <Button
+      style={{
+        marginTop: -5,
+      }}
+      onClick={onCancel}
+    >Cancel</Button>
   </Screen>
 }

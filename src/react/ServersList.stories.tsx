@@ -12,12 +12,14 @@ const meta: Meta<typeof ServersList> = {
     const [username, setUsername] = useState('')
 
     return addOpen ?
-      <AddServerOrConnect onBack={() => {
-        setAddOpen(false)
-      }}
-      onConfirm={(info) => {
-        console.log('add server', info)
-      }} /> :
+      <AddServerOrConnect
+        onBack={() => {
+          setAddOpen(false)
+        }}
+        accounts={['testting']}
+        onConfirm={(info) => {
+          console.log('add server', info)
+        }} /> :
       <ServersList
         worldData={[{
           name: 'test',
@@ -34,7 +36,7 @@ const meta: Meta<typeof ServersList> = {
         updateProxies={newData => {
           console.log('setProxies', newData)
         }}
-        onWorldAction={() => {}}
+        onWorldAction={() => { }}
         onGeneralAction={(action) => {
           if (action === 'create') {
             setAddOpen(true)
@@ -47,7 +49,7 @@ const meta: Meta<typeof ServersList> = {
 }
 
 export default meta
-type Story = StoryObj<typeof ServersList>;
+type Story = StoryObj<typeof ServersList>
 
 export const Primary: Story = {
   args: {

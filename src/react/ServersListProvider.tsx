@@ -7,6 +7,7 @@ import ServersList from './ServersList'
 import AddServerOrConnect, { BaseServerInfo } from './AddServerOrConnect'
 import { useDidUpdateEffect } from './utils'
 import { useIsModalActive } from './utilsApp'
+import { showOptionsModal } from './SelectOption'
 
 interface StoreServerItem extends BaseServerInfo {
   lastJoined?: number
@@ -46,6 +47,15 @@ type AdditionalDisplayData = {
   icon?: string
 }
 
+export interface AuthenticatedAccount {
+  // type: 'microsoft'
+  username: string
+  cachedTokens?: {
+    data: any
+    expiresOn: number
+  }
+}
+
 const getInitialServersList = () => {
   if (localStorage['serversList']) return JSON.parse(localStorage['serversList']) as StoreServerItem[]
 
@@ -62,7 +72,6 @@ const getInitialServersList = () => {
   if (localStorage['server']) {
     const legacyLastJoinedServer: StoreServerItem = {
       ip: localStorage['server'],
-      passwordOverride: localStorage['password'],
       versionOverride: localStorage['version'],
       lastJoined: Date.now()
     }
@@ -104,14 +113,19 @@ const getInitialProxies = () => {
   return proxies
 }
 
-export const updateLoadedServerData = (callback: (data: StoreServerItem) => StoreServerItem) => {
+export const updateLoadedServerData = (callback: (data: StoreServerItem) => StoreServerItem, index = miscUiState.loadedServerIndex) => {
+  if (!index) return
   // function assumes component is not mounted to avoid sync issues after save
-  const { loadedServerIndex } = miscUiState
-  if (!loadedServerIndex) return
   const servers = getInitialServersList()
-  const server = servers[loadedServerIndex]
-  servers[loadedServerIndex] = callback(server)
+  const server = servers[index]
+  servers[index] = callback(server)
   setNewServersList(servers)
+}
+
+export const updateAuthenticatedAccountData = (callback: (data: AuthenticatedAccount[]) => AuthenticatedAccount[]) => {
+  const accounts = JSON.parse(localStorage['authenticatedAccounts'] || '[]') as AuthenticatedAccount[]
+  const newAccounts = callback(accounts)
+  localStorage['authenticatedAccounts'] = JSON.stringify(newAccounts)
 }
 
 // todo move to base
@@ -122,6 +136,11 @@ const Inner = () => {
   const [selectedProxy, setSelectedProxy] = useState(localStorage.getItem('selectedProxy') ?? proxies?.[0] ?? '')
   const [serverEditScreen, setServerEditScreen] = useState<StoreServerItem | true | null>(null) // true for add
   const [defaultUsername, setDefaultUsername] = useState(localStorage['username'] ?? (`mcrafter${Math.floor(Math.random() * 1000)}`))
+  const [authenticatedAccounts, setAuthenticatedAccounts] = useState<AuthenticatedAccount[]>(JSON.parse(localStorage['authenticatedAccounts'] || '[]'))
+
+  useEffect(() => {
+    localStorage.setItem('authenticatedAccounts', JSON.stringify(authenticatedAccounts))
+  }, [authenticatedAccounts])
 
   useEffect(() => {
     localStorage.setItem('username', defaultUsername)
@@ -215,6 +234,7 @@ const Inner = () => {
         }
         setServerEditScreen(null)
       }}
+      accounts={authenticatedAccounts.map(a => a.username)}
       initialData={!serverEditScreen || serverEditScreen === true ? undefined : serverEditScreen}
       onQsConnect={(info) => {
         const connectOptions: ConnectOptions = {
@@ -222,7 +242,6 @@ const Inner = () => {
           server: normalizeIp(info.ip),
           proxy: info.proxyOverride || selectedProxy,
           botVersion: info.versionOverride,
-          password: info.passwordOverride,
           ignoreQs: true,
         }
         dispatchEvent(new CustomEvent('connect', { detail: connectOptions }))
@@ -249,14 +268,22 @@ const Inner = () => {
         if (!username) return
         setDefaultUsername(username)
       }
+      let authenticatedAccount: AuthenticatedAccount | true | undefined
+      if (overrides.authenticatedAccountOverride) {
+        if (overrides.authenticatedAccountOverride === true) {
+          authenticatedAccount = true
+        } else {
+          authenticatedAccount = authenticatedAccounts.find(a => a.username === overrides.authenticatedAccountOverride) ?? true
+        }
+      }
       const options = {
         username,
         server: normalizeIp(ip),
         proxy: overrides.proxyOverride || selectedProxy,
         botVersion: overrides.versionOverride ?? /* legacy */ overrides['version'],
-        password: overrides.passwordOverride,
         ignoreQs: true,
         autoLoginPassword: server?.autoLogin?.[username],
+        authenticatedAccount,
         onSuccessfulPlay () {
           if (shouldSave && !serversList.some(s => s.ip === ip)) {
             const newServersList: StoreServerItem[] = [...serversList, {
@@ -294,6 +321,11 @@ const Inner = () => {
     }}
     username={defaultUsername}
     setUsername={setDefaultUsername}
+    onProfileClick={async () => {
+      const username = await showOptionsModal('Select authenticated account to remove', authenticatedAccounts.map(a => a.username))
+      if (!username) return
+      setAuthenticatedAccounts(old => old.filter(a => a.username !== username))
+    }}
     onWorldAction={(action, index) => {
       const server = serversList[index]
       if (!server) return
