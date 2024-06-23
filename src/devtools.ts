@@ -43,3 +43,15 @@ window.inspectPacket = (packetName, full = false) => {
   })
   return returnobj
 }
+
+// for advanced debugging, use with watch expression
+
+let stats_ = {}
+window.addStatHit = (key) => {
+  stats_[key] ??= 0
+  stats_[key]++
+}
+setInterval(() => {
+  window.stats = stats_
+  stats_ = {}
+}, 1000)
