@@ -20,11 +20,12 @@ export class Viewer {
   domElement: HTMLCanvasElement
   playerHeight = 1.62
   isSneaking = false
-  threeJsWorld: WorldRendererThree
+  // threeJsWorld: WorldRendererThree
   cameraObjectOverride?: THREE.Object3D // for xr
   audioListener: THREE.AudioListener
   renderingUntilNoUpdates = false
   processEntityOverrides = (e, overrides) => overrides
+  webgpuWorld: WorldRendererWebgpu
 
   // get camera () {
   //   return this.world.camera
@@ -40,7 +41,8 @@ export class Viewer {
 
     this.scene = new THREE.Scene()
     this.scene.matrixAutoUpdate = false // for perf
-    this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, worldConfig)
+    // this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, worldConfig)
+    this.webgpuWorld = new WorldRendererWebgpu(worldConfig)
     this.setWorld()
     this.resetScene()
     this.entities = new Entities(this.scene)
@@ -50,7 +52,7 @@ export class Viewer {
   }
 
   setWorld () {
-    this.world = this.threeJsWorld
+    this.world = this.webgpuWorld
   }
 
   resetScene () {
@@ -165,7 +167,7 @@ export class Viewer {
     })
     // todo remove and use other architecture instead so data flow is clear
     emitter.on('blockEntities', (blockEntities) => {
-      if (this.world instanceof WorldRendererThree) this.world.blockEntities = blockEntities
+      if (this.world instanceof WorldRendererThree) (this.world as WorldRendererThree).blockEntities = blockEntities
     })
 
     emitter.on('unloadChunk', ({ x, z }) => {
@@ -197,7 +199,7 @@ export class Viewer {
     })
 
     emitter.on('updateLight', ({ pos }) => {
-      if (this.world instanceof WorldRendererThree) this.world.updateLight(pos.x, pos.z)
+      if (this.world instanceof WorldRendererThree) (this.world as WorldRendererThree).updateLight(pos.x, pos.z)
     })
 
     emitter.on('time', (timeOfDay) => {
@@ -216,11 +218,15 @@ export class Viewer {
 
       if (this.world.mesherConfig.skyLight === skyLight) return
       this.world.mesherConfig.skyLight = skyLight
-        ; (this.world as WorldRendererThree).rerenderAllChunks?.()
+      if (this.world instanceof WorldRendererThree) {
+        (this.world as WorldRendererThree).rerenderAllChunks?.()
+      }
     })
 
     emitter.emit('listening')
   }
+
+  loadChunksFixture () { }
 
   render () {
     // if (this.composer) {

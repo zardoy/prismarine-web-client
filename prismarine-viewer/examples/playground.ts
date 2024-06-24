@@ -275,7 +275,7 @@ async function main () {
         ],
       }
     }
-    webgpuChannel.addBlocksSection({ blocks }, `0,0,${i++}`)
+    webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
   }
 
 

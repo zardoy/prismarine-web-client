@@ -4,6 +4,7 @@ import { addBlocksSection, removeBlocksSection, webgpuChannel } from '../../exam
 import type { WebglData } from '../prepare/webglData'
 import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
+import { MesherGeometryOutput } from './mesher/shared'
 
 export class WorldRendererWebgpu extends WorldRendererCommon {
   outputFormat = 'webgpu' as const
@@ -12,8 +13,8 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   stopBlockUpdate = false
   lastChunkDistance = 0
 
-  constructor(numWorkers = 4) {
-    super(numWorkers)
+  constructor(config) {
+    super(config)
 
     this.renderUpdateEmitter.on('update', () => {
       const loadedChunks = Object.keys(this.finishedChunks).length
@@ -43,8 +44,8 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     webgpuChannel.addBlocksSectionDone()
   }
 
-  handleWorkerMessage (data: any): void {
-    if (data.type === 'geometry' && Object.keys(data.geometry.blocks).length) {
+  handleWorkerMessage (data: { geometry: MesherGeometryOutput, type, key }): void {
+    if (data.type === 'geometry' && Object.keys(data.geometry.tiles).length) {
 
       const chunkCoords = data.key.split(',').map(Number) as [number, number, number]
       if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
@@ -56,6 +57,9 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       this.newChunks[data.key] = data.geometry
     }
   }
+
+  updateCamera (pos: Vec3 | null, yaw: number, pitch: number): void { }
+  render (): void { }
 
   chunksReset () {
     webgpuChannel.fullReset()

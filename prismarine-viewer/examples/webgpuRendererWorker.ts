@@ -38,7 +38,7 @@ const updateSize = (width, height) => {
 
 
 class WebgpuRendererWorker {
-    NUMBER_OF_CUBES = 1000
+    NUMBER_OF_CUBES = 100_000
 
     ready = false
 
@@ -54,6 +54,7 @@ class WebgpuRendererWorker {
     pipeline: GPURenderPipeline
     InstancedTextureIndexBuffer: GPUBuffer
     InstancedColorBuffer: GPUBuffer
+    notRenderedAdditions = 0
 
     constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public FragShaderOverride?) {
         this.init()
@@ -99,20 +100,17 @@ class WebgpuRendererWorker {
 
         this.InstancedModelBuffer = device.createBuffer({
             size: this.NUMBER_OF_CUBES * 4 * 3,
-            usage: GPUBufferUsage.VERTEX || GPUBufferUsage.MAP_WRITE,
-            mappedAtCreation: true,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         })
 
         this.InstancedTextureIndexBuffer = device.createBuffer({
             size: this.NUMBER_OF_CUBES * 4 * 1,
-            usage: GPUBufferUsage.VERTEX || GPUBufferUsage.MAP_WRITE,
-            mappedAtCreation: true,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         })
 
         this.InstancedColorBuffer = device.createBuffer({
             size: this.NUMBER_OF_CUBES * 4 * 3,
-            usage: GPUBufferUsage.VERTEX || GPUBufferUsage.MAP_WRITE,
-            mappedAtCreation: true,
+            usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         })
 
 
@@ -206,6 +204,7 @@ class WebgpuRendererWorker {
                 ],
             },
             primitive: {
+                // topology: 'triangle-strip',
                 topology: 'triangle-list',
                 cullMode: 'front',
 
@@ -301,6 +300,12 @@ class WebgpuRendererWorker {
         return canvas
     }
 
+    removeOne () {
+
+    }
+
+    realNumberOfCubes = 0
+
     updateSides (start) {
         rendering = true
         const positions = [] as number[]
@@ -308,27 +313,28 @@ class WebgpuRendererWorker {
         let colors = [] as number[]
         for (let i = 0; i < allSides.length / 6; i++) {
             const side = allSides[i * 6]!
+            if (!side) continue
             positions.push(...[side[0], side[1], side[2]])
             textureIndexes.push(side[3].textureIndex)
             colors.push(1, 1, 1)
         }
 
-        //Todo: make this dynamic
-        const ModelMatrix = new Float32Array(positions)
+        this.realNumberOfCubes = positions.length
+        if (positions.length > this.NUMBER_OF_CUBES) {
+            // this.NUMBER_OF_CUBES = positions.length + 1000
+        }
+        
+        const setModelBuffer = async (modelBuffer: GPUBuffer, data: Float32Array) => {
+            this.device.queue.writeBuffer(modelBuffer, 0, data/* , 0, 16 */)
+        }
 
+        setModelBuffer(this.InstancedModelBuffer, new Float32Array(positions))
 
+        setModelBuffer(this.InstancedTextureIndexBuffer, new Float32Array(textureIndexes))
 
-        new Float32Array(this.InstancedModelBuffer.getMappedRange()).set(ModelMatrix)
-        this.InstancedModelBuffer.unmap()
+        setModelBuffer(this.InstancedColorBuffer, new Float32Array(colors))
 
-        // same index with length = allSides.length / 6
-        new Float32Array(this.InstancedTextureIndexBuffer.getMappedRange()).set(new Float32Array(textureIndexes))
-        this.InstancedTextureIndexBuffer.unmap()
-
-        new Float32Array(this.InstancedColorBuffer.getMappedRange()).set(new Float32Array(colors))
-        this.InstancedColorBuffer.unmap()
-
-        // this.NUMBER_OF_CUBES = positions.length
+        this.notRenderedAdditions++
     }
 
 
@@ -381,9 +387,8 @@ class WebgpuRendererWorker {
         device.queue.submit([commandEncoder.finish()])
 
         renderedFrames++
-        if (rendering) {
-            requestAnimationFrame(() => this.loop())
-        }
+        requestAnimationFrame(() => this.loop())
+        this.notRenderedAdditions = 0
     }
 }
 
@@ -407,6 +412,7 @@ export const workerProxyType = createWorkerProxy({
     canvas (canvas, imageBlob, isPlayground, FragShaderOverride) {
         started = true
         webglRendererWorker = new WebgpuRendererWorker(canvas, imageBlob, isPlayground, FragShaderOverride)
+        globalThis.webglRendererWorker = webglRendererWorker
     },
     startRender () {
         rendering = true
@@ -419,10 +425,10 @@ export const workerProxyType = createWorkerProxy({
         newHeight = newHeight
         updateSize(newWidth, newHeight)
     },
-    addBlocksSection (data: { blocks: Record<string, BlockType> }, key: string) {
+    addBlocksSection (tiles: Record<string, BlockType>, key: string) {
         const currentLength = allSides.length
         // in: object - name, out: [x, y, z, name]
-        const newData = Object.entries(data.blocks).flatMap(([key, value]) => {
+        const newData = Object.entries(tiles).flatMap(([key, value]) => {
             const [x, y, z] = key.split(',').map(Number)
             const block = value as BlockType
             return block.faces.map((side) => {
@@ -448,7 +454,9 @@ export const workerProxyType = createWorkerProxy({
         chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
         allSides.splice(currentLength, 0, ...newData)
         lastNotUpdatedIndex ??= currentLength
-        updateCubesWhenAvailable(currentLength)
+        if (webglRendererWorker && webglRendererWorker.notRenderedAdditions < 5) {
+            updateCubesWhenAvailable(currentLength)
+        } 
     },
     addBlocksSectionDone () {
         updateCubesWhenAvailable(lastNotUpdatedIndex)
@@ -456,6 +464,7 @@ export const workerProxyType = createWorkerProxy({
         lastNotUpdatedArrSize = undefined
     },
     removeBlocksSection (key) {
+        return
         // fill data with 0
         const [startIndex, endIndex] = chunksArrIndexes[key]
         for (let i = startIndex; i < endIndex; i++) {

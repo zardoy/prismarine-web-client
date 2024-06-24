@@ -93,6 +93,7 @@ import { ConnectOptions } from './connect'
 import { subscribe } from 'valtio'
 import { initWebgpuRenderer } from 'prismarine-viewer/examples/webgpuRendererMain'
 import { addNewStat } from 'prismarine-viewer/examples/newStats'
+import { getVersion } from 'prismarine-viewer/viewer/lib/version'
 // import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 
 window.debug = debug
@@ -375,14 +376,13 @@ async function connect (connectOptions: ConnectOptions) {
       viewer.setVersion(version)
     }
 
-    serverOptions.version = '1.14.4'
+    // serverOptions.version = '1.18.1'
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
     if (downloadVersion) {
       await downloadMcData(downloadVersion)
     }
-    await initWebgpuRenderer(downloadVersion, () => {
-      postRenderFrameFn()
-      viewer.update()
+    await initWebgpuRenderer(getVersion(downloadVersion), () => {
+      renderWrapper.postRender()
     })
     addNewStat('loaded-chunks')
 

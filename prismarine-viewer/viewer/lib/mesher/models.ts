@@ -3,6 +3,7 @@ import type { BlockStatesOutput } from '../../prepare/modelsBuilder'
 import { World } from './world'
 import { Block } from 'prismarine-block'
 import { BlockType } from '../../../examples/shared'
+import { MesherGeometryOutput } from './shared'
 
 const tints: any = {}
 let blockStates: BlockStatesOutput
@@ -138,6 +139,67 @@ const everyArray = (array, callback) => {
   return array.every(callback)
 }
 
+let textureName = undefined
+let tint
+const getTextureIndexResult = (biome, block, face: string, world: World): number => {
+  const facesOrTexture = findTextureInBlockStates(block.name);
+  if (!facesOrTexture) return 0 // todo
+  let result
+  if ('u' in facesOrTexture) {
+    result = facesOrTexture
+  } else {
+    result = facesOrTexture?.[face]?.texture
+    const tintindex = facesOrTexture?.[face]?.tintindex
+    if (tintindex === 0) {
+      if (block.name === 'redstone_wire') {
+        tint = tints.redstone[`${block.getProperties().power}`]
+      } else if (block.name === 'birch_leaves' ||
+        block.name === 'spruce_leaves' ||
+        block.name === 'lily_pad') {
+        tint = tints.constant[block.name]
+      } else if (block.name.includes('leaves') || block.name === 'vine') {
+        tint = tints.foliage[biome]
+      } else {
+        tint = tints.grass[biome]
+      }
+    }
+  }
+  if (!result) return 0 // todo
+  if (result.textureName) {
+    textureName = result.textureName
+  }
+  return uvToTextureIndex(result.u, result.v, world) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
+}
+function uvToTextureIndex (u, v, world: World) {
+  const textureSize = world.config.textureSize
+  const textureWidth = textureSize
+  const textureHeight = textureSize
+  const tileSize = 16;
+  // Convert UV coordinates to pixel coordinates
+  let x = u * textureWidth;
+  let y = v * textureHeight;
+
+  // Convert pixel coordinates to tile index
+  const tileX = Math.floor(x / tileSize);
+  const tileY = Math.floor(y / tileSize);
+
+  // Calculate texture index
+  const textureIndex = tileY * (textureWidth / tileSize) + tileX;
+
+  return textureIndex;
+}
+
+const findTextureInBlockStates = (name): any => {
+  const vars = blockStates[name]?.variants
+  if (!vars) return blockStates[name]?.multipart?.[0]?.apply?.[0]?.model?.elements?.[0]?.faces?.south?.texture
+  let firstVar = Object.values(vars)[0] as any
+  if (Array.isArray(firstVar)) firstVar = firstVar[0]
+  if (!firstVar) return
+  const [element] = firstVar.model?.elements
+  if (!element) return firstVar.model?.textures?.particle
+  if (!element/*  || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16)) */) return
+  return element.faces
+}
 
 const isCube = (block) => {
   if (!block || block.transparent) return false
@@ -286,7 +348,7 @@ function buildRotationMatrix (axis, degree) {
 
 let needRecompute = false
 
-function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr, globalMatrix, globalShift, block: Block, biome) {
+function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr: MesherGeometryOutput, globalMatrix, globalShift, block: Block, biome) {
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
   // if (!globalThis.allowedBlocks.includes(key)) return
@@ -433,11 +495,12 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
       tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
         face,
         side: eFace.texture.side,
-        textureIndex: 0,
+        textureIndex: getTextureIndexResult(biome, block, face, world),
         neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
-        light: baseLight
-        // texture: eFace.texture.name,
-      })
+        light: baseLight,
+        //@ts-ignore debug prop
+        texture: textureName,
+      } satisfies BlockType['faces'][number] & TestTileData['faces'][number] as any)
     }
 
     if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
@@ -457,7 +520,7 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
 export function getSectionGeometry (sx, sy, sz, world: World) {
   let delayedRender = [] as (() => void)[]
 
-  const attr = {
+  const attr: MesherGeometryOutput = {
     sx: sx + 8,
     sy: sy + 8,
     sz: sz + 8,
@@ -473,7 +536,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     tiles: {},
     // todo this can be removed here
     signs: {}
-  } as Record<string, any>
+  }
 
   const cursor = new Vec3(0, 0, 0)
   for (cursor.y = sy; cursor.y < sy + 16; cursor.y++) {
@@ -552,7 +615,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   delayedRender = []
 
   let ndx = attr.positions.length / 3
-  for (let i = 0; i < attr.t_positions.length / 12; i++) {
+  for (let i = 0; i < attr.t_positions!.length / 12; i++) {
     attr.indices.push(
       ndx, ndx + 1, ndx + 2,
       ndx + 2, ndx + 1, ndx + 3,
@@ -563,10 +626,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     ndx += 4
   }
 
-  attr.positions.push(...attr.t_positions)
-  attr.normals.push(...attr.t_normals)
-  attr.colors.push(...attr.t_colors)
-  attr.uvs.push(...attr.t_uvs)
+  attr.positions.push(...attr.t_positions!)
+  attr.normals.push(...attr.t_normals!)
+  attr.colors.push(...attr.t_colors!)
+  attr.uvs.push(...attr.t_uvs!)
 
   delete attr.t_positions
   delete attr.t_normals
@@ -577,6 +640,13 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   attr.normals = new Float32Array(attr.normals) as any
   attr.colors = new Float32Array(attr.colors) as any
   attr.uvs = new Float32Array(attr.uvs) as any
+
+  if (needTiles) {
+    delete attr.positions
+    delete attr.normals
+    delete attr.colors
+    delete attr.uvs
+  }
 
   return attr
 }

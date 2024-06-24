@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { useSnapshot } from 'valtio'
 import { usedServerPathsV1 } from 'flying-squid/dist/lib/modules/world'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
+import { exportLoadedTiles } from 'prismarine-viewer/examples/webgpuRendererMain'
 import {
   activeModalStack,
   showModal,
@@ -95,9 +96,15 @@ export default () => {
     if (fsStateSnap.inMemorySave || !singleplayer) {
       return showOptionsModal('World actions...', [])
     }
-    const action = await showOptionsModal('World actions...', ['Save to browser memory'])
+    const action = await showOptionsModal('World actions...', [
+      ...!fsStateSnap.inMemorySave && singleplayer ? ['Save to browser memory'] : [],
+      'Dump loaded chunks'
+    ])
     if (action === 'Save to browser memory') {
       await saveToBrowserMemory()
+    }
+    if (action === 'Dump loaded chunks') {
+      exportLoadedTiles()
     }
   }
 

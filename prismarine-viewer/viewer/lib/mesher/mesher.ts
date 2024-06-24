@@ -56,7 +56,8 @@ self.onmessage = ({ data }) => {
   }
 
   if (data.type === 'mesherData') {
-    setBlockStatesData(data.json)
+    // todo
+    setBlockStatesData(data.json, world.config.outputFormat === 'webgpu')
     blockStatesReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)
@@ -91,7 +92,7 @@ setInterval(() => {
     const chunk = world.getColumn(x, z)
     if (chunk?.getSection(new Vec3(x, y, z))) {
       const geometry = getSectionGeometry(x, y, z, world)
-      const transferable = [geometry.positions.buffer, geometry.normals.buffer, geometry.colors.buffer, geometry.uvs.buffer]
+      const transferable = [geometry.positions?.buffer, geometry.normals?.buffer, geometry.colors?.buffer, geometry.uvs?.buffer].filter(Boolean)
       //@ts-ignore
       postMessage({ type: 'geometry', key, geometry }, transferable)
     } else {

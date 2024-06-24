@@ -4,6 +4,7 @@ import { options } from '../../src/optionsStorage'
 import { addNewStat } from './newStats'
 import type { workerProxyType } from './webgpuRendererWorker'
 import { useWorkerProxy } from './workerProxy'
+import { MesherGeometryOutput } from '../viewer/lib/mesher/shared'
 
 let worker: Worker
 
@@ -32,8 +33,8 @@ if (typeof customEvents !== 'undefined') {
 
 
 let isWaitingToUpload = false
-export const addBlocksSection = (key, data) => {
-    webgpuChannel.addBlocksSection(data, key)
+export const addBlocksSection = (key, data: MesherGeometryOutput) => {
+    webgpuChannel.addBlocksSection(data.tiles, key)
     if (playground && !isWaitingToUpload) {
         isWaitingToUpload = true
         // viewer.waitForChunksToRender().then(() => {
@@ -65,7 +66,7 @@ export const removeBlocksSection = (key) => {
 }
 
 let playground = false
-export const initWebgpuRenderer = async (version: string, postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
+export const initWebgpuRenderer = async (texturesVersion: string, postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
     playground = actuallyPlayground
     await new Promise(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
@@ -75,7 +76,7 @@ export const initWebgpuRenderer = async (version: string, postRender = () => { }
         // }
         viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', resolve)
     })
-    const imageBlob = await fetch(`./textures/${version}.png`).then((res) => res.blob())
+    const imageBlob = await fetch(`./textures/${texturesVersion}.png`).then((res) => res.blob())
     const canvas = document.createElement('canvas')
     canvas.width = window.innerWidth * window.devicePixelRatio
     canvas.height = window.innerHeight * window.devicePixelRatio
@@ -135,8 +136,8 @@ export const setAnimationTick = (tick: number, frames?: number) => {
     webgpuChannel.animationTick(tick, frames)
 }
 
-globalThis.exportFixture = () => {
-    worker.postMessage({ type: 'exportData' })
+export const exportLoadedTiles = () => {
+    webgpuChannel.exportData()
     const controller = new AbortController()
     worker.addEventListener('message', async (e) => {
         const receivedData = e.data.data
@@ -158,7 +159,7 @@ globalThis.exportFixture = () => {
             // split into two chunks
             const objectURL = URL.createObjectURL(new Blob([receivedData.sides.buffer], { type: 'application/octet-stream' }))
             a.href = objectURL
-            a.download = 'fixture.bin'
+            a.download = 'dumped-chunks-tiles.bin'
             a.click()
             URL.revokeObjectURL(objectURL)
         } finally {

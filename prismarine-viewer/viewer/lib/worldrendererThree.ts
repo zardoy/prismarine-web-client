@@ -9,7 +9,7 @@ import { chunkPos, sectionPos } from './simpleUtils'
 function mod (x, n) {
     return ((x % n) + n) % n
 }
-import { WorldRendererCommon } from './worldrendererCommon'
+import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
 

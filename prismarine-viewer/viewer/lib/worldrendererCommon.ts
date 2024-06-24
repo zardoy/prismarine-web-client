@@ -56,7 +56,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
 
-  abstract outputFormat: 'threeJs' | 'webgl'
+  abstract outputFormat: 'threeJs' | 'webgpu'
 
   constructor(public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
