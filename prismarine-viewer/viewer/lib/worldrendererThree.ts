@@ -17,9 +17,6 @@ async function imageToBlob (url: string): Promise<Blob> {
     return blob
 }
 
-const testSharedArrayBuffer = new SharedArrayBuffer(1024)
-testSharedArrayBuffer[0] = 1
-
 export class WorldRendererThree extends WorldRendererCommon {
     outputFormat = 'threeJs' as const
     blockEntities = {}
