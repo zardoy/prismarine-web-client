@@ -120,7 +120,7 @@ try {
 // renderer.localClippingEnabled = true
 initWithRenderer(renderer.domElement)
 const renderWrapper = new ViewerWrapper(renderer.domElement, renderer)
-renderWrapper.addToPage()
+// renderWrapper.addToPage()
 watchValue(options, (o) => {
   renderWrapper.renderInterval = o.frameLimit ? 1000 / o.frameLimit : 0
   renderWrapper.renderIntervalUnfocused = o.backgroundRendering === '5fps' ? 1000 / 5 : o.backgroundRendering === '20fps' ? 1000 / 20 : undefined

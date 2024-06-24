@@ -111,11 +111,21 @@ async function main () {
   const chunk1 = new Chunk()
   //@ts-ignore
   const chunk2 = new Chunk()
-  chunk1.setBlockStateId(targetPos, 34)
-  chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
+  const addNeighbor = (x, z, light = 15) => {
+    x += 2
+    chunk1.setBlockStateId(targetPos.offset(x, 0, z), 1)
+    chunk1.setBlockLight(targetPos.offset(x, 1, z), light)
+    chunk1.setSkyLight(targetPos.offset(x, 1, z), light)
+  }
+  addNeighbor(0, 1)
+  addNeighbor(0, -1)
+  addNeighbor(1, 0)
+  addNeighbor(-1, 0)
+  chunk1.setBlockStateId(targetPos.offset(1, 1, 0), mcData.blocksByName['grass'].minStateId)
+  addNeighbor(0, 0, 0)
   const world = new World((chunkX, chunkZ) => {
-    // if (chunkX === 0 && chunkZ === 0) return chunk1
-    // if (chunkX === 1 && chunkZ === 0) return chunk2
+    if (chunkX === 0 && chunkZ === 0) return chunk1
+    if (chunkX === 1 && chunkZ === 0) return chunk2
     //@ts-ignore
     const chunk = new Chunk()
     return chunk
@@ -138,7 +148,7 @@ async function main () {
   viewer.entities.onSkinUpdate = () => {
     viewer.render()
   }
-  viewer.world.mesherConfig.enableLighting = false
+  // viewer.world.mesherConfig.enableLighting = false
 
   viewer.listen(worldView)
   // Load chunks
@@ -260,7 +270,7 @@ async function main () {
   const controls = new OrbitControls(viewer.camera, renderer.domElement)
   controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
-  const cameraPos = targetPos.offset(2, 2, 2)
+  const cameraPos = targetPos.offset(3, 3, 3)
   const pitch = THREE.MathUtils.degToRad(-45)
   const yaw = THREE.MathUtils.degToRad(45)
   viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
@@ -409,7 +419,7 @@ async function main () {
     for (const update of Object.values(onUpdate)) {
       update()
     }
-    applyChanges(true)
+    // applyChanges(true)
     gui.openAnimated()
   })
 
