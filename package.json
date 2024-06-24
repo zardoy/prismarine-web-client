@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node scripts/build.js copyFilesDev && node scripts/prepareData.mjs && node esbuild.mjs --watch",
     "start-watch-script": "nodemon -w esbuild.mjs --watch",
-    "build": "node scripts/build.js copyFiles && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod",
+    "build": "node scripts/build.js copyFiles && node buildWorkers.mjs && node scripts/prepareData.mjs -f && node esbuild.mjs --minify --prod",
     "check-build": "tsc && pnpm build",
     "test:cypress": "cypress run",
     "test-unit": "vitest",
