@@ -38,7 +38,7 @@ export const useWorkerProxy = <T extends { __workerProxy: Record<string, (...arg
                 })
             }
             return (...args: any[]) => {
-                const transfer = autoTransfer ? args.filter(arg => arg instanceof ArrayBuffer || arg instanceof MessagePort || arg instanceof ImageBitmap || arg instanceof OffscreenCanvas || arg instanceof ImageData) : []
+                const transfer = autoTransfer ? args.filter(arg => arg instanceof ArrayBuffer || arg instanceof MessagePort || arg instanceof ImageBitmap || arg instanceof OffscreenCanvas) : []
                 worker.postMessage({
                     type: prop,
                     args,
