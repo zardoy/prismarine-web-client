@@ -34,8 +34,16 @@ setInterval(() => {
 setInterval(() => {
     globalThis.worstFps = Infinity
 }, 10000)
+const meshesQueue = [] as any[]
 const render = () => {
     tweenJs.update()
+    const max = 5
+    for (let i = 0; i < max; i++) {
+        const add = meshesQueue.pop()
+        if (add) {
+            scene.add(add)
+        }
+    }
     renderer.render(scene, camera)
     globalThis.maxProcessed = Math.max(globalThis.maxProcessed ?? 0, processedSinceLastRender)
     processedSinceLastRender = 0
@@ -85,11 +93,8 @@ export const threeJsWorkerProxyType = createWorkerProxy({
             mesh.geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, 0), 16)
         }
         mesh.position.set(position.x, position.y, position.z)
-        scene.add(mesh)
+        meshesQueue.push(mesh)
         processedSinceLastRender++
-        if (processedSinceLastRender > 5) {
-            render()
-        }
     },
     updateCamera (position: { x, y, z }, rotation: { x, y, z }) {
         // camera.position.set(position.x, position.y, position.z)
