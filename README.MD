@@ -17,6 +17,7 @@ You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
 - Resource pack support
+- Builtin JEI with recipes & guides for every item (also replaces creative inventory)
 - even even more!
 
 All components that are in [Storybook](https://mcraft.fun/storybook) are published as npm module and can be used in other projects: [`minecraft-react`](https://npmjs.com/minecraft-react)

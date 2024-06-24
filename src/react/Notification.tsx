@@ -36,20 +36,20 @@ export default ({ type = 'message', message, subMessage = '', open, icon = '', a
         position: 'fixed',
         top: 0,
         right: 0,
-        width: '155px',
+        width: '180px',
         whiteSpace: 'nowrap',
         fontSize: '9px',
         display: 'flex',
         gap: 4,
         alignItems: 'center',
-        padding: '3px 8px',
+        padding: '3px 5px',
         background: isError ? 'rgba(255, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.7)',
         borderRadius: '0 0 0 5px',
         pointerEvents: action ? '' : 'none',
         zIndex: 1200, // even above stats
         ...addStyles
       }}>
-        <PixelartIcon iconName={icon} styles={{ fontSize: 10 }} />
+        <PixelartIcon iconName={icon} styles={{ fontSize: 12 }} />
         <div style={{
           display: 'flex',
           flexDirection: 'column',

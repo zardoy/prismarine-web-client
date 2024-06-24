@@ -19,7 +19,7 @@ export class WorldDataEmitter extends EventEmitter {
   private eventListeners: Record<string, any> = {};
   private emitter: WorldDataEmitter
 
-  constructor(public world: import('prismarine-world').world.World | typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
+  constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
     this.loadedChunks = {}
     this.lastPos = new Vec3(0, 0, 0).update(position)
@@ -123,10 +123,15 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async _loadChunks (positions: Vec3[], sliceSize = 5, waitTime = 0) {
-    for (let i = 0; i < positions.length; i += sliceSize) {
-      await new Promise((resolve) => setTimeout(resolve, waitTime))
-      await Promise.all(positions.slice(i, i + sliceSize).map((p) => this.loadChunk(p)))
-    }
+    let i = 0
+    const interval = setInterval(() => {
+      if (i >= positions.length) {
+        clearInterval(interval)
+        return
+      }
+      this.loadChunk(positions[i])
+      i++
+    }, 1)
   }
 
   readdDebug () {

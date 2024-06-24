@@ -1,13 +1,13 @@
-const { VRButton } = require('three/examples/jsm/webxr/VRButton.js')
-const { GLTFLoader } = require('three/examples/jsm/loaders/GLTFLoader.js')
-const { XRControllerModelFactory } = require('three/examples/jsm/webxr/XRControllerModelFactory.js')
-const { buttonMap: standardButtonsMap } = require('contro-max/build/gamepad')
-const { activeModalStack, hideModal } = require('./globalState')
+import { VRButton } from 'three/examples/jsm/webxr/VRButton.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js'
+import { buttonMap as standardButtonsMap } from 'contro-max/build/gamepad'
+import { activeModalStack, hideModal } from './globalState'
 
-async function initVR() {
+export async function initVR () {
   const { renderer } = viewer
   if (!('xr' in navigator)) return
-  const isSupported = await navigator.xr.isSessionSupported('immersive-vr') && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState
+  const isSupported = await navigator.xr?.isSessionSupported('immersive-vr') && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState
   if (!isSupported) return
 
   // VR
@@ -25,22 +25,23 @@ async function initVR() {
   // todo the logic written here can be hard to understand as it was designed to work in gamepad api emulation mode, will be refactored once there is a contro-max rewrite is done
   const virtualGamepadIndex = 4
   let connectedVirtualGamepad
+  //@ts-expect-error
   const manageXrInputSource = ({ gamepad, handedness = defaultHandedness }, defaultHandedness, removeAction = false) => {
     if (handedness === 'right') {
-      const event = new Event(removeAction ? 'gamepaddisconnected' : 'gamepadconnected') // todo need to expose and use external gamepads api in contro-max instead
+      const event: any = new Event(removeAction ? 'gamepaddisconnected' : 'gamepadconnected') // todo need to expose and use external gamepads api in contro-max instead
       event.gamepad = removeAction ? connectedVirtualGamepad : { ...gamepad, mapping: 'standard', index: virtualGamepadIndex }
       connectedVirtualGamepad = event.gamepad
       window.dispatchEvent(event)
     }
   }
-  let hand1 = controllerModelFactory.createControllerModel(controller1)
+  let hand1: any = controllerModelFactory.createControllerModel(controller1)
   controller1.addEventListener('connected', (event) => {
     hand1.xrInputSource = event.data
     manageXrInputSource(event.data, 'left')
     user.add(controller1)
   })
   controller1.add(hand1)
-  let hand2 = controllerModelFactory.createControllerModel(controller2)
+  let hand2: any = controllerModelFactory.createControllerModel(controller2)
   controller2.addEventListener('connected', (event) => {
     hand2.xrInputSource = event.data
     manageXrInputSource(event.data, 'right')
@@ -50,15 +51,17 @@ async function initVR() {
 
   controller1.addEventListener('disconnected', () => {
     // don't handle removal of gamepads for now as is don't affect contro-max
-    hand1.xrInputSource = undefined
     manageXrInputSource(hand1.xrInputSource, 'left', true)
+    hand1.xrInputSource = undefined
   })
   controller2.addEventListener('disconnected', () => {
-    hand2.xrInputSource = undefined
     manageXrInputSource(hand1.xrInputSource, 'right', true)
+    hand2.xrInputSource = undefined
   })
 
   const originalGetGamepads = navigator.getGamepads.bind(navigator)
+  // is it okay to patch this?
+  //@ts-expect-error
   navigator.getGamepads = () => {
     const originalGamepads = originalGetGamepads()
     if (!hand1.xrInputSource || !hand2.xrInputSource) return originalGamepads
@@ -105,15 +108,14 @@ async function initVR() {
     viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
 
     // todo restore this logic (need to preserve ability to move camera)
-    // const xrCamera = renderer.xr.getCamera(viewer.camera)
-    // const d = xrCamera.getWorldDirection() // todo target
+    // const xrCamera = renderer.xr.getCamera()
+    // const d = xrCamera.getWorldDirection(new THREE.Vector3())
     // bot.entity.yaw = Math.atan2(-d.x, -d.z)
     // bot.entity.pitch = Math.asin(d.y)
 
     // todo ?
     // bot.physics.stepHeight = 1
 
-    viewer.update()
     viewer.render()
   })
   renderer.xr.addEventListener('sessionstart', () => {
@@ -127,8 +129,6 @@ async function initVR() {
     viewer.cameraObjectOverride = undefined
   })
 }
-
-module.exports.initVR = initVR
 
 const xrStandardRightButtonsMap = [
   [0 /* trigger */, 'Right Trigger'],
@@ -146,9 +146,9 @@ const xrStandardLeftButtonsMap = [
   [4 /* A */, 'X'],
   [5 /* B */, 'Y'],
 ]
-const remapButtons = (rightButtons, leftButtons) => {
+const remapButtons = (rightButtons: any[], leftButtons: any[]) => {
   // return remapped buttons
-  const remapped = []
+  const remapped = [] as string[]
   const remapWithMap = (buttons, map) => {
     for (const [index, standardName] of map) {
       const standardMappingIndex = standardButtonsMap.findIndex((aliases) => aliases.find(alias => standardName === alias))

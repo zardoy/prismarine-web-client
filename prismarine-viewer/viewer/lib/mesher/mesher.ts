@@ -128,7 +128,7 @@ setInterval(() => {
       //@ts-ignore
       postMessage({ type: 'geometry', key, geometry }, transferable)
     } else {
-      console.info('[mesher] Missing section', x, y, z)
+      // console.info('[mesher] Missing section', x, y, z)
     }
     const dirtyTimes = dirtySections.get(key)
     if (!dirtyTimes) throw new Error('dirtySections.get(key) is falsy')
