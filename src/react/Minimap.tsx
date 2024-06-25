@@ -29,6 +29,14 @@ export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
     }
   }
 
+  const setWarp = (e: MouseEvent) => {
+    if (!e.target) return
+    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    const x = e.pageX - rect.left
+    const y = e.pageY - rect.top
+    const coords = drawerRef.current?.mouseToWorldPos(x, y, bot.entity.position)
+    console.log('coords:', x, y, '| In game coords:', coords)
+  }
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
@@ -37,6 +45,19 @@ export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
       drawerRef.current.canvas = canvasRef.current
     }
   }, [canvasRef.current, fullMapOpened])
+
+  useEffect(() => {
+    console.log('full map toggled')
+    if (fullMapOpened && canvasRef.current) {
+      console.log('in if')
+      canvasRef.current.addEventListener('click', setWarp)
+    }
+
+    return () => {
+      console.log('memory clear')
+      canvasRef.current?.removeEventListener('click', setWarp)
+    }
+  }, [fullMapOpened])
 
   useEffect(() => {
     if (adapter) {

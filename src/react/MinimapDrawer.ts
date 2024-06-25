@@ -130,4 +130,11 @@ export class MinimapDrawer {
       }
     }
   }
+
+  mouseToWorldPos(x: number, z: number, botPos: Vec3) {
+    const worldX = x - this.radius
+    const worldZ = z - this.radius
+
+    return [botPos.x - worldX, botPos.z - worldZ]
+  }
 }
