@@ -1,16 +1,19 @@
 export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult, clientOptions }) => {
-  const authEndpoint = 'http://localhost:3000/'
-  const sessionEndpoint = 'http://localhost:3000/session'
-  // try {
-  //   const url = proxyBaseUrl + '/api/vm/net/connect'
-  //   const result = await fetch(url)
-  //   const json = await result.json()
-  //   authEndpoint = json.capabilities.authEndpoint
-  //   if (!authEndpoint) throw new Error('No auth endpoint')
-  // } catch (err) {
-  //   console.error(err)
-  //   throw new Error(`Selected proxy server ${proxyBaseUrl} does not support Microsoft authentication`)
-  // }
+  // const authEndpoint = 'http://localhost:3000/'
+  // const sessionEndpoint = 'http://localhost:3000/session'
+  let authEndpoint = ''
+  let sessionEndpoint = ''
+  try {
+    const url = proxyBaseUrl + '/api/vm/net/connect'
+    const result = await fetch(url)
+    const json = await result.json()
+    authEndpoint = json.capabilities.authEndpoint
+    sessionEndpoint = json.capabilities.sessionEndpoint
+    if (!authEndpoint) throw new Error('No auth endpoint')
+  } catch (err) {
+    console.error(err)
+    throw new Error(`Selected proxy server ${proxyBaseUrl} does not support Microsoft authentication`)
+  }
   const authFlow = {
     async getMinecraftJavaToken () {
 
