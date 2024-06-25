@@ -58,7 +58,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   abstract outputFormat: 'threeJs' | 'webgl'
 
-  constructor(public config: WorldRendererConfig) {
+  constructor (public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
   }
@@ -221,6 +221,28 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   }
 
+  getHighestTerrainBlock (x, z) {
+    //@ts-ignore
+    const chunk: import('prismarine-chunk').PCChunk = bot.world.getColumn(x / 16, z / 16)
+    let y_res = [] as number[]
+    const computeBlock = (x, z) => {
+      for (let y = this.worldConfig.worldHeight - 1; y >= this.worldConfig.minY; y--) {
+        const block = chunk.getBlock(new Vec3(x, y, z))
+        const ignoreBlocks = ['air', /* 'water', 'lava',  */'log', 'leaves', 'tallgrass', 'deadbush', 'waterlily', 'reeds', 'vine', 'lilypad', 'nether_wart', 'fire', 'magma', 'portal', 'end_portal', 'end_portal_frame', 'end_gateway', 'end_rod', 'chorus_flower', 'chorus_plant', 'beetroots', 'carrots', 'potatoes', 'wheat', 'cactus', 'sugar_cane', 'deadbush', 'grass', 'fern', 'tallgrass', 'seagrass', 'tall_seagrass', 'kelp', 'short_grass']
+        if (!ignoreBlocks.includes(block.name)) {
+          y_res.push(y)
+          break
+        }
+      }
+    }
+    computeBlock(x, z)
+    computeBlock(x + 16, z)
+    computeBlock(x, z + 16)
+    computeBlock(x + 16, z + 16)
+    // console.log('y_res', y_res)
+    return y_res
+  }
+
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
     if (!this.active) return
     if (this.workers.length === 0) throw new Error('workers not initialized yet')
@@ -230,14 +252,15 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       // todo optimize
       worker.postMessage({ type: 'chunk', x, z, chunk })
     }
-    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+    const highestTerrainBlock = this.getHighestTerrainBlock(x, z)
+    for (const y of highestTerrainBlock) {
       const loc = new Vec3(x, y, z)
       this.setSectionDirty(loc)
       if (!isLightUpdate || this.mesherConfig.smoothLighting) {
-        this.setSectionDirty(loc.offset(-16, 0, 0))
-        this.setSectionDirty(loc.offset(16, 0, 0))
-        this.setSectionDirty(loc.offset(0, 0, -16))
-        this.setSectionDirty(loc.offset(0, 0, 16))
+        // this.setSectionDirty(loc.offset(-16, 0, 0))
+        // this.setSectionDirty(loc.offset(16, 0, 0))
+        // this.setSectionDirty(loc.offset(0, 0, -16))
+        // this.setSectionDirty(loc.offset(0, 0, 16))
       }
     }
   }
