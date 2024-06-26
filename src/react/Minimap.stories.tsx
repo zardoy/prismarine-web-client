@@ -1,11 +1,12 @@
 import { Vec3 } from 'vec3'
 import type { Meta, StoryObj } from '@storybook/react'
-import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { useEffect } from 'react'
 
+import { cleanData } from 'cypress/types/jquery'
 import Minimap from './Minimap'
+import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 
 const meta: Meta<typeof Minimap> = {
   component: Minimap,
@@ -13,8 +14,9 @@ const meta: Meta<typeof Minimap> = {
     (Story, context) => {
 
       useEffect(() => {
-          adapter.emit('toggleFullMap')
-          setTimeout(updateMap, 2000)
+        console.log('map updated')
+        adapter.emit('updateMap')
+
       }, [context.args['fullMap']])
 
       return <div> <Story /> </div>
@@ -54,11 +56,6 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
 }
 
 const adapter = new DrawerAdapterImpl()
-const updateMap = () => {
-  console.log('map updated')
-  adapter.emit('updateMap')
-}
-setTimeout(updateMap, 2000)
 
 export const Primary: Story = {
   args: {

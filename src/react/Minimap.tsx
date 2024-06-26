@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, CSSProperties } from 'react'
 import { showModal, hideModal } from '../globalState'
 import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
@@ -13,7 +13,6 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   const drawerRef = useRef<MinimapDrawer | null>(null)
 
   function updateMap () {
-    if (!adapter) return
     if (drawerRef.current && canvasTick.current % 2 === 0) {
       drawerRef.current.draw(adapter.playerPosition)
       if (canvasTick.current % 300 === 0) {
@@ -46,27 +45,19 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
     }
-  }, [canvasRef.current, fullMapOpened])
-
-  // useEffect(() => {
-  //   if (fullMap) {
-  //     showModal({ reactType: 'full-map' })
-  //   } else {
-  //     hideModal({ reactType: 'full-map' })
-  //   }
-  // }, [fullMap])
+  }, [canvasRef.current, fullMapOpened, fullMap])
 
   useEffect(() => {
-    if (fullMapOpened && canvasRef.current) {
+    if ((fullMapOpened || fullMap) && canvasRef.current) {
       canvasRef.current.addEventListener('click', handleClickOnMap)
-    } else if (!fullMapOpened) {
+    } else if (!fullMapOpened || !fullMap) {
       setIsWarpInfoOpened(false)
     }
 
     return () => {
       canvasRef.current?.removeEventListener('click', handleClickOnMap)
     }
-  }, [fullMapOpened])
+  }, [fullMapOpened, fullMap])
 
   useEffect(() => {
     adapter.on('updateMap', updateMap)
@@ -80,7 +71,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     }
   }, [adapter])
 
-  return fullMapOpened ? <div 
+  return fullMapOpened || fullMap ? <div 
     style={{
       position: 'absolute',
       inset: '0px',
@@ -99,7 +90,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       height={150} 
       ref={canvasRef}
     ></canvas>
-    {isWarpInfoOpened && <WarpInfo adapter={adapter} />}
+    {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawerRef.current} />}
 
   </div> : <div
     className='minimap'
@@ -116,7 +107,14 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   </div>
 }
 
-const WarpInfo = ({ adapter }: { adapter: DrawerAdapter }) => {
+const WarpInfo = ({ adapter, drawer }: { adapter: DrawerAdapter, drawer: MinimapDrawer | null }) => {
+  const posInputStyle: CSSProperties = {
+    width: '100%',
+  }
+  const posInputContStyle: CSSProperties = {
+    flexGrow: '1',
+    display: 'flex',
+  }
 
   return <div
     style={{
@@ -125,20 +123,45 @@ const WarpInfo = ({ adapter }: { adapter: DrawerAdapter }) => {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
+      gap: '10px',
       flexDirection: 'column',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      maxWidth: '70%'
     }}
   >
     <div>
       Name: <Input />
     </div>
     <div style={{
-      display: 'flex'
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      gap: '5px',
+      width: '200px',
     }}>
-      <div>X: <Input value={adapter.playerPosition.x} /></div> 
-      <div>Y: <Input value={adapter.playerPosition.y} /></div> 
-      <div>Z: <Input value={adapter.playerPosition.z} /></div> 
+      <div 
+        style={posInputContStyle}
+      >X: <Input 
+          rootStyles={posInputStyle} 
+          defaultValue={drawer?.lastBotPos.x ?? 100} />
+      </div> 
+      <div 
+        style={posInputContStyle}>
+        Y: <Input 
+          rootStyles={posInputStyle} 
+          defaultValue={drawer?.lastBotPos.y ?? 100} />
+      </div> 
+      <div 
+        style={posInputContStyle}>
+        Z: <Input 
+          rootStyles={posInputStyle} 
+          defaultValue={drawer?.lastBotPos.z ?? 100} />
+      </div> 
+    </div>
+    <div>
+      Color: <Input placeholder={'#232323 or rgb(0, 0, 0)'} />
+    </div>
+    <div style={{ display: 'flex' }} >
+      Disabled: <Input rootStyles={{ width: '20px' }} type={'checkbox'} />
     </div>
 
   </div>

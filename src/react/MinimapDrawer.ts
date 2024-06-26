@@ -152,5 +152,6 @@ export class MinimapDrawer {
     const worldZ = z - this.mapSize / 2
 
     console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
+    this.lastBotPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
   }
 }
