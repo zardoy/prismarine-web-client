@@ -29,18 +29,13 @@ export default ({ adapter }: { adapter: DrawerAdapter }) => {
     }
   }
 
-  const setWarp = (e: MouseEvent) => {
-    if (!e.target) return
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
-    const x = (e.pageX - rect.left) * canvasRef.current!.width / rect.width  
-    const y = (e.pageY - rect.top) * canvasRef.current!.height / rect.height  
-    const coords = drawerRef.current?.mouseToWorldPos(y, x, bot.entity.position)
-    console.log('coords:', x, y, '| In game coords:', coords)
+  const handleClickOnMap = (e: MouseEvent) => {
+    drawerRef.current?.addWarpOnClick(e, bot.entity.position)
   }
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
-      drawerRef.current = new MinimapDrawer(canvasRef.current, adapter.getHighestBlockColor)
+      drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
     }
@@ -48,25 +43,21 @@ export default ({ adapter }: { adapter: DrawerAdapter }) => {
 
   useEffect(() => {
     if (fullMapOpened && canvasRef.current) {
-      canvasRef.current.addEventListener('click', setWarp)
+      canvasRef.current.addEventListener('click', handleClickOnMap)
     }
 
     return () => {
-      canvasRef.current?.removeEventListener('click', setWarp)
+      canvasRef.current?.removeEventListener('click', handleClickOnMap)
     }
   }, [fullMapOpened])
 
   useEffect(() => {
-    if (adapter) {
-      adapter.on('updateMap', updateMap)
-      adapter.on('toggleFullMap', toggleFullMap)
-    }
+    adapter.on('updateMap', updateMap)
+    adapter.on('toggleFullMap', toggleFullMap)
 
     return () => {
-      if (adapter) {
-        adapter.off('updateMap', updateMap)
-        adapter.off('toggleFullMap', toggleFullMap)
-      }
+      adapter.off('updateMap', updateMap)
+      adapter.off('toggleFullMap', toggleFullMap)
     }
   }, [adapter])
 

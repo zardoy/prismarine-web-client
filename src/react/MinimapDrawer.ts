@@ -33,15 +33,14 @@ export class MinimapDrawer {
   ctx: CanvasRenderingContext2D
   _canvas: HTMLCanvasElement
   worldColors: { [key: string]: string } = {}
-  getHighestBlockColor: DrawerAdapter['getHighestBlockColor']
   lastBotPos: Vec3
 
   constructor (
     canvas: HTMLCanvasElement,
-    getHighestBlockColor: DrawerAdapter['getHighestBlockColor']
+    public adapter: DrawerAdapter
   ) {
     this.canvas = canvas
-    this.getHighestBlockColor = getHighestBlockColor
+    this.adapter = adapter
   }
 
   get canvas () {
@@ -58,11 +57,11 @@ export class MinimapDrawer {
     this._canvas = canvas
   }
 
-  get mapSize() {
+  get mapSize () {
     return this._mapSize
   }
 
-  set mapSize(mapSize: number) {
+  set mapSize (mapSize: number) {
     this._mapSize = mapSize
     this.draw(this.lastBotPos)
   }
@@ -79,7 +78,7 @@ export class MinimapDrawer {
     )
 
     this.lastBotPos = botPos
-    this.updateWorldColors(getHighestBlockColor ?? this.getHighestBlockColor, botPos.x, botPos.z)
+    this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z)
   }
 
   updateWorldColors (
@@ -144,10 +143,14 @@ export class MinimapDrawer {
     }
   }
 
-  mouseToWorldPos (x: number, z: number, botPos: Vec3) {
+  addWarpOnClick (e: MouseEvent, botPos: Vec3) {
+    if (!e.target) return
+    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    const z = (e.pageX - rect.left) * this.canvas.width / rect.width  
+    const x = (e.pageY - rect.top) * this.canvas.height / rect.height  
     const worldX = x - this.mapSize / 2
     const worldZ = z - this.mapSize / 2
 
-    return [(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)]
+    console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
   }
 }
