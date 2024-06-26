@@ -4,7 +4,7 @@ import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
  
 
-export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
+export default ({ adapter }: { adapter: DrawerAdapter }) => {
   const fullMapOpened = useIsModalActive('full-map')
   const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -13,7 +13,7 @@ export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
   function updateMap () {
     if (!adapter) return
     if (drawerRef.current && canvasTick.current % 2 === 0) {
-      drawerRef.current.draw(adapter.getHighestBlockColor, adapter.playerPosition.x, adapter.playerPosition.z)
+      drawerRef.current.draw(bot.entity.position)
       if (canvasTick.current % 300 === 0) {
         drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
       }
@@ -34,27 +34,24 @@ export default ({ adapter }: { adapter: DrawerAdapter | null }) => {
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
     const x = (e.pageX - rect.left) * canvasRef.current!.width / rect.width  
     const y = (e.pageY - rect.top) * canvasRef.current!.height / rect.height  
-    const coords = drawerRef.current?.mouseToWorldPos(x, y, bot.entity.position)
+    const coords = drawerRef.current?.mouseToWorldPos(y, x, bot.entity.position)
     console.log('coords:', x, y, '| In game coords:', coords)
   }
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
-      drawerRef.current = new MinimapDrawer(canvasRef.current)
+      drawerRef.current = new MinimapDrawer(canvasRef.current, adapter.getHighestBlockColor)
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
     }
   }, [canvasRef.current, fullMapOpened])
 
   useEffect(() => {
-    console.log('full map toggled')
     if (fullMapOpened && canvasRef.current) {
-      console.log('in if')
       canvasRef.current.addEventListener('click', setWarp)
     }
 
     return () => {
-      console.log('memory clear')
       canvasRef.current?.removeEventListener('click', setWarp)
     }
   }, [fullMapOpened])

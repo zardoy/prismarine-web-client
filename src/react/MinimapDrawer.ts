@@ -28,16 +28,20 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
 export class MinimapDrawer {
   centerX: number
   centerY: number
-  mapSize: number
+  _mapSize: number
   radius: number
   ctx: CanvasRenderingContext2D
   _canvas: HTMLCanvasElement
   worldColors: { [key: string]: string } = {}
+  getHighestBlockColor: DrawerAdapter['getHighestBlockColor']
+  lastBotPos: Vec3
 
   constructor (
     canvas: HTMLCanvasElement,
+    getHighestBlockColor: DrawerAdapter['getHighestBlockColor']
   ) {
     this.canvas = canvas
+    this.getHighestBlockColor = getHighestBlockColor
   }
 
   get canvas () {
@@ -48,16 +52,24 @@ export class MinimapDrawer {
     this.ctx = canvas.getContext('2d')!
     this.ctx.imageSmoothingEnabled = false
     this.radius = Math.min(canvas.width, canvas.height) / 2
-    this.mapSize = this.radius * 2
+    this._mapSize = this.radius * 2
     this.centerX = canvas.width / 2
     this.centerY = canvas.height / 2
     this._canvas = canvas
   }
 
+  get mapSize() {
+    return this._mapSize
+  }
+
+  set mapSize(mapSize: number) {
+    this._mapSize = mapSize
+    this.draw(this.lastBotPos)
+  }
+
   draw (
-    getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
-    x: number,
-    z: number
+    botPos: Vec3,
+    getHighestBlockColor?: DrawerAdapter['getHighestBlockColor'],
   ) {
     this.ctx.clearRect(
       this.centerX - this.radius,
@@ -66,7 +78,8 @@ export class MinimapDrawer {
       this.radius * 2
     )
 
-    this.updateWorldColors(getHighestBlockColor, x, z)
+    this.lastBotPos = botPos
+    this.updateWorldColors(getHighestBlockColor ?? this.getHighestBlockColor, botPos.x, botPos.z)
   }
 
   updateWorldColors (
@@ -135,6 +148,6 @@ export class MinimapDrawer {
     const worldX = x - this.mapSize / 2
     const worldZ = z - this.mapSize / 2
 
-    return [(botPos.x + worldX).toFixed(1), (botPos.z + worldZ).toFixed(1)]
+    return [(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)]
   }
 }
