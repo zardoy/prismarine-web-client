@@ -5,7 +5,7 @@ import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Input from './Input'
  
 
-export default ({ adapter }: { adapter: DrawerAdapter }) => {
+export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolean }) => {
   const fullMapOpened = useIsModalActive('full-map')
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
   const canvasTick = useRef(0)
@@ -47,6 +47,14 @@ export default ({ adapter }: { adapter: DrawerAdapter }) => {
       drawerRef.current.canvas = canvasRef.current
     }
   }, [canvasRef.current, fullMapOpened])
+
+  // useEffect(() => {
+  //   if (fullMap) {
+  //     showModal({ reactType: 'full-map' })
+  //   } else {
+  //     hideModal({ reactType: 'full-map' })
+  //   }
+  // }, [fullMap])
 
   useEffect(() => {
     if (fullMapOpened && canvasRef.current) {
