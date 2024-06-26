@@ -32,7 +32,7 @@ export default ({ adapter }: { adapter: DrawerAdapter }) => {
   }
 
   const handleClickOnMap = (e: MouseEvent) => {
-    drawerRef.current?.addWarpOnClick(e, bot.entity.position)
+    drawerRef.current?.addWarpOnClick(e, adapter.playerPosition)
     setIsWarpInfoOpened(true)
   }
 

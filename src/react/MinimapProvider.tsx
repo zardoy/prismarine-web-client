@@ -7,7 +7,7 @@ import { contro } from '../controls'
 import Minimap from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 
-class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
+export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
   warps: WorldWarp[]
 
