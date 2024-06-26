@@ -22,7 +22,7 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   getHighestBlockColor: (x: number, z: number) => string
   playerPosition: Vec3
   warps: WorldWarp[]
-  setWarp: (name: string, pos: Vec3, dimension: string, color: string, disabled: boolean) => void
+  setWarp: (name: string, pos: Vec3, world: string, color: string, disabled: boolean) => void
 }
 
 export class MinimapDrawer {
