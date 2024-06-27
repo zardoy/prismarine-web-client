@@ -1,10 +1,12 @@
 import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
+import { Vec3 } from 'vec3'
+import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { showModal, hideModal } from '../globalState'
 import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Input from './Input'
 import Button from './Button'
- 
+
 
 export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolean }) => {
   const fullMapOpened = useIsModalActive('full-map')
@@ -32,7 +34,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   }
 
   const handleClickOnMap = (e: MouseEvent) => {
-    drawerRef.current?.addWarpOnClick(e, adapter.playerPosition)
+    drawerRef.current?.setWarpPosOnClick(e, adapter.playerPosition)
     setIsWarpInfoOpened(true)
   }
 
@@ -72,7 +74,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     }
   }, [adapter])
 
-  return fullMapOpened || fullMap ? <div 
+  return fullMapOpened || fullMap ? <div
     style={{
       position: 'absolute',
       inset: '0px',
@@ -83,12 +85,12 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       backgroundColor: 'rgba(0, 0, 0, 0.4)'
     }}
   >
-    <canvas 
+    <canvas
       style={{
         width: '35%',
       }}
-      width={150} 
-      height={150} 
+      width={150}
+      height={150}
       ref={canvasRef}
     ></canvas>
     {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawerRef.current} setIsWarpInfoOpened={setIsWarpInfoOpened} />}
@@ -108,9 +110,19 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
 
 const WarpInfo = (
   { adapter, drawer, setIsWarpInfoOpened }
-  : 
-  { adapter: DrawerAdapter, drawer: MinimapDrawer | null, setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>> }
+    :
+    { adapter: DrawerAdapter, drawer: MinimapDrawer | null, setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>> }
 ) => {
+  const [warp, setWarp] = useState<WorldWarp>({
+    name: '',
+    x: drawer?.lastWarpPos.x ?? 100,
+    y: drawer?.lastWarpPos.y ?? 100,
+    z: drawer?.lastWarpPos.z ?? 100,
+    color: '#d3d3d3',
+    disabled: false,
+    world: adapter.world
+  })
+
   const posInputStyle: CSSProperties = {
     flexGrow: '1',
   }
@@ -149,38 +161,82 @@ const WarpInfo = (
         <div>
           Name:
         </div>
-        <Input />
+        <Input
+          onChange={(e) => {
+            if (!e.target) return
+            setWarp(prev => { return { ...prev, name: e.target.value } })
+          }}
+        />
       </div>
       <div style={fieldCont}>
         <div>
           X:
         </div>
-        <Input 
-          rootStyles={posInputStyle} 
-          defaultValue={drawer?.lastBotPos.x ?? 100} />
+        <Input
+          rootStyles={posInputStyle}
+          defaultValue={drawer?.lastWarpPos.x ?? 100}
+          onChange={(e) => {
+            if (!e.target) return
+            setWarp(prev => { return { ...prev, x: Number(e.target.value) } })
+          }}
+        />
         <div>
           Y:
         </div>
-        <Input 
-          rootStyles={posInputStyle} 
-          defaultValue={drawer?.lastBotPos.y ?? 100} />
+        <Input
+          rootStyles={posInputStyle}
+          defaultValue={drawer?.lastWarpPos.y ?? 100}
+          onChange={(e) => {
+            if (!e.target) return
+            setWarp(prev => { return { ...prev, y: Number(e.target.value) } })
+          }}
+        />
         <div>
           Z:
         </div>
-        <Input 
-          rootStyles={posInputStyle} 
-          defaultValue={drawer?.lastBotPos.z ?? 100} />
+        <Input
+          rootStyles={posInputStyle}
+          defaultValue={drawer?.lastWarpPos.z ?? 100}
+          onChange={(e) => {
+            if (!e.target) return
+            setWarp(prev => { return { ...prev, z: Number(e.target.value) } })
+          }}
+        />
       </div>
       <div style={fieldCont}>
         <div>Color:</div>
-        <Input placeholder={'#232323 or rgb(0, 0, 0)'} />
+        <Input
+          placeholder={'#232323 or rgb(0, 0, 0)'}
+          onChange={(e) => {
+            if (!e.target) return
+            setWarp(prev => { return { ...prev, color: e.target.value } })
+          }}
+        />
       </div>
       <div style={fieldCont} >
         <div>Disabled:</div>
-        <input type={'checkbox'} />
+        <input
+          type={'checkbox'}
+          onChange={(e) => {
+            if (!e.target) return
+            setWarp(prev => { return { ...prev, disabled: e.target.checked } })
+          }}
+        />
       </div>
       <div style={fieldCont}>
-        <Button>Add</Button>
+        <Button
+          onClick={() => {
+            // console.log(warp)
+            adapter.setWarp(
+              warp.name, 
+              new Vec3(warp.x, warp.y, warp.z), 
+              warp.color ?? '#d3d3d3', 
+              warp.disabled ?? false, 
+              warp.world ?? 'overworld'
+            )
+            setIsWarpInfoOpened(false)
+          }}
+        >Add</Button>
         <Button
           onClick={() => {
             setIsWarpInfoOpened(false)

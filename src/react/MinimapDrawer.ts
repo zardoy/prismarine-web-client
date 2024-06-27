@@ -22,7 +22,8 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   getHighestBlockColor: (x: number, z: number) => string
   playerPosition: Vec3
   warps: WorldWarp[]
-  setWarp: (name: string, pos: Vec3, world: string, color: string, disabled: boolean) => void
+  world?: string
+  setWarp: (name: string, pos: Vec3, color: string, disabled: boolean, world?: string) => void
 }
 
 export class MinimapDrawer {
@@ -34,6 +35,7 @@ export class MinimapDrawer {
   _canvas: HTMLCanvasElement
   worldColors: { [key: string]: string } = {}
   lastBotPos: Vec3
+  lastWarpPos: Vec3
 
   constructor (
     canvas: HTMLCanvasElement,
@@ -143,7 +145,7 @@ export class MinimapDrawer {
     }
   }
 
-  addWarpOnClick (e: MouseEvent, botPos: Vec3) {
+  setWarpPosOnClick (e: MouseEvent, botPos: Vec3) {
     if (!e.target) return
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
     const z = (e.pageX - rect.left) * this.canvas.width / rect.width  
@@ -151,7 +153,7 @@ export class MinimapDrawer {
     const worldX = x - this.mapSize / 2
     const worldZ = z - this.mapSize / 2
 
-    console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
-    this.lastBotPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
+    // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
+    this.lastWarpPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
   }
 }

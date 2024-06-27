@@ -10,6 +10,7 @@ import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
   warps: WorldWarp[]
+  world: string
 
   constructor (pos?: Vec3, warps?: WorldWarp[]) {
     super()
@@ -29,8 +30,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return color
   }
 
-  setWarp (name: string, pos: Vec3, world: string, color: string, disabled: boolean): void {
-    const warp: WorldWarp = { name, x: pos.x, y: pos.y, z: pos.z, world, color, disabled }
+  setWarp (name: string, pos: Vec3, color: string, disabled: boolean, world?: string): void {
+    this.world = bot.game.dimension
+    const warp: WorldWarp = { name, x: pos.x, y: pos.y, z: pos.z, world: world ?? this.world, color, disabled }
     const index = this.warps.findIndex(w => w.name === name)
     if (index === -1) {
       this.warps.push(warp)
@@ -39,6 +41,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
     if (localServer) void localServer.setWarp(warp)
     this.emit('updateWarps')
+    // console.log('local server warps:', localServer?.warps)
+    // console.log('adapter warps:', this.warps)
   }
 }
 
