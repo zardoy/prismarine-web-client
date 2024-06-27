@@ -20,6 +20,9 @@ patchedDependencies:
   minecraft-protocol@1.47.0:
     hash: 2uxevyasyasdavsxuehfavgkjq
     path: patches/minecraft-protocol@1.47.0.patch
+  three@0.154.0:
+    hash: sj7ocb4p23jym6bkfgueanti2e
+    path: patches/three@0.154.0.patch
 
 importers:
 
@@ -305,7 +308,7 @@ importers:
         version: 1.0.0
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b424a566723067d0fb1a4bd70c1fb58a922f2ba4(@types/react@18.2.20)(react@18.2.0)
+        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
         version: https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23(encoding@0.1.13)
@@ -341,7 +344,7 @@ importers:
         version: 3.0.0
       three:
         specifier: 0.154.0
-        version: 0.154.0
+        version: 0.154.0(patch_hash=sj7ocb4p23jym6bkfgueanti2e)
       timers-browserify:
         specifier: ^2.0.12
         version: 2.0.12
@@ -410,7 +413,7 @@ importers:
         version: 4.7.2
       three-stdlib:
         specifier: ^2.26.11
-        version: 2.28.5(three@0.154.0)
+        version: 2.28.5(three@0.154.0(patch_hash=sj7ocb4p23jym6bkfgueanti2e))
       three.meshline:
         specifier: ^1.3.0
         version: 1.4.0
@@ -6062,8 +6065,8 @@ packages:
   minecraft-folder-path@1.2.0:
     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b424a566723067d0fb1a4bd70c1fb58a922f2ba4:
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b424a566723067d0fb1a4bd70c1fb58a922f2ba4}
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4:
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4}
     version: 1.0.1
 
   minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc:
@@ -15732,7 +15735,7 @@ snapshots:
 
   minecraft-folder-path@1.2.0: {}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/b424a566723067d0fb1a4bd70c1fb58a922f2ba4(@types/react@18.2.20)(react@18.2.0):
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4(@types/react@18.2.20)(react@18.2.0):
     dependencies:
       valtio: 1.11.2(@types/react@18.2.20)(react@18.2.0)
     transitivePeerDependencies:
@@ -17566,7 +17569,7 @@ snapshots:
     dependencies:
       '@types/three': 0.156.0
       skinview-utils: 0.7.1
-      three: 0.154.0
+      three: 0.154.0(patch_hash=sj7ocb4p23jym6bkfgueanti2e)
 
   slash@3.0.0: {}
 
@@ -18019,7 +18022,7 @@ snapshots:
     dependencies:
       any-promise: 1.3.0
 
-  three-stdlib@2.28.5(three@0.154.0):
+  three-stdlib@2.28.5(three@0.154.0(patch_hash=sj7ocb4p23jym6bkfgueanti2e)):
     dependencies:
       '@types/draco3d': 1.4.7
       '@types/offscreencanvas': 2019.7.2
@@ -18027,11 +18030,11 @@ snapshots:
       draco3d: 1.5.6
       fflate: 0.6.10
       potpack: 1.0.2
-      three: 0.154.0
+      three: 0.154.0(patch_hash=sj7ocb4p23jym6bkfgueanti2e)
 
   three.meshline@1.4.0: {}
 
-  three@0.154.0: {}
+  three@0.154.0(patch_hash=sj7ocb4p23jym6bkfgueanti2e): {}
 
   throttle-debounce@3.0.1: {}
 

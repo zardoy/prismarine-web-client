@@ -10,10 +10,16 @@ export default () => {
   const setupActive = useIsModalActive('touch-buttons-setup')
   const { touchControlsPositions, touchControlsType } = useSnapshot(options)
 
-  return <TouchAreasControls touchActive={!!usingTouch && !hasModals && touchControlsType === 'joystick-buttons'} setupActive={setupActive} buttonsPositions={touchControlsPositions as any} closeButtonsSetup={(newPositions) => {
-    if (newPositions) {
-      options.touchControlsPositions = newPositions
-    }
-    hideModal()
-  }} />
+  return <TouchAreasControls
+    touchActive={!!bot && !!usingTouch && !hasModals && touchControlsType === 'joystick-buttons'}
+    setupActive={setupActive}
+    buttonsPositions={touchControlsPositions as any}
+    closeButtonsSetup={(newPositions) => {
+      if (newPositions) {
+        options.touchControlsPositions = newPositions
+      }
+      hideModal()
+    }}
+  />
+
 }

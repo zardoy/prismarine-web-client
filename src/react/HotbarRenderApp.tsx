@@ -111,7 +111,7 @@ export default () => {
     inv.canvas.style.pointerEvents = 'auto'
     container.current.appendChild(inv.canvas)
     const upHotbarItems = () => {
-      if (!viewer.world.downloadedTextureImage && !viewer.world.customTexturesDataUrl) return
+      if (!viewer.world.downloadedTextureImage || !viewer.world.customTexturesDataUrl) return
       upInventoryItems(true, inv)
     }
 

@@ -11,7 +11,8 @@ export class ViewerWrapper {
     renderIntervalUnfocused: number | undefined
     fpsInterval
 
-    constructor(public canvas: HTMLCanvasElement, public renderer?: THREE.WebGLRenderer) {
+    constructor (public canvas: HTMLCanvasElement, public renderer?: THREE.WebGLRenderer) {
+        if (this.renderer) this.globalObject.renderer = this.renderer
     }
     addToPage (startRendering = true) {
         if (this.addedToPage) throw new Error('Already added to page')
@@ -30,7 +31,6 @@ export class ViewerWrapper {
         this.canvas.id = 'viewer-canvas'
         document.body.appendChild(this.canvas)
 
-        if (this.renderer) this.globalObject.renderer = this.renderer
         this.addedToPage = true
 
         let max = 0

@@ -82,19 +82,19 @@ function getDefaultTouchControlsPositions () {
   return {
     action: [
       70,
-      85
+      76
     ],
     sneak: [
-      90,
-      85
+      84,
+      76
     ],
     break: [
       70,
-      65
+      60
     ],
     jump: [
-      90,
-      65
+      84,
+      60
     ],
   } as Record<string, [number, number]>
 }

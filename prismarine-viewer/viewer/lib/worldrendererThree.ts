@@ -162,7 +162,8 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     render () {
         tweenJs.update()
-        this.renderer.render(this.scene, this.camera)
+        const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
+        this.renderer.render(this.scene, cam)
     }
 
     renderSign (position: Vec3, rotation: number, isWall: boolean, isHanging: boolean, blockEntity) {

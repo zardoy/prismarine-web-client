@@ -168,7 +168,8 @@
       "ignoreDependencies": []
     },
     "patchedDependencies": {
-      "minecraft-protocol@1.47.0": "patches/minecraft-protocol@1.47.0.patch"
+      "minecraft-protocol@1.47.0": "patches/minecraft-protocol@1.47.0.patch",
+      "three@0.154.0": "patches/three@0.154.0.patch"
     }
   },
   "packageManager": "pnpm@9.0.4"

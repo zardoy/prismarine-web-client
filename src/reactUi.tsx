@@ -40,6 +40,7 @@ import GamepadUiCursor from './react/GamepadUiCursor'
 import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
 import HeldMapUi from './react/HeldMapUi'
 import BedTime from './react/BedTime'
+import NoModalFoundProvider from './react/NoModalFoundProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -116,7 +117,6 @@ const InGameUi = () => {
         <IndicatorEffectsProvider />
         <Crosshair />
         <MinimapProvider />
-        <TouchAreasControlsProvider />
       </div>
 
       <PauseScreen />
@@ -174,6 +174,8 @@ const App = () => {
         <OptionsRenderApp />
         <MainMenuRenderApp />
         <NotificationProvider />
+        <TouchAreasControlsProvider />
+        <NoModalFoundProvider />
         {/* <GameHud>
         </GameHud> */}
       </RobustPortal>

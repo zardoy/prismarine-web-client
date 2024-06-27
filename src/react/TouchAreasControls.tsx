@@ -52,6 +52,7 @@ export const handleMovementStickDelta = (e?: { clientX, clientY }) => {
 }
 
 export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup }: Props) => {
+  const bot = window.bot as typeof __type_bot | undefined
   if (setupActive) touchActive = true
 
   const joystickOuter = useRef<HTMLDivElement>(null)
@@ -64,22 +65,21 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
   const buttonProps = (name: ButtonName) => {
     let active = {
       action: false,
-      sneak: bot.getControlState('sneak'),
+      sneak: bot?.getControlState('sneak'),
       break: false,
-      jump: bot.getControlState('jump'),
+      jump: bot?.getControlState('jump'),
     }[name]
     const holdDown = {
       action () {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 2 }))
         worldInteractions.update()
-        document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       },
       sneak () {
         void contro.emit('trigger', {
           command: 'general.toggleSneakOrDown',
           schema: null as any,
         })
-        active = bot.getControlState('sneak')
+        active = bot?.getControlState('sneak')
       },
       break () {
         document.dispatchEvent(new MouseEvent('mousedown', { button: 0 }))
@@ -91,18 +91,19 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           command: 'general.jump',
           schema: null as any,
         })
-        active = bot.controlState.jump
+        active = bot?.controlState.jump
       }
     }
     const holdUp = {
       action () {
+        document.dispatchEvent(new MouseEvent('mouseup', { button: 2 }))
       },
       sneak () {
         void contro.emit('release', {
           command: 'general.toggleSneakOrDown',
           schema: null as any,
         })
-        active = bot.getControlState('sneak')
+        active = bot?.getControlState('sneak')
       },
       break () {
         document.dispatchEvent(new MouseEvent('mouseup', { button: 0 }))
@@ -114,7 +115,7 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           command: 'general.jump',
           schema: null as any,
         })
-        active = bot.controlState.jump
+        active = bot?.controlState.jump
       }
     }
 
@@ -161,8 +162,8 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           const elem = e.currentTarget as HTMLElement
           const size = 32
           const scale = getCurrentAppScaling()
-          const xPerc = e.clientX / window.innerWidth * 100 - size / scale
-          const yPerc = e.clientY / window.innerHeight * 100 - size / scale
+          const xPerc = (e.clientX - size / 4 / scale) / window.innerWidth * 100
+          const yPerc = (e.clientY - size / 4 / scale) / window.innerHeight * 100
           elem.style.left = `${xPerc}%`
           elem.style.top = `${yPerc}%`
           newButtonPositions[name] = [xPerc, yPerc]
