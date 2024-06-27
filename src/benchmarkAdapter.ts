@@ -4,4 +4,5 @@ export interface BenchmarkAdapter {
     worstRenderTime: number
     memoryUsageAverage: number
     memoryUsageWorst: number
+    gpuInfo: string
 }

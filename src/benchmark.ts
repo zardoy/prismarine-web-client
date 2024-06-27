@@ -37,6 +37,10 @@ export const openBenchmark = async (renderDistance = 8) => {
     },
     get memoryUsageWorst () {
       return memoryUsageWorst
+    },
+    get gpuInfo () {
+      const gl = window.viewer.renderer.getContext()
+      return gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
     }
   }
   window.benchmarkAdapter = benchmarkAdapter

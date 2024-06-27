@@ -20,6 +20,7 @@ it('Benchmark rendering performance', () => {
       const fpsWorst = 1000 / renderTimeWorst
       const fpsAvg = 1000 / renderTimeAvg
       const totalTime = adapter.worldLoadTime
+      const { gpuInfo } = adapter
 
       const messages = [
         `Worst FPS: ${fpsWorst.toFixed(2)}`,
@@ -27,6 +28,7 @@ it('Benchmark rendering performance', () => {
         `Total time: ${totalTime.toFixed(2)}s`,
         `Memory usage average: ${adapter.memoryUsageAverage.toFixed(2)}MB`,
         `Memory usage worst: ${adapter.memoryUsageWorst.toFixed(2)}MB`,
+        `GPU info: ${gpuInfo}`,
       ]
       for (const message of messages) {
         cy.log(message)

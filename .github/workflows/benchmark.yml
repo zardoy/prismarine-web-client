@@ -28,6 +28,7 @@ jobs:
           cache: "pnpm"
       - run: pnpm install
       - run: pnpm build
+      - run: nohup pnpm prod-start &
       - run: pnpm test:benchmark
       # read benchmark results from stdout
       - run: echo "BENCHMARK_RESULT=$(cat benchmark.txt)" >> $GITHUB_ENV
