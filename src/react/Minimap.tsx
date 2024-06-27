@@ -1,8 +1,9 @@
-import { useRef, useEffect, useState, CSSProperties } from 'react'
+import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { showModal, hideModal } from '../globalState'
 import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Input from './Input'
+import Button from './Button'
  
 
 export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolean }) => {
@@ -90,8 +91,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       height={150} 
       ref={canvasRef}
     ></canvas>
-    {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawerRef.current} />}
-
+    {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawerRef.current} setIsWarpInfoOpened={setIsWarpInfoOpened} />}
   </div> : <div
     className='minimap'
     style={{
@@ -103,17 +103,21 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     }}
   >
     <canvas width={50} height={50} ref={canvasRef}></canvas>
-
   </div>
 }
 
-const WarpInfo = ({ adapter, drawer }: { adapter: DrawerAdapter, drawer: MinimapDrawer | null }) => {
+const WarpInfo = (
+  { adapter, drawer, setIsWarpInfoOpened }
+  : 
+  { adapter: DrawerAdapter, drawer: MinimapDrawer | null, setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>> }
+) => {
   const posInputStyle: CSSProperties = {
-    width: '100%',
-  }
-  const posInputContStyle: CSSProperties = {
     flexGrow: '1',
+  }
+  const fieldCont: CSSProperties = {
     display: 'flex',
+    alignItems: 'center',
+    gap: '5px'
   }
 
   return <div
@@ -123,46 +127,66 @@ const WarpInfo = ({ adapter, drawer }: { adapter: DrawerAdapter, drawer: Minimap
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      gap: '10px',
       flexDirection: 'column',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      fontSize: '0.8em'
     }}
   >
-    <div>
-      Name: <Input />
-    </div>
-    <div style={{
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: '5px',
-      width: '200px',
-    }}>
-      <div 
-        style={posInputContStyle}
-      >X: <Input 
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        width: '40%',
+        minWidth: '300px',
+        maxWidth: '400px',
+        padding: '20px',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        border: '2px solid black'
+      }}
+    >
+      <div style={fieldCont}>
+        <div>
+          Name:
+        </div>
+        <Input />
+      </div>
+      <div style={fieldCont}>
+        <div>
+          X:
+        </div>
+        <Input 
           rootStyles={posInputStyle} 
           defaultValue={drawer?.lastBotPos.x ?? 100} />
-      </div> 
-      <div 
-        style={posInputContStyle}>
-        Y: <Input 
+        <div>
+          Y:
+        </div>
+        <Input 
           rootStyles={posInputStyle} 
           defaultValue={drawer?.lastBotPos.y ?? 100} />
-      </div> 
-      <div 
-        style={posInputContStyle}>
-        Z: <Input 
+        <div>
+          Z:
+        </div>
+        <Input 
           rootStyles={posInputStyle} 
           defaultValue={drawer?.lastBotPos.z ?? 100} />
-      </div> 
+      </div>
+      <div style={fieldCont}>
+        <div>Color:</div>
+        <Input placeholder={'#232323 or rgb(0, 0, 0)'} />
+      </div>
+      <div style={fieldCont} >
+        <div>Disabled:</div>
+        <input type={'checkbox'} />
+      </div>
+      <div style={fieldCont}>
+        <Button>Add</Button>
+        <Button
+          onClick={() => {
+            setIsWarpInfoOpened(false)
+          }}
+        >Cancel</Button>
+      </div>
     </div>
-    <div>
-      Color: <Input placeholder={'#232323 or rgb(0, 0, 0)'} />
-    </div>
-    <div style={{ display: 'flex' }} >
-      Disabled: <Input rootStyles={{ width: '20px' }} type={'checkbox'} />
-    </div>
-
   </div>
 }

@@ -37,6 +37,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     } else {
       this.warps[index] = warp
     }
+    if (localServer) void localServer.setWarp(warp)
     this.emit('updateWarps')
   }
 }
