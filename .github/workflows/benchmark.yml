@@ -1,0 +1,41 @@
+name: Vercel Deploy Preview
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+on:
+  issue_comment:
+    types: [created]
+  push:
+    branches:
+      - perf-test
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # todo skip already created deploys on that commit
+    if: >-
+      github.event.issue.pull_request != '' &&
+      (
+        contains(github.event.comment.body, '/benchmark')
+      )
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+      - run: npm i -g pnpm@9.0.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "pnpm"
+      - run: pnpm install
+      - run: pnpm build
+      - run: pnpm test:benchmark
+      # read benchmark results from stdout
+      - run: echo "BENCHMARK_RESULT=$(cat benchmark.txt)" >> $GITHUB_ENV
+      - uses: mshick/add-pr-comment@v2
+        with:
+          allow-repeats: true
+          message: |
+            Benchmark result: ${{ env.BENCHMARK_RESULT }}

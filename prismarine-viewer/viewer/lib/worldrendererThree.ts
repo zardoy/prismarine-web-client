@@ -17,6 +17,8 @@ export class WorldRendererThree extends WorldRendererCommon {
     signsCache = new Map<string, any>()
     starField: StarField
     cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
+    worstRenderTime = 0
+    avgRenderTime = 0
 
     get tilesRendered () {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -71,20 +73,6 @@ export class WorldRendererThree extends WorldRendererCommon {
 
         const chunkCoords = data.key.split(',')
         if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length || !this.active) return
-
-        // if (!this.initialChunksLoad && this.enableChunksLoadDelay) {
-        //   const newPromise = new Promise(resolve => {
-        //     if (this.droppedFpsPercentage > 0.5) {
-        //       setTimeout(resolve, 1000 / 50 * this.droppedFpsPercentage)
-        //     } else {
-        //       setTimeout(resolve)
-        //     }
-        //   })
-        //   this.promisesQueue.push(newPromise)
-        //   for (const promise of this.promisesQueue) {
-        //     await promise
-        //   }
-        // }
 
         const geometry = new THREE.BufferGeometry()
         geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
@@ -163,7 +151,11 @@ export class WorldRendererThree extends WorldRendererCommon {
     render () {
         tweenJs.update()
         const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
+        const start = performance.now()
         this.renderer.render(this.scene, cam)
+        const totalTime = performance.now() - start
+        this.avgRenderTime = this.avgRenderTime * 0.9 + totalTime * 0.1 // exponential moving average
+        this.worstRenderTime = Math.max(this.worstRenderTime, totalTime)
     }
 
     renderSign (position: Vec3, rotation: number, isWall: boolean, isHanging: boolean, blockEntity) {

@@ -42,6 +42,7 @@ import debug from 'debug'
 import { defaultsDeep } from 'lodash-es'
 
 import { initVR } from './vr'
+import { registerOpenBenchmarkListener } from './benchmark'
 import {
   AppConfig,
   activeModalStack,
@@ -218,8 +219,14 @@ function hideCurrentScreens () {
   insertActiveModalStack('', [])
 }
 
-const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
-  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides, serverOverridesFlat: flattenedServerOverrides })
+const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}, otherOptions: Partial<ConnectOptions> = {}) => {
+  void connect({
+    singleplayer: true,
+    username: options.localUsername,
+    serverOverrides,
+    serverOverridesFlat: flattenedServerOverrides,
+    ...otherOptions
+  })
 }
 function listenGlobalEvents () {
   window.addEventListener('connect', e => {
@@ -227,7 +234,9 @@ function listenGlobalEvents () {
     void connect(options)
   })
   window.addEventListener('singleplayer', (e) => {
-    loadSingleplayer((e as CustomEvent).detail)
+    const { detail } = (e as CustomEvent)
+    const { connectOptions, ...rest } = detail
+    loadSingleplayer(rest, {}, connectOptions)
   })
 }
 
@@ -406,6 +415,7 @@ async function connect (connectOptions: ConnectOptions) {
 
       setLoadingScreenStatus('Starting local server')
       localServer = window.localServer = window.server = startLocalServer(serverOptions)
+      connectOptions?.connectEvents?.serverCreated?.()
       // todo need just to call quit if started
       // loadingScreen.maybeRecoverable = false
       // init world, todo: do it for any async plugins
@@ -578,6 +588,7 @@ async function connect (connectOptions: ConnectOptions) {
   const spawnEarlier = !singleplayer && !p2pMultiplayer
   // don't use spawn event, player can be dead
   bot.once(spawnEarlier ? 'forcedMove' : 'health', () => {
+    window.worldStartLoad = Date.now()
     errorAbortController.abort()
     const mcData = MinecraftData(bot.version)
     window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
@@ -805,7 +816,9 @@ async function connect (connectOptions: ConnectOptions) {
       // todo might not emit as servers simply don't send chunk if it's empty
       if (!viewer.world.allChunksFinished || done) return
       done = true
-      console.log('All done and ready! In', (Date.now() - start) / 1000, 's')
+      const worldLoadTime = (Date.now() - start) / 1000
+      window.worldLoadTime = worldLoadTime
+      console.log('All done and ready! In', worldLoadTime, 's')
       viewer.render() // ensure the last state is rendered
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
@@ -944,7 +957,7 @@ downloadAndOpenFile().then((downloadAction) => {
   })
 }, (err) => {
   console.error(err)
-  alert(`Failed to download file: ${err}`)
+  alert(`Somethin went wrong: ${err}`)
 })
 
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
@@ -956,3 +969,4 @@ if (initialLoader) {
 window.pageLoaded = true
 
 void possiblyHandleStateVariable()
+registerOpenBenchmarkListener()

@@ -2,27 +2,25 @@ import prettyBytes from 'pretty-bytes'
 import { openWorldZip } from './browserfs'
 import { getResourcePackName, installTexturePack, resourcePackState, updateTexturePackInstalledState } from './texturePack'
 import { setLoadingScreenStatus } from './utils'
+import { ConnectOptions } from './connect'
 
 export const getFixedFilesize = (bytes: number) => {
   return prettyBytes(bytes, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
-const inner = async () => {
-  const qs = new URLSearchParams(window.location.search)
-  let mapUrl = qs.get('map')
-  const texturepack = qs.get('texturepack')
+export const downloadAndOpenFileFromUrl = async (mapUrl: string | undefined, texturepackUrl: string | undefined, connectOptions?: Partial<ConnectOptions>) => {
   // fixme
-  if (texturepack) mapUrl = texturepack
+  if (texturepackUrl) mapUrl = texturepackUrl
   if (!mapUrl) return false
 
-  if (texturepack) {
+  if (texturepackUrl) {
     await updateTexturePackInstalledState()
     if (resourcePackState.resourcePackInstalled) {
       if (!confirm(`You are going to install a new resource pack, which will REPLACE the current one: ${await getResourcePackName()} Continue?`)) return
     }
   }
   const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-25)
-  const downloadThing = texturepack ? 'texturepack' : 'world'
+  const downloadThing = texturepackUrl ? 'texturepack' : 'world'
   setLoadingScreenStatus(`Downloading ${downloadThing} ${name}...`)
 
   const response = await fetch(mapUrl)
@@ -63,17 +61,20 @@ const inner = async () => {
       },
     })
   ).arrayBuffer()
-  if (texturepack) {
+  if (texturepackUrl) {
     const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-30)
     await installTexturePack(buffer, name)
   } else {
-    await openWorldZip(buffer)
+    await openWorldZip(buffer, undefined, connectOptions)
   }
 }
 
 export default async () => {
   try {
-    return await inner()
+    const qs = new URLSearchParams(window.location.search)
+    const mapUrl = qs.get('map')
+    const texturepack = qs.get('texturepack')
+    return await downloadAndOpenFileFromUrl(mapUrl ?? undefined, texturepack ?? undefined)
   } catch (err) {
     setLoadingScreenStatus(`Failed to download. Either refresh page or remove map param from URL. Reason: ${err.message}`)
     return true

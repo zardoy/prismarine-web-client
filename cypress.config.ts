@@ -1,5 +1,7 @@
 import { defineConfig } from 'cypress'
 
+const isPerformanceTest = process.env.PERFORMANCE_TEST === 'true'
+
 export default defineConfig({
   video: false,
   chromeWebSecurity: false,
@@ -31,7 +33,7 @@ export default defineConfig({
       return require('./cypress/plugins/index.js')(on, config)
     },
     baseUrl: 'http://localhost:8080',
-    specPattern: 'cypress/e2e/**/*.spec.ts',
+    specPattern: !isPerformanceTest ? 'cypress/e2e/**/*.spec.ts' : 'cypress/e2e/rendering_performance.spec.ts',
     excludeSpecPattern: ['**/__snapshots__/*', '**/__image_snapshots__/*'],
   },
 })
