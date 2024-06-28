@@ -78,6 +78,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   return fullMapOpened || fullMap ? <div
     style={{
       position: 'absolute',
+      isolation: 'isolate',
       inset: '0px',
       display: 'flex',
       justifyContent: 'center',
@@ -86,6 +87,18 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       backgroundColor: 'rgba(0, 0, 0, 0.4)'
     }}
   >
+    <div
+      style={{
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        zIndex: '-1'
+      }}
+      onClick={() => {
+        toggleFullMap()
+      }}
+    ></div>
+
     <canvas
       style={{
         width: '35%',
@@ -103,6 +116,9 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       top: '0px',
       padding: '5px 5px 0px 0px',
       border: '2px solid red'
+    }}
+    onClick={() => {
+      toggleFullMap()
     }}
   >
     <canvas width={50} height={50} ref={canvasRef}></canvas>
@@ -227,7 +243,6 @@ const WarpInfo = (
       <div style={fieldCont}>
         <Button
           onClick={() => {
-            // console.log(warp)
             adapter.setWarp(
               warp.name, 
               new Vec3(warp.x, warp.y, warp.z), 

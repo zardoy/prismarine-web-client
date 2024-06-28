@@ -37,7 +37,7 @@ export class MinimapDrawer {
   lastBotPos: Vec3
   lastWarpPos: Vec3
 
-  constructor(
+  constructor (
     canvas: HTMLCanvasElement,
     public adapter: DrawerAdapter
   ) {
@@ -45,11 +45,11 @@ export class MinimapDrawer {
     this.adapter = adapter
   }
 
-  get canvas() {
+  get canvas () {
     return this._canvas
   }
 
-  set canvas(canvas: HTMLCanvasElement) {
+  set canvas (canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d')!
     this.ctx.imageSmoothingEnabled = false
     this.radius = Math.min(canvas.width, canvas.height) / 2
@@ -59,16 +59,16 @@ export class MinimapDrawer {
     this._canvas = canvas
   }
 
-  get mapSize() {
+  get mapSize () {
     return this._mapSize
   }
 
-  set mapSize(mapSize: number) {
+  set mapSize (mapSize: number) {
     this._mapSize = mapSize
     this.draw(this.lastBotPos)
   }
 
-  draw(
+  draw (
     botPos: Vec3,
     getHighestBlockColor?: DrawerAdapter['getHighestBlockColor'],
   ) {
@@ -83,7 +83,7 @@ export class MinimapDrawer {
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z)
   }
 
-  updateWorldColors(
+  updateWorldColors (
     getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
     x: number,
     z: number
@@ -115,7 +115,7 @@ export class MinimapDrawer {
     }
   }
 
-  getHighestBlockColorCached(
+  getHighestBlockColorCached (
     getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
     x: number,
     z: number
@@ -131,11 +131,11 @@ export class MinimapDrawer {
     return color
   }
 
-  getDistance(x1: number, z1: number, x2: number, z2: number): number {
+  getDistance (x1: number, z1: number, x2: number, z2: number): number {
     return Math.hypot((x2 - x1), (z2 - z1))
   }
 
-  deleteOldWorldColors(currX: number, currZ: number) {
+  deleteOldWorldColors (currX: number, currZ: number) {
     for (const key of Object.keys(this.worldColors)) {
       const [x, z] = key.split(',').map(Number)
       if (this.getDistance(x, z, currX, currZ) > this.radius * 5) {
@@ -145,7 +145,7 @@ export class MinimapDrawer {
     }
   }
 
-  setWarpPosOnClick(e: MouseEvent, botPos: Vec3) {
+  setWarpPosOnClick (e: MouseEvent, botPos: Vec3) {
     if (!e.target) return
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
     const z = (e.pageX - rect.left) * this.canvas.width / rect.width
@@ -157,7 +157,7 @@ export class MinimapDrawer {
     this.lastWarpPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
   }
 
-  drawWarps() {
+  drawWarps () {
     for (const warp of this.adapter.warps) {
       const distance = this.getDistance(
         this.adapter.playerPosition.x, 
@@ -170,11 +170,11 @@ export class MinimapDrawer {
       const x = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.x + warp.x))
       const dz = z - this.centerX
       const dx = x - this.centerY
-      const circleDist = Math.sqrt(dx * dx + dz * dz)
+      const circleDist = Math.hypot(dx, dz)
 
       const angle = Math.atan2(dz, dx)
-      const circleZ = circleDist > this.mapSize / 2  ? this.centerX + this.mapSize / 2 * Math.sin(angle) : z
-      const circleX = circleDist > this.mapSize / 2  ? this.centerY + this.mapSize / 2 * Math.cos(angle) : x
+      const circleZ = circleDist > this.mapSize / 2 ? this.centerX + this.mapSize / 2 * Math.sin(angle) : z
+      const circleX = circleDist > this.mapSize / 2 ? this.centerY + this.mapSize / 2 * Math.cos(angle) : x
       this.ctx.beginPath()
       this.ctx.arc(circleZ, circleX, circleDist > this.mapSize / 2 ? 1.5 : 2, 0, Math.PI * 2, false)
       this.ctx.fillStyle = warp.disabled ? 'rgba(255, 255, 255, 0.4)' : warp.color ?? 'd3d3d3'
