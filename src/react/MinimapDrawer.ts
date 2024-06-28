@@ -168,8 +168,15 @@ export class MinimapDrawer {
       if (distance > this.mapSize * 2/3) continue
       const z = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.z + warp.z))
       const x = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.x + warp.x))
+      const dz = z - this.centerX
+      const dx = x - this.centerY
+      const circleDist = Math.sqrt(dx * dx + dz * dz)
+
+      const angle = Math.atan2(dx, dz)
+      const worldZ = circleDist > this.mapSize / 2  ? this.centerX + this.mapSize / 2 * Math.cos(angle) : z
+      const worldX = circleDist > this.mapSize / 2  ? this.centerY + this.mapSize / 2 * Math.cos(angle) : x
       this.ctx.beginPath()
-      this.ctx.arc(z, x, 2, 0, Math.PI * 2, false)
+      this.ctx.arc(worldZ, worldX, 2, 0, Math.PI * 2, false)
       this.ctx.fillStyle = warp.disabled ? 'rgba(255, 255, 255, 0.4)' : warp.color ?? 'd3d3d3'
       this.ctx.fill()
       this.ctx.closePath()
