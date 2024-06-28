@@ -39,15 +39,13 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     } else {
       this.warps[index] = warp
     }
-    if (localServer) void localServer.setWarp(warp)
+    // if (localServer) void localServer.setWarp(warp)
     this.emit('updateWarps')
-    // console.log('local server warps:', localServer?.warps)
-    // console.log('adapter warps:', this.warps)
   }
 }
 
 export default () => {
-  const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position))
+  const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position, localServer?.warps))
 
   const updateMap = () => {
     if (!adapter) return
