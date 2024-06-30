@@ -1,4 +1,4 @@
-import { subscribe } from 'valtio'
+import { proxy, subscribe } from 'valtio'
 import { showInventory } from 'minecraft-inventory-gui/web/ext.mjs'
 import InventoryGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/inventory.png'
 import ChestLikeGui from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/container/shulker_box.png'
@@ -66,11 +66,19 @@ let version: string
 let PrismarineBlock: typeof PrismarineBlockLoader.Block
 let PrismarineItem: typeof Item
 
+export const allImagesLoadedState = proxy({
+  value: false
+})
+
 export const onGameLoad = (onLoad) => {
+  allImagesLoadedState.value = false
   let loaded = 0
   const onImageLoaded = () => {
     loaded++
-    if (loaded === 3) onLoad?.()
+    if (loaded === 3) {
+      onLoad?.()
+      allImagesLoadedState.value = true
+    }
   }
   version = bot.version
   getImage({ path: 'invsprite' }, onImageLoaded)
