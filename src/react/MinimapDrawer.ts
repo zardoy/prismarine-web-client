@@ -36,6 +36,7 @@ export class MinimapDrawer {
   worldColors: { [key: string]: string } = {}
   lastBotPos: Vec3
   lastWarpPos: Vec3
+  mapPixel: number
 
   constructor (
     canvas: HTMLCanvasElement,
@@ -65,6 +66,7 @@ export class MinimapDrawer {
 
   set mapSize (mapSize: number) {
     this._mapSize = mapSize
+    this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
     this.draw(this.lastBotPos)
   }
 
@@ -91,7 +93,6 @@ export class MinimapDrawer {
   ) {
     const left = this.centerX - this.radius
     const top = this.centerY - this.radius
-    const mapPixel = Math.floor(this.radius * 2 / this.mapSize)
 
     this.ctx.save()
 
@@ -107,10 +108,10 @@ export class MinimapDrawer {
           z - this.mapSize / 2 + col
         )
         this.ctx.fillRect(
-          left + mapPixel * col,
-          top + mapPixel * row,
-          mapPixel,
-          mapPixel
+          left + this.mapPixel * col,
+          top + this.mapPixel * row,
+          this.mapPixel,
+          this.mapPixel
         )
       }
     }
@@ -193,5 +194,16 @@ export class MinimapDrawer {
       this.ctx.fill()
       this.ctx.closePath()
     }
+  }
+
+  drawPartsOfWorld () {
+    this.ctx.font = '12px serif'
+    this.ctx.textAlign = 'center'
+    this.ctx.textBaseline = 'middle'
+
+    this.ctx.fillText('N', this.centerX, 5)
+    this.ctx.fillText('S', this.centerX, this.centerY - 5)
+    this.ctx.fillText('W', 5, this.centerY)
+    this.ctx.fillText('E', this.centerX - 5, this.centerY)
   }
 }
