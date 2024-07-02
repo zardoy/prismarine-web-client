@@ -50,7 +50,7 @@ export class MinimapDrawer {
   }
 
   set canvas (canvas: HTMLCanvasElement) {
-    this.ctx = canvas.getContext('2d')!
+    this.ctx = canvas.getContext('2d', { willReadFrequently: true })!
     this.ctx.imageSmoothingEnabled = false
     this.radius = Math.min(canvas.width, canvas.height) / 2
     this._mapSize = this.radius * 2
@@ -81,6 +81,7 @@ export class MinimapDrawer {
 
     this.lastBotPos = botPos
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z)
+    this.drawWarps()
   }
 
   updateWorldColors (
@@ -113,6 +114,14 @@ export class MinimapDrawer {
         )
       }
     }
+
+    const clippedImage = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
+
+    this.ctx.restore()
+
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+
+    this.ctx.putImageData(clippedImage, 0, 0)
   }
 
   getHighestBlockColorCached (
@@ -177,6 +186,9 @@ export class MinimapDrawer {
       const circleX = circleDist > this.mapSize / 2 ? this.centerY + this.mapSize / 2 * Math.cos(angle) : x
       this.ctx.beginPath()
       this.ctx.arc(circleZ, circleX, circleDist > this.mapSize / 2 ? 1.5 : 2, 0, Math.PI * 2, false)
+      this.ctx.strokeStyle = 'black'
+      this.ctx.lineWidth = 1
+      this.ctx.stroke()
       this.ctx.fillStyle = warp.disabled ? 'rgba(255, 255, 255, 0.4)' : warp.color ?? 'd3d3d3'
       this.ctx.fill()
       this.ctx.closePath()

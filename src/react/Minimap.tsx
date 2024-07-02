@@ -18,7 +18,6 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   function updateMap () {
     if (drawerRef.current && canvasTick.current % 2 === 0) {
       drawerRef.current.draw(adapter.playerPosition)
-      drawerRef.current.drawWarps()
       if (canvasTick.current % 300 === 0) {
         drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
       }
