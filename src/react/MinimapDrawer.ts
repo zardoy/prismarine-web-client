@@ -106,7 +106,7 @@ export class MinimapDrawer {
       for (let col = 0; col < this.mapSize; col += 1) {
         this.ctx.fillStyle = this.getHighestBlockColorCached(
           getHighestBlockColor,
-          x - this.mapSize / 2 + row,
+          x - this.mapSize / 2 + this.mapSize - row,
           z - this.mapSize / 2 + col
         )
         this.ctx.fillRect(
@@ -119,11 +119,8 @@ export class MinimapDrawer {
     }
 
     const clippedImage = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-
     this.ctx.restore()
-
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-
     this.ctx.putImageData(clippedImage, 0, 0)
   }
 
@@ -162,7 +159,7 @@ export class MinimapDrawer {
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
     const z = (e.pageX - rect.left) * this.canvas.width / rect.width
     const x = (e.pageY - rect.top) * this.canvas.height / rect.height
-    const worldX = x - this.mapSize / 2
+    const worldX = -1 * x + this.mapSize / 2
     const worldZ = z - this.mapSize / 2
 
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
@@ -179,7 +176,7 @@ export class MinimapDrawer {
       ) 
       if (distance > this.mapSize) continue
       const z = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.z + warp.z))
-      const x = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.x + warp.x))
+      const x = Math.floor((this.mapSize / 2 + this.adapter.playerPosition.x - warp.x))
       const dz = z - this.centerX
       const dx = x - this.centerY
       const circleDist = Math.hypot(dx, dz)
@@ -209,12 +206,12 @@ export class MinimapDrawer {
     this.ctx.strokeStyle = 'black'
     this.ctx.lineWidth = 1
 
-    this.ctx.strokeText('W', this.centerX, this.centerY - this.radius)
-    this.ctx.strokeText('E', this.centerX, this.centerY + this.radius)
+    this.ctx.strokeText('E', this.centerX, this.centerY - this.radius)
+    this.ctx.strokeText('W', this.centerX, this.centerY + this.radius)
     this.ctx.strokeText('N', this.centerX - this.radius, this.centerY)
     this.ctx.strokeText('S', this.centerX + this.radius, this.centerY)
-    this.ctx.fillText('W', this.centerX, this.centerY - this.radius)
-    this.ctx.fillText('E', this.centerX, this.centerY + this.radius)
+    this.ctx.fillText('E', this.centerX, this.centerY - this.radius)
+    this.ctx.fillText('W', this.centerX, this.centerY + this.radius)
     this.ctx.fillText('N', this.centerX - this.radius, this.centerY)
     this.ctx.fillText('S', this.centerX + this.radius, this.centerY)
 
