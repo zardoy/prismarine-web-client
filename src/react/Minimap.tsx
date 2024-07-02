@@ -120,7 +120,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       toggleFullMap()
     }}
   >
-    <canvas width={50} height={50} ref={canvasRef}></canvas>
+    <canvas width={80} height={80} ref={canvasRef}></canvas>
   </div>
 }
 

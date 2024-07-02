@@ -53,8 +53,9 @@ export class MinimapDrawer {
   set canvas (canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { willReadFrequently: true })!
     this.ctx.imageSmoothingEnabled = false
-    this.radius = Math.min(canvas.width, canvas.height) / 2
+    this.radius = Math.floor(Math.min(canvas.width, canvas.height) / 2.2)
     this._mapSize = this.radius * 2
+    this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
     this.centerX = canvas.width / 2
     this.centerY = canvas.height / 2
     this._canvas = canvas
@@ -84,6 +85,7 @@ export class MinimapDrawer {
     this.lastBotPos = botPos
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z)
     this.drawWarps()
+    this.drawPartsOfWorld()
   }
 
   updateWorldColors (
@@ -190,20 +192,33 @@ export class MinimapDrawer {
       this.ctx.strokeStyle = 'black'
       this.ctx.lineWidth = 1
       this.ctx.stroke()
-      this.ctx.fillStyle = warp.disabled ? 'rgba(255, 255, 255, 0.4)' : warp.color ?? 'd3d3d3'
+      this.ctx.fillStyle = warp.disabled ? 'rgba(255, 255, 255, 0.4)' : warp.color ?? '#d3d3d3'
       this.ctx.fill()
       this.ctx.closePath()
     }
   }
 
   drawPartsOfWorld () {
-    this.ctx.font = '12px serif'
+    this.ctx.fillStyle = 'white'
+    this.ctx.shadowOffsetX = 1
+    this.ctx.shadowOffsetY = 1
+    this.ctx.shadowColor = 'black'
+    this.ctx.font = `${this.radius / 4}px serif`
     this.ctx.textAlign = 'center'
     this.ctx.textBaseline = 'middle'
+    this.ctx.strokeStyle = 'black'
+    this.ctx.lineWidth = 1
 
-    this.ctx.fillText('N', this.centerX, 5)
-    this.ctx.fillText('S', this.centerX, this.centerY - 5)
-    this.ctx.fillText('W', 5, this.centerY)
-    this.ctx.fillText('E', this.centerX - 5, this.centerY)
+    this.ctx.strokeText('W', this.centerX, this.centerY - this.radius)
+    this.ctx.strokeText('E', this.centerX, this.centerY + this.radius)
+    this.ctx.strokeText('N', this.centerX - this.radius, this.centerY)
+    this.ctx.strokeText('S', this.centerX + this.radius, this.centerY)
+    this.ctx.fillText('W', this.centerX, this.centerY - this.radius)
+    this.ctx.fillText('E', this.centerX, this.centerY + this.radius)
+    this.ctx.fillText('N', this.centerX - this.radius, this.centerY)
+    this.ctx.fillText('S', this.centerX + this.radius, this.centerY)
+
+    this.ctx.shadowOffsetX = 0
+    this.ctx.shadowOffsetY = 0
   }
 }
