@@ -30,6 +30,7 @@ type Story = StoryObj<typeof Minimap>;
 
 class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
+  yaw: number
   warps: WorldWarp[]
 
   constructor (pos?: Vec3, warps?: WorldWarp[]) {

@@ -23,6 +23,7 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   playerPosition: Vec3
   warps: WorldWarp[]
   world?: string
+  yaw: number
   setWarp: (name: string, pos: Vec3, color: string, disabled: boolean, world?: string) => void
 }
 
@@ -86,6 +87,7 @@ export class MinimapDrawer {
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z)
     this.drawPartsOfWorld()
     this.drawWarps()
+    this.rotateMap()
   }
 
   updateWorldColors (
@@ -217,5 +219,13 @@ export class MinimapDrawer {
 
     this.ctx.shadowOffsetX = 0
     this.ctx.shadowOffsetY = 0
+  }
+
+  rotateMap () {
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0)
+    const angle = this.adapter.yaw % Math.PI
+    this.ctx.translate(this.centerX, this.centerY)
+    this.ctx.rotate(angle)
+    this.ctx.translate(-this.centerX, -this.centerY)
   }
 }

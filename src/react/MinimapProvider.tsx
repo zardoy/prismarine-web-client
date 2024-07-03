@@ -9,6 +9,7 @@ import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
+  yaw: number
   warps: WorldWarp[]
   world: string
 
@@ -50,6 +51,7 @@ export default () => {
   const updateMap = () => {
     if (!adapter) return
     adapter.playerPosition = bot.entity.position
+    adapter.yaw = bot.entity.yaw
     adapter.emit('updateMap')
   }
 
