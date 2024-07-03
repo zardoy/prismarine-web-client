@@ -5,8 +5,8 @@
     "start_url": "./",
     "icons": [
         {
-            "src": "favicon.png",
-            "sizes": "720x720"
+            "src": "favicon.png?version=1",
+            "sizes": "1120x1120"
         }
     ],
     "background_color": "#349474",
