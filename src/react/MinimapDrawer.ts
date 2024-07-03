@@ -85,9 +85,9 @@ export class MinimapDrawer {
 
     this.lastBotPos = botPos
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z)
-    this.drawPartsOfWorld()
     this.drawWarps()
     this.rotateMap()
+    this.drawPartsOfWorld()
   }
 
   updateWorldColors (
@@ -208,14 +208,51 @@ export class MinimapDrawer {
     this.ctx.strokeStyle = 'black'
     this.ctx.lineWidth = 1
 
-    this.ctx.strokeText('N', this.centerX, this.centerY - this.radius)
-    this.ctx.strokeText('S', this.centerX, this.centerY + this.radius)
-    this.ctx.strokeText('W', this.centerX - this.radius, this.centerY)
-    this.ctx.strokeText('E', this.centerX + this.radius, this.centerY)
-    this.ctx.fillText('N', this.centerX, this.centerY - this.radius)
-    this.ctx.fillText('S', this.centerX, this.centerY + this.radius)
-    this.ctx.fillText('W', this.centerX - this.radius, this.centerY)
-    this.ctx.fillText('E', this.centerX + this.radius, this.centerY)
+    const angle = this.adapter.yaw % Math.PI
+    const angleS = angle + Math.PI
+    const angleW = angle + Math.PI * 3 / 2
+    const angleE = angle + Math.PI / 2
+
+    this.ctx.strokeText(
+      'N', 
+      this.centerX + this.radius * Math.cos(angle), 
+      this.centerY + this.radius * Math.sin(angle)
+    )
+    this.ctx.strokeText(
+      'S', 
+      this.centerX + this.radius * Math.cos(angleS), 
+      this.centerY + this.radius * Math.sin(angleS)
+    )
+    this.ctx.strokeText(
+      'W', 
+      this.centerX + this.radius * Math.cos(angleW), 
+      this.centerY + this.radius * Math.sin(angleW)
+    )
+    this.ctx.strokeText(
+      'E', 
+      this.centerX + this.radius * Math.cos(angleE), 
+      this.centerY + this.radius * Math.sin(angleE)
+    )
+    this.ctx.fillText(
+      'N', 
+      this.centerX + this.radius * Math.cos(angle), 
+      this.centerY + this.radius * Math.sin(angle)
+    )
+    this.ctx.fillText(
+      'S', 
+      this.centerX + this.radius * Math.cos(angleS), 
+      this.centerY + this.radius * Math.sin(angleS)
+    )
+    this.ctx.fillText(
+      'W', 
+      this.centerX + this.radius * Math.cos(angleW), 
+      this.centerY + this.radius * Math.sin(angleW)
+    )
+    this.ctx.fillText(
+      'E', 
+      this.centerX + this.radius * Math.cos(angleE), 
+      this.centerY + this.radius * Math.sin(angleE)
+    )
 
     this.ctx.shadowOffsetX = 0
     this.ctx.shadowOffsetY = 0
