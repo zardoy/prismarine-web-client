@@ -208,7 +208,7 @@ export class MinimapDrawer {
     this.ctx.strokeStyle = 'black'
     this.ctx.lineWidth = 1
 
-    const angle = this.adapter.yaw % Math.PI
+    const angle = this.adapter.yaw % (Math.PI * 2)
     const angleS = angle + Math.PI
     const angleW = angle + Math.PI * 3 / 2
     const angleE = angle + Math.PI / 2
@@ -260,7 +260,7 @@ export class MinimapDrawer {
 
   rotateMap () {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0)
-    const angle = this.adapter.yaw % Math.PI
+    const angle = this.adapter.yaw % (Math.PI * 2)
     this.ctx.translate(this.centerX, this.centerY)
     this.ctx.rotate(angle)
     this.ctx.translate(-this.centerX, -this.centerY)
