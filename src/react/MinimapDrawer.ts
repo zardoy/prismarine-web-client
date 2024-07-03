@@ -84,8 +84,8 @@ export class MinimapDrawer {
 
     this.lastBotPos = botPos
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z)
-    this.drawWarps()
     this.drawPartsOfWorld()
+    this.drawWarps()
   }
 
   updateWorldColors (
@@ -106,8 +106,8 @@ export class MinimapDrawer {
       for (let col = 0; col < this.mapSize; col += 1) {
         this.ctx.fillStyle = this.getHighestBlockColorCached(
           getHighestBlockColor,
-          x - this.mapSize / 2 + this.mapSize - row,
-          z - this.mapSize / 2 + col
+          x - this.mapSize / 2 + col,
+          z - this.mapSize / 2 + row
         )
         this.ctx.fillRect(
           left + this.mapPixel * col,
@@ -157,9 +157,9 @@ export class MinimapDrawer {
   setWarpPosOnClick (e: MouseEvent, botPos: Vec3) {
     if (!e.target) return
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
-    const z = (e.pageX - rect.left) * this.canvas.width / rect.width
-    const x = (e.pageY - rect.top) * this.canvas.height / rect.height
-    const worldX = -1 * x + this.mapSize / 2
+    const z = (e.pageY - rect.top) * this.canvas.width / rect.width
+    const x = (e.pageX - rect.left) * this.canvas.height / rect.height
+    const worldX = x - this.mapSize / 2
     const worldZ = z - this.mapSize / 2
 
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
@@ -176,7 +176,7 @@ export class MinimapDrawer {
       ) 
       if (distance > this.mapSize) continue
       const z = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.z + warp.z))
-      const x = Math.floor((this.mapSize / 2 + this.adapter.playerPosition.x - warp.x))
+      const x = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.x + warp.x))
       const dz = z - this.centerX
       const dx = x - this.centerY
       const circleDist = Math.hypot(dx, dz)
@@ -185,7 +185,7 @@ export class MinimapDrawer {
       const circleZ = circleDist > this.mapSize / 2 ? this.centerX + this.mapSize / 2 * Math.sin(angle) : z
       const circleX = circleDist > this.mapSize / 2 ? this.centerY + this.mapSize / 2 * Math.cos(angle) : x
       this.ctx.beginPath()
-      this.ctx.arc(circleZ, circleX, circleDist > this.mapSize / 2 ? 1.5 : 2, 0, Math.PI * 2, false)
+      this.ctx.arc(circleX, circleZ, circleDist > this.mapSize / 2 ? 1.5 : 2, 0, Math.PI * 2, false)
       this.ctx.strokeStyle = 'black'
       this.ctx.lineWidth = 1
       this.ctx.stroke()
@@ -206,14 +206,14 @@ export class MinimapDrawer {
     this.ctx.strokeStyle = 'black'
     this.ctx.lineWidth = 1
 
-    this.ctx.strokeText('E', this.centerX, this.centerY - this.radius)
-    this.ctx.strokeText('W', this.centerX, this.centerY + this.radius)
-    this.ctx.strokeText('N', this.centerX - this.radius, this.centerY)
-    this.ctx.strokeText('S', this.centerX + this.radius, this.centerY)
-    this.ctx.fillText('E', this.centerX, this.centerY - this.radius)
-    this.ctx.fillText('W', this.centerX, this.centerY + this.radius)
-    this.ctx.fillText('N', this.centerX - this.radius, this.centerY)
-    this.ctx.fillText('S', this.centerX + this.radius, this.centerY)
+    this.ctx.strokeText('N', this.centerX, this.centerY - this.radius)
+    this.ctx.strokeText('S', this.centerX, this.centerY + this.radius)
+    this.ctx.strokeText('W', this.centerX - this.radius, this.centerY)
+    this.ctx.strokeText('E', this.centerX + this.radius, this.centerY)
+    this.ctx.fillText('N', this.centerX, this.centerY - this.radius)
+    this.ctx.fillText('S', this.centerX, this.centerY + this.radius)
+    this.ctx.fillText('W', this.centerX - this.radius, this.centerY)
+    this.ctx.fillText('E', this.centerX + this.radius, this.centerY)
 
     this.ctx.shadowOffsetX = 0
     this.ctx.shadowOffsetY = 0
