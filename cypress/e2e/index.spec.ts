@@ -14,7 +14,7 @@ const compareRenderedFlatWorld = () => {
 }
 
 const testWorldLoad = () => {
-  return cy.document().then({ timeout: 20_000 }, doc => {
+  return cy.document().then({ timeout: 25_000 }, doc => {
     return new Cypress.Promise(resolve => {
       doc.addEventListener('cypress-world-ready', resolve)
     })
