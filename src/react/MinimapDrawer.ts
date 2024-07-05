@@ -99,6 +99,7 @@ export class MinimapDrawer {
     const left = this.centerX - this.radius
     const top = this.centerY - this.radius
 
+    this.ctx.reset()
     this.ctx.save()
 
     this.ctx.beginPath()

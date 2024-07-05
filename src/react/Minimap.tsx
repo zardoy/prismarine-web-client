@@ -10,15 +10,18 @@ import Button from './Button'
 
 export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolean }) => {
   const fullMapOpened = useIsModalActive('full-map')
+  const full = useRef(false)
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
   const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
 
-  function updateMap () {
+  const updateMap = () => {
     if (drawerRef.current) {
-      drawerRef.current.draw(adapter.playerPosition, undefined, fullMapOpened)
-      rotateMap()
+      drawerRef.current.draw(adapter.playerPosition, undefined, full.current)
+      if (!full.current) {
+        rotateMap()
+      }
       if (canvasTick.current % 300 === 0) {
         drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
       }
@@ -29,8 +32,10 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   const toggleFullMap = () => {
     if (fullMapOpened) {
       hideModal({ reactType: 'full-map' })
+      full.current = false
     } else {
       showModal({ reactType: 'full-map' })
+      full.current = true
     }
   }
 
