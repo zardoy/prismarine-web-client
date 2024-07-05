@@ -10,6 +10,7 @@ import Button from './Button'
 
 
 export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolean }) => {
+  const isDragging = useRef(false)
   const fullMapOpened = useIsModalActive('full-map')
   const full = useRef(false)
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
@@ -40,7 +41,20 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     }
   }
 
-  const handleClickOnMap = (e: MouseEvent) => {
+  const eventControl = (event: MouseEvent | TouchEvent) => {
+    if (event.type === 'mousemove' || event.type === 'touchmove') {
+      isDragging.current = true
+    }
+
+    if (event.type === 'mouseup' || event.type === 'touchend') {
+      if (!isDragging.current) {
+        handleClickOnMap(event)
+      }
+      isDragging.current = false
+    }
+  }
+
+  const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
     drawerRef.current?.setWarpPosOnClick(e, adapter.playerPosition)
     setIsWarpInfoOpened(true)
   }
@@ -63,13 +77,19 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
 
   useEffect(() => {
     if ((fullMapOpened || fullMap) && canvasRef.current) {
-      canvasRef.current.addEventListener('click', handleClickOnMap)
+      canvasRef.current.addEventListener('mousemove', eventControl)
+      canvasRef.current.addEventListener('touchmove', eventControl)
+      canvasRef.current.addEventListener('mouseup', eventControl)
+      canvasRef.current.addEventListener('touchend', eventControl)
     } else if (!fullMapOpened || !fullMap) {
       setIsWarpInfoOpened(false)
     }
 
     return () => {
-      canvasRef.current?.removeEventListener('click', handleClickOnMap)
+      canvasRef.current?.removeEventListener('mousemove', eventControl)
+      canvasRef.current?.removeEventListener('touchmove', eventControl)
+      canvasRef.current?.removeEventListener('mouseup', eventControl)
+      canvasRef.current?.removeEventListener('touchend', eventControl)
     }
   }, [fullMapOpened, fullMap])
 
@@ -111,6 +131,9 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
 
     <TransformWrapper
       limitToBounds={false}
+      doubleClick={{
+        disabled: true
+      }}
     >
       <TransformComponent>
         <canvas
