@@ -456,7 +456,6 @@ async function connect (connectOptions: ConnectOptions) {
       setCacheResult (result) {
         newTokensCacheResult = result
       },
-      clientOptions: options
     }) : undefined
 
     bot = mineflayer.createBot({
@@ -481,6 +480,7 @@ async function connect (connectOptions: ConnectOptions) {
       },
       sessionServer: authData?.sessionEndpoint,
       auth: connectOptions.authenticatedAccount ? async (client, options) => {
+        authData!.setOnMsaCodeCallback(options.onMsaCode)
         //@ts-expect-error
         client.authflow = authData!.authFlow
         try {
@@ -510,6 +510,7 @@ async function connect (connectOptions: ConnectOptions) {
           } else {
             updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: undefined }), connectOptions.serverIndex)
           }
+          setLoadingScreenStatus('Authentication successful. Logging in to server')
         } finally {
           signInMessageState.code = ''
         }

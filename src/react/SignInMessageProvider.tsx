@@ -27,5 +27,6 @@ export default () => {
     onCancel={() => {
       signInMessageState.abortController.abort()
     }}
+    directLink={`http://microsoft.com/link?otc=${code}`}
   />
 }

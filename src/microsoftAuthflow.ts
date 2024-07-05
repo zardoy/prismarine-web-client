@@ -1,4 +1,5 @@
-export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult, clientOptions }) => {
+export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult }) => {
+  let onMsaCodeCallback
   // const authEndpoint = 'http://localhost:3000/'
   // const sessionEndpoint = 'http://localhost:3000/session'
   let authEndpoint = ''
@@ -7,8 +8,8 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
     const url = proxyBaseUrl + '/api/vm/net/connect'
     const result = await fetch(url)
     const json = await result.json()
-    authEndpoint = json.capabilities.authEndpoint
-    sessionEndpoint = json.capabilities.sessionEndpoint
+    authEndpoint = urlWithBase(json.capabilities.authEndpoint, proxyBaseUrl)
+    sessionEndpoint = urlWithBase(json.capabilities.sessionEndpoint, proxyBaseUrl)
     if (!authEndpoint) throw new Error('No auth endpoint')
   } catch (err) {
     console.error(err)
@@ -42,7 +43,7 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
             try {
               const json = JSON.parse(chunkStr)
               if (json.user_code) {
-                clientOptions.onMsaCode(json)
+                onMsaCodeCallback(json)
                 // this.codeCallback(json)
               }
               if (json.error) throw new Error(json.error)
@@ -62,30 +63,91 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
         }
         return reader.read().then(processText)
       })
-      return restoreDates(result)
+      if (!window.crypto && !isPageSecure()) throw new Error('Crypto API is available only in secure contexts. Be sure to use https!')
+      const restoredData = await restoreData(result)
+      restoredData.certificates.profileKeys.private = restoredData.certificates.profileKeys.privatePEM
+      return restoredData
     }
   }
   return {
     authFlow,
-    sessionEndpoint
+    sessionEndpoint,
+    setOnMsaCodeCallback (callback) {
+      onMsaCodeCallback = callback
+    }
   }
 }
 
+function isPageSecure () {
+  return window.location.protocol === 'https:'
+}
+
 // restore dates from strings
-const restoreDates = (json) => {
+const restoreData = async (json) => {
+  const promises = [] as Array<Promise<void>>
   if (typeof json === 'object' && json) {
     for (const [key, value] of Object.entries(json)) {
-      if (typeof value === 'string' && value.endsWith('Z')) {
-        const date = new Date(value)
-        if (!isNaN(date.getTime())) {
-          json[key] = date
+      if (typeof value === 'string') {
+        promises.push(tryRestorePublicKey(value, key, json))
+        if (value.endsWith('Z')) {
+          const date = new Date(value)
+          if (!isNaN(date.getTime())) {
+            json[key] = date
+          }
         }
       }
       if (typeof value === 'object') {
-        restoreDates(value)
+        // eslint-disable-next-line no-await-in-loop
+        await restoreData(value)
       }
     }
   }
 
+  await Promise.all(promises)
+
   return json
+}
+
+const tryRestorePublicKey = async (value: string, name: string, parent: { [x: string]: any }) => {
+  value = value.trim()
+  if (!name.endsWith('PEM') || !value.startsWith('-----BEGIN RSA PUBLIC KEY-----') || !value.endsWith('-----END RSA PUBLIC KEY-----')) return
+  const der = pemToArrayBuffer(value)
+  const key = await window.crypto.subtle.importKey(
+    'spki', // Specify that the data is in SPKI format
+    der,
+    {
+      name: 'RSA-OAEP',
+      hash: { name: 'SHA-256' }
+    },
+    true,
+    ['encrypt'] // Specify key usages
+  )
+  const originalName = name.replace('PEM', '')
+  const exported = await window.crypto.subtle.exportKey('spki', key)
+  const exportedBuffer = new Uint8Array(exported)
+  parent[originalName] = {
+    export () {
+      return exportedBuffer
+    }
+  }
+}
+
+function pemToArrayBuffer (pem) {
+  // Fetch the part of the PEM string between header and footer
+  const pemHeader = '-----BEGIN RSA PUBLIC KEY-----'
+  const pemFooter = '-----END RSA PUBLIC KEY-----'
+  const pemContents = pem.slice(pemHeader.length, pem.length - pemFooter.length).trim()
+  const binaryDerString = atob(pemContents.replaceAll(/\s/g, ''))
+  const binaryDer = new Uint8Array(binaryDerString.length)
+  for (let i = 0; i < binaryDerString.length; i++) {
+    binaryDer[i] = binaryDerString.codePointAt(i)!
+  }
+  return binaryDer.buffer
+}
+
+const urlWithBase = (url: string, base: string) => {
+  const urlObj = new URL(url, base)
+  base = base.replace(/^https?:\/\//, '')
+  urlObj.host = base.includes(':') ? base : `${base}:80`
+  return urlObj.toString()
 }

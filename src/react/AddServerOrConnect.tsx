@@ -43,13 +43,12 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
   const [usernameOverride, setUsernameOverride] = React.useState(initialData?.usernameOverride ?? qsParams?.get('username') ?? '')
   const smallWidth = useIsSmallWidth()
   const lockConnect = qsParams?.get('lockConnect') === 'true'
-  const [accountIndex, setAccountIndex] = React.useState(0)
+  const initialAccount = initialData?.authenticatedAccountOverride
+  const [accountIndex, setAccountIndex] = React.useState(initialAccount === true ? -2 : (initialAccount && accounts?.includes(initialAccount)) ? accounts.indexOf(initialAccount) : 0)
 
   const freshAccount = accountIndex === -2
   const noAccountSelected = accountIndex === -1
   const authenticatedAccountOverride = noAccountSelected ? undefined : freshAccount ? true : accounts?.[accountIndex]
-
-  const initialAccount = initialData?.authenticatedAccountOverride
 
   let ipFinal = serverIp.includes(':') ? serverIp : `${serverIp}:${serverPort}`
   ipFinal = ipFinal.replace(/:$/, '')

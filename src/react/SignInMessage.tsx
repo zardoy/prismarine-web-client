@@ -12,7 +12,8 @@ export default ({
   expiresEnd = Date.now() + 1000 * 60 * 5,
   setSaveToken = (() => { }) as ((state: boolean) => void) | undefined,
   defaultSaveToken = true,
-  onCancel = () => { }
+  onCancel = () => { },
+  directLink = 'https://aka.ms/devicelogin'
 }) => {
   if (connectingServer.length > 30) connectingServer = connectingServer.slice(0, 30) + '...'
   const [timeLeft, setTimeLeft] = useState(``)
@@ -58,6 +59,15 @@ export default ({
         marginTop: 10,
       }}>
         To join a Minecraft server {connectingServer} using your Microsoft account, you need to visit{' '}
+        <a
+          href={directLink}
+          style={{
+            color: 'black',
+            textDecoration: 'underline',
+            fontWeight: 600,
+          }}
+        >Direct Link</a>
+        {' '} or {' '}
         <a
           href={loginLink}
           style={{
