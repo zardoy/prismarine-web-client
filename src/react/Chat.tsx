@@ -35,6 +35,7 @@ type Props = {
   fetchCompletionItems?: (triggerKind: 'implicit' | 'explicit', completeValue: string, fullValue: string, abortController?: AbortController) => Promise<string[] | void>
   // width?: number
   allowSelection?: boolean
+  inputDisabled?: string
 }
 
 export const chatInputValueGlobal = proxy({
@@ -52,7 +53,17 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
   }, initialTimeout ? 5000 : 0)
 }
 
-export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose, usingTouch, allowSelection }: Props) => {
+export default ({
+  messages,
+  opacity = 1,
+  fetchCompletionItems,
+  opened,
+  sendMessage,
+  onClose,
+  usingTouch,
+  allowSelection,
+  inputDisabled
+}: Props) => {
   const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 
   const [completePadText, setCompletePadText] = useState('')
@@ -252,6 +263,8 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
               autoComplete="off"
               aria-autocomplete="both"
               onChange={onMainInputChange}
+              disabled={!!inputDisabled}
+              placeholder={inputDisabled}
               onKeyDown={(e) => {
                 if (e.code === 'ArrowUp') {
                   if (chatHistoryPos.current === 0) return

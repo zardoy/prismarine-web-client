@@ -9,6 +9,8 @@ import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
 import { itemsAtlases, onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
+import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
+import microsoftAuthflow from './microsoftAuthflow'
 
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
@@ -91,7 +93,10 @@ import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 import './water'
 import { ConnectOptions } from './connect'
-import { subscribe } from 'valtio'
+import { ref, subscribe } from 'valtio'
+import { signInMessageState } from './react/SignInMessageProvider'
+import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 
 window.debug = debug
 window.THREE = THREE
@@ -219,7 +224,7 @@ function hideCurrentScreens () {
 }
 
 const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
-  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides, serverOverridesFlat: flattenedServerOverrides })
+  void connect({ singleplayer: true, username: options.localUsername, serverOverrides, serverOverridesFlat: flattenedServerOverrides })
 }
 function listenGlobalEvents () {
   window.addEventListener('connect', e => {
@@ -275,7 +280,7 @@ async function connect (connectOptions: ConnectOptions) {
   const { renderDistance: renderDistanceSingleplayer, multiplayerRenderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
-  const { username, password } = connectOptions
+  let { username } = connectOptions
 
   console.log(`connecting to ${server.host}:${server.port} with ${username}`)
 
@@ -361,6 +366,11 @@ async function connect (connectOptions: ConnectOptions) {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
+      if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
+        // todo support it (just need to fix .export crash)
+        throw new Error('Microsoft authentication is only supported in 1.19.4 and above (at least for now)')
+      }
+
       // todo expose cache
       const lastVersion = supportedVersions.at(-1)
       if (version === lastVersion) {
@@ -424,6 +434,7 @@ async function connect (connectOptions: ConnectOptions) {
       flyingSquidEvents()
     }
 
+    if (connectOptions.authenticatedAccount) username = 'not-used'
     let initialLoadingText: string
     if (singleplayer) {
       initialLoadingText = 'Local server is still starting'
@@ -433,6 +444,20 @@ async function connect (connectOptions: ConnectOptions) {
       initialLoadingText = 'Connecting to server'
     }
     setLoadingScreenStatus(initialLoadingText)
+
+    let newTokensCacheResult = null as any
+    const cachedTokens = typeof connectOptions.authenticatedAccount === 'object' ? connectOptions.authenticatedAccount.cachedTokens : {}
+    const authData = connectOptions.authenticatedAccount ? await microsoftAuthflow({
+      tokenCaches: cachedTokens,
+      proxyBaseUrl: connectOptions.proxy,
+      setProgressText (text) {
+        setLoadingScreenStatus(text)
+      },
+      setCacheResult (result) {
+        newTokensCacheResult = result
+      },
+    }) : undefined
+
     bot = mineflayer.createBot({
       host: server.host,
       port: server.port ? +server.port : undefined,
@@ -448,8 +473,49 @@ async function connect (connectOptions: ConnectOptions) {
         connect () { },
         Client: CustomChannelClient as any,
       } : {},
+      onMsaCode (data) {
+        signInMessageState.code = data.user_code
+        signInMessageState.link = data.verification_uri
+        signInMessageState.expiresOn = Date.now() + data.expires_in * 1000
+      },
+      sessionServer: authData?.sessionEndpoint,
+      auth: connectOptions.authenticatedAccount ? async (client, options) => {
+        authData!.setOnMsaCodeCallback(options.onMsaCode)
+        //@ts-expect-error
+        client.authflow = authData!.authFlow
+        try {
+          signInMessageState.abortController = ref(new AbortController())
+          await Promise.race([
+            protocolMicrosoftAuth.authenticate(client, options),
+            new Promise((_r, reject) => {
+              signInMessageState.abortController.signal.addEventListener('abort', () => {
+                reject(new Error('Aborted by user'))
+              })
+            })
+          ])
+          if (signInMessageState.shouldSaveToken) {
+            updateAuthenticatedAccountData(accounts => {
+              const existingAccount = accounts.find(a => a.username === client.username)
+              if (existingAccount) {
+                existingAccount.cachedTokens = { ...existingAccount.cachedTokens, ...newTokensCacheResult }
+              } else {
+                accounts.push({
+                  username: client.username,
+                  cachedTokens: { ...cachedTokens, ...newTokensCacheResult }
+                })
+              }
+              return accounts
+            })
+            updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: client.username }), connectOptions.serverIndex)
+          } else {
+            updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: undefined }), connectOptions.serverIndex)
+          }
+          setLoadingScreenStatus('Authentication successful. Logging in to server')
+        } finally {
+          signInMessageState.code = ''
+        }
+      } : undefined,
       username,
-      password,
       viewDistance: renderDistance,
       checkTimeoutInterval: 240 * 1000,
       // noPongTimeout: 240 * 1000,
