@@ -44,7 +44,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
   const smallWidth = useIsSmallWidth()
   const lockConnect = qsParams?.get('lockConnect') === 'true'
   const initialAccount = initialData?.authenticatedAccountOverride
-  const [accountIndex, setAccountIndex] = React.useState(initialAccount === true ? -2 : (initialAccount && accounts?.includes(initialAccount)) ? accounts.indexOf(initialAccount) : 0)
+  const [accountIndex, setAccountIndex] = React.useState(initialAccount === true ? -2 : initialAccount ? (accounts?.includes(initialAccount) ? accounts.indexOf(initialAccount) : -2) : -1)
 
   const freshAccount = accountIndex === -2
   const noAccountSelected = accountIndex === -1

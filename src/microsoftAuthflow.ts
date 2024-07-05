@@ -5,6 +5,7 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
   let authEndpoint = ''
   let sessionEndpoint = ''
   try {
+    if (!proxyBaseUrl.startsWith('http')) proxyBaseUrl = `${isPageSecure() ? 'https' : 'http'}://${proxyBaseUrl}`
     const url = proxyBaseUrl + '/api/vm/net/connect'
     const result = await fetch(url)
     const json = await result.json()
@@ -148,6 +149,6 @@ function pemToArrayBuffer (pem) {
 const urlWithBase = (url: string, base: string) => {
   const urlObj = new URL(url, base)
   base = base.replace(/^https?:\/\//, '')
-  urlObj.host = base.includes(':') ? base : `${base}:80`
+  urlObj.host = base.includes(':') ? base : `${base}:${isPageSecure() ? '443' : '80'}`
   return urlObj.toString()
 }
