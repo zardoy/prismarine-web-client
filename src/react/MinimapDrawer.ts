@@ -75,6 +75,7 @@ export class MinimapDrawer {
   draw (
     botPos: Vec3,
     getHighestBlockColor?: DrawerAdapter['getHighestBlockColor'],
+    full?: boolean
   ) {
     this.ctx.clearRect(
       this.centerX - this.radius,
@@ -84,16 +85,16 @@ export class MinimapDrawer {
     )
 
     this.lastBotPos = botPos
-    this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z)
-    this.drawWarps()
-    this.rotateMap()
+    this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z, full)
     this.drawPartsOfWorld()
+    this.drawWarps()
   }
 
   updateWorldColors (
     getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
     x: number,
-    z: number
+    z: number,
+    full?: boolean
   ) {
     const left = this.centerX - this.radius
     const top = this.centerY - this.radius
@@ -101,7 +102,11 @@ export class MinimapDrawer {
     this.ctx.save()
 
     this.ctx.beginPath()
-    this.ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2, true)
+    if (full) {
+      this.ctx.rect(this.centerX - this.radius, this.centerY - this.radius, this.radius * 2, this.radius * 2)
+    } else {
+      this.ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2, true)
+    }
     this.ctx.clip()
 
     for (let row = 0; row < this.mapSize; row += 1) {
@@ -208,7 +213,7 @@ export class MinimapDrawer {
     this.ctx.strokeStyle = 'black'
     this.ctx.lineWidth = 1
 
-    const angle = this.adapter.yaw % (Math.PI * 2)
+    const angle = - Math.PI / 2
     const angleS = angle + Math.PI
     const angleW = angle + Math.PI * 3 / 2
     const angleE = angle + Math.PI / 2
@@ -258,9 +263,8 @@ export class MinimapDrawer {
     this.ctx.shadowOffsetY = 0
   }
 
-  rotateMap () {
+  rotateMap (angle: number) {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0)
-    const angle = this.adapter.yaw % (Math.PI * 2)
     this.ctx.translate(this.centerX, this.centerY)
     this.ctx.rotate(angle)
     this.ctx.translate(-this.centerX, -this.centerY)

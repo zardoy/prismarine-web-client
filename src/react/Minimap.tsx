@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { Vec3 } from 'vec3'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
-import { showModal, hideModal } from '../globalState'
+import { showModal, hideModal, activeModalStack } from '../globalState'
 import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Input from './Input'
@@ -16,8 +16,9 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   const drawerRef = useRef<MinimapDrawer | null>(null)
 
   function updateMap () {
-    if (drawerRef.current && canvasTick.current % 2 === 0) {
-      drawerRef.current.draw(adapter.playerPosition)
+    if (drawerRef.current) {
+      drawerRef.current.draw(adapter.playerPosition, undefined, fullMapOpened)
+      rotateMap()
       if (canvasTick.current % 300 === 0) {
         drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
       }
@@ -38,8 +39,12 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     setIsWarpInfoOpened(true)
   }
 
-  const updateWarps = () => {
+  const updateWarps = () => { }
 
+  const rotateMap = () => {
+    if (!drawerRef.current) return
+    const angle = adapter.yaw % (Math.PI * 2)
+    drawerRef.current.canvas.style.transform = `rotate(${angle}rad)`
   }
 
   useEffect(() => {
