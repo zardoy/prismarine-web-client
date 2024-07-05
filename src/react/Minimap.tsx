@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { Vec3 } from 'vec3'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
-import { showModal, hideModal, activeModalStack } from '../globalState'
+import { showModal, hideModal } from '../globalState'
+import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch"
 import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Input from './Input'
@@ -108,14 +109,17 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       }}
     ></div>
 
-    <canvas
-      style={{
-        width: '35%',
-      }}
-      width={150}
-      height={150}
-      ref={canvasRef}
-    ></canvas>
+    <TransformWrapper
+      limitToBounds={false}
+    >
+      <TransformComponent>
+        <canvas
+          width={200}
+          height={200}
+          ref={canvasRef}
+        ></canvas>
+      </TransformComponent>
+    </TransformWrapper>
     {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawerRef.current} setIsWarpInfoOpened={setIsWarpInfoOpened} />}
   </div> : <div
     className='minimap'
@@ -130,7 +134,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       toggleFullMap()
     }}
   >
-    <canvas width={80} height={80} ref={canvasRef}></canvas>
+      <canvas width={80} height={80} ref={canvasRef}></canvas>
   </div>
 }
 
