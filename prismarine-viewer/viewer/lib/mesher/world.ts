@@ -33,7 +33,7 @@ export class World {
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
 
-  constructor(version) {
+  constructor (version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
     this.preflat = !mcData(version).supportFeature('blockStateId')
@@ -126,20 +126,22 @@ export class World {
         }
       })
       if (this.preflat) {
-        const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || legacyJson.blocks[b.type + ':' + '0']
-        b.name = namePropsStr.split('[')[0]
-        const propsStr = namePropsStr.split('[')?.[1]?.split(']');
-        if (propsStr) {
-          const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
-            let [key, val] = x.split('=') as any
-            if (!isNaN(val)) val = parseInt(val)
-            return [key, val]
-          }))
-          //@ts-ignore
-          b._properties = newProperties
-        } else {
-          //@ts-ignore
-          b._properties = {}
+        //@ts-ignore
+        b._properties = {}
+
+        const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || findClosestLegacyBlockFallback(b.type, b.metadata, pos)
+        if (namePropsStr) {
+          b.name = namePropsStr.split('[')[0]
+          const propsStr = namePropsStr.split('[')?.[1]?.split(']')
+          if (propsStr) {
+            const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
+              let [key, val] = x.split('=') as any
+              if (!isNaN(val)) val = parseInt(val)
+              return [key, val]
+            }))
+            //@ts-ignore
+            b._properties = newProperties
+          }
         }
       }
     }
@@ -156,6 +158,15 @@ export class World {
   shouldMakeAo (block: WorldBlock | null) {
     return block?.isCube && !ignoreAoBlocks.includes(block.name)
   }
+}
+
+const findClosestLegacyBlockFallback = (id, metadata, pos) => {
+  console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos}, falling back`) // todo has known issues
+  for (const [key, value] of Object.entries(legacyJson.blocks)) {
+    const [idKey, meta] = key.split(':')
+    if (idKey === id) return value
+  }
+  return null
 }
 
 // todo export in chunk instead

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Transition } from 'react-transition-group'
 import { createPortal } from 'react-dom'
 import { subscribe, useSnapshot } from 'valtio'
-import { getItemNameRaw, openItemsCanvas, openPlayerInventory, upInventoryItems } from '../inventoryWindows'
+import { allImagesLoadedState, getItemNameRaw, openItemsCanvas, openPlayerInventory, upInventoryItems } from '../inventoryWindows'
 import { activeModalStack, isGameActive, miscUiState } from '../globalState'
 import { currentScaling } from '../scaleInterface'
 import { watchUnloadForCleanup } from '../gameUnload'
@@ -19,7 +19,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
 
   const defaultStyle: React.CSSProperties = {
     position: 'fixed',
-    bottom: `calc(env(safe-area-inset-bottom) + ${bot ? bot.game.gameMode === 'creative' ? '35px' : '50px' : '50px'})`,
+    bottom: `calc(env(safe-area-inset-bottom) + ${bot ? bot.game.gameMode === 'creative' ? '40px' : '50px' : '50px'})`,
     left: 0,
     right: 0,
     fontSize: 10,
@@ -111,7 +111,7 @@ export default () => {
     inv.canvas.style.pointerEvents = 'auto'
     container.current.appendChild(inv.canvas)
     const upHotbarItems = () => {
-      if (!viewer.world.downloadedTextureImage || !viewer.world.customTexturesDataUrl) return
+      if (!viewer.world.downloadedTextureImage || !viewer.world.downloadedBlockStatesData || !allImagesLoadedState.value) return
       upInventoryItems(true, inv)
     }
 
@@ -127,6 +127,9 @@ export default () => {
     bot.inventory.on('updateSlot', upHotbarItems)
     viewer.world.renderUpdateEmitter.on('textureDownloaded', upHotbarItems)
     viewer.world.renderUpdateEmitter.on('blockStatesDownloaded', upHotbarItems)
+    const unsub2 = subscribe(allImagesLoadedState, () => {
+      upHotbarItems()
+    })
 
     const setSelectedSlot = (index: number) => {
       if (index === bot.quickBarSlot) return
@@ -195,6 +198,7 @@ export default () => {
     return () => {
       inv.destroy()
       controller.abort()
+      unsub2()
       viewer.world.renderUpdateEmitter.off('textureDownloaded', upHotbarItems)
       viewer.world.renderUpdateEmitter.off('blockStatesDownloaded', upHotbarItems)
     }
