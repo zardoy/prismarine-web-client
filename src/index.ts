@@ -42,6 +42,7 @@ import * as THREE from 'three'
 import MinecraftData, { versionsByMinecraftVersion } from 'minecraft-data'
 import debug from 'debug'
 import { defaultsDeep } from 'lodash-es'
+import initializePacketsReplay from './packetsReplay'
 
 import { initVR } from './vr'
 import {
@@ -97,6 +98,7 @@ import { ref, subscribe } from 'valtio'
 import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
+import packetsPatcher from './packetsPatcher'
 
 window.debug = debug
 window.THREE = THREE
@@ -108,6 +110,8 @@ window.beforeRenderFrame = []
 void registerServiceWorker()
 watchFov()
 initCollisionShapes()
+initializePacketsReplay()
+packetsPatcher()
 
 // Create three.js context, add to page
 let renderer: THREE.WebGLRenderer
@@ -361,6 +365,7 @@ async function connect (connectOptions: ConnectOptions) {
   }
 
   const renderDistance = singleplayer ? renderDistanceSingleplayer : multiplayerRenderDistance
+  let updateDataAfterJoin = () => { }
   let localServer
   try {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
@@ -506,9 +511,13 @@ async function connect (connectOptions: ConnectOptions) {
               }
               return accounts
             })
-            updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: client.username }), connectOptions.serverIndex)
+            updateDataAfterJoin = () => {
+              updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: client.username }), connectOptions.serverIndex)
+            }
           } else {
-            updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: undefined }), connectOptions.serverIndex)
+            updateDataAfterJoin = () => {
+              updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: undefined }), connectOptions.serverIndex)
+            }
           }
           setLoadingScreenStatus('Authentication successful. Logging in to server')
         } finally {
@@ -660,6 +669,7 @@ async function connect (connectOptions: ConnectOptions) {
     setLoadingScreenStatus('Placing blocks (starting viewer)')
     localStorage.lastConnectOptions = JSON.stringify(connectOptions)
     connectOptions.onSuccessfulPlay?.()
+    updateDataAfterJoin()
     if (connectOptions.autoLoginPassword) {
       bot.chat(`/login ${connectOptions.autoLoginPassword}`)
     }
