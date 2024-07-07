@@ -113,10 +113,10 @@ Press `Y` to set query parameters to url of your current game state.
 - `?version=<version>` - Set the version for server
 - `?lockConnect=true` - Disable cancel / save buttons, useful for integrates iframes
 - `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
-<!-- - `?password=<password>` - Set the password on load -->
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
+<!-- - `?requiresAuth=true` - Show the Microsoft login screen on server connect. Useful for servers that require authentication (running in online mode) -->
 
 - `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
 - `?setting=<setting_name>:<setting_value>` - Set the and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`

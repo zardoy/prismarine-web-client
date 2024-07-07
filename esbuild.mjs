@@ -60,6 +60,7 @@ const buildOptions = {
     net: 'net-browserify',
     assert: 'assert',
     dns: './src/dns.js',
+    'yggdrasil': './src/yggdrasilReplacement.ts',
     // todo write advancedAliases plugin
   },
   inject: [

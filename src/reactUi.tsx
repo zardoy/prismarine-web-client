@@ -41,6 +41,7 @@ import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
 import HeldMapUi from './react/HeldMapUi'
 import BedTime from './react/BedTime'
 import NoModalFoundProvider from './react/NoModalFoundProvider'
+import SignInMessageProvider from './react/SignInMessageProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -175,6 +176,7 @@ const App = () => {
         <MainMenuRenderApp />
         <NotificationProvider />
         <TouchAreasControlsProvider />
+        <SignInMessageProvider />
         <NoModalFoundProvider />
         {/* <GameHud>
         </GameHud> */}
@@ -193,7 +195,7 @@ const App = () => {
 const PerComponentErrorBoundary = ({ children }) => {
   return children.map((child, i) => <ErrorBoundary key={i} renderError={(error) => {
     const componentNameClean = (child.type.name || child.type.displayName || 'Unknown').replaceAll(/__|_COMPONENT/g, '')
-    showNotification(`UI component ${componentNameClean} crashed!`, 'Please report this. Use console to see more info.', true, undefined)
+    showNotification(`UI component ${componentNameClean} crashed!`, 'Please report this. Use console for more.', true, undefined)
     return null
   }}>{child}</ErrorBoundary>)
 }

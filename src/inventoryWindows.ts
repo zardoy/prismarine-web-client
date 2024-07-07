@@ -328,9 +328,9 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
       return parsed as MessageFormatPart
     }
   } catch (err) {
-    return [{
+    return {
       text: customName
-    }]
+    }
   }
 }
 

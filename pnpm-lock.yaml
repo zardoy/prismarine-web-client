@@ -12,13 +12,13 @@ overrides:
   prismarine-world: github:zardoy/prismarine-world#next-era
   minecraft-data: 3.65.0
   prismarine-provider-anvil: github:zardoy/prismarine-provider-anvil#everything
-  minecraft-protocol: github:PrismarineJS/node-minecraft-protocol
+  minecraft-protocol: github:PrismarineJS/node-minecraft-protocol#master
   react: ^18.2.0
   prismarine-chunk: github:zardoy/prismarine-chunk
 
 patchedDependencies:
   minecraft-protocol@1.47.0:
-    hash: 2uxevyasyasdavsxuehfavgkjq
+    hash: 7otpchsbv7hxsuis4rrrwdtbve
     path: patches/minecraft-protocol@1.47.0.patch
   three@0.154.0:
     hash: sj7ocb4p23jym6bkfgueanti2e
@@ -62,8 +62,8 @@ importers:
         specifier: ^2.1.3
         version: 2.1.3
       '@zardoy/react-util':
-        specifier: ^0.2.0
-        version: 0.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^0.2.4
+        version: 0.2.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@zardoy/utils':
         specifier: ^0.0.11
         version: 0.0.11
@@ -107,8 +107,8 @@ importers:
         specifier: ^10.0.12
         version: 10.0.12
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.30
-        version: '@zardoy/flying-squid@0.0.30(encoding@0.1.13)'
+        specifier: npm:@zardoy/flying-squid@^0.0.33
+        version: '@zardoy/flying-squid@0.0.33(encoding@0.1.13)'
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -131,8 +131,8 @@ importers:
         specifier: 3.65.0
         version: 3.65.0
       minecraft-protocol:
-        specifier: github:PrismarineJS/node-minecraft-protocol
-        version: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/ccab9fb39681f3ebe0d264e2a3f833aa3c5a1ac7(patch_hash=2uxevyasyasdavsxuehfavgkjq)(encoding@0.1.13)
+        specifier: github:PrismarineJS/node-minecraft-protocol#master
+        version: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=7otpchsbv7hxsuis4rrrwdtbve)(encoding@0.1.13)
       mineflayer-item-map-downloader:
         specifier: github:zardoy/mineflayer-item-map-downloader
         version: https://codeload.github.com/zardoy/mineflayer-item-map-downloader/tar.gz/642fd4f7023a98a96da4caf8f993f8e19361a1e7(encoding@0.1.13)
@@ -311,7 +311,7 @@ importers:
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
-        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23(encoding@0.1.13)
+        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/dddc683544317f117172077a9245a07be1b12479(encoding@0.1.13)
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -2814,9 +2814,6 @@ packages:
   '@types/node@20.8.0':
     resolution: {integrity: sha512-LzcWltT83s1bthcvjBmiBvGJiiUe84NWRHkw+ZV6Fr41z2FbIzvc815dk2nQ3RAKMuN2fkenM/z3Xv2QzEpYxQ==}
 
-  '@types/node@20.8.10':
-    resolution: {integrity: sha512-TlgT8JntpcbmKUFzjhsyhGfP2fsiz1Mv56im6enJ905xG1DAYesxJaeSbGqQmAw8OWPdhyJGhGSQGKRNJ45u9w==}
-
   '@types/normalize-package-data@2.4.2':
     resolution: {integrity: sha512-lqa4UEhhv/2sjjIQgjX8B+RBjj47eo0mzGasklVJ78UKGQY1r0VpB9XHDaZZO9qzEFDdy4MrXLuEaSmPrPSe/A==}
 
@@ -3078,17 +3075,17 @@ packages:
     resolution: {integrity: sha512-6xm38yGVIa6mKm/DUCF2zFFJhERh/QWp1ufm4cNUvxsONBmfPg8uZ9pZBdOmF6qFGr/HlT6ABBkCSx/dlEtvWg==}
     engines: {node: '>=12 <14 || 14.2 - 14.9 || >14.10.0'}
 
-  '@zardoy/flying-squid@0.0.30':
-    resolution: {integrity: sha512-jQ9GQUKR0nRmUxERLB1sOIkQRc1PdSxqHVPe+BB80ELx2P7R1sVcG8sGMQ2BBdH2vRYBg+HD3r1vKudqYSd1Ww==}
+  '@zardoy/flying-squid@0.0.33':
+    resolution: {integrity: sha512-zCgHinWrNbS4HugnA1GBMuKQ0rUemBg//b+XhefxKeGBg9ngk8UVlJoR6cCAaa67zjiauEq/rhnNKnA4V7vtuQ==}
     engines: {node: '>=8'}
     hasBin: true
 
-  '@zardoy/react-util@0.2.0':
-    resolution: {integrity: sha512-glABtx54mh4XSaK6BNALWE3mlshPjcPwPsRj/GnOXEA7WJY/6n43iJoukbaYF3758mGZRU5Fq6gklyFjBg0yHQ==}
+  '@zardoy/react-util@0.2.4':
+    resolution: {integrity: sha512-YRBbXi54QOgWGDSn3NLEMMGrWbfL/gn2khxO31HT0WPFB6IW2rSnB4hcy+S/nc+2D6PRNq4kQxGs4vTAe4a7Xg==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     peerDependencies:
       react: ^18.2.0
-      react-dom: ^18.0.0
+      react-dom: '>=18.0.0'
 
   '@zardoy/utils@0.0.11':
     resolution: {integrity: sha512-d6xBnSFCOa98HcL52xSBflJKjKpxfRhtr1eVexy89YujeCHSQhUMmSz9h07xyrulfW60k9tSeYH5reuqoh4l4w==}
@@ -6074,11 +6071,6 @@ packages:
     version: 1.47.0
     engines: {node: '>=14'}
 
-  minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/ccab9fb39681f3ebe0d264e2a3f833aa3c5a1ac7:
-    resolution: {tarball: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/ccab9fb39681f3ebe0d264e2a3f833aa3c5a1ac7}
-    version: 1.47.0
-    engines: {node: '>=14'}
-
   minecraft-wrap@1.5.1:
     resolution: {integrity: sha512-7DZ2WhrcRD3fUMau84l9Va0KWzV92SHNdB7mnNdNhgXID2aW6pjWuYPZi8MepEBemA4XKKdnDx7HmhTbkoiR8A==}
     hasBin: true
@@ -6097,8 +6089,8 @@ packages:
     resolution: {integrity: sha512-QMMNPx4IyZE7ydAzjvGLQLCnQNUOfkk1qVZKxTTS9q3qPTAewz4GhsVUBtbQ8LSbHthe5RcQ1Sgxs4wlIma/Qw==}
     engines: {node: '>=18'}
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23}
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/dddc683544317f117172077a9245a07be1b12479:
+    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/dddc683544317f117172077a9245a07be1b12479}
     version: 4.20.1
     engines: {node: '>=18'}
 
@@ -6750,6 +6742,11 @@ packages:
     version: 1.35.0
     engines: {node: '>=14'}
 
+  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cea0b6c792d7dcbb69dfd20fa48be5fd60ce83ef:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cea0b6c792d7dcbb69dfd20fa48be5fd60ce83ef}
+    version: 1.35.0
+    engines: {node: '>=14'}
+
   prismarine-entity@2.3.1:
     resolution: {integrity: sha512-HOv8l7IetHNf4hwZ7V/W4vM3GNl+e6VCtKDkH9h02TRq7jWngsggKtJV+VanCce/sNwtJUhJDjORGs728ep4MA==}
 
@@ -7032,6 +7029,12 @@ packages:
 
   react-fast-compare@3.2.2:
     resolution: {integrity: sha512-nsO+KSNgo1SbJqJEYRE9ERzo7YtYbou/OqjSQKxV7jcKox7+usiUVZOAC+XnDOABXggQTno0Y1CpVnuWEc1boQ==}
+
+  react-hook-form@7.52.0:
+    resolution: {integrity: sha512-mJX506Xc6mirzLsmXUJyqlAI3Kj9Ph2RhplYhUVffeOQSnubK2uVqBFOBJmvKikvbFV91pxVXmDiR+QMF19x6A==}
+    engines: {node: '>=12.22.0'}
+    peerDependencies:
+      react: ^18.2.0
 
   react-inspector@6.0.2:
     resolution: {integrity: sha512-x+b7LxhmHXjHoU/VrFAzw5iutsILRoYyDq97EDYdFpPLcvqtEzk4ZSZSQjnFPbr5T57tLXnHcqFYoN1pI6u8uQ==}
@@ -11514,7 +11517,7 @@ snapshots:
   '@types/body-parser@1.19.3':
     dependencies:
       '@types/connect': 3.4.36
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
 
   '@types/chai-subset@1.3.3':
     dependencies:
@@ -11524,7 +11527,7 @@ snapshots:
 
   '@types/connect@3.4.36':
     dependencies:
-      '@types/node': 20.8.10
+      '@types/node': 20.12.8
 
   '@types/cookie@0.4.1': {}
 
@@ -11560,7 +11563,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.17.37':
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
       '@types/qs': 6.9.8
       '@types/range-parser': 1.2.5
       '@types/send': 0.17.2
@@ -11579,7 +11582,7 @@ snapshots:
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
 
   '@types/graceful-fs@4.1.7':
     dependencies:
@@ -11644,10 +11647,6 @@ snapshots:
 
   '@types/node@20.8.0': {}
 
-  '@types/node@20.8.10':
-    dependencies:
-      undici-types: 5.26.5
-
   '@types/normalize-package-data@2.4.2': {}
 
   '@types/offscreencanvas@2019.7.2': {}
@@ -11704,7 +11703,7 @@ snapshots:
     dependencies:
       '@types/http-errors': 2.0.2
       '@types/mime': 3.0.2
-      '@types/node': 20.8.0
+      '@types/node': 20.12.8
 
   '@types/sinonjs__fake-timers@8.1.1': {}
 
@@ -11974,7 +11973,7 @@ snapshots:
       '@types/emscripten': 1.39.8
       tslib: 1.14.1
 
-  '@zardoy/flying-squid@0.0.30(encoding@0.1.13)':
+  '@zardoy/flying-squid@0.0.33(encoding@0.1.13)':
     dependencies:
       '@tootallnate/once': 2.0.0
       change-case: 4.1.2
@@ -11985,11 +11984,11 @@ snapshots:
       flatmap: 0.0.3
       long: 5.2.3
       minecraft-data: 3.65.0
-      minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=2uxevyasyasdavsxuehfavgkjq)(encoding@0.1.13)
+      minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=7otpchsbv7hxsuis4rrrwdtbve)(encoding@0.1.13)
       mkdirp: 2.1.6
       node-gzip: 1.1.2
       node-rsa: 1.1.1
-      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/9662306deea57d8d0ba0a2a3f3f7adb95f0131e3(minecraft-data@3.65.0)
+      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cea0b6c792d7dcbb69dfd20fa48be5fd60ce83ef(minecraft-data@3.65.0)
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.5.0
@@ -12010,11 +12009,12 @@ snapshots:
       - encoding
       - supports-color
 
-  '@zardoy/react-util@0.2.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@zardoy/react-util@0.2.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       classnames: 2.5.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
+      react-hook-form: 7.52.0(react@18.2.0)
 
   '@zardoy/utils@0.0.11':
     dependencies:
@@ -13264,7 +13264,7 @@ snapshots:
   diamond-square@https://codeload.github.com/zardoy/diamond-square/tar.gz/4bbe28dcad35403abaa925055e91f601a61b9015:
     dependencies:
       minecraft-data: 3.65.0
-      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/9662306deea57d8d0ba0a2a3f3f7adb95f0131e3(minecraft-data@3.65.0)
+      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cea0b6c792d7dcbb69dfd20fa48be5fd60ce83ef(minecraft-data@3.65.0)
       prismarine-registry: 1.7.0
       random-seed: 0.3.0
       vec3: 0.1.8
@@ -15742,32 +15742,7 @@ snapshots:
       - '@types/react'
       - react
 
-  minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=2uxevyasyasdavsxuehfavgkjq)(encoding@0.1.13):
-    dependencies:
-      '@types/readable-stream': 4.0.12
-      aes-js: 3.1.2
-      buffer-equal: 1.0.1
-      debug: 4.3.4(supports-color@8.1.1)
-      endian-toggle: 0.0.0
-      lodash.get: 4.4.2
-      lodash.merge: 4.6.2
-      minecraft-data: 3.65.0
-      minecraft-folder-path: 1.2.0
-      node-fetch: 2.7.0(encoding@0.1.13)
-      node-rsa: 0.4.2
-      prismarine-auth: 2.4.2(encoding@0.1.13)
-      prismarine-chat: 1.10.1
-      prismarine-nbt: 2.5.0
-      prismarine-realms: 1.3.2(encoding@0.1.13)
-      protodef: 1.15.0
-      readable-stream: 4.5.2
-      uuid-1345: 1.0.2
-      yggdrasil: 1.7.0(encoding@0.1.13)
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
-
-  minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/ccab9fb39681f3ebe0d264e2a3f833aa3c5a1ac7(patch_hash=2uxevyasyasdavsxuehfavgkjq)(encoding@0.1.13):
+  minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=7otpchsbv7hxsuis4rrrwdtbve)(encoding@0.1.13):
     dependencies:
       '@types/readable-stream': 4.0.12
       aes-js: 3.1.2
@@ -15836,7 +15811,7 @@ snapshots:
   mineflayer@4.20.1(encoding@0.1.13):
     dependencies:
       minecraft-data: 3.65.0
-      minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=2uxevyasyasdavsxuehfavgkjq)(encoding@0.1.13)
+      minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=7otpchsbv7hxsuis4rrrwdtbve)(encoding@0.1.13)
       prismarine-biome: 1.3.0(minecraft-data@3.65.0)(prismarine-registry@1.7.0)
       prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/dd4954fff3b334f8ce063d18e39b2e9414ece5b8
       prismarine-chat: 1.10.1
@@ -15856,10 +15831,10 @@ snapshots:
       - encoding
       - supports-color
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/a4b1b4ba7f8c972cee9c0a16eb1191ff4d21fe23(encoding@0.1.13):
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/dddc683544317f117172077a9245a07be1b12479(encoding@0.1.13):
     dependencies:
       minecraft-data: 3.65.0
-      minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=2uxevyasyasdavsxuehfavgkjq)(encoding@0.1.13)
+      minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=7otpchsbv7hxsuis4rrrwdtbve)(encoding@0.1.13)
       prismarine-biome: 1.3.0(minecraft-data@3.65.0)(prismarine-registry@1.7.0)
       prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/dd4954fff3b334f8ce063d18e39b2e9414ece5b8
       prismarine-chat: 1.10.1
@@ -16593,6 +16568,19 @@ snapshots:
     transitivePeerDependencies:
       - minecraft-data
 
+  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cea0b6c792d7dcbb69dfd20fa48be5fd60ce83ef(minecraft-data@3.65.0):
+    dependencies:
+      prismarine-biome: 1.3.0(minecraft-data@3.65.0)(prismarine-registry@1.7.0)
+      prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/dd4954fff3b334f8ce063d18e39b2e9414ece5b8
+      prismarine-nbt: 2.5.0
+      prismarine-registry: 1.7.0
+      smart-buffer: 4.2.0
+      uint4: 0.1.2
+      vec3: 0.1.8
+      xxhash-wasm: 0.4.2
+    transitivePeerDependencies:
+      - minecraft-data
+
   prismarine-entity@2.3.1:
     dependencies:
       prismarine-chat: 1.10.1
@@ -16971,6 +16959,10 @@ snapshots:
       react-is: 18.1.0
 
   react-fast-compare@3.2.2: {}
+
+  react-hook-form@7.52.0(react@18.2.0):
+    dependencies:
+      react: 18.2.0
 
   react-inspector@6.0.2(react@18.2.0):
     dependencies:
