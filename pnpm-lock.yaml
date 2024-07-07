@@ -20,6 +20,9 @@ patchedDependencies:
   minecraft-protocol@1.47.0:
     hash: 7otpchsbv7hxsuis4rrrwdtbve
     path: patches/minecraft-protocol@1.47.0.patch
+  pixelarticons@1.8.1:
+    hash: cclg2qo6d4yjs4evj64nr2mbwa
+    path: patches/pixelarticons@1.8.1.patch
   three@0.154.0:
     hash: sj7ocb4p23jym6bkfgueanti2e
     path: patches/three@0.154.0.patch
@@ -115,9 +118,6 @@ importers:
       google-drive-browserfs:
         specifier: github:zardoy/browserfs#google-drive
         version: browserfs@https://codeload.github.com/zardoy/browserfs/tar.gz/ab58ae8ef00e3a31db01909e365e6cb5188436e0
-      iconify-icon:
-        specifier: ^1.0.8
-        version: 1.0.8
       jszip:
         specifier: ^3.10.1
         version: 3.10.1
@@ -148,6 +148,9 @@ importers:
       peerjs:
         specifier: ^1.5.0
         version: 1.5.0
+      pixelarticons:
+        specifier: ^1.8.1
+        version: 1.8.1(patch_hash=cclg2qo6d4yjs4evj64nr2mbwa)
       pretty-bytes:
         specifier: ^6.1.1
         version: 6.1.1
@@ -1722,9 +1725,6 @@ packages:
 
   '@humanwhocodes/object-schema@1.2.1':
     resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
-
-  '@iconify/types@2.0.0':
-    resolution: {integrity: sha512-+wluvCrRhXrhyOmRDJ3q8mux9JkKy5SJ/v8ol2tu4FVjyYvtEzkc/3pK15ET6RKg4b4w4BmTk1+gsCUhf21Ykg==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -5158,9 +5158,6 @@ packages:
   hyphenate-style-name@1.0.4:
     resolution: {integrity: sha512-ygGZLjmXfPHj+ZWh6LwbC37l43MhfztxetbFCoYTM2VjkIUpeHgSNn7QIyVFj7YQ1Wl9Cbw5sholVJPzWvC2MQ==}
 
-  iconify-icon@1.0.8:
-    resolution: {integrity: sha512-jvbUKHXf8EnGGArmhlP2IG8VqQLFFyTvTqb9LVL2TKTh7/eCCD1o2HHE9thpbJJb6B8hzhcFb6rOKhvo7reNKA==}
-
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
     engines: {node: '>=0.10.0'}
@@ -6632,6 +6629,9 @@ packages:
   pirates@4.0.6:
     resolution: {integrity: sha512-saLsH7WeYYPiD25LDuLRRY/i+6HaPYr6G1OUlN39otzkSTxKnubR9RTxS3/Kk50s1g2JTgFwWQDQyplC5/SHZg==}
     engines: {node: '>= 6'}
+
+  pixelarticons@1.8.1:
+    resolution: {integrity: sha512-4taoDCleft9RtzVHLA73VDnRBwJNqlwbW8ShO6S0G9b+bM5ArGe1MVFW9xpromuPvQgVUYCSjRxNAQuNtADqyA==}
 
   pixelmatch@4.0.2:
     resolution: {integrity: sha512-J8B6xqiO37sU/gkcMglv6h5Jbd9xNER7aHzpfRdNmV4IbQBzBpe4l9XmbG+xPF/znacgu2jfEw+wHffaq/YkXA==}
@@ -9984,8 +9984,6 @@ snapshots:
   '@humanwhocodes/module-importer@1.0.1': {}
 
   '@humanwhocodes/object-schema@1.2.1': {}
-
-  '@iconify/types@2.0.0': {}
 
   '@isaacs/cliui@8.0.2':
     dependencies:
@@ -14722,10 +14720,6 @@ snapshots:
 
   hyphenate-style-name@1.0.4: {}
 
-  iconify-icon@1.0.8:
-    dependencies:
-      '@iconify/types': 2.0.0
-
   iconv-lite@0.4.24:
     dependencies:
       safer-buffer: 2.1.2
@@ -16432,6 +16426,8 @@ snapshots:
   pify@4.0.1: {}
 
   pirates@4.0.6: {}
+
+  pixelarticons@1.8.1(patch_hash=cclg2qo6d4yjs4evj64nr2mbwa): {}
 
   pixelmatch@4.0.2:
     dependencies:

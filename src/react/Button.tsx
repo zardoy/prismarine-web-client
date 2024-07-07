@@ -2,6 +2,7 @@ import classNames from 'classnames'
 import { createContext, FC, Ref, useContext } from 'react'
 import buttonCss from './button.module.css'
 import SharedHudVars from './SharedHudVars'
+import PixelartIcon from './PixelartIcon'
 
 // testing in storybook from deathscreen
 
@@ -17,7 +18,7 @@ const ButtonContext = createContext({
   onClick () { },
 })
 
-export const ButtonProvider: FC<{children, onClick}> = ({ children, onClick }) => {
+export const ButtonProvider: FC<{ children, onClick }> = ({ children, onClick }) => {
   return <ButtonContext.Provider value={{ onClick }}>{children}</ButtonContext.Provider>
 }
 
@@ -39,7 +40,7 @@ export default (({ label, icon, children, inScreen, rootRef, type = 'button', ..
 
   return <SharedHudVars>
     <button ref={rootRef} {...args} className={classNames(buttonCss.button, args.className)} onClick={onClick} type={type}>
-      {icon && <iconify-icon class={buttonCss.icon} icon={icon}></iconify-icon>}
+      {icon && <PixelartIcon className={buttonCss.icon} iconName={icon} />}
       {label}
       {children}
     </button>

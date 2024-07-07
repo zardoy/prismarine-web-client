@@ -5,6 +5,7 @@ import { activeModalStack } from '../globalState'
 import styles from './mainMenu.module.css'
 import Button from './Button'
 import ButtonWithTooltip from './ButtonWithTooltip'
+import { pixelartIcons } from './PixelartIcon'
 
 type Action = (e: React.MouseEvent<HTMLButtonElement>) => void
 
@@ -100,7 +101,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
 
           <ButtonWithTooltip
             data-test-id='select-file-folder'
-            icon='pixelarticons:folder'
+            icon={pixelartIcons.folder}
             onClick={openFileAction}
             initialTooltip={{
               content: 'Load any Java world save' + (haveDirectoryPicker() ? '' : ' (zip)!'),
@@ -155,7 +156,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       {mapsProvider &&
         <ButtonWithTooltip
           className={styles['maps-provider']}
-          icon='pixelarticons:map'
+          icon={pixelartIcons.map}
           initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'right' }}
           onClick={() => openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider, false)}
         />}

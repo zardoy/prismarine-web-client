@@ -1,4 +1,5 @@
 @import url(./screens.css);
+@import url('pixelarticons/fonts/pixelart-icons-font.css');
 
 :root {
   --guiScaleFactor: 3;
@@ -16,6 +17,10 @@
 
 a {
   color: white;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 html {

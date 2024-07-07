@@ -2,7 +2,6 @@
 import './importsWorkaround'
 import './styles.css'
 import './globals'
-import 'iconify-icon'
 import './devtools'
 import './entities'
 import './globalDomListeners'

@@ -39,12 +39,5 @@ interface PromiseConstructor {
 }
 
 declare namespace JSX {
-    interface IntrinsicElements {
-        'iconify-icon': {
-            icon: string
-            style?: React.CSSProperties
-            class?: string
-            onClick?: (e) => void
-        }
-    }
+    interface IntrinsicElements { }
 }
