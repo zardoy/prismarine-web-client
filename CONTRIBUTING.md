@@ -21,7 +21,7 @@ How different modules are used:
 
 - `mineflayer` - provider `bot` variable and as mineflayer states it is a wrapper for the `node-minecraft-protocol` module and is used to connect and interact with real Java Minecraft servers. However not all events & properties are exposed and sometimes you have to use `bot._client.on('packet_name', data => ...)` to handle packets that are not handled via mineflayer API. Also you can use almost any mineflayer plugin.
 
-## Making protocol changes
+## Making protocol-related changes
 
 You can get a description of packets for the latest protocol version from <https://wiki.vg/Protocol> and for previous protocol versions from <https://wiki.vg/Protocol_version_numbers> (look for *Page* links that have *Protocol* in URL).
 
@@ -37,6 +37,7 @@ Also there are [src/generatedClientPackets.ts](src/generatedClientPackets.ts) an
 - Some data are cached between restarts. If you see something doesn't work after upgrading dependencies, try to clear the by simply removing the `dist` folder.
 - The same folder `dist` is used for both development and production builds, so be careful when deploying the project.
 - Use `start-prod` script to start the project in production mode after running the `build` script to build the project.
+- If CI is failing on the next branch for some reason, feel free to use the latest commit for release branch. We will update the base branch asap. Please, always make sure to allow maintainers do changes when opening PRs.
 
 ### Would be useful to have
 
