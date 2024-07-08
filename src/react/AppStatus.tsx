@@ -28,6 +28,7 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
 
   return (
     <Screen
+      className='small-content'
       title={
         <>
           <span style={{ userSelect: isError ? 'text' : undefined }}>

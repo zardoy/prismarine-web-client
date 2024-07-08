@@ -4,10 +4,15 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
   // const sessionEndpoint = 'http://localhost:3000/session'
   let authEndpoint = ''
   let sessionEndpoint = ''
+  if (!proxyBaseUrl.startsWith('http')) proxyBaseUrl = `${isPageSecure() ? 'https' : 'http'}://${proxyBaseUrl}`
+  const url = proxyBaseUrl + '/api/vm/net/connect'
+  let result: Response
   try {
-    if (!proxyBaseUrl.startsWith('http')) proxyBaseUrl = `${isPageSecure() ? 'https' : 'http'}://${proxyBaseUrl}`
-    const url = proxyBaseUrl + '/api/vm/net/connect'
-    const result = await fetch(url)
+    result = await fetch(url)
+  } catch (err) {
+    throw new Error(`Selected proxy server ${proxyBaseUrl} most likely is down`)
+  }
+  try {
     const json = await result.json()
     authEndpoint = urlWithBase(json.capabilities.authEndpoint, proxyBaseUrl)
     sessionEndpoint = urlWithBase(json.capabilities.sessionEndpoint, proxyBaseUrl)

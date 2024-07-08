@@ -2,8 +2,9 @@ import React from 'react'
 
 import type { Preview } from "@storybook/react"
 
-import '../src/styles.css'
 import './storybook.css'
+import '../src/styles.css'
+import '../src/scaleInterface'
 
 const preview: Preview = {
   decorators: [
