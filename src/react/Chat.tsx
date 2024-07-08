@@ -4,6 +4,8 @@ import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './Chat.css'
 import { isIos, reactKeyForMessage } from './utils'
+import Button from './Button'
+import { pixelartIcons } from './PixelartIcon'
 
 export type Message = {
   parts: MessageFormatPart[],
@@ -221,6 +223,8 @@ export default ({
       </div>
 
       <div className={`chat-wrapper chat-input-wrapper ${usingTouch ? 'input-mobile' : ''}`} hidden={!opened}>
+        {/* close button */}
+        {usingTouch && <Button icon={pixelartIcons.close} onClick={() => onClose?.()} />}
         <div className="chat-input">
           {completionItems?.length ? (
             <div className="chat-completions">
@@ -307,6 +311,7 @@ export default ({
               onFocus={() => auxInputFocus('ArrowDown')}
               onChange={() => { }}
             />}
+            {/* for some reason this is needed to make Enter work on android chrome */}
             <button type='submit' style={{ visibility: 'hidden' }} />
           </form>
         </div>
