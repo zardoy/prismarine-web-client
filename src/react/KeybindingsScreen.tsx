@@ -349,19 +349,20 @@ export const ButtonWithMatchesAlert = ({
 }
 
 export const AwaitingInputOverlay = ({ isGamepad }) => {
-  return <div style={{
-    position: 'fixed',
-    inset: 0,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'column',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    color: 'white',
-    fontSize: 20,
-    zIndex: 10,
-    textAlign: 'center',
-  }}
+  return <div
+    style={{
+      position: 'fixed',
+      inset: 0,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      color: 'white',
+      fontSize: 20,
+      zIndex: 10,
+      textAlign: 'center',
+    }}
     onContextMenu={e => e.preventDefault()}
   >
     <div>
