@@ -31,7 +31,10 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
       className='small-content'
       title={
         <>
-          <span style={{ userSelect: isError ? 'text' : undefined }}>
+          <span style={{
+            userSelect: isError ? 'text' : undefined,
+            wordBreak: 'break-word',
+          }}>
             {status}
           </span>
           {isError || hideDots ? '' : loadingDots}
