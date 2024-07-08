@@ -341,8 +341,8 @@ export const ButtonWithMatchesAlert = ({
           This bind is already in use. <span></span>
           </div>
         </div>
+      )
       //@ts-format-ignore-endregion
-    )
       : null
     }
   </div>
