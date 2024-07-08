@@ -9,7 +9,7 @@ window.currentScaling = currentScaling
 
 const setScale = () => {
   const scaleValues = [
-    { maxWidth: 971, maxHeight: 670, scale: 2 },
+    { maxWidth: 971, maxHeight: null, scale: 2 },
     { maxWidth: null, maxHeight: 390, scale: 1.5 }, // todo allow to set the scaling at 360-400 (dynamic scaling setting)
     { maxWidth: 590, maxHeight: null, scale: 1 },
 
