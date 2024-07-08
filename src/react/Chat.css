@@ -110,7 +110,8 @@ div.chat-wrapper {
 }
 
 .input-mobile #chatinput {
-  height: 25px;
+  height: 24px;
+  font-size: 13px;
 }
 
 .display-mobile {
