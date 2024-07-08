@@ -9,6 +9,7 @@ import Slider from './react/Slider'
 import { getScreenRefreshRate, setLoadingScreenStatus } from './utils'
 import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
 import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
+import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay'
 
 
 export const guiOptionsScheme: {
@@ -234,14 +235,26 @@ export const guiOptionsScheme: {
         text: 'Always Mobile Controls',
       },
       touchButtonsSize: {
-        min: 40
+        min: 40,
+        disableIf: [
+          'touchControlsType',
+          'joystick-buttons'
+        ],
       },
       touchButtonsOpacity: {
         min: 10,
-        max: 90
+        max: 90,
+        disableIf: [
+          'touchControlsType',
+          'joystick-buttons'
+        ],
       },
       touchButtonsPosition: {
-        max: 80
+        max: 80,
+        disableIf: [
+          'touchControlsType',
+          'joystick-buttons'
+        ],
       },
       touchControlsType: {
         values: [['classic', 'Classic'], ['joystick-buttons', 'New']],
@@ -262,6 +275,10 @@ export const guiOptionsScheme: {
           'always',
           'auto',
           'never'
+        ],
+        disableIf: [
+          'autoParkour',
+          true
         ],
       },
       autoParkour: {},
@@ -292,6 +309,27 @@ export const guiOptionsScheme: {
         return <Button inScreen onClick={() => {
           if (confirm('Are you sure you want to reset all settings?')) resetLocalStorageWithoutWorld()
         }}>Reset all settings</Button>
+      },
+    },
+    {
+      custom () {
+        return <Category>Developer</Category>
+      },
+    },
+    {
+      custom () {
+        const { active } = useSnapshot(packetsReplaceSessionState)
+        return <Button inScreen onClick={() => {
+          packetsReplaceSessionState.active = !active
+        }}>{active ? 'Disable' : 'Enable'} Packets Replay</Button>
+      },
+    },
+    {
+      custom () {
+        const { active } = useSnapshot(packetsReplaceSessionState)
+        return <Button disabled={!active} inScreen onClick={() => {
+          void downloadPacketsReplay()
+        }}>Download Packets Replay</Button>
       },
     }
   ],

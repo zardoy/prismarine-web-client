@@ -12,12 +12,12 @@ index c437ecf3a0e4ab5758a48538c714b7e9651bb5da..d9c9895ae8614550aa09ad60a396ac32
      debug('ping response', response)
      // TODO: could also use ping pre-connect to save description, type, max players, etc.
 @@ -40,6 +40,7 @@ module.exports = function (client, options) {
- 
+
      // Reinitialize client object with new version TODO: move out of its constructor?
      client.version = minecraftVersion
 +    await options.versionSelectedHook?.(client)
      client.state = states.HANDSHAKING
- 
+
      // Let other plugins such as Forge/FML (modinfo) respond to the ping response
 diff --git a/src/client/encrypt.js b/src/client/encrypt.js
 index b9d21bab9faccd5dbf1975fc423fc55c73e906c5..99ffd76527b410e3a393181beb260108f4c63536 100644
@@ -34,7 +34,7 @@ index b9d21bab9faccd5dbf1975fc423fc55c73e906c5..99ffd76527b410e3a393181beb260108
 +        //   clearTimeout(loginTimeout)
 +        // })
        }
- 
+
        function onJoinServerResponse (err) {
 diff --git a/src/client.js b/src/client.js
 index c89375e32babbf3559655b1e95f6441b9a30796f..f24cd5dc8fa9a0a4000b184fb3c79590a3ad8b8a 100644
@@ -74,7 +74,7 @@ index c89375e32babbf3559655b1e95f6441b9a30796f..f24cd5dc8fa9a0a4000b184fb3c79590
    }
 @@ -166,7 +174,10 @@ class Client extends EventEmitter {
      }
- 
+
      const onFatalError = (err) => {
 -      this.emit('error', err)
 +      // todo find out what is trying to write after client disconnect
@@ -83,7 +83,7 @@ index c89375e32babbf3559655b1e95f6441b9a30796f..f24cd5dc8fa9a0a4000b184fb3c79590
 +      }
        endSocket()
      }
- 
+
 @@ -195,6 +206,8 @@ class Client extends EventEmitter {
      serializer -> framer -> socket -> splitter -> deserializer */
      if (this.serializer) {
@@ -94,7 +94,7 @@ index c89375e32babbf3559655b1e95f6441b9a30796f..f24cd5dc8fa9a0a4000b184fb3c79590
        if (this.socket) this.socket.end()
      }
 @@ -236,8 +249,11 @@ class Client extends EventEmitter {
- 
+
    write (name, params) {
      if (!this.serializer.writable) { return }
 -    debug('writing packet ' + this.state + '.' + name)
@@ -106,7 +106,7 @@ index c89375e32babbf3559655b1e95f6441b9a30796f..f24cd5dc8fa9a0a4000b184fb3c79590
 +    this.emit('writePacket', name, params)
      this.serializer.write({ name, params })
    }
- 
+
 diff --git a/src/index.d.ts b/src/index.d.ts
 index 0a5821c32d735e11205a280aa5a503c13533dc14..94a49f661d922478b940d853169b6087e6ec3df5 100644
 --- a/src/index.d.ts
@@ -126,5 +126,63 @@ index 0a5821c32d735e11205a280aa5a503c13533dc14..94a49f661d922478b940d853169b6087
 +		/** Can be used to prepare mc data on autoVersion (client.version has selected version) */
 +		versionSelectedHook?: (client: Client) => Promise<void> | void
  	}
- 
+
  	export class Server extends EventEmitter {
+diff --git a/src/client/chat.js b/src/client/chat.js
+index 5cad9954db13d7121ed0a03792c2304156cdf436..ffd7c7d6299ef54854e0923f8d5296bf2a58956b 100644
+--- a/src/client/chat.js
++++ b/src/client/chat.js
+@@ -111,7 +111,7 @@ module.exports = function (client, options) {
+         for (const player of packet.data) {
+           if (!player.chatSession) continue
+           client._players[player.UUID] = {
+-            publicKey: crypto.createPublicKey({ key: player.chatSession.publicKey.keyBytes, format: 'der', type: 'spki' }),
++            // publicKey: crypto.createPublicKey({ key: player.chatSession.publicKey.keyBytes, format: 'der', type: 'spki' }),
+             publicKeyDER: player.chatSession.publicKey.keyBytes,
+             sessionUuid: player.chatSession.uuid
+           }
+@@ -127,7 +127,7 @@ module.exports = function (client, options) {
+       for (const player of packet.data) {
+         if (player.crypto) {
+           client._players[player.UUID] = {
+-            publicKey: crypto.createPublicKey({ key: player.crypto.publicKey, format: 'der', type: 'spki' }),
++            // publicKey: crypto.createPublicKey({ key: player.crypto.publicKey, format: 'der', type: 'spki' }),
+             publicKeyDER: player.crypto.publicKey,
+             signature: player.crypto.signature,
+             displayName: player.displayName || player.name
+@@ -198,7 +198,7 @@ module.exports = function (client, options) {
+     if (mcData.supportFeature('useChatSessions')) {
+       const tsDelta = BigInt(Date.now()) - packet.timestamp
+       const expired = !packet.timestamp || tsDelta > messageExpireTime || tsDelta < 0
+-      const verified = !packet.unsignedChatContent && updateAndValidateSession(packet.senderUuid, packet.plainMessage, packet.signature, packet.index, packet.previousMessages, packet.salt, packet.timestamp) && !expired
++      const verified = false && !packet.unsignedChatContent && updateAndValidateSession(packet.senderUuid, packet.plainMessage, packet.signature, packet.index, packet.previousMessages, packet.salt, packet.timestamp) && !expired
+       if (verified) client._signatureCache.push(packet.signature)
+       client.emit('playerChat', {
+         plainMessage: packet.plainMessage,
+@@ -363,7 +363,7 @@ module.exports = function (client, options) {
+     }
+   }
+
+-  client._signedChat = (message, options = {}) => {
++  client._signedChat = async (message, options = {}) => {
+     options.timestamp = options.timestamp || BigInt(Date.now())
+     options.salt = options.salt || 1n
+
+@@ -404,7 +404,7 @@ module.exports = function (client, options) {
+         message,
+         timestamp: options.timestamp,
+         salt: options.salt,
+-        signature: (client.profileKeys && client._session) ? client.signMessage(message, options.timestamp, options.salt, undefined, acknowledgements) : undefined,
++        signature: (client.profileKeys && client._session) ? await client.signMessage(message, options.timestamp, options.salt, undefined, acknowledgements) : undefined,
+         offset: client._lastSeenMessages.pending,
+         acknowledged
+       })
+@@ -418,7 +418,7 @@ module.exports = function (client, options) {
+         message,
+         timestamp: options.timestamp,
+         salt: options.salt,
+-        signature: client.profileKeys ? client.signMessage(message, options.timestamp, options.salt, options.preview) : Buffer.alloc(0),
++        signature: client.profileKeys ? await client.signMessage(message, options.timestamp, options.salt, options.preview) : Buffer.alloc(0),
+         signedPreview: options.didPreview,
+         previousMessages: client._lastSeenMessages.map((e) => ({
+           messageSender: e.sender,

@@ -32,18 +32,12 @@ declare module '*.svg' {
 
 interface PromiseConstructor {
     withResolvers<T> (): {
-        resolve: (value: T) => void;
-        reject: (reason: any) => void;
-        promise: Promise<T>;
+        resolve: (value: T) => void
+        reject: (reason: any) => void
+        promise: Promise<T>
     }
 }
 
 declare namespace JSX {
-    interface IntrinsicElements {
-        'iconify-icon': {
-            icon: string
-            style?: React.CSSProperties
-            class?: string
-        }
-    }
+    interface IntrinsicElements { }
 }

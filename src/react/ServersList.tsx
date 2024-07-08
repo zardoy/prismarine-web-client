@@ -16,6 +16,7 @@ interface Props extends React.ComponentProps<typeof Singleplayer> {
   updateProxies: (proxies: SavedProxiesLocalStorage) => void
   username: string
   setUsername: (username: string) => void
+  onProfileClick?: () => void
 }
 
 export interface SavedProxiesLocalStorage {
@@ -29,7 +30,7 @@ type ProxyStatusResult = {
   status: 'success' | 'error' | 'unknown'
 }
 
-export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, username, setUsername, ...props }: Props) => {
+export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, username, setUsername, onProfileClick, ...props }: Props) => {
   const [proxies, setProxies] = React.useState(initialProxies)
 
   const updateProxies = (newData: SavedProxiesLocalStorage) => {
@@ -60,7 +61,12 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
       e.preventDefault()
       let ip = serverIp
       let version
+      let msAuth = false
       const parts = ip.split(':')
+      if (parts.at(-1) === 'ms') {
+        msAuth = true
+        parts.pop()
+      }
       if (parts.length > 1 && parts.at(-1)!.includes('.')) {
         version = parts.at(-1)!
         ip = parts.slice(0, -1).join(':')
@@ -68,6 +74,7 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
       joinServer({
         ip,
         versionOverride: version,
+        authenticatedAccountOverride: msAuth ? true : undefined, // todo popup selector
       }, {
         shouldSave: save,
       })
@@ -108,7 +115,7 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
               })}
             </ul>}
           </div>
-          <PixelartIcon iconName='user' styles={{ fontSize: 14, color: 'lightgray', marginLeft: 2 }} />
+          <PixelartIcon iconName='user' styles={{ fontSize: 14, color: 'lightgray', marginLeft: 2 }} onClick={onProfileClick} />
           <Input rootStyles={{ width: 80 }} value={username} onChange={({ target: { value } }) => setUsername(value)} />
         </div>
       </div>
