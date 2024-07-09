@@ -19,7 +19,7 @@ fn main(
   @location(4) ColorBlend : vec3f
 ) -> VertexOutput {
   var output : VertexOutput;
-  output.Position = uniforms.ViewProjectionMatrix * (position +vec4f(ModelMatrix, 0.0));
+  output.Position = uniforms.ViewProjectionMatrix * (position +vec4f(ModelMatrix, 0.0) + vec4f(0.5, 0.0, 0.5, 0.0));
   output.fragUV = uv;
   output.TextueIndex = TextureIndex;
   output.ColorBlend = ColorBlend;

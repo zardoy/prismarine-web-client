@@ -159,7 +159,7 @@ async function main () {
 
   await initWebgpuRenderer(version, () => { }, !enableControls && !fixture, true)
   const simpleControls = () => {
-    let pressedKeys = new Set()
+    let pressedKeys = new Set<string>()
     const loop = () => {
       // Create a vector that points in the direction the camera is looking
       let direction = new THREE.Vector3(0, 0, 0)
@@ -206,6 +206,11 @@ async function main () {
     }
     window.addEventListener('keydown', keys)
     window.addEventListener('keyup', keys)
+    window.addEventListener('blur', (e) => {
+      for (const key of pressedKeys) {
+        keys(new KeyboardEvent('keyup', { code: key }))
+      }
+    })
 
     // mouse
     const mouse = { x: 0, y: 0 }
@@ -253,11 +258,34 @@ async function main () {
 
   let blocks: Record<string, BlockType> = {}
   let i = 0
-  for (let x = 0; x < 1; x++) {
-    blocks = {}
-    for (let i = 0; i < 1000; i++) {
-      const max = 100
-      const pos = new Vec3(Math.floor(Math.random() * max), Math.floor(Math.random() * max), Math.floor(Math.random() * max))
+  // for (let x = 0; x < 1; x++) {
+  //   blocks = {}
+  //   for (let i = 0; i < 1000; i++) {
+  //     const max = 100
+  //     const pos = new Vec3(Math.floor(Math.random() * max), Math.floor(Math.random() * max), Math.floor(Math.random() * max))
+  //     const getFace = (face: number) => {
+  //       return {
+  //         side: face,
+  //         textureIndex: Math.floor(Math.random() * 512)
+  //       }
+  //     }
+  //     blocks[`${pos.x},${pos.y},${pos.z}`] = {
+  //       faces: [
+  //         getFace(0),
+  //         getFace(1),
+  //         getFace(2),
+  //         getFace(3),
+  //         getFace(4),
+  //         getFace(5)
+  //       ],
+  //     }
+  //   }
+  //   webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
+  // }
+  // make platform
+  for (let x = 0; x < 1000; x++) {
+    for (let z = 0; z < 1000; z++) {
+      const pos = new Vec3(x, 0, z)
       const getFace = (face: number) => {
         return {
           side: face,
@@ -275,9 +303,8 @@ async function main () {
         ],
       }
     }
-    webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
   }
-
+  webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
 
   return
 

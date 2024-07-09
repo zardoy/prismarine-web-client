@@ -38,7 +38,7 @@ const updateSize = (width, height) => {
 
 
 class WebgpuRendererWorker {
-    NUMBER_OF_CUBES = 100_000
+    NUMBER_OF_CUBES = 1_000_000
 
     ready = false
 
@@ -323,7 +323,7 @@ class WebgpuRendererWorker {
         if (positions.length > this.NUMBER_OF_CUBES) {
             // this.NUMBER_OF_CUBES = positions.length + 1000
         }
-        
+
         const setModelBuffer = async (modelBuffer: GPUBuffer, data: Float32Array) => {
             this.device.queue.writeBuffer(modelBuffer, 0, data/* , 0, 16 */)
         }
@@ -452,11 +452,15 @@ export const workerProxyType = createWorkerProxy({
         }
 
         chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
-        allSides.splice(currentLength, 0, ...newData)
+        let i = 0
+        while (i < newData.length) {
+            i += 1024
+            allSides.splice(currentLength + i, 0, ...newData.slice(i, i + 1024))
+        }
         lastNotUpdatedIndex ??= currentLength
         if (webglRendererWorker && webglRendererWorker.notRenderedAdditions < 5) {
             updateCubesWhenAvailable(currentLength)
-        } 
+        }
     },
     addBlocksSectionDone () {
         updateCubesWhenAvailable(lastNotUpdatedIndex)
