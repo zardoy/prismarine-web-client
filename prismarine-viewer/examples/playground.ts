@@ -283,8 +283,8 @@ async function main () {
   //   webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
   // }
   // make platform
-  for (let x = 0; x < 1000; x++) {
-    for (let z = 0; z < 1000; z++) {
+  for (let x = 0; x < 100; x++) {
+    for (let z = 0; z < 100; z++) {
       const pos = new Vec3(x, 0, z)
       const getFace = (face: number) => {
         return {
