@@ -17,6 +17,7 @@ type FullmapProps = {
 export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
   const zoomRef = useRef(null)
   const isDragging = useRef(false)
+  const canvasesCont = useRef(null)
   const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
 
@@ -36,6 +37,14 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
       }
       isDragging.current = false
     }
+  }
+
+  const drawNewPartOfMap = () => {
+    const newCanvas = document.createElement('canvas')
+    newCanvas.width = 200 / stateRef.current.scale
+    newCanvas.height = 200 / stateRef.current.scale
+    canvasRef.current = newCanvas
+
   }
 
   useEffect(() => {
@@ -97,11 +106,19 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
           willChange: 'transform',
         }}
       >
-        <canvas
-          width={200}
-          height={200}
-          ref={canvasRef}
-        ></canvas>
+        <div
+          style={{
+            width: '100%',
+            height: '100%'
+          }}
+          ref={canvasesCont}
+        >
+          <canvas
+            width={200}
+            height={200}
+            ref={canvasRef}
+          ></canvas>
+        </div>
       </TransformComponent>
     </TransformWrapper>
     {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawer} setIsWarpInfoOpened={setIsWarpInfoOpened} />}
