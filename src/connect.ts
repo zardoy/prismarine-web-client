@@ -5,7 +5,7 @@ export type ConnectOptions = {
   singleplayer?: any
   username: string
   proxy?: string
-  botVersion?: any
+  botVersion?: string
   serverOverrides?
   serverOverridesFlat?
   peerId?: string
@@ -13,6 +13,7 @@ export type ConnectOptions = {
   onSuccessfulPlay?: () => void
   autoLoginPassword?: string
   serverIndex?: string
+  authenticatedAccount?: AuthenticatedAccount | true
 
   connectEvents?: {
     serverCreated?: () => void
