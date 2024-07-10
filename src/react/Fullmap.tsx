@@ -17,7 +17,7 @@ type FullmapProps = {
 export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
   const zoomRef = useRef(null)
   const isDragging = useRef(false)
-  const canvasesCont = useRef(null)
+  const canvasesCont = useRef<HTMLDivElement>(null)
   const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
 
@@ -43,8 +43,14 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
     const newCanvas = document.createElement('canvas')
     newCanvas.width = 200 / stateRef.current.scale
     newCanvas.height = 200 / stateRef.current.scale
+    newCanvas.style.position = 'absolute'
+    newCanvas.style.top = `${-stateRef.current.positionY * 1 / stateRef.current.scale}px`
+    newCanvas.style.left = `${-stateRef.current.positionX * 1 / stateRef.current.scale}px`
+    newCanvas.style.border = '2px solid red'
     canvasRef.current = newCanvas
-
+    if (canvasesCont.current) {
+      canvasesCont.current.appendChild(newCanvas)
+    }
   }
 
   useEffect(() => {
@@ -97,7 +103,7 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
         stateRef.current = { ...state }
       }}
       onPanningStop={()=>{
-        console.log(stateRef.current)
+        drawNewPartOfMap()
       }}
     >
       <TransformComponent
