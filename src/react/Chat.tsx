@@ -4,6 +4,8 @@ import { MessageFormatPart } from '../botUtils'
 import { MessagePart } from './MessageFormatted'
 import './Chat.css'
 import { isIos, reactKeyForMessage } from './utils'
+import Button from './Button'
+import { pixelartIcons } from './PixelartIcon'
 
 export type Message = {
   parts: MessageFormatPart[],
@@ -35,6 +37,7 @@ type Props = {
   fetchCompletionItems?: (triggerKind: 'implicit' | 'explicit', completeValue: string, fullValue: string, abortController?: AbortController) => Promise<string[] | void>
   // width?: number
   allowSelection?: boolean
+  inputDisabled?: string
 }
 
 export const chatInputValueGlobal = proxy({
@@ -52,7 +55,17 @@ export const fadeMessage = (message: Message, initialTimeout: boolean, requestUp
   }, initialTimeout ? 5000 : 0)
 }
 
-export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessage, onClose, usingTouch, allowSelection }: Props) => {
+export default ({
+  messages,
+  opacity = 1,
+  fetchCompletionItems,
+  opened,
+  sendMessage,
+  onClose,
+  usingTouch,
+  allowSelection,
+  inputDisabled
+}: Props) => {
   const sendHistoryRef = useRef(JSON.parse(window.sessionStorage.chatHistory || '[]'))
 
   const [completePadText, setCompletePadText] = useState('')
@@ -210,6 +223,8 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
       </div>
 
       <div className={`chat-wrapper chat-input-wrapper ${usingTouch ? 'input-mobile' : ''}`} hidden={!opened}>
+        {/* close button */}
+        {usingTouch && <Button icon={pixelartIcons.close} onClick={() => onClose?.()} />}
         <div className="chat-input">
           {completionItems?.length ? (
             <div className="chat-completions">
@@ -252,6 +267,8 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
               autoComplete="off"
               aria-autocomplete="both"
               onChange={onMainInputChange}
+              disabled={!!inputDisabled}
+              placeholder={inputDisabled}
               onKeyDown={(e) => {
                 if (e.code === 'ArrowUp') {
                   if (chatHistoryPos.current === 0) return
@@ -294,6 +311,7 @@ export default ({ messages, opacity = 1, fetchCompletionItems, opened, sendMessa
               onFocus={() => auxInputFocus('ArrowDown')}
               onChange={() => { }}
             />}
+            {/* for some reason this is needed to make Enter work on android chrome */}
             <button type='submit' style={{ visibility: 'hidden' }} />
           </form>
         </div>

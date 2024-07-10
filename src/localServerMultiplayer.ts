@@ -129,8 +129,8 @@ export const connectToPeer = async (peerId: string) => {
   }))
 
   const clientDuplex = new CustomDuplex({}, (data) => {
-    // todo rm debug
-    console.debug('sending', data.toString())
+    // todo debug until play state
+    // console.debug('sending', data.toString())
     connection.send(data)
   })
   connection.on('data', (data: any) => {

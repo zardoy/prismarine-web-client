@@ -19,6 +19,7 @@ type GeneralItem<T extends string | number | boolean> = {
   enableWarning?: string
   willHaveNoEffect?: boolean
   values?: Array<T | [T, string]>
+  disableIf?: [option: keyof typeof options, value: any]
 }
 
 export type OptionMeta<T = any> = GeneralItem<T & string> & ({
@@ -36,11 +37,27 @@ export type OptionMeta<T = any> = GeneralItem<T & string> & ({
 })
 
 // todo not reactive
-const isDisabled = (item: GeneralItem<any>) => {
+const isLocked = (item: GeneralItem<any>) => {
   return Object.keys(qsOptions).includes(item.id!)
 }
 
+const useCommonComponentsProps = (item: OptionMeta) => {
+  let disabledBecauseOfSetting = false
+
+  if (item.disableIf) {
+    // okay to use hook conditionally as disableIf must be a constant
+    const disableIfSetting = useSnapshot(options)[item.disableIf[0]]
+    disabledBecauseOfSetting = disableIfSetting === item.disableIf[1]
+  }
+
+  return {
+    disabledBecauseOfSetting
+  }
+}
+
 export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'toggle' }> }) => {
+  const { disabledBecauseOfSetting } = useCommonComponentsProps(item)
+
   const optionValue = useSnapshot(options)[item.id!]
 
   const valuesTitlesMap = useMemo(() => {
@@ -59,12 +76,15 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
     }))
   }, [item.values])
 
+  let { disabledReason } = item
+  if (disabledBecauseOfSetting) disabledReason = `Disabled because ${item.disableIf![0]} is ${item.disableIf![1]}`
+
   return <Button
     data-setting={item.id}
     label={`${item.text}: ${valuesTitlesMap[optionValue]}`}
     onClick={async () => {
-      if (item.disabledReason) {
-        await showOptionsModal(`The option is unavailable. ${item.disabledReason}`, [])
+      if (disabledReason) {
+        await showOptionsModal(`The option is unavailable. ${disabledReason}`, [])
         return
       }
       if (item.enableWarning && !options[item.id!]) {
@@ -92,8 +112,8 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
         options[item.id!] = !options[item.id!]
       }
     }}
-    title={item.disabledReason ? `${item.disabledReason} | ${item.tooltip}` : item.tooltip}
-    disabled={!!item.disabledReason || isDisabled(item)}
+    title={disabledReason ? `${disabledReason} | ${item.tooltip}` : item.tooltip}
+    disabled={disabledBecauseOfSetting || !!item.disabledReason || isLocked(item)}
     style={{
       width: 150,
     }}
@@ -101,6 +121,8 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
 }
 
 export const OptionSlider = ({ item }: { item: Extract<OptionMeta, { type: 'slider' }> }) => {
+  const { disabledBecauseOfSetting } = useCommonComponentsProps(item)
+
   const optionValue = useSnapshot(options)[item.id!]
 
   const valueDisplay = useMemo(() => {
@@ -113,7 +135,7 @@ export const OptionSlider = ({ item }: { item: Extract<OptionMeta, { type: 'slid
       label={item.text!}
       value={options[item.id!]}
       data-setting={item.id}
-      disabledReason={isDisabled(item) ? 'qs' : undefined}
+      disabledReason={isLocked(item) ? 'qs' : disabledBecauseOfSetting ? `Disabled because ${item.disableIf![0]} is ${item.disableIf![1]}` : item.disabledReason}
       min={item.min}
       max={item.max}
       unit={item.unit}

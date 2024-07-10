@@ -1,9 +1,10 @@
+import { AuthenticatedAccount } from './react/ServersListProvider'
+
 export type ConnectOptions = {
   server?: string
   singleplayer?: any
   username: string
-  password?: any
-  proxy?: any
+  proxy?: string
   botVersion?: any
   serverOverrides?
   serverOverridesFlat?

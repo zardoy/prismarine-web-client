@@ -7,7 +7,7 @@ import triangle from './ps_icons/playstation_triangle_console_controller_gamepad
 import square from './ps_icons/playstation_square_console_controller_gamepad_icon.svg'
 import circle from './ps_icons/circle_playstation_console_controller_gamepad_icon.svg'
 import cross from './ps_icons/cross_playstation_console_controller_gamepad_icon.svg'
-import PixelartIcon from './PixelartIcon'
+import PixelartIcon, { pixelartIcons } from './PixelartIcon'
 import KeybindingsCustom, { CustomCommandsMap } from './KeybindingsCustom'
 import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
@@ -224,7 +224,7 @@ export default (
                   }}
                   style={{ opacity: userConfig?.[group]?.[action]?.keys?.length ? 1 : 0 }}
                   className={styles['undo-keyboard']}
-                  icon={'pixelarticons:undo'}
+                  icon={pixelartIcons.undo}
                 />
 
                 {[0, 1].map((key, index) => <ButtonWithMatchesAlert
@@ -248,7 +248,7 @@ export default (
                     width: '0px'
                   }}
                   className={`${styles['undo-gamepad']} ${styles['margin-left']}`}
-                  icon={'pixelarticons:undo'}
+                  icon={pixelartIcons.undo}
                 />
                 <ButtonWithMatchesAlert
                   key={`gamepad-${group}-${action}`}
@@ -325,6 +325,7 @@ export const ButtonWithMatchesAlert = ({
             && prop.action === action
         )
     ) ? (
+      //@ts-format-ignore-region
         <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
           <PixelartIcon
             iconName={'alert'}
@@ -334,30 +335,35 @@ export const ButtonWithMatchesAlert = ({
               justifyContent: 'center',
               alignItems: 'center',
               marginRight: '2px'
-            }} />
+            }}
+          />
           <div>
-            This bind is already in use. <span></span>
+          This bind is already in use. <span></span>
           </div>
         </div>
-      ) : null}
+      )
+      //@ts-format-ignore-endregion
+      : null
+    }
   </div>
 }
 
 export const AwaitingInputOverlay = ({ isGamepad }) => {
-  return <div style={{
-    position: 'fixed',
-    inset: 0,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'column',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    color: 'white',
-    fontSize: 20,
-    zIndex: 10,
-    textAlign: 'center',
-  }}
-  onContextMenu={e => e.preventDefault()}
+  return <div
+    style={{
+      position: 'fixed',
+      inset: 0,
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexDirection: 'column',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      color: 'white',
+      fontSize: 20,
+      zIndex: 10,
+      textAlign: 'center',
+    }}
+    onContextMenu={e => e.preventDefault()}
   >
     <div>
       {isGamepad ? 'Press the button on the gamepad ' : 'Press the key, side mouse button '}
@@ -383,7 +389,7 @@ const parseBindingName = (binding: string | undefined) => {
   if (!binding) return ''
   const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
 
-  const parts = cut.includes('+') ? cut.split('+') : [cut] 
+  const parts = cut.includes('+') ? cut.split('+') : [cut]
   for (let i = 0; i < parts.length; i++) {
     parts[i] = parts[i].split(/(?=[A-Z\d])/).reverse().join(' ')
   }

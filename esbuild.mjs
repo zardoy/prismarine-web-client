@@ -60,6 +60,7 @@ const buildOptions = {
     net: 'net-browserify',
     assert: 'assert',
     dns: './src/dns.js',
+    'yggdrasil': './src/yggdrasilReplacement.ts',
     // todo write advancedAliases plugin
   },
   inject: [
@@ -84,6 +85,9 @@ const buildOptions = {
     '.vert': 'text',
     '.frag': 'text',
     '.obj': 'text',
+    '.woff': 'dataurl',
+    '.woff2': 'dataurl',
+    '.ttf': 'dataurl',
   },
   write: false,
   // todo would be better to enable?

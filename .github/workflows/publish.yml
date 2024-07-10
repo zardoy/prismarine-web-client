@@ -1,4 +1,4 @@
-name: Deploy to GitHub pages
+name: Release
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
@@ -17,6 +17,7 @@ jobs:
       # - run: pnpm install
       # - run: pnpm build
       - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - run: node scripts/replaceFavicon.mjs ${{ secrets.FAVICON_MAIN }}
       # will install + build to .vercel/output/static
       - run: vercel build --token=${{ secrets.VERCEL_TOKEN }} --prod
       - run: pnpm build-storybook
