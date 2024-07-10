@@ -1,5 +1,5 @@
 import { Vec3 } from 'vec3'
-import { useRef, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
+import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
@@ -16,7 +16,43 @@ type FullmapProps = {
 
 export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
   const zoomRef = useRef(null)
+  const isDragging = useRef(false)
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
+
+  const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
+    drawer?.setWarpPosOnClick(e, adapter.playerPosition)
+    setIsWarpInfoOpened(true)
+  }
+
+  const eventControl = (event: MouseEvent | TouchEvent) => {
+    if (event.type === 'mousemove' || event.type === 'touchmove') {
+      isDragging.current = true
+    }
+
+    if (event.type === 'mouseup' || event.type === 'touchend') {
+      if (!isDragging.current) {
+        handleClickOnMap(event)
+      }
+      isDragging.current = false
+    }
+  }
+
+  useEffect(() => {
+    if (canvasRef.current) {
+      canvasRef.current.addEventListener('mousemove', eventControl)
+      canvasRef.current.addEventListener('touchmove', eventControl)
+      canvasRef.current.addEventListener('mouseup', eventControl)
+      canvasRef.current.addEventListener('touchend', eventControl)
+    } 
+
+    return () => {
+      canvasRef.current?.removeEventListener('mousemove', eventControl)
+      canvasRef.current?.removeEventListener('touchmove', eventControl)
+      canvasRef.current?.removeEventListener('mouseup', eventControl)
+      canvasRef.current?.removeEventListener('touchend', eventControl)
+      setIsWarpInfoOpened(false)
+    }
+  }, [])
 
   return <div
     style={{
