@@ -11,7 +11,6 @@ const Button2 = ({ title, icon }) => {
       <div>
         {title}
       </div>
-      {/* <iconify-icon icon="pixelarticons: */}
       <div style={{ width: 30, height: 30 }} className='full-svg'>
         {icon}
       </div>
@@ -44,7 +43,7 @@ const meta: Meta<any> = {
 }
 
 export default meta
-type Story = StoryObj<any>;
+type Story = StoryObj<any>
 
 export const Primary: Story = {
   args: {

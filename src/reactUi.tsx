@@ -4,7 +4,7 @@ import { useSnapshot } from 'valtio'
 import { QRCodeSVG } from 'qrcode.react'
 import { createPortal } from 'react-dom'
 import { useEffect, useMemo, useState } from 'react'
-import { miscUiState } from './globalState'
+import { activeModalStack, miscUiState } from './globalState'
 import DeathScreenProvider from './react/DeathScreenProvider'
 import OptionsRenderApp from './react/OptionsRenderApp'
 import MainMenuRenderApp from './react/MainMenuRenderApp'
@@ -36,7 +36,11 @@ import Crosshair from './react/Crosshair'
 import ButtonAppProvider from './react/ButtonAppProvider'
 import ServersListProvider from './react/ServersListProvider'
 import GamepadUiCursor from './react/GamepadUiCursor'
+import KeybindingsScreenProvider from './react/KeybindingsScreenProvider'
 import HeldMapUi from './react/HeldMapUi'
+import BedTime from './react/BedTime'
+import NoModalFoundProvider from './react/NoModalFoundProvider'
+import SignInMessageProvider from './react/SignInMessageProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -93,28 +97,34 @@ const InGameComponent = ({ children }) => {
 }
 
 const InGameUi = () => {
-  const { gameLoaded } = useSnapshot(miscUiState)
-  if (!gameLoaded) return
+  const { gameLoaded, showUI: showUIRaw } = useSnapshot(miscUiState)
+  const hasModals = useSnapshot(activeModalStack).length > 0
+  const showUI = showUIRaw || hasModals
+  if (!gameLoaded || !bot) return
 
   return <>
     <RobustPortal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
-      <DeathScreenProvider />
-      <DebugOverlay />
-      <MobileTopButtons />
-      <PlayerListOverlayProvider />
-      <ChatProvider />
-      <SoundMuffler />
-      <TitleProvider />
-      <ScoreboardProvider />
-      <IndicatorEffectsProvider />
-      <TouchAreasControlsProvider />
-      <Crosshair />
+      <div style={{ display: showUI ? 'block' : 'none' }}>
+        <DeathScreenProvider />
+        <DebugOverlay />
+        <MobileTopButtons />
+        <PlayerListOverlayProvider />
+        <ChatProvider />
+        <SoundMuffler />
+        <TitleProvider />
+        <ScoreboardProvider />
+        <IndicatorEffectsProvider />
+        <Crosshair />
+      </div>
 
       <PauseScreen />
-      <XPBarProvider />
-      <HudBarsProvider />
-      <HotbarRenderApp />
+      <div style={{ display: showUI ? 'block' : 'none' }}>
+        <XPBarProvider />
+        <HudBarsProvider />
+        <BedTime />
+      </div>
+      {showUI && <HotbarRenderApp />}
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />
@@ -122,7 +132,7 @@ const InGameUi = () => {
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
       {/* because of z-index */}
-      <TouchControls />
+      {showUI && <TouchControls />}
       <GlobalSearchInput />
     </RobustPortal>
   </>
@@ -157,11 +167,15 @@ const App = () => {
         <SingleplayerProvider />
         <CreateWorldProvider />
         <AppStatusProvider />
+        <KeybindingsScreenProvider />
         <SelectOption />
         <ServersListProvider />
         <OptionsRenderApp />
         <MainMenuRenderApp />
         <NotificationProvider />
+        <TouchAreasControlsProvider />
+        <SignInMessageProvider />
+        <NoModalFoundProvider />
         {/* <GameHud>
         </GameHud> */}
       </RobustPortal>
@@ -179,7 +193,7 @@ const App = () => {
 const PerComponentErrorBoundary = ({ children }) => {
   return children.map((child, i) => <ErrorBoundary key={i} renderError={(error) => {
     const componentNameClean = (child.type.name || child.type.displayName || 'Unknown').replaceAll(/__|_COMPONENT/g, '')
-    showNotification(`UI component ${componentNameClean} crashed!`, 'Please report this. Use console to see more info.', true, undefined)
+    showNotification(`UI component ${componentNameClean} crashed!`, 'Please report this. Use console for more.', true, undefined)
     return null
   }}>{child}</ErrorBoundary>)
 }

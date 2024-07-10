@@ -33,11 +33,24 @@
     margin-top: 35px;
     /* todo remove it but without it in chrome android the screen is not scrollable */
     overflow: auto;
+    height: fit-content;
     /* todo I'm not sure about it */
     /* margin-top: calc(100% / 6 - 16px); */
     align-items: center;
 
     gap: 10px;
+}
+
+@media screen and (max-height: 426px) {
+    .fullscreen:not(.small-content) {
+        .screen-content {
+            margin-top: 14px;
+        }
+
+        .screen-title {
+            margin-bottom: 5px;
+        }
+    }
 }
 
 .screen-items {

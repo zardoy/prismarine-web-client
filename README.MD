@@ -4,19 +4,20 @@
 
 A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
 
-If you encounter any bugs or usability issues, please report them!
+If you encounter any bugs or usability issues, please report them! For development, see [development](#development--debugging).
 
 You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
 
 ### Big Features
 
 - Open any zip world file or even folder in read-write mode!
-- Connect to cracked servers* (it's possible because of proxy servers, see below)
+- Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
 - Singleplayer mode with simple world generations!
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
 - Resource pack support
+- Builtin JEI with recipes & guides for every item (also replaces creative inventory)
 - even even more!
 
 All components that are in [Storybook](https://mcraft.fun/storybook) are published as npm module and can be used in other projects: [`minecraft-react`](https://npmjs.com/minecraft-react)
@@ -34,11 +35,13 @@ Zip files and folders are supported. Just drag and drop them into the browser wi
 In case of opening zip files they are stored in your ram entirely, so there is a ~300mb file limit on IOS.
 Whatever offline mode you used (zip, folder, just single player), you can always export world with the `/export` command typed in the game chat.
 
+![docs-assets/singleplayer-future-city-1-10-2.jpg](./docs-assets/singleplayer-future-city-1-10-2.jpg)
+
 ### Servers
 
-You can play almost on any server, supporting offline connections.
+You can play almost on any Java server, vanilla servers are fully supported.
 See the [Mineflayer](https://github.com/PrismarineJS/mineflayer) repo for the list of supported versions (should support majority of versions).
-There is a builtin proxy, but you can also host a your one! Just clone the repo, run `pnpm i` (following CONTRIBUTING.MD) and run `pnpm prod-start`, then you can specify `http://localhost:8080` in the proxy field.
+There is a builtin proxy, but you can also host your one! Just clone the repo, run `pnpm i` (following CONTRIBUTING.MD) and run `pnpm prod-start`, then you can specify `http://localhost:8080` in the proxy field.
 MS account authentication will be supported soon.
 
 ### Rendering
@@ -46,8 +49,9 @@ MS account authentication will be supported soon.
 #### Three.js Renderer
 
 - Uses WebGL2. Chunks are rendered using Geometry Buffers prepared by 4 mesher workers.
-- Supports FXAA
-- Doesn't support culling
+- Entities & text rendering
+- Supports resource packs
+- Doesn't support occlusion culling
 
 <!-- TODO proxy server communication graph -->
 
@@ -63,9 +67,9 @@ There are many many settings, that are not exposed in the UI yet. You can find o
 
 To open the console, press `F12`, or if you are on mobile, you can type `#debug` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
 
-### Debugging
+### Development & Debugging
 
-It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info.
+It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info. Also you can look at Dockerfile for reference.
 
 There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
 
@@ -109,10 +113,10 @@ Press `Y` to set query parameters to url of your current game state.
 - `?version=<version>` - Set the version for server
 - `?lockConnect=true` - Disable cancel / save buttons, useful for integrates iframes
 - `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
-<!-- - `?password=<password>` - Set the password on load -->
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
+<!-- - `?requiresAuth=true` - Show the Microsoft login screen on server connect. Useful for servers that require authentication (running in online mode) -->
 
 - `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
 - `?setting=<setting_name>:<setting_value>` - Set the and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
@@ -120,9 +124,13 @@ Press `Y` to set query parameters to url of your current game state.
 ### Notable Things that Power this Project
 
 - [Mineflayer](https://github.com/PrismarineJS/mineflayer) - Handles all client-side communications with the server (including the builtin one) - forked
-- [Flying Squid](https://github.com/prismarineJS/flying-squid) - The builtin server that makes single player possible! Here forked version is used.
+- [Forked Flying Squid (Space Squid)](https://github.com/zardoy/space-squid) - The builtin offline server that makes single player & P2P possible!
 - [Prismarine Provider Anvil](https://github.com/PrismarineJS/prismarine-provider-anvil) - Handles world loading (region format)
 - [Prismarine Physics](https://github.com/PrismarineJS/prismarine-physics) - Does all the physics calculations
 - [Minecraft Protocol](https://github.com/PrismarineJS/node-minecraft-protocol) - Makes connections to servers possible
 - [Peer.js](https://peerjs.com/) - P2P networking (when you open to wan)
 - [Three.js](https://threejs.org/) - Helping in 3D rendering
+
+### Alternatives
+
+- [https://github.com/ClassiCube/ClassiCube](ClassiCube - Better C# Rewrite) [DEMO](https://www.classicube.net/server/play/?warned=true)

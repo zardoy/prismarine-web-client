@@ -6,21 +6,25 @@ import { proxy, subscribe } from 'valtio'
 import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
+import { UserOverrideCommand, UserOverridesConfig } from 'contro-max/build/types/store'
 import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './inventoryWindows'
 import { chatInputValueGlobal } from './react/Chat'
 import { fsState } from './loadSave'
+import { customCommandsConfig } from './customCommands'
+import { CustomCommand } from './react/KeybindingsCustom'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
+import { updateBinds } from './react/KeybindingsScreenProvider'
 
-// todo move this to shared file with component
-export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}'))
+
+export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
 subscribe(customKeymaps, () => {
-  localStorage.keymap = JSON.parse(customKeymaps)
+  localStorage.keymap = JSON.stringify(customKeymaps)
 })
 
 const controlOptions = {
@@ -36,12 +40,13 @@ export const contro = new ControMax({
       sneak: ['ShiftLeft'],
       toggleSneakOrDown: [null, 'Right Stick'],
       sprint: ['ControlLeft', 'Left Stick'],
-      nextHotbarSlot: [null, 'Left Bumper'],
-      prevHotbarSlot: [null, 'Right Bumper'],
+      nextHotbarSlot: [null, 'Right Bumper'],
+      prevHotbarSlot: [null, 'Left Bumper'],
       attackDestroy: [null, 'Right Trigger'],
       interactPlace: [null, 'Left Trigger'],
       chat: [['KeyT', 'Enter']],
       command: ['Slash'],
+      swapHands: ['KeyF'],
       selectItem: ['KeyH'] // default will be removed
     },
     ui: {
@@ -53,7 +58,8 @@ export const contro = new ControMax({
     },
     advanced: {
       lockUrl: ['KeyY'],
-    }
+    },
+    custom: {} as Record<string, SchemaCommandInput & { type: string, input: any[] }>,
     // waila: {
     //   showLookingBlockRecipe: ['Numpad3'],
     //   showLookingBlockUsages: ['Numpad4']
@@ -81,9 +87,15 @@ export const contro = new ControMax({
 window.controMax = contro
 export type Command = CommandEventArgument<typeof contro['_commandsRaw']>['command']
 
-export const setDoPreventDefault = (state: boolean) => {
-  controlOptions.preventDefault = state
+updateBinds(customKeymaps)
+
+const updateDoPreventDefault = () => {
+  controlOptions.preventDefault = miscUiState.gameLoaded && !activeModalStack.length
 }
+
+subscribe(miscUiState, updateDoPreventDefault)
+subscribe(activeModalStack, updateDoPreventDefault)
+updateDoPreventDefault()
 
 const setSprinting = (state: boolean) => {
   bot.setControlState('sprint', state)
@@ -285,6 +297,19 @@ function cycleHotbarSlot (dir: 1 | -1) {
   bot.setQuickBarSlot(newHotbarSlot)
 }
 
+// custom commands handler
+const customCommandsHandler = ({ command }) => {
+  const [section, name] = command.split('.')
+  if (!isGameActive(true) || section !== 'custom') return
+
+  if (contro.userConfig?.custom) {
+    customCommandsConfig[(contro.userConfig.custom[name] as CustomCommand).type].handler(
+      (contro.userConfig.custom[name] as CustomCommand).inputs
+    )
+  }
+}
+contro.on('trigger', customCommandsHandler)
+
 contro.on('trigger', ({ command }) => {
   const willContinue = !isGameActive(true)
   alwaysPressedHandledCommand(command)
@@ -313,6 +338,14 @@ contro.on('trigger', ({ command }) => {
       case 'general.toggleSneakOrDown':
       case 'general.sprint':
       case 'general.attackDestroy':
+      case 'general.swapHands': {
+        bot._client.write('entity_action', {
+          entityId: bot.entity.id,
+          actionId: 6,
+          jumpBoost: 0
+        })
+        break
+      }
       case 'general.interactPlace':
         // handled in onTriggerOrReleased
         break
@@ -620,6 +653,24 @@ window.addEventListener('keydown', (e) => {
   } else {
     document.dispatchEvent(new Event('pointerlockchange'))
   }
+})
+
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'F2' || e.repeat || !isGameActive(true)) return
+  e.preventDefault()
+  const canvas = document.getElementById('viewer-canvas') as HTMLCanvasElement
+  if (!canvas) return
+  const link = document.createElement('a')
+  link.href = canvas.toDataURL('image/png')
+  const date = new Date()
+  link.download = `screenshot ${date.toLocaleString().replaceAll('.', '-').replace(',', '')}.png`
+  link.click()
+})
+
+window.addEventListener('keydown', (e) => {
+  if (e.code !== 'F1' || e.repeat || !isGameActive(true)) return
+  e.preventDefault()
+  miscUiState.showUI = !miscUiState.showUI
 })
 
 // #region experimental debug things

@@ -2,7 +2,6 @@
 import * as THREE from 'three'
 import * as TWEEN from '@tweenjs/tween.js'
 import * as Entity from './entity/EntityMesh'
-import { dispose3 } from './dispose'
 import nbt from 'prismarine-nbt'
 import EventEmitter from 'events'
 import { PlayerObject, PlayerAnimation } from 'skinview3d'
@@ -14,6 +13,7 @@ import { NameTagObject } from 'skinview3d/libs/nametag'
 import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import externalTexturesJson from './entity/externalTextures.json'
+import { disposeObject } from './threeJsUtils'
 
 export const TWEEN_DURATION = 50 // todo should be 100
 
@@ -94,13 +94,14 @@ function getEntityMesh(entity, scene, options, overrides) {
 export class Entities extends EventEmitter {
   constructor(scene) {
     super()
+    /** @type {THREE.Scene} */
     this.scene = scene
     this.entities = {}
     this.entitiesOptions = {}
     this.debugMode = 'none'
     this.onSkinUpdate = () => { }
     this.clock = new THREE.Clock()
-    this.visible = true
+    this.rendering = true
     this.itemsTexture = null
     this.getItemUv = undefined
   }
@@ -108,7 +109,7 @@ export class Entities extends EventEmitter {
   clear() {
     for (const mesh of Object.values(this.entities)) {
       this.scene.remove(mesh)
-      dispose3(mesh)
+      disposeObject(mesh)
     }
     this.entities = {}
   }
@@ -125,10 +126,14 @@ export class Entities extends EventEmitter {
     }
   }
 
-  setVisible(visible, /** @type {THREE.Object3D?} */entity = null) {
-    this.visible = visible
-    for (const mesh of entity ? [entity] : Object.values(this.entities)) {
-      mesh.visible = visible
+  setRendering(rendering, /** @type {THREE.Object3D?} */entity = null) {
+    this.rendering = rendering
+    for (const ent of entity ? [entity] : Object.values(this.entities)) {
+      if (rendering) {
+        if (!this.scene.children.includes(ent)) this.scene.add(ent)
+      } else {
+        this.scene.remove(ent)
+      }
     }
   }
 
@@ -262,11 +267,15 @@ export class Entities extends EventEmitter {
 
   }
 
-  displaySimpleText(jsonLike) {
+  parseEntityLabel(jsonLike) {
     if (!jsonLike) return
-    const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
-    const text = flat(parsed).map(x => x.text)
-    return text.join('')
+    try {
+      const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
+      const text = flat(parsed).map(x => x.text)
+      return text.join('')
+    } catch (err) {
+      return jsonLike
+    }
   }
 
   update(/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
@@ -392,7 +401,7 @@ export class Entities extends EventEmitter {
         this.updatePlayerSkin(entity.id, '', overrides?.texture || stevePng)
       }
       this.setDebugMode(this.debugMode, group)
-      this.setVisible(this.visible, group)
+      this.setRendering(this.rendering, group)
     }
 
     //@ts-ignore
@@ -405,7 +414,7 @@ export class Entities extends EventEmitter {
       }
     }
     // not player
-    const displayText = entity.metadata?.[3] && this.displaySimpleText(entity.metadata[2])
+    const displayText = entity.metadata?.[3] && this.parseEntityLabel(entity.metadata[2])
     if (entity.name !== 'player' && displayText) {
       addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
     }
@@ -456,7 +465,7 @@ export class Entities extends EventEmitter {
       if (e.additionalCleanup) e.additionalCleanup()
       this.emit('remove', entity)
       this.scene.remove(e)
-      dispose3(e)
+      disposeObject(e)
       // todo dispose textures as well ?
       delete this.entities[entity.id]
     }

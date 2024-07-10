@@ -8,7 +8,7 @@ import type { OptionsGroupType } from './optionsGuiScheme'
 
 const notHideableModalsWithoutForce = new Set(['app-status'])
 
-type Modal = ({ elem?: HTMLElement & Record<string, any> } & { reactType?: string })
+type Modal = ({ elem?: HTMLElement & Record<string, any> } & { reactType: string })
 
 type ContextMenuItem = { callback; label }
 
@@ -57,7 +57,7 @@ const showModalInner = (modal: Modal) => {
 }
 
 export const showModal = (elem: /* (HTMLElement & Record<string, any>) |  */{ reactType: string }) => {
-  const resolved = elem instanceof HTMLElement ? { elem: ref(elem) } : elem
+  const resolved = elem
   const curModal = activeModalStack.at(-1)
   if (/* elem === curModal?.elem ||  */(elem.reactType && elem.reactType === curModal?.reactType) || !showModalInner(resolved)) return
   if (curModal) defaultModalActions.hide(curModal)
@@ -123,7 +123,7 @@ export type AppConfig = {
   defaultProxy?: string
   // defaultProxySave?: string
   // defaultVersion?: string
-  promoteServers?: Array<{ip, description, version?}>
+  promoteServers?: Array<{ ip, description, version?}>
   mapsProvider?: string
 }
 
@@ -138,6 +138,7 @@ export const miscUiState = proxy({
   wanOpened: false,
   /** wether game hud is shown (in playing state) */
   gameLoaded: false,
+  showUI: true,
   loadedServerIndex: '',
   /** currently trying to load or loaded mc version, after all data is loaded */
   loadedDataVersion: null as string | null,

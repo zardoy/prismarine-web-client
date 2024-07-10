@@ -8,6 +8,7 @@ import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { defaultWorldRendererConfig } from './worldrendererCommon'
 import { sendCameraToWorker } from '../../examples/webgpuRendererMain'
 import { WorldRendererThree } from './worldrendererThree'
+import { versionToNumber } from '../prepare/utils'
 
 export class Viewer {
   scene: THREE.Scene
@@ -80,7 +81,8 @@ export class Viewer {
   }
 
   setVersion (userVersion: string) {
-    const texturesVersion = getVersion(userVersion)
+    let texturesVersion = getVersion(userVersion)
+    if (versionToNumber(userVersion) < versionToNumber('1.13')) texturesVersion = '1.13.2' // we normalize to post-flatenning in mesher
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
     this.world.setVersion(userVersion, texturesVersion)
     this.entities.clear()
@@ -203,6 +205,8 @@ export class Viewer {
     })
 
     emitter.on('time', (timeOfDay) => {
+      this.world.timeUpdated?.(timeOfDay)
+
       let skyLight = 15
       if (timeOfDay < 0 || timeOfDay > 24000) {
         throw new Error("Invalid time of day. It should be between 0 and 24000.")

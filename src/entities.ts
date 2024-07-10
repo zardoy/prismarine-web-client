@@ -14,6 +14,7 @@ const updateAutoJump = () => {
     jumpOnAllEdges: options.autoParkour,
     // strictBlockCollision: true,
   })
+  if (autoJump === bot.autoJumper.enabled) return
   if (autoJump) {
     bot.autoJumper.enable()
   } else {

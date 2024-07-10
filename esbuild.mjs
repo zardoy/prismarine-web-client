@@ -60,6 +60,7 @@ const buildOptions = {
     net: 'net-browserify',
     assert: 'assert',
     dns: './src/dns.js',
+    'yggdrasil': './src/yggdrasilReplacement.ts',
     // todo write advancedAliases plugin
   },
   inject: [
@@ -79,11 +80,15 @@ const buildOptions = {
   loader: {
     // todo use external or resolve issues with duplicating
     '.png': 'dataurl',
+    '.svg': 'dataurl',
     '.map': 'empty',
     '.vert': 'text',
     '.frag': 'text',
     '.wgsl': 'text',
     '.obj': 'text',
+    '.woff': 'dataurl',
+    '.woff2': 'dataurl',
+    '.ttf': 'dataurl',
   },
   write: false,
   // todo would be better to enable?

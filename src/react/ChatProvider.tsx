@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { formatMessage } from '../botUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
@@ -8,6 +8,7 @@ import Chat, { Message, fadeMessage } from './Chat'
 import { useIsModalActive } from './utilsApp'
 import { hideNotification, showNotification } from './NotificationProvider'
 import { updateLoadedServerData } from './ServersListProvider'
+import { lastConnectOptions } from './AppStatusProvider'
 
 export default () => {
   const [messages, setMessages] = useState([] as Message[])
@@ -16,6 +17,7 @@ export default () => {
   const lastMessageId = useRef(0)
   const usingTouch = useSnapshot(miscUiState).currentTouch
   const { chatSelect } = useSnapshot(options)
+  const isUsingMicrosoftAuth = useMemo(() => !!lastConnectOptions.value?.authenticatedAccount, [])
 
   useEffect(() => {
     bot.addListener('message', (jsonMsg, position) => {
@@ -43,6 +45,7 @@ export default () => {
     opacity={(isChatActive ? chatOpacityOpened : chatOpacity) / 100}
     messages={messages}
     opened={isChatActive}
+    // inputDisabled={isUsingMicrosoftAuth ? 'Chat signing is not supported with Microsoft auth yet' : ''}
     sendMessage={(message) => {
       const builtinHandled = tryHandleBuiltinCommand(message)
       if (miscUiState.loadedServerIndex && (message.startsWith('/login') || message.startsWith('/register'))) {
@@ -68,13 +71,13 @@ export default () => {
         let items = [] as string[]
         try {
           items = await bot.tabComplete(completeValue, true, true)
-        } catch (err) {}
+        } catch (err) { }
         if (typeof items[0] === 'object') {
           // @ts-expect-error
           if (items[0].match) items = items.map(i => i.match)
         }
         if (completeValue === '/') {
-          if (!items[0].startsWith('/')) {
+          if (!items[0]?.startsWith('/')) {
             // normalize
             items = items.map(item => `/${item}`)
           }

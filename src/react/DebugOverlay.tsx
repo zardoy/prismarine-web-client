@@ -73,15 +73,26 @@ export default () => {
     }
   }
 
-  useMemo(() => {
+  useEffect(() => {
     document.addEventListener('keydown', handleF3)
     const packetsUpdateInterval = setInterval(() => {
-      setPacketsString(prev => `↓ ${received.current.count} (${(received.current.size / 1024).toFixed(2)} KB/s, ${getFixedFilesize(receivedTotal.current)}) ↑ ${sent.current.count}`)
+      setPacketsString(`↓ ${received.current.count} (${(received.current.size / 1024).toFixed(2)} KB/s, ${getFixedFilesize(receivedTotal.current)}) ↑ ${sent.current.count}`)
       received.current = { ...defaultPacketsCount }
       sent.current = { ...defaultPacketsCount }
       packetsCountByNamePerSec.current.received = {}
       packetsCountByNamePerSec.current.sent = {}
     }, 1000)
+
+    const freqUpdateInterval = setInterval(() => {
+      setPos({ ...bot.entity.position })
+      setSkyL(bot.world.getSkyLight(bot.entity.position))
+      setBlockL(bot.world.getBlockLight(bot.entity.position))
+      setBiomeId(bot.world.getBiome(bot.entity.position))
+      setDimension(bot.game.dimension)
+      setDay(bot.time.day)
+      setCursorBlock(worldInteractions.cursorBlock)
+      setEntitiesCount(Object.values(bot.entities).length)
+    }, 100)
 
     // @ts-expect-error
     bot._client.on('packet', readPacket)
@@ -90,25 +101,6 @@ export default () => {
     bot._client.on('writePacket' as any, (name, data) => {
       sent.current.count++
       managePackets('sent', name, data)
-    })
-    bot.on('move', () => {
-      setPos(prev => { return { ...bot.entity.position }})
-      setSkyL(prev => bot.world.getSkyLight(bot.entity.position))
-      setBlockL(prev => bot.world.getBlockLight(bot.entity.position))
-      setBiomeId(prev => bot.world.getBiome(bot.entity.position))
-      setDimension(bot.game.dimension)
-    })
-    bot.on('time', () => {
-      setDay(bot.time.day)
-    })
-    bot.on('entitySpawn', () => {
-      setEntitiesCount(Object.values(bot.entities).length)
-    })
-    bot.on('entityGone', () => {
-      setEntitiesCount(Object.values(bot.entities).length)
-    })
-    bot.on('physicsTick', () => {
-      setCursorBlock(worldInteractions.cursorBlock)
     })
 
     try {
@@ -121,6 +113,7 @@ export default () => {
     return () => {
       document.removeEventListener('keydown', handleF3)
       clearInterval(packetsUpdateInterval)
+      clearInterval(freqUpdateInterval)
     }
   }, [])
 
@@ -169,7 +162,7 @@ export default () => {
           )
         }
       </>)
-        : '' }
+        : ''}
       {cursorBlock ? (
         <p>Looking at: {cursorBlock.position.x} {cursorBlock.position.y} {cursorBlock.position.z}</p>
       ) : ''}

@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=south": {
+      "model": "sign/acacia_wall"
+    },
+    "facing=west": {
+      "model": "sign/acacia_wall",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "sign/acacia_wall",
+      "y": 180
+    },
+    "facing=east": {
+      "model": "sign/acacia_wall",
+      "y": 270
+    }
+  }
+}

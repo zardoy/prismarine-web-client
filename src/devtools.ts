@@ -29,7 +29,7 @@ window.len = (obj) => Object.keys(obj).length
 window.inspectPacket = (packetName, full = false) => {
   const listener = (...args) => console.log('packet', packetName, full ? args : args[0])
   const attach = () => {
-    bot?.on(packetName, listener)
+    bot?._client.on(packetName, listener)
   }
   attach()
   customEvents.on('mineflayerBotCreated', attach)
@@ -43,3 +43,15 @@ window.inspectPacket = (packetName, full = false) => {
   })
   return returnobj
 }
+
+// for advanced debugging, use with watch expression
+
+let stats_ = {}
+window.addStatHit = (key) => {
+  stats_[key] ??= 0
+  stats_[key]++
+}
+setInterval(() => {
+  window.stats = stats_
+  stats_ = {}
+}, 1000)

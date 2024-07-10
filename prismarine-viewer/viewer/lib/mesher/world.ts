@@ -4,6 +4,7 @@ import { Block } from "prismarine-block"
 import { Vec3 } from 'vec3'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
 import { defaultMesherConfig } from './shared'
+import legacyJson from '../../../../src/preflatMap.json'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -17,7 +18,7 @@ function isCube (shapes) {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
-export type WorldBlock = Block & {
+export type WorldBlock = Omit<Block, 'position'> & {
   variant?: any
   // todo
   isCube: boolean
@@ -30,14 +31,16 @@ export class World {
   columns = {} as { [key: string]: import('prismarine-chunk/types/index').PCChunk }
   blockCache = {}
   biomeCache: { [id: number]: mcData.Biome }
+  preflat: boolean
 
-  constructor(version) {
+  constructor (version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
+    this.preflat = !mcData(version).supportFeature('blockStateId')
     this.config.version = version
   }
 
-  getLight (pos: Vec3, isNeighbor = false) {
+  getLight (pos: Vec3, isNeighbor = false, skipMoreChecks = false, curBlockName = '') {
     const { enableLighting, skyLight } = this.config
     if (!enableLighting) return 15
     // const key = `${pos.x},${pos.y},${pos.z}`
@@ -52,8 +55,17 @@ export class World {
       ) + 2
     )
     // lightsCache.set(key, result)
-    if (result === 2 && this.getBlock(pos)?.name.match(/_stairs|slab/)) { // todo this is obviously wrong
-      result = this.getLight(pos.offset(0, 1, 0))
+    if (result === 2 && [this.getBlock(pos)?.name ?? '', curBlockName].some(x => x.match(/_stairs|slab|glass_pane/)) && !skipMoreChecks) { // todo this is obviously wrong
+      const lights = [
+        this.getLight(pos.offset(0, 1, 0), undefined, true),
+        this.getLight(pos.offset(0, -1, 0), undefined, true),
+        this.getLight(pos.offset(0, 0, 1), undefined, true),
+        this.getLight(pos.offset(0, 0, -1), undefined, true),
+        this.getLight(pos.offset(1, 0, 0), undefined, true),
+        this.getLight(pos.offset(-1, 0, 0), undefined, true)
+      ].filter(x => x !== 2)
+      const min = Math.min(...lights)
+      result = min
     }
     if (isNeighbor && result === 2) result = 15 // TODO
     return result
@@ -91,6 +103,8 @@ export class World {
   }
 
   getBlock (pos: Vec3): WorldBlock | null {
+    // for easier testing
+    if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
 
     const column = this.columns[key]
@@ -111,6 +125,25 @@ export class World {
           throw new Error('position is not reliable, use pos parameter instead of block.position')
         }
       })
+      if (this.preflat) {
+        //@ts-ignore
+        b._properties = {}
+
+        const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || findClosestLegacyBlockFallback(b.type, b.metadata, pos)
+        if (namePropsStr) {
+          b.name = namePropsStr.split('[')[0]
+          const propsStr = namePropsStr.split('[')?.[1]?.split(']')
+          if (propsStr) {
+            const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
+              let [key, val] = x.split('=') as any
+              if (!isNaN(val)) val = parseInt(val)
+              return [key, val]
+            }))
+            //@ts-ignore
+            b._properties = newProperties
+          }
+        }
+      }
     }
 
     const block = this.blockCache[stateId]
@@ -125,6 +158,15 @@ export class World {
   shouldMakeAo (block: WorldBlock | null) {
     return block?.isCube && !ignoreAoBlocks.includes(block.name)
   }
+}
+
+const findClosestLegacyBlockFallback = (id, metadata, pos) => {
+  console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos}, falling back`) // todo has known issues
+  for (const [key, value] of Object.entries(legacyJson.blocks)) {
+    const [idKey, meta] = key.split(':')
+    if (idKey === id) return value
+  }
+  return null
 }
 
 // todo export in chunk instead

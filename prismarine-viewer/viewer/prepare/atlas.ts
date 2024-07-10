@@ -31,20 +31,11 @@ export type JsonAtlas = {
     [file: string]: {
       u: number,
       v: number,
-      su?: number,
-      sv?: number,
-      animatedFrames?: number
     }
   }
 }
 
-export const makeTextureAtlas = (
-  input: string[],
-  getInputData: (name) => { contents: string, tileWidthMult?: number },
-  tilesCount = input.length,
-  suSvOptimize: 'remove' | null = null,
-  renderAnimated = true
-): {
+export const makeTextureAtlas = (input: string[], getInputData: (name) => { contents: string, tileWidthMult?: number, origSizeTextures?}, tilesCount = input.length, suSvOptimize: 'remove' | null = null): {
   image: Buffer,
   canvas: Canvas,
   json: JsonAtlas
@@ -56,53 +47,62 @@ export const makeTextureAtlas = (
   const canvas = new Canvas(imgSize, imgSize, 'png' as any)
   const g = canvas.getContext('2d')
 
-  const texturesIndex = {} as JsonAtlas['textures']
+  const texturesIndex = {}
 
-  let offset = 0
+  let nextX = 0
+  let nextY = 0
+  let rowMaxY = 0
+
+  const goToNextRow = () => {
+    nextX = 0
+    nextY += rowMaxY
+    rowMaxY = 0
+  }
+
   const suSv = tileSize / imgSize
   for (const i in input) {
-    const pos = +i + offset
-    const x = (pos % texSize) * tileSize
-    const y = Math.floor(pos / texSize) * tileSize
-
     const img = new Image()
-    const keyValue = input[i];
-    const inputData = getInputData(keyValue);
+    const keyValue = input[i]
+    const inputData = getInputData(keyValue)
     img.src = inputData.contents
-    const renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
-    let animatedFrames = 0
-    const addDebugText = (x, y) => {
-      return // disable debug text
-      g.fillStyle = 'black'
-      g.font = '8px Arial'
-      g.fillText(i, x, y)
-    }
-    if (img.height > tileSize && renderAnimated) {
-      const frames = img.height / tileSize;
-      animatedFrames = frames
-      console.log("Animated texture", keyValue, frames)
-      offset += frames - 1
-      for (let i = 0; i < frames; i++) {
-        const x = ((pos + i) % texSize) * tileSize
-        const y = Math.floor((pos + i) / texSize) * tileSize
-        g.drawImage(img, 0, i * tileSize, renderWidth, tileSize, x, y, renderWidth, tileSize)
-        addDebugText(x, y)
+    let su = suSv
+    let sv = suSv
+    let renderWidth = tileSize * (inputData.tileWidthMult ?? 1)
+    let renderHeight = tileSize
+    if (inputData.origSizeTextures?.[keyValue]) {
+      // todo check have enough space
+      renderWidth = Math.ceil(img.width / tileSize) * tileSize
+      renderHeight = Math.ceil(img.height / tileSize) * tileSize
+      su = renderWidth / imgSize
+      sv = renderHeight / imgSize
+      if (renderHeight > imgSize || renderWidth > imgSize) {
+        throw new Error('Texture ' + keyValue + ' is too big')
       }
-    } else {
-      g.drawImage(img, 0, 0, renderWidth, tileSize, x, y, renderWidth, tileSize)
-      addDebugText(x, y)
     }
+
+    if (nextX + renderWidth > imgSize) {
+      goToNextRow()
+    }
+
+    const x = nextX
+    const y = nextY
+
+    nextX += renderWidth
+    rowMaxY = Math.max(rowMaxY, renderHeight)
+    if (nextX >= imgSize) {
+      goToNextRow()
+    }
+
+    g.drawImage(img, 0, 0, renderWidth, renderHeight, x, y, renderWidth, renderHeight)
 
     const cleanName = keyValue.split('.').slice(0, -1).join('.') || keyValue
     texturesIndex[cleanName] = {
       u: x / imgSize,
       v: y / imgSize,
       ...suSvOptimize === 'remove' ? {} : {
-        su: suSv,
-        sv: suSv
-      },
-      textureName: cleanName,
-      animatedFrames: animatedFrames || undefined
+        su: su,
+        sv: sv
+      }
     }
   }
 
@@ -123,7 +123,7 @@ export function makeBlockTextureAtlas (mcAssets: McAssets) {
   // const textureFiles = mostEncounteredBlocks.map(x => x + '.png')
   textureFiles.unshift(...localTextures)
 
-  const { generated: additionalTextures, twoTileTextures } = getAdditionalTextures()
+  const { generated: additionalTextures, origSizeTextures } = getAdditionalTextures()
   textureFiles.push(...Object.keys(additionalTextures))
 
   const atlas = makeTextureAtlas(textureFiles, name => {
@@ -136,7 +136,8 @@ export function makeBlockTextureAtlas (mcAssets: McAssets) {
 
     return {
       contents,
-      tileWidthMult: twoTileTextures.includes(name) ? 2 : undefined,
+      // tileWidthMult: twoTileTextures.includes(name) ? 2 : undefined,
+      origSizeTextures
     }
   })
   return atlas

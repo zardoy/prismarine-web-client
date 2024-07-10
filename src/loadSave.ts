@@ -1,15 +1,16 @@
 import fs from 'fs'
 import path from 'path'
-import { supportedVersions } from 'flying-squid/dist/lib/version'
 import * as nbt from 'prismarine-nbt'
 import { proxy } from 'valtio'
 import { gzip } from 'node-gzip'
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import { options } from './optionsStorage'
 import { nameToMcOfflineUUID, disconnect } from './flyingSquidUtils'
 import { existsViaStats, forceCachedDataPaths, forceRedirectPaths, mkdirRecursive } from './browserfs'
 import { isMajorVersionGreater } from './utils'
 
 import { activeModalStacks, insertActiveModalStack, miscUiState } from './globalState'
+import supportedVersions from './supportedVersions.mjs'
 
 // todo include name of opened handle (zip)!
 // additional fs metadata
@@ -91,13 +92,12 @@ export const loadSave = async (root = '/world') => {
       const newVersion = '1.8.8'
       version = newVersion
     }
-    // const lastSupportedVersion = supportedVersions.at(-1)!
-    const lastTestedVersion = '1.18.2'
+    const lastSupportedVersion = supportedVersions.at(-1)!
     const firstSupportedVersion = supportedVersions[0]
     const lowerBound = isMajorVersionGreater(firstSupportedVersion, version)
-    const upperBound = isMajorVersionGreater(version, lastTestedVersion)
+    const upperBound = versionToNumber(version) > versionToNumber(lastSupportedVersion)
     if (lowerBound || upperBound) {
-      version = prompt(`Version ${version} is not supported, supported versions are ${supportedVersions.join(', ')}, what try to use instead?`, lowerBound ? firstSupportedVersion : lastTestedVersion)
+      version = prompt(`Version ${version} is not supported, supported versions are ${supportedVersions.join(', ')}, what try to use instead?`, lowerBound ? firstSupportedVersion : lastSupportedVersion)
       if (!version) return
     }
     if (levelDat.WorldGenSettings) {

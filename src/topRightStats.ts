@@ -22,7 +22,7 @@ const addStat = (dom, size = 80) => {
   dom.style.top = 0
   dom.style.right = `${total}px`
   dom.style.width = '80px'
-  dom.style.zIndex = 1000
+  dom.style.zIndex = 1
   dom.style.opacity = '0.8'
   document.body.appendChild(dom)
   total += size

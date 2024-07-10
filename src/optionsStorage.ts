@@ -30,26 +30,10 @@ const defaultOptions = {
   touchButtonsSize: 40,
   touchButtonsOpacity: 80,
   touchButtonsPosition: 12,
-  touchControlsPositions: {
-    action: [
-      70,
-      85
-    ],
-    sneak: [
-      90,
-      85
-    ],
-    break: [
-      70,
-      65
-    ],
-    jump: [
-      90,
-      65
-    ],
-  } as Record<string, [number, number]>,
+  touchControlsPositions: getDefaultTouchControlsPositions(),
   touchControlsType: 'classic' as 'classic' | 'joystick-buttons',
   gpuPreference: 'default' as 'default' | 'high-performance' | 'low-power',
+  backgroundRendering: '20fps' as 'full' | '20fps' | '5fps',
   /** @unstable */
   disableAssets: false,
   /** @unstable */
@@ -58,6 +42,7 @@ const defaultOptions = {
   dayCycleAndLighting: true,
   loadPlayerSkins: true,
   lowMemoryMode: false,
+  starfieldRendering: true,
   // antiAliasing: false,
 
   showChunkBorders: false, // todo rename option
@@ -74,6 +59,7 @@ const defaultOptions = {
   disableLoadPrompts: false,
   guestUsername: 'guest',
   askGuestName: true,
+  errorReporting: true,
   /** Actually might be useful */
   showCursorBlockInSpectator: false,
   renderEntities: true,
@@ -90,6 +76,27 @@ const defaultOptions = {
   /** Wether to popup sign editor on server action */
   autoSignEditor: true,
   wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
+}
+
+function getDefaultTouchControlsPositions () {
+  return {
+    action: [
+      70,
+      76
+    ],
+    sneak: [
+      84,
+      76
+    ],
+    break: [
+      70,
+      60
+    ],
+    jump: [
+      84,
+      60
+    ],
+  } as Record<string, [number, number]>
 }
 
 const qsOptionsRaw = new URLSearchParams(location.search).getAll('setting')

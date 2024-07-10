@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { haveDirectoryPicker } from '../utils'
+import { activeModalStack } from '../globalState'
 import styles from './mainMenu.module.css'
 import Button from './Button'
 import ButtonWithTooltip from './ButtonWithTooltip'
+import { pixelartIcons } from './PixelartIcon'
 
 type Action = (e: React.MouseEvent<HTMLButtonElement>) => void
 
@@ -17,12 +19,24 @@ interface Props {
   mapsProvider?: string
 }
 
-const refreshApp = async () => {
+const refreshApp = async (failedUpdate = false) => {
   const registration = await navigator.serviceWorker.getRegistration()
   await registration?.unregister()
-  window.justReloaded = true
-  sessionStorage.justReloaded = true
-  window.location.reload()
+  if (failedUpdate) {
+    await new Promise(resolve => {
+      setTimeout(resolve, 2000)
+    })
+  }
+  if (activeModalStack.length !== 0) return
+  if (failedUpdate) {
+    sessionStorage.justReloaded = false
+    // try to force bypass cache
+    location.search = '?update=true'
+  } else {
+    window.justReloaded = true
+    sessionStorage.justReloaded = true
+    window.location.reload()
+  }
 }
 
 const httpsRegex = /^https?:\/\//
@@ -40,10 +54,10 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
         const contents = await f.text()
         const isLatest = contents === process.env.BUILD_VERSION
         if (!isLatest && sessionStorage.justReloaded) {
-          // try to force bypass cache
-          location.search = '?update=true'
+          setVersionStatus('(force reloading, wait)')
+          void refreshApp(true)
+          return
         }
-        sessionStorage.justReloaded = false
         setVersionStatus(`(${isLatest ? 'latest' : 'new version available'})`)
         setVersionTitle(`Loaded: ${process.env.BUILD_VERSION}. Remote: ${contents}`)
       }, () => { })
@@ -87,10 +101,10 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
 
           <ButtonWithTooltip
             data-test-id='select-file-folder'
-            icon='pixelarticons:folder'
+            icon={pixelartIcons.folder}
             onClick={openFileAction}
             initialTooltip={{
-              content: 'Load any 1.8-1.16 Java world' + (haveDirectoryPicker() ? '' : ' (zip)'),
+              content: 'Load any Java world save' + (haveDirectoryPicker() ? '' : ' (zip)!'),
               placement: 'bottom-start',
             }}
           />
@@ -142,7 +156,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       {mapsProvider &&
         <ButtonWithTooltip
           className={styles['maps-provider']}
-          icon='pixelarticons:map'
+          icon={pixelartIcons.map}
           initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'right' }}
           onClick={() => openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider, false)}
         />}

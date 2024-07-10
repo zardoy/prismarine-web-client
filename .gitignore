@@ -17,5 +17,6 @@ out
 .vercel
 generated
 storybook-static
+server-jar
 
 src/react/npmReactComponents.ts

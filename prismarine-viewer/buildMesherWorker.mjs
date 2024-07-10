@@ -6,6 +6,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
 import { dynamicMcDataFiles } from './buildMesherConfig.mjs'
+import { mesherSharedPlugins } from '../scripts/esbuildPlugins.mjs'
 
 const allowedBundleFiles = ['legacy', 'versions', 'protocolVersions', 'features']
 
@@ -34,6 +35,7 @@ const buildOptions = {
     'process.env.BROWSER': '"true"',
   },
   plugins: [
+    ...mesherSharedPlugins,
     {
       name: 'external-json',
       setup(build) {

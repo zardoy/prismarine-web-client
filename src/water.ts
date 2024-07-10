@@ -19,7 +19,7 @@ customEvents.on('gameLoaded', () => {
   }
   bot.on('physicsTick', () => {
     // todo
-    const _inWater = bot.world.getBlock(bot.entity.position.offset(0, 1, 0)).name === 'water'
+    const _inWater = bot.world.getBlock(bot.entity.position.offset(0, 1, 0))?.name === 'water'
     if (_inWater !== inWater) {
       inWater = _inWater
       updateInWater()

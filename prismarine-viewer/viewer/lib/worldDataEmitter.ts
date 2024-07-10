@@ -19,7 +19,7 @@ export class WorldDataEmitter extends EventEmitter {
   private eventListeners: Record<string, any> = {};
   private emitter: WorldDataEmitter
 
-  constructor(public world: import('prismarine-world').world.World | typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
+  constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
     this.loadedChunks = {}
     this.lastPos = new Vec3(0, 0, 0).update(position)
@@ -83,10 +83,11 @@ export class WorldDataEmitter extends EventEmitter {
         get (_target, posKey, receiver) {
           if (typeof posKey !== 'string') return
           const [x, y, z] = posKey.split(',').map(Number)
-          return bot.world.getBlock(new Vec3(x, y, z)).entity
+          return bot.world.getBlock(new Vec3(x, y, z))?.entity
         },
       }))
       this.emitter.emit('renderDistance', this.viewDistance)
+      this.emitter.emit('time', bot.time.timeOfDay)
     })
     // node.js stream data event pattern
     if (this.emitter.listenerCount('blockEntities')) {
@@ -122,9 +123,23 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async _loadChunks (positions: Vec3[], sliceSize = 5, waitTime = 0) {
-    for (let i = 0; i < positions.length; i += sliceSize) {
-      await new Promise((resolve) => setTimeout(resolve, waitTime))
-      await Promise.all(positions.slice(i, i + sliceSize).map((p) => this.loadChunk(p)))
+    let i = 0
+    const interval = setInterval(() => {
+      if (i >= positions.length) {
+        clearInterval(interval)
+        return
+      }
+      this.loadChunk(positions[i])
+      i++
+    }, 1)
+  }
+
+  readdDebug () {
+    const clonedLoadedChunks = { ...this.loadedChunks }
+    this.unloadAllChunks()
+    for (const loadedChunk in clonedLoadedChunks) {
+      const [x, z] = loadedChunk.split(',').map(Number)
+      this.loadChunk(new Vec3(x, 0, z))
     }
   }
 
@@ -186,7 +201,7 @@ export class WorldDataEmitter extends EventEmitter {
       const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => {
         const pos = new Vec3((botX + x) * 16, 0, (botZ + z) * 16)
         if (!this.loadedChunks[`${pos.x},${pos.z}`]) return pos
-        return undefined
+        return undefined!
       }).filter(a => !!a)
       this.lastPos.update(pos)
       await this._loadChunks(positions)

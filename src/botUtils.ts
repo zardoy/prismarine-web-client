@@ -101,7 +101,7 @@ export const formatMessage = (message: MessageInput, mcData: IndexedData = globa
 
   msglist = msglist.map(msg => {
     // normalize §
-    if (!msg.text.includes('§')) return msg
+    if (!msg.text.includes?.('§')) return msg
     const newMsg = fromFormattedString(msg.text)
     return flat(newMsg)
   }).flat(Infinity)
@@ -117,6 +117,6 @@ const blockToItemRemaps = {
 }
 
 export const getItemFromBlock = (block: import('prismarine-block').Block) => {
-  const item = global.mcData.itemsByName[blockToItemRemaps[block.name] ?? block.name]
+  const item = global.loadedData.itemsByName[blockToItemRemaps[block.name] ?? block.name]
   return item
 }

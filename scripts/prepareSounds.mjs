@@ -61,7 +61,7 @@ const downloadAllSounds = async () => {
     }
     prevSounds = soundAssets
   }
-  async function downloadSound ({ name, hash, size }, namePath, log) {
+  async function downloadSound({ name, hash, size }, namePath, log) {
     const savePath = path.resolve(`generated/sounds/${namePath}`)
     if (fs.existsSync(savePath)) {
       // console.log('skipped', name)
@@ -86,7 +86,7 @@ const downloadAllSounds = async () => {
     }
     writer.close()
   }
-  async function downloadSounds (assets, addPath = '') {
+  async function downloadSounds(assets, addPath = '') {
     for (let i = 0; i < assets.length; i += 5) {
       await Promise.all(assets.slice(i, i + 5).map((asset, j) => downloadSound(asset, `${addPath}${asset.name}`, () => {
         console.log('downloading', addPath, asset.name, i + j, '/', assets.length)
@@ -135,7 +135,7 @@ const convertSounds = async () => {
   }
 
   const CONCURRENCY = 5
-  for(let i = 0; i < toConvert.length; i += CONCURRENCY) {
+  for (let i = 0; i < toConvert.length; i += CONCURRENCY) {
     await Promise.all(toConvert.slice(i, i + CONCURRENCY).map((oggPath, j) => convertSound(i + j)))
   }
 }
@@ -221,7 +221,7 @@ const makeSoundsBundle = async () => {
 
   const allSoundsMeta = {
     format: 'mp3',
-    baseUrl: 'https://raw.githubusercontent.com/zardoy/prismarine-web-client/sounds-generated/sounds/'
+    baseUrl: 'https://raw.githubusercontent.com/zardoy/minecraft-web-client/sounds-generated/sounds/'
   }
 
   await build({

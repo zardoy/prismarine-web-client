@@ -41,7 +41,7 @@ export const watchOptionsAfterViewerInit = () => {
   })
 
   watchValue(options, o => {
-    viewer.entities.setVisible(o.renderEntities)
+    viewer.entities.setRendering(o.renderEntities)
   })
 
   // viewer.world.mesherConfig.smoothLighting = options.smoothLighting
@@ -56,5 +56,10 @@ export const watchOptionsAfterViewerInit = () => {
   })
   customEvents.on('gameLoaded', () => {
     viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
+  })
+
+  watchValue(options, o => {
+    if (!(viewer.world instanceof WorldRendererThree)) return
+    viewer.world.starField.enabled = o.starfieldRendering
   })
 }

@@ -1,7 +1,6 @@
 import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import nbt from 'prismarine-nbt'
-import { dispose3 } from './dispose'
 import PrismarineChatLoader from 'prismarine-chat'
 import { renderSign } from '../sign-renderer/'
 import { chunkPos, sectionPos } from './simpleUtils'
@@ -12,6 +11,7 @@ function mod (x, n) {
 import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
+import { disposeObject } from './threeJsUtils'
 
 export class WorldRendererThree extends WorldRendererCommon {
     outputFormat = 'threeJs' as const
@@ -19,13 +19,27 @@ export class WorldRendererThree extends WorldRendererCommon {
     sectionObjects: Record<string, THREE.Object3D> = {}
     chunkTextures = new Map<string, { [pos: string]: THREE.Texture }>()
     signsCache = new Map<string, any>()
+    starField: StarField
+    cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
 
     get tilesRendered () {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
     }
 
-    constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
+    constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
         super(config)
+        this.starField = new StarField(scene)
+    }
+
+    timeUpdated (newTime: number): void {
+        const nightTime = 13_500
+        const morningStart = 23_000
+        const displayStars = newTime > nightTime && newTime < morningStart
+        if (displayStars && !this.starField.points) {
+            this.starField.addToScene()
+        } else if (!displayStars && this.starField.points) {
+            this.starField.remove()
+        }
     }
 
     /**
@@ -33,16 +47,18 @@ export class WorldRendererThree extends WorldRendererCommon {
      */
     updatePosDataChunk (key: string) {
         const [x, y, z] = key.split(',').map(x => Math.floor(+x / 16))
-        const [xPlayer, yPlayer, zPlayer] = this.camera.position.toArray().map(x => Math.floor(x / 16))
         // sum of distances: x + y + z
-        const chunkDistance = Math.abs(x - xPlayer) + Math.abs(y - yPlayer) + Math.abs(z - zPlayer)
+        const chunkDistance = Math.abs(x - this.cameraSectionPos.x) + Math.abs(y - this.cameraSectionPos.y) + Math.abs(z - this.cameraSectionPos.z)
         const section = this.sectionObjects[key].children.find(child => child.name === 'mesh')!
         section.renderOrder = 500 - chunkDistance
     }
 
     updateViewerPosition (pos: Vec3): void {
         this.viewerPosition = pos
-        for (const [key, value] of Object.entries(this.sectionObjects)) {
+        const cameraPos = this.camera.position.toArray().map(x => Math.floor(x / 16)) as [number, number, number]
+        this.cameraSectionPos = new Vec3(...cameraPos)
+        for (const key in this.sectionObjects) {
+            const value = this.sectionObjects[key]
             if (!value) continue
             this.updatePosDataChunk(key)
         }
@@ -53,7 +69,7 @@ export class WorldRendererThree extends WorldRendererCommon {
         let object: THREE.Object3D = this.sectionObjects[data.key]
         if (object) {
             this.scene.remove(object)
-            dispose3(object)
+            disposeObject(object)
             delete this.sectionObjects[data.key]
         }
 
@@ -86,7 +102,10 @@ export class WorldRendererThree extends WorldRendererCommon {
         mesh.name = 'mesh'
         object = new THREE.Group()
         object.add(mesh)
-        const boxHelper = new THREE.BoxHelper(mesh, 0xffff00)
+        // mesh with static dimensions: 16x16x16
+        const staticChunkMesh = new THREE.Mesh(new THREE.BoxGeometry(16, 16, 16), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0 }))
+        staticChunkMesh.position.set(data.geometry.sx, data.geometry.sy, data.geometry.sz)
+        const boxHelper = new THREE.BoxHelper(staticChunkMesh, 0xffff00)
         boxHelper.name = 'helper'
         object.add(boxHelper)
         object.name = 'chunk'
@@ -97,17 +116,22 @@ export class WorldRendererThree extends WorldRendererCommon {
         }
         // should not compute it once
         if (Object.keys(data.geometry.signs).length) {
-            for (const [posKey, { isWall, rotation }] of Object.entries(data.geometry.signs)) {
+            for (const [posKey, { isWall, isHanging, rotation }] of Object.entries(data.geometry.signs)) {
                 const [x, y, z] = posKey.split(',')
                 const signBlockEntity = this.blockEntities[posKey]
                 if (!signBlockEntity) continue
-                const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, nbt.simplify(signBlockEntity))
+                const sign = this.renderSign(new Vec3(+x, +y, +z), rotation, isWall, isHanging, nbt.simplify(signBlockEntity))
                 if (!sign) continue
                 object.add(sign)
             }
         }
         this.sectionObjects[data.key] = object
         this.updatePosDataChunk(data.key)
+        object.matrixAutoUpdate = false
+        mesh.onAfterRender = (renderer, scene, camera, geometry, material, group) => {
+            // mesh.matrixAutoUpdate = false
+        }
+
         this.scene.add(object)
     }
 
@@ -142,10 +166,11 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     render () {
         tweenJs.update()
-        this.renderer.render(this.scene, this.camera)
+        const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
+        this.renderer.render(this.scene, cam)
     }
 
-    renderSign (position: Vec3, rotation: number, isWall: boolean, blockEntity) {
+    renderSign (position: Vec3, rotation: number, isWall: boolean, isHanging: boolean, blockEntity) {
         const tex = this.getSignTexture(position, blockEntity)
 
         if (!tex) return
@@ -161,14 +186,16 @@ export class WorldRendererThree extends WorldRendererCommon {
         const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: tex, transparent: true, }))
         mesh.renderOrder = 999
 
-        // todo @sa2urami shouldnt all this be done in worker?
-        mesh.scale.set(1, 7 / 16, 1)
-        if (isWall) {
-            mesh.position.set(0, 0, -(8 - 1.5) / 16 + 0.001)
+        const lineHeight = 7 / 16
+        const scaleFactor = isHanging ? 1.3 : 1
+        mesh.scale.set(1 * scaleFactor, lineHeight * scaleFactor, 1 * scaleFactor)
+
+        const thickness = (isHanging ? 2 : 1.5) / 16
+        const wallSpacing = 0.25 / 16
+        if (isWall && !isHanging) {
+            mesh.position.set(0, 0, -0.5 + thickness + wallSpacing + 0.0001)
         } else {
-            // standing
-            const faceEnd = 8.75
-            mesh.position.set(0, 0, (faceEnd - 16 / 2) / 16 + 0.001)
+            mesh.position.set(0, 0, thickness / 2 + 0.0001)
         }
 
         const group = new THREE.Group()
@@ -176,8 +203,10 @@ export class WorldRendererThree extends WorldRendererCommon {
             rotation * (isWall ? 90 : 45 / 2)
         ), 0)
         group.add(mesh)
-        const y = isWall ? 4.5 / 16 + mesh.scale.y / 2 : (1 - (mesh.scale.y / 2))
-        group.position.set(position.x + 0.5, position.y + y, position.z + 0.5)
+        const height = (isHanging ? 10 : 8) / 16
+        const heightOffset = (isHanging ? 0 : isWall ? 4.333 : 9.333) / 16
+        const textPosition = height / 2 + heightOffset
+        group.position.set(position.x + 0.5, position.y + textPosition, position.z + 0.5)
         return group
     }
 
@@ -244,6 +273,24 @@ export class WorldRendererThree extends WorldRendererCommon {
         }
     }
 
+    readdChunks () {
+        for (const key of Object.keys(this.sectionObjects)) {
+            this.scene.remove(this.sectionObjects[key])
+        }
+        setTimeout(() => {
+            for (const key of Object.keys(this.sectionObjects)) {
+                this.scene.add(this.sectionObjects[key])
+            }
+        }, 500)
+    }
+
+    disableUpdates (children = this.scene.children) {
+        for (const child of children) {
+            child.matrixWorldNeedsUpdate = false
+            this.disableUpdates(child.children ?? [])
+        }
+    }
+
     removeColumn (x, z) {
         super.removeColumn(x, z)
 
@@ -254,7 +301,7 @@ export class WorldRendererThree extends WorldRendererCommon {
             const mesh = this.sectionObjects[key]
             if (mesh) {
                 this.scene.remove(mesh)
-                dispose3(mesh)
+                disposeObject(mesh)
             }
             delete this.sectionObjects[key]
         }
@@ -263,5 +310,115 @@ export class WorldRendererThree extends WorldRendererCommon {
     setSectionDirty (pos, value = true) {
         this.cleanChunkTextures(pos.x, pos.z) // todo don't do this!
         super.setSectionDirty(pos, value)
+    }
+}
+
+class StarField {
+    points?: THREE.Points
+    private _enabled = true
+    get enabled () {
+        return this._enabled
+    }
+    set enabled (value) {
+        this._enabled = value
+        if (this.points) {
+            this.points.visible = value
+        }
+    }
+
+    constructor (private scene: THREE.Scene) {
+    }
+
+    addToScene () {
+        if (this.points || !this.enabled) return
+
+        const radius = 80
+        const depth = 50
+        const count = 7000
+        const factor = 7
+        const saturation = 10
+        const speed = 0.2
+
+        const geometry = new THREE.BufferGeometry()
+
+        const genStar = r => new THREE.Vector3().setFromSpherical(new THREE.Spherical(r, Math.acos(1 - Math.random() * 2), Math.random() * 2 * Math.PI))
+
+        const positions = [] as number[]
+        const colors = [] as number[]
+        const sizes = Array.from({ length: count }, () => (0.5 + 0.5 * Math.random()) * factor)
+        const color = new THREE.Color()
+        let r = radius + depth
+        const increment = depth / count
+        for (let i = 0; i < count; i++) {
+            r -= increment * Math.random()
+            positions.push(...genStar(r).toArray())
+            color.setHSL(i / count, saturation, 0.9)
+            colors.push(color.r, color.g, color.b)
+        }
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3))
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3))
+        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1))
+
+        // Create a material
+        const material = new StarfieldMaterial()
+        material.blending = THREE.AdditiveBlending
+        material.depthTest = false
+        material.transparent = true
+
+        // Create points and add them to the scene
+        this.points = new THREE.Points(geometry, material)
+        this.scene.add(this.points)
+
+        const clock = new THREE.Clock()
+        this.points.onBeforeRender = (renderer, scene, camera) => {
+            this.points?.position.copy?.(camera.position)
+            material.uniforms.time.value = clock.getElapsedTime() * speed
+        }
+    }
+
+    remove () {
+        if (this.points) {
+            this.points.geometry.dispose();
+            (this.points.material as THREE.Material).dispose()
+            this.scene.remove(this.points)
+
+            this.points = undefined
+        }
+    }
+}
+
+const version = parseInt(THREE.REVISION.replace(/\D+/g, ''))
+class StarfieldMaterial extends THREE.ShaderMaterial {
+    constructor () {
+        super({
+            uniforms: { time: { value: 0.0 }, fade: { value: 1.0 } },
+            vertexShader: /* glsl */ `
+                uniform float time;
+                attribute float size;
+                varying vec3 vColor;
+                attribute vec3 color;
+                void main() {
+                vColor = color;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 0.5);
+                gl_PointSize = size * (30.0 / -mvPosition.z) * (3.0 + sin(time + 100.0));
+                gl_Position = projectionMatrix * mvPosition;
+            }`,
+            fragmentShader: /* glsl */ `
+                uniform sampler2D pointTexture;
+                uniform float fade;
+                varying vec3 vColor;
+                void main() {
+                float opacity = 1.0;
+                if (fade == 1.0) {
+                    float d = distance(gl_PointCoord, vec2(0.5, 0.5));
+                    opacity = 1.0 / (1.0 + exp(16.0 * (d - 0.25)));
+                }
+                gl_FragColor = vec4(vColor, opacity);
+
+                #include <tonemapping_fragment>
+                #include <${version >= 154 ? 'colorspace_fragment' : 'encodings_fragment'}>
+            }`,
+        })
     }
 }

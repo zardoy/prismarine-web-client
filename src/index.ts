@@ -2,13 +2,14 @@
 import './importsWorkaround'
 import './styles.css'
 import './globals'
-import 'iconify-icon'
 import './devtools'
 import './entities'
 import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
 import { itemsAtlases, onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
+import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
+import microsoftAuthflow from './microsoftAuthflow'
 
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
@@ -17,6 +18,7 @@ import './scaleInterface'
 import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
+import PrismarineItem from 'prismarine-item'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi.jsx'
@@ -39,6 +41,7 @@ import * as THREE from 'three'
 import MinecraftData, { versionsByMinecraftVersion } from 'minecraft-data'
 import debug from 'debug'
 import { defaultsDeep } from 'lodash-es'
+import initializePacketsReplay from './packetsReplay'
 
 import { initVR } from './vr'
 import {
@@ -90,7 +93,11 @@ import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 import './water'
 import { ConnectOptions } from './connect'
-import { subscribe } from 'valtio'
+import { ref, subscribe } from 'valtio'
+import { signInMessageState } from './react/SignInMessageProvider'
+import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
+import packetsPatcher from './packetsPatcher'
 import { initWebgpuRenderer } from 'prismarine-viewer/examples/webgpuRendererMain'
 import { addNewStat } from 'prismarine-viewer/examples/newStats'
 import { getVersion } from 'prismarine-viewer/viewer/lib/version'
@@ -106,12 +113,16 @@ window.beforeRenderFrame = []
 void registerServiceWorker()
 watchFov()
 initCollisionShapes()
+initializePacketsReplay()
+packetsPatcher()
 
 // Create three.js context, add to page
 let renderer: THREE.WebGLRenderer
 try {
   renderer = new THREE.WebGLRenderer({
     powerPreference: options.gpuPreference,
+    preserveDrawingBuffer: true,
+    logarithmicDepthBuffer: true,
   })
 } catch (err) {
   console.error(err)
@@ -124,6 +135,7 @@ const renderWrapper = new ViewerWrapper(renderer.domElement, renderer)
 renderWrapper.addToPage()
 watchValue(options, (o) => {
   renderWrapper.renderInterval = o.frameLimit ? 1000 / o.frameLimit : 0
+  renderWrapper.renderIntervalUnfocused = o.backgroundRendering === '5fps' ? 1000 / 5 : o.backgroundRendering === '20fps' ? 1000 / 20 : undefined
 })
 
 const isFirefox = ua.getBrowser().name === 'Firefox'
@@ -145,23 +157,34 @@ new THREE.TextureLoader().load(itemsPng, (texture) => {
   viewer.entities.itemsTexture = texture
   // todo unify
   viewer.entities.getItemUv = (id) => {
-    const name = loadedData.items[id]?.name
-    const uv = itemsAtlases.latest.textures[name]
-    if (!uv) {
-      const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
-      if (!variant) return
-      const uvBlock = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces?.north.texture
-      if (!uvBlock) return
+    try {
+      const name = loadedData.items[id]?.name
+      const uv = itemsAtlases.latest.textures[name]
+      if (!uv) {
+        const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
+        if (!variant) return
+        const faces = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces
+        const uvBlock = faces?.north?.texture ?? faces?.up?.texture ?? faces?.down?.texture ?? faces?.west?.texture ?? faces?.east?.texture ?? faces?.south?.texture
+        if (!uvBlock) return
+        return {
+          ...uvBlock,
+          size: Math.abs(uvBlock.su),
+          texture: viewer.world.material.map
+        }
+      }
       return {
-        ...uvBlock,
-        size: Math.abs(uvBlock.su),
+        ...uv,
+        size: itemsAtlases.latest.size,
+        texture: viewer.entities.itemsTexture
+      }
+    } catch (err) {
+      reportError?.(err)
+      return {
+        u: 0,
+        v: 0,
+        size: 16 / viewer.world.material.map!.image.width,
         texture: viewer.world.material.map
       }
-    }
-    return {
-      ...uv,
-      size: itemsAtlases.latest.size,
-      texture: viewer.entities.itemsTexture
     }
   }
 })
@@ -208,7 +231,7 @@ function hideCurrentScreens () {
 }
 
 const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
-  void connect({ singleplayer: true, username: options.localUsername, password: '', serverOverrides, serverOverridesFlat: flattenedServerOverrides })
+  void connect({ singleplayer: true, username: options.localUsername, serverOverrides, serverOverridesFlat: flattenedServerOverrides })
 }
 function listenGlobalEvents () {
   window.addEventListener('connect', e => {
@@ -264,7 +287,7 @@ async function connect (connectOptions: ConnectOptions) {
   const { renderDistance: renderDistanceSingleplayer, multiplayerRenderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
-  const { username, password } = connectOptions
+  let { username } = connectOptions
 
   console.log(`connecting to ${server.host}:${server.port} with ${username}`)
 
@@ -345,11 +368,17 @@ async function connect (connectOptions: ConnectOptions) {
   }
 
   const renderDistance = singleplayer ? renderDistanceSingleplayer : multiplayerRenderDistance
+  let updateDataAfterJoin = () => { }
   let localServer
   try {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     const downloadMcData = async (version: string) => {
+      if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
+        // todo support it (just need to fix .export crash)
+        throw new Error('Microsoft authentication is only supported in 1.19.4 and above (at least for now)')
+      }
+
       // todo expose cache
       const lastVersion = supportedVersions.at(-1)
       if (version === lastVersion) {
@@ -418,6 +447,7 @@ async function connect (connectOptions: ConnectOptions) {
       flyingSquidEvents()
     }
 
+    if (connectOptions.authenticatedAccount) username = 'not-used'
     let initialLoadingText: string
     if (singleplayer) {
       initialLoadingText = 'Local server is still starting'
@@ -427,6 +457,20 @@ async function connect (connectOptions: ConnectOptions) {
       initialLoadingText = 'Connecting to server'
     }
     setLoadingScreenStatus(initialLoadingText)
+
+    let newTokensCacheResult = null as any
+    const cachedTokens = typeof connectOptions.authenticatedAccount === 'object' ? connectOptions.authenticatedAccount.cachedTokens : {}
+    const authData = connectOptions.authenticatedAccount ? await microsoftAuthflow({
+      tokenCaches: cachedTokens,
+      proxyBaseUrl: connectOptions.proxy,
+      setProgressText (text) {
+        setLoadingScreenStatus(text)
+      },
+      setCacheResult (result) {
+        newTokensCacheResult = result
+      },
+    }) : undefined
+
     bot = mineflayer.createBot({
       host: server.host,
       port: server.port ? +server.port : undefined,
@@ -442,11 +486,56 @@ async function connect (connectOptions: ConnectOptions) {
         connect () { },
         Client: CustomChannelClient as any,
       } : {},
+      onMsaCode (data) {
+        signInMessageState.code = data.user_code
+        signInMessageState.link = data.verification_uri
+        signInMessageState.expiresOn = Date.now() + data.expires_in * 1000
+      },
+      sessionServer: authData?.sessionEndpoint,
+      auth: connectOptions.authenticatedAccount ? async (client, options) => {
+        authData!.setOnMsaCodeCallback(options.onMsaCode)
+        //@ts-expect-error
+        client.authflow = authData!.authFlow
+        try {
+          signInMessageState.abortController = ref(new AbortController())
+          await Promise.race([
+            protocolMicrosoftAuth.authenticate(client, options),
+            new Promise((_r, reject) => {
+              signInMessageState.abortController.signal.addEventListener('abort', () => {
+                reject(new Error('Aborted by user'))
+              })
+            })
+          ])
+          if (signInMessageState.shouldSaveToken) {
+            updateAuthenticatedAccountData(accounts => {
+              const existingAccount = accounts.find(a => a.username === client.username)
+              if (existingAccount) {
+                existingAccount.cachedTokens = { ...existingAccount.cachedTokens, ...newTokensCacheResult }
+              } else {
+                accounts.push({
+                  username: client.username,
+                  cachedTokens: { ...cachedTokens, ...newTokensCacheResult }
+                })
+              }
+              return accounts
+            })
+            updateDataAfterJoin = () => {
+              updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: client.username }), connectOptions.serverIndex)
+            }
+          } else {
+            updateDataAfterJoin = () => {
+              updateLoadedServerData(s => ({ ...s, authenticatedAccountOverride: undefined }), connectOptions.serverIndex)
+            }
+          }
+          setLoadingScreenStatus('Authentication successful. Logging in to server')
+        } finally {
+          signInMessageState.code = ''
+        }
+      } : undefined,
       username,
-      password,
       viewDistance: renderDistance,
       checkTimeoutInterval: 240 * 1000,
-      noPongTimeout: 240 * 1000,
+      // noPongTimeout: 240 * 1000,
       closeTimeout: 240 * 1000,
       respawn: options.autoRespawn,
       maxCatchupTicks: 0,
@@ -483,9 +572,32 @@ async function connect (connectOptions: ConnectOptions) {
               if (bot) {
                 bot.emit('end', 'WebSocket connection closed with unknown reason')
               }
+            }, 1000)
+          })
+          bot._client.socket.on('close', () => {
+            setTimeout(() => {
+              if (bot) {
+                bot.emit('end', 'WebSocket connection closed with unknown reason')
+              }
             })
           })
         })
+        let i = 0
+        //@ts-expect-error
+        bot.pingProxy = async () => {
+          const curI = ++i
+          return new Promise(resolve => {
+            //@ts-expect-error
+            bot._client.socket._ws.send(`ping:${curI}`)
+            const date = Date.now()
+            const onPong = (received) => {
+              if (received !== curI.toString()) return
+              bot._client.socket.off('pong' as any, onPong)
+              resolve(Date.now() - date)
+            }
+            bot._client.socket.on('pong' as any, onPong)
+          })
+        }
       }
       // socket setup actually can be delayed because of dns lookup
       if (bot._client.socket) {
@@ -552,18 +664,10 @@ async function connect (connectOptions: ConnectOptions) {
     errorAbortController.abort()
     const mcData = MinecraftData(bot.version)
     window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
+    window.PrismarineItem = PrismarineItem(mcData.version.minecraftVersion!)
     window.loadedData = mcData
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
-
-    // patch mineflayer
-    // todo move to mineflayer
-    bot.inventory.on('updateSlot', (index) => {
-      if ((index as unknown as number) === bot.quickBarSlot + bot.inventory.hotbarStart) {
-        //@ts-expect-error
-        bot.emit('heldItemChanged')
-      }
-    })
 
     miscUiState.gameLoaded = true
     miscUiState.loadedServerIndex = connectOptions.serverIndex ?? ''
@@ -573,6 +677,7 @@ async function connect (connectOptions: ConnectOptions) {
     setLoadingScreenStatus('Placing blocks (starting viewer)')
     localStorage.lastConnectOptions = JSON.stringify(connectOptions)
     connectOptions.onSuccessfulPlay?.()
+    updateDataAfterJoin()
     if (connectOptions.autoLoginPassword) {
       bot.chat(`/login ${connectOptions.autoLoginPassword}`)
     }
@@ -806,9 +911,12 @@ listenGlobalEvents()
 watchValue(miscUiState, async s => {
   if (s.appLoaded) { // fs ready
     const qs = new URLSearchParams(window.location.search)
+    const moreServerOptions = {} as Record<string, any>
+    if (qs.has('version')) moreServerOptions.version = qs.get('version')
     if (qs.get('singleplayer') === '1') {
       loadSingleplayer({}, {
-        worldFolder: undefined
+        worldFolder: undefined,
+        ...moreServerOptions
       })
     }
     if (qs.get('loadSave')) {
