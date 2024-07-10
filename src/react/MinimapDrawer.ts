@@ -86,8 +86,8 @@ export class MinimapDrawer {
 
     this.lastBotPos = botPos
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z, full)
-    this.drawPartsOfWorld()
-    this.drawWarps()
+    if (!full) this.drawPartsOfWorld()
+    this.drawWarps(botPos)
   }
 
   updateWorldColors (
@@ -178,7 +178,7 @@ export class MinimapDrawer {
     this.lastWarpPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
   }
 
-  drawWarps () {
+  drawWarps (centerPos: Vec3) {
     for (const warp of this.adapter.warps) {
       const distance = this.getDistance(
         this.adapter.playerPosition.x, 

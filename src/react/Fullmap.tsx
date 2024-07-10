@@ -9,7 +9,7 @@ import Input from './Input'
 
 type FullmapProps = {
   onClick: () => void, 
-  adapter: any, 
+  adapter: DrawerAdapter, 
   drawer: MinimapDrawer | null,
   canvasRef: any
 }
@@ -48,10 +48,24 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
     newCanvas.style.left = `${-stateRef.current.positionX * 1 / stateRef.current.scale}px`
     newCanvas.style.border = '2px solid red'
     canvasRef.current = newCanvas
-    if (canvasesCont.current) {
+    if (canvasesCont.current && drawer) {
       canvasesCont.current.appendChild(newCanvas)
+      drawer.canvas = newCanvas
+      drawer.draw(
+        new Vec3(
+          adapter.playerPosition.x - stateRef.current.positionX * 1 / stateRef.current.scale,
+          adapter.playerPosition.y,
+          adapter.playerPosition.z - stateRef.current.positionY * 1 / stateRef.current.scale,
+        ),
+        undefined,
+        true
+      )
     }
   }
+
+  useEffect(()=>{
+    drawer?.draw(adapter.playerPosition, undefined, true)
+  }, [drawer])
 
   useEffect(() => {
     if (canvasRef.current) {
