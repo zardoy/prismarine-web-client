@@ -17,6 +17,7 @@ type FullmapProps = {
 export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
   const zoomRef = useRef(null)
   const isDragging = useRef(false)
+  const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
 
   const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
@@ -82,6 +83,12 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
       minScale={0.1}    
       doubleClick={{
         disabled: true
+      }}
+      onTransformed={(ref, state)=>{
+        stateRef.current = { ...state }
+      }}
+      onPanningStop={()=>{
+        console.log(stateRef.current)
       }}
     >
       <TransformComponent

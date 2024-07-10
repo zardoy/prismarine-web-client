@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
+import { useRef, useEffect } from 'react'
 import { showModal, hideModal } from '../globalState'
 import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
