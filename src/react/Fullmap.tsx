@@ -19,6 +19,7 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
   const isDragging = useRef(false)
   const canvasesCont = useRef<HTMLDivElement>(null)
   const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
+  const box = useRef({ left: 0, top: 0 })
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
 
   const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
@@ -41,21 +42,23 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
 
   const drawNewPartOfMap = () => {
     const newCanvas = document.createElement('canvas')
-    newCanvas.width = 200 / stateRef.current.scale
-    newCanvas.height = 200 / stateRef.current.scale
+    newCanvas.width = Math.floor(200 / stateRef.current.scale)
+    if (newCanvas.width % 2) newCanvas.width += 1
+    newCanvas.height = Math.floor(200 / stateRef.current.scale)
+    if (newCanvas.height % 2) newCanvas.height += 1
     newCanvas.style.position = 'absolute'
-    newCanvas.style.top = `${-stateRef.current.positionY * 1 / stateRef.current.scale}px`
-    newCanvas.style.left = `${-stateRef.current.positionX * 1 / stateRef.current.scale}px`
-    newCanvas.style.border = '2px solid red'
+    newCanvas.style.top = `${-stateRef.current.positionY / stateRef.current.scale}px`
+    newCanvas.style.left = `${-stateRef.current.positionX / stateRef.current.scale}px`
+    // newCanvas.style.border = '2px solid red'
     canvasRef.current = newCanvas
     if (canvasesCont.current && drawer) {
       canvasesCont.current.appendChild(newCanvas)
       drawer.canvas = newCanvas
       drawer.draw(
         new Vec3(
-          adapter.playerPosition.x - stateRef.current.positionX * 1 / stateRef.current.scale,
+          adapter.playerPosition.x - (stateRef.current.positionX + (1 - stateRef.current.scale) * newCanvas.width / 2) / stateRef.current.scale,
           adapter.playerPosition.y,
-          adapter.playerPosition.z - stateRef.current.positionY * 1 / stateRef.current.scale,
+          adapter.playerPosition.z - (stateRef.current.positionY + (1 - stateRef.current.scale) * newCanvas.height / 2) / stateRef.current.scale,
         ),
         undefined,
         true
@@ -115,9 +118,19 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
       }}
       onTransformed={(ref, state)=>{
         stateRef.current = { ...state }
+        if (
+          Math.abs(state.positionX - box.current.left) > 20 || Math.abs(state.positionY - box.current.top) > 20
+        ) {
+          drawNewPartOfMap()
+          box.current.top = state.positionY
+          box.current.left = state.positionX
+        }
       }}
       onPanningStop={()=>{
-        drawNewPartOfMap()
+        console.log(stateRef.current)
+      }}
+      onZoomStop={()=>{
+        console.log(stateRef.current)
       }}
     >
       <TransformComponent
