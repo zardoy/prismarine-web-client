@@ -25,7 +25,14 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 
   const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
     if ('buttons' in e && e.buttons !== 0) return
-    drawer?.setWarpPosOnClick(e, adapter.playerPosition)
+    drawer?.setWarpPosOnClick(
+      e, 
+      new Vec3(
+        adapter.playerPosition.x - (stateRef.current.positionX / stateRef.current.scale - (1 - stateRef.current.scale) * (e.target as HTMLCanvasElement).width / 2),
+        adapter.playerPosition.y,
+        adapter.playerPosition.z - (stateRef.current.positionY / stateRef.current.scale - (1 - stateRef.current.scale) * (e.target as HTMLCanvasElement).height / 2),
+      ),
+    )
     setIsWarpInfoOpened(true)
   }
 
