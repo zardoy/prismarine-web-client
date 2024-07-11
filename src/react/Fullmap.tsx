@@ -138,6 +138,7 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
           willChange: 'transform',
         }}
       >
+        <Observer />
         <div
           style={{
             width: '100%',
@@ -155,6 +156,56 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
     </TransformWrapper>
     {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawer} setIsWarpInfoOpened={setIsWarpInfoOpened} />}
   </div>
+}
+
+
+const Observer = () => {
+    const ref = useRef(null)
+
+    useEffect(() => {
+        const intersectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    console.log('visible')
+                } else {
+                    console.log('not visible')
+                }
+            })
+        })
+        intersectionObserver.observe(ref.current!)
+
+        return () => {
+            intersectionObserver.disconnect()
+        }
+    }, []);
+    
+    return (
+        <TransformWrapper>
+            <TransformComponent
+                wrapperStyle={{
+                    border: '1px solid black',
+                    willChange: 'transform',
+                    height: '100dvh',
+                    width: '100%',
+                }}
+            >
+                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                    {/* canvas for chunk: 16x16 blocks */}
+                    <div
+                        ref={ref}
+                        style={{
+                            width: '500px',
+                            height: '500px',
+                            background: 'green',
+                            position: 'absolute',
+                            top: -500,
+                            left: 0,
+                        }}
+                    ></div>
+                </div>
+            </TransformComponent>
+        </TransformWrapper>
+    )
 }
 
 const WarpInfo = (
