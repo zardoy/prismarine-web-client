@@ -55,9 +55,9 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
       drawer.canvas = newCanvas
       drawer.draw(
         new Vec3(
-          adapter.playerPosition.x - (stateRef.current.positionX + (1 - stateRef.current.scale) * newCanvas.width ),
+          adapter.playerPosition.x - (stateRef.current.positionX + (1 - stateRef.current.scale) * newCanvas.width  / 2),
           adapter.playerPosition.y,
-          adapter.playerPosition.z - (stateRef.current.positionY + (1 - stateRef.current.scale) * newCanvas.height),
+          adapter.playerPosition.z - (stateRef.current.positionY + (1 - stateRef.current.scale) * newCanvas.height / 2),
         ),
         undefined,
         true
