@@ -87,7 +87,7 @@ export class MinimapDrawer {
     this.lastBotPos = botPos
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z, full)
     if (!full) this.drawPartsOfWorld()
-    this.drawWarps(botPos)
+    this.drawWarps(botPos, full)
   }
 
   updateWorldColors (
@@ -178,15 +178,17 @@ export class MinimapDrawer {
     this.lastWarpPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
   }
 
-  drawWarps (centerPos?: Vec3) {
+  drawWarps (centerPos?: Vec3, full?: boolean) {
     for (const warp of this.adapter.warps) {
-      const distance = this.getDistance(
-        centerPos?.x ?? this.adapter.playerPosition.x, 
-        centerPos?.z ?? this.adapter.playerPosition.z, 
-        warp.x, 
-        warp.z
-      ) 
-      if (distance > this.mapSize) continue
+      if (!full) {
+        const distance = this.getDistance(
+          centerPos?.x ?? this.adapter.playerPosition.x, 
+          centerPos?.z ?? this.adapter.playerPosition.z, 
+          warp.x, 
+          warp.z
+        ) 
+        if (distance > this.mapSize) continue
+      }
       const z = Math.floor((this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z))
       const x = Math.floor((this.mapSize / 2 - (centerPos?.x ?? this.adapter.playerPosition.x) + warp.x))
       const dz = z - this.centerX
@@ -194,10 +196,14 @@ export class MinimapDrawer {
       const circleDist = Math.hypot(dx, dz)
 
       const angle = Math.atan2(dz, dx)
-      const circleZ = circleDist > this.mapSize / 2 ? this.centerX + this.mapSize / 2 * Math.sin(angle) : z
-      const circleX = circleDist > this.mapSize / 2 ? this.centerY + this.mapSize / 2 * Math.cos(angle) : x
+      const circleZ = circleDist > this.mapSize / 2 && !full ? 
+        this.centerX + this.mapSize / 2 * Math.sin(angle) 
+        : z
+      const circleX = circleDist > this.mapSize / 2 && !full ? 
+        this.centerY + this.mapSize / 2 * Math.cos(angle) 
+        : x
       this.ctx.beginPath()
-      this.ctx.arc(circleX, circleZ, circleDist > this.mapSize / 2 ? 1.5 : 2, 0, Math.PI * 2, false)
+      this.ctx.arc(circleX, circleZ, circleDist > this.mapSize / 2 && !full ? 1.5 : 2, 0, Math.PI * 2, false)
       this.ctx.strokeStyle = 'black'
       this.ctx.lineWidth = 1
       this.ctx.stroke()
