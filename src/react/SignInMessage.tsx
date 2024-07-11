@@ -66,6 +66,7 @@ export default ({
             textDecoration: 'underline',
             fontWeight: 600,
           }}
+          target='_blank'
         >Direct Link</a>
         {' '} or {' '}
         <a
@@ -75,6 +76,7 @@ export default ({
             textDecoration: 'underline',
             fontWeight: 600,
           }}
+          target='_blank'
         >{loginLink}</a>
         {' '}
         and enter the code above.

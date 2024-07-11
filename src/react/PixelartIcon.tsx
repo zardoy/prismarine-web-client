@@ -1,7 +1,23 @@
 import { CSSProperties } from 'react'
+import { PixelartIconsGenerated } from './pixelartIcons.generated'
 
-// names: https://pixelarticons.com/free/
-export default ({ iconName, width = undefined as undefined | number, styles = {} as CSSProperties, className = undefined, onClick = () => { } }) => {
+export default ({
+  iconName,
+  width = undefined as undefined | number,
+  styles = {} as CSSProperties,
+  className = undefined as undefined | string,
+  onClick = () => { }
+}) => {
   if (width !== undefined) styles = { width, height: width, ...styles }
-  return <iconify-icon icon={`pixelarticons:${iconName}`} style={styles} class={className} onClick={onClick} />
+  iconName = iconName.replace('pixelarticons:', '')
+
+  return <div style={{
+    ...styles
+  }} onClick={onClick} className={`${`pixelart-icons-font-${iconName}`} ${className ?? ''}`} />
 }
+
+export const pixelartIcons = new Proxy({} as PixelartIconsGenerated, {
+  get (target, prop) {
+    return prop as string
+  }
+})

@@ -71,7 +71,7 @@ export default () => {
         let items = [] as string[]
         try {
           items = await bot.tabComplete(completeValue, true, true)
-        } catch (err) {}
+        } catch (err) { }
         if (typeof items[0] === 'object') {
           // @ts-expect-error
           if (items[0].match) items = items.map(i => i.match)

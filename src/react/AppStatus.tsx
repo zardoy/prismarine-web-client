@@ -28,9 +28,13 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
 
   return (
     <Screen
+      className='small-content'
       title={
         <>
-          <span style={{ userSelect: isError ? 'text' : undefined }}>
+          <span style={{
+            userSelect: isError ? 'text' : undefined,
+            wordBreak: 'break-word',
+          }}>
             {status}
           </span>
           {isError || hideDots ? '' : loadingDots}

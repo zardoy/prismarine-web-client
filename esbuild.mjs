@@ -85,6 +85,9 @@ const buildOptions = {
     '.vert': 'text',
     '.frag': 'text',
     '.obj': 'text',
+    '.woff': 'dataurl',
+    '.woff2': 'dataurl',
+    '.ttf': 'dataurl',
   },
   write: false,
   // todo would be better to enable?
