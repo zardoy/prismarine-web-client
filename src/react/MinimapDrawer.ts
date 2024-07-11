@@ -178,17 +178,17 @@ export class MinimapDrawer {
     this.lastWarpPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
   }
 
-  drawWarps (centerPos: Vec3) {
+  drawWarps (centerPos?: Vec3) {
     for (const warp of this.adapter.warps) {
       const distance = this.getDistance(
-        this.adapter.playerPosition.x, 
-        this.adapter.playerPosition.z, 
+        centerPos?.x ?? this.adapter.playerPosition.x, 
+        centerPos?.z ?? this.adapter.playerPosition.z, 
         warp.x, 
         warp.z
       ) 
       if (distance > this.mapSize) continue
-      const z = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.z + warp.z))
-      const x = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.x + warp.x))
+      const z = Math.floor((this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z))
+      const x = Math.floor((this.mapSize / 2 - (centerPos?.x ?? this.adapter.playerPosition.x) + warp.x))
       const dz = z - this.centerX
       const dx = x - this.centerY
       const circleDist = Math.hypot(dx, dz)

@@ -8,13 +8,13 @@ import Input from './Input'
 
 
 type FullmapProps = {
-  onClick: () => void, 
+  toggleFullMap: () => void, 
   adapter: DrawerAdapter, 
   drawer: MinimapDrawer | null,
   canvasRef: any
 }
 
-export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
+export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => {
   const zoomRef = useRef(null)
   const isDragging = useRef(false)
   const canvasesCont = useRef<HTMLDivElement>(null)
@@ -105,7 +105,7 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
         height: '100%',
         zIndex: '-1'
       }}
-      onClick={onClick}
+      onClick={toggleFullMap}
     ></div>
 
     <TransformWrapper
