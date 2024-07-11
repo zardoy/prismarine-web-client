@@ -97,7 +97,7 @@
 
 .book Button.controlPrev {
   position: absolute !important;
-  background-image: url('/assets/book/prev.webp');
+  background-image: url('./book_icons/prev.webp');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -107,11 +107,11 @@
   padding: 4%;
 }
 .book Button.controlPrev:active {
-  background-image: url('/assets/book/prev-click.webp') !important;
+  background-image: url('./book_icons/prev-click.webp') !important;
 }
 .book Button.controlNext {
   position: absolute !important;
-  background-image: url('/assets/book/next.webp') !important;
+  background-image: url('./book_icons/next.webp') !important;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
@@ -121,7 +121,7 @@
   padding: 4%;
 }
 .book Button.controlNext:active {
-  background-image: url('/assets/book/next-click.webp') !important;
+  background-image: url('./book_icons/next-click.webp') !important;
 }
 
 .actions {
@@ -159,7 +159,7 @@
     bottom: 6%;
     padding: 6%;
   }
-  
+
   .text {
     font-size: 1.2vw;
   }
