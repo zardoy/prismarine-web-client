@@ -24,6 +24,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
 
   const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
+    if ('buttons' in e && e.buttons !== 0) return
     drawer?.setWarpPosOnClick(e, adapter.playerPosition)
     setIsWarpInfoOpened(true)
   }
@@ -50,6 +51,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     newCanvas.style.position = 'absolute'
     newCanvas.style.top = `${-stateRef.current.positionY / stateRef.current.scale}px`
     newCanvas.style.left = `${-stateRef.current.positionX / stateRef.current.scale}px`
+    newCanvas.addEventListener('click', handleClickOnMap)
     oldCanvases.current.push(newCanvas)
     canvasRef.current = newCanvas
     if (canvasesCont.current && drawer) {
@@ -71,6 +73,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     if (oldCanvases.current.length < 30) return
     for (const [index, canvas] of oldCanvases.current.entries()) {
       if (index >= 20) break
+      canvas.removeEventListener('click', handleClickOnMap)
       canvas.remove()
     }
     oldCanvases.current.splice(0, 20)
@@ -126,6 +129,11 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       doubleClick={{
         disabled: true
       }}
+      panning={{
+        allowLeftClickPan: false,
+        allowRightClickPan: true,
+        allowMiddleClickPan: true
+      }}
       onTransformed={(ref, state) => {
         stateRef.current = { ...state }
         if (
@@ -164,14 +172,28 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
         </div>
       </TransformComponent>
     </TransformWrapper>
-    {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawer} setIsWarpInfoOpened={setIsWarpInfoOpened} />}
+    {
+      isWarpInfoOpened && <WarpInfo 
+        adapter={adapter} 
+        drawer={drawer} 
+        setIsWarpInfoOpened={setIsWarpInfoOpened} 
+        afterWarpIsSet={() => {
+          drawNewPartOfMap()
+        }}
+      />
+    }
   </div>
 }
 
 const WarpInfo = (
-  { adapter, drawer, setIsWarpInfoOpened }
+  { adapter, drawer, setIsWarpInfoOpened, afterWarpIsSet }
     :
-    { adapter: DrawerAdapter, drawer: MinimapDrawer | null, setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>> }
+    { 
+    adapter: DrawerAdapter, 
+    drawer: MinimapDrawer | null, 
+    setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
+    afterWarpIsSet?: () => void
+  }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>({
     name: '',
@@ -295,6 +317,7 @@ const WarpInfo = (
             )
             console.log(adapter.warps)
             setIsWarpInfoOpened(false)
+            afterWarpIsSet?.()
           }}
         >Add</Button>
         <Button
