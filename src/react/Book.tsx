@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react'
-import bookIcon from '../../assets/book/book.png'
-import singlePageBookIcon from '../../assets/book/notebook.png'
+import bookIcon from './book_icons/book.webp'
+import singlePageBookIcon from './book_icons/notebook.webp'
 import styles from './Book.module.css'
 import Button from './Button'
 
 export interface BookProps {
-  textPages: string[];
-  editable: boolean;
-  onSign: (textPages: string[]) => void;
-  onClose: () => void;
+  textPages: string[]
+  editable: boolean
+  onSign: (textPages: string[]) => void
+  onClose: () => void
 }
 
 const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => {
@@ -48,7 +48,6 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => 
     setPages(updatedPages)
     const nextPageIndex = pageIndex + 1
     const prevPageIndex = pageIndex - 1
-
     if (e.target.value.length === e.target.maxLength || e.target.value.length > e.target.maxLength) {
       if (nextPageIndex < pages.length) {
         const nextPage = Math.floor(nextPageIndex / (isSinglePage ? 1 : 2))
@@ -84,7 +83,6 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => 
     const currentText = updatedPages[pageIndex]
     const selectionStart = e.currentTarget.selectionStart || 0
     const selectionEnd = e.currentTarget.selectionEnd || 0
-  
     const newText = currentText.slice(0, selectionStart) + pasteText + currentText.slice(selectionEnd)
     updatedPages[pageIndex] = newText
     setPages(updatedPages)
@@ -93,7 +91,6 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => 
       const remainingText = newText.slice(e.currentTarget.maxLength)
       updatedPages[pageIndex] = newText.slice(0, e.currentTarget.maxLength)
       setPages(updatedPages)
-  
       const nextPageIndex = pageIndex + 1
       if (nextPageIndex < pages.length) {
         const unknownEvent = { clipboardData: { getData: () => remainingText }, currentTarget: { selectionStart: 0, selectionEnd: 0 } } as unknown

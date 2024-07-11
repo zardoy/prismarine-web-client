@@ -114,6 +114,7 @@ const getInitialProxies = () => {
 }
 
 export const updateLoadedServerData = (callback: (data: StoreServerItem) => StoreServerItem, index = miscUiState.loadedServerIndex) => {
+  if (!index) index = miscUiState.loadedServerIndex
   if (!index) return
   // function assumes component is not mounted to avoid sync issues after save
   const servers = getInitialServersList()
@@ -293,6 +294,7 @@ const Inner = () => {
             }]
             // setServersList(newServersList)
             setNewServersList(newServersList) // component is not mounted
+            miscUiState.loadedServerIndex = (newServersList.length - 1).toString()
           }
 
           if (shouldSave === undefined) { // loading saved

@@ -5,6 +5,7 @@ import { resetLocalStorageWorld } from '../browserfs'
 import { fsState } from '../loadSave'
 import { guessProblem } from '../errorLoadingScreenHelpers'
 import { ConnectOptions } from '../connect'
+import { downloadPacketsReplay, packetsReplaceSessionState } from '../packetsReplay'
 import AppStatus from './AppStatus'
 import DiveTransition from './DiveTransition'
 import { useDidUpdateEffect } from './utils'
@@ -32,6 +33,7 @@ export const lastConnectOptions = {
 
 export default () => {
   const { isError, lastStatus, maybeRecoverable, status, hideDots, descriptionHint } = useSnapshot(appStatusState)
+  const { active: replayActive } = useSnapshot(packetsReplaceSessionState)
 
   const isOpen = useIsModalActive('app-status')
 
@@ -103,7 +105,10 @@ export default () => {
         }
       } : undefined}
       actionsSlot={
-        displayAuthButton && <Button label='Authenticate' onClick={authReconnectAction} />
+        <>
+          {displayAuthButton && <Button label='Authenticate' onClick={authReconnectAction} />}
+          {replayActive && <Button label='Download Packets Replay' onClick={downloadPacketsReplay} />}
+        </>
       }
     />
   </DiveTransition>

@@ -29,6 +29,10 @@ declare module '*.svg' {
     const svg: string
     export default svg
 }
+declare module '*.webp' {
+    const svg: string
+    export default svg
+}
 
 interface PromiseConstructor {
     withResolvers<T> (): {
@@ -39,12 +43,5 @@ interface PromiseConstructor {
 }
 
 declare namespace JSX {
-    interface IntrinsicElements {
-        'iconify-icon': {
-            icon: string
-            style?: React.CSSProperties
-            class?: string
-            onClick?: (e) => void
-        }
-    }
+    interface IntrinsicElements { }
 }
