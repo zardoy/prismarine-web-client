@@ -14,6 +14,8 @@ Default.args = {
     'Page 1: This is some text for page 1.',
     'Page 2: This is some text for page 2.',
     'Page 3: This is some text for page 3.',
+    'Page 4: This is some text for page 4.',
+    'Page 5: This is some text for page 5.',
   ],
   editable: true,
   onSign: (pages) => console.log('Signed with pages:', pages),
