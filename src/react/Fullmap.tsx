@@ -49,16 +49,15 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
     newCanvas.style.position = 'absolute'
     newCanvas.style.top = `${-stateRef.current.positionY / stateRef.current.scale}px`
     newCanvas.style.left = `${-stateRef.current.positionX / stateRef.current.scale}px`
-    // newCanvas.style.border = '2px solid red'
     canvasRef.current = newCanvas
     if (canvasesCont.current && drawer) {
       canvasesCont.current.appendChild(newCanvas)
       drawer.canvas = newCanvas
       drawer.draw(
         new Vec3(
-          adapter.playerPosition.x - (stateRef.current.positionX + (1 - stateRef.current.scale) * newCanvas.width / 2) / stateRef.current.scale,
+          adapter.playerPosition.x - (stateRef.current.positionX + (1 - stateRef.current.scale) * newCanvas.width ),
           adapter.playerPosition.y,
-          adapter.playerPosition.z - (stateRef.current.positionY + (1 - stateRef.current.scale) * newCanvas.height / 2) / stateRef.current.scale,
+          adapter.playerPosition.z - (stateRef.current.positionY + (1 - stateRef.current.scale) * newCanvas.height),
         ),
         undefined,
         true
@@ -157,7 +156,6 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
     {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawer} setIsWarpInfoOpened={setIsWarpInfoOpened} />}
   </div>
 }
-
 
 const WarpInfo = (
   { adapter, drawer, setIsWarpInfoOpened }
