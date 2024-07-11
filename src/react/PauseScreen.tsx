@@ -43,6 +43,8 @@ export const saveToBrowserMemory = async () => {
 }
 
 export default () => {
+  const qsParams = new URLSearchParams(window.location.search)
+  const lockConnect = qsParams?.get('lockConnect') === 'true'
   const isModalActive = useIsModalActive('pause-screen')
   const fsStateSnap = useSnapshot(fsState)
   const activeModalStackSnap = useSnapshot(activeModalStack)
@@ -136,9 +138,11 @@ export default () => {
           />
         </div>
       ) : null}
-      <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
-        {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect & Reset'}
-      </Button>
+      {!lockConnect && <>
+        <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
+          {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect & Reset'}
+        </Button>
+      </>}
     </div>
   </Screen>
 }
