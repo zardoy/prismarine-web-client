@@ -8,8 +8,8 @@ import Input from './Input'
 
 
 type FullmapProps = {
-  toggleFullMap: () => void, 
-  adapter: DrawerAdapter, 
+  toggleFullMap: () => void,
+  adapter: DrawerAdapter,
   drawer: MinimapDrawer | null,
   canvasRef: any
 }
@@ -17,6 +17,7 @@ type FullmapProps = {
 export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => {
   const zoomRef = useRef(null)
   const isDragging = useRef(false)
+  const oldCanvases = useRef<HTMLCanvasElement[]>([])
   const canvasesCont = useRef<HTMLDivElement>(null)
   const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
   const box = useRef({ left: 0, top: 0 })
@@ -49,6 +50,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     newCanvas.style.position = 'absolute'
     newCanvas.style.top = `${-stateRef.current.positionY / stateRef.current.scale}px`
     newCanvas.style.left = `${-stateRef.current.positionX / stateRef.current.scale}px`
+    oldCanvases.current.push(newCanvas)
     canvasRef.current = newCanvas
     if (canvasesCont.current && drawer) {
       canvasesCont.current.appendChild(newCanvas)
@@ -65,7 +67,16 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     }
   }
 
-  useEffect(()=>{
+  const deleteOldCanvases = () => {
+    if (oldCanvases.current.length < 30) return
+    for (const [index, canvas] of oldCanvases.current.entries()) {
+      if (index >= 20) break
+      canvas.remove()
+    }
+    oldCanvases.current.splice(0, 20)
+  }
+
+  useEffect(() => {
     drawer?.draw(adapter.playerPosition, undefined, true)
   }, [drawer])
 
@@ -75,7 +86,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       canvasRef.current.addEventListener('touchmove', eventControl)
       canvasRef.current.addEventListener('mouseup', eventControl)
       canvasRef.current.addEventListener('touchend', eventControl)
-    } 
+    }
 
     return () => {
       canvasRef.current?.removeEventListener('mousemove', eventControl)
@@ -111,11 +122,11 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     <TransformWrapper
       limitToBounds={false}
       ref={zoomRef}
-      minScale={0.1}    
+      minScale={0.1}
       doubleClick={{
         disabled: true
       }}
-      onTransformed={(ref, state)=>{
+      onTransformed={(ref, state) => {
         stateRef.current = { ...state }
         if (
           Math.abs(state.positionX - box.current.left) > 20 || Math.abs(state.positionY - box.current.top) > 20
@@ -125,10 +136,10 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           box.current.left = state.positionX
         }
       }}
-      onPanningStop={()=>{
-        console.log(stateRef.current)
+      onPanningStop={() => {
+        deleteOldCanvases()
       }}
-      onZoomStop={()=>{
+      onZoomStop={() => {
         console.log(stateRef.current)
       }}
     >
@@ -276,10 +287,10 @@ const WarpInfo = (
         <Button
           onClick={() => {
             adapter.setWarp(
-              warp.name, 
-              new Vec3(warp.x, warp.y, warp.z), 
-              warp.color ?? '#d3d3d3', 
-              warp.disabled ?? false, 
+              warp.name,
+              new Vec3(warp.x, warp.y, warp.z),
+              warp.color ?? '#d3d3d3',
+              warp.disabled ?? false,
               warp.world ?? 'overworld'
             )
             console.log(adapter.warps)
