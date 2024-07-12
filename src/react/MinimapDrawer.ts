@@ -87,7 +87,7 @@ export class MinimapDrawer {
     this.lastBotPos = botPos
     this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z, full)
     if (!full) this.drawPartsOfWorld()
-    this.drawWarps(botPos)
+    this.drawWarps(botPos, full)
   }
 
   updateWorldColors (
@@ -162,42 +162,52 @@ export class MinimapDrawer {
     }
   }
 
-  setWarpPosOnClick (e: MouseEvent | TouchEvent, botPos: Vec3) {
-    if (!e.target) return
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
-    const z = ((e.type === 'touchend' 
-      ? (e as TouchEvent).changedTouches[-1].pageY 
-      : (e as MouseEvent).pageY) - rect.top) * this.canvas.height / rect.height
-    const x = ((e.type === 'touchend' 
-      ? (e as TouchEvent).changedTouches[-1].pageX 
-      : (e as MouseEvent).pageX) - rect.left) * this.canvas.width / rect.width
-    const worldX = x - this.mapSize / 2
-    const worldZ = z - this.mapSize / 2
+  setWarpPosOnClick (mousePos: Vec3, botPos: Vec3) {
+    // if (!e.target) return
+    // const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    // const clickX = (e as MouseEvent).clientX - rect.left
+    // const clickY = (e as MouseEvent).clientY - rect.top
+    // const centerX = rect.width / 2
+    // const centerY = rect.height / 2
+    // const z = ((e.type === 'touchend' 
+    //   ? (e as TouchEvent).changedTouches[-1].pageY 
+    //   : clickY - centerY))
+    // const x = ((e.type === 'touchend' 
+    //   ? (e as TouchEvent).changedTouches[-1].pageX 
+    //   : clickX - centerX))
+    // const worldX = x
+    // const worldZ = z
 
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
-    this.lastWarpPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
+    this.lastWarpPos = new Vec3(Math.floor(botPos.x + mousePos.x), botPos.y, Math.floor(botPos.z + mousePos.z))
   }
 
-  drawWarps (centerPos: Vec3) {
+  drawWarps (centerPos?: Vec3, full?: boolean) {
     for (const warp of this.adapter.warps) {
-      const distance = this.getDistance(
-        this.adapter.playerPosition.x, 
-        this.adapter.playerPosition.z, 
-        warp.x, 
-        warp.z
-      ) 
-      if (distance > this.mapSize) continue
-      const z = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.z + warp.z))
-      const x = Math.floor((this.mapSize / 2 - this.adapter.playerPosition.x + warp.x))
+      if (!full) {
+        const distance = this.getDistance(
+          centerPos?.x ?? this.adapter.playerPosition.x, 
+          centerPos?.z ?? this.adapter.playerPosition.z, 
+          warp.x, 
+          warp.z
+        ) 
+        if (distance > this.mapSize) continue
+      }
+      const z = Math.floor((this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z))
+      const x = Math.floor((this.mapSize / 2 - (centerPos?.x ?? this.adapter.playerPosition.x) + warp.x))
       const dz = z - this.centerX
       const dx = x - this.centerY
       const circleDist = Math.hypot(dx, dz)
 
       const angle = Math.atan2(dz, dx)
-      const circleZ = circleDist > this.mapSize / 2 ? this.centerX + this.mapSize / 2 * Math.sin(angle) : z
-      const circleX = circleDist > this.mapSize / 2 ? this.centerY + this.mapSize / 2 * Math.cos(angle) : x
+      const circleZ = circleDist > this.mapSize / 2 && !full ? 
+        this.centerX + this.mapSize / 2 * Math.sin(angle) 
+        : z
+      const circleX = circleDist > this.mapSize / 2 && !full ? 
+        this.centerY + this.mapSize / 2 * Math.cos(angle) 
+        : x
       this.ctx.beginPath()
-      this.ctx.arc(circleX, circleZ, circleDist > this.mapSize / 2 ? 1.5 : 2, 0, Math.PI * 2, false)
+      this.ctx.arc(circleX, circleZ, circleDist > this.mapSize / 2 && !full ? 1.5 : 2, 0, Math.PI * 2, false)
       this.ctx.strokeStyle = 'black'
       this.ctx.lineWidth = 1
       this.ctx.stroke()

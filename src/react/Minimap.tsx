@@ -64,7 +64,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   }, [adapter])
 
   return fullMapOpened || fullMap ? <Fullmap
-    onClick={()=>{
+    toggleFullMap={()=>{
       toggleFullMap()
     }}
     adapter={adapter}

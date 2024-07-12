@@ -1,29 +1,37 @@
 import { Vec3 } from 'vec3'
 import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Button from './Button'
 import Input from './Input'
 
 
 type FullmapProps = {
-  onClick: () => void, 
-  adapter: DrawerAdapter, 
+  toggleFullMap: () => void,
+  adapter: DrawerAdapter,
   drawer: MinimapDrawer | null,
   canvasRef: any
 }
 
-export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
-  const zoomRef = useRef(null)
+export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => {
+  const zoomRef = useRef<ReactZoomPanPinchRef>(null)
   const isDragging = useRef(false)
+  const oldCanvases = useRef<HTMLCanvasElement[]>([])
   const canvasesCont = useRef<HTMLDivElement>(null)
   const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
   const box = useRef({ left: 0, top: 0 })
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
 
   const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
-    drawer?.setWarpPosOnClick(e, adapter.playerPosition)
+    if ('buttons' in e && e.buttons !== 0) return
+    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    const contRect = zoomRef.current!.instance.wrapperComponent!.getBoundingClientRect()
+    const x = adapter.playerPosition.x - (stateRef.current.positionX / stateRef.current.scale - (1 - stateRef.current.scale) * rect.width / 2)
+    const z = adapter.playerPosition.z - (stateRef.current.positionY / stateRef.current.scale - (1 - stateRef.current.scale) * rect.height / 2)
+    const mouseX = ((e as MouseEvent).clientX - contRect.left - contRect.width / 2) * (e.target as HTMLCanvasElement).width / rect.width
+    const mouseZ = ((e as MouseEvent).clientY - contRect.top - contRect.height / 2) * (e.target as HTMLCanvasElement).height / rect.height
+    drawer?.setWarpPosOnClick(new Vec3(mouseX, 0, mouseZ), new Vec3(x, adapter.playerPosition.y, z))
     setIsWarpInfoOpened(true)
   }
 
@@ -49,15 +57,17 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
     newCanvas.style.position = 'absolute'
     newCanvas.style.top = `${-stateRef.current.positionY / stateRef.current.scale}px`
     newCanvas.style.left = `${-stateRef.current.positionX / stateRef.current.scale}px`
+    newCanvas.addEventListener('click', handleClickOnMap)
+    oldCanvases.current.push(newCanvas)
     canvasRef.current = newCanvas
     if (canvasesCont.current && drawer) {
       canvasesCont.current.appendChild(newCanvas)
       drawer.canvas = newCanvas
       drawer.draw(
         new Vec3(
-          adapter.playerPosition.x - (stateRef.current.positionX + (1 - stateRef.current.scale) * newCanvas.width ),
+          adapter.playerPosition.x - (stateRef.current.positionX / stateRef.current.scale - (1 - stateRef.current.scale) * newCanvas.width / 2),
           adapter.playerPosition.y,
-          adapter.playerPosition.z - (stateRef.current.positionY + (1 - stateRef.current.scale) * newCanvas.height),
+          adapter.playerPosition.z - (stateRef.current.positionY / stateRef.current.scale - (1 - stateRef.current.scale) * newCanvas.height / 2),
         ),
         undefined,
         true
@@ -65,8 +75,18 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
     }
   }
 
-  useEffect(()=>{
-    drawer?.draw(adapter.playerPosition, undefined, true)
+  const deleteOldCanvases = () => {
+    if (oldCanvases.current.length < 30) return
+    for (const [index, canvas] of oldCanvases.current.entries()) {
+      if (index >= 20) break
+      canvas.removeEventListener('click', handleClickOnMap)
+      canvas.remove()
+    }
+    oldCanvases.current.splice(0, 20)
+  }
+
+  useEffect(() => {
+    if (drawer) drawNewPartOfMap()
   }, [drawer])
 
   useEffect(() => {
@@ -75,7 +95,7 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
       canvasRef.current.addEventListener('touchmove', eventControl)
       canvasRef.current.addEventListener('mouseup', eventControl)
       canvasRef.current.addEventListener('touchend', eventControl)
-    } 
+    }
 
     return () => {
       canvasRef.current?.removeEventListener('mousemove', eventControl)
@@ -105,17 +125,22 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
         height: '100%',
         zIndex: '-1'
       }}
-      onClick={onClick}
+      onClick={toggleFullMap}
     ></div>
 
     <TransformWrapper
       limitToBounds={false}
       ref={zoomRef}
-      minScale={0.1}    
+      minScale={0.1}
       doubleClick={{
         disabled: true
       }}
-      onTransformed={(ref, state)=>{
+      panning={{
+        allowLeftClickPan: false,
+        allowRightClickPan: true,
+        allowMiddleClickPan: true
+      }}
+      onTransformed={(ref, state) => {
         stateRef.current = { ...state }
         if (
           Math.abs(state.positionX - box.current.left) > 20 || Math.abs(state.positionY - box.current.top) > 20
@@ -125,10 +150,10 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
           box.current.left = state.positionX
         }
       }}
-      onPanningStop={()=>{
-        console.log(stateRef.current)
+      onPanningStop={() => {
+        deleteOldCanvases()
       }}
-      onZoomStop={()=>{
+      onZoomStop={() => {
         console.log(stateRef.current)
       }}
     >
@@ -154,7 +179,16 @@ export default ({ onClick, adapter, drawer, canvasRef }: FullmapProps) => {
         </div>
       </TransformComponent>
     </TransformWrapper>
-    {isWarpInfoOpened && <WarpInfo adapter={adapter} drawer={drawer} setIsWarpInfoOpened={setIsWarpInfoOpened} />}
+    {
+      isWarpInfoOpened && <WarpInfo
+        adapter={adapter}
+        drawer={drawer}
+        setIsWarpInfoOpened={setIsWarpInfoOpened}
+        afterWarpIsSet={() => {
+          drawNewPartOfMap()
+        }}
+      />
+    }
   </div>
 }
 
@@ -209,9 +243,14 @@ const Observer = () => {
 }
 
 const WarpInfo = (
-  { adapter, drawer, setIsWarpInfoOpened }
+  { adapter, drawer, setIsWarpInfoOpened, afterWarpIsSet }
     :
-    { adapter: DrawerAdapter, drawer: MinimapDrawer | null, setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>> }
+    {
+      adapter: DrawerAdapter,
+      drawer: MinimapDrawer | null,
+      setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
+      afterWarpIsSet?: () => void
+    }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>({
     name: '',
@@ -327,14 +366,15 @@ const WarpInfo = (
         <Button
           onClick={() => {
             adapter.setWarp(
-              warp.name, 
-              new Vec3(warp.x, warp.y, warp.z), 
-              warp.color ?? '#d3d3d3', 
-              warp.disabled ?? false, 
+              warp.name,
+              new Vec3(warp.x, warp.y, warp.z),
+              warp.color ?? '#d3d3d3',
+              warp.disabled ?? false,
               warp.world ?? 'overworld'
             )
             console.log(adapter.warps)
             setIsWarpInfoOpened(false)
+            afterWarpIsSet?.()
           }}
         >Add</Button>
         <Button
