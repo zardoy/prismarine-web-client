@@ -26,15 +26,12 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
   const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
     if ('buttons' in e && e.buttons !== 0) return
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
-    const contRect = canvasesCont.current!.getBoundingClientRect()
-    drawer?.setWarpPosOnClick(
-      e, 
-      new Vec3(
-        adapter.playerPosition.x - ((contRect.left - rect.left) / stateRef.current.scale - (1 - stateRef.current.scale) * rect.width / 2),
-        adapter.playerPosition.y,
-        adapter.playerPosition.z - ((contRect.top - rect.top) / stateRef.current.scale - (1 - stateRef.current.scale) * rect.height / 2),
-      ),
-    )
+    const contRect = zoomRef.current!.instance.wrapperComponent!.getBoundingClientRect()
+    const x = adapter.playerPosition.x - (stateRef.current.positionX / stateRef.current.scale - (1 - stateRef.current.scale) * rect.width / 2)
+    const z = adapter.playerPosition.z - (stateRef.current.positionY / stateRef.current.scale - (1 - stateRef.current.scale) * rect.height / 2)
+    const mouseX = ((e as MouseEvent).clientX - contRect.left - contRect.width / 2) * (e.target as HTMLCanvasElement).width / rect.width
+    const mouseZ = ((e as MouseEvent).clientY - contRect.top - contRect.height / 2) * (e.target as HTMLCanvasElement).height / rect.height
+    drawer?.setWarpPosOnClick(new Vec3(mouseX, 0, mouseZ), new Vec3(x, adapter.playerPosition.y, z))
     setIsWarpInfoOpened(true)
   }
 
@@ -89,7 +86,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
   }
 
   useEffect(() => {
-    drawer?.draw(adapter.playerPosition, undefined, true)
+    if (drawer) drawNewPartOfMap()
   }, [drawer])
 
   useEffect(() => {
@@ -182,10 +179,10 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       </TransformComponent>
     </TransformWrapper>
     {
-      isWarpInfoOpened && <WarpInfo 
-        adapter={adapter} 
-        drawer={drawer} 
-        setIsWarpInfoOpened={setIsWarpInfoOpened} 
+      isWarpInfoOpened && <WarpInfo
+        adapter={adapter}
+        drawer={drawer}
+        setIsWarpInfoOpened={setIsWarpInfoOpened}
         afterWarpIsSet={() => {
           drawNewPartOfMap()
         }}
@@ -197,12 +194,12 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 const WarpInfo = (
   { adapter, drawer, setIsWarpInfoOpened, afterWarpIsSet }
     :
-    { 
-    adapter: DrawerAdapter, 
-    drawer: MinimapDrawer | null, 
-    setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
-    afterWarpIsSet?: () => void
-  }
+    {
+      adapter: DrawerAdapter,
+      drawer: MinimapDrawer | null,
+      setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
+      afterWarpIsSet?: () => void
+    }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>({
     name: '',

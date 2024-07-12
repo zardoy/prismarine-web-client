@@ -162,24 +162,24 @@ export class MinimapDrawer {
     }
   }
 
-  setWarpPosOnClick (e: MouseEvent | TouchEvent, botPos: Vec3) {
-    if (!e.target) return
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
-    const clickX = (e as MouseEvent).clientX - rect.left
-    const clickY = (e as MouseEvent).clientY - rect.top
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    const z = ((e.type === 'touchend' 
-      ? (e as TouchEvent).changedTouches[-1].pageY 
-      : clickY - centerY))
-    const x = ((e.type === 'touchend' 
-      ? (e as TouchEvent).changedTouches[-1].pageX 
-      : clickX - centerX))
-    const worldX = x
-    const worldZ = z
+  setWarpPosOnClick (mousePos: Vec3, botPos: Vec3) {
+    // if (!e.target) return
+    // const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    // const clickX = (e as MouseEvent).clientX - rect.left
+    // const clickY = (e as MouseEvent).clientY - rect.top
+    // const centerX = rect.width / 2
+    // const centerY = rect.height / 2
+    // const z = ((e.type === 'touchend' 
+    //   ? (e as TouchEvent).changedTouches[-1].pageY 
+    //   : clickY - centerY))
+    // const x = ((e.type === 'touchend' 
+    //   ? (e as TouchEvent).changedTouches[-1].pageX 
+    //   : clickX - centerX))
+    // const worldX = x
+    // const worldZ = z
 
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
-    this.lastWarpPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
+    this.lastWarpPos = new Vec3(Math.floor(botPos.x + mousePos.x), botPos.y, Math.floor(botPos.z + mousePos.z))
   }
 
   drawWarps (centerPos?: Vec3, full?: boolean) {
