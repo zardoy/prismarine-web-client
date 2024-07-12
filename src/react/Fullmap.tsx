@@ -1,7 +1,7 @@
 import { Vec3 } from 'vec3'
 import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Button from './Button'
 import Input from './Input'
@@ -15,7 +15,7 @@ type FullmapProps = {
 }
 
 export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => {
-  const zoomRef = useRef(null)
+  const zoomRef = useRef<ReactZoomPanPinchRef>(null)
   const isDragging = useRef(false)
   const oldCanvases = useRef<HTMLCanvasElement[]>([])
   const canvasesCont = useRef<HTMLDivElement>(null)
@@ -25,12 +25,14 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 
   const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
     if ('buttons' in e && e.buttons !== 0) return
+    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    const contRect = canvasesCont.current!.getBoundingClientRect()
     drawer?.setWarpPosOnClick(
       e, 
       new Vec3(
-        adapter.playerPosition.x - (stateRef.current.positionX / stateRef.current.scale - (1 - stateRef.current.scale) * (e.target as HTMLCanvasElement).width / 2),
+        adapter.playerPosition.x - ((contRect.left - rect.left) / stateRef.current.scale - (1 - stateRef.current.scale) * rect.width / 2),
         adapter.playerPosition.y,
-        adapter.playerPosition.z - (stateRef.current.positionY / stateRef.current.scale - (1 - stateRef.current.scale) * (e.target as HTMLCanvasElement).height / 2),
+        adapter.playerPosition.z - ((contRect.top - rect.top) / stateRef.current.scale - (1 - stateRef.current.scale) * rect.height / 2),
       ),
     )
     setIsWarpInfoOpened(true)

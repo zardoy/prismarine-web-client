@@ -165,14 +165,18 @@ export class MinimapDrawer {
   setWarpPosOnClick (e: MouseEvent | TouchEvent, botPos: Vec3) {
     if (!e.target) return
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    const clickX = (e as MouseEvent).clientX - rect.left
+    const clickY = (e as MouseEvent).clientY - rect.top
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
     const z = ((e.type === 'touchend' 
       ? (e as TouchEvent).changedTouches[-1].pageY 
-      : (e as MouseEvent).pageY) - rect.top) * this.canvas.height / rect.height
+      : clickY - centerY))
     const x = ((e.type === 'touchend' 
       ? (e as TouchEvent).changedTouches[-1].pageX 
-      : (e as MouseEvent).pageX) - rect.left) * this.canvas.width / rect.width
-    const worldX = x - this.mapSize / 2
-    const worldZ = z - this.mapSize / 2
+      : clickX - centerX))
+    const worldX = x
+    const worldZ = z
 
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
     this.lastWarpPos = new Vec3(Math.floor(botPos.x + worldX), botPos.y, Math.floor(botPos.z + worldZ))
