@@ -147,7 +147,7 @@ importers:
         version: 1.1.2
       peerjs:
         specifier: ^1.5.0
-        version: 1.5.0
+        version: 1.5.4
       pixelarticons:
         specifier: ^1.8.1
         version: 1.8.1(patch_hash=cclg2qo6d4yjs4evj64nr2mbwa)
