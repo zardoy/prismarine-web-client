@@ -1,6 +1,6 @@
 import { subscribeKey } from 'valtio/utils'
 import { Vec3 } from 'vec3'
-import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
+import { versionToMajor, versionToNumber, versionsMapToMajor } from 'prismarine-viewer/viewer/prepare/utils'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import type { Block } from 'prismarine-block'
 import { miscUiState } from './globalState'
@@ -22,32 +22,26 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
     return
   }
 
-  // todo also use major versioned hardcoded sounds
-  const soundsMap = allSoundsMap[bot.version]
+  const allSoundsMajor = versionsMapToMajor(allSoundsMap)
+  const soundsMap = allSoundsMajor[versionToMajor(bot.version)] ?? Object.values(allSoundsMajor)[0]
 
-  if (!soundsMap || !miscUiState.gameLoaded || !soundsMap) {
+  if (!soundsMap || !miscUiState.gameLoaded || !loadedData.sounds) {
     return
   }
 
-  const soundsPerId = Object.fromEntries(Object.entries(soundsMap).map(([id, sound]) => [+id.split(';')[0], sound]))
+  // const soundsPerId = Object.fromEntries(Object.entries(soundsMap).map(([id, sound]) => [+id.split(';')[0], sound]))
   const soundsPerName = Object.fromEntries(Object.entries(soundsMap).map(([id, sound]) => [id.split(';')[1], sound]))
-  const soundIdToName = Object.fromEntries(Object.entries(soundsMap).map(([id, sound]) => [+id.split(';')[0], id.split(';')[1]]))
 
-  const playGeneralSound = async (soundId: string, soundString: string | undefined, position?: Vec3, volume = 1, pitch?: number) => {
-    if (!soundString) {
-      console.warn('Unknown sound received from server to play', soundId)
-      return
-    }
+  const playGeneralSound = async (soundKey: string, position?: Vec3, volume = 1, pitch?: number) => {
     if (!options.volume) return
-    const parts = soundString.split(';')
-    const soundVolume = +parts[0]!
-    const soundName = parts[1]!
-    // console.log('pitch', pitch)
-    const versionedSound = getVersionedSound(bot.version, soundName, Object.entries(soundsLegacyMap))
+    const soundStaticData = soundsPerName[soundKey]?.split(';')
+    if (!soundStaticData) return
+    const soundVolume = +soundStaticData[0]!
+    const soundPath = soundStaticData[1]!
+    const versionedSound = getVersionedSound(bot.version, soundPath, Object.entries(soundsLegacyMap))
     // todo test versionedSound
-    const url = allSoundsMeta.baseUrl.replace(/\/$/, '') + (versionedSound ? `/${versionedSound}` : '') + '/minecraft/sounds/' + soundName + '.' + allSoundsMeta.format
-    const soundKey = soundIdToName[+soundId] ?? soundId
-    const isMuted = options.mutedSounds.includes(soundKey) || options.volume === 0
+    const url = allSoundsMeta.baseUrl.replace(/\/$/, '') + (versionedSound ? `/${versionedSound}` : '') + '/minecraft/sounds/' + soundPath + '.' + allSoundsMeta.format
+    const isMuted = options.mutedSounds.includes(soundKey) || options.mutedSounds.includes(soundPath) || options.volume === 0
     if (position) {
       if (!isMuted) {
         viewer.playSound(position, url, soundVolume * Math.max(Math.min(volume, 1), 0) * (options.volume / 100), Math.max(Math.min(pitch ?? 1, 2), 0.5))
@@ -67,17 +61,24 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
       }
     }
   }
-  const playHardcodedSound = async (soundId: string, position?: Vec3, volume = 1, pitch?: number) => {
-    const sound = soundsPerName[soundId]
-    await playGeneralSound(soundId, sound, position, volume, pitch)
+  const playHardcodedSound = async (soundKey: string, position?: Vec3, volume = 1, pitch?: number) => {
+    await playGeneralSound(soundKey, position, volume, pitch)
   }
   bot.on('soundEffectHeard', async (soundId, position, volume, pitch) => {
-    console.debug('soundEffectHeard', soundId, volume)
     await playHardcodedSound(soundId, position, volume, pitch)
   })
-  bot.on('hardcodedSoundEffectHeard', async (soundId, soundCategory, position, volume, pitch) => {
-    const sound = soundsPerId[soundId]
-    await playGeneralSound(soundId.toString(), sound, position, volume, pitch)
+  bot.on('hardcodedSoundEffectHeard', async (soundIdNum, soundCategory, position, volume, pitch) => {
+    const fixOffset = versionToNumber('1.20.4') === versionToNumber(bot.version) ? -1 : 0
+    const soundKey = loadedData.sounds[soundIdNum + fixOffset]?.name
+    if (soundKey === undefined) return
+    await playGeneralSound(soundKey, position, volume, pitch)
+  })
+  // workaround as mineflayer doesn't support soundEvent
+  bot._client.on('sound_effect', async (packet) => {
+    const soundResource = packet['soundEvent']?.resource as string | undefined
+    if (packet.soundId !== 0 || !soundResource) return
+    const pos = new Vec3(packet.x / 8, packet.y / 8, packet.z / 8)
+    await playHardcodedSound(soundResource.replace('minecraft:', ''), pos, packet.volume, packet.pitch)
   })
   bot.on('entityHurt', async (entity) => {
     if (entity.id === bot.entity.id) {
