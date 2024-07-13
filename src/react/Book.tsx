@@ -218,7 +218,15 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
                 maxLength={500}
               />
             ) : (
-              <MessageFormattedString message={pages[currentPage * (isSinglePage ? 1 : 2)]} />
+              <div className={`${
+                animatePageIcon === 1
+                  ? styles.pageTextAnimation
+                  : animatePageIcon === 2
+                    ? styles.pageTextAnimationReverse
+                    : ''
+              }`}>
+                <MessageFormattedString message={pages[currentPage * (isSinglePage ? 1 : 2)]} />
+              </div>
             )}
           </div>
           {!isSinglePage && (currentPage * 2 + 1) < pages.length && (
@@ -239,7 +247,15 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
                   maxLength={500}
                 />
               ) : (
-                <MessageFormattedString message={pages[currentPage * 2 + 1]} />
+                <div className={`${
+                  animateInsideIcon === 1
+                    ? styles.pageSecondTextAnimation
+                    : animateInsideIcon === 2
+                      ? styles.pageSecondTextAnimationReverse
+                      : ''
+                }`}>
+                  <MessageFormattedString message={pages[currentPage * 2 + 1]} />
+                </div>
               )}
             </div>
           )}
