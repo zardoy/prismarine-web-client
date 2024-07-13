@@ -405,14 +405,14 @@ export class Entities extends EventEmitter {
     }
 
     //@ts-ignore
+    // set visibility
     const isInvisible = entity.metadata?.[0] & 0x20
-    if (isInvisible) {
-      for (const child of this.entities[entity.id].children.find(c => c.name === 'mesh').children) {
-        if (child.name !== 'nametag') {
-          child.visible = false
-        }
+    for (const child of this.entities[entity.id].children.find(c => c.name === 'mesh').children) {
+      if (child.name !== 'nametag') {
+        child.visible = !isInvisible
       }
     }
+    // ---
     // not player
     const displayText = entity.metadata?.[3] && this.parseEntityLabel(entity.metadata[2])
     if (entity.name !== 'player' && displayText) {
