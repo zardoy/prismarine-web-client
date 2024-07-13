@@ -148,6 +148,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
   const handleCancel = useCallback(() => {
     if (isOutside) {
       setIsOutside(false)
+      setSignClickedOnce(false)
       setAnimateTitleIcon(2)
       setTimeout(() => {
         setAnimateInsideIcon(2)
