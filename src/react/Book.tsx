@@ -1,28 +1,38 @@
-import React, { useState, useRef, useEffect } from 'react'
-import bookIcon from './book_icons/book.webp'
-import singlePageBookIcon from './book_icons/notebook.webp'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
+import insideIcon from './book_icons/book.webp'
+import insideHalfIcon from './book_icons/book-half.webp'
+import singlePageInsideIcon from './book_icons/notebook.webp'
+import titleIcon from './book_icons/title.webp'
 import styles from './Book.module.css'
 import Button from './Button'
+import MessageFormattedString from './MessageFormattedString'
 
 export interface BookProps {
   textPages: string[]
   editable: boolean
-  onSign: (textPages: string[]) => void
+  onSign: (textPages: string[], title: string) => void
+  onEdit: (textPages: string[]) => void
   onClose: () => void
 }
 
-const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => {
+const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClose }) => {
   const [pages, setPages] = useState<string[]>(textPages)
   const [currentPage, setCurrentPage] = useState(0)
   const [isSinglePage, setIsSinglePage] = useState(window.innerWidth < 768)
-  const [bookImage, setBookImage] = useState(window.innerWidth < 768 ? singlePageBookIcon : bookIcon)
+  const [insideImage, setInsideImage] = useState(window.innerWidth < 768 ? singlePageInsideIcon : insideIcon)
+  const [animateInsideIcon, setAnimateInsideIcon] = useState(0)
+  const [animatePageIcon, setAnimatePageIcon] = useState(0)
+  const [animateTitleIcon, setAnimateTitleIcon] = useState(0)
+  const [isOutside, setIsOutside] = useState(false)
+  const [signClickedOnce, setSignClickedOnce] = useState(false)
   const textAreaRefs = useRef<HTMLTextAreaElement[]>([])
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const handleResize = () => {
       const singlePage = window.innerWidth < 768
       setIsSinglePage(singlePage)
-      setBookImage(singlePage ? singlePageBookIcon : bookIcon)
+      setInsideImage(singlePage ? singlePageInsideIcon : insideIcon)
     }
 
     window.addEventListener('resize', handleResize)
@@ -35,6 +45,15 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => 
       textAreaRefs.current[index].focus()
     }
   }, [currentPage, isSinglePage])
+
+  useEffect(() => {
+    if (isOutside && inputRef.current!) {
+      setTimeout(() => {
+        inputRef.current!.focus()
+        console.log(inputRef)
+      }, 0)
+    }
+  }, [isOutside])
 
   const handlePageChange = (direction: number) => {
     setCurrentPage((prevPage) =>
@@ -108,19 +127,79 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => 
     }
   }
 
-  const handleSign = () => {
-    onSign(pages)
-  }
+  const handleSign = useCallback(() => {
+    if (editable && signClickedOnce) {
+      onSign(pages, 'Title')
+    }
+    setIsOutside(true)
+    setSignClickedOnce(true)
+    setAnimatePageIcon(1)
+    setAnimateInsideIcon(1)
+    setTimeout(() => {
+      setAnimateTitleIcon(1)
+    }, 150)
+  }, [pages, onSign, editable, signClickedOnce])
+
+  const handleEdit = useCallback(() => {
+    setSignClickedOnce(false)
+    onEdit(pages)
+  }, [pages, onEdit])
+
+  const handleCancel = useCallback(() => {
+    if (isOutside) {
+      setIsOutside(false)
+      setAnimateTitleIcon(2)
+      setTimeout(() => {
+        setAnimateInsideIcon(2)
+        setTimeout(() => {
+          setAnimatePageIcon(2)
+        }, 150)
+      }, 150)
+    } else {
+      onClose()
+    }
+  }, [isOutside, onClose])
 
   const setRef = (index: number) => (el: HTMLTextAreaElement | null) => {
-    textAreaRefs.current[index] = el!
+    if (el) textAreaRefs.current[index] = el
   }
 
   return (
     <div className={styles.bookWrapper}>
       <div className={styles.bookContainer}>
-        <img src={bookImage} className={styles.bookIcon} alt="Book Icon" />
-        <div className={styles.book}>
+        <img
+          src={insideImage}
+          className={`${styles.insideIcon} ${
+            animateInsideIcon === 1
+              ? styles.insideAnimation
+              : animateTitleIcon === 2
+                ? styles.insideAnimationReverse
+                : ''
+          }`}
+          alt="inside Icon"
+        />
+        <img
+          src={insideHalfIcon}
+          className={`${styles.insideHalfIcon} ${
+            animatePageIcon === 1
+              ? styles.pageAnimation
+              : animatePageIcon === 2
+                ? styles.pageAnimationReverse
+                : ''
+          }`}
+          alt="inside Page Icon"
+        />
+        <img
+          src={titleIcon}
+          className={`${styles.titleIcon} ${
+            animateTitleIcon === 1
+              ? styles.titleAnimation
+              : animateTitleIcon === 2
+                ? styles.titleAnimationReverse
+                : ''
+          }`}
+          alt="Title Icon" />
+        <div className={`${styles.inside}`}>
           <div className={styles.page}>
             {editable ? (
               <textarea
@@ -128,11 +207,17 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => 
                 value={pages[currentPage * (isSinglePage ? 1 : 2)]}
                 onChange={(e) => handleTextChange(e, currentPage * (isSinglePage ? 1 : 2))}
                 onPaste={(e) => handlePaste(e, currentPage * (isSinglePage ? 1 : 2))}
-                className={styles.textAreaFirst}
-                maxLength={1000}
+                className={`${styles.textAreaFirst} ${
+                  animatePageIcon === 1
+                    ? styles.pageTextAnimation
+                    : animatePageIcon === 2
+                      ? styles.pageTextAnimationReverse
+                      : ''
+                }`}
+                maxLength={500}
               />
             ) : (
-              <div className={styles.text}>{pages[currentPage * (isSinglePage ? 1 : 2)]}</div>
+              <MessageFormattedString message={pages[currentPage * (isSinglePage ? 1 : 2)]} />
             )}
           </div>
           {!isSinglePage && (currentPage * 2 + 1) < pages.length && (
@@ -143,33 +228,93 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onClose }) => 
                   value={pages[currentPage * 2 + 1]}
                   onChange={(e) => handleTextChange(e, currentPage * 2 + 1)}
                   onPaste={(e) => handlePaste(e, currentPage * 2 + 1)}
-                  className={styles.textAreaSecond}
-                  maxLength={1000}
+                  className={`${styles.textAreaSecond} ${
+                    animateInsideIcon === 1
+                      ? styles.pageSecondTextAnimation
+                      : animateInsideIcon === 2
+                        ? styles.pageSecondTextAnimationReverse
+                        : ''
+                  }`}
+                  maxLength={500}
                 />
               ) : (
-                <div className={styles.text}>{pages[currentPage * 2 + 1]}</div>
+                <MessageFormattedString message={pages[currentPage * 2 + 1]} />
               )}
             </div>
           )}
           <Button
-            className={styles.controlPrev}
+            className={`${styles.controlPrev} ${
+              animateInsideIcon === 1
+                ? styles.hidden
+                : animateInsideIcon === 2
+                  ? styles.pageButtonAnimationReverse
+                  : ''
+            }`}
             onClick={() => handlePageChange(-1)}
             disabled={currentPage === 0}
           >
             {' '}
           </Button>
           <Button
-            className={styles.controlNext}
+            className={`${styles.controlNext} ${
+              animateInsideIcon === 1
+                ? styles.hidden
+                : animateInsideIcon === 2
+                  ? styles.pageButtonAnimationReverse
+                  : ''
+            }`}
             onClick={() => handlePageChange(1)}
             disabled={(currentPage + 1) * (isSinglePage ? 1 : 2) >= pages.length}
           >
             {' '}
           </Button>
         </div>
-        <div className={styles.actions}>
-          {editable && <Button onClick={handleSign}>Sign</Button>}
-          {!editable && <Button onClick={onClose}>Close</Button>}
+        <div 
+          className={`${styles.outSide} ${
+            animateTitleIcon === 1
+              ? styles.titleContentAnimation
+              : animateTitleIcon === 2
+                ? styles.titleContentAnimationReverse
+                : ''
+          }`}>
+          {editable ? (
+            <div className={`${styles.titleContent}`} >
+              <MessageFormattedString message="Enter Book Title: " />
+              <input 
+                ref={inputRef}
+                className={`${styles.inputTitle}`}
+              />
+              <MessageFormattedString message="by Author" />
+              <br />
+              <MessageFormattedString message="Note! When you sign the book, it will no longer be editable." />
+            </div>
+          ) : (
+            <div className={`${styles.titleContent}`} >
+              <MessageFormattedString message="Book Name Here" />
+              <br />
+              <MessageFormattedString message="by Author" />
+            </div>
+          )}
         </div>
+      </div>
+      <div className={styles.actions}>
+        {editable && (
+          <Button onClick={handleSign}>
+            {signClickedOnce ? 'Sign and Save' : 'Sign'}
+          </Button>
+        )}
+
+        {!editable && !isOutside && (
+          <Button onClick={handleSign}>
+            Sign
+          </Button>
+        )}
+        {editable && !isOutside && (
+          <Button onClick={handleEdit}>Edit</Button>
+        )}
+        <Button onClick={handleCancel}>
+          {isOutside ? 'Cancel' : 'Close'}
+        </Button>
       </div>
     </div>
   )
