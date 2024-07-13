@@ -18,6 +18,7 @@ Default.args = {
     'Page 5: This is some text for page 5.',
   ],
   editable: true,
-  onSign: (pages) => console.log('Signed with pages:', pages),
+  onSign: (pages, title) => console.log('Signed with pages:', pages, 'Title:', title),
+  onEdit: (pages) => console.log('Edit with pages:', pages),
   onClose: () => console.log('Closed book'),
 }
