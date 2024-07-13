@@ -50,7 +50,7 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
     const isMuted = options.mutedSounds.includes(soundKey) || options.volume === 0
     if (position) {
       if (!isMuted) {
-        viewer.playSound(position, url, soundVolume * Math.max(Math.min(volume, 1), 0) * (options.volume / 100))
+        viewer.playSound(position, url, soundVolume * Math.max(Math.min(volume, 1), 0) * (options.volume / 100), Math.max(Math.min(pitch ?? 1, 2), 0.5))
       }
       if (getDistance(bot.entity.position, position) < 4 * 16) {
         lastPlayedSounds.lastServerPlayed[soundKey] ??= { count: 0, last: 0 }
