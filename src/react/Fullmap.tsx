@@ -15,6 +15,9 @@ type FullmapProps = {
 }
 
 export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => {
+  const [cellCol, setCellCol] = useState(0)
+  const [cellRow, setCellRow] = useState(0)
+  const [grid, setGrid] = useState(() => new Set<string>())
   const zoomRef = useRef<ReactZoomPanPinchRef>(null)
   const isDragging = useRef(false)
   const oldCanvases = useRef<HTMLCanvasElement[]>([])
@@ -22,6 +25,32 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
   const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
   const box = useRef({ left: 0, top: 0 })
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
+
+  const countCellDimensions = () => {
+    const wrapperRect = zoomRef.current?.instance.wrapperComponent?.getBoundingClientRect()
+    if (!wrapperRect) return
+    const cellX = Math.ceil(wrapperRect.width / 32)
+    const cellY = Math.ceil(wrapperRect.height / 32)
+    const columns = cellX + Math.ceil(cellX / 2)
+    const rows = cellY + Math.ceil(cellY / 2)
+
+    setCellCol(columns)
+    setCellRow(rows)
+  }
+
+  const updateGrid = () => {
+    const wrapperRect = zoomRef.current?.instance.wrapperComponent?.getBoundingClientRect()
+    if (!wrapperRect) return
+    const leftBorder = stateRef.current.positionX - (cellCol * 32 - wrapperRect.width) / 2
+    const topBorder = stateRef.current.positionY - (cellRow * 32 - wrapperRect.height) / 2
+    const newGrid = new Set()
+    for (let row = 0; row < cellRow; row += 1) {
+      for (let col = 0; col < cellCol; col += 1) {
+        newGrid.add(`${leftBorder + col * 32},${topBorder + row * 32}`)
+      }
+    }
+    setGrid(new Set([...grid, ...newGrid] as string[]))
+  }
 
   const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
     if ('buttons' in e && e.buttons !== 0) return
@@ -86,25 +115,42 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
   }
 
   useEffect(() => {
-    if (drawer) drawNewPartOfMap()
-  }, [drawer])
+    countCellDimensions()
+    updateGrid()
+  }, [])
 
   useEffect(() => {
-    if (canvasRef.current) {
-      canvasRef.current.addEventListener('mousemove', eventControl)
-      canvasRef.current.addEventListener('touchmove', eventControl)
-      canvasRef.current.addEventListener('mouseup', eventControl)
-      canvasRef.current.addEventListener('touchend', eventControl)
-    }
+    const wrapper= zoomRef.current?.instance.wrapperComponent
+    if (!wrapper) return
+    const wrapperRect = wrapper.getBoundingClientRect()
+    wrapper.style.width = `${Math.min(window.innerHeight, window.innerWidth) / 3}px`
+    wrapper.style.aspectRatio = '1'
 
-    return () => {
-      canvasRef.current?.removeEventListener('mousemove', eventControl)
-      canvasRef.current?.removeEventListener('touchmove', eventControl)
-      canvasRef.current?.removeEventListener('mouseup', eventControl)
-      canvasRef.current?.removeEventListener('touchend', eventControl)
-      setIsWarpInfoOpened(false)
-    }
-  }, [])
+
+    countCellDimensions()
+    updateGrid()
+  }, [zoomRef.current])
+
+  // useEffect(() => {
+  //   if (drawer) drawNewPartOfMap()
+  // }, [drawer])
+
+  // useEffect(() => {
+  //   if (canvasRef.current) {
+  //     canvasRef.current.addEventListener('mousemove', eventControl)
+  //     canvasRef.current.addEventListener('touchmove', eventControl)
+  //     canvasRef.current.addEventListener('mouseup', eventControl)
+  //     canvasRef.current.addEventListener('touchend', eventControl)
+  //   }
+  //
+  //   return () => {
+  //     canvasRef.current?.removeEventListener('mousemove', eventControl)
+  //     canvasRef.current?.removeEventListener('touchmove', eventControl)
+  //     canvasRef.current?.removeEventListener('mouseup', eventControl)
+  //     canvasRef.current?.removeEventListener('touchend', eventControl)
+  //     setIsWarpInfoOpened(false)
+  //   }
+  // }, [])
 
   return <div
     style={{
@@ -163,19 +209,18 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           willChange: 'transform',
         }}
       >
-        <div
-          style={{
-            width: '100%',
-            height: '100%'
-          }}
-          ref={canvasesCont}
-        >
-          <canvas
-            width={200}
-            height={200}
-            ref={canvasRef}
-          ></canvas>
-        </div>
+        {[...grid].map((cellCoords) => {
+          const [x, y] = cellCoords.split(',').map(Number)
+
+          return <MapCell
+            key={cellCoords}
+            x={x}
+            y={y}
+            adapter={adapter}
+            worldX={0}
+            worldY={0}
+          />
+        })}
       </TransformComponent>
     </TransformWrapper>
     {
@@ -207,14 +252,14 @@ const MapCell = (
   const drawerRef = useRef<MinimapDrawer | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isCanvas, setIsCanvas] = useState(false)
-
-  useEffect(() => {
-    if (canvasRef.current && isCanvas && !drawerRef.current) {
-      drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
-    } else if (canvasRef.current && isCanvas && drawerRef.current) {
-      drawerRef.current.canvas = canvasRef.current
-    }
-  }, [canvasRef.current, isCanvas])
+  //
+  // useEffect(() => {
+  //   if (canvasRef.current && isCanvas && !drawerRef.current) {
+  //     drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
+  //   } else if (canvasRef.current && isCanvas && drawerRef.current) {
+  //     drawerRef.current.canvas = canvasRef.current
+  //   }
+  // }, [canvasRef.current, isCanvas])
 
   useEffect(() => {
     const intersectionObserver = new IntersectionObserver((entries) => {
@@ -241,7 +286,8 @@ const MapCell = (
       width: '32px', 
       height: '32px',
       top: `${y}px`,
-      left: `${x}px`
+      left: `${x}px`,
+      border: '2px solid red'
     }}
   > 
     {isCanvas && <canvas
