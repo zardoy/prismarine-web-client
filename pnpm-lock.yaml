@@ -141,7 +141,7 @@ importers:
         version: 2.0.4
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
-        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/99434199f25d3c6bbe15833bb78ec40b07c2df6f
+        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/d3f7f77d8ac751bc171173bba639086c931a62f7
       node-gzip:
         specifier: ^1.1.2
         version: 1.1.2
@@ -314,7 +314,7 @@ importers:
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
-        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/dddc683544317f117172077a9245a07be1b12479(encoding@0.1.13)
+        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/7f65e46a048f1bc2b57775d84b32400dce707321(encoding@0.1.13)
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -6086,8 +6086,8 @@ packages:
     resolution: {integrity: sha512-QMMNPx4IyZE7ydAzjvGLQLCnQNUOfkk1qVZKxTTS9q3qPTAewz4GhsVUBtbQ8LSbHthe5RcQ1Sgxs4wlIma/Qw==}
     engines: {node: '>=18'}
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/dddc683544317f117172077a9245a07be1b12479:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/dddc683544317f117172077a9245a07be1b12479}
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/7f65e46a048f1bc2b57775d84b32400dce707321:
+    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/7f65e46a048f1bc2b57775d84b32400dce707321}
     version: 4.20.1
     engines: {node: '>=18'}
 
@@ -6239,8 +6239,8 @@ packages:
   nested-error-stacks@2.1.1:
     resolution: {integrity: sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/99434199f25d3c6bbe15833bb78ec40b07c2df6f:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/99434199f25d3c6bbe15833bb78ec40b07c2df6f}
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/d3f7f77d8ac751bc171173bba639086c931a62f7:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/d3f7f77d8ac751bc171173bba639086c931a62f7}
     version: 0.2.4
 
   nice-try@1.0.5:
@@ -15825,7 +15825,7 @@ snapshots:
       - encoding
       - supports-color
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/dddc683544317f117172077a9245a07be1b12479(encoding@0.1.13):
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/7f65e46a048f1bc2b57775d84b32400dce707321(encoding@0.1.13):
     dependencies:
       minecraft-data: 3.65.0
       minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc(patch_hash=7otpchsbv7hxsuis4rrrwdtbve)(encoding@0.1.13)
@@ -15991,7 +15991,7 @@ snapshots:
 
   nested-error-stacks@2.1.1: {}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/99434199f25d3c6bbe15833bb78ec40b07c2df6f:
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/d3f7f77d8ac751bc171173bba639086c931a62f7:
     dependencies:
       body-parser: 1.20.2
       express: 4.18.2

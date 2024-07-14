@@ -17,7 +17,7 @@ declare const worldView: import('prismarine-viewer/viewer/lib/worldDataEmitter')
 declare const localServer: import('flying-squid/dist/index').FullServer & { options } | undefined
 /** all currently loaded mc data */
 declare const mcData: Record<string, any>
-declare const loadedData: import('minecraft-data').IndexedData
+declare const loadedData: import('minecraft-data').IndexedData & { sounds: Record<string, { id, name }> }
 declare const customEvents: import('typed-emitter').default<{
     /** Singleplayer load requested */
     singleplayer (): void

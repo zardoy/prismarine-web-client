@@ -44,6 +44,13 @@ See the [Mineflayer](https://github.com/PrismarineJS/mineflayer) repo for the li
 There is a builtin proxy, but you can also host your one! Just clone the repo, run `pnpm i` (following CONTRIBUTING.MD) and run `pnpm prod-start`, then you can specify `http://localhost:8080` in the proxy field.
 MS account authentication will be supported soon.
 
+### Docker Files
+
+- [Main Dockerfile](./Dockerfile) - for production build & offline/private usage. Includes full web-app + proxy server for connecting to Minecraft servers.
+- [Proxy Dockerfile](./Dockerfile.proxy) - for proxy server only - that one you would be able to specify in the proxy field on the client (`docker build . -f Dockerfile.proxy -t minecraft-web-proxy`)
+
+In case of using docker, you don't have to follow preparation steps from CONTRIBUTING.MD, like installing Node.js, pnpm, etc.
+
 ### Rendering
 
 #### Three.js Renderer
@@ -54,10 +61,6 @@ MS account authentication will be supported soon.
 - Doesn't support occlusion culling
 
 <!-- TODO proxy server communication graph -->
-
-### Things that are not planned yet
-
-- Mods, plugins (basically JARs) support, shaders - since they all are related to specific game pipelines
 
 ### Advanced Settings
 
@@ -130,6 +133,10 @@ Press `Y` to set query parameters to url of your current game state.
 - [Minecraft Protocol](https://github.com/PrismarineJS/node-minecraft-protocol) - Makes connections to servers possible
 - [Peer.js](https://peerjs.com/) - P2P networking (when you open to wan)
 - [Three.js](https://threejs.org/) - Helping in 3D rendering
+
+### Things that are not planned yet
+
+- Mods, plugins (basically JARs) support, shaders - since they all are related to specific game pipelines
 
 ### Alternatives
 

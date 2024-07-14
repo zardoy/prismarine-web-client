@@ -199,7 +199,8 @@ const hardcodedListOfDebugPacketsToIgnore = {
     'chat',
     'playerlist_header',
     'scoreboard_objective',
-    'scoreboard_score'
+    'scoreboard_score',
+    'entity_status'
   ],
   sent: [
     'pong',
