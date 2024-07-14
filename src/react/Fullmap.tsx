@@ -163,7 +163,6 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           willChange: 'transform',
         }}
       >
-        <Observer />
         <div
           style={{
             width: '100%',
@@ -193,64 +192,79 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 }
 
 
-const Observer = () => {
-    const ref = useRef(null)
+const MapCell = (
+  { x, y, adapter, worldX, worldY }
+  : 
+  { 
+    x: number, 
+    y: number,
+    adapter: DrawerAdapter,
+    worldX: number,
+    worldY: number
+  }
+) => {
+  const containerRef = useRef(null)
+  const drawerRef = useRef<MinimapDrawer | null>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [isCanvas, setIsCanvas] = useState(false)
 
-    useEffect(() => {
-        const intersectionObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    console.log('visible')
-                } else {
-                    console.log('not visible')
-                }
-            })
-        })
-        intersectionObserver.observe(ref.current!)
+  useEffect(() => {
+    if (canvasRef.current && isCanvas && !drawerRef.current) {
+      drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
+    } else if (canvasRef.current && isCanvas && drawerRef.current) {
+      drawerRef.current.canvas = canvasRef.current
+    }
+  }, [canvasRef.current, isCanvas])
 
-        return () => {
-            intersectionObserver.disconnect()
+  useEffect(() => {
+    const intersectionObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {
+          console.log('visible')
+          setIsCanvas(true)
+        } else {
+          console.log('not visible')
         }
-    }, []);
-    
-    return (
-        <TransformWrapper>
-            <TransformComponent
-                wrapperStyle={{
-                    border: '1px solid black',
-                    willChange: 'transform',
-                    height: '100dvh',
-                    width: '100%',
-                }}
-            >
-                <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-                    {/* canvas for chunk: 16x16 blocks */}
-                    <div
-                        ref={ref}
-                        style={{
-                            width: '500px',
-                            height: '500px',
-                            background: 'green',
-                            position: 'absolute',
-                            top: -500,
-                            left: 0,
-                        }}
-                    ></div>
-                </div>
-            </TransformComponent>
-        </TransformWrapper>
-    )
+      }
+    })
+    intersectionObserver.observe(containerRef.current!)
+
+    return () => {
+      intersectionObserver.disconnect()
+    }
+  }, [])
+
+  return <div 
+    ref={containerRef}
+    style={{ 
+      position: 'absolute', 
+      width: '32px', 
+      height: '32px',
+      top: `${y}px`,
+      left: `${x}px`
+    }}
+  > 
+    {isCanvas && <canvas
+      ref={canvasRef}
+      width={16}
+      height={16}
+      style={{
+        width: '100%',
+        height: '100%'
+      }}
+    ></canvas>}
+  </div>
 }
 
 const WarpInfo = (
   { adapter, drawer, setIsWarpInfoOpened, afterWarpIsSet }
-    :
-    {
-      adapter: DrawerAdapter,
-      drawer: MinimapDrawer | null,
-      setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
-      afterWarpIsSet?: () => void
-    }
+  :
+  {
+    adapter: DrawerAdapter,
+    drawer: MinimapDrawer | null,
+    setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
+    afterWarpIsSet?: () => void
+  }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>({
     name: '',
