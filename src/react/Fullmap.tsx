@@ -1,5 +1,5 @@
 import { Vec3 } from 'vec3'
-import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
+import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction, RefObject } from 'react'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
@@ -17,9 +17,8 @@ type FullmapProps = {
 export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => {
   const [grid, setGrid] = useState(() => new Set<string>())
   const zoomRef = useRef<ReactZoomPanPinchRef>(null)
-  const isDragging = useRef(false)
-  const oldCanvases = useRef<HTMLCanvasElement[]>([])
-  const canvasesCont = useRef<HTMLDivElement>(null)
+  const redrawCell = useRef(false)
+  const [lastWarpPos, setLastWarpPos] = useState({ x: 0, y: 0, z: 0 })
   const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
   const cells = useRef({ columns: 0, rows: 0 })
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
@@ -45,74 +44,12 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     setGrid(new Set([...grid, ...newGrid] as string[]))
   }
 
-  const handleClickOnMap = (e: MouseEvent | TouchEvent) => {
-    if ('buttons' in e && e.buttons !== 0) return
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
-    const contRect = zoomRef.current!.instance.wrapperComponent!.getBoundingClientRect()
-    const x = adapter.playerPosition.x - (stateRef.current.positionX / stateRef.current.scale - (1 - stateRef.current.scale) * rect.width / 2)
-    const z = adapter.playerPosition.z - (stateRef.current.positionY / stateRef.current.scale - (1 - stateRef.current.scale) * rect.height / 2)
-    const mouseX = ((e as MouseEvent).clientX - contRect.left - contRect.width / 2) * (e.target as HTMLCanvasElement).width / rect.width
-    const mouseZ = ((e as MouseEvent).clientY - contRect.top - contRect.height / 2) * (e.target as HTMLCanvasElement).height / rect.height
-    drawer?.setWarpPosOnClick(new Vec3(mouseX, 0, mouseZ), new Vec3(x, adapter.playerPosition.y, z))
-    setIsWarpInfoOpened(true)
-  }
-
-  const eventControl = (event: MouseEvent | TouchEvent) => {
-    if (event.type === 'mousemove' || event.type === 'touchmove') {
-      isDragging.current = true
-    }
-
-    if (event.type === 'mouseup' || event.type === 'touchend') {
-      if (!isDragging.current) {
-        handleClickOnMap(event)
-      }
-      isDragging.current = false
-    }
-  }
-
-  const drawNewPartOfMap = () => {
-    const newCanvas = document.createElement('canvas')
-    newCanvas.width = Math.floor(200 / stateRef.current.scale)
-    if (newCanvas.width % 2) newCanvas.width += 1
-    newCanvas.height = Math.floor(200 / stateRef.current.scale)
-    if (newCanvas.height % 2) newCanvas.height += 1
-    newCanvas.style.position = 'absolute'
-    newCanvas.style.top = `${-stateRef.current.positionY / stateRef.current.scale}px`
-    newCanvas.style.left = `${-stateRef.current.positionX / stateRef.current.scale}px`
-    newCanvas.addEventListener('click', handleClickOnMap)
-    oldCanvases.current.push(newCanvas)
-    canvasRef.current = newCanvas
-    if (canvasesCont.current && drawer) {
-      canvasesCont.current.appendChild(newCanvas)
-      drawer.canvas = newCanvas
-      drawer.draw(
-        new Vec3(
-          adapter.playerPosition.x - (stateRef.current.positionX / stateRef.current.scale - (1 - stateRef.current.scale) * newCanvas.width / 2),
-          adapter.playerPosition.y,
-          adapter.playerPosition.z - (stateRef.current.positionY / stateRef.current.scale - (1 - stateRef.current.scale) * newCanvas.height / 2),
-        ),
-        undefined,
-        true
-      )
-    }
-  }
-
-  const deleteOldCanvases = () => {
-    if (oldCanvases.current.length < 30) return
-    for (const [index, canvas] of oldCanvases.current.entries()) {
-      if (index >= 20) break
-      canvas.removeEventListener('click', handleClickOnMap)
-      canvas.remove()
-    }
-    oldCanvases.current.splice(0, 20)
-  }
-
   useEffect(() => {
     updateGrid()
   }, [])
 
   useEffect(() => {
-    const wrapper= zoomRef.current?.instance.wrapperComponent
+    const wrapper = zoomRef.current?.instance.wrapperComponent
     if (!wrapper) return
     wrapper.style.width = `${Math.min(window.innerHeight, window.innerWidth) / 3}px`
     wrapper.style.aspectRatio = '1'
@@ -157,13 +94,6 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       }}
       onTransformed={(ref, state) => {
         stateRef.current = { ...state }
-        // if (
-        //   Math.abs(state.positionX - box.current.left) > 20 || Math.abs(state.positionY - box.current.top) > 20
-        // ) {
-        //   drawNewPartOfMap()
-        //   box.current.top = state.positionY
-        //   box.current.left = state.positionX
-        // }
       }}
       onPanningStop={() => {
         updateGrid()
@@ -182,15 +112,19 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           const [x, y] = cellCoords.split(',').map(Number)
           const playerChunkLeft = Math.floor(adapter.playerPosition.x / 16) * 16
           const playerChunkTop = Math.floor(adapter.playerPosition.z / 16) * 16
-          console.log('chunkX:', playerChunkLeft + x / 2, 'chunkY:', playerChunkTop + y / 2)
+          // console.log('chunkX:', playerChunkLeft + x / 2, 'chunkY:', playerChunkTop + y / 2)
 
           return <MapCell
-            key={cellCoords}
+            key={'mapcell:' + cellCoords}
             x={x}
             y={y}
+            scale={stateRef.current.scale}
             adapter={adapter}
             worldX={playerChunkLeft + x / 2}
             worldZ={playerChunkTop + y / 2}
+            setIsWarpInfoOpened={setIsWarpInfoOpened}
+            setLastWarpPos={setLastWarpPos}
+            redraw={redrawCell.current}
           />
         })}
       </TransformComponent>
@@ -198,10 +132,10 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     {
       isWarpInfoOpened && <WarpInfo
         adapter={adapter}
-        drawer={drawer}
+        drawer={lastWarpPos}
         setIsWarpInfoOpened={setIsWarpInfoOpened}
         afterWarpIsSet={() => {
-          drawNewPartOfMap()
+          redrawCell.current = !redrawCell.current
         }}
       />
     }
@@ -210,20 +144,34 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 
 
 const MapCell = (
-  { x, y, adapter, worldX, worldZ }
-  : 
-  { 
-    x: number, 
-    y: number,
-    adapter: DrawerAdapter,
-    worldX: number,
-    worldZ: number
-  }
+  { x, y, scale, adapter, worldX, worldZ, setIsWarpInfoOpened, setLastWarpPos, redraw }
+    :
+    {
+      x: number,
+      y: number,
+      scale: number,
+      adapter: DrawerAdapter,
+      worldX: number,
+      worldZ: number,
+      setIsWarpInfoOpened: (x: boolean) => void,
+      setLastWarpPos: (obj: { x: number, y: number, z: number }) => void,
+      redraw?: boolean
+    }
 ) => {
   const containerRef = useRef(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isCanvas, setIsCanvas] = useState(false)
+
+  const handleClick = (e: MouseEvent) => {
+    if ('buttons' in e && e.buttons !== 0) return
+    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    const x = (e.clientX - rect.left) / scale
+    const y = (e.clientY - rect.top) / scale
+    drawerRef.current?.setWarpPosOnClick(new Vec3(x / 2, 0, y / 2), new Vec3(worldX, 0, worldZ))
+    setLastWarpPos(drawerRef.current!.lastWarpPos)
+    setIsWarpInfoOpened(true)
+  }
 
   useEffect(() => {
     if (canvasRef.current && isCanvas && !drawerRef.current) {
@@ -235,17 +183,25 @@ const MapCell = (
   }, [canvasRef.current, isCanvas])
 
   useEffect(() => {
+    canvasRef.current?.addEventListener('click', handleClick)
+
+    return () => {
+      canvasRef.current?.removeEventListener('click', handleClick)
+    }
+  }, [canvasRef.current])
+
+  useEffect(() => {
     if (drawerRef.current) {
       drawerRef.current.draw(new Vec3(worldX + 8, 0, worldZ + 8), undefined, true)
     }
-  }, [drawerRef.current])
+  }, [drawerRef.current, redraw])
 
   useEffect(() => {
     const intersectionObserver = new IntersectionObserver((entries) => {
       for (const entry of entries) {
         if (entry.isIntersecting) {
           setIsCanvas(true)
-        } 
+        }
       }
     })
     intersectionObserver.observe(containerRef.current!)
@@ -255,16 +211,16 @@ const MapCell = (
     }
   }, [])
 
-  return <div 
+  return <div
     ref={containerRef}
-    style={{ 
-      position: 'absolute', 
-      width: '32px', 
+    style={{
+      position: 'absolute',
+      width: '32px',
       height: '32px',
       top: `${y}px`,
       left: `${x}px`,
     }}
-  > 
+  >
     {isCanvas && <canvas
       ref={canvasRef}
       width={16}
@@ -279,19 +235,19 @@ const MapCell = (
 
 const WarpInfo = (
   { adapter, drawer, setIsWarpInfoOpened, afterWarpIsSet }
-  :
-  {
-    adapter: DrawerAdapter,
-    drawer: MinimapDrawer | null,
-    setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
-    afterWarpIsSet?: () => void
-  }
+    :
+    {
+      adapter: DrawerAdapter,
+      drawer: { x: number, y: number, z: number },
+      setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
+      afterWarpIsSet?: () => void
+    }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>({
     name: '',
-    x: drawer?.lastWarpPos.x ?? 100,
-    y: drawer?.lastWarpPos.y ?? 100,
-    z: drawer?.lastWarpPos.z ?? 100,
+    x: drawer?.x ?? 100,
+    y: drawer?.y ?? 100,
+    z: drawer?.z ?? 100,
     color: '#d3d3d3',
     disabled: false,
     world: adapter.world
@@ -348,7 +304,7 @@ const WarpInfo = (
         </div>
         <Input
           rootStyles={posInputStyle}
-          defaultValue={drawer?.lastWarpPos.x ?? 100}
+          defaultValue={drawer?.x ?? 100}
           onChange={(e) => {
             if (!e.target) return
             setWarp(prev => { return { ...prev, x: Number(e.target.value) } })
@@ -359,7 +315,7 @@ const WarpInfo = (
         </div>
         <Input
           rootStyles={posInputStyle}
-          defaultValue={drawer?.lastWarpPos.y ?? 100}
+          defaultValue={drawer?.y ?? 100}
           onChange={(e) => {
             if (!e.target) return
             setWarp(prev => { return { ...prev, y: Number(e.target.value) } })
@@ -370,7 +326,7 @@ const WarpInfo = (
         </div>
         <Input
           rootStyles={posInputStyle}
-          defaultValue={drawer?.lastWarpPos.z ?? 100}
+          defaultValue={drawer?.z ?? 100}
           onChange={(e) => {
             if (!e.target) return
             setWarp(prev => { return { ...prev, z: Number(e.target.value) } })
