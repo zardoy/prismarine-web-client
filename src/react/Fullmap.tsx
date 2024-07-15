@@ -114,7 +114,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           const playerChunkTop = Math.floor(adapter.playerPosition.z / 16) * 16
           // console.log('chunkX:', playerChunkLeft + x / 2, 'chunkY:', playerChunkTop + y / 2)
 
-          return <MapCell
+          return <MapChunk
             key={'mapcell:' + cellCoords}
             x={x}
             y={y}
@@ -143,7 +143,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 }
 
 
-const MapCell = (
+const MapChunk = (
   { x, y, scale, adapter, worldX, worldZ, setIsWarpInfoOpened, setLastWarpPos, redraw }
     :
     {
