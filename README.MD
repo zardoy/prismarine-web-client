@@ -108,21 +108,24 @@ world chunks have a *yellow* border, hostile mobs have a *red* outline, passive 
 
 ### Query Parameters
 
-Press `Y` to set query parameters to url of your current game state.
+There ar some parameters you can set in the url to archive some specific behaviors:
 
-- `?ip=<server_address>` - Display connect screen to the server on load
-- `?username=<username>` - Set the username for server
-- `?proxy=<proxy_address>` - Set the proxy server address to use for server
-- `?version=<version>` - Set the version for server
-- `?lockConnect=true` - Disable cancel / save buttons, useful for integrates iframes
+Server specific:
+- `?ip=<server_address>` - Display connect screen to the server on load with predefined server ip
+- `?port=<port>` - Set the server port
+- `?name=<name>` - Set the server name for saving to the server list
+- `?version=<version>` - Set the version for the server
+- `?proxy=<proxy_address>` - Set the proxy server address to use for  the server
+- `?username=<username>` - Set the username for the server
+- `?lockConnect=true` - Only works then `ip` parameter is set. Disables cancel/save buttons and all inputs in the connect screen already set as parameters. Useful for integrates iframes.
 - `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
+
+Single player specific:
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
-<!-- - `?requiresAuth=true` - Show the Microsoft login screen on server connect. Useful for servers that require authentication (running in online mode) -->
-
 - `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
-- `?setting=<setting_name>:<setting_value>` - Set the and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
+- `?setting=<setting_name>:<setting_value>` - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
 
 ### Notable Things that Power this Project
 
