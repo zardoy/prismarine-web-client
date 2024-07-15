@@ -77,6 +77,11 @@ export class MinimapDrawer {
     getHighestBlockColor?: DrawerAdapter['getHighestBlockColor'],
     full?: boolean
   ) {
+    if (full) {
+      this.radius = Math.floor(Math.min(this.canvas.width, this.canvas.height) / 2)
+      this._mapSize = this.radius * 2
+      this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
+    } 
     this.ctx.clearRect(
       this.centerX - this.radius,
       this.centerY - this.radius,
