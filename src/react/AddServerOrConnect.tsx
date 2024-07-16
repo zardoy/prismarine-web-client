@@ -93,7 +93,6 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         }}>
           <span style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Account Override</span>
           <select
-            placeholder='Account'
             onChange={({ target: { value } }) => setAccountIndex(Number(value))}
             style={{
               background: 'gray',
