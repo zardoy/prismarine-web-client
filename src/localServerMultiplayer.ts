@@ -52,7 +52,7 @@ export const openToWanAndCopyJoinLink = async (writeText: (text) => void, doCopy
   peerInstance = peer
   peer.on('connection', (connection) => {
     console.log('connection')
-    const serverDuplex = new CustomDuplex({}, (data) => connection.send(data))
+    const serverDuplex = new CustomDuplex({}, async (data) => connection.send(data))
     const client = new Client(true, localServer.options.version, undefined)
     client.setSocket(serverDuplex)
     localServer._server.emit('connection', client)

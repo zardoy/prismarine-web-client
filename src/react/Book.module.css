@@ -1,0 +1,605 @@
+.bookWrapper * {
+  box-sizing: border-box;
+}
+.bookWrapper {
+  box-sizing: border-box;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5vh;
+}
+.bookContainer {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  gap: 3%;
+  padding: 0;
+}
+
+.bookImages {
+  position: relative;
+}
+
+.outSide {
+  display: none;
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40%;
+  height: 100%;
+  margin: 0 auto;
+}
+.titleIcon {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50%;
+  height: 100%;
+  margin: 0 auto;
+  z-index: 2;
+}
+.titleContent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+.titleContent span {
+  font-size: 10px;
+}
+.titleContent input {
+  text-align: center;
+  width: 100%;
+  height: 10%;
+  font-size: 10px;
+  margin: 4% 0%;
+  padding: 2% 4%;
+  background-color: transparent;
+  color: white;
+  caret-color: greenyellow;
+  font-family: inherit;
+  border: 1px solid black;
+  padding: 8px 15px;
+}
+
+.insideIcon {
+  width: 100%;
+  height: 20vh;
+}
+.insideHalfIcon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+}
+
+.inside {
+  position: absolute;
+  top: 0%;
+  width: 90%;
+  height: 100%;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 5%;
+  background-color: transparent;
+  box-shadow: none;
+  padding: 3% 0%;
+}
+.inside.uneditable {
+  height: 90%;
+}
+
+.page {
+  position: relative;
+  width: 50%;
+  height: 100%;
+  overflow-y: auto;
+  background-color: transparent;
+  overflow: hidden;
+}
+
+.messageFormattedString {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  white-space: pre-wrap;
+  font-family: minecraft;
+  font-size: 10px;
+  padding: 10px;
+}
+
+.messageFormattedString > span {
+  text-shadow: none !important;
+}
+
+.textArea {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  font-family: minecraft;
+  font-size: 10px;
+  background-color: transparent;
+  box-shadow: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.textArea > span {
+  animation: blink 1s step-end infinite;
+  border-bottom: 2px solid white;
+}
+
+@keyframes blink {
+  from,
+  to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #fff;
+  }
+}
+
+.controlPrev, .controlNext,
+.controlPrev::before, .controlNext::before,
+.controlPrev::after, .controlNext::after {
+  border: none !important;
+  background-color: transparent !important;
+  text-shadow: none !important;
+  width: auto !important;
+}
+
+.inside Button.controlPrev {
+  position: absolute !important;
+  background-image: url('./book_icons/prev.webp');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  left: 2%;
+  bottom: 6%;
+  margin: 0;
+  padding: 4%;
+}
+.inside Button.controlPrev:active {
+  background-image: url('./book_icons/prev-click.webp') !important;
+}
+.inside Button.controlNext {
+  position: absolute !important;
+  background-image: url('./book_icons/next.webp') !important;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  right: 2%;
+  bottom: 6%;
+  margin: 0;
+  padding: 4%;
+}
+.inside Button.controlNext:active {
+  background-image: url('./book_icons/next-click.webp') !important;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  width: 50%;
+  gap: 0.5vw;
+  row-gap: 0.5vw;
+  align-items: center;
+  justify-content: center;
+}
+
+.actions button {
+  cursor: pointer;
+  font-family: minecraft;
+  width: 45%;
+}
+
+/* Animations */
+
+@keyframes titleAnimation {
+  0% {
+    transform: translateX(-50%) rotateY(85deg);
+  }
+  100% {
+    transform: translateX(-50%) rotateY(0);
+  }
+}
+
+@keyframes titleContentAnimation {
+  0% {
+    transform: translateX(-50%) rotateY(85deg);
+  }
+  100% {
+    transform: translateX(-50%) rotateY(0);
+  }
+}
+
+@keyframes insideAnimation {
+  0% {
+    clip-path: inset(0% 0% 0% 0%);
+    transform: translateX(0%);
+  }
+  25% {
+    transform: translateX(5%);
+  }
+  50% {
+    clip-path: inset(0% 0% 0% 50%);
+    transform: translateX(0%);
+  }
+  99% {
+    opacity: 1;
+  }
+  100% {
+    clip-path: inset(0% 0% 0% 75%);
+    transform: translateX(-25%);
+    opacity: 0;
+  }
+}
+
+@keyframes pageAnimation {
+  0% {
+    transform: translateX(0) rotateY(0);
+  }
+  99% {
+    display: flex;
+  }
+  100% {
+    transform: translateX(55%) rotateY(90deg);
+    padding: 0%;
+    display: none;
+  }
+}
+@keyframes pageTextAnimation {
+  0% {
+    transform: translateX(0) rotateY(0);
+  }
+  100% {
+    transform: translateX(65%) rotateY(88deg);
+    display: none;
+  }
+}
+@keyframes pageSecondTextAnimation {
+  0% {
+    transform: translateX(0%);
+  }
+  25% {
+    transform: translateX(10%);
+  }
+  50% {
+    transform: translateX(0%);
+    display: flex;
+  }
+  100% {
+    transform: translateX(-50%);
+    display: none;
+  }
+}
+
+.pageAnimation {
+  animation: pageAnimation .15s forwards;
+}
+
+.titleAnimation {
+  display: flex;
+  animation: titleAnimation .3s forwards;
+}
+
+.titleContentAnimation {
+  display: flex;
+  animation: titleContentAnimation .3s forwards;
+}
+
+.insideAnimation {
+  animation: insideAnimation .3s forwards;
+}
+
+.pageTextAnimation {
+  animation: pageTextAnimation .15s forwards;
+}
+
+.pageSecondTextAnimation {
+  animation: pageSecondTextAnimation .3s forwards;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Animation Reverse  */
+
+@keyframes titleAnimationReverse {
+  0% {
+    transform: translateX(-50%) rotateY(0);
+  }
+  50% {
+    transform: translateX(0%)
+  }
+  100% {
+    transform: translateX(-50%) rotateY(-90deg);
+    display: none;
+  }
+}
+
+@keyframes titleContentAnimationReverse {
+  0% {
+    transform: translateX(-50%) rotateY(0);
+  }
+  50% {
+    transform: translateX(10%)
+  }
+  100% {
+    transform: translateX(-50%) rotateY(-90deg);
+    display: none;
+  }
+}
+
+@keyframes insideAnimationReverse {
+  0% {
+    clip-path: inset(0% 0% 0% 50%);
+    transform: translateX(0%);
+    opacity: 1;
+  }
+  50% {
+    clip-path: inset(0% 0% 0% 50%);
+  }
+  100% {
+    clip-path: inset(0% 0% 0% 0%);
+    transform: translateX(0%);
+  }
+}
+
+@keyframes pageAnimationReverse {
+  0% {
+    transform: translateX(55%) rotateY(-90deg);
+    padding: 0%;
+    display: none;
+  }
+  1% {
+    display: flex;
+  }
+  100% {
+    transform: translateX(0) rotateY(0);
+  }
+}
+
+@keyframes pageTextAnimationReverse {
+  0% {
+    transform: translateX(65%) rotateY(88deg);
+    display: none;
+  }
+  100% {
+    transform: translateX(0) rotateY(0);
+  }
+}
+
+@keyframes pageSecondTextAnimationReverse {
+  0% {
+    transform: translateX(-50%);
+    display: none;
+  }
+  50% {
+    transform: translateX(0%);
+    display: flex;
+  }
+  75% {
+    transform: translateX(10%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+@keyframes pageButtonAnimationReverse {
+  0% {
+    opacity: 0;
+  }
+  99% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.titleAnimationReverse {
+  display: flex;
+  animation: titleAnimationReverse .3s forwards;
+}
+
+.titleContentAnimationReverse {
+  display: flex;
+  animation: titleContentAnimationReverse .3s forwards;
+}
+
+.insideAnimationReverse {
+  animation: insideAnimationReverse .3s forwards;
+}
+
+.pageAnimationReverse {
+  animation: pageAnimationReverse .15s forwards;
+}
+
+.pageTextAnimationReverse {
+  animation: pageTextAnimationReverse .15s forwards;
+}
+
+.pageSecondTextAnimationReverse {
+  animation: pageSecondTextAnimationReverse .3s forwards;
+}
+
+.pageButtonAnimationReverse {
+  animation: pageButtonAnimationReverse .3s forwards
+}
+
+@media screen and (min-width: 972px) and (max-width: 1024px) {
+  .textArea, .text {
+    font-size: 10px;
+  }
+}
+
+@media screen and (max-width: 972px) {
+  .outSide {
+    width: 80%;
+    padding: 4% 0%;
+  }
+  .titleIcon {
+    width: 100%;
+  }
+  .titleContent span {
+    font-size: 10px;
+  }
+  .titleContent input {
+    font-size: 10px;
+  }
+
+  .insideIcon {
+    width: 100%;
+    height: 40vh;
+  }
+  .inside {
+    padding: 9% 8%;
+  }
+  .insideHalfIcon {
+    display: none;
+  }
+
+  .page {
+    width: 100%;
+    height: 100%;
+  }
+  .inside Button.controlPrev {
+    left: 10%;
+    bottom: 6%;
+    padding: 6%;
+  }
+  .inside Button.controlNext {
+    right: 15%;
+    bottom: 6%;
+    padding: 6%;
+  }
+
+  .textArea, .text {
+    font-size: 10px;
+  }
+  /* Animations width < 768px */
+  @keyframes titleAnimation {
+    0% {
+      transform: translateX(-0%) rotateY(90deg);
+    }
+    100% {
+      transform: translateX(-50%) rotateY(0);
+    }
+  }
+  @keyframes titleContentAnimation {
+    0% {
+      transform: translateX(-0%) rotateY(90deg);
+    }
+    100% {
+      transform: translateX(-50%) rotateY(0);
+    }
+  }
+  @keyframes insideAnimation {
+    0% {
+      transform: translateX(0) rotateY(0);
+    }
+    100% {
+      transform: translateX(50%) rotateY(-90deg);
+    }
+  }
+
+  @keyframes pageTextAnimation {
+    0% {
+      transform: translateX(0) rotateY(0);
+    }
+    100% {
+      transform: translateX(50%) rotateY(-90deg);
+      display: none;
+    }
+  }
+
+  /* Animations Reverse width < 768px */
+  @keyframes titleAnimationReverse {
+    0% {
+      transform: translateX(-60%) rotateY(0);
+    }
+    75% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      transform: translateX(0%) rotateY(90deg);
+    }
+  }
+  @keyframes titleContentAnimationReverse {
+    0% {
+      transform: translateX(-60%) rotateY(0);
+    }
+    100% {
+      transform: translateX(0%) rotateY(90deg);
+    }
+  }
+  @keyframes insideAnimationReverse {
+    0% {
+      z-index: 5;
+      transform: translateX(50%) rotateY(-90deg);
+    }
+    100% {
+      transform: translateX(0) rotateY(0);
+    }
+  }
+
+  @keyframes pageTextAnimationReverse {
+    0% {
+      transform: translateX(25%) rotateY(-20deg);
+    }
+    100% {
+      transform: translateX(0) rotateY(0);
+      display: flex;
+    }
+  }
+}
+
+@media screen and (max-width: 591px) {
+  .textArea .text {
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-height: 768px) {
+  .textArea, .text {
+    font-size: 5px;
+  }
+  .outSide {
+    padding: 4% 0%;
+  }
+  .titleContent span {
+    font-size: 5px;
+  }
+}
+@media screen and (max-height: 632px) {
+  .titleContent span {
+    font-size: 5px;
+  }
+}
+@media screen and (max-height: 392px) {
+  .insideIcon {
+    height: 40vh;
+  }
+}

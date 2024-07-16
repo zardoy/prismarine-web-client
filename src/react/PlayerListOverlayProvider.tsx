@@ -81,10 +81,10 @@ export default () => {
 
   if (!isOpen) return null
 
-  return <PlayerListOverlay 
-    playersLists={lists} 
-    clientId={clientId} 
-    tablistHeader={bot.tablist.header} 
+  return <PlayerListOverlay
+    playersLists={lists}
+    clientId={clientId}
+    tablistHeader={bot.tablist.header}
     tablistFooter={bot.tablist.footer}
     serverIP={serverIp ?? ''}
   />

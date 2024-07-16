@@ -53,6 +53,10 @@ fs.promises.readdir(path.resolve(__dirname, '../src/react')).then(async (files) 
         write: false, // todo
         loader: {
             '.png': 'dataurl',
+            '.jpg': 'dataurl',
+            '.jpeg': 'dataurl',
+            '.webp': 'dataurl',
+            '.css': 'text',
         },
         plugins: [
             // on external module resolve
