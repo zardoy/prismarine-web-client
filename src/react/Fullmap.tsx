@@ -113,8 +113,8 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           const playerChunkLeft = Math.floor(adapter.playerPosition.x / 16) * 16
           const playerChunkTop = Math.floor(adapter.playerPosition.z / 16) * 16
           const wrapperRect = zoomRef.current?.instance.wrapperComponent?.getBoundingClientRect()
-          const offsetX = Math.floor(wrapperRect?.width ?? 0 / (6 * 16)) * 16
-          const offsetY = Math.floor(wrapperRect?.height ?? 0 / (6 * 16)) * 16
+          const offsetX = Math.floor((wrapperRect?.width ?? 0) / (6 * 16)) * 16
+          const offsetY = Math.floor((wrapperRect?.height ?? 0) / (6 * 16)) * 16
 
           return <MapChunk
             key={'mapcell:' + cellCoords}
@@ -122,8 +122,8 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
             y={y}
             scale={stateRef.current.scale}
             adapter={adapter}
-            worldX={playerChunkLeft + x / 2 }
-            worldZ={playerChunkTop + y / 2 }
+            worldX={playerChunkLeft + x / 2 - offsetX}
+            worldZ={playerChunkTop + y / 2 - offsetY}
             setIsWarpInfoOpened={setIsWarpInfoOpened}
             setLastWarpPos={setLastWarpPos}
             redraw={redrawCell.current}

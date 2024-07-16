@@ -84,7 +84,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
         toggleFullMap()
       }}
     >
-      <canvas width={80} height={80} ref={canvasRef}></canvas>
+      <canvas style={{ transition: '0.5s', transitionTimingFunction: 'ease-out' }} width={80} height={80} ref={canvasRef}></canvas>
     </div>
 }
 
