@@ -108,11 +108,12 @@ world chunks have a *yellow* border, hostile mobs have a *red* outline, passive 
 
 ### Query Parameters
 
-There ar some parameters you can set in the url to archive some specific behaviors:
+Press `Y` to set query parameters to url of your current game state.
+
+There are some parameters you can set in the url to archive some specific behaviors:
 
 Server specific:
-- `?ip=<server_address>` - Display connect screen to the server on load with predefined server ip
-- `?port=<port>` - Set the server port
+- `?ip=<server_address>` - Display connect screen to the server on load with predefined server ip. `:<port>` is optional and can be added to the ip.
 - `?name=<name>` - Set the server name for saving to the server list
 - `?version=<version>` - Set the version for the server
 - `?proxy=<proxy_address>` - Set the proxy server address to use for  the server

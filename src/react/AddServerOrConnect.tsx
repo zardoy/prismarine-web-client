@@ -32,17 +32,17 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
   const qsParams = parseQs ? new URLSearchParams(window.location.search) : undefined
   const qsParamName = qsParams?.get('name')
   const qsParamIp = qsParams?.get('ip')
-  const qsParamPort = qsParams?.get('port')
   const qsParamVersion = qsParams?.get('version')
   const qsParamProxy = qsParams?.get('proxy')
   const qsParamUsername = qsParams?.get('username')
   const qsParamLockConnect = qsParams?.get('lockConnect')
 
+  const qsIpParts = qsParamIp?.split(':')
   const ipParts = initialData?.ip.split(':')
 
   const [serverName, setServerName] = React.useState(initialData?.name ?? qsParamName ?? '')
-  const [serverIp, setServerIp] = React.useState(ipParts?.[0] ?? qsParamIp ?? '')
-  const [serverPort, setServerPort] = React.useState(ipParts?.[1] ?? qsParamPort ?? '')
+  const [serverIp, setServerIp] = React.useState(ipParts?.[0] ?? qsIpParts?.[0] ?? '')
+  const [serverPort, setServerPort] = React.useState(ipParts?.[1] ?? qsIpParts?.[1] ?? '')
   const [versionOverride, setVersionOverride] = React.useState(initialData?.versionOverride ?? /* legacy */ initialData?.['version'] ?? qsParamVersion ?? '')
   const [proxyOverride, setProxyOverride] = React.useState(initialData?.proxyOverride ?? qsParamProxy ?? '')
   const [usernameOverride, setUsernameOverride] = React.useState(initialData?.usernameOverride ?? qsParamUsername ?? '')
@@ -89,10 +89,10 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
             <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
           </div>
         </>}
-        <InputWithLabel required label="Server IP" value={serverIp} disabled={lockConnect && qsParamIp !== null} onChange={({ target: { value } }) => setServerIp(value)} />
-        <InputWithLabel label="Server Port" value={serverPort} disabled={lockConnect && qsParamPort !== null} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
+        <InputWithLabel required label="Server IP" value={serverIp} disabled={lockConnect && qsIpParts?.[0] !== null} onChange={({ target: { value } }) => setServerIp(value)} />
+        <InputWithLabel label="Server Port" value={serverPort} disabled={lockConnect && qsIpParts?.[1] !== null} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
         <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>
-        <InputWithLabel label="Version Override" value={versionOverride} disabled={lockConnect && qsParamPort !== null} onChange={({ target: { value } }) => setVersionOverride(value)} placeholder='Optional, but recommended to specify' />
+        <InputWithLabel label="Version Override" value={versionOverride} disabled={lockConnect && qsParamVersion !== null} onChange={({ target: { value } }) => setVersionOverride(value)} placeholder='Optional, but recommended to specify' />
         <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && qsParamProxy !== null} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={defaults?.proxyOverride} />
         <InputWithLabel label="Username Override" value={usernameOverride} disabled={!noAccountSelected || lockConnect && qsParamUsername !== null} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={defaults?.usernameOverride} />
         <label style={{
