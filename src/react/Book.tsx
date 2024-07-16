@@ -66,14 +66,14 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
       return updatedPages
     })
   }
-  
+
   const handleTextChange = (e, pageIndex) => {
     const text = e.target.value
     updatePage(pageIndex, text)
-  
+
     const nextPageIndex = pageIndex + 1
     const isMaxLengthReached = text.length >= e.target.maxLength
-  
+
     if (isMaxLengthReached) {
       if (nextPageIndex < pages.length) {
         setCurrentPage(Math.floor(nextPageIndex / (isSinglePage ? 1 : 2)))
@@ -87,7 +87,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
       textAreaRefs.current[pageIndex - 1]?.focus()
     }
   }
-  
+
   useEffect(() => {
     const index = currentPage * (isSinglePage ? 1 : 2)
     textAreaRefs.current[index]?.focus()
@@ -99,18 +99,18 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
     const currentText = updatedPages[pageIndex]
     const selectionStart = e.currentTarget.selectionStart || 0
     const selectionEnd = e.currentTarget.selectionEnd || 0
-  
+
     const newText = currentText.slice(0, selectionStart) + pasteText + currentText.slice(selectionEnd)
     updatedPages[pageIndex] = newText
     setPages(updatedPages)
-  
+
     if (newText.length > e.currentTarget.maxLength) {
       const remainingText = newText.slice(e.currentTarget.maxLength)
       updatedPages[pageIndex] = newText.slice(0, e.currentTarget.maxLength)
       setPages(updatedPages)
-  
+
       const nextPageIndex = pageIndex + 1
-  
+
       if (nextPageIndex < pages.length) {
         handlePasteRemainingText(remainingText, nextPageIndex)
       } else {
@@ -120,14 +120,14 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
       }
     }
   }
-  
+
   const handlePasteRemainingText = (remainingText: string, nextPageIndex: number) => {
     const updatedPages = [...pages]
     updatedPages[nextPageIndex] = remainingText
     setPages(updatedPages)
     focusOnTextArea(nextPageIndex)
   }
-  
+
   const focusOnTextArea = (index: number) => {
     setTimeout(() => {
       textAreaRefs.current[index]?.focus()
@@ -269,7 +269,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
             {' '}
           </Button>
         </div>
-        <div 
+        <div
           className={`${styles.outSide} ${
             animateTitleIcon === 1
               ? styles.titleContentAnimation
