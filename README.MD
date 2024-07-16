@@ -124,8 +124,11 @@ Server specific:
 Single player specific:
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
-- `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
+- `?version=<version>` - Set the version for the singleplayer world (when used with `?singleplayer=1`)
+- `?noSave=true` - Disable auto save on unload / disconnect / export whenever a world is loaded. Only manual save with `/save` command will work.
 - `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
+
+General:
 - `?setting=<setting_name>:<setting_value>` - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
 
 ### Notable Things that Power this Project
