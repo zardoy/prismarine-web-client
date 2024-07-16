@@ -49,11 +49,14 @@
   z-index: 2;
 }
 .titleContent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   flex-direction: column;
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: scroll; /* Пришлось использовать скролл, вместо, текст не помещается из-за причин с MessageFormattedString */
+  overflow: hidden; /* Пришлось использовать hidden, текст не помещается из-за причин с MessageFormattedString */
 }
 .titleContent span {
   font-size: 10px;
