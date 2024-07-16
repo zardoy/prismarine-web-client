@@ -53,15 +53,17 @@
   position: relative;
   width: 100%;
   height: 100%;
+  overflow: scroll; /* Пришлось использовать скролл, вместо, текст не помещается из-за причин с MessageFormattedString */
 }
 .titleContent span {
-  font-size: 0.6vw;
+  font-size: 10px;
 }
 .titleContent input {
   text-align: center;
   width: 100%;
   height: 10%;
-  font-size: 0.6vw;
+  font-size: 10px;
+  margin: 4% 0%;
   padding: 2% 4%;
   background-color: transparent;
   color: white;
@@ -69,8 +71,8 @@
 }
 
 .insideIcon {
-  width: 20vw;
-  height: 100%;
+  width: 100%;
+  height: 20vh;
 }
 .insideHalfIcon {
   position: absolute;
@@ -113,12 +115,12 @@
   height: 100%;
   white-space: pre-wrap;
   font-family: minecraft;
-  font-size: 0.5vw;
+  font-size: 10px;
   padding: 10px;
   color: black;
 }
 
-.textAreaFirst, .textAreaSecond {
+.textArea {
   position: relative;
   width: 100%;
   height: 100%;
@@ -126,13 +128,13 @@
   outline: none;
   resize: none;
   font-family: minecraft;
-  font-size: 0.5vw;
+  font-size: 10px;
   background-color: transparent;
   box-shadow: none;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.textAreaFirst > span , .textAreaSecond > span {
+.textArea > span {
   animation: blink 1s step-end infinite;
   border-bottom: 2px solid white;
 }
@@ -438,30 +440,31 @@
   animation: pageButtonAnimationReverse .3s forwards
 }
 
-@media screen and (min-width: 768px) and (max-width: 1024px) {
-  .textAreaFirst, .textAreaSecond {
-    font-size: 1.3vw;
-  }
-  .insideIcon {
-    width: 40vw;
-    height: 100%;
+@media screen and (min-width: 972px) and (max-width: 1024px) {
+  .textArea, .text {
+    font-size: 10px;
   }
 }
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 972px) {
   .outSide {
     width: 80%;
+    padding: 4% 0%;
   }
   .titleIcon {
     width: 100%;
   }
   .titleContent span {
-    font-size: .9vw;
+    font-size: 10px;
   }
   .titleContent input {
-    font-size: .9vw;
+    font-size: 10px;
   }
 
+  .insideIcon {
+    width: 100%;
+    height: 40vh;
+  }
   .inside {
     padding: 9% 8%;
   }
@@ -484,11 +487,8 @@
     padding: 6%;
   }
 
-  .text {
-    font-size: 1.2vw;
-  }
-  .textAreaFirst, .textAreaSecond {
-    font-size: 1.2vw;
+  .textArea, .text {
+    font-size: 10px;
   }
   /* Animations width < 768px */
   @keyframes titleAnimation {
@@ -565,5 +565,33 @@
       transform: translateX(0) rotateY(0);
       display: flex;
     }
+  }
+}
+
+@media screen and (max-width: 591px) {
+  .textArea .text {
+    font-size: 14px;
+  }
+}
+
+@media screen and (max-height: 768px) {
+  .textArea, .text {
+    font-size: 5px;
+  }
+  .outSide {
+    padding: 4% 0%;
+  }
+  .titleContent span {
+    font-size: 5px;
+  }
+}
+@media screen and (max-height: 632px) {
+  .titleContent span {
+    font-size: 5px;
+  }
+}
+@media screen and (max-height: 392px) {
+  .insideIcon {
+    height: 40vh;
   }
 }
