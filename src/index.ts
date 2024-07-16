@@ -330,6 +330,9 @@ async function connect (connectOptions: ConnectOptions) {
   }
   const handleError = (err) => {
     console.error(err)
+    if (err === 'ResizeObserver loop completed with undelivered notifications.') {
+      return
+    }
     errorAbortController.abort()
     if (isCypress()) throw err
     miscUiState.hasErrors = true
