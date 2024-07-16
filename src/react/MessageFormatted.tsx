@@ -83,9 +83,9 @@ export const MessagePart = ({ part, ...props }: { part: MessageFormatPart } & Co
   return <span title={hoverItemText} style={parseInlineStyle(applyStyles.join(' '))} {...clickProps} {...props}>{text}</span>
 }
 
-export default ({ parts }: { parts: readonly MessageFormatPart[] }) => {
+export default ({ parts, className }: { parts: readonly MessageFormatPart[], className?: string }) => {
   return (
-    <span className='formatted-message'>
+    <span className={`formatted-message ${className ?? ''}`}>
       {parts.map((part, i) => <MessagePart key={i} part={part} />)}
     </span>
   )

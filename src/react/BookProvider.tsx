@@ -2,6 +2,7 @@ import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import nbt from 'prismarine-nbt'
 import { useEffect, useState } from 'react'
 import { useSnapshot } from 'valtio'
+import mojangson from 'mojangson'
 import { activeModalStack, hideCurrentModal, showModal } from '../globalState'
 import Book from './Book'
 import { useIsModalActive } from './utilsApp'
@@ -27,32 +28,42 @@ export default () => {
         // slot, pages, author, title
         bot.signBook(bot.inventory.hotbarStart + bot.quickBarSlot, pages, title, bot.username)
       }
+      hideCurrentModal()
       return
     }
+    const currentSlot = bot.quickBarSlot
     // mineflayer has wrong implementation of this action after 1.17.2
     if (title === undefined) {
       bot._client.write('edit_book', {
-        hand: 2,
+        hand: currentSlot,
         pages
       })
     } else {
       bot._client.write('edit_book', {
-        hand: 1,
+        hand: currentSlot,
         pages,
         title
       })
     }
+    hideCurrentModal()
   }
 
   // test: /give @p minecraft:written_book{pages:['{"text":"§4This is red text. §lThis is bold text."}'],title:"Book",author:"Author"}
   useEffect(() => {
     const openBookWithNbt = () => {
+      if (activeModalStack.at(-1)?.reactType === 'book') {
+        hideCurrentModal()
+      }
       const book = bot.inventory.slots[bot.inventory.hotbarStart + bot.quickBarSlot]
       if (!book?.nbt) return
-      // {"type":"compound","name":"","value":{"title":{"type":"string","value":"yes"},"author":{"type":"string","value":"hiall2"},"pages":{"type":"list","value":{"type":"string","value":["{\"text\":\"1\"}","{\"text\":\"4\"}","{\"text\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"]}
+      // {"type":"compound","name":"","value":{"title":{"type":"string","value":"yes"},"author":{"type":"string","value":"bot"},"pages":{"type":"list","value":{"type":"string","value":["{\"text\":\"1\"}","{\"text\":\"4\"}","{\"text\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"}"]}
       const parsedData = nbt.simplify(book.nbt as any)
       if (!parsedData.pages) return
-      const pages = parsedData.pages.map((page) => page.text)
+      const pages = parsedData.pages.map((page) => {
+        if (book.name !== 'written_book') return page
+        const parsedPage = mojangson.simplify(mojangson.parse(page))
+        return parsedPage.text ?? page
+      })
       // const {title, author} = parsedData
       setOpenedBook({
         pages,
@@ -93,5 +104,7 @@ export default () => {
     onEdit={(pages) => signEditBook(pages, undefined)}
     onClose={() => {
       hideCurrentModal()
-    }} />
+    }}
+    author={bot.username}
+  />
 }

@@ -13,9 +13,10 @@ export interface BookProps {
   onSign: (textPages: string[], title: string) => void
   onEdit: (textPages: string[]) => void
   onClose: () => void
+  author: string
 }
 
-const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClose }) => {
+const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClose, author }) => {
   const [pages, setPages] = useState<string[]>(textPages)
   const [currentPage, setCurrentPage] = useState(0)
   const [isSinglePage, setIsSinglePage] = useState(window.innerWidth < 972)
@@ -23,7 +24,6 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
   const [animateInsideIcon, setAnimateInsideIcon] = useState(0)
   const [animatePageIcon, setAnimatePageIcon] = useState(0)
   const [animateTitleIcon, setAnimateTitleIcon] = useState(0)
-  const [isOutside, setIsOutside] = useState(false)
   const [signClickedOnce, setSignClickedOnce] = useState(false)
   const textAreaRefs = useRef<HTMLTextAreaElement[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
@@ -46,8 +46,12 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
   }, [currentPage, isSinglePage])
 
   useEffect(() => {
-    if (isOutside && inputRef.current) inputRef.current.focus()
-  }, [isOutside])
+    if (signClickedOnce) {
+      setTimeout(() => {
+        inputRef.current!.focus()
+      }, 300) // wait for animation
+    }
+  }, [signClickedOnce])
 
   const handlePageChange = (direction: number) => {
     setCurrentPage((prevPage) =>
@@ -135,7 +139,6 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
       const title = inputRef.current?.value || ''
       onSign(pages, title)
     }
-    setIsOutside(true)
     setSignClickedOnce(true)
     setAnimatePageIcon(1)
     setAnimateInsideIcon(1)
@@ -150,8 +153,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
   }, [pages, onEdit])
 
   const handleCancel = useCallback(() => {
-    if (isOutside) {
-      setIsOutside(false)
+    if (signClickedOnce) {
       setSignClickedOnce(false)
       setAnimateTitleIcon(2)
       setTimeout(() => {
@@ -163,7 +165,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
     } else {
       onClose()
     }
-  }, [isOutside, onClose])
+  }, [signClickedOnce, onClose])
 
   const setRef = (index: number) => (el: HTMLTextAreaElement | null) => {
     textAreaRefs.current[index] = el!
@@ -181,9 +183,12 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
   }
 
   const renderPage = (index) => (
-    <div className={styles.page}>
+    <div className={styles.page} key={index}>
       {editable ? (
         <textarea
+          onContextMenu={(e) => {
+            e.stopPropagation() // allow to open system context menu on text area for better UX
+          }}
           ref={setRef(index)}
           value={pages[index]}
           onChange={(e) => handleTextChange(e, index)}
@@ -193,7 +198,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
         />
       ) : (
         <div className={getAnimationClass(animatePageIcon, styles.pageText)}>
-          <MessageFormattedString message={pages[index]} />
+          <MessageFormattedString message={pages[index]} fallbackColor='black' className={styles.messageFormattedString} />
         </div>
       )}
     </div>
@@ -275,11 +280,18 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
           {editable ? (
             <div className={`${styles.titleContent}`} >
               <MessageFormattedString message="Enter Book Title: " />
-              <input 
-                ref={inputRef}
-                className={`${styles.inputTitle}`}
-              />
-              <MessageFormattedString message="by Author" />
+              <form onSubmit={(e) => {
+                e.preventDefault()
+                handleSign()
+              }}>
+                <input
+                  ref={inputRef}
+                  className={`${styles.inputTitle}`}
+                />
+                {/* for some reason this is needed to make Enter work on android chrome */}
+                <button type='submit' style={{ visibility: 'hidden', height: 0, width: 0 }} />
+              </form>
+              <MessageFormattedString message={`by ${author}`} />
               <br />
               <MessageFormattedString message="Note! When you sign the book, it will no longer be editable." />
             </div>
@@ -299,9 +311,9 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
           </Button>
         )}
 
-        {!editable && !isOutside && <Button onClick={handleSign}>Sign</Button>}
-        {editable && !isOutside && <Button onClick={handleEdit}>Edit</Button>}
-        <Button onClick={handleCancel}>{isOutside ? 'Cancel' : 'Close'}</Button>
+        {editable && !signClickedOnce && <Button onClick={handleSign}>Sign</Button>}
+        {editable && !signClickedOnce && <Button onClick={handleEdit}>Edit</Button>}
+        <Button onClick={handleCancel}>{signClickedOnce ? 'Cancel' : 'Close'}</Button>
       </div>
     </div>
   )

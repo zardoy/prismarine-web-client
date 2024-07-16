@@ -21,4 +21,5 @@ Default.args = {
   onSign: (pages, title) => console.log('Signed with pages:', pages, 'Title:', title),
   onEdit: (pages) => console.log('Edit with pages:', pages),
   onClose: () => console.log('Closed book'),
+  author: 'Author'
 }
