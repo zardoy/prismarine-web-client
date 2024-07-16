@@ -149,7 +149,7 @@ export class MinimapDrawer {
       return this.worldColors[key]
     }
     const color = getHighestBlockColor(x, z)
-    if (color !== 'white') this.worldColors[key] = color
+    if (color !== 'rgb(255, 255, 255)' && color !== 'white') this.worldColors[key] = color
     return color
   }
 

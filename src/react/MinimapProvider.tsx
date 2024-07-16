@@ -27,7 +27,39 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       block = bot.world.getBlock(new Vec3(x, height, z))
       height -= 1
     } while (airBlocks.has(block?.name ?? ''))
-    const color = BlockData.colors[block?.name ?? ''] ?? 'white'
+    const color = BlockData.colors[block?.name ?? ''] ?? 'rgb(255, 255, 255)'
+    const blockUp = bot.world.getBlock(new Vec3(x, height + 2, z - 1))
+    const blockRight = bot.world.getBlock(new Vec3(x + 1, height + 2, z))
+    const blockRightUp = bot.world.getBlock(new Vec3(x + 1, height + 2, z - 1))
+    if ((blockUp && !airBlocks.has(blockUp.name)) 
+        || (blockRight && !airBlocks.has(blockRight.name))
+        || (blockRightUp && !airBlocks.has(blockRightUp.name))
+    ) {
+      let rgbArray = color.match(/\d+/g).map(Number)
+      if (rgbArray.length !== 3) return color
+      rgbArray = rgbArray.map(element => {
+        let newColor = element - 20 
+        if (newColor < 0) newColor = 0
+        return newColor
+      })
+      return `rgb(${rgbArray.join(',')})`
+    }
+    const blockDown = bot.world.getBlock(new Vec3(x, height + 2, z + 1))
+    const blockLeft = bot.world.getBlock(new Vec3(x - 1, height + 2, z))
+    const blockLeftDown = bot.world.getBlock(new Vec3(x - 1, height + 2, z + 1))
+    if ((blockDown && !airBlocks.has(blockDown.name))
+        || (blockLeft && !airBlocks.has(blockLeft.name))
+        || (blockLeftDown && !airBlocks.has(blockLeftDown.name))
+    ) {
+      let rgbArray = color.match(/\d+/g).map(Number)
+      if (rgbArray.length !== 3) return color
+      rgbArray = rgbArray.map(element => {
+        let newColor = element + 20 
+        if (newColor > 255) newColor = 255
+        return newColor
+      })
+      return `rgb(${rgbArray.join(',')})`
+    }
     return color
   }
 
