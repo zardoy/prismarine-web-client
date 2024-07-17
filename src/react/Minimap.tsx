@@ -15,7 +15,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
   const updateMap = () => {
     if (drawerRef.current) {
       if (!full.current) {
-        rotateMap()
+        // rotateMap()
         drawerRef.current.draw(adapter.playerPosition, undefined, full.current)
       }
       if (canvasTick.current % 300 === 0) {
