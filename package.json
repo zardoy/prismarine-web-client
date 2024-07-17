@@ -66,7 +66,6 @@
     "flying-squid": "npm:@zardoy/flying-squid@^0.0.33",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
-    "iconify-icon": "^1.0.8",
     "jszip": "^3.10.1",
     "lodash-es": "^4.17.21",
     "minecraft-assets": "^1.12.2",
@@ -77,6 +76,7 @@
     "net-browserify": "github:zardoy/prismarinejs-net-browserify",
     "node-gzip": "^1.1.2",
     "peerjs": "^1.5.0",
+    "pixelarticons": "^1.8.1",
     "pretty-bytes": "^6.1.1",
     "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
     "prosemirror-example-setup": "^1.2.2",
@@ -170,7 +170,8 @@
     },
     "patchedDependencies": {
       "minecraft-protocol@1.47.0": "patches/minecraft-protocol@1.47.0.patch",
-      "three@0.154.0": "patches/three@0.154.0.patch"
+      "three@0.154.0": "patches/three@0.154.0.patch",
+      "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch"
     }
   },
   "packageManager": "pnpm@9.0.4"

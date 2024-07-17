@@ -44,7 +44,14 @@ export class WorldDataEmitter extends EventEmitter {
   listenToBot (bot: typeof __type_bot) {
     const emitEntity = (e) => {
       if (!e || e === bot.entity) return
-      this.emitter.emit('entity', { ...e, pos: e.position, username: e.username })
+      this.emitter.emit('entity', {
+        ...e,
+        pos: e.position,
+        username: e.username,
+        // set debugTree (obj) {
+        //   e.debugTree = obj
+        // }
+      })
     }
 
     this.eventListeners[bot.username] = {

@@ -1,5 +1,4 @@
 import type { Meta, StoryObj } from '@storybook/react'
-import 'iconify-icon'
 
 import { useState } from 'react'
 import AddServerOrConnect from './AddServerOrConnect'

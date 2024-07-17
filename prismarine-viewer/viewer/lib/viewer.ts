@@ -32,7 +32,7 @@ export class Viewer {
     this.world.camera = camera
   }
 
-  constructor(public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
+  constructor (public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
@@ -118,7 +118,7 @@ export class Viewer {
     this.world.updateCamera(pos?.offset(0, yOffset, 0) ?? null, yaw, pitch)
   }
 
-  playSound (position: Vec3, path: string, volume = 1) {
+  playSound (position: Vec3, path: string, volume = 1, pitch = 1) {
     if (!this.audioListener) {
       this.audioListener = new THREE.AudioListener()
       this.camera.add(this.audioListener)
@@ -134,6 +134,7 @@ export class Viewer {
       sound.setBuffer(buffer)
       sound.setRefDistance(20)
       sound.setVolume(volume)
+      sound.setPlaybackRate(pitch) // set the pitch
       this.scene.add(sound)
       // set sound position
       sound.position.set(position.x, position.y, position.z)

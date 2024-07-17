@@ -4,14 +4,14 @@
 
 A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
 
-If you encounter any bugs or usability issues, please report them!
+If you encounter any bugs or usability issues, please report them! For development, see [development](#development--debugging).
 
 You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
 
 ### Big Features
 
 - Open any zip world file or even folder in read-write mode!
-- Connect to cracked servers* (it's possible because of proxy servers, see below)
+- Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
 - Singleplayer mode with simple world generations!
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
@@ -39,10 +39,17 @@ Whatever offline mode you used (zip, folder, just single player), you can always
 
 ### Servers
 
-You can play almost on any server, supporting offline connections.
+You can play almost on any Java server, vanilla servers are fully supported.
 See the [Mineflayer](https://github.com/PrismarineJS/mineflayer) repo for the list of supported versions (should support majority of versions).
-There is a builtin proxy, but you can also host a your one! Just clone the repo, run `pnpm i` (following CONTRIBUTING.MD) and run `pnpm prod-start`, then you can specify `http://localhost:8080` in the proxy field.
+There is a builtin proxy, but you can also host your one! Just clone the repo, run `pnpm i` (following CONTRIBUTING.MD) and run `pnpm prod-start`, then you can specify `http://localhost:8080` in the proxy field.
 MS account authentication will be supported soon.
+
+### Docker Files
+
+- [Main Dockerfile](./Dockerfile) - for production build & offline/private usage. Includes full web-app + proxy server for connecting to Minecraft servers.
+- [Proxy Dockerfile](./Dockerfile.proxy) - for proxy server only - that one you would be able to specify in the proxy field on the client (`docker build . -f Dockerfile.proxy -t minecraft-web-proxy`)
+
+In case of using docker, you don't have to follow preparation steps from CONTRIBUTING.MD, like installing Node.js, pnpm, etc.
 
 ### Rendering
 
@@ -55,10 +62,6 @@ MS account authentication will be supported soon.
 
 <!-- TODO proxy server communication graph -->
 
-### Things that are not planned yet
-
-- Mods, plugins (basically JARs) support, shaders - since they all are related to specific game pipelines
-
 ### Advanced Settings
 
 There are many many settings, that are not exposed in the UI yet. You can find or change them by opening the browser console and typing `options`. You can also change them by typing `options.<setting_name> = <value>`.
@@ -67,9 +70,9 @@ There are many many settings, that are not exposed in the UI yet. You can find o
 
 To open the console, press `F12`, or if you are on mobile, you can type `#debug` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
 
-### Debugging
+### Development & Debugging
 
-It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info.
+It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info. Also you can look at Dockerfile for reference.
 
 There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
 
@@ -107,19 +110,26 @@ world chunks have a *yellow* border, hostile mobs have a *red* outline, passive 
 
 Press `Y` to set query parameters to url of your current game state.
 
-- `?ip=<server_address>` - Display connect screen to the server on load
-- `?username=<username>` - Set the username for server
-- `?proxy=<proxy_address>` - Set the proxy server address to use for server
-- `?version=<version>` - Set the version for server
-- `?lockConnect=true` - Disable cancel / save buttons, useful for integrates iframes
+There are some parameters you can set in the url to archive some specific behaviors:
+
+Server specific:
+- `?ip=<server_address>` - Display connect screen to the server on load with predefined server ip. `:<port>` is optional and can be added to the ip.
+- `?name=<name>` - Set the server name for saving to the server list
+- `?version=<version>` - Set the version for the server
+- `?proxy=<proxy_address>` - Set the proxy server address to use for  the server
+- `?username=<username>` - Set the username for the server
+- `?lockConnect=true` - Only works then `ip` parameter is set. Disables cancel/save buttons and all inputs in the connect screen already set as parameters. Useful for integrates iframes.
 - `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
+
+Single player specific:
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
-- `?noSave=true` - Disable auto save on unload / disconnect / export. Only manual save with `/save` command will work
-<!-- - `?requiresAuth=true` - Show the Microsoft login screen on server connect. Useful for servers that require authentication (running in online mode) -->
-
+- `?version=<version>` - Set the version for the singleplayer world (when used with `?singleplayer=1`)
+- `?noSave=true` - Disable auto save on unload / disconnect / export whenever a world is loaded. Only manual save with `/save` command will work.
 - `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
-- `?setting=<setting_name>:<setting_value>` - Set the and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
+
+General:
+- `?setting=<setting_name>:<setting_value>` - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
 
 ### Notable Things that Power this Project
 
@@ -130,6 +140,10 @@ Press `Y` to set query parameters to url of your current game state.
 - [Minecraft Protocol](https://github.com/PrismarineJS/node-minecraft-protocol) - Makes connections to servers possible
 - [Peer.js](https://peerjs.com/) - P2P networking (when you open to wan)
 - [Three.js](https://threejs.org/) - Helping in 3D rendering
+
+### Things that are not planned yet
+
+- Mods, plugins (basically JARs) support, shaders - since they all are related to specific game pipelines
 
 ### Alternatives
 

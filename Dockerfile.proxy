@@ -1,0 +1,11 @@
+# ---- Run Stage ----
+FROM node:18-alpine
+RUN apk add git
+WORKDIR /app
+COPY server.js /app/server.js
+# Install server dependencies
+RUN npm i -g pnpm@9.0.4
+RUN npm init -yp
+RUN pnpm i express github:zardoy/prismarinejs-net-browserify compression cors
+EXPOSE 8080
+ENTRYPOINT ["node", "server.js"]
