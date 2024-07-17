@@ -106,6 +106,8 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
         wrapperStyle={{
           border: '1px solid black',
           willChange: 'transform',
+          width: '100%',
+          height: '80%'
         }}
       >
         {[...grid].map((cellCoords) => {
