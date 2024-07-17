@@ -121,7 +121,7 @@ export class MinimapDrawer {
         const roundZ = Math.floor(z - this.mapSize / 2 + row)
         const key = `${roundX},${roundZ}`
         const fillColor = this.worldColors[key] ?? await new Promise<string>(function (resolve) {
-          const color = getHighestBlockColor(x, z)
+          const color = getHighestBlockColor(roundX, roundZ)
           resolve(color)
         })
         if (fillColor !== 'rgb(255, 255, 255)' && fillColor !== 'white' && !this.worldColors[key]) this.worldColors[key] = fillColor
