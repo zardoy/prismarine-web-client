@@ -120,7 +120,7 @@ export class MinimapDrawer {
         const roundX = Math.floor(x - this.mapSize / 2 + col)
         const roundZ = Math.floor(z - this.mapSize / 2 + row)
         const key = `${roundX},${roundZ}`
-        const fillColor = this.worldColors[key] ?? await new Promise<string>(function (resolve) {
+        const fillColor = this.worldColors[key] ?? await new Promise<string>((resolve) => {
           const color = getHighestBlockColor(roundX, roundZ)
           resolve(color)
         })
@@ -141,12 +141,12 @@ export class MinimapDrawer {
     this.ctx.putImageData(clippedImage, 0, 0)
   }
 
-  getHighestBlockColorCached (
+  async getHighestBlockColorCached (
     getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
     x: number,
     z: number
   ) {
-    return new Promise<string>(function (resolve) {
+    return new Promise<string>((resolve) => {
       const color = getHighestBlockColor(x, z)
       resolve(color)
     })

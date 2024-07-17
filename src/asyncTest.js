@@ -1,6 +1,6 @@
 async function test() {
   console.log('async started')
-  let result = await new Promise(function (resolve, reject) {
+  const result = await new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve('success')
     }, 3000)
