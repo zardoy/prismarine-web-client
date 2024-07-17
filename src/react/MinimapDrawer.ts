@@ -81,12 +81,12 @@ export class MinimapDrawer {
       this.radius = Math.floor(Math.min(this.canvas.width, this.canvas.height) / 2)
       this._mapSize = this.radius * 2
       this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
-    } 
+    }
     this.ctx.clearRect(
-      this.centerX - this.radius,
-      this.centerY - this.radius,
-      this.radius * 2,
-      this.radius * 2
+      this.centerX - this.canvas.width,
+      this.centerY - this.canvas.height,
+      this.canvas.width,
+      this.canvas.height
     )
 
     this.lastBotPos = botPos
@@ -191,25 +191,26 @@ export class MinimapDrawer {
     for (const warp of this.adapter.warps) {
       if (!full) {
         const distance = this.getDistance(
-          centerPos?.x ?? this.adapter.playerPosition.x, 
-          centerPos?.z ?? this.adapter.playerPosition.z, 
-          warp.x, 
+          centerPos?.x ?? this.adapter.playerPosition.x,
+          centerPos?.z ?? this.adapter.playerPosition.z,
+          warp.x,
           warp.z
-        ) 
+        )
         if (distance > this.mapSize) continue
       }
-      const z = Math.floor((this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z))
-      const x = Math.floor((this.mapSize / 2 - (centerPos?.x ?? this.adapter.playerPosition.x) + warp.x))
+      const offset = full ? 0 : this.radius * 0.2
+      const z = Math.floor((this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z)) + offset
+      const x = Math.floor((this.mapSize / 2 - (centerPos?.x ?? this.adapter.playerPosition.x) + warp.x)) + offset
       const dz = z - this.centerX
       const dx = x - this.centerY
       const circleDist = Math.hypot(dx, dz)
 
       const angle = Math.atan2(dz, dx)
-      const circleZ = circleDist > this.mapSize / 2 && !full ? 
-        this.centerX + this.mapSize / 2 * Math.sin(angle) 
+      const circleZ = circleDist > this.mapSize / 2 && !full ?
+        this.centerX + this.mapSize / 2 * Math.sin(angle)
         : z
-      const circleX = circleDist > this.mapSize / 2 && !full ? 
-        this.centerY + this.mapSize / 2 * Math.cos(angle) 
+      const circleX = circleDist > this.mapSize / 2 && !full ?
+        this.centerY + this.mapSize / 2 * Math.cos(angle)
         : x
       this.ctx.beginPath()
       this.ctx.arc(circleX, circleZ, circleDist > this.mapSize / 2 && !full ? 1.5 : 2, 0, Math.PI * 2, false)
@@ -239,43 +240,43 @@ export class MinimapDrawer {
     const angleE = angle + Math.PI / 2
 
     this.ctx.strokeText(
-      'N', 
-      this.centerX + this.radius * Math.cos(angle), 
+      'N',
+      this.centerX + this.radius * Math.cos(angle),
       this.centerY + this.radius * Math.sin(angle)
     )
     this.ctx.strokeText(
-      'S', 
-      this.centerX + this.radius * Math.cos(angleS), 
+      'S',
+      this.centerX + this.radius * Math.cos(angleS),
       this.centerY + this.radius * Math.sin(angleS)
     )
     this.ctx.strokeText(
-      'W', 
-      this.centerX + this.radius * Math.cos(angleW), 
+      'W',
+      this.centerX + this.radius * Math.cos(angleW),
       this.centerY + this.radius * Math.sin(angleW)
     )
     this.ctx.strokeText(
-      'E', 
-      this.centerX + this.radius * Math.cos(angleE), 
+      'E',
+      this.centerX + this.radius * Math.cos(angleE),
       this.centerY + this.radius * Math.sin(angleE)
     )
     this.ctx.fillText(
-      'N', 
-      this.centerX + this.radius * Math.cos(angle), 
+      'N',
+      this.centerX + this.radius * Math.cos(angle),
       this.centerY + this.radius * Math.sin(angle)
     )
     this.ctx.fillText(
-      'S', 
-      this.centerX + this.radius * Math.cos(angleS), 
+      'S',
+      this.centerX + this.radius * Math.cos(angleS),
       this.centerY + this.radius * Math.sin(angleS)
     )
     this.ctx.fillText(
-      'W', 
-      this.centerX + this.radius * Math.cos(angleW), 
+      'W',
+      this.centerX + this.radius * Math.cos(angleW),
       this.centerY + this.radius * Math.sin(angleW)
     )
     this.ctx.fillText(
-      'E', 
-      this.centerX + this.radius * Math.cos(angleE), 
+      'E',
+      this.centerX + this.radius * Math.cos(angleE),
       this.centerY + this.radius * Math.sin(angleE)
     )
 
