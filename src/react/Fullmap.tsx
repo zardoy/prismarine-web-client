@@ -99,7 +99,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
         updateGrid()
       }}
       onZoomStop={() => {
-        console.log(stateRef.current)
+        updateGrid()
       }}
     >
       <TransformComponent
@@ -168,9 +168,10 @@ const MapChunk = (
   const handleClick = (e: MouseEvent) => {
     if ('buttons' in e && e.buttons !== 0) return
     const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
-    const x = (e.clientX - rect.left) / scale
-    const y = (e.clientY - rect.top) / scale
-    drawerRef.current?.setWarpPosOnClick(new Vec3(x / 2, 0, y / 2), new Vec3(worldX, 0, worldZ))
+    const dpr = window.devicePixelRatio
+    const x = (e.clientX - rect.left) / (scale * dpr)
+    const y = (e.clientY - rect.top) / (scale * dpr)
+    drawerRef.current?.setWarpPosOnClick(new Vec3(Math.floor(x / 2), 0, Math.floor(y / 2)), new Vec3(worldX, 0, worldZ))
     setLastWarpPos(drawerRef.current!.lastWarpPos)
     setIsWarpInfoOpened(true)
   }
@@ -185,12 +186,16 @@ const MapChunk = (
   }, [canvasRef.current, isCanvas])
 
   useEffect(() => {
+    console.log('new scale:', scale)
+  }, [scale])
+
+  useEffect(() => {
     canvasRef.current?.addEventListener('click', handleClick)
 
     return () => {
       canvasRef.current?.removeEventListener('click', handleClick)
     }
-  }, [canvasRef.current])
+  }, [canvasRef.current, scale])
 
   useEffect(() => {
     if (drawerRef.current) {
