@@ -39,8 +39,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
 
   const rotateMap = () => {
     if (!drawerRef.current) return
-    const angle = adapter.yaw % (Math.PI * 2)
-    drawerRef.current.canvas.style.transform = `rotate(${angle}rad)`
+    drawerRef.current.canvas.style.transform = `rotate(${adapter.yaw}rad)`
   }
 
   useEffect(() => {
