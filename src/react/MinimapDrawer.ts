@@ -95,7 +95,7 @@ export class MinimapDrawer {
     this.drawWarps(botPos, full)
   }
 
-  updateWorldColors (
+  async updateWorldColors (
     getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
     x: number,
     z: number,
@@ -117,11 +117,15 @@ export class MinimapDrawer {
 
     for (let row = 0; row < this.mapSize; row += 1) {
       for (let col = 0; col < this.mapSize; col += 1) {
-        this.ctx.fillStyle = this.getHighestBlockColorCached(
-          getHighestBlockColor,
-          x - this.mapSize / 2 + col,
-          z - this.mapSize / 2 + row
-        )
+        const roundX = Math.floor(x - this.mapSize / 2 + col)
+        const roundZ = Math.floor(z - this.mapSize / 2 + row)
+        const key = `${roundX},${roundZ}`
+        const fillColor = this.worldColors[key] ?? await new Promise<string>(function (resolve) {
+          const color = getHighestBlockColor(x, z)
+          resolve(color)
+        })
+        if (fillColor !== 'rgb(255, 255, 255)' && fillColor !== 'white' && !this.worldColors[key]) this.worldColors[key] = fillColor
+        this.ctx.fillStyle = fillColor
         this.ctx.fillRect(
           left + this.mapPixel * col,
           top + this.mapPixel * row,
@@ -142,15 +146,10 @@ export class MinimapDrawer {
     x: number,
     z: number
   ) {
-    const roundX = Math.floor(x)
-    const roundZ = Math.floor(z)
-    const key = `${roundX},${roundZ}`
-    if (this.worldColors[key]) {
-      return this.worldColors[key]
-    }
-    const color = getHighestBlockColor(x, z)
-    if (color !== 'rgb(255, 255, 255)' && color !== 'white') this.worldColors[key] = color
-    return color
+    return new Promise<string>(function (resolve) {
+      const color = getHighestBlockColor(x, z)
+      resolve(color)
+    })
   }
 
   getDistance (x1: number, z1: number, x2: number, z2: number): number {
