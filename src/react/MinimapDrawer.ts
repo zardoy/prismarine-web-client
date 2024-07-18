@@ -121,7 +121,7 @@ export class MinimapDrawer {
         const roundZ = Math.floor(z - this.mapSize / 2 + row)
         const key = `${roundX},${roundZ}`
         const fillColor = this.worldColors[key] ?? await this.adapter.getHighestBlockColor(roundX, roundZ)
-        if (fillColor !== 'rgb(255, 255, 255)' && fillColor !== 'white' && !this.worldColors[key]) this.worldColors[key] = fillColor
+        if (fillColor !== 'rgb(200, 200, 200)' && !this.worldColors[key]) this.worldColors[key] = fillColor
         this.ctx.fillStyle = fillColor
         this.ctx.fillRect(
           left + this.mapPixel * col,

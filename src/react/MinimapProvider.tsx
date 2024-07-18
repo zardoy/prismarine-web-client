@@ -45,9 +45,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     do {
       block = dataSource?.getBlock(new Vec3(x, height, z)) ?? null
       height -= 1
-      if (height < (bot.game as any).minY) return 'rgb(173, 216, 230)'
+      if (height < 0) return 'rgb(173, 216, 230)'
     } while (airBlocks.has(block?.name ?? ''))
-    const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : 'rgb(255, 255, 255)'
+    const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : 'rgb(200, 200, 200)'
 
     // shadows
     const blockUp = bot.world.getBlock(new Vec3(x, height + 2, z - 1))
