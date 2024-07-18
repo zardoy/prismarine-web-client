@@ -19,7 +19,7 @@ export type MapUpdates = {
 }
 
 export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
-  getHighestBlockColor: (x: number, z: number) => string
+  getHighestBlockColor: (x: number, z: number) => Promise<string> 
   playerPosition: Vec3
   warps: WorldWarp[]
   world?: string
@@ -120,10 +120,7 @@ export class MinimapDrawer {
         const roundX = Math.floor(x - this.mapSize / 2 + col)
         const roundZ = Math.floor(z - this.mapSize / 2 + row)
         const key = `${roundX},${roundZ}`
-        const fillColor = this.worldColors[key] ?? await new Promise<string>((resolve) => {
-          const color = getHighestBlockColor(roundX, roundZ)
-          resolve(color)
-        })
+        const fillColor = this.worldColors[key] ?? await getHighestBlockColor(roundX, roundZ)
         if (fillColor !== 'rgb(255, 255, 255)' && fillColor !== 'white' && !this.worldColors[key]) this.worldColors[key] = fillColor
         this.ctx.fillStyle = fillColor
         this.ctx.fillRect(
