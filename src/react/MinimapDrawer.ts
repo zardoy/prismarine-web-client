@@ -19,7 +19,7 @@ export type MapUpdates = {
 }
 
 export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
-  getHighestBlockColor: (x: number, z: number) => Promise<string> 
+  getHighestBlockColor: (x: number, z: number) => Promise<string>
   playerPosition: Vec3
   warps: WorldWarp[]
   world?: string
@@ -120,7 +120,7 @@ export class MinimapDrawer {
         const roundX = Math.floor(x - this.mapSize / 2 + col)
         const roundZ = Math.floor(z - this.mapSize / 2 + row)
         const key = `${roundX},${roundZ}`
-        const fillColor = this.worldColors[key] ?? await getHighestBlockColor(roundX, roundZ)
+        const fillColor = this.worldColors[key] ?? await this.adapter.getHighestBlockColor(roundX, roundZ)
         if (fillColor !== 'rgb(255, 255, 255)' && fillColor !== 'white' && !this.worldColors[key]) this.worldColors[key] = fillColor
         this.ctx.fillStyle = fillColor
         this.ctx.fillRect(
@@ -170,11 +170,11 @@ export class MinimapDrawer {
     // const clickY = (e as MouseEvent).clientY - rect.top
     // const centerX = rect.width / 2
     // const centerY = rect.height / 2
-    // const z = ((e.type === 'touchend' 
-    //   ? (e as TouchEvent).changedTouches[-1].pageY 
+    // const z = ((e.type === 'touchend'
+    //   ? (e as TouchEvent).changedTouches[-1].pageY
     //   : clickY - centerY))
-    // const x = ((e.type === 'touchend' 
-    //   ? (e as TouchEvent).changedTouches[-1].pageX 
+    // const x = ((e.type === 'touchend'
+    //   ? (e as TouchEvent).changedTouches[-1].pageX
     //   : clickX - centerX))
     // const worldX = x
     // const worldZ = z

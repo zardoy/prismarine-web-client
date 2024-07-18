@@ -69,7 +69,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     adapter={adapter}
     drawer={drawerRef.current}
     canvasRef={canvasRef}
-  /> 
+  />
     : <div
       className='minimap'
       style={{

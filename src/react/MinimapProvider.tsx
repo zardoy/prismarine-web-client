@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { Vec3 } from 'vec3'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
-import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { Block } from 'prismarine-block'
 import { PCChunk } from 'prismarine-chunk'
+import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
 import Minimap from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
@@ -15,15 +15,15 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   warps: WorldWarp[]
   world: string
   currChunk: PCChunk | undefined
-  currChunkPos: { x: number, z: number }
+  currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
 
-  constructor(pos?: Vec3, warps?: WorldWarp[]) {
+  constructor (pos?: Vec3, warps?: WorldWarp[]) {
     super()
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = warps ?? [] as WorldWarp[]
   }
 
-  async getHighestBlockColor(x: number, z: number) {
+  async getHighestBlockColor (x: number, z: number) {
     let block = null as Block | null
     let { height } = (bot.game as any)
     const airBlocks = new Set(['air', 'cave_air', 'void_air'])
@@ -48,6 +48,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       if (height < (bot.game as any).minY) return 'rgb(173, 216, 230)'
     } while (airBlocks.has(block?.name ?? ''))
     const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : 'rgb(255, 255, 255)'
+
+    // shadows
     const blockUp = bot.world.getBlock(new Vec3(x, height + 2, z - 1))
     const blockRight = bot.world.getBlock(new Vec3(x + 1, height + 2, z))
     const blockRightUp = bot.world.getBlock(new Vec3(x + 1, height + 2, z - 1))
@@ -83,7 +85,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return color
   }
 
-  setWarp(name: string, pos: Vec3, color: string, disabled: boolean, world?: string): void {
+  setWarp (name: string, pos: Vec3, color: string, disabled: boolean, world?: string): void {
     this.world = bot.game.dimension
     const warp: WorldWarp = { name, x: pos.x, y: pos.y, z: pos.z, world: world ?? this.world, color, disabled }
     const index = this.warps.findIndex(w => w.name === name)
@@ -96,7 +98,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     this.emit('updateWarps')
   }
 
-  async getChunkSingleplayer(chunkX: number, chunkZ: number) {
+  async getChunkSingleplayer (chunkX: number, chunkZ: number) {
     // absolute coords
     const region = (localServer!.overworld.storageProvider as any).getRegion(chunkX * 16, chunkZ * 16)
     if (!region) return

@@ -35,7 +35,7 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
 
   constructor (pos?: Vec3, warps?: WorldWarp[]) {
     super()
-    this.playerPosition = pos ?? new Vec3(0, 0, 0) 
+    this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = warps ?? [] as WorldWarp[]
   }
 
