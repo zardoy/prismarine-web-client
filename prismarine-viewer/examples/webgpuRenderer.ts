@@ -4,6 +4,7 @@ import * as tweenJs from '@tweenjs/tween.js';
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from './CubeDef';
 import VertShader from './Cube.vert.wgsl';
 import FragShader from './Cube.frag.wgsl';
+import ComputeShader from './Compute.wgsl';
 import { updateSize, allSides } from './webgpuRendererWorker';
 
 export class WebgpuRenderer {
@@ -27,6 +28,14 @@ export class WebgpuRenderer {
     InstancedColorBuffer: GPUBuffer;
     notRenderedAdditions = 0;
 
+    // Add these properties to the WebgpuRenderer class
+    computePipeline: GPUComputePipeline;
+    indirectDrawBuffer: GPUBuffer;
+    cubesBuffer: GPUBuffer;
+    visibleCubesBuffer: GPUBuffer;
+    computeBindGroup: GPUBindGroup;
+    computeBindGroupLayout: GPUBindGroupLayout;
+
     constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public FragShaderOverride?) {
         this.init();
     }
@@ -35,9 +44,6 @@ export class WebgpuRenderer {
         const { canvas, imageBlob, isPlayground, FragShaderOverride } = this;
 
         updateSize(canvas.width, canvas.height);
-        // export const initWebglRenderer = async (canvas: HTMLCanvasElement, imageBlob: ImageBitmapSource, isPlayground: boolean, FragShaderOverride?) => {
-        // isPlayground = false
-        // blockStates = blockStatesJson
         const textureBitmap = await createImageBitmap(imageBlob);
         const textureWidth = textureBitmap.width;
         const textureHeight = textureBitmap.height;
@@ -57,7 +63,6 @@ export class WebgpuRenderer {
             alphaMode: 'premultiplied',
         });
 
-
         const verticesBuffer = device.createBuffer({
             size: cubeVertexArray.byteLength,
             usage: GPUBufferUsage.VERTEX,
@@ -66,8 +71,6 @@ export class WebgpuRenderer {
         this.verticesBuffer = verticesBuffer;
         new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray);
         verticesBuffer.unmap();
-
-
 
         this.InstancedModelBuffer = device.createBuffer({
             size: this.NUMBER_OF_CUBES * 4 * 3,
@@ -84,76 +87,67 @@ export class WebgpuRenderer {
             usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
         });
 
-
-        //device.StepM
-        const vertexCode = VertShader;
-        const fragmentCode = FragShader;
-
         const pipeline = device.createRenderPipeline({
+            label: 'mainPipeline',
             layout: 'auto',
             vertex: {
                 module: device.createShaderModule({
-                    code: vertexCode,
+                    code: VertShader,
                 }),
                 buffers: [
                     {
                         arrayStride: cubeVertexSize,
                         attributes: [
                             {
-                                // position
                                 shaderLocation: 0,
                                 offset: cubePositionOffset,
                                 format: 'float32x3',
                             },
                             {
-                                // uv
                                 shaderLocation: 1,
                                 offset: cubeUVOffset,
                                 format: 'float32x2',
                             },
                         ],
                     },
-                    {
-                        arrayStride: 3 * 4,
-                        attributes: [
-                            {
-                                // ModelMatrix
-                                shaderLocation: 2,
-                                offset: 0,
-                                format: 'float32x3',
-                            }
-                        ],
-                        stepMode: 'instance',
-                    },
-                    {
-                        arrayStride: 1 * 4,
-                        attributes: [
-                            {
-                                // ModelMatrix
-                                shaderLocation: 3,
-                                offset: 0,
-                                format: 'float32',
-                            }
-                        ],
-                        stepMode: 'instance',
-                    },
-                    {
-                        arrayStride: 3 * 4,
-                        attributes: [
-                            {
-                                // ModelMatrix
-                                shaderLocation: 4,
-                                offset: 0,
-                                format: 'float32x3',
-                            }
-                        ],
-                        stepMode: 'instance',
-                    }
+                    // {
+                    //     arrayStride: 3 * 4,
+                    //     attributes: [
+                    //         {
+                    //             shaderLocation: 2,
+                    //             offset: 0,
+                    //             format: 'float32x3',
+                    //         },
+                    //     ],
+                    //     stepMode: 'instance',
+                    // },
+                    // {
+                    //     arrayStride: 1 * 4,
+                    //     attributes: [
+                    //         {
+                    //             shaderLocation: 3,
+                    //             offset: 0,
+                    //             format: 'float32',
+                    //         },
+                    //     ],
+                    //     stepMode: 'instance',
+                    // },
+                    // {
+                    //     arrayStride: 3 * 4,
+                    //     attributes: [
+                    //         {
+                    //             shaderLocation: 4,
+                    //             offset: 0,
+                    //             format: 'float32x3',
+                    //         },
+                    //     ],
+                    //     stepMode: 'instance',
+                    // },
                 ],
             },
             fragment: {
                 module: device.createShaderModule({
-                    code: fragmentCode,
+                    code: FragShader,
                 }),
                 targets: [
                     {
@@ -168,13 +162,13 @@ export class WebgpuRenderer {
                                 srcFactor: 'src-alpha',
                                 dstFactor: 'one-minus-src-alpha',
                                 operation: 'add',
-                            }
+                            },
                         },
                     },
                 ],
             },
+
             primitive: {
-                // topology: 'triangle-strip',
                 topology: 'triangle-list',
                 cullMode: 'front',
             },
@@ -185,27 +179,6 @@ export class WebgpuRenderer {
             },
         });
         this.pipeline = pipeline;
-
-        // const cullInstanceModule = this.device.createShaderModule({
-        //     label: 'Cull Instances',
-        //     code: CULLING_SHADER,
-        // });
-
-        // device.createComputePipelineAsync({
-        //     label: "Cull Instances",
-        //     layout: device.createPipelineLayout({
-        //         bindGroupLayouts: [
-        //             this.frameBindGroupLayout,
-        //             culledInstanceBindGroupLayout,
-        //         ]
-        //     }),
-        //     compute: {
-        //         module: cullInstanceModule,
-        //         entryPoint: 'computeMain',
-        //     }
-        // }).then((pipeline) => {
-        //     this.cullInstancesPipeline = pipeline;
-        // });
 
         const depthTexture = device.createTexture({
             size: [canvas.width, canvas.height],
@@ -224,11 +197,8 @@ export class WebgpuRenderer {
         {
             cubeTexture = device.createTexture({
                 size: [textureBitmap.width, textureBitmap.height, 1],
-                //format: 'rgba8unorm',
                 format: 'rgb10a2unorm',
-                usage: GPUTextureUsage.TEXTURE_BINDING |
-                    GPUTextureUsage.COPY_DST |
-                    GPUTextureUsage.RENDER_ATTACHMENT,
+                usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
             });
             device.queue.copyExternalImageToTexture(
                 { source: textureBitmap },
@@ -242,27 +212,8 @@ export class WebgpuRenderer {
             minFilter: 'nearest',
         });
 
-        this.uniformBindGroup = device.createBindGroup({
-            layout: pipeline.getBindGroupLayout(0),
-            entries: [
-                {
-                    binding: 0,
-                    resource: {
-                        buffer: this.UniformBuffer,
-                    },
-                },
-                {
-                    binding: 1,
-                    resource: sampler,
-                },
-                {
-                    binding: 2,
-                    resource: cubeTexture.createView(),
-                },
-            ],
-        });
-
         this.renderPassDescriptor = {
+            label: 'MainRenderPassDescriptor',
             colorAttachments: [
                 {
                     view: undefined as any, // Assigned later
@@ -273,23 +224,172 @@ export class WebgpuRenderer {
             ],
             depthStencilAttachment: {
                 view: depthTexture.createView(),
-
                 depthClearValue: 1,
                 depthLoadOp: 'clear',
                 depthStoreOp: 'store',
             },
         };
 
+        // Create compute pipeline
+        const computeShaderModule = device.createShaderModule({
+            code: ComputeShader,
+            label: 'Culled Instance',
+        });
+
+        const computeBindGroupLayout = device.createBindGroupLayout({
+            label: 'computeBindGroupLayout',
+            entries: [
+                { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+                { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+                { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+                { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+            ],
+        });
+        const anotherLayout = device.createBindGroupLayout({
+            label: 'anotherLayout',
+            entries: [
+            ],
+        });
+
+        const computePipelineLayout = device.createPipelineLayout({
+            label: 'computePipelineLayout',
+            bindGroupLayouts: [anotherLayout, computeBindGroupLayout],
+
+        })
+
+        this.computePipeline = device.createComputePipeline({
+            label: 'Culled Instance',
+            layout: computePipelineLayout,
+            // layout: 'auto',
+            compute: {
+                module: computeShaderModule,
+                entryPoint: 'main',
+            },
+        });
+
+        // Create buffers for compute shader and indirect drawing
+        this.cubesBuffer = device.createBuffer({
+            label: 'cubesBuffer',
+            size: this.NUMBER_OF_CUBES * 32, // 8 floats per cube
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+
+        this.visibleCubesBuffer = device.createBuffer({
+            label: 'visibleCubesBuffer',
+            size: this.NUMBER_OF_CUBES * 32,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX,
+        });
+
+        this.indirectDrawBuffer = device.createBuffer({
+            label: 'indirectDrawBuffer',
+            size: 16, // 4 uint32 values
+            usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+        });
+
+        // Initialize indirect draw parameters
+        const indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
+        device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams);
+
+        const vertexBindGroupLayout = device.createBindGroupLayout({
+            label: 'vertexBindGroupLayout',
+            entries: [
+                { binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } },
+                { binding: 2, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }  // Read-only storage
+            ]
+        });
+
+
+        // Create bind group for render pass
+        this.uniformBindGroup = device.createBindGroup({
+            label: 'uniformBindGroups',
+            layout: vertexBindGroupLayout,
+            // layout: pipeline.getBindGroupLayout(0),
+            entries: [
+                {
+                    binding: 0,
+                    resource: {
+                        buffer: this.UniformBuffer,
+                    },
+                },
+                // {
+                //     binding: 1,
+                //     resource: sampler,
+                // },
+                {
+                    binding: 2,
+                    resource: cubeTexture.createView(),
+                },
+            ],
+        });
+
+        // Create bind group for compute shader
+        this.computeBindGroupLayout = device.createBindGroupLayout({
+            label: 'computeBindGroupLayout',
+            entries: [
+                {
+                    binding: 0,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: {
+                        type: 'uniform',
+                    },
+                },
+                {
+                    binding: 1,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: {
+                        type: 'storage',
+                    },
+                },
+                {
+                    binding: 2,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: {
+                        type: 'read-only-storage',
+                    },
+                },
+                {
+                    binding: 3,
+                    visibility: GPUShaderStage.COMPUTE,
+                    buffer: {
+                        type: 'storage',
+                    },
+                },
+            ],
+        });
+
+        this.computeBindGroup = device.createBindGroup({
+            layout: this.computeBindGroupLayout,
+            //layout: pipeline.getBindGroupLayout(1),
+            label: 'computeBindGroup',
+            entries: [
+                {
+                    binding: 0,
+                    resource: { buffer: this.UniformBuffer },
+                },
+                {
+                    binding: 1,
+                    resource: { buffer: this.cubesBuffer },
+                },
+                {
+                    binding: 2,
+                    resource: { buffer: this.visibleCubesBuffer },
+                },
+                {
+                    binding: 3,
+                    resource: { buffer: this.indirectDrawBuffer },
+                },
+            ],
+        })
 
         // always last!
         this.rendering = false;
+        console.log('init finish')
         this.loop();
         this.ready = true;
         return canvas;
     }
 
-    removeOne () {
-    }
+    removeOne () { }
 
     realNumberOfCubes = 0;
 
@@ -319,19 +419,27 @@ export class WebgpuRenderer {
             this.NUMBER_OF_CUBES = positions.length + 1000;
         }
 
-        const setModelBuffer = async (modelBuffer: GPUBuffer, data: Float32Array) => {
-            this.device.queue.writeBuffer(modelBuffer, 0, data /* , 0, 16 */);
-        };
+        const cubeData = new Float32Array(this.NUMBER_OF_CUBES * 8);
+        for (let i = 0; i < positions.length / 3; i++) {
+            const offset = i * 8;
+            cubeData[offset] = positions[i * 3];
+            cubeData[offset + 1] = positions[i * 3 + 1];
+            cubeData[offset + 2] = positions[i * 3 + 2];
+            cubeData[offset + 3] = textureIndexes[i];
+            cubeData[offset + 4] = colors[i * 3];
+            cubeData[offset + 5] = colors[i * 3 + 1];
+            cubeData[offset + 6] = colors[i * 3 + 2];
+            cubeData[offset + 7] = 0.5; // Sphere radius
+        }
 
-        setModelBuffer(this.InstancedModelBuffer, new Float32Array(positions));
+        this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeData);
 
-        setModelBuffer(this.InstancedTextureIndexBuffer, new Float32Array(textureIndexes));
-
-        setModelBuffer(this.InstancedColorBuffer, new Float32Array(colors));
+        // Reset indirect draw parameters
+        const indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
+        this.device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams);
 
         this.notRenderedAdditions++;
     }
-
 
     lastCall = performance.now();
     logged = false;
@@ -351,7 +459,6 @@ export class WebgpuRenderer {
         const projectionMatrix = this.camera.projectionMatrix;
         ViewProjectionMat4.multiplyMatrices(projectionMatrix, this.camera.matrix.invert());
         const ViewProjection = new Float32Array(ViewProjectionMat4.elements);
-        // globalThis.ViewProjection = ViewProjection
         device.queue.writeBuffer(
             uniformBuffer,
             0,
@@ -360,23 +467,32 @@ export class WebgpuRenderer {
             ViewProjection.byteLength
         );
 
-
-
         renderPassDescriptor.colorAttachments[0].view = ctx
             .getCurrentTexture()
             .createView();
 
         const commandEncoder = device.createCommandEncoder();
+        commandEncoder.label = "ComputePassEncoder"
+        // Compute pass for occlusion culling
+        const computePass = commandEncoder.beginComputePass();
+        computePass.label = "ComputePass"
+        computePass.setPipeline(this.computePipeline);
+        computePass.setBindGroup(0, this.uniformBindGroup);
+        computePass.setBindGroup(1, this.computeBindGroup);
+        computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 64));
+        computePass.end();
+
+        // Render pass
         const passEncoder = commandEncoder.beginRenderPass(this.renderPassDescriptor);
+        passEncoder.label = "RenderPass"
         passEncoder.setPipeline(pipeline);
         passEncoder.setBindGroup(0, this.uniformBindGroup);
+        passEncoder.setBindGroup(1, this.computeBindGroup);
         passEncoder.setVertexBuffer(0, verticesBuffer);
-        passEncoder.setVertexBuffer(1, this.InstancedModelBuffer);
-        passEncoder.setVertexBuffer(2, this.InstancedTextureIndexBuffer);
-        passEncoder.setVertexBuffer(3, this.InstancedColorBuffer);
+        passEncoder.setVertexBuffer(1, verticesBuffer);
 
-
-        passEncoder.draw(cubeVertexCount, this.NUMBER_OF_CUBES);
+        // Use indirect drawing
+        passEncoder.drawIndirect(this.indirectDrawBuffer, 0);
 
         passEncoder.end();
         device.queue.submit([commandEncoder.finish()]);

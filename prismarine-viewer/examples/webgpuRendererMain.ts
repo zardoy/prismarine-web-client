@@ -32,7 +32,10 @@ if (typeof customEvents !== 'undefined') {
 
 
 let isWaitingToUpload = false
+globalThis.tiles = {}
 export const addBlocksSection = (key, data: MesherGeometryOutput) => {
+    if (globalThis.tiles[key]) return
+    globalThis.tiles[key] = data.tiles
     webgpuChannel.addBlocksSection(data.tiles, key)
     if (playground && !isWaitingToUpload) {
         isWaitingToUpload = true
