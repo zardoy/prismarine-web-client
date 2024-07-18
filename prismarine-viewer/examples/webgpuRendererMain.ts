@@ -1,6 +1,5 @@
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { Viewer } from '../viewer/lib/viewer'
-import { options } from '../../src/optionsStorage'
 import { addNewStat } from './newStats'
 import type { workerProxyType } from './webgpuRendererWorker'
 import { useWorkerProxy } from './workerProxy'
@@ -19,7 +18,7 @@ declare const customEvents
 declare const bot
 if (typeof customEvents !== 'undefined') {
     customEvents.on('gameLoaded', () => {
-        const chunksExpected = generateSpiralMatrix(options.renderDistance)
+        const chunksExpected = generateSpiralMatrix(globalThis.options.renderDistance)
         let received = 0
         bot.on('chunkColumnLoad', (data) => {
             received++
