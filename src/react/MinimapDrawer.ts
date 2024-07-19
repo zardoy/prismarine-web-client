@@ -95,6 +95,20 @@ export class MinimapDrawer {
     this.drawWarps(botPos, full)
   }
 
+  clearRect (full?: boolean) {
+    if (full) {
+      this.radius = Math.floor(Math.min(this.canvas.width, this.canvas.height) / 2)
+      this._mapSize = this.radius * 2
+      this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
+    }
+    this.ctx.clearRect(
+      this.centerX - this.canvas.width,
+      this.centerY - this.canvas.height,
+      this.canvas.width,
+      this.canvas.height
+    )
+  }
+
   async updateWorldColors (
     getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
     x: number,
