@@ -48,15 +48,15 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     updateGrid()
   }, [])
 
-  useEffect(() => {
-    const wrapper = zoomRef.current?.instance.wrapperComponent
-    if (!wrapper) return
-    wrapper.style.width = `${Math.min(window.innerHeight, window.innerWidth) / 3}px`
-    wrapper.style.aspectRatio = '1'
-
-
-    updateGrid()
-  }, [zoomRef.current])
+  // useEffect(() => {
+  //   const wrapper = zoomRef.current?.instance.wrapperComponent
+  //   if (!wrapper) return
+  //   wrapper.style.width = `${Math.min(window.innerHeight, window.innerWidth) / 3}px`
+  //   wrapper.style.aspectRatio = '1'
+  //
+  //
+  //   updateGrid()
+  // }, [zoomRef.current])
 
   return <div
     style={{
@@ -106,7 +106,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
         wrapperStyle={{
           border: '1px solid black',
           willChange: 'transform',
-          width: '100%',
+          width: '70%',
           height: '80%'
         }}
       >
@@ -115,8 +115,8 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           const playerChunkLeft = Math.floor(adapter.playerPosition.x / 16) * 16
           const playerChunkTop = Math.floor(adapter.playerPosition.z / 16) * 16
           const wrapperRect = zoomRef.current?.instance.wrapperComponent?.getBoundingClientRect()
-          const offsetX = Math.floor((wrapperRect?.width ?? 0) / (6 * 16)) * 16
-          const offsetY = Math.floor((wrapperRect?.height ?? 0) / (6 * 16)) * 16
+          const offsetX = Math.floor((wrapperRect?.width ?? 0) / (12 * 16)) * 16
+          const offsetY = Math.floor((wrapperRect?.height ?? 0) / (12 * 16)) * 16
 
           return <MapChunk
             key={'mapcell:' + cellCoords}
@@ -169,11 +169,11 @@ const MapChunk = (
 
   const handleClick = (e: MouseEvent) => {
     if ('buttons' in e && e.buttons !== 0) return
-    const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
+    const rect = canvasRef.current!.getBoundingClientRect()
     const dpr = window.devicePixelRatio
     const x = (e.clientX - rect.left) / (scale * dpr)
     const y = (e.clientY - rect.top) / (scale * dpr)
-    drawerRef.current?.setWarpPosOnClick(new Vec3(Math.floor(x / 2), 0, Math.floor(y / 2)), new Vec3(worldX, 0, worldZ))
+    drawerRef.current?.setWarpPosOnClick(new Vec3(Math.floor(x / 6), 0, Math.floor(y / 6)), new Vec3(worldX, 0, worldZ))
     setLastWarpPos(drawerRef.current!.lastWarpPos)
     setIsWarpInfoOpened(true)
   }

@@ -104,8 +104,8 @@ export class MinimapDrawer {
     this.ctx.clearRect(
       this.centerX - this.canvas.width,
       this.centerY - this.canvas.height,
-      this.canvas.width,
-      this.canvas.height
+      this.canvas.width * 2,
+      this.canvas.height * 2
     )
   }
 
