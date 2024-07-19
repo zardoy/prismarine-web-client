@@ -32,7 +32,7 @@ export class Viewer {
     this.world.camera = camera
   }
 
-  constructor (public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
+  constructor(public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
@@ -76,9 +76,7 @@ export class Viewer {
     // this.primitives.clear()
   }
 
-  setVersion (userVersion: string) {
-    let texturesVersion = getVersion(userVersion)
-    if (versionToNumber(userVersion) < versionToNumber('1.13')) texturesVersion = '1.13.2' // we normalize to post-flatenning in mesher
+  setVersion (userVersion: string, texturesVersion = userVersion) {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
     this.world.setVersion(userVersion, texturesVersion)
     this.entities.clear()

@@ -1,6 +1,6 @@
 import prettyBytes from 'pretty-bytes'
 import { openWorldZip } from './browserfs'
-import { getResourcePackName, installTexturePack, resourcePackState, updateTexturePackInstalledState } from './texturePack'
+import { getResourcePackNames, installTexturePack, resourcePackState, updateTexturePackInstalledState } from './resourcePack'
 import { setLoadingScreenStatus } from './utils'
 
 export const getFixedFilesize = (bytes: number) => {
@@ -18,7 +18,7 @@ const inner = async () => {
   if (texturepack) {
     await updateTexturePackInstalledState()
     if (resourcePackState.resourcePackInstalled) {
-      if (!confirm(`You are going to install a new resource pack, which will REPLACE the current one: ${await getResourcePackName()} Continue?`)) return
+      if (!confirm(`You are going to install a new resource pack, which will REPLACE the current one: ${await getResourcePackNames()} Continue?`)) return
     }
   }
   const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-25)

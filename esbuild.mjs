@@ -61,6 +61,7 @@ const buildOptions = {
     assert: 'assert',
     dns: './src/dns.js',
     'yggdrasil': './src/yggdrasilReplacement.ts',
+    // 'mc-assets': '/Users/vitaly/Documents/mc-assets',
     // todo write advancedAliases plugin
   },
   inject: [

@@ -7,7 +7,7 @@ import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { UserOverrideCommand, UserOverridesConfig } from 'contro-max/build/types/store'
-import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState } from './globalState'
+import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState, loadedGameState } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './inventoryWindows'
@@ -20,6 +20,8 @@ import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
 import { updateBinds } from './react/KeybindingsScreenProvider'
+import { completeTexturePackInstall, resourcePackState } from './resourcePack'
+import { showNotification } from './react/NotificationProvider'
 
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
@@ -447,13 +449,24 @@ export const f3Keybinds = [
     mobileTitle: 'Toggle chunk borders',
   },
   {
-    key: 'KeyT',
+    key: 'KeyY',
     async action () {
       // waypoints
       const widgetNames = widgets.map(widget => widget.name)
       const widget = await showOptionsModal('Open Widget', widgetNames)
       if (!widget) return
       showModal({ reactType: `widget-${widget}` })
+    },
+    mobileTitle: 'Open Widget'
+  },
+  {
+    key: 'KeyT',
+    async action () {
+      // TODO!
+      if (resourcePackState.resourcePackInstalled || loadedGameState.usingServerResourcePack) {
+        showNotification('Reloading textures...')
+        await completeTexturePackInstall('default', 'default')
+      }
     },
     mobileTitle: 'Open Widget'
   }

@@ -11,6 +11,7 @@ import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
+import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 
 globalThis.THREE = THREE
 //@ts-ignore
@@ -113,6 +114,7 @@ async function main () {
   const chunk2 = new Chunk()
   chunk1.setBlockStateId(targetPos, 34)
   chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
+  //@ts-ignore
   const world = new World((chunkX, chunkZ) => {
     // if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
@@ -133,6 +135,7 @@ async function main () {
 
   // Create viewer
   const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false })
+  viewer.world.blockstatesModels = blockstatesModels
   viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
   viewer.entities.onSkinUpdate = () => {
@@ -298,6 +301,12 @@ async function main () {
   }
 
   const onUpdate = {
+    version (initialUpdate) {
+      if (initialUpdate) return
+      // viewer.world.texturesVersion = params.version
+      // viewer.world.updateTexturesData()
+      // todo warning
+    },
     block () {
       metadataFolder.destroy()
       const block = mcData.blocksByName[params.block]
@@ -406,8 +415,12 @@ async function main () {
     }
   })
   viewer.waitForChunksToRender().then(async () => {
+    // TODO!
+    await new Promise(resolve => {
+      setTimeout(resolve, 50)
+    })
     for (const update of Object.values(onUpdate)) {
-      update()
+      update(true)
     }
     applyChanges(true)
     gui.openAnimated()

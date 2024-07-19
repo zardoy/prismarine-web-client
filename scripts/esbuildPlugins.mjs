@@ -124,7 +124,7 @@ const plugins = [
       })
 
       const removeNodeModulesSourcemaps = (map) => {
-        const doNotRemove = ['prismarine', 'mineflayer', 'flying-squid', '@jspm/core', 'minecraft', 'three']
+        const doNotRemove = ['prismarine', 'mineflayer', 'flying-squid', '@jspm/core', 'minecraft', 'three', 'mc-assets']
         map.sourcesContent.forEach((_, i) => {
           if (map.sources[i].includes('node_modules') && !doNotRemove.some(x => map.sources[i].includes(x))) {
             map.sourcesContent[i] = null

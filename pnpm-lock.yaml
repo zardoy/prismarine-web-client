@@ -94,6 +94,9 @@ importers:
       debug:
         specifier: ^4.3.4
         version: 4.3.4(supports-color@8.1.1)
+      diff-match-patch:
+        specifier: ^1.0.5
+        version: 1.0.5
       eruda:
         specifier: ^3.0.1
         version: 3.0.1
@@ -124,9 +127,6 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
-      minecraft-assets:
-        specifier: ^1.12.2
-        version: 1.12.2
       minecraft-data:
         specifier: 3.65.0
         version: 3.65.0
@@ -246,6 +246,9 @@ importers:
       '@storybook/react-vite':
         specifier: ^7.4.6
         version: 7.4.6(encoding@0.1.13)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)(rollup@2.79.1)(typescript@5.5.0-beta)(vite@4.5.3(@types/node@20.8.0)(terser@5.19.2))
+      '@types/diff-match-patch':
+        specifier: ^1.0.36
+        version: 1.0.36
       '@types/lodash-es':
         specifier: ^4.17.9
         version: 4.17.9
@@ -309,6 +312,9 @@ importers:
       https-browserify:
         specifier: ^1.0.0
         version: 1.0.0
+      mc-assets:
+        specifier: ^0.1.2
+        version: 0.1.3
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4(@types/react@18.2.20)(react@18.2.0)
@@ -2703,6 +2709,9 @@ packages:
   '@types/detect-port@1.3.3':
     resolution: {integrity: sha512-bV/jQlAJ/nPY3XqSatkGpu+nGzou+uSwrH1cROhn+jBFg47yaNH+blW4C7p9KhopC7QxCv/6M86s37k8dMk0Yg==}
 
+  '@types/diff-match-patch@1.0.36':
+    resolution: {integrity: sha512-xFdR6tkm0MWvBfO8xXCSsinYxHcqkQUlcHeSpMC2ukzOb6lwQAfDmW+Qt0AvlGd8HpsS28qKsB+oPeJn9I39jg==}
+
   '@types/doctrine@0.0.3':
     resolution: {integrity: sha512-w5jZ0ee+HaPOaX25X2/2oGR/7rgAQSYII7X7pp0m9KgBfMP7uKfMfTvcpl5Dj+eDBbpxKGiqE+flqDr6XTd2RA==}
 
@@ -4124,6 +4133,9 @@ packages:
   diamond-square@https://codeload.github.com/zardoy/diamond-square/tar.gz/4bbe28dcad35403abaa925055e91f601a61b9015:
     resolution: {tarball: https://codeload.github.com/zardoy/diamond-square/tar.gz/4bbe28dcad35403abaa925055e91f601a61b9015}
     version: 1.3.0
+
+  diff-match-patch@1.0.5:
+    resolution: {integrity: sha512-IayShXAgj/QMXgB0IWmKx+rOPuGMhqm5w6jvFxmVenXKIzRqTAAsbBPT3kWQeGANj3jGgvcvv4yK6SxqYmikgw==}
 
   diff-sequences@29.6.3:
     resolution: {integrity: sha512-EjePK1srD3P08o2j4f0ExnylqRs5B9tJjcp9t1krH2qRi8CCdsYfwe9JgSLurFBWwq4uOlipzfk5fHNvwFKr8Q==}
@@ -5875,6 +5887,10 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
+  mc-assets@0.1.3:
+    resolution: {integrity: sha512-VFZZo25CghDcKugV+c1t8hud1F/vLI930cqk14vL0OkLynaCswd6OjFsQc78NoYSD6SquD4ixzLrH4Zasq4sbQ==}
+    engines: {node: '>=18.0.0'}
+
   md5-file@4.0.0:
     resolution: {integrity: sha512-UC0qFwyAjn4YdPpKaDNw6gNxRf7Mcx7jC1UGCY4boCzgvU2Aoc1mOGzTtrjjLKhM5ivsnhoKpQVxKPp+1j1qwg==}
     engines: {node: '>=6.0'}
@@ -6049,9 +6065,6 @@ packages:
   min-indent@1.0.1:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
-
-  minecraft-assets@1.12.2:
-    resolution: {integrity: sha512-/eMxh3LNjCXOnU6KnQMjBM8dRnoJNpWIg7mD2m2RthraYiQK2FNzPWIKxWm2j3Ufcf5nzFXupgABledE86r4fQ==}
 
   minecraft-data@3.65.0:
     resolution: {integrity: sha512-9K8dOrdrcpUklTdqKBtRcKur0gLZnguTvhM/1Xv52qzh8Unkto4290RJc4ueRIYo1VqN4zzQrRxO8lnqtkERDQ==}
@@ -11543,6 +11556,8 @@ snapshots:
 
   '@types/detect-port@1.3.3': {}
 
+  '@types/diff-match-patch@1.0.36': {}
+
   '@types/doctrine@0.0.3': {}
 
   '@types/draco3d@1.4.7': {}
@@ -13266,6 +13281,8 @@ snapshots:
       prismarine-registry: 1.7.0
       random-seed: 0.3.0
       vec3: 0.1.8
+
+  diff-match-patch@1.0.5: {}
 
   diff-sequences@29.6.3: {}
 
@@ -15468,6 +15485,8 @@ snapshots:
     dependencies:
       react: 18.2.0
 
+  mc-assets@0.1.3: {}
+
   md5-file@4.0.0: {}
 
   md5.js@1.3.5:
@@ -15722,8 +15741,6 @@ snapshots:
       dom-walk: 0.1.2
 
   min-indent@1.0.1: {}
-
-  minecraft-assets@1.12.2: {}
 
   minecraft-data@3.65.0: {}
 

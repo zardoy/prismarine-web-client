@@ -5,10 +5,8 @@ const glob = require('glob')
 const fs = require('fs')
 const crypto = require('crypto')
 const path = require('path')
-const McAssets = require('minecraft-assets')
 
 const prismarineViewerBase = "./node_modules/prismarine-viewer"
-const entityMcAssets = McAssets('1.16.4')
 
 // these files could be copied at build time eg with copy plugin, but copy plugin slows down the config so we copy them there, alternative we could inline it in esbuild config
 const filesToCopy = [
@@ -16,7 +14,7 @@ const filesToCopy = [
     { from: `${prismarineViewerBase}/public/mesher.js`, to: 'dist/mesher.js' },
     { from: './assets/', to: './dist/' },
     { from: './config.json', to: 'dist/config.json' },
-    { from: path.join(entityMcAssets.directory, 'entity'), to: 'dist/textures/1.16.4/entity' },
+    // { from: path.join(entityMcAssets.directory, 'entity'), to: 'dist/textures/1.16.4/entity' },
 ]
 exports.filesToCopy = filesToCopy
 exports.copyFiles = (dev = false) => {

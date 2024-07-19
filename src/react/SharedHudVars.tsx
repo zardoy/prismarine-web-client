@@ -1,6 +1,6 @@
 import { CSSProperties, useEffect } from 'react'
-import icons from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png'
-import widgets from 'minecraft-assets/minecraft-assets/data/1.17.1/gui/widgets.png'
+import icons from 'mc-assets/dist/other-textures/1.19/gui/icons.png'
+import widgets from 'mc-assets/dist/other-textures/latest/gui/widgets.png'
 
 export default ({ children }): React.ReactElement => {
   useEffect(() => {

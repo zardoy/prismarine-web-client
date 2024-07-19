@@ -4,7 +4,7 @@ import { join } from 'path'
 import fs from 'fs'
 import { subscribeKey } from 'valtio/utils'
 import { EntityMesh } from 'prismarine-viewer/viewer/lib/entity/EntityMesh'
-import { fromTexturePackPath, resourcePackState } from './texturePack'
+import { fromTexturePackPath, resourcePackState } from './resourcePack'
 import { options, watchValue } from './optionsStorage'
 import { miscUiState } from './globalState'
 

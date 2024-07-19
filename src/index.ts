@@ -6,7 +6,7 @@ import './devtools'
 import './entities'
 import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
-import { itemsAtlases, onGameLoad } from './inventoryWindows'
+import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
@@ -51,6 +51,7 @@ import {
   hideModal,
   insertActiveModalStack,
   isGameActive,
+  loadedGameState,
   miscUiState,
   showModal
 } from './globalState'
@@ -71,7 +72,7 @@ import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalS
 import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
-import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
+import { onAppLoad, resourcepackOnWorldLoad } from './resourcePack'
 import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
@@ -98,6 +99,7 @@ import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
+import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 
 window.debug = debug
 window.THREE = THREE
@@ -111,6 +113,7 @@ watchFov()
 initCollisionShapes()
 initializePacketsReplay()
 packetsPatcher()
+onAppLoad()
 
 // Create three.js context, add to page
 let renderer: THREE.WebGLRenderer
@@ -155,22 +158,24 @@ new THREE.TextureLoader().load(itemsPng, (texture) => {
   viewer.entities.getItemUv = (id) => {
     try {
       const name = loadedData.items[id]?.name
-      const uv = itemsAtlases.latest.textures[name]
-      if (!uv) {
-        const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
-        if (!variant) return
-        const faces = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces
-        const uvBlock = faces?.north?.texture ?? faces?.up?.texture ?? faces?.down?.texture ?? faces?.west?.texture ?? faces?.east?.texture ?? faces?.south?.texture
-        if (!uvBlock) return
-        return {
-          ...uvBlock,
-          size: Math.abs(uvBlock.su),
-          texture: viewer.world.material.map
-        }
+      const { itemsAtlasParser } = viewer.world
+      const itemUv = itemsAtlasParser.getTextureInfo('latest', name)
+      if (!itemUv) {
+        // TODO!
+        // const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
+        // if (!variant) return
+        // const faces = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces
+        // const uvBlock = faces?.north?.texture ?? faces?.up?.texture ?? faces?.down?.texture ?? faces?.west?.texture ?? faces?.east?.texture ?? faces?.south?.texture
+        // if (!uvBlock) return
+        // return {
+        //   ...uvBlock,
+        //   size: Math.abs(uvBlock.su),
+        //   texture: viewer.world.material.map
+        // }
       }
       return {
-        ...uv,
-        size: itemsAtlases.latest.size,
+        ...itemUv,
+        size: itemsAtlasParser.atlasJson.latest.size,
         texture: viewer.entities.itemsTexture
       }
     } catch (err) {
@@ -188,7 +193,6 @@ viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
 watchOptionsAfterViewerInit()
-watchTexturepackInViewer(viewer)
 
 let mouseMovePostHandle = (e) => { }
 let lastMouseMove: number
@@ -390,7 +394,7 @@ async function connect (connectOptions: ConnectOptions) {
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       miscUiState.loadedDataVersion = version
       try {
-        await genTexturePackTextures(version)
+        await resourcepackOnWorldLoad(version)
       } catch (err) {
         console.error(err)
         const doContinue = confirm('Failed to apply texture pack. See errors in the console. Continue?')
@@ -398,7 +402,8 @@ async function connect (connectOptions: ConnectOptions) {
           throw err
         }
       }
-      viewer.setVersion(version)
+      viewer.world.blockstatesModels = blockstatesModels
+      viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
@@ -848,13 +853,8 @@ async function connect (connectOptions: ConnectOptions) {
 
     // todo
     onGameLoad(async () => {
-      if (!viewer.world.downloadedBlockStatesData && !viewer.world.customBlockStatesData) {
-        await new Promise<void>(resolve => {
-          viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', () => resolve())
-        })
-      }
-      miscUiState.serverIp = server.host as string | null
-      miscUiState.username = username
+      loadedGameState.serverIp = server.host ?? null
+      loadedGameState.username = username
     })
 
     if (appStatusState.isError) return

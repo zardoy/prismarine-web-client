@@ -47,6 +47,7 @@ const buildOptions = {
     http: 'http-browserify',
     stream: 'stream-browserify',
     net: 'net-browserify',
+    // 'mc-assets': '/Users/vitaly/Documents/mc-assets',
   },
   inject: [],
   metafile: true,

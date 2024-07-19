@@ -1,20 +1,20 @@
 //@ts-check
 
 // wouldn't better to create atlas instead?
-import destroyStage0 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_0.png'
-import destroyStage1 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_1.png'
-import destroyStage2 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_2.png'
-import destroyStage3 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_3.png'
-import destroyStage4 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_4.png'
-import destroyStage5 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_5.png'
-import destroyStage6 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_6.png'
-import destroyStage7 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_7.png'
-import destroyStage8 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_8.png'
-import destroyStage9 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_9.png'
-
 import { Vec3 } from 'vec3'
 import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
 import { Entity } from 'prismarine-entity'
+import destroyStage0 from '../assets/destroy_stage_0.png'
+import destroyStage1 from '../assets/destroy_stage_1.png'
+import destroyStage2 from '../assets/destroy_stage_2.png'
+import destroyStage3 from '../assets/destroy_stage_3.png'
+import destroyStage4 from '../assets/destroy_stage_4.png'
+import destroyStage5 from '../assets/destroy_stage_5.png'
+import destroyStage6 from '../assets/destroy_stage_6.png'
+import destroyStage7 from '../assets/destroy_stage_7.png'
+import destroyStage8 from '../assets/destroy_stage_8.png'
+import destroyStage9 from '../assets/destroy_stage_9.png'
+
 import { hideCurrentModal, isGameActive, showModal } from './globalState'
 import { assertDefined } from './utils'
 import { options } from './optionsStorage'

@@ -4,8 +4,7 @@
   "description": "Web based viewer",
   "main": "index.js",
   "scripts": {
-    "postinstall": "pnpm generate-textures && node buildMesherWorker.mjs",
-    "generate-textures": "tsx viewer/prepare/postinstall.ts"
+    "postinstall": "node buildMesherWorker.mjs"
   },
   "author": "PrismarineJS",
   "license": "MIT",

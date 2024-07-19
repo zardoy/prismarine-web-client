@@ -1,6 +1,6 @@
 import { World } from './world'
 import { Vec3 } from 'vec3'
-import { getSectionGeometry, setBlockStatesData } from './models'
+import { getSectionGeometry, setBlockStatesData as setMesherData } from './models'
 
 if (module.require) {
   // If we are in a node environement, we need to fake some env variables
@@ -80,7 +80,7 @@ const handleMessage = data => {
   }
 
   if (data.type === 'mesherData') {
-    setBlockStatesData(data.json)
+    setMesherData(data.blockstatesModels, data.blocksAtlas)
     blockStatesReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)

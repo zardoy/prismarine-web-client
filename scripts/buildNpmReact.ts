@@ -39,7 +39,7 @@ fs.promises.readdir(path.resolve(__dirname, '../src/react')).then(async (files) 
     version = version.replace(/^v/, '')
     packageJson.version = version
 
-    const externalize = ['minecraft-assets', 'prismarine-viewer']
+    const externalize = ['prismarine-viewer']
     const { metafile } = await build({
         entryPoints: [path.resolve(__dirname, '../src/react/npmReactComponents.ts')],
         bundle: true,
