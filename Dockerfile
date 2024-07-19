@@ -1,7 +1,7 @@
 # ---- Build Stage ----
 FROM node:18-alpine AS build
 # Without git installing the npm packages fails
-RUN apk add --no-cache git python3 make g++ cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev
+RUN apk add git
 WORKDIR /app
 COPY . /app
 # install pnpm
