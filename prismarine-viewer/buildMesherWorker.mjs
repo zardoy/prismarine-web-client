@@ -108,6 +108,7 @@ const buildOptions = {
         })
         build.onEnd(({ metafile, outputFiles }) => {
           if (!metafile) return
+          fs.mkdirSync(path.join(__dirname, './public'), { recursive: true })
           fs.writeFileSync(path.join(__dirname, './public/metafile.json'), JSON.stringify(metafile))
           for (const outDir of ['../dist/', './public/']) {
             for (const outputFile of outputFiles) {

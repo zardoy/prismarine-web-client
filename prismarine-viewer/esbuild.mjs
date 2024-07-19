@@ -17,7 +17,6 @@ if (!fs.existsSync(mcDataPath)) {
   await import('../scripts/prepareData.mjs')
 }
 
-fs.mkdirSync(join(__dirname, 'public'), { recursive: true })
 fs.copyFileSync(join(__dirname, 'playground.html'), join(__dirname, 'public/index.html'))
 fsExtra.copySync(mcDataPath, join(__dirname, 'public/mc-data'))
 const availableVersions = fs.readdirSync(mcDataPath).map(ver => ver.replace('.js', ''))
@@ -70,7 +69,7 @@ const buildOptions = {
         })
         build.onEnd((e) => {
           if (e.errors.length) return
-          fs.writeFileSync(join(__dirname, 'public/metafile.json'), JSON.stringify(e.metafile), 'utf8')
+          // fs.writeFileSync(join(__dirname, 'dist/metafile.json'), JSON.stringify(e.metafile), 'utf8')
         })
       }
     },
