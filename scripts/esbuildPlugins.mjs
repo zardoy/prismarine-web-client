@@ -8,6 +8,7 @@ import MCProtocol from 'minecraft-protocol'
 import MCData from 'minecraft-data'
 import { throttle } from 'lodash-es'
 import { fileURLToPath } from 'url'
+import { gzipSizeFromFileSync } from 'gzip-size'
 
 const __dirname = dirname(fileURLToPath(new URL(import.meta.url)))
 const { supportedVersions } = MCProtocol
@@ -154,8 +155,9 @@ const plugins = [
           sizeByExt[ext] ??= 0
           sizeByExt[ext] += bytes
         })
-        console.log('Input size by ext:')
+        console.log('Input size by ext for dist/index.js:')
         console.log(Object.fromEntries(Object.entries(sizeByExt).map(x => [x[0], filesize(x[1])])))
+        console.log('Gzip size for dist/index.js:', filesize(gzipSizeFromFileSync('dist/index.js')))
       })
     },
   },

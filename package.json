@@ -127,6 +127,7 @@
     "eslint": "^8.50.0",
     "eslint-config-zardoy": "^0.2.17",
     "events": "^3.3.0",
+    "gzip-size": "^7.0.0",
     "http-browserify": "^1.7.0",
     "http-server": "^14.1.1",
     "https-browserify": "^1.0.0",
