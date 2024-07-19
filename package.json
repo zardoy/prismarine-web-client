@@ -18,7 +18,7 @@
     "build-storybook": "storybook build && node scripts/build.js moveStorybookFiles",
     "start-experiments": "vite --config experiments/vite.config.ts --host",
     "watch-other-workers": "echo NOT IMPLEMENTED",
-    "build-mesher": "node prismarine-viewer/buildMesherWorker.mjs -w",
+    "build-mesher": "node prismarine-viewer/buildMesherWorker.mjs",
     "watch-mesher": "pnpm build-mesher -w",
     "run-playground": "run-p watch-mesher watch-other-workers playground-server watch-playground",
     "run-all": "run-p start run-playground",
