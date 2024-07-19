@@ -99,7 +99,6 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
         right: '0px',
         top: '0px',
         padding: '5px 5px 0px 0px',
-        border: '2px solid red'
       }}
       onClick={() => {
         toggleFullMap()
@@ -108,7 +107,8 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
       <canvas style={{
         transition: '0.5s',
         transitionTimingFunction: 'ease-out',
-        borderRadius: '100px' }}
+        borderRadius: '100px'
+      }}
       width={80}
       height={80}
       ref={canvasRef}
