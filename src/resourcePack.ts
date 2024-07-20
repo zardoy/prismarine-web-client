@@ -219,15 +219,16 @@ export const onAppLoad = () => {
 
 const setOtherTexturesCss = async () => {
   const basePath = await getActiveTexturepackBasePath()
-  if (!basePath) return
-  const iconsPath = `${basePath}/assets/minecraft/textures/gui/icons.png`
-  const widgetsPath = `${basePath}/assets/minecraft/textures/gui/widgets.png`
+  const iconsPath = basePath && `${basePath}/assets/minecraft/textures/gui/icons.png`
+  const widgetsPath = basePath && `${basePath}/assets/minecraft/textures/gui/widgets.png`
   // TODO! fallback to default
-  const setCustomCss = async (path, varName) => {
-    if (await existsAsync(path)) {
+  const setCustomCss = async (path: string | null, varName: string) => {
+    if (path && await existsAsync(path)) {
       const contents = await fs.promises.readFile(path, 'base64')
       const dataUrl = `data:image/png;base64,${contents}`
       document.body.style.setProperty(varName, `url(${dataUrl})`)
+    } else {
+      document.body.style.setProperty(varName, '')
     }
   }
   await setCustomCss(iconsPath, '--gui-icons')

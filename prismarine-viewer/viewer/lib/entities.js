@@ -102,6 +102,7 @@ export class Entities extends EventEmitter {
     this.onSkinUpdate = () => { }
     this.clock = new THREE.Clock()
     this.rendering = true
+    /** @type {THREE.Texture | null} */
     this.itemsTexture = null
     this.getItemUv = undefined
   }

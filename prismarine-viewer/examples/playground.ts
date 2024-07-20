@@ -6,7 +6,6 @@ import ChunkLoader from 'prismarine-chunk'
 import WorldLoader from 'prismarine-world'
 import * as THREE from 'three'
 import { GUI } from 'lil-gui'
-import { toMajor } from '../viewer/lib/version'
 import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
@@ -16,6 +15,7 @@ import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 globalThis.THREE = THREE
 //@ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { toMajorVersion } from '../../src/utils'
 
 const gui = new GUI()
 
@@ -66,7 +66,7 @@ async function main () {
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
-    const major = toMajor(version)
+    const major = toMajorVersion(version)
     const sessionKey = `mcData-${major}`
     if (sessionStorage[sessionKey]) {
       Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))

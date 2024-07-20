@@ -5,7 +5,6 @@ import { loadTexture } from './utils.web'
 import { EventEmitter } from 'events'
 import mcDataRaw from 'minecraft-data/data.js'; // handled correctly in esbuild plugin
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
-import { toMajor } from './version.js'
 import { chunkPos } from './simpleUtils'
 import { defaultMesherConfig } from './mesher/shared'
 import { buildCleanupDecorator } from './cleanupDecorator'
@@ -17,6 +16,7 @@ import itemsAtlasLatest from 'mc-assets/dist/itemsAtlasLatest.png'
 import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
 import { AtlasParser } from 'mc-assets'
 import { getResourcepackTiles } from '../../../src/resourcePack'
+import { toMajorVersion } from '../../../src/utils'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -188,7 +188,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   // new game load happens here
-  setVersion (version, texturesVersion = version) {
+  async setVersion (version, texturesVersion = version) {
     if (!this.blockstatesModels) throw new Error('Blockstates models is not loaded yet')
     this.version = version
     this.texturesVersion = texturesVersion
@@ -199,11 +199,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.mesherConfig.version = this.version!
 
     this.sendMesherMcData()
-    void this.updateTexturesData()
+    await this.updateTexturesData()
   }
 
   sendMesherMcData () {
-    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
+    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajorVersion(this.version)]
     const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
     mcData.version = JSON.parse(JSON.stringify(mcData.version))
 

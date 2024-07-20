@@ -152,43 +152,42 @@ if (isIphone) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
-new THREE.TextureLoader().load(itemsPng, (texture) => {
-  viewer.entities.itemsTexture = texture
-  // todo unify
-  viewer.entities.getItemUv = (id) => {
-    try {
-      const name = loadedData.items[id]?.name
-      const { itemsAtlasParser } = viewer.world
-      const itemUv = itemsAtlasParser!.getTextureInfo('latest', name)
-      if (!itemUv) {
-        // TODO!
-        // const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
-        // if (!variant) return
-        // const faces = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces
-        // const uvBlock = faces?.north?.texture ?? faces?.up?.texture ?? faces?.down?.texture ?? faces?.west?.texture ?? faces?.east?.texture ?? faces?.south?.texture
-        // if (!uvBlock) return
-        // return {
-        //   ...uvBlock,
-        //   size: Math.abs(uvBlock.su),
-        //   texture: viewer.world.material.map
-        // }
-      }
-      return {
-        ...itemUv,
-        size: itemsAtlasParser!.atlasJson.latest.size,
-        texture: viewer.entities.itemsTexture
-      }
-    } catch (err) {
-      reportError?.(err)
-      return {
-        u: 0,
-        v: 0,
-        size: 16 / viewer.world.material.map!.image.width,
-        texture: viewer.world.material.map
-      }
+// todo unify
+viewer.entities.getItemUv = (id) => {
+  try {
+    const name = loadedData.items[id]?.name
+    const { itemsAtlasParser } = viewer.world
+    if (!itemsAtlasParser) return
+    const itemUv = itemsAtlasParser.getTextureInfo('latest', name)
+    if (!itemUv) {
+      // TODO!
+      // const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
+      // if (!variant) return
+      // const faces = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces
+      // const uvBlock = faces?.north?.texture ?? faces?.up?.texture ?? faces?.down?.texture ?? faces?.west?.texture ?? faces?.east?.texture ?? faces?.south?.texture
+      // if (!uvBlock) return
+      // return {
+      //   ...uvBlock,
+      //   size: Math.abs(uvBlock.su),
+      //   texture: viewer.world.material.map
+      // }
+    }
+    return {
+      ...itemUv,
+      size: itemsAtlasParser.atlasJson.latest.size,
+      texture: viewer.entities.itemsTexture
+    }
+  } catch (err) {
+    reportError?.(err)
+    return {
+      u: 0,
+      v: 0,
+      size: 16 / viewer.world.material.map!.image.width,
+      texture: viewer.world.material.map
     }
   }
-})
+}
+
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }

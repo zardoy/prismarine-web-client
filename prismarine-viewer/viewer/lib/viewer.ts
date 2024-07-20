@@ -2,7 +2,6 @@ import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
-import { getVersion } from './version'
 import EventEmitter from 'events'
 import { WorldRendererThree } from './worldrendererThree'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
@@ -78,7 +77,11 @@ export class Viewer {
 
   setVersion (userVersion: string, texturesVersion = userVersion) {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
-    this.world.setVersion(userVersion, texturesVersion)
+    this.world.setVersion(userVersion, texturesVersion).then(() => {
+      return new THREE.TextureLoader().loadAsync(this.world.itemsAtlasParser!.latestImage)
+    }).then((texture) => {
+      this.entities.itemsTexture = texture
+    })
     this.entities.clear()
     // this.primitives.clear()
   }
