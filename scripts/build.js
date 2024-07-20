@@ -10,7 +10,6 @@ const prismarineViewerBase = "./node_modules/prismarine-viewer"
 
 // these files could be copied at build time eg with copy plugin, but copy plugin slows down the config so we copy them there, alternative we could inline it in esbuild config
 const filesToCopy = [
-    { from: `${prismarineViewerBase}/public/blocksStates/`, to: 'dist/blocksStates/' },
     { from: `${prismarineViewerBase}/public/mesher.js`, to: 'dist/mesher.js' },
     { from: './assets/', to: './dist/' },
     { from: './config.json', to: 'dist/config.json' },
@@ -51,7 +50,6 @@ exports.getSwAdditionalEntries = () => {
         'index.css',
         'favicon.ico',
         `mc-data/${defaultLocalServerOptions.versionMajor}.js`,
-        `blocksStates/${singlePlayerVersion}.json`,
         'extra-textures/**',
         // todo-low copy from assets
         '*.mp3',

@@ -13,7 +13,7 @@ if (module.require) {
 
 let world: World
 let dirtySections: Map<string, number> = new Map()
-let blockStatesReady = false
+let allDataReady = false
 
 function sectionKey (x, y, z) {
   return `${x},${y},${z}`
@@ -81,7 +81,7 @@ const handleMessage = data => {
 
   if (data.type === 'mesherData') {
     setMesherData(data.blockstatesModels, data.blocksAtlas)
-    blockStatesReady = true
+    allDataReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)
     setSectionDirty(loc, data.value)
@@ -99,7 +99,7 @@ const handleMessage = data => {
     dirtySections = new Map()
     // todo also remove cached
     globalVar.mcData = null
-    blockStatesReady = false
+    allDataReady = false
   }
 }
 
@@ -113,7 +113,7 @@ self.onmessage = ({ data }) => {
 }
 
 setInterval(() => {
-  if (world === null || !blockStatesReady) return
+  if (world === null || !allDataReady) return
 
   if (dirtySections.size === 0) return
   // console.log(sections.length + ' dirty sections')

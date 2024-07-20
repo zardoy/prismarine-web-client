@@ -159,7 +159,7 @@ new THREE.TextureLoader().load(itemsPng, (texture) => {
     try {
       const name = loadedData.items[id]?.name
       const { itemsAtlasParser } = viewer.world
-      const itemUv = itemsAtlasParser.getTextureInfo('latest', name)
+      const itemUv = itemsAtlasParser!.getTextureInfo('latest', name)
       if (!itemUv) {
         // TODO!
         // const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
@@ -175,7 +175,7 @@ new THREE.TextureLoader().load(itemsPng, (texture) => {
       }
       return {
         ...itemUv,
-        size: itemsAtlasParser.atlasJson.latest.size,
+        size: itemsAtlasParser!.atlasJson.latest.size,
         texture: viewer.entities.itemsTexture
       }
     } catch (err) {

@@ -1,9 +1,8 @@
 import { test, expect } from 'vitest'
 import { setup } from './mesherTester'
-import minecraftData from 'minecraft-data'
-import minecraftAssets from 'minecraft-assets'
+import supportedVersions from '../../../../../src/supportedVersions.mjs'
 
-const version = minecraftAssets.versions.at(-1)
+const lastVersion = supportedVersions.at(-1)
 
 const addPositions = [
   // [[0, 0, 0], 'diamond_block'],
@@ -16,7 +15,7 @@ const addPositions = [
 ] as const
 
 test('Known blocks are not rendered', () => {
-  const { mesherWorld, getGeometry, pos, mcData } = setup(version, addPositions as any)
+  const { mesherWorld, getGeometry, pos, mcData } = setup(lastVersion, addPositions as any)
   const ignoreAsExpected = ['air', 'cave_air', 'void_air', 'barrier', 'water', 'lava', 'moving_piston', 'light']
 
   let time = 0

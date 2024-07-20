@@ -26,7 +26,8 @@ const possiblyLoadPanoramaFromResourcePack = async (file) => {
   let base64Texture
   if (panoramaUsesResourcePack) {
     try {
-      base64Texture = await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, file)), 'base64')
+      // TODO!
+      // base64Texture = await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, file)), 'base64')
     } catch (err) {
       panoramaUsesResourcePack = false
     }
@@ -37,7 +38,8 @@ const possiblyLoadPanoramaFromResourcePack = async (file) => {
 
 const updateResourcePackSupportPanorama = async () => {
   try {
-    await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, panoramaFiles[0])), 'base64')
+    // TODO!
+    // await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, panoramaFiles[0])), 'base64')
     panoramaUsesResourcePack = true
   } catch (err) {
     panoramaUsesResourcePack = false
