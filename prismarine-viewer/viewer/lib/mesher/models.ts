@@ -5,7 +5,8 @@ import legacyJson from '../../../../src/preflatMap.json'
 import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 
 let blockProvider: WorldBlockProvider
-type BlockElement = NonNullable<ReturnType<typeof blockProvider.getResolvedModel0_1>['elements']>[0]
+type ModelResolved = ReturnType<typeof blockProvider.getResolvedModel0_1>
+type BlockElement = NonNullable<ModelResolved['elements']>[0]
 
 const tints: any = {}
 let needTiles = false
@@ -178,7 +179,7 @@ const everyArray = (array, callback) => {
 const isCube = (block) => {
   if (!block || block.transparent) return false
   if (block.isCube) return true
-  // TODO
+  // TODO!
   // if (!block.variant) block.variant = getModelVariants(block)
   if (!block.variant?.length) return false
   return block.variant.every(v => everyArray(v?.model?.elements, e => {
@@ -491,9 +492,8 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
 const invisibleBlocks = ['air', 'cave_air', 'void_air', 'barrier']
 
+let unknownBlockModel: ModelResolved
 export function getSectionGeometry (sx, sy, sz, world: World) {
-  const unknownBlockModel = blockProvider.getResolvedModel0_1({ name: 'unknown', properties: {} })
-
   let delayedRender = [] as (() => void)[]
 
   const attr = {
@@ -653,5 +653,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
 export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false) => {
   blockProvider = worldBlockProvider(blockstatesModels, blocksAtlas, 'latest')
   globalThis.blockProvider = blockProvider
+  unknownBlockModel = blockProvider.getResolvedModel0_1({ name: 'unknown', properties: {} })
+
   needTiles = _needTiles
 }

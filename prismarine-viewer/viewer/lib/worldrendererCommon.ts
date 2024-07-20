@@ -67,6 +67,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
   blockstatesModels: any
+  customBlockStates: Record<string, any> | undefined
+  customModels: Record<string, any> | undefined
   itemsAtlasParser: AtlasParser | undefined
   blocksAtlasParser: AtlasParser | undefined
 
@@ -237,12 +239,26 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.mesherConfig.textureSize = this.material.map!.image.width
 
     for (const worker of this.workers) {
+      const blockstatesModels = this.blockstatesModels;
+      if (this.customBlockStates) {
+        // TODO! remove from other versions as well
+        blockstatesModels.blockstates.latest = {
+          ...blockstatesModels.blockstates.latest,
+          ...this.customBlockStates
+        }
+      }
+      if (this.customModels) {
+        blockstatesModels.models.latest = {
+          ...blockstatesModels.models.latest,
+          ...this.customModels
+        }
+      }
       worker.postMessage({
         type: 'mesherData',
         blocksAtlas: {
           latest: blocksAtlas
         },
-        blockstatesModels: this.blockstatesModels,
+        blockstatesModels,
         config: this.mesherConfig,
       })
     }
