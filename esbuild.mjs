@@ -89,6 +89,7 @@ const buildOptions = {
     '.woff': 'dataurl',
     '.woff2': 'dataurl',
     '.ttf': 'dataurl',
+    '.webp': 'dataurl',
   },
   write: false,
   // todo would be better to enable?

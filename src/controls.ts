@@ -355,7 +355,7 @@ contro.on('trigger', ({ command }) => {
         document.exitPointerLock?.()
         openPlayerInventory()
         break
-      case 'general.drop':
+      case 'general.drop': {
         // if (bot.heldItem/* && ctrl */) bot.tossStack(bot.heldItem)
         bot._client.write('block_dig', {
           'status': 4,
@@ -367,7 +367,14 @@ contro.on('trigger', ({ command }) => {
           'face': 0,
           sequence: 0
         })
+        const slot = bot.inventory.hotbarStart + bot.quickBarSlot
+        const item = bot.inventory.slots[slot]
+        if (item) {
+          item.count--
+          bot.inventory.updateSlot(slot, item.count > 0 ? item : null!)
+        }
         break
+      }
       case 'general.chat':
         showModal({ reactType: 'chat' })
         break

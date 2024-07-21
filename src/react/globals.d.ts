@@ -29,6 +29,10 @@ declare module '*.svg' {
     const svg: string
     export default svg
 }
+declare module '*.webp' {
+    const svg: string
+    export default svg
+}
 
 interface PromiseConstructor {
     withResolvers<T> (): {
