@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Vec3 } from 'vec3'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
-import { Block } from 'prismarine-block'
 import { PCChunk } from 'prismarine-chunk'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
@@ -10,6 +9,7 @@ import { showModal, hideModal } from '../globalState'
 import Minimap from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 import { useIsModalActive } from './utilsApp'
+import { options } from '../optionsStorage'
 
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
@@ -142,6 +142,8 @@ export default () => {
       contro.off('trigger', toggleFullMap)
     }
   }, [])
+
+  if (options.showMinimap === 'never') return null
 
   return <div>
     <Minimap adapter={adapter} fullMap={fullMapOpened} toggleFullMap={toggleFullMap} />

@@ -190,7 +190,21 @@ export const guiOptionsScheme: {
           'never'
         ],
       },
-    }
+    },
+    {
+      custom () {
+        return <Category>Map</Category>
+      },
+      showMinimap: {
+        text: 'Show minimap',
+        values: [
+            'always',
+            'singleplayer',
+            'never'
+        ],
+      },
+    },
+
   ],
   controls: [
     {
