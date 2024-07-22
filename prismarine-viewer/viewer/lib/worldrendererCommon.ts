@@ -87,6 +87,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         }
         if (data.type === 'sectionFinished') { // on after load & unload section
           if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
+          console.log(this.highestBlocks)
           this.sectionsOutstanding.set(data.key, this.sectionsOutstanding.get(data.key)! - 1)
           if (this.sectionsOutstanding.get(data.key) === 0) this.sectionsOutstanding.delete(data.key)
 

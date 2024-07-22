@@ -26,35 +26,26 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   async getHighestBlockColor (x: number, z: number) {
-    let block = null as Block | null
-    let { height } = (bot.game as any)
     const airBlocks = new Set(['air', 'cave_air', 'void_air'])
-    const chunkX = Math.floor(x / 16)
-    const chunkZ = Math.floor(z / 16)
-    let dataSource: { getBlock: (pos: Vec3) => Block | null } | undefined
-    if (localServer) {
-      if (this.currChunkPos.x === chunkX && this.currChunkPos.z === chunkZ) {
-        dataSource = this.currChunk
-      } else {
-        dataSource = await this.getChunkSingleplayer(chunkX, chunkZ)
-        this.currChunk = dataSource as PCChunk
-        this.currChunkPos.x = chunkX
-        this.currChunkPos.z = chunkZ
-      }
-    } else {
-      dataSource = bot.world
-    }
-    do {
-      block = dataSource?.getBlock(new Vec3(x, height, z)) ?? null
-      height -= 1
-      if (height < 0) return 'rgb(173, 216, 230)'
-    } while (airBlocks.has(block?.name ?? ''))
+    const chunkX = Math.floor(x / 16) * 16
+    const chunkZ = Math.floor(z / 16) * 16
+    if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return 'rgb(200, 200, 200)'
+    const block = viewer.world.highestBlocks[`${x},${z}`]
     const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : 'rgb(200, 200, 200)'
 
     // shadows
-    const blockUp = bot.world.getBlock(new Vec3(x, height + 2, z - 1))
-    const blockRight = bot.world.getBlock(new Vec3(x + 1, height + 2, z))
-    const blockRightUp = bot.world.getBlock(new Vec3(x + 1, height + 2, z - 1))
+    const upKey = `${x},${z - 1}`
+    const blockUp = viewer.world.highestBlocks[upKey] && viewer.world.highestBlocks[upKey].y > block.y
+      ? viewer.world.highestBlocks[upKey]
+      : null
+    const rightKey = `${x + 1},${z}`
+    const blockRight = viewer.world.highestBlocks[rightKey] && viewer.world.highestBlocks[rightKey].y > block.y
+      ? viewer.world.highestBlocks[rightKey]
+      : null
+    const rightUpKey = `${x + 1},${z - 1}`
+    const blockRightUp = viewer.world.highestBlocks[rightUpKey] && viewer.world.highestBlocks[rightUpKey].y > block.y
+      ? viewer.world.highestBlocks[rightUpKey]
+      : null
     if ((blockUp && !airBlocks.has(blockUp.name))
       || (blockRight && !airBlocks.has(blockRight.name))
       || (blockRightUp && !airBlocks.has(blockRightUp.name))
@@ -68,9 +59,18 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       })
       return `rgb(${rgbArray.join(',')})`
     }
-    const blockDown = bot.world.getBlock(new Vec3(x, height + 2, z + 1))
-    const blockLeft = bot.world.getBlock(new Vec3(x - 1, height + 2, z))
-    const blockLeftDown = bot.world.getBlock(new Vec3(x - 1, height + 2, z + 1))
+    const downKey = `${x},${z + 1}`
+    const blockDown = viewer.world.highestBlocks[downKey] && viewer.world.highestBlocks[downKey].y > block.y
+      ? viewer.world.highestBlocks[downKey]
+      : null
+    const leftKey = `${x - 1},${z}`
+    const blockLeft = viewer.world.highestBlocks[leftKey] && viewer.world.highestBlocks[leftKey].y > block.y
+      ? viewer.world.highestBlocks[leftKey]
+      : null
+    const leftDownKey = `${x - 1},${z + 1}`
+    const blockLeftDown = viewer.world.highestBlocks[leftDownKey] && viewer.world.highestBlocks[leftDownKey].y > block.y
+      ? viewer.world.highestBlocks[leftDownKey]
+      : null
     if ((blockDown && !airBlocks.has(blockDown.name))
       || (blockLeft && !airBlocks.has(blockLeft.name))
       || (blockLeftDown && !airBlocks.has(blockLeftDown.name))
@@ -133,11 +133,12 @@ export default () => {
 
   useEffect(() => {
     bot.on('move', updateMap)
-
+    // viewer.world.renderUpdateEmitter.on('update', updateMap)
     contro.on('trigger', toggleFullMap)
 
     return () => {
       bot.off('move', updateMap)
+      // viewer.world.renderUpdateEmitter.off('update', updateMap)
       contro.off('trigger', toggleFullMap)
     }
   }, [])
