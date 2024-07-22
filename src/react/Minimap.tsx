@@ -1,4 +1,5 @@
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
+import { AdvancedPlayerControls } from '@nxg-org/mineflayer-tracker/lib/dist/physics/player/playerControls'
 import { options } from '../optionsStorage'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Fullmap from './Fullmap'
@@ -15,8 +16,10 @@ export default (
   const warpsAndPartsCanvasRef = useRef<HTMLCanvasElement>(null)
   const warpsDrawerRef = useRef<MinimapDrawer | null>(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
+  const [position, setPosition] = useState({ x: 0, z: 0 })
 
   const updateMap = () => {
+    setPosition({ x: adapter.playerPosition.x, z: adapter.playerPosition.z })
     if (drawerRef.current) {
       if (!full.current && canvasTick.current % 3 === 0) {
         rotateMap()
@@ -90,6 +93,7 @@ export default (
           right: '0px',
           top: '0px',
           padding: '5px 5px 0px 0px',
+          textAlign: 'center'
         }}
         onClick={() => {
           toggleFullMap?.({ command: 'ui.toggleMap' })
@@ -115,6 +119,13 @@ export default (
           height={80}
           ref={warpsAndPartsCanvasRef}
         ></canvas>
+        <div
+          style={{
+            fontSize: '0.5em'
+          }}
+        >
+          {position.x.toFixed(2)} {position.z.toFixed(2)}
+        </div>
       </div> : null
 }
 
