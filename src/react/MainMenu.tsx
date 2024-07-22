@@ -6,7 +6,7 @@ import { activeModalStack } from '../globalState'
 import styles from './mainMenu.module.css'
 import Button from './Button'
 import ButtonWithTooltip from './ButtonWithTooltip'
-import { pixelartIcons } from './PixelartIcon'
+import PixelartIcon, { pixelartIcons } from './PixelartIcon'
 
 type Action = (e: React.MouseEvent<HTMLButtonElement>) => void
 
@@ -65,6 +65,16 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
     }
   }, [])
 
+  const links: DropdownButtonItem[] = [
+    {
+      text: 'link 1',
+      clickHandler: () => openURL('https://discord.com/')
+    },
+    {
+      text: 'link 2',
+      clickHandler: () => openURL('https://discord.com/')
+    }
+  ]
 
   return (
     <div className={styles.root}>
@@ -125,7 +135,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
           >
             GitHub
           </ButtonWithTooltip>
-          <DoubleButton />
+          <DropdownButton text="Discord" links={links} />
         </div>
       </div>
 
@@ -160,7 +170,13 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
   )
 }
 
-const DoubleButton = () => {
+
+export type DropdownButtonItem = {
+  text: string,
+  clickHandler: () => void
+}
+
+export const DropdownButton = ({ text, links }: { text: string, links: DropdownButtonItem[] }) => {
   const [isOpen, setIsOpen] = useState(false)
   const { refs, floatingStyles } = useFloating({
     open: isOpen,
@@ -183,20 +199,24 @@ const DoubleButton = () => {
 
   return <>
     <Button
-      style={{ width: '98px' }}
+      style={{ position: 'relative', width: '98px' }}
       rootRef={refs.setReference}
       onClick={()=>{
         setIsOpen(!isOpen)
       }}
-    >Discord</Button>
+    >{text}<PixelartIcon
+        styles={{ position: 'absolute', top: '5px', right: '5px' }}
+        iconName={isOpen ? 'chevron-up' : 'chevron-down'}
+      />
+    </Button>
     {
       isOpen && <div ref={refs.setFloating} style={styles}>
-        <a href='https://discord.com/'>
-          link 1
-        </a>
-        <a href='https://discord.com/'>
-          link 2
-        </a>
+        {links.map(el => {
+          return <Button
+            style={{ width: '98px' }}
+            onClick={el.clickHandler}
+          >{el.text}</Button>
+        })}
       </div>
     }
   </>
