@@ -21,7 +21,6 @@ export default (
         rotateMap()
         drawerRef.current.clearRect()
         drawerRef.current.updateWorldColors(adapter.getHighestBlockColor, adapter.playerPosition.x, adapter.playerPosition.z, false)
-        // drawerRef.current.draw(adapter.playerPosition, undefined, full.current)
       }
       if (canvasTick.current % 300 === 0) {
         drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)

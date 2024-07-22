@@ -38,6 +38,7 @@ export class MinimapDrawer {
   lastBotPos: Vec3
   lastWarpPos: Vec3
   mapPixel: number
+  isMapUpdating: boolean
 
   constructor (
     canvas: HTMLCanvasElement,
@@ -115,6 +116,8 @@ export class MinimapDrawer {
     z: number,
     full?: boolean
   ) {
+    if (this.isMapUpdating) return
+    this.isMapUpdating = true
     const left = this.centerX - this.radius
     const top = this.centerY - this.radius
 
@@ -150,6 +153,7 @@ export class MinimapDrawer {
     this.ctx.restore()
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     this.ctx.putImageData(clippedImage, 0, 0)
+    this.isMapUpdating = false
   }
 
   async getHighestBlockColorCached (
