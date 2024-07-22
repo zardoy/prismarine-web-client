@@ -485,10 +485,12 @@ function renderElement (world: World, cursor: Vec3, element, doAO: boolean, attr
   }
 }
 
+const makeLooseObj = <T extends string> (obj: Record<T, any>) => obj
+
 export function getSectionGeometry (sx, sy, sz, world: World) {
   let delayedRender = [] as (() => void)[]
 
-  const attr = {
+  const attr = makeLooseObj({
     sx: sx + 8,
     sy: sy + 8,
     sz: sz + 8,
@@ -503,14 +505,24 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     indices: [],
     tiles: {},
     // todo this can be removed here
-    signs: {}
-  } as Record<string, any>
+    signs: {},
+    highestBlocks: {}
+  })
 
   const cursor = new Vec3(0, 0, 0)
   for (cursor.y = sy; cursor.y < sy + 16; cursor.y++) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
+        if (!['air', 'cave_air', 'void_air', 'barrier'].includes(block.name)) {
+          const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
+          if (!highest || highest.y < cursor.y) {
+            attr.highestBlocks[`${cursor.x},${cursor.z}`] = {
+              y: cursor.y,
+              name: block.name
+            }
+          }
+        }
         if (block.name.includes('_sign') || block.name === 'sign') {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()

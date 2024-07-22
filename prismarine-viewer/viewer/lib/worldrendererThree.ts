@@ -292,7 +292,6 @@ export class WorldRendererThree extends WorldRendererCommon {
 
         this.cleanChunkTextures(x, z)
         for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
-            this.setSectionDirty(new Vec3(x, y, z), false)
             const key = `${x},${y},${z}`
             const mesh = this.sectionObjects[key]
             if (mesh) {
