@@ -6,8 +6,10 @@ import { Block } from 'prismarine-block'
 import { PCChunk } from 'prismarine-chunk'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
+import { showModal, hideModal } from '../globalState'
 import Minimap from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
+import { useIsModalActive } from './utilsApp'
 
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
@@ -109,6 +111,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
 
 export default () => {
   const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position, localServer?.warps))
+  const fullMapOpened = useIsModalActive('full-map')
 
   const updateMap = () => {
     if (!adapter) return
@@ -117,9 +120,15 @@ export default () => {
     adapter.emit('updateMap')
   }
 
-  const toggleFullMap = ({ command }) => {
+  const toggleFullMap = ({ command }: { command?: string }) => {
     if (!adapter) return
-    if (command === 'ui.toggleMap') adapter.emit('toggleFullMap')
+    if (command === 'ui.toggleMap') {
+      if (fullMapOpened) {
+        hideModal({ reactType: 'full-map' })
+      } else {
+        showModal({ reactType: 'full-map' })
+      }
+    }
   }
 
   useEffect(() => {
@@ -134,6 +143,6 @@ export default () => {
   }, [])
 
   return <div>
-    <Minimap adapter={adapter} />
+    <Minimap adapter={adapter} fullMap={fullMapOpened} toggleFullMap={toggleFullMap} />
   </div>
 }

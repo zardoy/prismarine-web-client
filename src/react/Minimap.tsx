@@ -1,12 +1,13 @@
 import { useRef, useEffect } from 'react'
-import { showModal, hideModal } from '../globalState'
-import { useIsModalActive } from './utilsApp'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Fullmap from './Fullmap'
 
 
-export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolean }) => {
-  const fullMapOpened = useIsModalActive('full-map')
+export default (
+  { adapter, fullMap, toggleFullMap }
+  :
+  { adapter: DrawerAdapter, fullMap?: boolean, toggleFullMap?: ({ command }: { command: string }) => void }
+) => {
   const full = useRef(false)
   const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -37,16 +38,6 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     canvasTick.current += 1
   }
 
-  const toggleFullMap = () => {
-    if (fullMapOpened) {
-      hideModal({ reactType: 'full-map' })
-      full.current = false
-    } else {
-      showModal({ reactType: 'full-map' })
-      full.current = true
-    }
-  }
-
   const updateWarps = () => { }
 
   const rotateMap = () => {
@@ -62,7 +53,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
     }
-  }, [canvasRef.current, fullMapOpened, fullMap])
+  }, [canvasRef.current, fullMap])
 
   useEffect(() => {
     if (warpsAndPartsCanvasRef.current && !warpsDrawerRef.current) {
@@ -74,19 +65,17 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
 
   useEffect(() => {
     adapter.on('updateMap', updateMap)
-    adapter.on('toggleFullMap', toggleFullMap)
     adapter.on('updateWaprs', updateWarps)
 
     return () => {
       adapter.off('updateMap', updateMap)
-      adapter.off('toggleFullMap', toggleFullMap)
       adapter.off('updateWaprs', updateWarps)
     }
   }, [adapter])
 
-  return fullMapOpened || fullMap ? <Fullmap
+  return fullMap ? <Fullmap
     toggleFullMap={()=>{
-      toggleFullMap()
+      toggleFullMap?.({ command: 'ui.toggleMap' })
     }}
     adapter={adapter}
     drawer={drawerRef.current}
@@ -101,7 +90,7 @@ export default ({ adapter, fullMap }: { adapter: DrawerAdapter, fullMap?: boolea
         padding: '5px 5px 0px 0px',
       }}
       onClick={() => {
-        toggleFullMap()
+        toggleFullMap?.({ command: 'ui.toggleMap' })
       }}
     >
       <canvas style={{
