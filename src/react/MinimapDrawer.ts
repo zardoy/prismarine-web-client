@@ -2,16 +2,6 @@ import { Vec3 } from 'vec3'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 
-type BotType = Omit<import('mineflayer').Bot, 'world' | '_client'> & {
-  world: Omit<import('prismarine-world').world.WorldSync, 'getBlock'> & {
-    getBlock: (pos: import('vec3').Vec3) => import('prismarine-block').Block | null
-  }
-  _client: Omit<import('minecraft-protocol').Client, 'on'> & {
-    write: typeof import('../generatedClientPackets').clientWrite
-    on: typeof import('../generatedServerPackets').clientOn
-  }
-}
-
 export type MapUpdates = {
   updateBlockColor: (pos: Vec3) => void
   updatePlayerPosition: () => void

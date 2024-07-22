@@ -1,5 +1,4 @@
 import { useRef, useEffect, useState } from 'react'
-import { AdvancedPlayerControls } from '@nxg-org/mineflayer-tracker/lib/dist/physics/player/playerControls'
 import { options } from '../optionsStorage'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Fullmap from './Fullmap'
