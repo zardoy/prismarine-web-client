@@ -5,6 +5,7 @@ import { Vec3 } from 'vec3'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
 import { defaultMesherConfig } from './shared'
 import legacyJson from '../../../../src/preflatMap.json'
+import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -18,10 +19,14 @@ function isCube (shapes) {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
+export type BlockModelPartsResolved = ReturnType<WorldBlockProvider['getAllResolvedModels0_1']>
+
 export type WorldBlock = Omit<Block, 'position'> & {
   variant?: any
   // todo
   isCube: boolean
+  /** cache */
+  models?: BlockModelPartsResolved | null
 }
 
 
@@ -33,7 +38,7 @@ export class World {
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
 
-  constructor (version) {
+  constructor(version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
     this.preflat = !mcData(version).supportFeature('blockStateId')

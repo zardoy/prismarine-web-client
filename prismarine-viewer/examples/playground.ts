@@ -21,7 +21,7 @@ const gui = new GUI()
 
 // initial values
 const params = {
-  skip: '',
+  skipQs: '',
   version: globalThis.includedVersions.sort((a, b) => {
     const s = (x) => {
       const parts = x.split('.')
@@ -39,7 +39,8 @@ const params = {
   entityRotate: false,
   camera: '',
   playSound () { },
-  blockIsomorphicRenderBundle () { }
+  blockIsomorphicRenderBundle () { },
+  modelVariants: 0
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -50,7 +51,7 @@ qs.forEach((value, key) => {
 const setQs = () => {
   const newQs = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
-    if (!value || typeof value === 'function' || params.skip.includes(key)) continue
+    if (!value || typeof value === 'function' || params.skipQs.includes(key)) continue
     //@ts-ignore
     newQs.set(key, value)
   }
@@ -85,11 +86,12 @@ async function main () {
   gui.add(params, 'version', globalThis.includedVersions)
   gui.add(params, 'block', mcData.blocksArray.map(b => b.name).sort((a, b) => a.localeCompare(b)))
   const metadataGui = gui.add(params, 'metadata')
+  gui.add(params, 'modelVariants')
   gui.add(params, 'supportBlock')
   gui.add(params, 'entity', mcData.entitiesArray.map(b => b.name).sort((a, b) => a.localeCompare(b))).listen()
   gui.add(params, 'removeEntity')
   gui.add(params, 'entityRotate')
-  gui.add(params, 'skip')
+  gui.add(params, 'skipQs')
   gui.add(params, 'playSound')
   gui.add(params, 'blockIsomorphicRenderBundle')
   gui.open(false)
@@ -134,7 +136,7 @@ async function main () {
   document.body.appendChild(renderer.domElement)
 
   // Create viewer
-  const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false })
+  const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false, })
   viewer.world.blockstatesModels = blockstatesModels
   viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
@@ -308,35 +310,38 @@ async function main () {
       // todo warning
     },
     block () {
+      blockProps = {}
       metadataFolder.destroy()
       const block = mcData.blocksByName[params.block]
       if (!block) return
+      console.log('block', block.name)
       const props = new Block(block.id, 0, 0).getProperties()
       //@ts-ignore
       const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
       metadataFolder = gui.addFolder('metadata')
       if (states) {
         for (const state of states) {
-          let defaultValue
-          switch (state.type) {
-            case 'enum':
-              defaultValue = state.values[0]
-              break
-            case 'bool':
-              defaultValue = false
-              break
-            case 'int':
-              defaultValue = 0
-              break
-            case 'direction':
-              defaultValue = 'north'
-              break
+          let defaultValue: string | number | boolean
+          if (state.values) { // int, enum
+            defaultValue = state.values[0]
+          } else {
+            switch (state.type) {
+              case 'bool':
+                defaultValue = false
+                break
+              case 'int':
+                defaultValue = 0
+                break
+              case 'direction':
+                defaultValue = 'north'
+                break
 
-            default:
-              continue
+              default:
+                continue
+            }
           }
           blockProps[state.name] = defaultValue
-          if (state.type === 'enum') {
+          if (state.values) {
             metadataFolder.add(blockProps, state.name, state.values)
           } else {
             metadataFolder.add(blockProps, state.name)
@@ -348,6 +353,7 @@ async function main () {
           metadataFolder.add(blockProps, name)
         }
       }
+      console.log('props', blockProps)
       metadataFolder.open()
     },
     entity () {
@@ -372,6 +378,9 @@ async function main () {
     },
     supportBlock () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
+    },
+    modelVariants () {
+      viewer.world.mesherConfig.debugModelVariant = params.modelVariants === 0 ? undefined : [params.modelVariants]
     }
   }
 
@@ -422,7 +431,7 @@ async function main () {
     for (const update of Object.values(onUpdate)) {
       update(true)
     }
-    applyChanges(true)
+    applyChanges()
     gui.openAnimated()
   })
 

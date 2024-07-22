@@ -1,12 +1,11 @@
 import { Vec3 } from 'vec3'
-import { World } from './world'
+import { World, BlockModelPartsResolved } from './world'
 import { WorldBlock as Block } from './world'
 import legacyJson from '../../../../src/preflatMap.json'
 import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 
 let blockProvider: WorldBlockProvider
-type ModelResolved = ReturnType<typeof blockProvider.getResolvedModel0_1>
-type BlockElement = NonNullable<ModelResolved['elements']>[0]
+type BlockElement = NonNullable<BlockModelPartsResolved[0][0]['elements']>[0]
 
 const tints: any = {}
 let needTiles = false
@@ -35,6 +34,10 @@ function prepareTints (tints) {
       return target.has(key) ? target.get(key) : defaultValue
     }
   })
+}
+
+function mod (x: number, n: number) {
+  return ((x % n) + n) % n
 }
 
 const calculatedBlocksEntries = Object.entries(legacyJson.clientCalculatedBlocks)
@@ -492,7 +495,9 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
 const invisibleBlocks = ['air', 'cave_air', 'void_air', 'barrier']
 
-let unknownBlockModel: ModelResolved
+const isBlockWaterlogged = (block: Block) => block.getProperties().waterlogged === true || block.getProperties().waterlogged === 'true'
+
+let unknownBlockModel: BlockModelPartsResolved
 export function getSectionGeometry (sx, sy, sz, world: World) {
   let delayedRender = [] as (() => void)[]
 
@@ -556,7 +561,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           }
         }
 
-        const isWaterlogged = block.getProperties().waterlogged
+        const isWaterlogged = isBlockWaterlogged(block)
         if (block.name === 'water' || isWaterlogged) {
           const pos = cursor.clone()
           delayedRender.push(() => {
@@ -566,47 +571,56 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr)
         }
         if (block.name !== "water" && block.name !== "lava" && !invisibleBlocks.includes(block.name)) {
-          let globalMatrix = null as any
-          let globalShift = null as any
-
           // cache
-          let model = block['model'] as ReturnType<typeof blockProvider.getResolvedModel0_1> | null;
-          if (block['model'] === undefined || preflatRecomputeVariant) {
+          let models = block.models
+          if (block.models === undefined || preflatRecomputeVariant) {
             try {
-              model = blockProvider.getResolvedModel0_1({
+              models = blockProvider.getAllResolvedModels0_1({
                 name: block.name,
                 properties: block.getProperties(),
-              })
-              if (!model.elements) model = null
+              })!
+              if (!models.length) models = null
             } catch (err) {
               console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(block.getProperties())}]: ` + err.message, err.stack)
             }
           }
-          block['model'] = model ?? null
+          block.models = models ?? null
 
-          model ??= unknownBlockModel
+          models ??= unknownBlockModel
 
-          for (const axis of ['x', 'y', 'z'] as const) {
-            if (axis in model) {
-              if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0))
-              else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0)))
+          const firstForceVar = world.config.debugModelVariant?.[0]
+          let part = 0
+          for (const modelVars of models ?? []) {
+            const pos = cursor.clone()
+            const variantRuntime = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), modelVars.length)
+            const useVariant = world.config.debugModelVariant?.[part] ?? firstForceVar ?? variantRuntime
+            part++
+            const model = modelVars[useVariant] ?? modelVars[0]
+            if (!model) continue
+
+            let globalMatrix = null as any
+            let globalShift = null as any
+            for (const axis of ['x', 'y', 'z'] as const) {
+              if (axis in model) {
+                if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0))
+                else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0)))
+              }
             }
-          }
+            if (globalMatrix) {
+              globalShift = [8, 8, 8]
+              globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
+            }
 
-          if (globalMatrix) {
-            globalShift = [8, 8, 8]
-            globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
-          }
-
-          for (const element of model.elements ?? []) {
-            const ao = model.ao ?? true
-            if (block.transparent) {
-              const pos = cursor.clone()
-              delayedRender.push(() => {
-                renderElement(world, pos, element, ao, attr, globalMatrix, globalShift, block, biome)
-              })
-            } else {
-              renderElement(world, cursor, element, ao, attr, globalMatrix, globalShift, block, biome)
+            for (const element of model.elements ?? []) {
+              const ao = model.ao ?? true
+              if (block.transparent) {
+                const pos = cursor.clone()
+                delayedRender.push(() => {
+                  renderElement(world, pos, element, ao, attr, globalMatrix, globalShift, block, biome)
+                })
+              } else {
+                renderElement(world, cursor, element, ao, attr, globalMatrix, globalShift, block, biome)
+              }
             }
           }
 
@@ -650,10 +664,12 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   return attr
 }
 
-export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false) => {
+export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false, useUnknownBlockModel = true) => {
   blockProvider = worldBlockProvider(blockstatesModels, blocksAtlas, 'latest')
   globalThis.blockProvider = blockProvider
-  unknownBlockModel = blockProvider.getResolvedModel0_1({ name: 'unknown', properties: {} })
+  if (useUnknownBlockModel) {
+    unknownBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'unknown', properties: {} })
+  }
 
   needTiles = _needTiles
 }
