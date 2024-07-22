@@ -4,7 +4,6 @@ import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { useEffect } from 'react'
 
-import { cleanData } from 'cypress/types/jquery'
 import Minimap from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 

@@ -1,13 +1,19 @@
 import { useRef, useEffect, useState } from 'react'
-import { options } from '../optionsStorage'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Fullmap from './Fullmap'
 
 
 export default (
-  { adapter, fullMap, toggleFullMap }
+  { adapter, showMinimap, showFullmap, singleplayer, fullMap, toggleFullMap }
   :
-  { adapter: DrawerAdapter, fullMap?: boolean, toggleFullMap?: ({ command }: { command: string }) => void }
+  {
+    adapter: DrawerAdapter,
+    showMinimap: string,
+    showFullmap: string,
+    singleplayer: boolean,
+    fullMap?: boolean,
+    toggleFullMap?: ({ command }: { command: string }) => void
+  }
 ) => {
   const full = useRef(false)
   const canvasTick = useRef(0)
@@ -75,7 +81,7 @@ export default (
     }
   }, [adapter])
 
-  return fullMap && (options.showFullmap === 'singleplayer' && localServer || options.showFullmap === 'always')
+  return fullMap && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
     ? <Fullmap
       toggleFullMap={()=>{
         toggleFullMap?.({ command: 'ui.toggleMap' })
@@ -84,7 +90,7 @@ export default (
       drawer={drawerRef.current}
       canvasRef={canvasRef}
     />
-    : options.showMinimap === 'singleplayer' && localServer || options.showMinimap === 'always'
+    : showMinimap === 'singleplayer' && singleplayer || showMinimap === 'always'
       ? <div
         className='minimap'
         style={{

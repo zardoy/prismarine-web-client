@@ -5,7 +5,7 @@ import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
-import { showModal, hideModal } from '../globalState'
+import { showModal, hideModal, miscUiState } from '../globalState'
 import { options } from '../optionsStorage'
 import Minimap from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
@@ -146,6 +146,13 @@ export default () => {
   if (options.showMinimap === 'never' && options.showFullmap === 'never') return null
 
   return <div>
-    <Minimap adapter={adapter} fullMap={fullMapOpened} toggleFullMap={toggleFullMap} />
+    <Minimap
+      adapter={adapter}
+      showMinimap={options.showMinimap}
+      showFullmap={options.showFullmap}
+      singleplayer={miscUiState.singleplayer}
+      fullMap={fullMapOpened}
+      toggleFullMap={toggleFullMap}
+    />
   </div>
 }
