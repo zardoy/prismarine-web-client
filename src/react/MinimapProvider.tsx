@@ -6,10 +6,10 @@ import { PCChunk } from 'prismarine-chunk'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
 import { showModal, hideModal } from '../globalState'
+import { options } from '../optionsStorage'
 import Minimap from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 import { useIsModalActive } from './utilsApp'
-import { options } from '../optionsStorage'
 
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
@@ -143,7 +143,7 @@ export default () => {
     }
   }, [])
 
-  if (options.showMinimap === 'never') return null
+  if (options.showMinimap === 'never' && options.showFullmap === 'never') return null
 
   return <div>
     <Minimap adapter={adapter} fullMap={fullMapOpened} toggleFullMap={toggleFullMap} />

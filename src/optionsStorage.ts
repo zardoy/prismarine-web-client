@@ -76,7 +76,8 @@ const defaultOptions = {
   /** Wether to popup sign editor on server action */
   autoSignEditor: true,
   wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
-  showMinimap: 'always' as 'always' | 'singleplayer' | 'never'
+  showMinimap: 'always' as 'always' | 'singleplayer' | 'never',
+  showFullmap: 'always' as 'always' | 'singleplayer' | 'never',
 }
 
 function getDefaultTouchControlsPositions () {

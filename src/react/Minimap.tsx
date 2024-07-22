@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react'
+import { options } from '../optionsStorage'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Fullmap from './Fullmap'
 
@@ -72,46 +73,48 @@ export default (
     }
   }, [adapter])
 
-  return fullMap ? <Fullmap
-    toggleFullMap={()=>{
-      toggleFullMap?.({ command: 'ui.toggleMap' })
-    }}
-    adapter={adapter}
-    drawer={drawerRef.current}
-    canvasRef={canvasRef}
-  />
-    : <div
-      className='minimap'
-      style={{
-        position: 'absolute',
-        right: '0px',
-        top: '0px',
-        padding: '5px 5px 0px 0px',
-      }}
-      onClick={() => {
+  return fullMap && (options.showFullmap === 'singleplayer' && localServer || options.showFullmap === 'always')
+    ? <Fullmap
+      toggleFullMap={()=>{
         toggleFullMap?.({ command: 'ui.toggleMap' })
       }}
-    >
-      <canvas style={{
-        transition: '0.5s',
-        transitionTimingFunction: 'ease-out',
-        borderRadius: '100px'
-      }}
-      width={80}
-      height={80}
-      ref={canvasRef}
-      ></canvas>
-      <canvas
+      adapter={adapter}
+      drawer={drawerRef.current}
+      canvasRef={canvasRef}
+    />
+    : options.showMinimap === 'singleplayer' && localServer || options.showMinimap === 'always'
+      ? <div
+        className='minimap'
         style={{
+          position: 'absolute',
+          right: '0px',
+          top: '0px',
+          padding: '5px 5px 0px 0px',
+        }}
+        onClick={() => {
+          toggleFullMap?.({ command: 'ui.toggleMap' })
+        }}
+      >
+        <canvas style={{
           transition: '0.5s',
           transitionTimingFunction: 'ease-out',
-          position: 'absolute',
-          left: '0px'
+          borderRadius: '100px'
         }}
         width={80}
         height={80}
-        ref={warpsAndPartsCanvasRef}
-      ></canvas>
-    </div>
+        ref={canvasRef}
+        ></canvas>
+        <canvas
+          style={{
+            transition: '0.5s',
+            transitionTimingFunction: 'ease-out',
+            position: 'absolute',
+            left: '0px'
+          }}
+          width={80}
+          height={80}
+          ref={warpsAndPartsCanvasRef}
+        ></canvas>
+      </div> : null
 }
 
