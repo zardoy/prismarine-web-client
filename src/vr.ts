@@ -2,6 +2,7 @@ import { VRButton } from 'three/examples/jsm/webxr/VRButton.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js'
 import { buttonMap as standardButtonsMap } from 'contro-max/build/gamepad'
+import * as THREE from 'three'
 import { activeModalStack, hideModal } from './globalState'
 
 export async function initVR () {
