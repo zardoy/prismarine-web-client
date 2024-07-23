@@ -113,6 +113,7 @@ async function main () {
   const chunk2 = new Chunk()
   chunk1.setBlockStateId(targetPos, 34)
   chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
+  //@ts-ignore
   const world = new World((chunkX, chunkZ) => {
     // if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
