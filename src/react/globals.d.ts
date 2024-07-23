@@ -45,3 +45,18 @@ interface PromiseConstructor {
 declare namespace JSX {
     interface IntrinsicElements { }
 }
+
+// keyboard api
+// https://gist.github.com/contigen/8da28f8bca4f05c9b50c5638521c8784
+
+interface Navigator {
+    readonly keyboard?: Keyboard
+}
+
+declare type KeyboardLayoutMap = readonly Map<string, string>
+
+declare interface Keyboard extends EventTarget {
+    getLayoutMap (): Promise<KeyboardLayoutMap>
+    lock (keyCode?: KeyCode): Promise<undefined>
+    unlock (): void
+}
