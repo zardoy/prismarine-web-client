@@ -1,8 +1,9 @@
+import { AllKeyCodes } from 'contro-max'
+import { parse } from 'mojangson'
 import triangle from './ps_icons/playstation_triangle_console_controller_gamepad_icon.svg'
 import square from './ps_icons/playstation_square_console_controller_gamepad_icon.svg'
 import circle from './ps_icons/circle_playstation_console_controller_gamepad_icon.svg'
 import cross from './ps_icons/cross_playstation_console_controller_gamepad_icon.svg'
-import { AllKeyCodes } from 'contro-max'
 
 
 type Props = {
@@ -13,17 +14,28 @@ type Props = {
 
 export default ({ type, val, isPS }: Props) => {
 
-  return <></>
+  return <>
+    {
+      type === 'keyboard' ? parseBindingName(val) : isPS && buttonsMap[val] ? buttonsMap[val] : val
+    }
+  </>
 }
 
-async function parseBindingName (binding: string | undefined) {
+async function parseBindingName (binding: string) {
   if (!binding) return ''
-  const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
 
+  const { keyboard } = (navigator as any)
+  const layoutMap = await keyboard.getLayoutMap()
+
+  const mapKey = key => layoutMap.get(key) || key
+
+  const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
   const parts = cut.includes('+') ? cut.split('+') : [cut]
+
   for (let i = 0; i < parts.length; i++) {
-    parts[i] = parts[i].split(/(?=[A-Z\d])/).reverse().join(' ')
+    parts[i] = mapKey(parts[i]).split(/(?=[A-Z\d])/).reverse().join(' ')
   }
+
   return parts.join(' + ')
 }
 
