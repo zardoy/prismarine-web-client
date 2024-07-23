@@ -2,18 +2,21 @@ import triangle from './ps_icons/playstation_triangle_console_controller_gamepad
 import square from './ps_icons/playstation_square_console_controller_gamepad_icon.svg'
 import circle from './ps_icons/circle_playstation_console_controller_gamepad_icon.svg'
 import cross from './ps_icons/cross_playstation_console_controller_gamepad_icon.svg'
+import { AllKeyCodes } from 'contro-max'
 
 
 type Props = {
-  type: 'keyboard' | 'gamepad'
+  type: 'keyboard' | 'gamepad',
+  val: AllKeyCodes,
+  isPS?: boolean
 }
 
-export default () => {
+export default ({ type, val, isPS }: Props) => {
 
   return <></>
 }
 
-const parseBindingName = (binding: string | undefined) => {
+async function parseBindingName (binding: string | undefined) {
   if (!binding) return ''
   const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
 
