@@ -8,6 +8,7 @@ import { openGithub, setLoadingScreenStatus } from '../utils'
 import { openFilePicker, copyFilesAsync, mkdirRecursive, openWorldDirectory, removeFileRecursiveAsync } from '../browserfs'
 
 import MainMenu from './MainMenu'
+import { DiscordButton } from './DiscordButton'
 
 // todo clean
 let disableAnimation = false
@@ -49,7 +50,7 @@ export default () => {
         }}
         githubAction={() => openGithub()}
         optionsAction={() => openOptionsMenu('main')}
-        discordAction={() => openURL('https://discord.gg/4Ucm684Fq3')}
+        linksButton={<DiscordButton />}
         openFileAction={e => {
           if (!!window.showDirectoryPicker && !e.shiftKey) {
             void openWorldDirectory()

@@ -14,7 +14,7 @@ interface Props {
   singleplayerAction?: Action
   optionsAction?: Action
   githubAction?: Action
-  discordAction?: Action
+  linksButton?: JSX.Element
   openFileAction?: Action
   mapsProvider?: string
 }
@@ -41,7 +41,7 @@ const refreshApp = async (failedUpdate = false) => {
 
 const httpsRegex = /^https?:\/\//
 
-export default ({ connectToServerAction, mapsProvider, singleplayerAction, optionsAction, githubAction, discordAction, openFileAction }: Props) => {
+export default ({ connectToServerAction, mapsProvider, singleplayerAction, optionsAction, githubAction, linksButton, openFileAction }: Props) => {
   const [versionStatus, setVersionStatus] = useState('')
   const [versionTitle, setVersionTitle] = useState('')
 
@@ -63,7 +63,6 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       }, () => { })
     }
   }, [])
-
 
   return (
     <div className={styles.root}>
@@ -124,12 +123,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
           >
             GitHub
           </ButtonWithTooltip>
-          <Button
-            style={{ width: '98px' }}
-            onClick={discordAction}
-          >
-            Discord
-          </Button>
+          {linksButton}
         </div>
       </div>
 
