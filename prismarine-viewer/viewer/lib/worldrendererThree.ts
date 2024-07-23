@@ -8,6 +8,14 @@ import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
 import { disposeObject } from './threeJsUtils'
+import { type threeJsWorkerProxyType } from 'prismarine-viewer/viewer/lib/threeJsWorker'
+import { useWorkerProxy } from 'prismarine-viewer/viewer/lib/workerProxy'
+
+async function imageToBlob (url: string): Promise<Blob> {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    return blob
+}
 
 export class WorldRendererThree extends WorldRendererCommon {
     outputFormat = 'threeJs' as const
@@ -17,6 +25,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     signsCache = new Map<string, any>()
     starField: StarField
     cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
+    workerProxy?: ReturnType<typeof useWorkerProxy<typeof threeJsWorkerProxyType>>
 
     get tilesRendered () {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -25,6 +34,19 @@ export class WorldRendererThree extends WorldRendererCommon {
     constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
         super(config)
         this.starField = new StarField(scene)
+
+        this.renderUpdateEmitter.addListener('textureDownloaded', async () => {
+            const rendererWorker = new Worker('./threeJsWorker.js')
+            this.workerProxy = useWorkerProxy<typeof threeJsWorkerProxyType>(rendererWorker)
+            const img: HTMLImageElement = this.downloadedTextureImage
+            const blob = await imageToBlob(img.src)
+            const newCanvas = document.createElement('canvas')
+            newCanvas.width = outerWidth * window.devicePixelRatio
+            newCanvas.height = outerHeight * window.devicePixelRatio
+            newCanvas.id = 'viewer-canvas'
+            document.body.appendChild(newCanvas)
+            this.workerProxy.canvas(newCanvas.transferControlToOffscreen(), blob)
+        })
     }
 
     timeUpdated (newTime: number): void {
@@ -60,6 +82,9 @@ export class WorldRendererThree extends WorldRendererCommon {
         }
     }
 
+    lastUpdate = 0
+    updates = [] as number[]
+
     handleWorkerMessage (data: any): void {
         if (data.type !== 'geometry') return
         let object: THREE.Object3D = this.sectionObjects[data.key]
@@ -71,6 +96,9 @@ export class WorldRendererThree extends WorldRendererCommon {
 
         const chunkCoords = data.key.split(',')
         if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length || !this.active) return
+
+        this.updates.push(Math.floor(performance.now() - this.lastUpdate))
+        this.lastUpdate = performance.now()
 
         // if (!this.initialChunksLoad && this.enableChunksLoadDelay) {
         //   const newPromise = new Promise(resolve => {
@@ -85,6 +113,19 @@ export class WorldRendererThree extends WorldRendererCommon {
         //     await promise
         //   }
         // }
+
+        this.workerProxy?.transfer(data.geometry.positions.buffer, data.geometry.normals.buffer, data.geometry.uvs.buffer, data.geometry.colors.buffer).addGeometry({
+            x: data.geometry.sx,
+            y: data.geometry.sy,
+            z: data.geometry.sz
+        }, {
+            positions: data.geometry.positions,
+            normals: data.geometry.normals,
+            uvs: data.geometry.uvs,
+            colors: data.geometry.colors,
+            indices: data.geometry.indices,
+        })
+        if (!false) return
 
         const geometry = new THREE.BufferGeometry()
         geometry.setAttribute('position', new THREE.BufferAttribute(data.geometry.positions, 3))
@@ -158,12 +199,14 @@ export class WorldRendererThree extends WorldRendererCommon {
             new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
         }
         this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+        const posToObj = p => ({ x: p.x, y: p.y, z: p.z })
+        this.workerProxy?.updateCamera(pos ?? posToObj(this.camera.position), posToObj(this.camera.rotation))
     }
 
     render () {
         tweenJs.update()
         const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
-        this.renderer.render(this.scene, cam)
+        // this.renderer.render(this.scene, cam)
     }
 
     renderSign (position: Vec3, rotation: number, isWall: boolean, isHanging: boolean, blockEntity) {
@@ -292,6 +335,7 @@ export class WorldRendererThree extends WorldRendererCommon {
 
         this.cleanChunkTextures(x, z)
         for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+            this.workerProxy?.addGeometry({ x, y, z })
             this.setSectionDirty(new Vec3(x, y, z), false)
             const key = `${x},${y},${z}`
             const mesh = this.sectionObjects[key]
