@@ -275,6 +275,7 @@ const setOtherTexturesCss = async () => {
   const basePath = await getActiveTexturepackBasePath()
   const iconsPath = basePath && `${basePath}/assets/minecraft/textures/gui/icons.png`
   const widgetsPath = basePath && `${basePath}/assets/minecraft/textures/gui/widgets.png`
+  const barsPath = basePath && `${basePath}/assets/minecraft/textures/gui/bars.png`
   // TODO! fallback to default
   const setCustomCss = async (path: string | null, varName: string) => {
     if (path && await existsAsync(path)) {
@@ -287,6 +288,7 @@ const setOtherTexturesCss = async () => {
   }
   await setCustomCss(iconsPath, '--gui-icons')
   await setCustomCss(widgetsPath, '--widgets-gui-atlas')
+  await setCustomCss(barsPath, '--bars-gui-atlas')
 }
 
 const updateTextures = async () => {
