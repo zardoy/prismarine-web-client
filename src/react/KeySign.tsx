@@ -1,5 +1,5 @@
 import { AllKeyCodes } from 'contro-max'
-import { parse } from 'mojangson'
+import { useState, useEffect } from 'react'
 import triangle from './ps_icons/playstation_triangle_console_controller_gamepad_icon.svg'
 import square from './ps_icons/playstation_square_console_controller_gamepad_icon.svg'
 import circle from './ps_icons/circle_playstation_console_controller_gamepad_icon.svg'
@@ -13,11 +13,19 @@ type Props = {
 }
 
 export default ({ type, val, isPS }: Props) => {
+  const [bindName, setBindName] = useState('')
+
+  async function setBind () {
+    const bind = type === 'keyboard' ? await parseBindingName(val) : isPS && buttonsMap[val] ? buttonsMap[val] : val
+    setBindName(bind)
+  }
+
+  useEffect(() => {
+    void setBind()
+  }, [type, val, isPS])
 
   return <>
-    {
-      type === 'keyboard' ? parseBindingName(val) : isPS && buttonsMap[val] ? buttonsMap[val] : val
-    }
+    { bindName }
   </>
 }
 
@@ -25,7 +33,7 @@ async function parseBindingName (binding: string) {
   if (!binding) return ''
 
   const { keyboard } = (navigator as any)
-  const layoutMap = await keyboard.getLayoutMap()
+  const layoutMap = await keyboard?.getLayoutMap?.() ?? new Map()
 
   const mapKey = key => layoutMap.get(key) || key
 
