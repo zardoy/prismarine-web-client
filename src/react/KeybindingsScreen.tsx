@@ -8,7 +8,7 @@ import KeybindingsCustom, { CustomCommandsMap } from './KeybindingsCustom'
 import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
 import Screen from './Screen'
-import KeySign from './KeySign'
+import Keybinding from './Keybinding'
 import styles from './KeybindingsScreen.module.css'
 
 
@@ -302,7 +302,7 @@ export const ButtonWithMatchesAlert = ({
       onClick={() => handleClick(group, action, index, inputType)}
       className={`${styles.button}`}
     >
-      <KeySign type={inputType} val={buttonSign as AllKeyCodes} />
+      <Keybinding type={inputType} val={buttonSign as AllKeyCodes} />
     </Button>
     {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(
       key => Object.keys(bindsMap[inputType]).includes(key)
@@ -372,4 +372,3 @@ const parseActionName = (action: string) => {
   parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
   return parts.join(' ')
 }
-

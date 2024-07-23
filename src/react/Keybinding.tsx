@@ -16,6 +16,7 @@ export default ({ type, val, isPS }: Props) => {
   const [bindName, setBindName] = useState('')
 
   async function setBind () {
+    setBindName(val)
     const bind = type === 'keyboard' ? await parseBindingName(val) : isPS && buttonsMap[val] ? buttonsMap[val] : val
     setBindName(bind)
   }
@@ -25,14 +26,14 @@ export default ({ type, val, isPS }: Props) => {
   }, [type, val, isPS])
 
   return <>
-    { bindName }
+    {bindName}
   </>
 }
 
 async function parseBindingName (binding: string) {
   if (!binding) return ''
 
-  const { keyboard } = (navigator as any)
+  const { keyboard } = navigator
   const layoutMap = await keyboard?.getLayoutMap?.() ?? new Map()
 
   const mapKey = key => layoutMap.get(key) || key
