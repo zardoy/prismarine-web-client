@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 // appReplacableResources
-import { appReplacableResources } from '../resources'
+import { appReplacableResources } from '../../generated/resources'
 
 export default ({ children }): React.ReactElement => {
   useEffect(() => {

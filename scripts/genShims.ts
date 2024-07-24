@@ -38,4 +38,4 @@ for (const resource of appReplacableResources) {
 
 resourcesContent += '}'
 
-fs.writeFileSync('./src/resources.ts', headerImports + '\n' + resourcesContent, 'utf8')
+fs.writeFileSync('./generated/resources.ts', headerImports + '\n' + resourcesContent, 'utf8')
