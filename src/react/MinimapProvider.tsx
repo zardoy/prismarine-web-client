@@ -32,6 +32,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return 'rgb(200, 200, 200)'
     const block = viewer.world.highestBlocks[`${x},${z}`]
     const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : 'rgb(200, 200, 200)'
+    if (!block) return color
 
     // shadows
     const upKey = `${x},${z - 1}`
