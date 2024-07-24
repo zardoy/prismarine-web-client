@@ -10,7 +10,7 @@ const __dirname = dirname(fileURLToPath(new URL(import.meta.url)))
 const mesherSharedPlugins = [
   {
     name: 'minecraft-data',
-    setup(build) {
+    setup (build) {
       build.onLoad({
         filter: /data[\/\\]pc[\/\\]common[\/\\]legacy.json$/,
       }, async (args) => {

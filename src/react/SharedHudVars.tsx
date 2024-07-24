@@ -1,6 +1,7 @@
 import { CSSProperties, useEffect } from 'react'
 import icons from 'mc-assets/dist/other-textures/1.19/gui/icons.png'
 import widgets from 'mc-assets/dist/other-textures/latest/gui/widgets.png'
+import bars from 'mc-assets/dist/other-textures/latest/gui/bars.png'
 
 export default ({ children }): React.ReactElement => {
   useEffect(() => {
@@ -11,6 +12,7 @@ export default ({ children }): React.ReactElement => {
       html {
         --widgets-gui-atlas: url(${widgets});
         --gui-icons: url(${icons}), url(${icons});
+        --bars-gui-atlas: url(${bars});
         --hud-bottom-max: 0px;
         --hud-bottom-raw: max(env(safe-area-inset-bottom), var(--hud-bottom-max));
         --safe-area-inset-bottom: calc(var(--hud-bottom-raw) / 2);
