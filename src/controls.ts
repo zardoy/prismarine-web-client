@@ -14,12 +14,11 @@ import { openPlayerInventory } from './inventoryWindows'
 import { chatInputValueGlobal } from './react/Chat'
 import { fsState } from './loadSave'
 import { customCommandsConfig } from './customCommands'
-import { CustomCommand } from './react/KeybindingsCustom'
+import type { CustomCommand } from './react/KeybindingsCustom'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
 import { getItemFromBlock } from './botUtils'
 import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
-import { updateBinds } from './react/KeybindingsScreenProvider'
 import { completeTexturePackInstall, resourcePackState } from './resourcePack'
 import { showNotification } from './react/NotificationProvider'
 
@@ -700,3 +699,30 @@ window.addEventListener('keydown', (e) => {
   }
 })
 // #endregion
+
+export function updateBinds (commands: any) {
+  contro.inputSchema.commands.custom = Object.fromEntries(Object.entries(commands?.custom ?? {}).map(([key, value]) => {
+    return [key, {
+      keys: [],
+      gamepad: [],
+      type: '',
+      inputs: []
+    }]
+  }))
+
+  for (const [group, actions] of Object.entries(commands)) {
+    contro.userConfig![group] = Object.fromEntries(Object.entries(actions).map(([key, value]) => {
+      const newValue = {
+        keys: value?.keys ?? undefined,
+        gamepad: value?.gamepad ?? undefined,
+      }
+
+      if (group === 'custom') {
+        newValue['type'] = (value).type
+        newValue['inputs'] = (value).inputs
+      }
+
+      return [key, newValue]
+    }))
+  }
+}

@@ -115,12 +115,12 @@ body {
 
 @font-face {
   font-family: minecraft;
-  src: url(minecraftia.woff);
+  src: url(../assets/minecraftia.woff);
 }
 
 @font-face {
   font-family: mojangles;
-  src: url(mojangles.ttf);
+  src: url(../assets/mojangles.ttf);
 }
 
 #ui-root {

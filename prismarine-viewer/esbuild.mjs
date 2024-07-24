@@ -1,7 +1,7 @@
+//@ts-check
 import * as fs from 'fs'
 import fsExtra from 'fs-extra'
 
-//@ts-check
 import * as esbuild from 'esbuild'
 import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 import path, { dirname, join } from 'path'
@@ -57,7 +57,7 @@ const buildOptions = {
   plugins: [
     {
       name: 'minecraft-data',
-      setup (build) {
+      setup(build) {
         build.onLoad({
           filter: /minecraft-data[\/\\]data.js$/,
         }, () => {

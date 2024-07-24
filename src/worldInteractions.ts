@@ -289,7 +289,10 @@ class WorldInteraction {
       } else if (!stop) {
         const offhand = activate ? false : activatableItems(bot.inventory.slots[45]?.name ?? '')
         bot.activateItem(offhand) // todo offhand
-        customEvents.emit('activateItem', offhand ? bot.inventory.slots[45] : bot.heldItem, offhand ? 45 : bot.quickBarSlot, offhand)
+        const item = offhand ? bot.inventory.slots[45] : bot.heldItem
+        if (item) {
+          customEvents.emit('activateItem', item, offhand ? 45 : bot.quickBarSlot, offhand)
+        }
         itemBeingUsed.name = (offhand ? bot.inventory.slots[45]?.name : bot.heldItem?.name) ?? null
         itemBeingUsed.hand = offhand ? 1 : 0
       }

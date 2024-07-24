@@ -355,7 +355,7 @@ export class EntityMesh {
       const texture = overrides.textures?.[name] ?? e.textures[name]
       if (!texture) continue
       // console.log(JSON.stringify(jsonModel, null, 2))
-      const mesh = getMesh(texture.replace('textures', 'textures/' + version) + '.png', jsonModel, overrides)
+      const mesh = getMesh(texture + '.png', jsonModel, overrides,)
       mesh.name = `geometry_${name}`
       this.mesh.add(mesh)
 

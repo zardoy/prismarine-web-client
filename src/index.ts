@@ -21,7 +21,7 @@ import PrismarineBlock from 'prismarine-block'
 import PrismarineItem from 'prismarine-item'
 
 import { options, watchValue } from './optionsStorage'
-import './reactUi.jsx'
+import './reactUi'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
@@ -285,6 +285,9 @@ async function connect (connectOptions: ConnectOptions) {
   miscUiState.flyingSquid = singleplayer || p2pMultiplayer
   const { renderDistance: renderDistanceSingleplayer, multiplayerRenderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
+  if (connectOptions.proxy?.startsWith(':')) {
+    connectOptions.proxy = `${location.protocol}//${location.hostname}${connectOptions.proxy}`
+  }
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
   let { username } = connectOptions
 

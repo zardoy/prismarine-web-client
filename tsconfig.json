@@ -20,7 +20,40 @@
         // this the only options that allows smooth transition from js to ts (by not dropping types from js files)
         // however might need to consider includeing *only needed libraries* instead of using this
         "maxNodeModuleJsDepth": 1,
-        "strictNullChecks": true
+        "strictNullChecks": true,
+        "baseUrl": ".",
+        "paths": {
+            "minecraft-protocol": [
+                "minecraft-protocol/src/index.js"
+            ],
+            "prismarine-auth": [
+                "./src/shims/empty.ts"
+            ],
+            "three": [
+                "three/src/Three.js"
+            ],
+            "perf_hooks": [
+                "./src/shims/perf_hooks_replacement.js",
+            ],
+            "crypto": [
+                "./src/shims/crypto.js",
+            ],
+            "dns": [
+                "./src/shims/dns.js",
+            ],
+            "yggdrasil": [
+                "./src/shims/yggdrasilReplacement.ts",
+            ],
+            "extra-textures/*": [
+                "./assets/extra-textures/*"
+            ],
+            "minecraftia.woff": [
+                "./assets/minecraftia.woff"
+            ],
+            "mojangles.ttf": [
+                "./assets/mojangles.ttf"
+            ]
+        }
     },
     "include": [
         "src",

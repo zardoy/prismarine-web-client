@@ -58,13 +58,10 @@ exports.getSwAdditionalEntries = () => {
         '*.woff',
         'mesher.js',
         'worldSaveWorker.js',
-        // todo-low preload entity atlas?
-        `textures/${singlePlayerVersion}.png`,
-        `textures/1.16.4/entity/squid.png`,
+        `textures/**`,
+        'static/**',
     ]
     const filesNeedsCacheKey = [
-        'index.js',
-        'index.css',
         'mesher.js',
         'worldSaveWorker.js',
     ]
