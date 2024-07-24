@@ -1,6 +1,5 @@
 /// <reference types="wicg-file-system-access" />
 
-declare const THREE: typeof import('three')
 // todo make optional
 declare const bot: Omit<import('mineflayer').Bot, 'world' | '_client'> & {
     world: Omit<import('prismarine-world').world.WorldSync, 'getBlock'> & {

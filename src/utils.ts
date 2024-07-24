@@ -8,8 +8,7 @@ export const goFullscreen = async (doToggle = false) => {
     // todo display a message or repeat?
     await document.documentElement.requestFullscreen().catch(() => { })
     // request full keyboard access
-    //@ts-expect-error
-    navigator.keyboard?.lock?.(['Escape', 'KeyW'])
+    await navigator.keyboard?.lock?.(['Escape', 'KeyW'])
   } else if (doToggle) {
     await document.exitFullscreen().catch(() => { })
   }

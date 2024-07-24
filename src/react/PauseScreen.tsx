@@ -20,7 +20,7 @@ import { showOptionsModal } from './SelectOption'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './PauseScreen.module.css'
-import { DropdownButton, DropdownButtonItem } from './MainMenu'
+import { DiscordButton } from './DiscordButton'
 
 export const saveToBrowserMemory = async () => {
   setLoadingScreenStatus('Saving world')
@@ -104,17 +104,6 @@ export default () => {
     }
   }
 
-  const links: DropdownButtonItem[] = [
-    {
-      text: 'link 1',
-      clickHandler: () => openURL('https://discord.gg/4Ucm684Fq3')
-    },
-    {
-      text: 'link 2',
-      clickHandler: () => openURL('https://discord.com/')
-    }
-  ]
-
   if (!isModalActive) return null
   return <Screen title='Game Menu'>
     <Button
@@ -126,7 +115,7 @@ export default () => {
       <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
       <div className={styles.row}>
         <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL!)}>GitHub</Button>
-        <DropdownButton text="Discord" links={links} />
+        <DiscordButton />
       </div>
       <Button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</Button>
       {singleplayer ? (

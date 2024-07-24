@@ -1,5 +1,7 @@
 //@ts-check
 
+import * as THREE from 'three'
+
 // wouldn't better to create atlas instead?
 import destroyStage0 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_0.png'
 import destroyStage1 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_1.png'

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
+import * as THREE from 'three'
 import { getFixedFilesize } from '../downloadAndOpenFile'
 import { options } from '../optionsStorage'
 import worldInteractions from '../worldInteractions'

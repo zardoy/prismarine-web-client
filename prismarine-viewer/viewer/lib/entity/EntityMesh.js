@@ -1,4 +1,5 @@
 //@ts-check
+import * as THREE from 'three'
 import { OBJLoader } from 'three-stdlib'
 import entities from './entities.json'
 import { externalModels } from './objModels'
@@ -87,11 +88,11 @@ const elemFaces = {
   }
 }
 
-function dot (a, b) {
+function dot(a, b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
-function addCube (attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
+function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
   const cubeRotation = new THREE.Euler(0, 0, 0)
   if (cube.rotation) {
     cubeRotation.x = -cube.rotation[0] * Math.PI / 180
@@ -131,7 +132,7 @@ function addCube (attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
   }
 }
 
-function getMesh (texture, jsonModel, overrides = {}) {
+function getMesh(texture, jsonModel, overrides = {}) {
   const bones = {}
 
   const geoData = {
@@ -294,7 +295,7 @@ const getEntity = (name) => {
 // }
 
 export class EntityMesh {
-  constructor (version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
+  constructor(version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
     let originalType = type
     const mappedValue = temporaryMap[type]
     if (mappedValue) type = mappedValue
@@ -367,7 +368,7 @@ export class EntityMesh {
     }
   }
 
-  static getStaticData (name) {
+  static getStaticData(name) {
     name = temporaryMap[name] || name
     if (externalModels[name]) {
       return {

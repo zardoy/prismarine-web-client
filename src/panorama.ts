@@ -2,6 +2,7 @@
 
 import { join } from 'path'
 import fs from 'fs'
+import * as THREE from 'three'
 import { subscribeKey } from 'valtio/utils'
 import { EntityMesh } from 'prismarine-viewer/viewer/lib/entity/EntityMesh'
 import { fromTexturePackPath, resourcePackState } from './texturePack'
