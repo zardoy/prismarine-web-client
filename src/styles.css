@@ -30,11 +30,7 @@ html {
   color: white;
 }
 
-body {
-  --title-gui: url('mc-assets/dist/other-textures/latest/gui/title/minecraft.png');
-}
-
-body.disable-assets {
+html.disable-assets {
   --widgets-gui-atlas: none;
   --title-gui: none;
 }

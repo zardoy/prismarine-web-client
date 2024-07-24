@@ -48,6 +48,13 @@ export default defineConfig({
             net: 'net-browserify',
             'minecraft-protocol$': 'minecraft-protocol/src/index.js',
             'buffer$': 'buffer',
+            // avoid bundling, not used on client side
+            'prismarine-auth': './src/shims/empty.ts',
+            perf_hooks: './src/shims/perf_hooks_replacement.js',
+            crypto: './src/shims/crypto.js',
+            dns: './src/shims/dns.js',
+            yggdrasil: './src/shims/yggdrasilReplacement.ts',
+            'extra-textures': './assets/extra-textures/',
         },
         entry: {
             index: './src/index.ts',
@@ -77,7 +84,7 @@ export default defineConfig({
             'Cross-Origin-Opener-Policy': 'same-origin',
             'Cross-Origin-Embedder-Policy': 'require-corp',
         },
-        open: true,
+        open: process.env.OPEN_BROWSER === 'true',
         proxy: {
             '/api': 'http://localhost:8080',
         },
@@ -96,7 +103,9 @@ export default defineConfig({
                     }
                     fsExtra.copySync('./node_modules/mc-assets/dist/other-textures/latest/entity', './dist/textures/entity')
                     const configJson = JSON.parse(fs.readFileSync('./config.json', 'utf8'))
-                    configJson.defaultProxy = ':8080'
+                    if (dev) {
+                        configJson.defaultProxy = ':8080'
+                    }
                     fs.writeFileSync('./dist/config.json', JSON.stringify(configJson), 'utf8')
                     childProcess.execSync('node ./scripts/prepareData.mjs', { stdio: 'inherit' })
                     // childProcess.execSync('./scripts/prepareSounds.mjs', { stdio: 'inherit' })
@@ -137,9 +146,10 @@ export default defineConfig({
         rspack (config, { addRules, appendPlugins, rspack }) {
             appendPlugins(new rspack.NormalModuleReplacementPlugin(/data/, (resource) => {
                 let absolute: string
-                absolute = path.join(resource.context, resource.request)
-                if (resource.request.includes('minecraft-data/data/pc/1.')) {
-                    console.log('Error: incompatible resource', resource.request, resource.contextInfo.issuer)
+                const request = resource.request.replaceAll('\\', '/')
+                absolute = path.join(resource.context, request).replaceAll('\\', '/')
+                if (request.includes('minecraft-data/data/pc/1.')) {
+                    console.log('Error: incompatible resource', request, resource.contextInfo.issuer)
                     process.exit(1)
                     // throw new Error(`${resource.request} was requested by ${resource.contextInfo.issuer}`)
                 }
