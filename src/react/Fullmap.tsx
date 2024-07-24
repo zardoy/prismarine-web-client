@@ -60,7 +60,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       backgroundColor: 'rgba(0, 0, 0, 0.4)'
     }}
   >
-    <div
+    { window.screen.width > 500 ? <div
       style={{
         position: 'absolute',
         width: '100%',
@@ -69,7 +69,16 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       }}
       onClick={toggleFullMap}
     ></div>
-
+      : <Button
+        icon={'close-box'}
+        onClick={toggleFullMap}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          zIndex: 1
+        }}
+      /> }
     <TransformWrapper
       limitToBounds={false}
       ref={zoomRef}

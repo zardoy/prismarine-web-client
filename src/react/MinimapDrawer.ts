@@ -81,7 +81,7 @@ export class MinimapDrawer {
     )
 
     this.lastBotPos = botPos
-    this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z, full)
+    void this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z, full)
     if (!full) this.drawPartsOfWorld()
     this.drawWarps(botPos, full)
   }
