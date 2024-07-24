@@ -5,6 +5,7 @@ import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'reac
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Button from './Button'
 import Input from './Input'
+import './Fullmap.css'
 
 
 type FullmapProps = {
@@ -48,16 +49,6 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
     updateGrid()
   }, [])
 
-  // useEffect(() => {
-  //   const wrapper = zoomRef.current?.instance.wrapperComponent
-  //   if (!wrapper) return
-  //   wrapper.style.width = `${Math.min(window.innerHeight, window.innerWidth) / 3}px`
-  //   wrapper.style.aspectRatio = '1'
-  //
-  //
-  //   updateGrid()
-  // }, [zoomRef.current])
-
   return <div
     style={{
       position: 'absolute',
@@ -66,7 +57,6 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      border: '2px solid red',
       backgroundColor: 'rgba(0, 0, 0, 0.4)'
     }}
   >
@@ -103,11 +93,9 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       }}
     >
       <TransformComponent
+        wrapperClass={'map'}
         wrapperStyle={{
-          border: '1px solid black',
           willChange: 'transform',
-          width: '70%',
-          height: '80%'
         }}
       >
         {[...grid].map((cellCoords) => {
