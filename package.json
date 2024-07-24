@@ -60,7 +60,6 @@
     "classnames": "^2.5.1",
     "compression": "^1.7.4",
     "cors": "^2.8.5",
-    "cypress-plugin-snapshots": "^1.4.4",
     "debug": "^4.3.4",
     "diff-match-patch": "^1.0.5",
     "eruda": "^3.0.1",
@@ -68,7 +67,7 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
     "filesize": "^10.0.12",
-    "flying-squid": "file:../space-squid",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.34",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "jszip": "^3.10.1",
@@ -112,6 +111,7 @@
     "@rsbuild/plugin-node-polyfill": "^1.0.3",
     "@rsbuild/plugin-type-check": "1.0.1-beta.4",
     "@rsbuild/plugin-typed-css-modules": "^1.0.1",
+    "@rsbuild/plugin-react": "^1.0.1-beta.4",
     "@storybook/addon-essentials": "^7.4.6",
     "@storybook/addon-links": "^7.4.6",
     "@storybook/blocks": "^7.4.6",
@@ -131,7 +131,6 @@
     "constants-browserify": "^1.0.0",
     "contro-max": "^0.1.8",
     "crypto-browserify": "^3.12.0",
-    "cypress": "^10.11.0",
     "cypress-esbuild-preprocessor": "^1.0.2",
     "eslint": "^8.50.0",
     "eslint-config-zardoy": "^0.2.17",
@@ -160,6 +159,8 @@
     "yaml": "^2.3.2"
   },
   "optionalDependencies": {
+    "cypress": "^10.11.0",
+    "cypress-plugin-snapshots": "^1.4.4",
     "systeminformation": "^5.21.22"
   },
   "pnpm": {
@@ -182,7 +183,8 @@
     "patchedDependencies": {
       "minecraft-protocol@1.47.0": "patches/minecraft-protocol@1.47.0.patch",
       "three@0.154.0": "patches/three@0.154.0.patch",
-      "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch"
+      "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch",
+      "mineflayer-item-map-downloader@1.2.0": "patches/mineflayer-item-map-downloader@1.2.0.patch"
     }
   },
   "packageManager": "pnpm@9.0.4"

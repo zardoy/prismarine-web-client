@@ -6,7 +6,9 @@ WORKDIR /app
 COPY . /app
 # install pnpm
 RUN npm i -g pnpm@9.0.4
-RUN pnpm install
+# TODO need flat --no-root-optional
+RUN node ./scripts/dockerPrepare.mjs
+RUN pnpm i
 
 # TODO for development
 # EXPOSE 9090
@@ -29,4 +31,4 @@ RUN npm i -g pnpm@9.0.4
 RUN npm init -yp
 RUN pnpm i express github:zardoy/prismarinejs-net-browserify compression cors
 EXPOSE 8080
-ENTRYPOINT ["node", "server.js"]
+ENTRYPOINT ["node", "server.js", "--prod"]

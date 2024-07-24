@@ -109,7 +109,13 @@ export default defineConfig({
                         await execAsync('pnpm run build-mesher')
                     }
                     fs.writeFileSync('./dist/version.txt', buildingVersion, 'utf-8')
-                    if (!dev) {
+                    console.timeEnd('total-prep')
+                }
+                if (!dev) {
+                    build.onBeforeBuild(async () => {
+                        await prep()
+                    })
+                    build.onAfterBuild(async () => {
                         const { count, size, warnings } = await generateSW({
                             // dontCacheBustURLsMatching: [new RegExp('...')],
                             globDirectory: 'dist',
@@ -119,12 +125,6 @@ export default defineConfig({
                             globPatterns: [],
                             swDest: 'dist/service-worker.js',
                         })
-                    }
-                    console.timeEnd('total-prep')
-                }
-                if (!dev) {
-                    build.onBeforeBuild(async () => {
-                        await prep()
                     })
                 }
                 build.onBeforeStartDevServer(prep)
