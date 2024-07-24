@@ -61,7 +61,7 @@ export default (
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
     }
-  }, [canvasRef.current, fullMap])
+  }, [canvasRef.current])
 
   useEffect(() => {
     if (warpsAndPartsCanvasRef.current && !warpsDrawerRef.current) {
