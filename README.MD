@@ -68,7 +68,7 @@ There are many many settings, that are not exposed in the UI yet. You can find o
 
 ### Console
 
-To open the console, press `F12`, or if you are on mobile, you can type `#debug` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
+To open the console, press `F12`, or if you are on mobile, you can type `#dev` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
 
 ### Development & Debugging
 
