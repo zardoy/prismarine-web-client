@@ -54,7 +54,6 @@ export default defineConfig({
             crypto: './src/shims/crypto.js',
             dns: './src/shims/dns.js',
             yggdrasil: './src/shims/yggdrasilReplacement.ts',
-            'extra-textures': './assets/extra-textures/',
         },
         entry: {
             index: './src/index.ts',
@@ -76,9 +75,10 @@ export default defineConfig({
     server: {
         // strictPort: true,
         htmlFallback: false,
-        publicDir: {
-            name: 'assets',
-        },
+        publicDir: false,
+        // publicDir: {
+        //     name: 'assets',
+        // },
         headers: {
             // enable shared array buffer
             'Cross-Origin-Opener-Policy': 'same-origin',
@@ -102,6 +102,10 @@ export default defineConfig({
                         childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })
                     }
                     fsExtra.copySync('./node_modules/mc-assets/dist/other-textures/latest/entity', './dist/textures/entity')
+                    fsExtra.copySync('./assets/background', './dist/background')
+                    fs.copyFileSync('./assets/favicon.png', './dist/favicon.png')
+                    fs.copyFileSync('./assets/manifest.json', './dist/manifest.json')
+                    fs.copyFileSync('./assets/loading-bg.jpg', './dist/loading-bg.jpg')
                     const configJson = JSON.parse(fs.readFileSync('./config.json', 'utf8'))
                     if (dev) {
                         configJson.defaultProxy = ':8080'
@@ -132,7 +136,7 @@ export default defineConfig({
                             clientsClaim: true,
                             additionalManifestEntries: getSwAdditionalEntries(),
                             globPatterns: [],
-                            swDest: 'dist/service-worker.js',
+                            swDest: './dist/service-worker.js',
                         })
                     })
                 }
@@ -160,6 +164,10 @@ export default defineConfig({
             addRules([
                 {
                     test: /\.obj$/,
+                    type: 'asset/source',
+                },
+                {
+                    test: /\.mp3$/,
                     type: 'asset/source',
                 }
             ])

@@ -34,7 +34,7 @@ const possiblyLoadPanoramaFromResourcePack = async (file) => {
     }
   }
   if (base64Texture) return `data:image/png;base64,${base64Texture}`
-  else return join('extra-textures/background', file)
+  else return join('background', file)
 }
 
 const updateResourcePackSupportPanorama = async () => {

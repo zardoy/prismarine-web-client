@@ -43,14 +43,10 @@ exports.copyFilesDev = () => {
 
 exports.getSwAdditionalEntries = () => {
     // need to be careful with this
-    const singlePlayerVersion = defaultLocalServerOptions.version
     const filesToCachePatterns = [
         'index.html',
-        'index.js',
-        'index.css',
-        'favicon.ico',
         `mc-data/${defaultLocalServerOptions.versionMajor}.js`,
-        'extra-textures/**',
+        'background/**',
         // todo-low copy from assets
         '*.mp3',
         '*.ttf',
@@ -63,6 +59,7 @@ exports.getSwAdditionalEntries = () => {
         'static/**/!(*.map)',
     ]
     const filesNeedsCacheKey = [
+        'index.html',
         'mesher.js',
         'worldSaveWorker.js',
     ]
@@ -82,6 +79,9 @@ exports.getSwAdditionalEntries = () => {
             }
             output.push({ url, revision })
         }
+    }
+    if (output.length > 40) {
+        throw new Error(`SW: Ios has a limit of 40 urls to cache (now ${output.length})`)
     }
     console.log(`Got ${output.length} additional sw entries to cache`)
     return output

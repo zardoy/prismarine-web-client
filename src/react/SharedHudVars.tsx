@@ -12,7 +12,7 @@ export default ({ children }): React.ReactElement => {
       html {
         ${Object.values(appReplacableResources).filter(r => r.cssVar).map(r => {
       const repeat = 'cssVarRepeat' in r ? r.cssVarRepeat : 1
-      return `${r.cssVar}:${` url('${r.content}')`.repeat(repeat)};`
+      return `${r.cssVar}: ${repeatArr(`url('${r.content}')`, repeat).join(', ')};`
     }).join('\n')}
 
         --hud-bottom-max: 0px;
@@ -27,4 +27,9 @@ export default ({ children }): React.ReactElement => {
   }, [])
 
   return children
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-constraint
+const repeatArr = <T extends any> (item: T, times: number): T[] => {
+  return Array.from({ length: times }, () => item)
 }

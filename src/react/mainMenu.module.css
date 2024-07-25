@@ -46,7 +46,7 @@
     position: absolute;
     top: 37px;
     left: calc(88px + 5px);
-    background-image: url('extra-textures/edition.png');
+    background-image: url('../../assets/edition.png');
     background-size: 128px;
     width: 88px;
     height: 14px;
