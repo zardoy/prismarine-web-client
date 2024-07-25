@@ -22,7 +22,7 @@ fs.writeFileSync('./generated/minecraft-data-data.js', mcDataContents, 'utf8')
 // app resources
 
 let headerImports = ''
-let resourcesContent = 'export const appReplacableResources = {'
+let resourcesContent = 'export const appReplacableResources: { [key: string]: { content: any, resourcePackPath: string, cssVar?: string, cssVarRepeat?: number } } = {\n'
 
 for (const resource of appReplacableResources) {
   const { path, ...rest } = resource
@@ -31,6 +31,7 @@ for (const resource of appReplacableResources) {
   resourcesContent += `
   '${name}': {
     content: ${name},
+    resourcePackPath: 'minecraft/textures/${path.slice(path.indexOf('other-textures/') + 'other-textures/'.length).split('/').slice(1).join('/')}',
     ...${JSON.stringify(rest)}
   },
 `

@@ -11,7 +11,7 @@ export default ({ children }): React.ReactElement => {
     const css = /* css */`
       html {
         ${Object.values(appReplacableResources).filter(r => r.cssVar).map(r => {
-      const repeat = 'cssVarRepeat' in r ? r.cssVarRepeat : 1
+      const repeat = r.cssVarRepeat ?? 1
       return `${r.cssVar}: ${repeatArr(`url('${r.content}')`, repeat).join(', ')};`
     }).join('\n')}
 

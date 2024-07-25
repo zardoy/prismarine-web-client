@@ -9,6 +9,7 @@ import { showNotification } from './react/NotificationProvider'
 import { options } from './optionsStorage'
 import { showOptionsModal } from './react/SelectOption'
 import { appStatusState } from './react/AppStatusProvider'
+import { appReplacableResources } from './generated/resources'
 
 export const resourcePackState = proxy({
   resourcePackInstalled: false,
@@ -295,23 +296,24 @@ export const onAppLoad = () => {
 
 const setOtherTexturesCss = async () => {
   const basePath = await getActiveTexturepackBasePath()
-  const iconsPath = basePath && `${basePath}/assets/minecraft/textures/gui/icons.png`
-  const widgetsPath = basePath && `${basePath}/assets/minecraft/textures/gui/widgets.png`
-  const barsPath = basePath && `${basePath}/assets/minecraft/textures/gui/bars.png`
   // TODO! fallback to default
-  const setCustomCss = async (path: string | null, varName: string) => {
+  const setCustomCss = async (path: string | null, varName: string, repeat = 1) => {
     if (path && await existsAsync(path)) {
       const contents = await fs.promises.readFile(path, 'base64')
       const dataUrl = `data:image/png;base64,${contents}`
-      document.body.style.setProperty(varName, `url(${dataUrl})`)
+      document.body.style.setProperty(varName, repeatArr(`url(${dataUrl})`, repeat).join(', '))
     } else {
       document.body.style.setProperty(varName, '')
     }
   }
-  await setCustomCss(iconsPath, '--gui-icons')
-  await setCustomCss(widgetsPath, '--widgets-gui-atlas')
-  await setCustomCss(barsPath, '--bars-gui-atlas')
+  const vars = Object.values(appReplacableResources).filter(x => x.cssVar)
+  for (const { cssVar, cssVarRepeat, resourcePackPath } of vars) {
+    // eslint-disable-next-line no-await-in-loop
+    await setCustomCss(`${basePath}/assets/${resourcePackPath}`, cssVar!, cssVarRepeat ?? 1)
+  }
 }
+
+const repeatArr = (arr, i) => Array.from({ length: i }, () => arr)
 
 const updateTextures = async () => {
   const blocksFiles = Object.keys(viewer.world.blocksAtlases.latest.textures)
