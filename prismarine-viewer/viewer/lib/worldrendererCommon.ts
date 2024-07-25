@@ -3,7 +3,7 @@ import { Vec3 } from 'vec3'
 import { loadJSON } from './utils'
 import { loadTexture } from './utils.web'
 import { EventEmitter } from 'events'
-import mcDataRaw from 'minecraft-data/data.js'; // handled correctly in esbuild plugin
+import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { chunkPos } from './simpleUtils'
 import { defaultMesherConfig } from './mesher/shared'
@@ -32,7 +32,7 @@ export const defaultWorldRendererConfig = {
 export type WorldRendererConfig = typeof defaultWorldRendererConfig
 
 type CustomTexturesData = {
-  tileSize: number
+  tileSize: number | undefined
   textures: Record<string, HTMLImageElement>
 }
 
@@ -81,7 +81,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   abstract outputFormat: 'threeJs' | 'webgl'
 
-  constructor(public config: WorldRendererConfig) {
+  constructor (public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
   }
@@ -239,7 +239,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.mesherConfig.textureSize = this.material.map!.image.width
 
     for (const worker of this.workers) {
-      const blockstatesModels = this.blockstatesModels;
+      const blockstatesModels = this.blockstatesModels
       if (this.customBlockStates) {
         // TODO! remove from other versions as well
         blockstatesModels.blockstates.latest = {

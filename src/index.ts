@@ -100,6 +100,7 @@ import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
 import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
+import { mainMenuState } from './react/MainMenuRenderApp'
 
 window.debug = debug
 window.THREE = THREE
@@ -108,7 +109,9 @@ window.beforeRenderFrame = []
 
 // ACTUAL CODE
 
-void registerServiceWorker()
+void registerServiceWorker().then(() => {
+  mainMenuState.serviceWorkerLoaded = true
+})
 watchFov()
 initCollisionShapes()
 initializePacketsReplay()
