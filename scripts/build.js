@@ -58,7 +58,7 @@ exports.getSwAdditionalEntries = () => {
         '*.woff',
         'mesher.js',
         'worldSaveWorker.js',
-        `textures/**`,
+        `textures/entity/squid/squid.png`,
         'static/**',
     ]
     const filesNeedsCacheKey = [
