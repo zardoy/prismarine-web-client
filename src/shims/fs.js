@@ -1,3 +1,3 @@
 const BrowserFS = require('browserfs')
 
-module.exports = BrowserFS.BFSRequire('fs');
+module.exports = BrowserFS.BFSRequire('fs')
