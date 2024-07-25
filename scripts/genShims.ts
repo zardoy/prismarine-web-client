@@ -9,10 +9,10 @@ const { supportedVersions, defaultVersion } = MCProtocol
 
 const data = MinecraftData(defaultVersion)
 const defaultVersionObj = {
-    [defaultVersion]: {
-        version: data.version,
-        protocol: data.protocol,
-    }
+  [defaultVersion]: {
+    version: data.version,
+    protocol: data.protocol,
+  }
 }
 
 const mcDataContents = `window.mcData ??= ${JSON.stringify(defaultVersionObj)};module.exports = { pc: window.mcData }`
@@ -25,10 +25,10 @@ let headerImports = ''
 let resourcesContent = 'export const appReplacableResources = {'
 
 for (const resource of appReplacableResources) {
-    const { path, ...rest } = resource
-    const name = path.split('/').slice(-4).join('_').replace('.png', '').replaceAll('-', '_').replaceAll('.', '_')
-    headerImports += `import ${name} from '${path.replace('../node_modules/', '')}'\n`
-    resourcesContent += `
+  const { path, ...rest } = resource
+  const name = path.split('/').slice(-4).join('_').replace('.png', '').replaceAll('-', '_').replaceAll('.', '_')
+  headerImports += `import ${name} from '${path.replace('../node_modules/', '')}'\n`
+  resourcesContent += `
   '${name}': {
     content: ${name},
     ...${JSON.stringify(rest)}
@@ -38,4 +38,5 @@ for (const resource of appReplacableResources) {
 
 resourcesContent += '}'
 
-fs.writeFileSync('./generated/resources.ts', headerImports + '\n' + resourcesContent, 'utf8')
+fs.mkdirSync('./src/generated', { recursive: true })
+fs.writeFileSync('./src/generated/resources.ts', headerImports + '\n' + resourcesContent, 'utf8')

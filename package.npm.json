@@ -3,7 +3,13 @@
     "description": "A Minecraft-like React UI library",
     "keywords": [
         "minecraft",
-        "minecraft style"
+        "minecraft style",
+        "minecraft ui",
+        "minecraft components",
+        "minecraft react",
+        "minecraft library",
+        "minecraft web",
+        "minecraft browser"
     ],
     "license": "MIT",
     "sideEffects": false,
