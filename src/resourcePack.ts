@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname, basename } from 'path'
 import fs from 'fs'
 import JSZip from 'jszip'
 import { proxy, ref } from 'valtio'
@@ -159,39 +159,61 @@ export const getActiveTexturepackBasePath = async () => {
 export const getResourcepackTiles = async (type: 'blocks' | 'items', existingTextures: string[]) => {
   const basePath = await getActiveTexturepackBasePath()
   if (!basePath) return
-  let texturesBasePath = `${basePath}/assets/minecraft/textures/${type === 'blocks' ? 'block' : 'item'}`
-  const texturesBasePathAlt = `${basePath}/assets/minecraft/textures/${type === 'blocks' ? 'blocks' : 'items'}`
-  const entitiesBasePath = `${basePath}/assets/minecraft/textures/entity`
+  const texturesCommonBasePath = `${basePath}/assets/minecraft/textures`
+  let texturesBasePath = `${texturesCommonBasePath}/${type === 'blocks' ? 'block' : 'item'}`
+  const texturesBasePathAlt = `${texturesCommonBasePath}/${type === 'blocks' ? 'blocks' : 'items'}`
   if (!(await existsAsync(texturesBasePath))) {
     if (await existsAsync(texturesBasePathAlt)) {
       texturesBasePath = texturesBasePathAlt
-    } else {
-      return
     }
   }
+  const allInterestedPaths = existingTextures.map(tex => {
+    if (tex.includes('/')) {
+      return join(`${texturesCommonBasePath}/${tex}`)
+    }
+    return join(texturesBasePath, tex)
+  })
+  const allInterestedPathsPerDir = new Map<string, string[]>()
+  for (const path of allInterestedPaths) {
+    const dir = dirname(path)
+    if (!allInterestedPathsPerDir.has(dir)) {
+      allInterestedPathsPerDir.set(dir, [])
+    }
+    const file = basename(path)
+    allInterestedPathsPerDir.get(dir)!.push(file)
+  }
+  // filter out by readdir each dir
+  const allInterestedImages = [] as string[]
+  for (const [dir, paths] of allInterestedPathsPerDir) {
+    if (!await existsAsync(dir)) {
+      continue
+    }
+    const dirImages = (await fs.promises.readdir(dir)).filter(f => f.endsWith('.png')).map(f => f.replace('.png', ''))
+    allInterestedImages.push(...dirImages.filter(image => paths.includes(image)).map(image => `${dir}/${image}`))
+  }
+
+  if (allInterestedImages.length === 0) {
+    return
+  }
+
   if (appStatusState.status) {
     setLoadingScreenStatus(`Generating atlas texture for ${type}`)
   }
-  const allImages = (await fs.promises.readdir(texturesBasePath)).filter(f => f.endsWith('.png')).map(f => f.replace('.png', ''))
-  const firstImageFile = allImages[0]
-  if (!firstImageFile) {
-    return
-  }
-  const hasEntities = await existsAsync(entitiesBasePath)
-  const entitiesImages = hasEntities ? (await fs.promises.readdir(entitiesBasePath)).filter(f => f.endsWith('.png')).map(f => f.replace('.png', '')) : []
-  for (const entitiesImage of entitiesImages) {
-    // TODO! recursive
-    allImages.push(`entity/${entitiesImage}`)
-  }
-  const firstTextureSize = await getSizeFromImage(`${texturesBasePath}/${firstImageFile}.png`)
-  const interestedTextureImages = allImages.filter(image => existingTextures.includes(image))
+
+  const firstImageFile = allInterestedImages[0]!
+
+  let firstTextureSize: number | undefined
+  try {
+    // todo compare sizes from atlas
+    firstTextureSize = await getSizeFromImage(`${firstImageFile}.png`)
+  } catch (err) { }
   const textures = Object.fromEntries(
-    await Promise.all(interestedTextureImages.map(async (image) => {
-      const texturesBasePathImage = image.includes('/') ? join(texturesBasePath, '..') : texturesBasePath // do not use blocks/ path for custom paths (e.g. entity/)
-      const imagePath = `${texturesBasePathImage}/${image}.png`
+    await Promise.all(allInterestedImages.map(async (image) => {
+      const imagePath = `${image}.png`
       const contents = await fs.promises.readFile(imagePath, 'base64')
       const img = await getLoadedImage(`data:image/png;base64,${contents}`)
-      return [image, img]
+      const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
+      return [imageRelative, img]
     }))
   )
   return {
@@ -298,20 +320,17 @@ const updateTextures = async () => {
   const itemsData = await getResourcepackTiles('items', itemsFiles)
   await setOtherTexturesCss()
   await prepareBlockstatesAndModels()
+  viewer.world.customTextures = {}
   if (blocksData) {
-    viewer.world.customTextures = {
-      blocks: {
-        tileSize: blocksData.firstTextureSize,
-        textures: blocksData.textures
-      }
+    viewer.world.customTextures.blocks = {
+      tileSize: blocksData.firstTextureSize,
+      textures: blocksData.textures
     }
   }
   if (itemsData) {
-    viewer.world.customTextures = {
-      items: {
-        tileSize: itemsData.firstTextureSize,
-        textures: itemsData.textures
-      }
+    viewer.world.customTextures.items = {
+      tileSize: itemsData.firstTextureSize,
+      textures: itemsData.textures
     }
   }
   if (viewer.world.active) {
