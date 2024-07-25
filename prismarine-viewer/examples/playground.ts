@@ -40,7 +40,7 @@ const params = {
   camera: '',
   playSound () { },
   blockIsomorphicRenderBundle () { },
-  modelVariants: 0
+  modelVariant: 0
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -86,7 +86,7 @@ async function main () {
   gui.add(params, 'version', globalThis.includedVersions)
   gui.add(params, 'block', mcData.blocksArray.map(b => b.name).sort((a, b) => a.localeCompare(b)))
   const metadataGui = gui.add(params, 'metadata')
-  gui.add(params, 'modelVariants')
+  gui.add(params, 'modelVariant')
   gui.add(params, 'supportBlock')
   gui.add(params, 'entity', mcData.entitiesArray.map(b => b.name).sort((a, b) => a.localeCompare(b))).listen()
   gui.add(params, 'removeEntity')
@@ -379,8 +379,8 @@ async function main () {
     supportBlock () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
     },
-    modelVariants () {
-      viewer.world.mesherConfig.debugModelVariant = params.modelVariants === 0 ? undefined : [params.modelVariants]
+    modelVariant () {
+      viewer.world.mesherConfig.debugModelVariant = params.modelVariant === 0 ? undefined : [params.modelVariant]
     }
   }
 

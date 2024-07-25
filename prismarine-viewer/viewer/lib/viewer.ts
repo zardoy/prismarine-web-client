@@ -7,6 +7,8 @@ import { WorldRendererThree } from './worldrendererThree'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
 import { versionToNumber } from '../prepare/utils'
+import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
+import { renderBlockThree } from './mesher/standaloneRenderer'
 
 export class Viewer {
   scene: THREE.Scene
@@ -31,7 +33,7 @@ export class Viewer {
     this.world.camera = camera
   }
 
-  constructor(public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
+  constructor (public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace
@@ -96,6 +98,24 @@ export class Viewer {
 
   setBlockStateId (pos: Vec3, stateId: number) {
     this.world.setBlockStateId(pos, stateId)
+  }
+
+  demoModel () {
+    const blockProvider = worldBlockProvider(this.world.blockstatesModels, this.world.blocksAtlases, 'latest')
+    const models = blockProvider.getAllResolvedModels0_1({
+      name: 'item_frame',
+      properties: {
+        map: false
+      }
+    })
+    const geometry = renderBlockThree(models, undefined, 'plains', loadedData)
+    const material = this.world.material
+    // block material
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z)
+    const helper = new THREE.BoxHelper(mesh, 0xffff00)
+    mesh.add(helper)
+    this.scene.add(mesh)
   }
 
   updateEntity (e) {

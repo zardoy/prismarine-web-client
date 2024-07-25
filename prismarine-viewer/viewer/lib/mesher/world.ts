@@ -22,7 +22,6 @@ function isCube (shapes) {
 export type BlockModelPartsResolved = ReturnType<WorldBlockProvider['getAllResolvedModels0_1']>
 
 export type WorldBlock = Omit<Block, 'position'> & {
-  variant?: any
   // todo
   isCube: boolean
   /** cache */
@@ -38,7 +37,7 @@ export class World {
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
 
-  constructor(version) {
+  constructor (version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
     this.preflat = !mcData(version).supportFeature('blockStateId')
