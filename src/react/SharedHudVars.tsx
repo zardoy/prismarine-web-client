@@ -1,7 +1,7 @@
-import { CSSProperties, useEffect } from 'react'
-import icons from 'mc-assets/dist/other-textures/1.19/gui/icons.png'
-import widgets from 'mc-assets/dist/other-textures/latest/gui/widgets.png'
-import bars from 'mc-assets/dist/other-textures/latest/gui/bars.png'
+import { useEffect } from 'react'
+
+// appReplacableResources
+import { appReplacableResources } from '../generated/resources'
 
 export default ({ children }): React.ReactElement => {
   useEffect(() => {
@@ -10,9 +10,11 @@ export default ({ children }): React.ReactElement => {
     // 2. Easier application to globally override icons with custom image (eg from resourcepacks)
     const css = /* css */`
       html {
-        --widgets-gui-atlas: url(${widgets});
-        --gui-icons: url(${icons}), url(${icons});
-        --bars-gui-atlas: url(${bars});
+        ${Object.values(appReplacableResources).filter(r => r.cssVar).map(r => {
+      const repeat = 'cssVarRepeat' in r ? r.cssVarRepeat : 1
+      return `${r.cssVar}:${` url('${r.content}')`.repeat(repeat)};`
+    }).join('\n')}
+
         --hud-bottom-max: 0px;
         --hud-bottom-raw: max(env(safe-area-inset-bottom), var(--hud-bottom-max));
         --safe-area-inset-bottom: calc(var(--hud-bottom-raw) / 2);

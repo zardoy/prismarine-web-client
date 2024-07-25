@@ -68,10 +68,12 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
   return (
     <div className={styles.root}>
       <div className={styles['game-title']}>
-        <div className={styles.minec}></div>
-        <div className={styles.raft}></div>
-        <div className={styles.edition}></div>
-        <span className={styles.splash}>Prismarine is a beautiful block</span>
+        {/* <div className={styles.minec}></div>
+        <div className={styles.raft}></div> */}
+        <div className={styles.minecraft}>
+          <div className={styles.edition}></div>
+          <span className={styles.splash}>Prismarine is a beautiful block</span>
+        </div>
       </div>
 
       <div className={styles.menu}>

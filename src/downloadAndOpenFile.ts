@@ -18,7 +18,7 @@ const inner = async () => {
   if (texturepack) {
     await updateTexturePackInstalledState()
     if (resourcePackState.resourcePackInstalled) {
-      if (!confirm(`You are going to install a new resource pack, which will REPLACE the current one: ${await getResourcePackNames()} Continue?`)) return
+      if (!confirm(`You are going to install a new resource pack, which will REPLACE the current one: ${await getResourcePackNames()[0]} Continue?`)) return
     }
   }
   const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-25)

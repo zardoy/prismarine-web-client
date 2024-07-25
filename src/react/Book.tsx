@@ -197,7 +197,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
           maxLength={500}
         />
       ) : (
-        <div className={getAnimationClass(animatePageIcon, styles.pageText)}>
+        <div className={getAnimationClass(animatePageIcon, '')}>
           <MessageFormattedString message={pages[index]} fallbackColor='black' className={styles.messageFormattedString} />
         </div>
       )}
@@ -286,7 +286,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
               }}>
                 <input
                   ref={inputRef}
-                  className={`${styles.inputTitle}`}
+                  className={''}
                 />
                 {/* for some reason this is needed to make Enter work on android chrome */}
                 <button type='submit' style={{ visibility: 'hidden', height: 0, width: 0 }} />

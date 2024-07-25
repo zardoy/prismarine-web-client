@@ -11,7 +11,7 @@ fs.promises.readdir(path.resolve(__dirname, '../src/react')).then(async (files) 
     const components = files
         .filter((file) => {
             if (file.startsWith('Concept')) return false
-            return file.endsWith('.stories.tsx');
+            return file.endsWith('.stories.tsx')
         })
         .map((file) => {
             return file.replace('.stories.tsx', '')
@@ -39,7 +39,7 @@ fs.promises.readdir(path.resolve(__dirname, '../src/react')).then(async (files) 
     version = version.replace(/^v/, '')
     packageJson.version = version
 
-    const externalize = ['prismarine-viewer']
+    const externalize = ['prismarine-viewer', 'mc-assets']
     const { metafile } = await build({
         entryPoints: [path.resolve(__dirname, '../src/react/npmReactComponents.ts')],
         bundle: true,

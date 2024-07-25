@@ -1,1 +1,4 @@
 node_modules
+rsbuild.config.ts
+*.module.css.d.ts
+generated

@@ -144,9 +144,7 @@ const getImageSrc = (path): string | HTMLImageElement => {
   assertDefined(viewer)
   switch (path) {
     case 'gui/container/inventory': return InventoryGui
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     case 'blocks': return viewer.world.blocksAtlasParser!.latestImage
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     case 'items': return viewer.world.itemsAtlasParser!.latestImage
     case 'gui/container/dispenser': return DispenserGui
     case 'gui/container/furnace': return FurnaceGui

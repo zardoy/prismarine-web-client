@@ -1,6 +1,6 @@
 # Minecraft React
 
-Minecraft UI components for React.
+Minecraft UI components for React extracted from [mcraft.fun](https://mcraft.fun) project.
 
 ```bash
 pnpm i minecraft-react
