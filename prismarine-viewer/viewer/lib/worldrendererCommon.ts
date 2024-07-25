@@ -49,6 +49,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   finishedChunks = {} as Record<string, boolean>
   @worldCleanup()
   sectionsOutstanding = new Map<string, number>()
+  @worldCleanup()
   renderUpdateEmitter = new EventEmitter()
   customTexturesDataUrl = undefined as string | undefined
   currentTextureImage = undefined as any

@@ -101,6 +101,7 @@ import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
 import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 import { mainMenuState } from './react/MainMenuRenderApp'
+import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 
 window.debug = debug
 window.THREE = THREE
@@ -156,29 +157,28 @@ if (isIphone) {
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
 // todo unify
-viewer.entities.getItemUv = (id) => {
+viewer.entities.getItemUv = (idOrName: number | string) => {
   try {
-    const name = loadedData.items[id]?.name
-    const { itemsAtlasParser } = viewer.world
-    if (!itemsAtlasParser) return
-    const itemUv = itemsAtlasParser.getTextureInfo('latest', name)
-    if (!itemUv) {
-      // TODO!
-      // const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
-      // if (!variant) return
-      // const faces = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces
-      // const uvBlock = faces?.north?.texture ?? faces?.up?.texture ?? faces?.down?.texture ?? faces?.west?.texture ?? faces?.east?.texture ?? faces?.south?.texture
-      // if (!uvBlock) return
-      // return {
-      //   ...uvBlock,
-      //   size: Math.abs(uvBlock.su),
-      //   texture: viewer.world.material.map
-      // }
+    const name = typeof idOrName === 'number' ? loadedData.items[idOrName]?.name : idOrName
+    // TODO
+    if (!viewer.world.itemsAtlasParser) throw new Error('itemsAtlasParser not loaded yet')
+    const itemsRenderer = new ItemsRenderer('latest', viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
+    const textureInfo = itemsRenderer.getItemTexture(name)
+    if (!textureInfo) throw new Error(`Texture not found for item ${name}`)
+    const tex = 'type' in textureInfo ? textureInfo : textureInfo.left
+    const [x, y, w, h] = tex.slice
+    const textureThree = tex.type === 'blocks' ? viewer.world.material.map! : viewer.entities.itemsTexture!
+    const img = textureThree.image
+    const [u, v, su, sv] = [x / img.width, y / img.height, (w / img.width), (h / img.height)]
+    const uvInfo = {
+      u,
+      v,
+      su,
+      sv
     }
     return {
-      ...itemUv,
-      size: itemsAtlasParser.atlasJson.latest.size,
-      texture: viewer.entities.itemsTexture
+      ...uvInfo,
+      texture: textureThree
     }
   } catch (err) {
     reportError?.(err)

@@ -408,7 +408,7 @@ export class Entities extends EventEmitter {
     //@ts-ignore
     // set visibility
     const isInvisible = entity.metadata?.[0] & 0x20
-    for (const child of this.entities[entity.id].children.find(c => c.name === 'mesh').children) {
+    for (const child of this.entities[entity.id]?.children.find(c => c.name === 'mesh')?.children ?? []) {
       if (child.name !== 'nametag') {
         child.visible = !isInvisible
       }
