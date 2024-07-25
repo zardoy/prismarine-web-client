@@ -1,5 +1,7 @@
 //@ts-check
 
+import * as THREE from 'three'
+
 // wouldn't better to create atlas instead?
 import { Vec3 } from 'vec3'
 import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
