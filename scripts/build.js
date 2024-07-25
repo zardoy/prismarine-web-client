@@ -59,7 +59,8 @@ exports.getSwAdditionalEntries = () => {
         'mesher.js',
         'worldSaveWorker.js',
         `textures/entity/squid/squid.png`,
-        'static/**',
+        // everything but not .map
+        'static/**/!(*.map)',
     ]
     const filesNeedsCacheKey = [
         'mesher.js',
@@ -89,6 +90,16 @@ exports.getSwAdditionalEntries = () => {
 exports.moveStorybookFiles = () => {
     fsExtra.moveSync('storybook-static', 'dist/storybook', { overwrite: true, })
     fsExtra.copySync('dist/storybook', '.vercel/output/static/storybook')
+}
+
+exports.getSwFilesSize = () => {
+    const files = exports.getSwAdditionalEntries()
+    let size = 0
+    for (const { url } of files) {
+        const file = path.join(__dirname, '../dist', url)
+        size += fs.statSync(file).size
+    }
+    console.log('mb', size / 1024 / 1024)
 }
 
 const fn = require.main === module && exports[process.argv[2]]
