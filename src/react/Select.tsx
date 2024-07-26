@@ -51,8 +51,8 @@ export default ({ initialOptions, updateOptions, processOption }: Props) => {
     }}>
       {autocomplete.groupedOptions.map((option, index) => {
         const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
-        const optionString = processOption?.(option)
-        return <SelectOption {...optionProps as any} inputRef={itemRef} optionString={optionString} />
+        const optionString = processOption?.(option) ?? option
+        return <SelectOption {...optionProps as any} option={optionString} inputRef={itemRef} />
       })}
     </ul>}
   </div>
