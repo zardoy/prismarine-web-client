@@ -44,22 +44,26 @@ export default ({ initialOptions, updateOptions, processOption }: Props) => {
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
       option=''
+      icon='user'
     />
     {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
       position: 'absolute',
-      zIndex: 1,
+      zIndex: 10,
+      maxHeight: '100px',
+      overflowY: 'scroll'
     }}>
       {autocomplete.groupedOptions.map((option, index) => {
         const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
         const optionString = processOption?.(option) ?? option
-        return <SelectOption {...optionProps as any} option={optionString} inputRef={itemRef} />
+        return <SelectOption {...optionProps as any} icon='user' option={optionString} inputRef={itemRef} />
       })}
     </ul>}
   </div>
 }
 
-const SelectOption = ({ option, inputRef, value, setValue, ...props }: {
-  option: string
+const SelectOption = ({ option, inputRef, icon, value, setValue, ...props }: {
+  option: string,
+  icon?: string
 } & Record<string, any>) => {
 
   return <div style={{
@@ -68,7 +72,7 @@ const SelectOption = ({ option, inputRef, value, setValue, ...props }: {
     <Input
       inputRef={inputRef}
       style={{
-        paddingLeft: 16,
+        paddingLeft: icon ? 16 : 5,
       }}
       rootStyles={{
         width: 130,
@@ -84,12 +88,14 @@ const SelectOption = ({ option, inputRef, value, setValue, ...props }: {
       alignItems: 'center',
       gap: 2
     }}>
-      <PixelartIcon iconName={'user'} />
+      {icon && <PixelartIcon iconName={icon} />}
       <div style={{
         fontSize: 10,
+        paddingLeft: icon ? 0 : 7,
         width: '100%',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+        overflowX: 'auto',
+        cursor: 'pointer'
       }}>
         {option}
       </div>
