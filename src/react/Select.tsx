@@ -14,15 +14,16 @@ export interface OptionsStorage {
 interface Props {
   initialOptions: OptionsStorage
   updateOptions: (options: OptionsStorage) => void
-  processOption?: (option: string) => CSSProperties | undefined
+  processInput?: (input: string) => CSSProperties | undefined
+  processOption?: (option: string) => string
   onChange?: (event: SyntheticEvent, value: string | null, reason: AutocompleteChangeReason) => void
   iconInput?: string
   iconOption?: string
 }
 
-export default ({ initialOptions, updateOptions, processOption, onChange, iconInput, iconOption }: Props) => {
+export default ({ initialOptions, updateOptions, processOption, processInput, onChange, iconInput, iconOption }: Props) => {
   const [options, setOptions] = useState(initialOptions)
-  const [inputStyle, setInputStyle] = useState<CSSProperties | null | undefined>({})
+  const [inputStyle, setInputStyle] = useState<CSSProperties>({})
 
   const autocomplete = useAutocomplete({
     value: options.selected,
@@ -38,7 +39,7 @@ export default ({ initialOptions, updateOptions, processOption, onChange, iconIn
           ...options,
           selected: value
         })
-        setInputStyle(processOption?.(value))
+        setInputStyle(processInput?.(value) ?? {})
       }
     },
     freeSolo: true
@@ -48,7 +49,7 @@ export default ({ initialOptions, updateOptions, processOption, onChange, iconIn
     <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
-      style={{ ...inputStyle }}
+      inputStyle={inputStyle}
       option=''
       icon={iconInput ?? ''}
     />
@@ -67,9 +68,10 @@ export default ({ initialOptions, updateOptions, processOption, onChange, iconIn
   </div>
 }
 
-const SelectOption = ({ option, inputRef, icon, value, setValue, ...props }: {
+const SelectOption = ({ option, inputRef, icon, inputStyle, value, setValue, ...props }: {
   option: string,
-  icon?: string
+  icon?: string,
+  inputStyle?: CSSProperties
 } & Record<string, any>) => {
 
   return <div style={{
@@ -79,6 +81,9 @@ const SelectOption = ({ option, inputRef, icon, value, setValue, ...props }: {
       inputRef={inputRef}
       style={{
         paddingLeft: icon ? 16 : 5,
+        width: '100%',
+        left: '0px',
+        ...inputStyle
       }}
       rootStyles={{
         width: 130,
