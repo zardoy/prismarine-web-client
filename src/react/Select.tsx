@@ -14,7 +14,7 @@ export interface OptionsStorage {
 interface Props {
   initialOptions: OptionsStorage
   updateOptions: (options: OptionsStorage) => void
-  processOption?: (option: string) => string
+  processOption?: (option: string) => CSSProperties | undefined
 }
 
 export default ({ initialOptions, updateOptions, processOption }: Props) => {
@@ -24,7 +24,7 @@ export default ({ initialOptions, updateOptions, processOption }: Props) => {
   const autocomplete = useAutocomplete({
     value: options.selected,
     options: options.options.filter(option => option !== options.selected),
-    onInputChange (event, value, reason) {
+    onInputChange(event, value, reason) {
       if (value) {
         updateOptions({
           ...options,
@@ -34,6 +34,7 @@ export default ({ initialOptions, updateOptions, processOption }: Props) => {
           ...options,
           selected: value
         })
+        setInputStyle(processOption?.(value))
       }
     },
     freeSolo: true
@@ -43,6 +44,7 @@ export default ({ initialOptions, updateOptions, processOption }: Props) => {
     <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
+      style={{ ...inputStyle }}
       option=''
       icon='user'
     />
