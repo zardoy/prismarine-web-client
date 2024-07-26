@@ -1,9 +1,11 @@
+import { forwardRef, ForwardedRef } from 'react'
 import { omitObj } from '@zardoy/utils'
 import { useAutocomplete } from '@mui/base'
 import { CSSProperties, useState } from 'react'
 import PixelartIcon from './PixelartIcon'
+import { Popper } from '@mui/base/Popper'
+import { unstable_useForkRef as useForkRef } from '@mui/utils'
 import Input from './Input'
-import Singleplayer from './Singleplayer'
 
 
 export interface OptionsStorage {
@@ -11,20 +13,30 @@ export interface OptionsStorage {
   selected: string
 }
 
-interface Props extends React.ComponentProps<typeof Singleplayer> {
+interface Props {
   initialOptions: OptionsStorage
-  updateOptions: (proxies: OptionsStorage) => void
+  updateOptions: (options: OptionsStorage) => void
   processOption?: (option: string) => string
   validateInputOption?: (option: string) => CSSProperties | null | undefined
 }
 
-export default ({ initialOptions, updateOptions, processOption, validateInputOption }: Props) => {
+export default forwardRef((props: Props, ref: ForwardedRef<HTMLElement>) => {
+  const { initialOptions, updateOptions, processOption, validateInputOption } = props
   const [options, setOptions] = useState(initialOptions)
   const [inputStyle, setInputStyle] = useState<CSSProperties | null | undefined>({})
 
-  const autocomplete = useAutocomplete({
+  const { 
+    anchorEl, 
+    getRootProps, 
+    getInputProps, 
+    setAnchorEl, 
+    popupOpen, 
+    getListboxProps,
+    groupedOptions,
+    getOptionProps
+  } = useAutocomplete({
     value: options.selected,
-    options: options.options.filter(proxy => proxy !== options.selected),
+    options: options.options.filter(option => option !== options.selected),
     onInputChange (event, value, reason) {
       if (value) {
         updateOptions({
@@ -41,30 +53,42 @@ export default ({ initialOptions, updateOptions, processOption, validateInputOpt
     freeSolo: true
   })
 
+  const rootRef = useForkRef(ref, setAnchorEl)
 
-  return <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130 }}>
-    <SelectOption
-      {...omitObj(autocomplete.getInputProps(), 'ref')}
-      inputRef={autocomplete.getInputProps().ref as any}
-      icon='cellular-signal-0'
-      option=''
-      inputStyle={inputStyle}
-    />
-    {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
-      position: 'absolute',
-      zIndex: 1,
-    }}>
-      {autocomplete.groupedOptions.map((option, index) => {
-        const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
-        const optionString = processOption?.(option) ?? option
-        return <SelectOption {...optionProps as any} option={optionString} icon='cellular-signal-0' disabled />
-      })}
-    </ul>}
+  return <div>
+    <div {...getRootProps()} ref={rootRef} style={{ position: 'relative', width: 130 }}>
+      <SelectOption
+        {...omitObj(getInputProps(), 'ref')}
+        inputRef={getInputProps().ref as any}
+        icon='cellular-signal-0'
+        option=''
+        inputStyle={inputStyle ?? undefined}
+      />
+    </div>
+    {anchorEl && <Popper open={popupOpen} anchorEl={anchorEl}>
+      {groupedOptions && <ul {...getListboxProps()} style={{
+        // position: 'absolute',
+        zIndex: 1,
+        maxHeight: '100px',
+        overflowY: 'scroll'
+      }}>
+        {groupedOptions.map((option, index) => {
+          const optionString = processOption?.(option) ?? option
+          return <SelectOption 
+            option={optionString} 
+            icon='cellular-signal-0' 
+            {...getOptionProps({ option, index })} 
+          />
+        })}
+      </ul>}
+    </Popper>
+    }
   </div>
-}
+})
 
-const SelectOption = ({ status, option, inputRef, value, ...props }: {
-  option: string
+const SelectOption = ({ status, option, inputRef, inputStyle, value, ...props }: {
+  option: string,
+  inputStyle?: CSSProperties
 } & Record<string, any>) => {
 
   return <div style={{
@@ -79,7 +103,7 @@ const SelectOption = ({ status, option, inputRef, value, ...props }: {
       rootStyles={{
         width: 130,
         boxSizing: 'border-box',
-        ...props.inputStyle
+        ...inputStyle
       }}
       value={value}
       onChange={props.onChange}
