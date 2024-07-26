@@ -1,7 +1,7 @@
 import { forwardRef, ForwardedRef } from 'react'
 import { omitObj } from '@zardoy/utils'
 import { useAutocomplete } from '@mui/base'
-import { CSSProperties, useState } from 'react'
+import { useState, CSSProperties } from 'react'
 import PixelartIcon from './PixelartIcon'
 import { Popper } from '@mui/base/Popper'
 import { unstable_useForkRef as useForkRef } from '@mui/utils'
@@ -17,11 +17,10 @@ interface Props {
   initialOptions: OptionsStorage
   updateOptions: (options: OptionsStorage) => void
   processOption?: (option: string) => string
-  validateInputOption?: (option: string) => CSSProperties | null | undefined
 }
 
 export default forwardRef((props: Props, ref: ForwardedRef<HTMLElement>) => {
-  const { initialOptions, updateOptions, processOption, validateInputOption } = props
+  const { initialOptions, updateOptions, processOption } = props
   const [options, setOptions] = useState(initialOptions)
   const [inputStyle, setInputStyle] = useState<CSSProperties | null | undefined>({})
 
@@ -48,7 +47,6 @@ export default forwardRef((props: Props, ref: ForwardedRef<HTMLElement>) => {
           selected: value
         })
       }
-      setInputStyle(validateInputOption?.(value))
     },
     freeSolo: true
   })
@@ -90,15 +88,19 @@ const SelectOption = ({ status, option, inputRef, inputStyle, value, ...props }:
   option: string,
   inputStyle?: CSSProperties
 } & Record<string, any>) => {
+  const iconPerStatus = {
+    unknown: 'cellular-signal-0',
+    error: 'cellular-signal-off',
+    success: 'cellular-signal-3',
+  }
 
   return <div style={{
     position: 'relative',
-    cursor: 'pointer',
   }} {...props}>
     <Input
       inputRef={inputRef}
       style={{
-        paddingLeft: props.icon ? 16 : 5,
+        paddingLeft: 16,
       }}
       rootStyles={{
         width: 130,
@@ -106,6 +108,7 @@ const SelectOption = ({ status, option, inputRef, inputStyle, value, ...props }:
         ...inputStyle
       }}
       value={value}
+      // onChange={({ target: { value } }) => setValue?.(value)}
       onChange={props.onChange}
     />
     <div style={{
@@ -113,15 +116,14 @@ const SelectOption = ({ status, option, inputRef, inputStyle, value, ...props }:
       inset: 0,
       display: 'flex',
       alignItems: 'center',
-      gap: 2,
+      gap: 2
     }}>
-      {props.icon && <PixelartIcon iconName={props.icon} />}
+      <PixelartIcon iconName={iconPerStatus.unknown} />
       <div style={{
         fontSize: 10,
         width: '100%',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-        paddingLeft: props.icon ? 0 : 5
       }}>
         {option}
       </div>
