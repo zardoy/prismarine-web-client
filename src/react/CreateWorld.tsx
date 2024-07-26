@@ -47,6 +47,9 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
           { options: versions.map(({ version, label }) => { return label }), selected: defaultVersion }
         }
         updateOptions={(options) => {}}
+        onChange={(event, value, reason) => {
+          creatingWorldState.version = value ?? defaultVersion
+        }}
       />
     </form>
     <div style={{ display: 'flex' }}>

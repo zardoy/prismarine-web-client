@@ -1,6 +1,6 @@
 import { omitObj } from '@zardoy/utils'
-import { useAutocomplete } from '@mui/base'
-import { useState, CSSProperties } from 'react'
+import { AutocompleteChangeReason, useAutocomplete } from '@mui/base'
+import { useState, CSSProperties, SyntheticEvent } from 'react'
 import PixelartIcon from './PixelartIcon'
 import Input from './Input'
 import './Select.css'
@@ -15,16 +15,20 @@ interface Props {
   initialOptions: OptionsStorage
   updateOptions: (options: OptionsStorage) => void
   processOption?: (option: string) => CSSProperties | undefined
+  onChange?: (event: SyntheticEvent, value: string | null, reason: AutocompleteChangeReason) => void
+  iconInput?: string
+  iconOption?: string
 }
 
-export default ({ initialOptions, updateOptions, processOption }: Props) => {
+export default ({ initialOptions, updateOptions, processOption, onChange, iconInput, iconOption }: Props) => {
   const [options, setOptions] = useState(initialOptions)
   const [inputStyle, setInputStyle] = useState<CSSProperties | null | undefined>({})
 
   const autocomplete = useAutocomplete({
     value: options.selected,
     options: options.options.filter(option => option !== options.selected),
-    onInputChange(event, value, reason) {
+    onChange,
+    onInputChange (event, value, reason) {
       if (value) {
         updateOptions({
           ...options,
@@ -46,7 +50,7 @@ export default ({ initialOptions, updateOptions, processOption }: Props) => {
       inputRef={autocomplete.getInputProps().ref as any}
       style={{ ...inputStyle }}
       option=''
-      icon='user'
+      icon={iconInput ?? ''}
     />
     {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
       position: 'absolute',
@@ -57,7 +61,7 @@ export default ({ initialOptions, updateOptions, processOption }: Props) => {
       {autocomplete.groupedOptions.map((option, index) => {
         const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
         const optionString = processOption?.(option) ?? option
-        return <SelectOption {...optionProps as any} icon='user' option={optionString} inputRef={itemRef} />
+        return <SelectOption {...optionProps as any} icon={iconOption ?? ''} option={optionString} inputRef={itemRef} />
       })}
     </ul>}
   </div>
