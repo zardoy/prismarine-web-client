@@ -14,19 +14,23 @@ export interface OptionsStorage {
 interface Props extends React.ComponentProps<typeof Singleplayer> {
   initialOptions: OptionsStorage
   updateOptions: (proxies: OptionsStorage) => void
+  processOption?: (option: string) => string
 }
 
 type Status = 'unknown' | 'error' | 'success'
 
-export default ({ initialOptions, updateOptions, ...props }: Props) => {
+export default ({ initialOptions, updateOptions, processOption }: Props) => {
   const [options, setOptions] = useState(initialOptions)
   const autocomplete = useAutocomplete({
     value: options.selected,
     options: options.options.filter(proxy => proxy !== options.selected),
-    onInputChange(event, value, reason) {
-      console.log('onChange', { event, value, reason })
+    onInputChange (event, value, reason) {
       if (value) {
         updateOptions({
+          ...options,
+          selected: value
+        })
+        setOptions({
           ...options,
           selected: value
         })
@@ -41,24 +45,25 @@ export default ({ initialOptions, updateOptions, ...props }: Props) => {
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
       status='unknown'
-      ip=''
+      option=''
     />
     {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
       position: 'absolute',
       zIndex: 1,
       // marginTop: 10,
     }}>
-      {autocomplete.groupedOptions.map((proxy, index) => {
-        const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option: proxy, index })
-        return <MainInput {...optionProps as any} ip={proxy} disabled />
+      {autocomplete.groupedOptions.map((option, index) => {
+        const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
+        const optionString = processOption?.(option) ?? option
+        return <MainInput {...optionProps as any} option={optionString} disabled />
       })}
     </ul>}
   </div>
 }
 
-const MainInput = ({ status, ip, inputRef, value, setValue, ...props }: {
+const MainInput = ({ status, option, inputRef, value, setValue, ...props }: {
   status: Status
-  ip: string
+  option: string
 } & Record<string, any>) => {
   const iconPerStatus = {
     unknown: 'cellular-signal-0',
@@ -91,13 +96,11 @@ const MainInput = ({ status, ip, inputRef, value, setValue, ...props }: {
       <PixelartIcon iconName={iconPerStatus.unknown} />
       <div style={{
         fontSize: 10,
-        // color: 'lightgray',
-        // ellipsis
         width: '100%',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
       }}>
-        {ip.replace(/^https?:\/\//, '')}
+        {option}
       </div>
     </div>
   </div>
