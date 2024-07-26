@@ -42,10 +42,10 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
         }}
         placeholder='World name'
       />
-      <Select 
+      <Select
         initialOptions={
           { options: versions.map(({ version, label }) => { return label }), selected: defaultVersion }
-        } 
+        }
         updateOptions={(options) => {}}
       />
     </form>

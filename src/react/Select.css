@@ -1,4 +1,4 @@
 
-li.Mui-focused {
-  background-color: red;
+.Mui-focused {
+  border: 1px solid white;
 }

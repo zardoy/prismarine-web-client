@@ -1,11 +1,9 @@
-import { forwardRef, ForwardedRef } from 'react'
 import { omitObj } from '@zardoy/utils'
 import { useAutocomplete } from '@mui/base'
 import { useState, CSSProperties } from 'react'
 import PixelartIcon from './PixelartIcon'
-import { Popper } from '@mui/base/Popper'
-import { unstable_useForkRef as useForkRef } from '@mui/utils'
 import Input from './Input'
+import './Select.css'
 
 
 export interface OptionsStorage {
@@ -19,21 +17,11 @@ interface Props {
   processOption?: (option: string) => string
 }
 
-export default forwardRef((props: Props, ref: ForwardedRef<HTMLElement>) => {
-  const { initialOptions, updateOptions, processOption } = props
+export default ({ initialOptions, updateOptions, processOption }: Props) => {
   const [options, setOptions] = useState(initialOptions)
   const [inputStyle, setInputStyle] = useState<CSSProperties | null | undefined>({})
 
-  const { 
-    anchorEl, 
-    getRootProps, 
-    getInputProps, 
-    setAnchorEl, 
-    popupOpen, 
-    getListboxProps,
-    groupedOptions,
-    getOptionProps
-  } = useAutocomplete({
+  const autocomplete = useAutocomplete({
     value: options.selected,
     options: options.options.filter(option => option !== options.selected),
     onInputChange (event, value, reason) {
@@ -51,48 +39,28 @@ export default forwardRef((props: Props, ref: ForwardedRef<HTMLElement>) => {
     freeSolo: true
   })
 
-  const rootRef = useForkRef(ref, setAnchorEl)
-
-  return <div>
-    <div {...getRootProps()} ref={rootRef} style={{ position: 'relative', width: 130 }}>
-      <SelectOption
-        {...omitObj(getInputProps(), 'ref')}
-        inputRef={getInputProps().ref as any}
-        icon='cellular-signal-0'
-        option=''
-        inputStyle={inputStyle ?? undefined}
-      />
-    </div>
-    {anchorEl && <Popper open={popupOpen} anchorEl={anchorEl}>
-      {groupedOptions && <ul {...getListboxProps()} style={{
-        // position: 'absolute',
-        zIndex: 1,
-        maxHeight: '100px',
-        overflowY: 'scroll'
-      }}>
-        {groupedOptions.map((option, index) => {
-          const optionString = processOption?.(option) ?? option
-          return <SelectOption 
-            option={optionString} 
-            icon='cellular-signal-0' 
-            {...getOptionProps({ option, index })} 
-          />
-        })}
-      </ul>}
-    </Popper>
-    }
+  return <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130 }}>
+    <SelectOption
+      {...omitObj(autocomplete.getInputProps(), 'ref')}
+      inputRef={autocomplete.getInputProps().ref as any}
+      option=''
+    />
+    {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
+      position: 'absolute',
+      zIndex: 1,
+    }}>
+      {autocomplete.groupedOptions.map((option, index) => {
+        const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
+        const optionString = processOption?.(option)
+        return <SelectOption {...optionProps as any} inputRef={itemRef} optionString={optionString} />
+      })}
+    </ul>}
   </div>
-})
+}
 
-const SelectOption = ({ status, option, inputRef, inputStyle, value, ...props }: {
-  option: string,
-  inputStyle?: CSSProperties
+const SelectOption = ({ option, inputRef, value, setValue, ...props }: {
+  option: string
 } & Record<string, any>) => {
-  const iconPerStatus = {
-    unknown: 'cellular-signal-0',
-    error: 'cellular-signal-off',
-    success: 'cellular-signal-3',
-  }
 
   return <div style={{
     position: 'relative',
@@ -105,10 +73,8 @@ const SelectOption = ({ status, option, inputRef, inputStyle, value, ...props }:
       rootStyles={{
         width: 130,
         boxSizing: 'border-box',
-        ...inputStyle
       }}
       value={value}
-      // onChange={({ target: { value } }) => setValue?.(value)}
       onChange={props.onChange}
     />
     <div style={{
@@ -118,7 +84,7 @@ const SelectOption = ({ status, option, inputRef, inputStyle, value, ...props }:
       alignItems: 'center',
       gap: 2
     }}>
-      <PixelartIcon iconName={iconPerStatus.unknown} />
+      <PixelartIcon iconName={'user'} />
       <div style={{
         fontSize: 10,
         width: '100%',
