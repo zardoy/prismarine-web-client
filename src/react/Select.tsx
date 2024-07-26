@@ -1,6 +1,6 @@
 import { omitObj } from '@zardoy/utils'
 import { useAutocomplete } from '@mui/base'
-import { useState } from 'react'
+import { CSSProperties, useState } from 'react'
 import PixelartIcon from './PixelartIcon'
 import Input from './Input'
 import Singleplayer from './Singleplayer'
@@ -15,12 +15,13 @@ interface Props extends React.ComponentProps<typeof Singleplayer> {
   initialOptions: OptionsStorage
   updateOptions: (proxies: OptionsStorage) => void
   processOption?: (option: string) => string
+  validateInputOption?: (option: string) => CSSProperties | null | undefined
 }
 
-type Status = 'unknown' | 'error' | 'success'
-
-export default ({ initialOptions, updateOptions, processOption }: Props) => {
+export default ({ initialOptions, updateOptions, processOption, validateInputOption }: Props) => {
   const [options, setOptions] = useState(initialOptions)
+  const [inputStyle, setInputStyle] = useState<CSSProperties | null | undefined>({})
+
   const autocomplete = useAutocomplete({
     value: options.selected,
     options: options.options.filter(proxy => proxy !== options.selected),
@@ -35,55 +36,52 @@ export default ({ initialOptions, updateOptions, processOption }: Props) => {
           selected: value
         })
       }
+      setInputStyle(validateInputOption?.(value))
     },
     freeSolo: true
   })
 
 
   return <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130 }}>
-    <MainInput
+    <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
-      status='unknown'
+      icon='cellular-signal-0'
       option=''
+      inputStyle={inputStyle}
     />
     {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
       position: 'absolute',
       zIndex: 1,
-      // marginTop: 10,
     }}>
       {autocomplete.groupedOptions.map((option, index) => {
         const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
         const optionString = processOption?.(option) ?? option
-        return <MainInput {...optionProps as any} option={optionString} disabled />
+        return <SelectOption {...optionProps as any} option={optionString} icon='cellular-signal-0' disabled />
       })}
     </ul>}
   </div>
 }
 
-const MainInput = ({ status, option, inputRef, value, setValue, ...props }: {
-  status: Status
+const SelectOption = ({ status, option, inputRef, value, ...props }: {
   option: string
 } & Record<string, any>) => {
-  const iconPerStatus = {
-    unknown: 'cellular-signal-0',
-    error: 'cellular-signal-off',
-    success: 'cellular-signal-3',
-  }
 
   return <div style={{
     position: 'relative',
+    cursor: 'pointer',
   }} {...props}>
     <Input
       inputRef={inputRef}
       style={{
-        paddingLeft: 16,
+        paddingLeft: props.icon ? 16 : 5,
       }}
       rootStyles={{
-        width: 130
+        width: 130,
+        boxSizing: 'border-box',
+        ...props.inputStyle
       }}
       value={value}
-      // onChange={({ target: { value } }) => setValue?.(value)}
       onChange={props.onChange}
     />
     <div style={{
@@ -91,14 +89,15 @@ const MainInput = ({ status, option, inputRef, value, setValue, ...props }: {
       inset: 0,
       display: 'flex',
       alignItems: 'center',
-      gap: 2
+      gap: 2,
     }}>
-      <PixelartIcon iconName={iconPerStatus.unknown} />
+      {props.icon && <PixelartIcon iconName={props.icon} />}
       <div style={{
         fontSize: 10,
         width: '100%',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
+        paddingLeft: props.icon ? 0 : 5
       }}>
         {option}
       </div>
