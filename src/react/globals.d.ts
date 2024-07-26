@@ -33,6 +33,10 @@ declare module '*.webp' {
     const svg: string
     export default svg
 }
+declare module '*.mp3' {
+    const mp3: any
+    export default mp3
+}
 
 interface PromiseConstructor {
     withResolvers<T> (): {

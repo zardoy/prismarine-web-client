@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { formatMessage } from '../botUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
-import { hideCurrentModal, miscUiState } from '../globalState'
+import { hideCurrentModal, loadedGameState, miscUiState } from '../globalState'
 import { options } from '../optionsStorage'
 import Chat, { Message, fadeMessage } from './Chat'
 import { useIsModalActive } from './utilsApp'
@@ -53,7 +53,7 @@ export default () => {
           updateLoadedServerData((server) => {
             server.autoLogin ??= {}
             const password = message.split(' ')[1]
-            server.autoLogin[miscUiState.username] = password
+            server.autoLogin[loadedGameState.username] = password
             return server
           })
           hideNotification()

@@ -17,60 +17,32 @@ interface Props {
   linksButton?: JSX.Element
   openFileAction?: Action
   mapsProvider?: string
-}
-
-const refreshApp = async (failedUpdate = false) => {
-  const registration = await navigator.serviceWorker.getRegistration()
-  await registration?.unregister()
-  if (failedUpdate) {
-    await new Promise(resolve => {
-      setTimeout(resolve, 2000)
-    })
-  }
-  if (activeModalStack.length !== 0) return
-  if (failedUpdate) {
-    sessionStorage.justReloaded = false
-    // try to force bypass cache
-    location.search = '?update=true'
-  } else {
-    window.justReloaded = true
-    sessionStorage.justReloaded = true
-    window.location.reload()
-  }
+  versionStatus?: string
+  versionTitle?: string
+  onVersionClick?: () => void
 }
 
 const httpsRegex = /^https?:\/\//
 
-export default ({ connectToServerAction, mapsProvider, singleplayerAction, optionsAction, githubAction, linksButton, openFileAction }: Props) => {
-  const [versionStatus, setVersionStatus] = useState('')
-  const [versionTitle, setVersionTitle] = useState('')
-
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      setVersionStatus('(dev)')
-    } else {
-      fetch('./version.txt').then(async (f) => {
-        if (f.status === 404) return
-        const contents = await f.text()
-        const isLatest = contents === process.env.BUILD_VERSION
-        if (!isLatest && sessionStorage.justReloaded) {
-          setVersionStatus('(force reloading, wait)')
-          void refreshApp(true)
-          return
-        }
-        setVersionStatus(`(${isLatest ? 'latest' : 'new version available'})`)
-        setVersionTitle(`Loaded: ${process.env.BUILD_VERSION}. Remote: ${contents}`)
-      }, () => { })
-    }
-  }, [])
-
+export default ({
+  connectToServerAction,
+  mapsProvider,
+  singleplayerAction,
+  optionsAction,
+  githubAction,
+  linksButton,
+  openFileAction,
+  versionStatus,
+  versionTitle,
+  onVersionClick
+}: Props) => {
   return (
     <div className={styles.root}>
       <div className={styles['game-title']}>
-        <div className={styles.minec}></div>
-        <div className={styles.raft}></div>
-        <div className={styles.edition}></div>
-        <span className={styles.splash}>Prismarine is a beautiful block</span>
+        <div className={styles.minecraft}>
+          <div className={styles.edition}></div>
+          <span className={styles.splash}>Prismarine is a beautiful block</span>
+        </div>
       </div>
 
       <div className={styles.menu}>
@@ -130,10 +102,7 @@ export default ({ connectToServerAction, mapsProvider, singleplayerAction, optio
       <div className={styles['bottom-info']}>
         <span
           title={`${versionTitle} (click to reload)`}
-          onClick={async () => {
-            setVersionStatus('(reloading)')
-            await refreshApp()
-          }}
+          onClick={onVersionClick}
           className={styles['product-info']}
         >
           Prismarine Web Client {versionStatus}

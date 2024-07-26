@@ -16,7 +16,7 @@ You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
-- Resource pack support
+- FULL Resource pack support: Custom GUI, all textures & custom models! Server resource packs are also supported.
 - Builtin JEI with recipes & guides for every item (also replaces creative inventory)
 - even even more!
 

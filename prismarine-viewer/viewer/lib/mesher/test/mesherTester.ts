@@ -3,10 +3,11 @@ import { World as MesherWorld } from '../world'
 import ChunkLoader, { PCChunk } from 'prismarine-chunk'
 import { Vec3 } from 'vec3'
 import MinecraftData from 'minecraft-data'
+import blocksAtlasesJson from 'mc-assets/dist/blocksAtlases.json'
 
 export const setup = (version, initialBlocks: [number[], string][]) => {
     const mcData = MinecraftData(version)
-    const blockStates = require(`../../../../public/blocksStates/${version}.json`)
+    const blockStatesModels = require(`mc-assets/dist/blockStatesModels.json`)
     const mesherWorld = new MesherWorld(version)
     const Chunk = ChunkLoader(version)
     const chunk1 = new Chunk(undefined as any)
@@ -31,7 +32,7 @@ export const setup = (version, initialBlocks: [number[], string][]) => {
         }
     }
 
-    setBlockStatesData(blockStates, true)
+    setBlockStatesData(blockStatesModels, blocksAtlasesJson, true, false)
     const reload = () => {
         mesherWorld.removeColumn(0, 0)
         mesherWorld.addColumn(0, 0, chunk1.toJson())

@@ -6,7 +6,7 @@
   transform: translate(-50%);
   width: 182px;
   height: 5px;
-  background-image: url('minecraft-assets/minecraft-assets/data/1.16.4/gui/icons.png');
+  background-image: var(--gui-icons);
   background-size: 256px;
   background-position-y: -64px;
 }
@@ -14,7 +14,7 @@
 .xp-bar {
   width: 182px;
   height: 5px;
-  background-image: url('minecraft-assets/minecraft-assets/data/1.17.1/gui/icons.png');
+  background-image: var(--gui-icons);
   background-size: 256px;
   background-position-y: -69px;
 }

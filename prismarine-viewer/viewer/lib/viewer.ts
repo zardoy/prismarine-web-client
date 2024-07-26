@@ -2,12 +2,13 @@ import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
-import { getVersion } from './version'
 import EventEmitter from 'events'
 import { WorldRendererThree } from './worldrendererThree'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
 import { versionToNumber } from '../prepare/utils'
+import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
+import { renderBlockThree } from './mesher/standaloneRenderer'
 
 export class Viewer {
   scene: THREE.Scene
@@ -76,11 +77,13 @@ export class Viewer {
     // this.primitives.clear()
   }
 
-  setVersion (userVersion: string) {
-    let texturesVersion = getVersion(userVersion)
-    if (versionToNumber(userVersion) < versionToNumber('1.13')) texturesVersion = '1.13.2' // we normalize to post-flatenning in mesher
+  setVersion (userVersion: string, texturesVersion = userVersion) {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
-    this.world.setVersion(userVersion, texturesVersion)
+    this.world.setVersion(userVersion, texturesVersion).then(() => {
+      return new THREE.TextureLoader().loadAsync(this.world.itemsAtlasParser!.latestImage)
+    }).then((texture) => {
+      this.entities.itemsTexture = texture
+    })
     this.entities.clear()
     // this.primitives.clear()
   }
@@ -95,6 +98,24 @@ export class Viewer {
 
   setBlockStateId (pos: Vec3, stateId: number) {
     this.world.setBlockStateId(pos, stateId)
+  }
+
+  demoModel () {
+    const blockProvider = worldBlockProvider(this.world.blockstatesModels, this.world.blocksAtlases, 'latest')
+    const models = blockProvider.getAllResolvedModels0_1({
+      name: 'item_frame',
+      properties: {
+        map: false
+      }
+    })
+    const geometry = renderBlockThree(models, undefined, 'plains', loadedData)
+    const material = this.world.material
+    // block material
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z)
+    const helper = new THREE.BoxHelper(mesh, 0xffff00)
+    mesh.add(helper)
+    this.scene.add(mesh)
   }
 
   updateEntity (e) {

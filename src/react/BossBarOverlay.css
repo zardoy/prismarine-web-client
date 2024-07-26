@@ -18,7 +18,7 @@
   color: #fff;
 }
 .bossbar {
-  background-image: url("minecraft-assets/minecraft-assets/data/1.18.1/gui/bars.png");
+  background-image: var(--bars-gui-atlas);
   width: 182px;
   height: 5px;
   position: relative;
@@ -30,5 +30,5 @@
   left: 0;
   height: 5px;
   width: 0;
-  background-image: url("minecraft-assets/minecraft-assets/data/1.18.1/gui/bars.png");
+  background-image: var(--bars-gui-atlas);
 }

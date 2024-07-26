@@ -6,21 +6,22 @@ import ChunkLoader from 'prismarine-chunk'
 import WorldLoader from 'prismarine-world'
 import * as THREE from 'three'
 import { GUI } from 'lil-gui'
-import { toMajor } from '../viewer/lib/version'
 import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
+import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 
 globalThis.THREE = THREE
 //@ts-ignore
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { toMajorVersion } from '../../src/utils'
 
 const gui = new GUI()
 
 // initial values
 const params = {
-  skip: '',
+  skipQs: '',
   version: globalThis.includedVersions.sort((a, b) => {
     const s = (x) => {
       const parts = x.split('.')
@@ -38,7 +39,8 @@ const params = {
   entityRotate: false,
   camera: '',
   playSound () { },
-  blockIsomorphicRenderBundle () { }
+  blockIsomorphicRenderBundle () { },
+  modelVariant: 0
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -49,7 +51,7 @@ qs.forEach((value, key) => {
 const setQs = () => {
   const newQs = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
-    if (!value || typeof value === 'function' || params.skip.includes(key)) continue
+    if (!value || typeof value === 'function' || params.skipQs.includes(key)) continue
     //@ts-ignore
     newQs.set(key, value)
   }
@@ -65,7 +67,7 @@ async function main () {
   // temporary solution until web worker is here, cache data for faster reloads
   const globalMcData = window['mcData']
   if (!globalMcData['version']) {
-    const major = toMajor(version)
+    const major = toMajorVersion(version)
     const sessionKey = `mcData-${major}`
     if (sessionStorage[sessionKey]) {
       Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))
@@ -84,11 +86,12 @@ async function main () {
   gui.add(params, 'version', globalThis.includedVersions)
   gui.add(params, 'block', mcData.blocksArray.map(b => b.name).sort((a, b) => a.localeCompare(b)))
   const metadataGui = gui.add(params, 'metadata')
+  gui.add(params, 'modelVariant')
   gui.add(params, 'supportBlock')
   gui.add(params, 'entity', mcData.entitiesArray.map(b => b.name).sort((a, b) => a.localeCompare(b))).listen()
   gui.add(params, 'removeEntity')
   gui.add(params, 'entityRotate')
-  gui.add(params, 'skip')
+  gui.add(params, 'skipQs')
   gui.add(params, 'playSound')
   gui.add(params, 'blockIsomorphicRenderBundle')
   gui.open(false)
@@ -133,7 +136,8 @@ async function main () {
   document.body.appendChild(renderer.domElement)
 
   // Create viewer
-  const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false })
+  const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false, })
+  viewer.world.blockstatesModels = blockstatesModels
   viewer.entities.setDebugMode('basic')
   viewer.setVersion(version)
   viewer.entities.onSkinUpdate = () => {
@@ -299,36 +303,45 @@ async function main () {
   }
 
   const onUpdate = {
+    version (initialUpdate) {
+      if (initialUpdate) return
+      // viewer.world.texturesVersion = params.version
+      // viewer.world.updateTexturesData()
+      // todo warning
+    },
     block () {
+      blockProps = {}
       metadataFolder.destroy()
       const block = mcData.blocksByName[params.block]
       if (!block) return
+      console.log('block', block.name)
       const props = new Block(block.id, 0, 0).getProperties()
       //@ts-ignore
       const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
       metadataFolder = gui.addFolder('metadata')
       if (states) {
         for (const state of states) {
-          let defaultValue
-          switch (state.type) {
-            case 'enum':
-              defaultValue = state.values[0]
-              break
-            case 'bool':
-              defaultValue = false
-              break
-            case 'int':
-              defaultValue = 0
-              break
-            case 'direction':
-              defaultValue = 'north'
-              break
+          let defaultValue: string | number | boolean
+          if (state.values) { // int, enum
+            defaultValue = state.values[0]
+          } else {
+            switch (state.type) {
+              case 'bool':
+                defaultValue = false
+                break
+              case 'int':
+                defaultValue = 0
+                break
+              case 'direction':
+                defaultValue = 'north'
+                break
 
-            default:
-              continue
+              default:
+                continue
+            }
           }
           blockProps[state.name] = defaultValue
-          if (state.type === 'enum') {
+          if (state.values) {
             metadataFolder.add(blockProps, state.name, state.values)
           } else {
             metadataFolder.add(blockProps, state.name)
@@ -340,6 +353,7 @@ async function main () {
           metadataFolder.add(blockProps, name)
         }
       }
+      console.log('props', blockProps)
       metadataFolder.open()
     },
     entity () {
@@ -364,6 +378,9 @@ async function main () {
     },
     supportBlock () {
       viewer.setBlockStateId(targetPos.offset(0, -1, 0), params.supportBlock ? 1 : 0)
+    },
+    modelVariant () {
+      viewer.world.mesherConfig.debugModelVariant = params.modelVariant === 0 ? undefined : [params.modelVariant]
     }
   }
 
@@ -407,10 +424,14 @@ async function main () {
     }
   })
   viewer.waitForChunksToRender().then(async () => {
+    // TODO!
+    await new Promise(resolve => {
+      setTimeout(resolve, 50)
+    })
     for (const update of Object.values(onUpdate)) {
-      update()
+      update(true)
     }
-    applyChanges(true)
+    applyChanges()
     gui.openAnimated()
   })
 
