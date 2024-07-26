@@ -4,37 +4,30 @@ import { useState } from 'react'
 import PixelartIcon from './PixelartIcon'
 import Input from './Input'
 import Singleplayer from './Singleplayer'
-import { BaseServerInfo } from './AddServerOrConnect'
 
-export interface SavedProxiesLocalStorage {
-  proxies: readonly string[]
+
+export interface OptionsStorage {
+  options: readonly string[]
   selected: string
 }
 
 interface Props extends React.ComponentProps<typeof Singleplayer> {
-  joinServer: (info: BaseServerInfo, additional: {
-    shouldSave?: boolean
-    index?: number
-  }) => void
-  initialProxies: SavedProxiesLocalStorage
-  updateProxies: (proxies: SavedProxiesLocalStorage) => void
-  username: string
-  setUsername: (username: string) => void
-  onProfileClick?: () => void
+  initialOptions: OptionsStorage
+  updateOptions: (proxies: OptionsStorage) => void
 }
 
 type Status = 'unknown' | 'error' | 'success'
 
-export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, username, setUsername, onProfileClick, ...props }: Props) => {
-  const [proxies, setProxies] = useState(initialProxies)
+export default ({ initialOptions, updateOptions, ...props }: Props) => {
+  const [options, setOptions] = useState(initialOptions)
   const autocomplete = useAutocomplete({
-    value: proxies.selected,
-    options: proxies.proxies.filter(proxy => proxy !== proxies.selected),
-    onInputChange (event, value, reason) {
-      // console.log('onChange', { event, value, reason, details })
+    value: options.selected,
+    options: options.options.filter(proxy => proxy !== options.selected),
+    onInputChange(event, value, reason) {
+      console.log('onChange', { event, value, reason })
       if (value) {
-        updateProxiesProp({
-          ...proxies,
+        updateOptions({
+          ...options,
           selected: value
         })
       }
@@ -67,7 +60,6 @@ const MainInput = ({ status, ip, inputRef, value, setValue, ...props }: {
   status: Status
   ip: string
 } & Record<string, any>) => {
-
   const iconPerStatus = {
     unknown: 'cellular-signal-0',
     error: 'cellular-signal-off',
