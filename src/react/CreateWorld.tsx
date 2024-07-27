@@ -50,6 +50,12 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
         onChange={(event, value, reason) => {
           creatingWorldState.version = value ?? defaultVersion
         }}
+        processInput={(inputValue) => {
+          const versionLabels = new Set(versions.flatMap(({ version, label }) => [version, label]))
+          if (!versionLabels.has(inputValue)) {
+            return { border: '1px solid red' }
+          }
+        }}
       />
     </form>
     <div style={{ display: 'flex' }}>
