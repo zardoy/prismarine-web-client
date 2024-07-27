@@ -3,6 +3,8 @@ import { proxy, useSnapshot } from 'valtio'
 import { qsOptions } from '../optionsStorage'
 import { ConnectOptions } from '../connect'
 import { hideCurrentModal, miscUiState, showModal } from '../globalState'
+import supportedVersions from '../supportedVersions.mjs'
+import defaultLocalServerOptions from '../defaultLocalServerOptions'
 import ServersList from './ServersList'
 import AddServerOrConnect, { BaseServerInfo } from './AddServerOrConnect'
 import { useDidUpdateEffect } from './utils'
@@ -247,6 +249,7 @@ const Inner = () => {
         }
         dispatchEvent(new CustomEvent('connect', { detail: connectOptions }))
       }}
+      versions={supportedVersions}
     />
   }
 

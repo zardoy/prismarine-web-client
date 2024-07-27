@@ -19,9 +19,21 @@ interface Props {
   onChange?: (event: SyntheticEvent, value: string | null, reason: AutocompleteChangeReason) => void
   iconInput?: string
   iconOption?: string
+  containerStyle?: CSSProperties
+  inputProps?: React.ComponentProps<typeof Input>
 }
 
-export default ({ initialOptions, updateOptions, processOption, processInput, onChange, iconInput, iconOption }: Props) => {
+export default ({
+  initialOptions,
+  updateOptions,
+  processOption,
+  processInput,
+  onChange,
+  iconInput,
+  iconOption,
+  containerStyle,
+  inputProps
+}: Props) => {
   const [options, setOptions] = useState(initialOptions)
   const [inputStyle, setInputStyle] = useState<CSSProperties>({})
 
@@ -30,6 +42,7 @@ export default ({ initialOptions, updateOptions, processOption, processInput, on
     options: options.options.filter(option => option !== options.selected),
     onChange,
     onInputChange (event, value, reason) {
+      setInputStyle(processInput?.(value) ?? {})
       if (value) {
         updateOptions({
           ...options,
@@ -39,25 +52,26 @@ export default ({ initialOptions, updateOptions, processOption, processInput, on
           ...options,
           selected: value
         })
-        setInputStyle(processInput?.(value) ?? {})
       }
     },
     freeSolo: true
   })
 
-  return <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130 }}>
+  return <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130, ...containerStyle }}>
     <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
       inputStyle={inputStyle}
       option=''
+      inputProps={inputProps}
       icon={iconInput ?? ''}
     />
     {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
       position: 'absolute',
       zIndex: 10,
       maxHeight: '100px',
-      overflowY: 'scroll'
+      overflowY: 'scroll',
+      width: '100%'
     }}>
       {autocomplete.groupedOptions.map((option, index) => {
         const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
@@ -68,9 +82,10 @@ export default ({ initialOptions, updateOptions, processOption, processInput, on
   </div>
 }
 
-const SelectOption = ({ option, inputRef, icon, inputStyle, value, setValue, ...props }: {
+const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, setValue, ...props }: {
   option: string,
   icon?: string,
+  inputProps?: React.ComponentProps<typeof Input>
   inputStyle?: CSSProperties
 } & Record<string, any>) => {
 
@@ -86,11 +101,11 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, value, setValue, ...
         ...inputStyle
       }}
       rootStyles={{
-        width: 130,
-        boxSizing: 'border-box',
+        width: '100%'
       }}
       value={value}
       onChange={props.onChange}
+      {...inputProps}
     />
     <div style={{
       position: 'absolute',

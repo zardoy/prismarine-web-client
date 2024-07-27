@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import Screen from './Screen'
 import Input from './Input'
 import Button from './Button'
+import Select, { OptionsStorage } from './Select'
 import { useIsSmallWidth } from './simpleHooks'
 
 export interface BaseServerInfo {
@@ -24,11 +25,12 @@ interface Props {
   defaults?: Pick<BaseServerInfo, 'proxyOverride' | 'usernameOverride'>
   accounts?: string[]
   authenticatedAccounts?: number
+  versions?: string[]
 }
 
 const ELEMENTS_WIDTH = 190
 
-export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, defaults, accounts, authenticatedAccounts }: Props) => {
+export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, defaults, accounts, versions, authenticatedAccounts }: Props) => {
   const qsParams = parseQs ? new URLSearchParams(window.location.search) : undefined
   const qsParamName = qsParams?.get('name')
   const qsParamIp = qsParams?.get('ip')
@@ -92,7 +94,47 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         <InputWithLabel required label="Server IP" value={serverIp} disabled={lockConnect && qsIpParts?.[0] !== null} onChange={({ target: { value } }) => setServerIp(value)} />
         <InputWithLabel label="Server Port" value={serverPort} disabled={lockConnect && qsIpParts?.[1] !== null} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
         <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>
-        <InputWithLabel label="Version Override" value={versionOverride} disabled={lockConnect && qsParamVersion !== null} onChange={({ target: { value } }) => setVersionOverride(value)} placeholder='Optional, but recommended to specify' />
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <label style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Version Override</label>
+          <Select
+            initialOptions={{ options: versions ?? [], selected: '' }}
+            updateOptions={(options) => {}}
+            onChange={(event, value, reason) => {
+              setVersionOverride(value)
+            }}
+            inputProps={{
+              placeholder: 'Optional, but recommended to specify'
+            }}
+            containerStyle={{ width: '190px' }}
+            processInput={(value) => {
+              if (!versions || !value) return {}
+              const parsedVersions = versions.map(x => x.split('.').map(Number))
+              const parsedValue = value.split('.').map(Number)
+
+              const compareVersions = (v1, v2) => {
+                for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
+                  const num1 = v1[i] || 0
+                  const num2 = v2[i] || 0
+                  if (num1 > num2) return 1
+                  if (num1 < num2) return -1
+                }
+                return 0
+              }
+
+              parsedVersions.sort(compareVersions)
+              const minVersion = parsedVersions[0]
+              const maxVersion = parsedVersions.at(-1)
+
+              const isWithinRange = compareVersions(parsedValue, minVersion) >= 0 && compareVersions(parsedValue, maxVersion) <= 0
+              if (!isWithinRange) return { border: '1px solid red' }
+              if (!versions.includes(value)) return { border: '1px solid yellow' }
+            }}
+          />
+        </div>
+
         <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && qsParamProxy !== null} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={defaults?.proxyOverride} />
         <InputWithLabel label="Username Override" value={usernameOverride} disabled={!noAccountSelected || lockConnect && qsParamUsername !== null} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={defaults?.usernameOverride} />
         <label style={{
