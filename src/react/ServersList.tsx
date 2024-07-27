@@ -1,10 +1,9 @@
 import React from 'react'
-import { useAutocomplete } from '@mui/base'
-import { omitObj } from '@zardoy/utils'
 import Singleplayer from './Singleplayer'
 import Input from './Input'
 import Button from './Button'
 import PixelartIcon from './PixelartIcon'
+import Select from './Select'
 import { BaseServerInfo } from './AddServerOrConnect'
 
 interface Props extends React.ComponentProps<typeof Singleplayer> {
@@ -37,21 +36,6 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
     setProxies(newData)
     updateProxiesProp(newData)
   }
-
-  const autocomplete = useAutocomplete({
-    value: proxies.selected,
-    options: proxies.proxies.filter(proxy => proxy !== proxies.selected),
-    onInputChange (event, value, reason) {
-      // console.log('onChange', { event, value, reason, details })
-      if (value) {
-        updateProxies({
-          ...proxies,
-          selected: value
-        })
-      }
-    },
-    freeSolo: true
-  })
 
   const [serverIp, setServerIp] = React.useState('')
   const [save, setSave] = React.useState(true)
@@ -97,24 +81,16 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
       }}>
         <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
           <span style={{ color: 'lightgray', fontSize: 14 }}>Proxy:</span>
-          <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130 }}>
-            <ProxyRender
-              {...omitObj(autocomplete.getInputProps(), 'ref')}
-              inputRef={autocomplete.getInputProps().ref as any}
-              status='unknown'
-              ip=''
-            />
-            {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
-              position: 'absolute',
-              zIndex: 1,
-              // marginTop: 10,
-            }}>
-              {autocomplete.groupedOptions.map((proxy, index) => {
-                const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option: proxy, index })
-                return <ProxyRender {...optionProps as any} ip={proxy} disabled />
-              })}
-            </ul>}
-          </div>
+          <Select
+            initialOptions={{
+              options: [...proxies.proxies],
+              selected: proxies.selected
+            }}
+            updateOptions={(options)=>{
+              updateProxies({ proxies: [...options.options], selected: options.selected })
+            }}
+
+          />
           <PixelartIcon iconName='user' styles={{ fontSize: 14, color: 'lightgray', marginLeft: 2 }} onClick={onProfileClick} />
           <Input rootStyles={{ width: 80 }} value={username} onChange={({ target: { value } }) => setUsername(value)} />
         </div>
