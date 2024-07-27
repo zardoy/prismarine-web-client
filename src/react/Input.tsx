@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { CSSProperties, useEffect, useRef, useState } from 'react'
 import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import styles from './input.module.css'
 
@@ -6,10 +6,12 @@ interface Props extends React.ComponentProps<'input'> {
   rootStyles?: React.CSSProperties
   autoFocus?: boolean
   inputRef?: React.RefObject<HTMLInputElement>
+  validateInput?: (value: string) => CSSProperties | undefined
 }
 
-export default ({ autoFocus, rootStyles, inputRef, ...inputProps }: Props) => {
+export default ({ autoFocus, rootStyles, inputRef, validateInput, ...inputProps }: Props) => {
   const ref = useRef<HTMLInputElement>(null!)
+  const [validationStyle, setValidationStyle] = useState<CSSProperties>({})
 
   useEffect(() => {
     if (inputRef) (inputRef as any).current = ref.current
@@ -18,6 +20,10 @@ export default ({ autoFocus, rootStyles, inputRef, ...inputProps }: Props) => {
   }, [])
 
   return <div className={styles.container} style={rootStyles}>
-    <input ref={ref} className={styles.input} autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' spellCheck='false' {...inputProps} />
+    <input ref={ref} className={styles.input} autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' spellCheck='false' style={{ ...validationStyle }} {...inputProps}
+      onChange={(e) => {
+        setValidationStyle(validateInput?.(e.target.value) ?? {})
+      }}
+    />
   </div>
 }
