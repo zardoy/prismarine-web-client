@@ -106,7 +106,8 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
               setVersionOverride(value)
             }}
             inputProps={{
-              placeholder: 'Optional, but recommended to specify'
+              placeholder: 'Optional, but recommended to specify',
+              disabled: lockConnect && qsParamVersion !== null
             }}
             containerStyle={{ width: '190px' }}
             processInput={(value) => {
