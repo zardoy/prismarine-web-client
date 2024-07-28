@@ -54,7 +54,7 @@ export default ({
         })
       }
     },
-    // freeSolo: true
+    freeSolo: true
   })
 
   return <div {...autocomplete.getRootProps()} style={{ width: 130, ...containerStyle }}>
@@ -70,7 +70,7 @@ export default ({
       position: 'absolute',
       zIndex: 10,
       maxHeight: '100px',
-      overflowY: 'scroll',
+      overflow: 'auto',
       width: containerStyle?.width ?? '130px'
     }}>
       {autocomplete.groupedOptions.map((option, index) => {
@@ -101,7 +101,7 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
       style={{
         paddingLeft: icon ? 16 : 5,
         width: '100%',
-        textOverflow: 'ellipsis',
+        // textOverflow: 'ellipsis',
         left: '0px',
       }}
       rootStyles={{
