@@ -15,7 +15,7 @@ export default ({ autoFocus, rootStyles, inputRef, validateInput, ...inputProps 
   const [value, setValue] = useState(inputProps.value ?? '')
 
   useEffect(()=>{
-    setValue(inputProps.value ?? value)
+    setValue(inputProps.value === '' || inputProps.value ? inputProps.value : value)
   }, [inputProps.value])
 
   useEffect(() => {
@@ -29,6 +29,7 @@ export default ({ autoFocus, rootStyles, inputRef, validateInput, ...inputProps 
       onChange={(e) => {
         setValidationStyle(validateInput?.(e.target.value) ?? {})
         setValue(e.target.value)
+        inputProps.onChange?.(e)
       }}
     />
   </div>

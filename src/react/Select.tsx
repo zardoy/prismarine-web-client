@@ -1,6 +1,6 @@
 import { omitObj } from '@zardoy/utils'
 import { AutocompleteChangeReason, useAutocomplete } from '@mui/base'
-import { useState, CSSProperties, SyntheticEvent, useRef } from 'react'
+import { useState, CSSProperties, SyntheticEvent } from 'react'
 import PixelartIcon from './PixelartIcon'
 import Input from './Input'
 import './Select.css'
@@ -54,7 +54,7 @@ export default ({
         })
       }
     },
-    freeSolo: true
+    // freeSolo: true
   })
 
   return <div {...autocomplete.getRootProps()} style={{ width: 130, ...containerStyle }}>
@@ -76,7 +76,7 @@ export default ({
       {autocomplete.groupedOptions.map((option, index) => {
         const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
         const optionString = processOption?.(option) ?? option
-        return <SelectOption {...optionProps as any} icon={iconOption ?? ''} option={optionString} inputRef={itemRef} />
+        return <SelectOption {...optionProps as any} icon={iconOption ?? ''} option={optionString} />
       })}
     </ul>}
   </div>
@@ -96,6 +96,7 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
   }} {...props}>
     {icon && <PixelartIcon styles={{ position: 'absolute', zIndex: 3 }} iconName={icon} />}
     <Input
+      {...inputProps}
       inputRef={inputRef}
       style={{
         paddingLeft: icon ? 16 : 5,
@@ -110,7 +111,6 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
       }}
       value={option}
       onChange={props.onChange}
-      {...inputProps}
     />
   </div>
 }
