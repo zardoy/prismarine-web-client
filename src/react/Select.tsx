@@ -57,12 +57,12 @@ export default ({
     freeSolo: true
   })
 
-  return <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130, ...containerStyle }}>
+  return <div {...autocomplete.getRootProps()} style={{ width: 130, ...containerStyle }}>
     <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
       inputStyle={inputStyle}
-      option={autocomplete.value ?? ''}
+      option={autocomplete.inputValue ?? ''}
       inputProps={inputProps}
       icon={iconInput ?? ''}
     />
@@ -71,7 +71,7 @@ export default ({
       zIndex: 10,
       maxHeight: '100px',
       overflowY: 'scroll',
-      width: '100%'
+      width: containerStyle?.width ?? '130px'
     }}>
       {autocomplete.groupedOptions.map((option, index) => {
         const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option, index })
