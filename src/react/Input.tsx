@@ -12,6 +12,11 @@ interface Props extends React.ComponentProps<'input'> {
 export default ({ autoFocus, rootStyles, inputRef, validateInput, ...inputProps }: Props) => {
   const ref = useRef<HTMLInputElement>(null!)
   const [validationStyle, setValidationStyle] = useState<CSSProperties>({})
+  const [value, setValue] = useState(inputProps.value ?? '')
+
+  useEffect(()=>{
+    setValue(inputProps.value ?? value)
+  }, [inputProps.value])
 
   useEffect(() => {
     if (inputRef) (inputRef as any).current = ref.current
@@ -20,9 +25,10 @@ export default ({ autoFocus, rootStyles, inputRef, validateInput, ...inputProps 
   }, [])
 
   return <div id='input-container' className={styles.container} style={rootStyles}>
-    <input ref={ref} className={styles.input} autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' spellCheck='false' style={{ ...validationStyle }} {...inputProps}
+    <input ref={ref} className={styles.input} autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' spellCheck='false' style={{ ...validationStyle }} {...inputProps} value={value}
       onChange={(e) => {
         setValidationStyle(validateInput?.(e.target.value) ?? {})
+        setValue(e.target.value)
       }}
     />
   </div>
