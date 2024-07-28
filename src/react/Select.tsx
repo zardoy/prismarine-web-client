@@ -62,7 +62,7 @@ export default ({
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
       inputStyle={inputStyle}
-      option=''
+      option={autocomplete.value ?? ''}
       inputProps={inputProps}
       icon={iconInput ?? ''}
     />
@@ -88,47 +88,29 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
   inputProps?: React.ComponentProps<typeof Input>
   inputStyle?: CSSProperties
 } & Record<string, any>) => {
-  const optionRef = useRef<HTMLDivElement>(null)
 
   return <div style={{
     position: 'relative',
-    border: '1px solid black',
-    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center'
   }} {...props}>
+    {icon && <PixelartIcon styles={{ position: 'absolute', zIndex: 3 }} iconName={icon} />}
     <Input
       inputRef={inputRef}
       style={{
         paddingLeft: icon ? 16 : 5,
         width: '100%',
+        textOverflow: 'ellipsis',
         left: '0px',
         ...inputStyle
       }}
       rootStyles={{
-        width: '99%'
+        width: '99%',
+        border: '1px solid grey',
       }}
-      value={value}
+      value={option}
       onChange={props.onChange}
       {...inputProps}
     />
-    <div
-      ref={optionRef}
-      style={{
-        position: 'absolute',
-        inset: 0,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2
-      }}>
-      {icon && <PixelartIcon iconName={icon} />}
-      <div style={{
-        fontSize: 10,
-        paddingLeft: icon ? 0 : 7,
-        width: '100%',
-        wordBreak: 'break-all',
-        cursor: 'pointer'
-      }}>
-        {option}
-      </div>
-    </div>
   </div>
 }
