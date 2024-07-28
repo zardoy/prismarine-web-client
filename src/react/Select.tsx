@@ -92,7 +92,7 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
   return <div style={{
     position: 'relative',
     display: 'flex',
-    alignItems: 'center'
+    alignItems: 'center',
   }} {...props}>
     {icon && <PixelartIcon styles={{ position: 'absolute', zIndex: 3 }} iconName={icon} />}
     <Input
@@ -102,11 +102,11 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
         width: '100%',
         textOverflow: 'ellipsis',
         left: '0px',
-        ...inputStyle
       }}
       rootStyles={{
         width: '99%',
         border: '1px solid grey',
+        ...inputStyle
       }}
       value={option}
       onChange={props.onChange}
