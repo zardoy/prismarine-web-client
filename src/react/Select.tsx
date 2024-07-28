@@ -1,6 +1,6 @@
 import { omitObj } from '@zardoy/utils'
 import { AutocompleteChangeReason, useAutocomplete } from '@mui/base'
-import { useState, CSSProperties, SyntheticEvent } from 'react'
+import { useState, CSSProperties, SyntheticEvent, useRef } from 'react'
 import PixelartIcon from './PixelartIcon'
 import Input from './Input'
 import './Select.css'
@@ -88,9 +88,12 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
   inputProps?: React.ComponentProps<typeof Input>
   inputStyle?: CSSProperties
 } & Record<string, any>) => {
+  const optionRef = useRef<HTMLDivElement>(null)
 
   return <div style={{
     position: 'relative',
+    border: '1px solid black',
+    cursor: 'pointer',
   }} {...props}>
     <Input
       inputRef={inputRef}
@@ -101,26 +104,27 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
         ...inputStyle
       }}
       rootStyles={{
-        width: '100%'
+        width: '99%'
       }}
       value={value}
       onChange={props.onChange}
       {...inputProps}
     />
-    <div style={{
-      position: 'absolute',
-      inset: 0,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 2
-    }}>
+    <div
+      ref={optionRef}
+      style={{
+        position: 'absolute',
+        inset: 0,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2
+      }}>
       {icon && <PixelartIcon iconName={icon} />}
       <div style={{
         fontSize: 10,
         paddingLeft: icon ? 0 : 7,
         width: '100%',
-        whiteSpace: 'nowrap',
-        overflowX: 'auto',
+        wordBreak: 'break-all',
         cursor: 'pointer'
       }}>
         {option}
