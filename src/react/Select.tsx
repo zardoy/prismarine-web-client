@@ -54,7 +54,7 @@ export default ({
         })
       }
     },
-    freeSolo: true
+    freeSolo: true,
   })
 
   return <div {...autocomplete.getRootProps()} style={{ width: 130, ...containerStyle }}>
@@ -62,8 +62,8 @@ export default ({
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
       inputStyle={inputStyle}
-      option={autocomplete.inputValue ?? ''}
       inputProps={inputProps}
+      option={autocomplete.inputValue ?? ''}
       icon={iconInput ?? ''}
     />
     {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
@@ -93,10 +93,12 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
     position: 'relative',
     display: 'flex',
     alignItems: 'center',
-  }} {...props}>
+  }}
+  {...props}
+  >
     {icon && <PixelartIcon styles={{ position: 'absolute', zIndex: 3 }} iconName={icon} />}
     <Input
-      {...inputProps}
+      {...props}
       inputRef={inputRef}
       style={{
         paddingLeft: icon ? 16 : 5,
@@ -111,6 +113,7 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
       }}
       value={option}
       onChange={props.onChange}
+      {...inputProps}
     />
   </div>
 }
