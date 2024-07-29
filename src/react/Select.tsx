@@ -94,11 +94,11 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
     display: 'flex',
     alignItems: 'center',
   }}
-  {...props}
+  {...omitObj(props, 'id')}
   >
     {icon && <PixelartIcon styles={{ position: 'absolute', zIndex: 3 }} iconName={icon} />}
     <Input
-      {...props}
+      id={props.id}
       inputRef={inputRef}
       style={{
         paddingLeft: icon ? 16 : 5,
