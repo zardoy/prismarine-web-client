@@ -245,15 +245,10 @@ export class WebgpuRenderer {
                 { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
             ],
         });
-        const anotherLayout = device.createBindGroupLayout({
-            label: 'anotherLayout',
-            entries: [
-            ],
-        });
 
         const computePipelineLayout = device.createPipelineLayout({
             label: 'computePipelineLayout',
-            bindGroupLayouts: [anotherLayout, computeBindGroupLayout],
+            bindGroupLayouts: [computeBindGroupLayout],
 
         })
 
@@ -290,20 +285,20 @@ export class WebgpuRenderer {
         const indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
         device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams);
 
-        const vertexBindGroupLayout = device.createBindGroupLayout({
-            label: 'vertexBindGroupLayout',
-            entries: [
-                { binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } },
-                { binding: 2, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }  // Read-only storage
-            ]
-        });
+        // const vertexBindGroupLayout = device.createBindGroupLayout({
+        //     label: 'vertexBindGroupLayout',
+        //     entries: [
+        //         { binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } },
+        //         { binding: 2, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }  // Read-only storage
+        //     ]
+        // });
 
 
         // Create bind group for render pass
         this.uniformBindGroup = device.createBindGroup({
             label: 'uniformBindGroups',
-            layout: vertexBindGroupLayout,
-            // layout: pipeline.getBindGroupLayout(0),
+            //layout: vertexBindGroupLayout,
+            layout: pipeline.getBindGroupLayout(0),
             entries: [
                 {
                     binding: 0,
@@ -311,55 +306,62 @@ export class WebgpuRenderer {
                         buffer: this.UniformBuffer,
                     },
                 },
-                // {
-                //     binding: 1,
-                //     resource: sampler,
-                // },
+                {
+                    binding: 1,
+                    resource: sampler,
+                },
                 {
                     binding: 2,
                     resource: cubeTexture.createView(),
                 },
-            ],
-        });
-
-        // Create bind group for compute shader
-        this.computeBindGroupLayout = device.createBindGroupLayout({
-            label: 'computeBindGroupLayout',
-            entries: [
-                {
-                    binding: 0,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: 'uniform',
-                    },
-                },
-                {
-                    binding: 1,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: 'storage',
-                    },
-                },
-                {
-                    binding: 2,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: 'read-only-storage',
-                    },
-                },
                 {
                     binding: 3,
-                    visibility: GPUShaderStage.COMPUTE,
-                    buffer: {
-                        type: 'storage',
-                    },
-                },
+                    resource: {
+                        buffer:this.visibleCubesBuffer
+                    }
+                        
+                }
             ],
         });
 
+        // // Create bind group for compute shader
+        // this.computeBindGroupLayout = device.createBindGroupLayout({
+        //     label: 'computeBindGroupLayout',
+        //     entries: [
+        //         {
+        //             binding: 0,
+        //             visibility: GPUShaderStage.COMPUTE,
+        //             buffer: {
+        //                 type: 'uniform',
+        //             },
+        //         },
+        //         {
+        //             binding: 1,
+        //             visibility: GPUShaderStage.COMPUTE,
+        //             buffer: {
+        //                 type: 'storage',
+        //             },
+        //         },
+        //         {
+        //             binding: 2,
+        //             visibility: GPUShaderStage.COMPUTE,
+        //             buffer: {
+        //                 type: '',
+        //             },
+        //         },
+        //         {
+        //             binding: 3,
+        //             visibility: GPUShaderStage.COMPUTE,
+        //             buffer: {
+        //                 type: 'storage',
+        //             },
+        //         },
+        //     ],
+        // });
+
         this.computeBindGroup = device.createBindGroup({
-            layout: this.computeBindGroupLayout,
-            //layout: pipeline.getBindGroupLayout(1),
+            //layout: this.computeBindGroupLayout,
+            layout: this.computePipeline.getBindGroupLayout(0),
             label: 'computeBindGroup',
             entries: [
                 {
@@ -471,30 +473,30 @@ export class WebgpuRenderer {
             .getCurrentTexture()
             .createView();
 
-        const commandEncoder = device.createCommandEncoder();
-        commandEncoder.label = "ComputePassEncoder"
+        let commandEncoder = device.createCommandEncoder();
         // Compute pass for occlusion culling
+        commandEncoder.label = "Main Comand Encoder"
         const computePass = commandEncoder.beginComputePass();
         computePass.label = "ComputePass"
         computePass.setPipeline(this.computePipeline);
-        computePass.setBindGroup(0, this.uniformBindGroup);
-        computePass.setBindGroup(1, this.computeBindGroup);
+        //computePass.setBindGroup(0, this.uniformBindGroup);
+        computePass.setBindGroup(0, this.computeBindGroup);
         computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 64));
         computePass.end();
-
+        device.queue.submit([commandEncoder.finish()]);
+        commandEncoder = device.createCommandEncoder();
+        //device.queue.submit([commandEncoder.finish()]);
         // Render pass
-        const passEncoder = commandEncoder.beginRenderPass(this.renderPassDescriptor);
-        passEncoder.label = "RenderPass"
-        passEncoder.setPipeline(pipeline);
-        passEncoder.setBindGroup(0, this.uniformBindGroup);
-        passEncoder.setBindGroup(1, this.computeBindGroup);
-        passEncoder.setVertexBuffer(0, verticesBuffer);
-        passEncoder.setVertexBuffer(1, verticesBuffer);
+        const renderPass = commandEncoder.beginRenderPass(this.renderPassDescriptor);
+        renderPass.label = "RenderPass"
+        renderPass.setPipeline(pipeline);
+        renderPass.setBindGroup(0, this.uniformBindGroup);
+        renderPass.setVertexBuffer(0, verticesBuffer);
 
         // Use indirect drawing
-        passEncoder.drawIndirect(this.indirectDrawBuffer, 0);
+        renderPass.drawIndirect(this.indirectDrawBuffer, 0);
 
-        passEncoder.end();
+        renderPass.end();
         device.queue.submit([commandEncoder.finish()]);
 
         this.renderedFrames++;

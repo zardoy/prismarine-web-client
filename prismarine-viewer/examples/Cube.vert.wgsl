@@ -9,14 +9,14 @@ struct Cube {
 }
 
 struct VertexOutput {
-  @builtin(position) Position: vec4<f32>,
-  @location(0) fragUV: vec2<f32>,
+  @builtin(position) Position: vec4f,
+  @location(0) fragUV: vec2f,
   @location(1) @interpolate(flat) TextureIndex: f32,
-  @location(2) @interpolate(flat) ColorBlend: vec3<f32>
+  @location(2) @interpolate(flat) ColorBlend: vec3f
 }
 
-@group(1) @binding(0) var<uniform> uniforms: Uniforms;
-@group(1) @binding(2) var<storage, read> visibleCubes: array<Cube>;
+@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(3) var<storage, read> visibleCubes: array<Cube>;
 
 @vertex
 fn main(
