@@ -65,6 +65,8 @@ async function handleDroppedFile (file: File) {
       let versionDetected = false
       for (const [i, _] of Array.from({ length: 32 }).entries()) {
         for (const [k, _] of Array.from({ length: 32 }).entries()) {
+          // todo, may use faster reading, but features is not commonly used
+          // eslint-disable-next-line no-await-in-loop
           const nbt = await region.read(i, k)
           chunks[`${i},${k}`] = nbt
           if (nbt && !versionDetected) {

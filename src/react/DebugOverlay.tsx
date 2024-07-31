@@ -1,4 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
+import * as THREE from 'three'
 import { getFixedFilesize } from '../downloadAndOpenFile'
 import { options } from '../optionsStorage'
 import worldInteractions from '../worldInteractions'
@@ -199,7 +200,8 @@ const hardcodedListOfDebugPacketsToIgnore = {
     'chat',
     'playerlist_header',
     'scoreboard_objective',
-    'scoreboard_score'
+    'scoreboard_score',
+    'entity_status'
   ],
   sent: [
     'pong',

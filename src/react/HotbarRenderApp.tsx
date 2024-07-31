@@ -111,7 +111,7 @@ export default () => {
     inv.canvas.style.pointerEvents = 'auto'
     container.current.appendChild(inv.canvas)
     const upHotbarItems = () => {
-      if (!viewer.world.downloadedTextureImage || !viewer.world.downloadedBlockStatesData || !allImagesLoadedState.value) return
+      if (!viewer.world.currentTextureImage || !allImagesLoadedState.value) return
       upInventoryItems(true, inv)
     }
 
@@ -126,7 +126,6 @@ export default () => {
     upHotbarItems()
     bot.inventory.on('updateSlot', upHotbarItems)
     viewer.world.renderUpdateEmitter.on('textureDownloaded', upHotbarItems)
-    viewer.world.renderUpdateEmitter.on('blockStatesDownloaded', upHotbarItems)
     const unsub2 = subscribe(allImagesLoadedState, () => {
       upHotbarItems()
     })
@@ -200,7 +199,6 @@ export default () => {
       controller.abort()
       unsub2()
       viewer.world.renderUpdateEmitter.off('textureDownloaded', upHotbarItems)
-      viewer.world.renderUpdateEmitter.off('blockStatesDownloaded', upHotbarItems)
     }
   }, [])
 

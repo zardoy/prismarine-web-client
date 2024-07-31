@@ -2,13 +2,15 @@ import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import { WorldRendererWebgpu } from './worldrendererWebgpu'
 import { Entities } from './entities'
-import { getVersion } from './version'
+import { Primitives } from './primitives'
 import EventEmitter from 'events'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { defaultWorldRendererConfig } from './worldrendererCommon'
 import { sendCameraToWorker } from '../../examples/webgpuRendererMain'
 import { WorldRendererThree } from './worldrendererThree'
 import { versionToNumber } from '../prepare/utils'
+import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
+import { renderBlockThree } from './mesher/standaloneRenderer'
 
 export class Viewer {
   scene: THREE.Scene
@@ -80,11 +82,13 @@ export class Viewer {
     // this.primitives.clear()
   }
 
-  setVersion (userVersion: string) {
-    let texturesVersion = getVersion(userVersion)
-    if (versionToNumber(userVersion) < versionToNumber('1.13')) texturesVersion = '1.13.2' // we normalize to post-flatenning in mesher
+  setVersion (userVersion: string, texturesVersion = userVersion) {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
-    this.world.setVersion(userVersion, texturesVersion)
+    this.world.setVersion(userVersion, texturesVersion).then(() => {
+      return new THREE.TextureLoader().loadAsync(this.world.itemsAtlasParser!.latestImage)
+    }).then((texture) => {
+      this.entities.itemsTexture = texture
+    })
     this.entities.clear()
     // this.primitives.clear()
   }
@@ -99,6 +103,24 @@ export class Viewer {
 
   setBlockStateId (pos: Vec3, stateId: number) {
     this.world.setBlockStateId(pos, stateId)
+  }
+
+  demoModel () {
+    const blockProvider = worldBlockProvider(this.world.blockstatesModels, this.world.blocksAtlases, 'latest')
+    const models = blockProvider.getAllResolvedModels0_1({
+      name: 'item_frame',
+      properties: {
+        map: false
+      }
+    })
+    const geometry = renderBlockThree(models, undefined, 'plains', loadedData)
+    const material = this.world.material
+    // block material
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z)
+    const helper = new THREE.BoxHelper(mesh, 0xffff00)
+    mesh.add(helper)
+    this.scene.add(mesh)
   }
 
   updateEntity (e) {
@@ -125,7 +147,7 @@ export class Viewer {
     sendCameraToWorker()
   }
 
-  playSound (position: Vec3, path: string, volume = 1) {
+  playSound (position: Vec3, path: string, volume = 1, pitch = 1) {
     if (!this.audioListener) {
       this.audioListener = new THREE.AudioListener()
       this.camera.add(this.audioListener)
@@ -141,6 +163,7 @@ export class Viewer {
       sound.setBuffer(buffer)
       sound.setRefDistance(20)
       sound.setVolume(volume)
+      sound.setPlaybackRate(pitch) // set the pitch
       this.scene.add(sound)
       // set sound position
       sound.position.set(position.x, position.y, position.z)

@@ -7,11 +7,12 @@ const meta: Meta<typeof MessageFormattedString> = {
 }
 
 export default meta
-type Story = StoryObj<typeof MessageFormattedString>;
+type Story = StoryObj<typeof MessageFormattedString>
 
 export const Primary: Story = {
   args: {
     // red text using minecraft styling symbol
-    message: '\u00A7cYou died!'
+    message: '\u00A7cYou died!',
+    fallbackColor: 'white'
   },
 }

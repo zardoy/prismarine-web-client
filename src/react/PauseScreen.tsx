@@ -21,6 +21,7 @@ import { showOptionsModal } from './SelectOption'
 import Button from './Button'
 import Screen from './Screen'
 import styles from './PauseScreen.module.css'
+import { DiscordButton } from './DiscordButton'
 
 export const saveToBrowserMemory = async () => {
   setLoadingScreenStatus('Saving world')
@@ -44,6 +45,8 @@ export const saveToBrowserMemory = async () => {
 }
 
 export default () => {
+  const qsParams = new URLSearchParams(window.location.search)
+  const lockConnect = qsParams?.get('lockConnect') === 'true'
   const isModalActive = useIsModalActive('pause-screen')
   const fsStateSnap = useSnapshot(fsState)
   const activeModalStackSnap = useSnapshot(activeModalStack)
@@ -119,7 +122,7 @@ export default () => {
       <Button className="button" style={{ width: '204px' }} onClick={onReturnPress}>Back to Game</Button>
       <div className={styles.row}>
         <Button className="button" style={{ width: '98px' }} onClick={() => openURL(process.env.GITHUB_URL!)}>GitHub</Button>
-        <Button className="button" style={{ width: '98px' }} onClick={() => openURL('https://discord.gg/4Ucm684Fq3')}>Discord</Button>
+        <DiscordButton />
       </div>
       <Button className="button" style={{ width: '204px' }} onClick={() => openOptionsMenu('main')}>Options</Button>
       {singleplayer ? (
@@ -143,9 +146,11 @@ export default () => {
           />
         </div>
       ) : null}
-      <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
-        {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect & Reset'}
-      </Button>
+      {!lockConnect && <>
+        <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
+          {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect & Reset'}
+        </Button>
+      </>}
     </div>
   </Screen>
 }

@@ -29,6 +29,14 @@ declare module '*.svg' {
     const svg: string
     export default svg
 }
+declare module '*.webp' {
+    const svg: string
+    export default svg
+}
+declare module '*.mp3' {
+    const mp3: any
+    export default mp3
+}
 
 interface PromiseConstructor {
     withResolvers<T> (): {
@@ -40,4 +48,19 @@ interface PromiseConstructor {
 
 declare namespace JSX {
     interface IntrinsicElements { }
+}
+
+// keyboard api
+// https://gist.github.com/contigen/8da28f8bca4f05c9b50c5638521c8784
+
+interface Navigator {
+    readonly keyboard?: Keyboard
+}
+
+declare type KeyboardLayoutMap = readonly Map<string, string>
+
+declare interface Keyboard extends EventTarget {
+    getLayoutMap (): Promise<KeyboardLayoutMap>
+    lock (keyCode?: KeyCode): Promise<undefined>
+    unlock (): void
 }

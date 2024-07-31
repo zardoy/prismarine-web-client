@@ -9,7 +9,7 @@ import { MesherGeometryOutput } from './mesher/shared'
 export class WorldRendererWebgpu extends WorldRendererCommon {
   outputFormat = 'webgpu' as const
   newChunks = {} as Record<string, any>
-  webglData: WebglData
+  // webglData: WebglData
   stopBlockUpdate = false
   lastChunkDistance = 0
 
@@ -29,7 +29,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     if (!block) return
     const { textureName } = block
     if (!textureName) return
-    return this.webglData[textureName]
+    // return this.webglData[textureName]
   }
 
   setBlockStateId (pos: any, stateId: any): void {
@@ -68,11 +68,8 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   updatePosDataChunk (key: string) {
   }
 
-  updateTexturesData (): void {
-    super.updateTexturesData()
-    loadJSON(`/webgl/${this.texturesVersion}.json`, (json) => {
-      this.webglData = json
-    })
+  async updateTexturesData (): Promise<void> {
+    await super.updateTexturesData()
   }
 
   updateShowChunksBorder (value: boolean) {

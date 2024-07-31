@@ -66,6 +66,7 @@ export const readWorlds = (abortController: AbortController) => {
         if (providersEnableFeatures[provider].calculateSize) {
           // todo use whole dir size
           for (const region of await fs.promises.readdir(`${worldsPath}/${folder}/region`)) {
+            // eslint-disable-next-line no-await-in-loop -- it's still fast enough, nobody complains about it
             const stat = await fs.promises.stat(`${worldsPath}/${folder}/region/${region}`)
             size += stat.size
           }

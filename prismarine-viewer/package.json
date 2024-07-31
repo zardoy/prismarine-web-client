@@ -3,10 +3,7 @@
   "version": "1.25.0",
   "description": "Web based viewer",
   "main": "index.js",
-  "scripts": {
-    "postinstall": "pnpm generate-textures && node buildMesherWorker.mjs",
-    "generate-textures": "tsx viewer/prepare/postinstall.ts"
-  },
+  "scripts": {},
   "author": "PrismarineJS",
   "license": "MIT",
   "standard": {
@@ -22,11 +19,9 @@
     "live-server": "^1.2.2",
     "assert": "^2.0.0",
     "buffer": "^6.0.3",
-    "canvas": "^2.11.2",
     "filesize": "^10.0.12",
     "fs-extra": "^11.0.0",
     "lil-gui": "^0.18.2",
-    "looks-same": "^8.2.3",
     "minecraft-wrap": "^1.3.0",
     "minecrafthawkeye": "^1.3.6",
     "prismarine-block": "^1.7.3",
@@ -42,6 +37,7 @@
     "vec3": "^0.1.7"
   },
   "optionalDependencies": {
+    "canvas": "^2.11.2",
     "node-canvas-webgl": "^0.3.0"
   }
 }

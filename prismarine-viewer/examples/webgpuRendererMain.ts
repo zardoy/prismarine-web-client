@@ -68,7 +68,7 @@ export const removeBlocksSection = (key) => {
 }
 
 let playground = false
-export const initWebgpuRenderer = async (texturesVersion: string, postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
+export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
     playground = actuallyPlayground
     await new Promise(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
@@ -76,14 +76,16 @@ export const initWebgpuRenderer = async (texturesVersion: string, postRender = (
         //   console.log(this.material.map!.image)
         //   resolve()
         // }
-        viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', resolve)
+        viewer.world.renderUpdateEmitter.once('textureDownloaded', resolve)
     })
-    const imageBlob = await fetch(`./textures/${texturesVersion}.png`).then((res) => res.blob())
+    const image = viewer.world.material.map!.image
+    const imageBlob = await fetch(image.src).then((res) => res.blob())
     const canvas = document.createElement('canvas')
     canvas.width = window.innerWidth * window.devicePixelRatio
     canvas.height = window.innerHeight * window.devicePixelRatio
     document.body.appendChild(canvas)
     canvas.id = 'viewer-canvas'
+    console.log('starting offscreen')
 
     const offscreen = canvas.transferControlToOffscreen()
 

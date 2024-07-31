@@ -49,6 +49,7 @@ for (const version of [...supportedVersions].reverse()) {
     const data = JSON.parse(fs.readFileSync(dataPath, 'utf8'))
     data.version = version
     processData(data)
+    fs.mkdirSync('./generated', { recursive: true })
     fs.writeFileSync('./generated/latestBlockCollisionsShapes.json', JSON.stringify(data), 'utf8')
     break
   }

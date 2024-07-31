@@ -41,6 +41,7 @@ import HeldMapUi from './react/HeldMapUi'
 import BedTime from './react/BedTime'
 import NoModalFoundProvider from './react/NoModalFoundProvider'
 import SignInMessageProvider from './react/SignInMessageProvider'
+import BookProvider from './react/BookProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -116,6 +117,7 @@ const InGameUi = () => {
         <ScoreboardProvider />
         <IndicatorEffectsProvider />
         <Crosshair />
+        <BookProvider />
       </div>
 
       <PauseScreen />

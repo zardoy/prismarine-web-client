@@ -27,13 +27,10 @@ const result = await (watch ? context : build)({
         assert: 'assert',
         dns: './src/dns.js'
     },
-    inject: [
-        './src/shims.js'
-    ],
     plugins: [
         {
             name: 'writeOutput',
-            setup(build) {
+            setup (build) {
                 build.onEnd(({ outputFiles }) => {
                     for (const file of outputFiles) {
                         for (const dir of ['prismarine-viewer/public', 'dist']) {

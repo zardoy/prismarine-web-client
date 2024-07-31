@@ -7,6 +7,7 @@ export const defaultMesherConfig = {
   smoothLighting: true,
   outputFormat: 'threeJs' as 'threeJs' | 'webgpu',
   textureSize: 1024, // for testing
+  debugModelVariant: undefined as undefined | number[]
 }
 
 export type MesherConfig = typeof defaultMesherConfig

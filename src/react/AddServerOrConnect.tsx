@@ -30,19 +30,25 @@ const ELEMENTS_WIDTH = 190
 
 export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, defaults, accounts, authenticatedAccounts }: Props) => {
   const qsParams = parseQs ? new URLSearchParams(window.location.search) : undefined
+  const qsParamName = qsParams?.get('name')
+  const qsParamIp = qsParams?.get('ip')
+  const qsParamVersion = qsParams?.get('version')
+  const qsParamProxy = qsParams?.get('proxy')
+  const qsParamUsername = qsParams?.get('username')
+  const qsParamLockConnect = qsParams?.get('lockConnect')
 
-  const [serverName, setServerName] = React.useState(initialData?.name ?? qsParams?.get('name') ?? '')
+  const qsIpParts = qsParamIp?.split(':')
+  const ipParts = initialData?.ip.split(':')
 
-  const ipWithoutPort = initialData?.ip.split(':')[0]
-  const port = initialData?.ip.split(':')[1]
+  const [serverName, setServerName] = React.useState(initialData?.name ?? qsParamName ?? '')
+  const [serverIp, setServerIp] = React.useState(ipParts?.[0] ?? qsIpParts?.[0] ?? '')
+  const [serverPort, setServerPort] = React.useState(ipParts?.[1] ?? qsIpParts?.[1] ?? '')
+  const [versionOverride, setVersionOverride] = React.useState(initialData?.versionOverride ?? /* legacy */ initialData?.['version'] ?? qsParamVersion ?? '')
+  const [proxyOverride, setProxyOverride] = React.useState(initialData?.proxyOverride ?? qsParamProxy ?? '')
+  const [usernameOverride, setUsernameOverride] = React.useState(initialData?.usernameOverride ?? qsParamUsername ?? '')
+  const lockConnect = qsParamLockConnect === 'true'
 
-  const [serverIp, setServerIp] = React.useState(ipWithoutPort ?? qsParams?.get('ip') ?? '')
-  const [serverPort, setServerPort] = React.useState(port ?? '')
-  const [versionOverride, setVersionOverride] = React.useState(initialData?.versionOverride ?? /* legacy */ initialData?.['version'] ?? qsParams?.get('version') ?? '')
-  const [proxyOverride, setProxyOverride] = React.useState(initialData?.proxyOverride ?? qsParams?.get('proxy') ?? '')
-  const [usernameOverride, setUsernameOverride] = React.useState(initialData?.usernameOverride ?? qsParams?.get('username') ?? '')
   const smallWidth = useIsSmallWidth()
-  const lockConnect = qsParams?.get('lockConnect') === 'true'
   const initialAccount = initialData?.authenticatedAccountOverride
   const [accountIndex, setAccountIndex] = React.useState(initialAccount === true ? -2 : initialAccount ? (accounts?.includes(initialAccount) ? accounts.indexOf(initialAccount) : -2) : -1)
 
@@ -61,7 +67,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
     authenticatedAccountOverride,
   }
 
-  return <Screen title={qsParams?.get('ip') ? 'Connect to Server' : title} backdrop>
+  return <Screen title={qsParamIp ? 'Connect to Server' : title} backdrop>
     <form
       style={{
         display: 'flex',
@@ -78,22 +84,23 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         gap: 3,
         gridTemplateColumns: smallWidth ? '1fr' : '1fr 1fr'
       }}>
-        <div style={{ gridColumn: smallWidth ? '' : 'span 2', display: 'flex', justifyContent: 'center' }}>
-          <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
-        </div>
-        <InputWithLabel required label="Server IP" value={serverIp} onChange={({ target: { value } }) => setServerIp(value)} />
-        <InputWithLabel label="Server Port" value={serverPort} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
+        {!lockConnect && <>
+          <div style={{ gridColumn: smallWidth ? '' : 'span 2', display: 'flex', justifyContent: 'center' }}>
+            <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
+          </div>
+        </>}
+        <InputWithLabel required label="Server IP" value={serverIp} disabled={lockConnect && qsIpParts?.[0] !== null} onChange={({ target: { value } }) => setServerIp(value)} />
+        <InputWithLabel label="Server Port" value={serverPort} disabled={lockConnect && qsIpParts?.[1] !== null} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
         <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>
-        <InputWithLabel label="Version Override" value={versionOverride} onChange={({ target: { value } }) => setVersionOverride(value)} placeholder='Optional, but recommended to specify' />
-        <InputWithLabel label="Proxy Override" value={proxyOverride} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={defaults?.proxyOverride} />
-        <InputWithLabel label="Username Override" value={usernameOverride} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={defaults?.usernameOverride} disabled={!noAccountSelected} />
+        <InputWithLabel label="Version Override" value={versionOverride} disabled={lockConnect && qsParamVersion !== null} onChange={({ target: { value } }) => setVersionOverride(value)} placeholder='Optional, but recommended to specify' />
+        <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && qsParamProxy !== null} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={defaults?.proxyOverride} />
+        <InputWithLabel label="Username Override" value={usernameOverride} disabled={!noAccountSelected || lockConnect && qsParamUsername !== null} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={defaults?.usernameOverride} />
         <label style={{
           display: 'flex',
           flexDirection: 'column',
         }}>
           <span style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Account Override</span>
           <select
-            placeholder='Account'
             onChange={({ target: { value } }) => setAccountIndex(Number(value))}
             style={{
               background: 'gray',
@@ -115,7 +122,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
           }}>Cancel</ButtonWrapper>
           <ButtonWrapper type='submit'>Save</ButtonWrapper>
         </>}
-        {qsParams?.get('ip') && <div style={{ gridColumn: smallWidth ? '' : 'span 2', display: 'flex', justifyContent: 'center' }}>
+        {qsParamIp && <div style={{ gridColumn: smallWidth ? '' : 'span 2', display: 'flex', justifyContent: 'center' }}>
           <ButtonWrapper
             data-test-id='connect-qs'
             onClick={() => {

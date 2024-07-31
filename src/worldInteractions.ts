@@ -1,19 +1,22 @@
 //@ts-check
 
-// wouldn't better to create atlas instead?
-import destroyStage0 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_0.png'
-import destroyStage1 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_1.png'
-import destroyStage2 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_2.png'
-import destroyStage3 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_3.png'
-import destroyStage4 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_4.png'
-import destroyStage5 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_5.png'
-import destroyStage6 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_6.png'
-import destroyStage7 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_7.png'
-import destroyStage8 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_8.png'
-import destroyStage9 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_9.png'
+import * as THREE from 'three'
 
+// wouldn't better to create atlas instead?
 import { Vec3 } from 'vec3'
 import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
+import { Entity } from 'prismarine-entity'
+import destroyStage0 from '../assets/destroy_stage_0.png'
+import destroyStage1 from '../assets/destroy_stage_1.png'
+import destroyStage2 from '../assets/destroy_stage_2.png'
+import destroyStage3 from '../assets/destroy_stage_3.png'
+import destroyStage4 from '../assets/destroy_stage_4.png'
+import destroyStage5 from '../assets/destroy_stage_5.png'
+import destroyStage6 from '../assets/destroy_stage_6.png'
+import destroyStage7 from '../assets/destroy_stage_7.png'
+import destroyStage8 from '../assets/destroy_stage_8.png'
+import destroyStage9 from '../assets/destroy_stage_9.png'
+
 import { hideCurrentModal, isGameActive, showModal } from './globalState'
 import { assertDefined } from './utils'
 import { options } from './optionsStorage'
@@ -95,7 +98,7 @@ class WorldInteraction {
         if (e.button === 0) { // left click
           bot.attack(entity)
         } else if (e.button === 2) { // right click
-          void bot.activateEntity(entity)
+          this.activateEntity(entity)
         }
       }
     })
@@ -156,6 +159,35 @@ class WorldInteraction {
     upLineMaterial()
     // todo use gamemode update only
     bot.on('game', upLineMaterial)
+  }
+
+  activateEntity (entity: Entity) {
+    // mineflayer has completely wrong implementation of this action
+    if (bot.supportFeature('armAnimationBeforeUse')) {
+      bot.swingArm('right')
+    }
+    bot._client.write('use_entity', {
+      target: entity.id,
+      mouse: 2,
+      // todo do not fake
+      x: 0.581_012_585_759_162_9,
+      y: 0.581_012_585_759_162_9,
+      z: 0.581_012_585_759_162_9,
+      // x: raycastPosition.x - entity.position.x,
+      // y: raycastPosition.y - entity.position.y,
+      // z: raycastPosition.z - entity.position.z
+      sneaking: bot.getControlState('sneak'),
+      hand: 0
+    })
+    bot._client.write('use_entity', {
+      target: entity.id,
+      mouse: 0,
+      sneaking: bot.getControlState('sneak'),
+      hand: 0
+    })
+    if (!bot.supportFeature('armAnimationBeforeUse')) {
+      bot.swingArm('right')
+    }
   }
 
   updateBlockInteractionLines (blockPos: Vec3 | null, shapePositions?: Array<{ position; width; height; depth }>) {
@@ -251,6 +283,7 @@ class WorldInteraction {
           //@ts-expect-error
           bot.lookAt = (pos) => { }
           //@ts-expect-error
+          // TODO it still must 1. fire block place 2. swing arm (right)
           bot.activateBlock(cursorBlock, vecArray[cursorBlock.face], delta).finally(() => {
             bot.lookAt = oldLookAt
           }).catch(console.warn)
@@ -258,6 +291,10 @@ class WorldInteraction {
       } else if (!stop) {
         const offhand = activate ? false : activatableItems(bot.inventory.slots[45]?.name ?? '')
         bot.activateItem(offhand) // todo offhand
+        const item = offhand ? bot.inventory.slots[45] : bot.heldItem
+        if (item) {
+          customEvents.emit('activateItem', item, offhand ? 45 : bot.quickBarSlot, offhand)
+        }
         itemBeingUsed.name = (offhand ? bot.inventory.slots[45]?.name : bot.heldItem?.name) ?? null
         itemBeingUsed.hand = offhand ? 1 : 0
       }
