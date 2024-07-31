@@ -4,12 +4,12 @@ import * as tweenJs from '@tweenjs/tween.js';
 import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from './CubeDef';
 import VertShader from './Cube.vert.wgsl';
 import FragShader from './Cube.frag.wgsl';
-import ComputeShader from './Compute.wgsl';
+import ComputeShader from './Cube.comp.wgsl';
 import { updateSize, allSides } from './webgpuRendererWorker';
 
 export class WebgpuRenderer {
     rendering = true
-    NUMBER_OF_CUBES = 100000;
+    NUMBER_OF_CUBES = 300;
     renderedFrames = 0
 
     ready = false;
@@ -468,6 +468,11 @@ export class WebgpuRenderer {
             ViewProjection.byteOffset,
             ViewProjection.byteLength
         );
+
+        // const EmptyVisibleCubes = new Float32Array([36, 0, 0, 0]) ;
+
+        // device.queue.writeBuffer(
+        //     this.indirectDrawBuffer, 0, EmptyVisibleCubes);
 
         renderPassDescriptor.colorAttachments[0].view = ctx
             .getCurrentTexture()
