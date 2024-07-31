@@ -1,15 +1,16 @@
-import React from 'react'
+import React, { CSSProperties } from 'react'
 import supportedVersions from '../supportedVersions.mjs'
 import Select from './Select'
 import Input from './Input'
 
 
 export default (
-  { inputProps, onChange, updateOptions } :
+  { inputProps, onChange, updateOptions, containerStyle } :
   {
     inputProps?: React.ComponentProps<typeof Input>,
     onChange?: (event, value, reason) => void,
-    updateOptions?: (options) => void
+    updateOptions?: (options) => void,
+    containerStyle?: CSSProperties
   }
 ) => {
 
@@ -20,7 +21,7 @@ export default (
     }}
     onChange={onChange}
     inputProps={inputProps}
-    containerStyle={{ width: '190px' }}
+    containerStyle={containerStyle ?? { width: '190px' }}
     processInput={(value) => {
       if (!supportedVersions || !value) return {}
       const parsedsupportedVersions = supportedVersions.map(x => x.split('.').map(Number))

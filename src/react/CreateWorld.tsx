@@ -5,6 +5,7 @@ import Input from './Input'
 import Screen from './Screen'
 import Button from './Button'
 import Select from './Select'
+import SelectGameVersion from './SelectGameVersion'
 import styles from './createWorld.module.css'
 
 // const worldTypes = ['default', 'flat', 'largeBiomes', 'amplified', 'customized', 'buffet', 'debug_all_block_states']
@@ -42,20 +43,11 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
         }}
         placeholder='World name'
       />
-      <Select
-        initialOptions={
-          { options: versions.map(({ version, label }) => { return label }), selected: defaultVersion }
-        }
-        updateOptions={(options) => {}}
+      <SelectGameVersion
         onChange={(event, value, reason) => {
           creatingWorldState.version = value ?? defaultVersion
         }}
-        processInput={(inputValue) => {
-          const versionLabels = new Set(versions.flatMap(({ version, label }) => [version, label]))
-          if (!versionLabels.has(inputValue)) {
-            return { border: '1px solid red' }
-          }
-        }}
+        containerStyle={{ width: '100px' }}
       />
     </form>
     <div style={{ display: 'flex' }}>
