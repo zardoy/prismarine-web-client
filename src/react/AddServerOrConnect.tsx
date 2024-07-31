@@ -3,6 +3,7 @@ import Screen from './Screen'
 import Input from './Input'
 import Button from './Button'
 import Select, { OptionsStorage } from './Select'
+import SelectGameVersion from './SelectGameVersion'
 import { useIsSmallWidth } from './simpleHooks'
 
 export interface BaseServerInfo {
@@ -99,39 +100,13 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
           flexDirection: 'column',
         }}>
           <label style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Version Override</label>
-          <Select
-            initialOptions={{ options: versions ?? [], selected: '' }}
-            updateOptions={(options) => {}}
+          <SelectGameVersion
             onChange={(event, value, reason) => {
               setVersionOverride(value)
             }}
             inputProps={{
               placeholder: 'Optional, but recommended to specify',
               disabled: lockConnect && qsParamVersion !== null
-            }}
-            containerStyle={{ width: '190px' }}
-            processInput={(value) => {
-              if (!versions || !value) return {}
-              const parsedVersions = versions.map(x => x.split('.').map(Number))
-              const parsedValue = value.split('.').map(Number)
-
-              const compareVersions = (v1, v2) => {
-                for (let i = 0; i < Math.max(v1.length, v2.length); i++) {
-                  const num1 = v1[i] || 0
-                  const num2 = v2[i] || 0
-                  if (num1 > num2) return 1
-                  if (num1 < num2) return -1
-                }
-                return 0
-              }
-
-              parsedVersions.sort(compareVersions)
-              const minVersion = parsedVersions[0]
-              const maxVersion = parsedVersions.at(-1)
-
-              const isWithinRange = compareVersions(parsedValue, minVersion) >= 0 && compareVersions(parsedValue, maxVersion) <= 0
-              if (!isWithinRange) return { border: '1px solid red' }
-              if (!versions.includes(value)) return { border: '1px solid yellow' }
             }}
           />
         </div>
