@@ -42,7 +42,21 @@ Whatever offline mode you used (zip, folder, just single player), you can always
 You can play almost on any Java server, vanilla servers are fully supported.
 See the [Mineflayer](https://github.com/PrismarineJS/mineflayer) repo for the list of supported versions (should support majority of versions).
 There is a builtin proxy, but you can also host your one! Just clone the repo, run `pnpm i` (following CONTRIBUTING.MD) and run `pnpm prod-start`, then you can specify `http://localhost:8080` in the proxy field.
-MS account authentication will be supported soon.
+
+Proxy servers are used to connect to Minecraft servers which use TCP protocol. When you connect connect to a server with a proxy, websocket connection is created between you (browser client) and the proxy server located in Europe, then the proxy connects to the Minecraft server and sends the data to the client (you) without any packet deserialization to avoid any additional delays. That said all the Minecraft protocol packets are processed by the client, right in your browser.
+
+```mermaid
+graph LR
+    A[Web App - Client] --> C[Proxy Server]
+    C --> B[Minecraft Server]
+    style A fill:#f9d,stroke:#333,stroke-width:2px
+    style B fill:#fc0,stroke:#333,stroke-width:2px
+    style C fill:#fff,stroke:#333,stroke-width:2px
+```
+
+So if the server is located in Europe and you are connecting from Europe, you will have ~40ms ping (~180ms with residential proxy version), however if you are in the US and connecting to the server located in US, you will have >200ms ping, which is the worst case scenario.
+
+Again, the proxy server is not a part of the client, it is a separate service that you can host yourself.
 
 ### Docker Files
 
@@ -59,8 +73,6 @@ In case of using docker, you don't have to follow preparation steps from CONTRIB
 - Entities & text rendering
 - Supports resource packs
 - Doesn't support occlusion culling
-
-<!-- TODO proxy server communication graph -->
 
 ### Advanced Settings
 
@@ -113,6 +125,7 @@ Press `Y` to set query parameters to url of your current game state.
 There are some parameters you can set in the url to archive some specific behaviors:
 
 Server specific:
+
 - `?ip=<server_address>` - Display connect screen to the server on load with predefined server ip. `:<port>` is optional and can be added to the ip.
 - `?name=<name>` - Set the server name for saving to the server list
 - `?version=<version>` - Set the version for the server
@@ -122,6 +135,7 @@ Server specific:
 - `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
 
 Single player specific:
+
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?version=<version>` - Set the version for the singleplayer world (when used with `?singleplayer=1`)
@@ -129,6 +143,7 @@ Single player specific:
 - `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
 
 General:
+
 - `?setting=<setting_name>:<setting_value>` - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
 
 ### Notable Things that Power this Project
