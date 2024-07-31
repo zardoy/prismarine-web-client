@@ -1,8 +1,7 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import Screen from './Screen'
 import Input from './Input'
 import Button from './Button'
-import Select, { OptionsStorage } from './Select'
 import SelectGameVersion from './SelectGameVersion'
 import { useIsSmallWidth } from './simpleHooks'
 

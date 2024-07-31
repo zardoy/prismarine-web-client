@@ -4,7 +4,6 @@ import { filesize } from 'filesize'
 import Input from './Input'
 import Screen from './Screen'
 import Button from './Button'
-import Select from './Select'
 import SelectGameVersion from './SelectGameVersion'
 import styles from './createWorld.module.css'
 
