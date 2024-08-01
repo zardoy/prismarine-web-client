@@ -1,33 +1,67 @@
 {
-    "extends": "zardoy",
+    "extends": [
+        "zardoy",
+        "plugin:@stylistic/disable-legacy"
+    ],
     "ignorePatterns": [
         "!*.js"
     ],
+    "plugins": [
+        "@stylistic"
+    ],
     "rules": {
-        "space-infix-ops": "error",
-        "no-multi-spaces": "error",
-        "no-trailing-spaces": "error",
-        "space-before-function-paren": "error",
-        "@typescript-eslint/space-before-function-paren": "error",
-        "space-in-parens": [
+        // style
+        "@stylistic/space-infix-ops": "error",
+        "@stylistic/no-multi-spaces": "error",
+        "@stylistic/no-trailing-spaces": "error",
+        "@stylistic/space-before-function-paren": "error",
+        "@stylistic/array-bracket-spacing": "error",
+        "@stylistic/arrow-parens": [
+            "error",
+            "as-needed"
+        ],
+        "@stylistic/arrow-spacing": "error",
+        "@stylistic/block-spacing": "error",
+        "@stylistic/brace-style": [
+            "error",
+            "1tbs",
+            {
+                "allowSingleLine": true
+            }
+        ],
+        "@stylistic/comma-dangle": [
+            "error",
+            "always-multiline"
+        ],
+        "@stylistic/computed-property-spacing": "error",
+        "@stylistic/dot-location": [
+            "error",
+            "property"
+        ],
+        "@stylistic/eol-last": "error",
+        "@stylistic/function-call-spacing": "error",
+        "@stylistic/function-paren-newline": "error",
+        "@stylistic/generator-star-spacing": "error",
+        // last
+        "@stylistic/implicit-arrow-linebreak": "error",
+        "@stylistic/function-call-argument-newline": [
+            "error",
+            "consistent"
+        ],
+        "@stylistic/space-in-parens": [
             "error",
             "never"
         ],
-        "object-curly-spacing": [
+        "@stylistic/object-curly-spacing": [
             "error",
             "always"
         ],
-        "comma-spacing": "error",
-        "semi": [
+        "@stylistic/comma-spacing": "error",
+        "@stylistic/semi": [
             "error",
             "never"
         ],
-        "comma-dangle": [
-            "error",
-            // todo maybe "always-multiline"?
-            "only-multiline"
-        ],
-        "indent": [
+        "@stylistic/indent": [
             "error",
             2,
             {
@@ -37,7 +71,7 @@
                 ]
             }
         ],
-        "quotes": [
+        "@stylistic/quotes": [
             "error",
             "single",
             {
@@ -104,7 +138,7 @@
                 "*.js"
             ],
             "rules": {
-                "space-before-function-paren": [
+                "@stylistic/space-before-function-paren": [
                     "error",
                     {
                         "anonymous": "always",
