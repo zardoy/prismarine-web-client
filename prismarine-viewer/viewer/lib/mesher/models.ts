@@ -104,24 +104,18 @@ function getLiquidRenderHeight (world, block, type, pos) {
   return ((block.metadata >= 8 ? 8 : 7 - block.metadata) + 1) / 9
 }
 
-const everyArray = (array, callback) => {
-  if (!array?.length) return false
-  return array.every(callback)
-}
 
-
-const isCube = (block) => {
+const isCube = (block: Block) => {
   if (!block || block.transparent) return false
   if (block.isCube) return true
-  // TODO!
-  // if (!block.variant) block.variant = getModelVariants(block)
-  if (!block.variant?.length) return false
-  return block.variant.every(v => everyArray(v?.model?.elements, e => {
+  if (!block.models?.length || block.models.length !== 1) return false
+  // all variants
+  return block.models[0].every(v => v.elements!.every(e => {
     return e.from[0] === 0 && e.from[1] === 0 && e.from[2] === 0 && e.to[0] === 16 && e.to[1] === 16 && e.to[2] === 16
   }))
 }
 
-function renderLiquid (world, cursor, texture, type, biome, water, attr) {
+function renderLiquid (world: World, cursor: Vec3, texture: any | undefined, type: number, biome: string, water: boolean, attr: Record<string, any>) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
@@ -140,12 +134,12 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     const { dir, corners } = elemFaces[face]
     const isUp = dir[1] === 1
 
-    const neighborPos = cursor.offset(...dir)
+    const neighborPos = cursor.offset(...dir as [number, number, number])
     const neighbor = world.getBlock(neighborPos)
     if (!neighbor) continue
     if (neighbor.type === type) continue
     const isGlass = neighbor.name.includes('glass')
-    if ((isCube(neighbor) && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
+    if ((isCube(neighbor) && !isUp) || neighbor.getProperties().waterlogged) continue
 
     let tint = [1, 1, 1]
     if (water) {
