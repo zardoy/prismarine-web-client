@@ -118,7 +118,6 @@ const InGameUi = () => {
         <ScoreboardProvider />
         <IndicatorEffectsProvider />
         <Crosshair />
-        <MinimapProvider />
         <BookProvider />
       </div>
 
@@ -135,6 +134,7 @@ const InGameUi = () => {
       <DisplayQr />
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
+      <MinimapProvider />
       {/* because of z-index */}
       {showUI && <TouchControls />}
       <GlobalSearchInput />

@@ -98,7 +98,8 @@ export default (
           right: '0px',
           top: '0px',
           padding: '5px 5px 0px 0px',
-          textAlign: 'center'
+          textAlign: 'center',
+          zIndex: 100,
         }}
         onClick={() => {
           toggleFullMap?.({ command: 'ui.toggleMap' })
@@ -133,4 +134,3 @@ export default (
         </div>
       </div> : null
 }
-
