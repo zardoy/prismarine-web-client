@@ -1,5 +1,5 @@
-const THREE = require('three')
 const path = require('path')
+const THREE = require('three')
 
 const textureCache = {}
 function loadTexture (texture, cb) {

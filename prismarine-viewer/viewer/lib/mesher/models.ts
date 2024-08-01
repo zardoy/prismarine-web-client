@@ -1,8 +1,7 @@
 import { Vec3 } from 'vec3'
-import { World, BlockModelPartsResolved } from './world'
-import { WorldBlock as Block } from './world'
-import legacyJson from '../../../../src/preflatMap.json'
 import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
+import legacyJson from '../../../../src/preflatMap.json'
+import { World, BlockModelPartsResolved, WorldBlock as Block } from './world'
 import { BlockElement, buildRotationMatrix, elemFaces, matmul3, matmulmat3, vecadd3, vecsub3 } from './modelsGeometryCommon'
 
 let blockProvider: WorldBlockProvider
@@ -14,7 +13,7 @@ let tintsData
 try {
   tintsData = require('esbuild-data').tints
 } catch (err) {
-  tintsData = require("minecraft-data/minecraft-data/data/pc/1.16.2/tints.json")
+  tintsData = require('minecraft-data/minecraft-data/data/pc/1.16.2/tints.json')
 }
 for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
@@ -30,7 +29,7 @@ function prepareTints (tints) {
     }
   }
   return new Proxy(map, {
-    get: (target, key) => {
+    get (target, key) {
       return target.has(key) ? target.get(key) : defaultValue
     }
   })
@@ -72,7 +71,7 @@ export function preflatBlockCalculation (block: Block, world: World, position: V
     }
     case 'door': {
       // upper half matches lower in
-      const half = block.getProperties().half
+      const { half } = block.getProperties()
       if (half === 'upper') {
         // copy other properties
         const lower = world.getBlock(position.offset(0, -1, 0))
@@ -136,6 +135,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     Math.max(Math.max(heights[4], heights[5]), Math.max(heights[7], heights[8]))
   ]
 
+  // eslint-disable-next-line guard-for-in
   for (const face in elemFaces) {
     const { dir, corners } = elemFaces[face]
     const isUp = dir[1] === 1
@@ -168,10 +168,10 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
       })
     }
 
-    const u = texture.u
-    const v = texture.v
-    const su = texture.su
-    const sv = texture.sv
+    const { u } = texture
+    const { v } = texture
+    const { su } = texture
+    const { sv } = texture
 
     for (const pos of corners) {
       const height = cornerHeights[pos[2] * 2 + pos[0]]
@@ -192,8 +192,9 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
   // if (!globalThis.allowedBlocks.includes(key)) return
-  const cullIfIdentical = block.name.indexOf('glass') >= 0
+  const cullIfIdentical = block.name.includes('glass')
 
+  // eslint-disable-next-line guard-for-in
   for (const face in element.faces) {
     const eFace = element.faces[face]
     const { corners, mask1, mask2 } = elemFaces[face]
@@ -218,10 +219,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     const maxz = element.to[2]
 
     const texture = eFace.texture as any
-    const u = texture.u
-    const v = texture.v
-    const su = texture.su
-    const sv = texture.sv
+    const { u, v, su, sv } = texture
 
     const ndx = Math.floor(attr.positions.length / 3)
 
@@ -355,13 +353,13 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
   }
 }
 
-const invisibleBlocks = ['air', 'cave_air', 'void_air', 'barrier']
+const invisibleBlocks = new Set(['air', 'cave_air', 'void_air', 'barrier'])
 
 const isBlockWaterlogged = (block: Block) => block.getProperties().waterlogged === true || block.getProperties().waterlogged === 'true'
 
 let unknownBlockModel: BlockModelPartsResolved
 export function getSectionGeometry (sx, sy, sz, world: World) {
-  let delayedRender = [] as (() => void)[]
+  let delayedRender = [] as Array<() => void>
 
   const attr = {
     sx: sx + 8,
@@ -386,15 +384,15 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
-        if (invisibleBlocks.includes(block.name)) continue
+        if (invisibleBlocks.has(block.name)) continue
         if (block.name.includes('_sign') || block.name === 'sign') {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
           const facingRotationMap = {
-            "north": 2,
-            "south": 0,
-            "west": 1,
-            "east": 3
+            'north': 2,
+            'south': 0,
+            'west': 1,
+            'east': 3
           }
           const isWall = block.name.endsWith('wall_sign') || block.name.endsWith('wall_hanging_sign')
           const isHanging = block.name.endsWith('hanging_sign')
@@ -410,15 +408,15 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         if (world.preflat) {
           const patchProperties = preflatBlockCalculation(block, world, cursor)
           if (patchProperties) {
-            //@ts-ignore
+            //@ts-expect-error
             block._originalProperties ??= block._properties
-            //@ts-ignore
+            //@ts-expect-error
             block._properties = { ...block._originalProperties, ...patchProperties }
             preflatRecomputeVariant = true
           } else {
-            //@ts-ignore
+            //@ts-expect-error
             block._properties = block._originalProperties ?? block._properties
-            //@ts-ignore
+            //@ts-expect-error
             block._originalProperties = undefined
           }
         }
@@ -432,9 +430,9 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         } else if (block.name === 'lava') {
           renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr)
         }
-        if (block.name !== "water" && block.name !== "lava" && !invisibleBlocks.includes(block.name)) {
+        if (block.name !== 'water' && block.name !== 'lava' && !invisibleBlocks.has(block.name)) {
           // cache
-          let models = block.models
+          let { models } = block
           if (block.models === undefined || preflatRecomputeVariant) {
             try {
               models = blockProvider.getAllResolvedModels0_1({
@@ -465,8 +463,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             let globalShift = null as any
             for (const axis of ['x', 'y', 'z'] as const) {
               if (axis in model) {
-                if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0))
-                else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0)))
+                if (globalMatrix) {globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0)))}
+                else {globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0))}
               }
             }
             if (globalMatrix) {

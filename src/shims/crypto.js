@@ -1,6 +1,6 @@
 //@ts-check
 export * from 'crypto-browserify'
-export function createPublicKey() { }
+export function createPublicKey () { }
 
 // CUSTOM SIGN ASYNC IMPLEMENTATION FOR BROWSERS
 

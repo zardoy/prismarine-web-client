@@ -19,7 +19,7 @@ export function buildCleanupDecorator (cleanupMethod: string) {
           for (const key of target._toCleanup) {
             this[key] = this._initialValues[key]
           }
-          originalMethod.apply(this, arguments)
+          Reflect.apply(originalMethod, this, arguments)
         }
       }
       target._cleanupPatched = true

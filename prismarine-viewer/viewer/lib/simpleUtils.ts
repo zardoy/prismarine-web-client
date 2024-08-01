@@ -1,4 +1,4 @@
-export function getBufferFromStream (stream) {
+export async function getBufferFromStream (stream) {
   return new Promise(
     (resolve, reject) => {
       let buffer = Buffer.from([])

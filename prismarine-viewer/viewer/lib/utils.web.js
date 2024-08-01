@@ -16,7 +16,7 @@ function loadJSON (url, callback) {
   xhr.open('GET', url, true)
   xhr.responseType = 'json'
   xhr.onload = function () {
-    const status = xhr.status
+    const { status } = xhr
     if (status === 200) {
       callback(xhr.response)
     } else {

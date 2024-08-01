@@ -41,20 +41,20 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
   @worldCleanup()
-  active = false
+    active = false
 
   version = undefined as string | undefined
   @worldCleanup()
-  loadedChunks = {} as Record<string, boolean>
+    loadedChunks = {} as Record<string, boolean>
 
   @worldCleanup()
-  finishedChunks = {} as Record<string, boolean>
+    finishedChunks = {} as Record<string, boolean>
 
   @worldCleanup()
-  sectionsOutstanding = new Map<string, number>()
+    sectionsOutstanding = new Map<string, number>()
 
   @worldCleanup()
-  renderUpdateEmitter = new EventEmitter()
+    renderUpdateEmitter = new EventEmitter()
 
   customTexturesDataUrl = undefined as string | undefined
   currentTextureImage = undefined as any
@@ -68,7 +68,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   viewDistance = -1
   chunksLength = 0
   @worldCleanup()
-  allChunksFinished = false
+    allChunksFinished = false
 
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
@@ -153,11 +153,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   /**
    * Optionally update data that are depedendent on the viewer position
    */
-  updatePosDataChunk?(key: string): void
+  updatePosDataChunk? (key: string): void
 
-  allChunksLoaded?(): void
+  allChunksLoaded? (): void
 
-  timeUpdated?(newTime: number): void
+  timeUpdated? (newTime: number): void
 
   updateViewerPosition (pos: Vec3) {
     this.viewerPosition = pos

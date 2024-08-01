@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
-import { setup } from './mesherTester'
 import supportedVersions from '../../../../../src/supportedVersions.mjs'
+import { setup } from './mesherTester'
 
 const lastVersion = supportedVersions.at(-1)
 
@@ -16,13 +16,13 @@ const addPositions = [
 
 test('Known blocks are not rendered', () => {
   const { mesherWorld, getGeometry, pos, mcData } = setup(lastVersion, addPositions as any)
-  const ignoreAsExpected = ['air', 'cave_air', 'void_air', 'barrier', 'water', 'lava', 'moving_piston', 'light']
+  const ignoreAsExpected = new Set(['air', 'cave_air', 'void_air', 'barrier', 'water', 'lava', 'moving_piston', 'light'])
 
   let time = 0
   let times = 0
   const invalidBlocks = {}/*  as {[number, number]} */
   for (const block of mcData.blocksArray) {
-    if (ignoreAsExpected.includes(block.name)) continue
+    if (ignoreAsExpected.has(block.name)) continue
     // if (block.maxStateId! - block.minStateId! > 100) continue
     // for (let i = block.minStateId!; i <= block.maxStateId!; i++) {
     for (let i = block.defaultState!; i <= block.defaultState!; i++) {

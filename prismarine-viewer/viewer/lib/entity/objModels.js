@@ -1,3 +1,5 @@
-import * as externalModels from './exportedModels'
 
-export { externalModels }
+
+
+
+export * as externalModels from './exportedModels'

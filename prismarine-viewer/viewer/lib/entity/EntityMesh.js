@@ -178,7 +178,7 @@ function getMesh(texture, jsonModel, overrides = {}) {
 
   const rootBones = []
   for (const jsonBone of jsonModel.bones) {
-    if (jsonBone.parent && bones[jsonBone.parent]) bones[jsonBone.parent].add(bones[jsonBone.name])
+    if (jsonBone.parent && bones[jsonBone.parent]) {bones[jsonBone.parent].add(bones[jsonBone.name])}
     else {
       rootBones.push(bones[jsonBone.name])
     }
@@ -296,7 +296,7 @@ const getEntity = (name) => {
 
 export class EntityMesh {
   constructor(version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
-    let originalType = type
+    const originalType = type
     const mappedValue = temporaryMap[type]
     if (mappedValue) type = mappedValue
 
@@ -356,12 +356,12 @@ export class EntityMesh {
       const texture = overrides.textures?.[name] ?? e.textures[name]
       if (!texture) continue
       // console.log(JSON.stringify(jsonModel, null, 2))
-      const mesh = getMesh(texture + '.png', jsonModel, overrides,)
+      const mesh = getMesh(texture + '.png', jsonModel, overrides)
       mesh.name = `geometry_${name}`
       this.mesh.add(mesh)
 
       const skeletonHelper = new THREE.SkeletonHelper(mesh)
-      //@ts-ignore
+      //@ts-expect-error
       skeletonHelper.material.linewidth = 2
       skeletonHelper.visible = false
       this.mesh.add(skeletonHelper)

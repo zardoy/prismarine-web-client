@@ -8,6 +8,7 @@
         "no-multi-spaces": "error",
         "no-trailing-spaces": "error",
         "space-before-function-paren": "error",
+        "@typescript-eslint/space-before-function-paren": "error",
         "space-in-parens": [
             "error",
             "never"

@@ -49,7 +49,7 @@ export class WalkingGeneralSwing extends PlayerAnimation {
     }
 
     if (this._startArmSwing) {
-      let tHand = (this.progress - this._startArmSwing) * 18 + Math.PI * 0.5
+      const tHand = (this.progress - this._startArmSwing) * 18 + Math.PI * 0.5
       player.skin.rightArm.rotation.x = Math.cos(tHand) * 1.5
       const basicArmRotationZ = Math.PI * 0.1
       player.skin.rightArm.rotation.z = Math.cos(t + Math.PI) * 0.3 - basicArmRotationZ
