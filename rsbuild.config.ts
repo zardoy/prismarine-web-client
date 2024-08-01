@@ -181,5 +181,8 @@ export default defineConfig({
         // bundleAnalyze: {
         //     analyzerMode: 'json',
         // },
+        chunkSplit: {
+            strategy: 'single-vendor',
+        },
     },
 })
