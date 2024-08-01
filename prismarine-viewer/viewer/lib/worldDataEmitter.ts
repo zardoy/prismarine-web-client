@@ -1,10 +1,12 @@
-import { chunkPos } from './simpleUtils'
+/* eslint-disable @typescript-eslint/no-dynamic-delete */
+/* eslint-disable guard-for-in */
 
 // todo refactor into its own commons module
+import { EventEmitter } from 'events'
 import { generateSpiralMatrix, ViewRect } from 'flying-squid/dist/utils'
 import { Vec3 } from 'vec3'
-import { EventEmitter } from 'events'
 import { BotEvents } from 'mineflayer'
+import { chunkPos } from './simpleUtils'
 
 export type ChunkPosKey = string
 type ChunkPos = { x: number, z: number }
@@ -15,9 +17,9 @@ type ChunkPos = { x: number, z: number }
  */
 export class WorldDataEmitter extends EventEmitter {
   private loadedChunks: Record<ChunkPosKey, boolean>
-  private lastPos: Vec3
-  private eventListeners: Record<string, any> = {};
-  private emitter: WorldDataEmitter
+  private readonly lastPos: Vec3
+  private eventListeners: Record<string, any> = {}
+  private readonly emitter: WorldDataEmitter
 
   constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
@@ -31,7 +33,6 @@ export class WorldDataEmitter extends EventEmitter {
       const dir = new Vec3(click.direction.x, click.direction.y, click.direction.z)
       const block = this.world.raycast(ori, dir, 256)
       if (!block) return
-      //@ts-ignore
       this.emit('blockClicked', block, block.face, click.button)
     })
   }
@@ -56,13 +57,13 @@ export class WorldDataEmitter extends EventEmitter {
 
     this.eventListeners[bot.username] = {
       // 'move': botPosition,
-      entitySpawn: (e: any) => {
+      entitySpawn (e: any) {
         emitEntity(e)
       },
-      entityUpdate: (e: any) => {
+      entityUpdate (e: any) {
         emitEntity(e)
       },
-      entityMoved: (e: any) => {
+      entityMoved (e: any) {
         emitEntity(e)
       },
       entityGone: (e: any) => {
@@ -72,7 +73,7 @@ export class WorldDataEmitter extends EventEmitter {
         this.loadChunk(pos)
       },
       blockUpdate: (oldBlock: any, newBlock: any) => {
-        const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
+        const stateId = newBlock.stateId ?? ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
       },
       time: () => {
@@ -146,7 +147,7 @@ export class WorldDataEmitter extends EventEmitter {
     this.unloadAllChunks()
     for (const loadedChunk in clonedLoadedChunks) {
       const [x, z] = loadedChunk.split(',').map(Number)
-      this.loadChunk(new Vec3(x, 0, z))
+      void this.loadChunk(new Vec3(x, 0, z))
     }
   }
 
@@ -155,6 +156,7 @@ export class WorldDataEmitter extends EventEmitter {
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
     const dz = Math.abs(botZ - Math.floor(pos.z / 16))
     if (dx <= this.viewDistance && dz <= this.viewDistance) {
+      // eslint-disable-next-line @typescript-eslint/await-thenable -- todo allow to use async world provider but not sure if needed
       const column = await this.world.getColumnAt(pos['y'] ? pos as Vec3 : new Vec3(pos.x, 0, pos.z))
       if (column) {
         // todo optimize toJson data, make it clear why it is used
@@ -164,7 +166,7 @@ export class WorldDataEmitter extends EventEmitter {
           minY: column['minY'] ?? 0,
           worldHeight: column['worldHeight'] ?? 256,
         }
-        //@ts-ignore
+        //@ts-expect-error
         this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
@@ -193,8 +195,8 @@ export class WorldDataEmitter extends EventEmitter {
       const newView = new ViewRect(botX, botZ, this.viewDistance)
       const chunksToUnload: Vec3[] = []
       for (const coords of Object.keys(this.loadedChunks)) {
-        const x = parseInt(coords.split(',')[0])
-        const z = parseInt(coords.split(',')[1])
+        const x = parseInt(coords.split(',')[0], 10)
+        const z = parseInt(coords.split(',')[1], 10)
         const p = new Vec3(x, 0, z)
         const [chunkX, chunkZ] = chunkPos(p)
         if (!newView.contains(chunkX, chunkZ)) {

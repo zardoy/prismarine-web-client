@@ -1,13 +1,7 @@
-import * as THREE from 'three'
-import { Vec3 } from 'vec3'
-import { loadJSON } from './utils'
-import { loadTexture } from './utils.web'
 import { EventEmitter } from 'events'
+import { Vec3 } from 'vec3'
+import * as THREE from 'three'
 import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
-import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
-import { chunkPos } from './simpleUtils'
-import { defaultMesherConfig } from './mesher/shared'
-import { buildCleanupDecorator } from './cleanupDecorator'
 import blocksAtlases from 'mc-assets/dist/blocksAtlases.json'
 import blocksAtlasLatest from 'mc-assets/dist/blocksAtlasLatest.png'
 import blocksAtlasLegacy from 'mc-assets/dist/blocksAtlasLegacy.png'
@@ -15,8 +9,14 @@ import itemsAtlases from 'mc-assets/dist/itemsAtlases.json'
 import itemsAtlasLatest from 'mc-assets/dist/itemsAtlasLatest.png'
 import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
 import { AtlasParser } from 'mc-assets'
+import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { getResourcepackTiles } from '../../../src/resourcePack'
 import { toMajorVersion } from '../../../src/utils'
+import { buildCleanupDecorator } from './cleanupDecorator'
+import { defaultMesherConfig } from './mesher/shared'
+import { loadTexture } from './utils.web'
+import { loadJSON } from './utils'
+import { chunkPos } from './simpleUtils'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -42,15 +42,20 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   @worldCleanup()
   active = false
+
   version = undefined as string | undefined
   @worldCleanup()
   loadedChunks = {} as Record<string, boolean>
+
   @worldCleanup()
   finishedChunks = {} as Record<string, boolean>
+
   @worldCleanup()
   sectionsOutstanding = new Map<string, number>()
+
   @worldCleanup()
   renderUpdateEmitter = new EventEmitter()
+
   customTexturesDataUrl = undefined as string | undefined
   currentTextureImage = undefined as any
   workers: any[] = []
@@ -64,6 +69,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   chunksLength = 0
   @worldCleanup()
   allChunksFinished = false
+
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
@@ -100,9 +106,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const handleMessage = (data) => {
         if (!this.active) return
         this.handleWorkerMessage(data)
-        new Promise(resolve => {
-          setTimeout(resolve, 0)
-        })
         if (data.type === 'sectionFinished') {
           if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
           this.sectionsOutstanding.set(data.key, this.sectionsOutstanding.get(data.key)! - 1)
@@ -236,11 +239,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     texture.minFilter = THREE.NearestFilter
     texture.flipY = false
     this.material.map = texture
-    this.currentTextureImage = this.material.map!.image
-    this.mesherConfig.textureSize = this.material.map!.image.width
+    this.currentTextureImage = this.material.map.image
+    this.mesherConfig.textureSize = this.material.map.image.width
 
     for (const worker of this.workers) {
-      const blockstatesModels = this.blockstatesModels
+      const { blockstatesModels } = this
       if (this.customBlockStates) {
         // TODO! remove from other versions as well
         blockstatesModels.blockstates.latest = {

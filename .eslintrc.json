@@ -1,8 +1,7 @@
 {
     "extends": "zardoy",
     "ignorePatterns": [
-        "!*.js",
-        "prismarine-viewer/"
+        "!*.js"
     ],
     "rules": {
         "space-infix-ops": "error",
@@ -89,6 +88,7 @@
         "@typescript-eslint/no-confusing-void-expression": "off",
         "unicorn/no-empty-file": "off",
         "unicorn/prefer-event-target": "off",
+        "@typescript-eslint/member-ordering": "off",
         // needs to be fixed actually
         "complexity": "off",
         "@typescript-eslint/no-floating-promises": "warn",

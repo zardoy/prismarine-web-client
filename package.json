@@ -16,7 +16,7 @@
     "prod-start": "node server.js --prod",
     "postinstall": "tsx scripts/optimizeBlockCollisions.ts && pnpm build-mesher",
     "test-mc-server": "tsx cypress/minecraft-server.mjs",
-    "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\"",
+    "lint": "eslint \"{src,cypress,prismarine-viewer}/**/*.{ts,js,jsx,tsx}\"",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build && node scripts/build.js moveStorybookFiles",
     "start-experiments": "vite --config experiments/vite.config.ts --host",
@@ -26,6 +26,7 @@
     "run-playground": "run-p watch-mesher watch-other-workers playground-server watch-playground",
     "run-all": "run-p start run-playground",
     "playground-server": "live-server --port=9090 prismarine-viewer/public",
+    "build-playground": "node prismarine-viewer/esbuild.mjs",
     "watch-playground": "node prismarine-viewer/esbuild.mjs -w"
   },
   "keywords": [

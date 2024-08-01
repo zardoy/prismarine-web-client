@@ -1,13 +1,12 @@
+import EventEmitter from 'events'
 import * as THREE from 'three'
 import { Vec3 } from 'vec3'
+import { generateSpiralMatrix } from 'flying-squid/dist/utils'
+import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
-import EventEmitter from 'events'
 import { WorldRendererThree } from './worldrendererThree'
-import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
-import { versionToNumber } from '../prepare/utils'
-import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
 import { renderBlockThree } from './mesher/standaloneRenderer'
 
 export class Viewer {
@@ -29,6 +28,7 @@ export class Viewer {
   get camera () {
     return this.world.camera
   }
+
   set camera (camera) {
     this.world.camera = camera
   }
@@ -79,7 +79,7 @@ export class Viewer {
 
   setVersion (userVersion: string, texturesVersion = userVersion) {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
-    this.world.setVersion(userVersion, texturesVersion).then(() => {
+    void this.world.setVersion(userVersion, texturesVersion).then(async () => {
       return new THREE.TextureLoader().loadAsync(this.world.itemsAtlasParser!.latestImage)
     }).then((texture) => {
       this.entities.itemsTexture = texture
@@ -109,11 +109,11 @@ export class Viewer {
       }
     })
     const geometry = renderBlockThree(models, undefined, 'plains', loadedData)
-    const material = this.world.material
+    const { material } = this.world
     // block material
     const mesh = new THREE.Mesh(geometry, material)
     mesh.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z)
-    const helper = new THREE.BoxHelper(mesh, 0xffff00)
+    const helper = new THREE.BoxHelper(mesh, 0xff_ff_00)
     mesh.add(helper)
     this.scene.add(mesh)
   }
@@ -148,7 +148,7 @@ export class Viewer {
     const sound = new THREE.PositionalAudio(this.audioListener)
 
     const audioLoader = new THREE.AudioLoader()
-    let start = Date.now()
+    const start = Date.now()
     audioLoader.loadAsync(path).then((buffer) => {
       if (Date.now() - start > 500) return
       // play
@@ -213,21 +213,21 @@ export class Viewer {
       this.world.timeUpdated?.(timeOfDay)
 
       let skyLight = 15
-      if (timeOfDay < 0 || timeOfDay > 24000) {
-        throw new Error("Invalid time of day. It should be between 0 and 24000.")
-      } else if (timeOfDay <= 6000 || timeOfDay >= 18000) {
+      if (timeOfDay < 0 || timeOfDay > 24_000) {
+        throw new Error('Invalid time of day. It should be between 0 and 24000.')
+      } else if (timeOfDay <= 6000 || timeOfDay >= 18_000) {
         skyLight = 15
-      } else if (timeOfDay > 6000 && timeOfDay < 12000) {
+      } else if (timeOfDay > 6000 && timeOfDay < 12_000) {
         skyLight = 15 - ((timeOfDay - 6000) / 6000) * 15
-      } else if (timeOfDay >= 12000 && timeOfDay < 18000) {
-        skyLight = ((timeOfDay - 12000) / 6000) * 15
+      } else if (timeOfDay >= 12_000 && timeOfDay < 18_000) {
+        skyLight = ((timeOfDay - 12_000) / 6000) * 15
       }
 
       skyLight = Math.floor(skyLight) // todo: remove this after optimization
 
       if (this.world.mesherConfig.skyLight === skyLight) return
-      this.world.mesherConfig.skyLight = skyLight
-        ; (this.world as WorldRendererThree).rerenderAllChunks?.()
+      this.world.mesherConfig.skyLight = skyLight;
+      (this.world as WorldRendererThree).rerenderAllChunks?.()
     })
 
     emitter.emit('listening')
