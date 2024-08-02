@@ -70,7 +70,7 @@ export class MinimapDrawer {
   ) {
     if (full) {
       this.radius = Math.floor(Math.min(this.canvas.width, this.canvas.height) / 2)
-      this._mapSize = this.radius * 2
+      this._mapSize = 16
       this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
     }
     this.ctx.clearRect(

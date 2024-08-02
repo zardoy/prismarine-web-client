@@ -3,8 +3,10 @@ import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
 import Fullmap from './Fullmap'
 
 
+export type DisplayMode = 'fullmapOnly' | 'minimapOnly'
+
 export default (
-  { adapter, showMinimap, showFullmap, singleplayer, fullMap, toggleFullMap }
+  { adapter, showMinimap, showFullmap, singleplayer, fullMap, toggleFullMap, displayMode }
   :
   {
     adapter: DrawerAdapter,
@@ -13,6 +15,7 @@ export default (
     singleplayer: boolean,
     fullMap?: boolean,
     toggleFullMap?: ({ command }: { command: string }) => void
+    displayMode?: DisplayMode
   }
 ) => {
   const full = useRef(false)
@@ -81,7 +84,7 @@ export default (
     }
   }, [adapter])
 
-  return fullMap && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
+  return fullMap && displayMode !== 'minimapOnly' && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
     ? <Fullmap
       toggleFullMap={()=>{
         toggleFullMap?.({ command: 'ui.toggleMap' })
@@ -90,7 +93,7 @@ export default (
       drawer={drawerRef.current}
       canvasRef={canvasRef}
     />
-    : showMinimap === 'singleplayer' && singleplayer || showMinimap === 'always'
+    : displayMode !== 'fullmapOnly' && (showMinimap === 'singleplayer' && singleplayer || showMinimap === 'always')
       ? <div
         className='minimap'
         style={{
@@ -99,7 +102,6 @@ export default (
           top: '0px',
           padding: '5px 5px 0px 0px',
           textAlign: 'center',
-          zIndex: 100,
         }}
         onClick={() => {
           toggleFullMap?.({ command: 'ui.toggleMap' })

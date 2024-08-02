@@ -101,7 +101,6 @@ const InGameComponent = ({ children }) => {
 const InGameUi = () => {
   const { gameLoaded, showUI: showUIRaw } = useSnapshot(miscUiState)
   const hasModals = useSnapshot(activeModalStack).length > 0
-  const isFullmap = useIsModalActive('full-map')
   const showUI = showUIRaw || hasModals
   if (!gameLoaded || !bot) return
 
@@ -116,7 +115,7 @@ const InGameUi = () => {
         <ChatProvider />
         <SoundMuffler />
         <TitleProvider />
-        {!isFullmap && <MinimapProvider />}
+        <MinimapProvider displayMode='minimapOnly' />
         <ScoreboardProvider />
         <IndicatorEffectsProvider />
         <Crosshair />
@@ -136,7 +135,7 @@ const InGameUi = () => {
       <DisplayQr />
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
-      {isFullmap && <MinimapProvider />}
+      <MinimapProvider displayMode='fullmapOnly' />
       {/* because of z-index */}
       {showUI && <TouchControls />}
       <GlobalSearchInput />

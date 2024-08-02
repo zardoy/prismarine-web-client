@@ -27,13 +27,13 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
   const updateGrid = () => {
     const wrapperRect = zoomRef.current?.instance.wrapperComponent?.getBoundingClientRect()
     if (!wrapperRect) return
-    const cellSize = 32
+    const cellSize = 64
     const columns = Math.ceil(wrapperRect.width / (cellSize * stateRef.current.scale))
     const rows = Math.ceil(wrapperRect.height / (cellSize * stateRef.current.scale))
     cells.current.rows = rows
     cells.current.columns = columns
-    const leftBorder = - Math.floor(stateRef.current.positionX / (stateRef.current.scale * cellSize)) * cellSize - Math.floor(columns / 4) * cellSize
-    const topBorder = - Math.floor(stateRef.current.positionY / (stateRef.current.scale * cellSize)) * cellSize - Math.floor(rows / 4) * cellSize
+    const leftBorder = - Math.floor(stateRef.current.positionX / (stateRef.current.scale * cellSize)) * cellSize
+    const topBorder = - Math.floor(stateRef.current.positionY / (stateRef.current.scale * cellSize)) * cellSize
     const newGrid = new Set()
     for (let row = 0; row < rows; row += 1) {
       for (let col = 0; col < columns; col += 1) {
@@ -57,7 +57,8 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.4)'
+      backgroundColor: 'rgba(0, 0, 0, 0.4)',
+      zIndex: 100
     }}
   >
     { window.screen.width > 500 ? <div
@@ -84,12 +85,11 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       ref={zoomRef}
       minScale={0.1}
       doubleClick={{
-        disabled: true
+        disabled: false
       }}
       panning={{
-        allowLeftClickPan: false,
-        allowRightClickPan: true,
-        allowMiddleClickPan: true
+        allowLeftClickPan: true,
+        allowRightClickPan: false
       }}
       onTransformed={(ref, state) => {
         stateRef.current = { ...state }
@@ -112,8 +112,8 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           const playerChunkLeft = Math.floor(adapter.playerPosition.x / 16) * 16
           const playerChunkTop = Math.floor(adapter.playerPosition.z / 16) * 16
           const wrapperRect = zoomRef.current?.instance.wrapperComponent?.getBoundingClientRect()
-          const offsetX = Math.floor((wrapperRect?.width ?? 0) / (12 * 16)) * 16
-          const offsetY = Math.floor((wrapperRect?.height ?? 0) / (12 * 16)) * 16
+          const offsetX = Math.floor((wrapperRect?.width ?? 0) / (8 * 16)) * 16
+          const offsetY = Math.floor((wrapperRect?.height ?? 0) / (8 * 16)) * 16
 
           return <MapChunk
             key={'mapcell:' + cellCoords}
@@ -121,8 +121,8 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
             y={y}
             scale={stateRef.current.scale}
             adapter={adapter}
-            worldX={playerChunkLeft + x / 2 - offsetX}
-            worldZ={playerChunkTop + y / 2 - offsetY}
+            worldX={playerChunkLeft + x / 4 - offsetX }
+            worldZ={playerChunkTop + y / 4 - offsetY }
             setIsWarpInfoOpened={setIsWarpInfoOpened}
             setLastWarpPos={setLastWarpPos}
             redraw={redrawCell.current}
@@ -165,7 +165,8 @@ const MapChunk = (
   const [isCanvas, setIsCanvas] = useState(false)
 
   const handleClick = (e: MouseEvent) => {
-    if ('buttons' in e && e.buttons !== 0) return
+    console.log('click:', e)
+    if ('buttons' in e && e.button !== 2) return
     const rect = canvasRef.current!.getBoundingClientRect()
     const dpr = window.devicePixelRatio
     const x = (e.clientX - rect.left) / (scale * dpr)
@@ -185,14 +186,10 @@ const MapChunk = (
   }, [canvasRef.current, isCanvas])
 
   useEffect(() => {
-    console.log('new scale:', scale)
-  }, [scale])
-
-  useEffect(() => {
-    canvasRef.current?.addEventListener('click', handleClick)
+    canvasRef.current?.addEventListener('contextmenu', handleClick)
 
     return () => {
-      canvasRef.current?.removeEventListener('click', handleClick)
+      canvasRef.current?.removeEventListener('contextmenu', handleClick)
     }
   }, [canvasRef.current, scale])
 
@@ -221,20 +218,20 @@ const MapChunk = (
     ref={containerRef}
     style={{
       position: 'absolute',
-      width: '32px',
-      height: '32px',
+      width: '64px',
+      height: '64px',
       top: `${y}px`,
       left: `${x}px`,
     }}
   >
     {isCanvas && <canvas
       ref={canvasRef}
-      width={16}
-      height={16}
       style={{
         width: '100%',
         height: '100%'
       }}
+      width={64}
+      height={64}
     ></canvas>}
   </div>
 }

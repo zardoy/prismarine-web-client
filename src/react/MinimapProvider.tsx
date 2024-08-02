@@ -7,8 +7,7 @@ import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated
 import { contro } from '../controls'
 import { showModal, hideModal, miscUiState } from '../globalState'
 import { options } from '../optionsStorage'
-import { longArrayToNumber } from '../loadSave'
-import Minimap from './Minimap'
+import Minimap, { DisplayMode } from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 import { useIsModalActive } from './utilsApp'
 
@@ -111,7 +110,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 }
 
-export default () => {
+export default ({ displayMode }: { displayMode?: DisplayMode }) => {
   const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position, localServer?.warps))
   const fullMapOpened = useIsModalActive('full-map')
 
@@ -135,11 +134,11 @@ export default () => {
 
   useEffect(() => {
     bot.on('move', updateMap)
-    bot._client.on('map_chunk', (data) => {
-      console.log('x:', data.x, 'z:', data.z)
-      console.log(data)
-      console.log(longArrayToNumber((data as any).heightmaps.value.WORLD_SURFACE.value[0]))
-    })
+    // bot._client.on('map_chunk', (data) => {
+    //   console.log('x:', data.x, 'z:', data.z)
+    //   console.log(data)
+    //   console.log(longArrayToNumber((data as any).heightmaps.value.WORLD_SURFACE.value[0]))
+    // })
     // viewer.world.renderUpdateEmitter.on('update', updateMap)
     contro.on('trigger', toggleFullMap)
 
@@ -160,6 +159,7 @@ export default () => {
       singleplayer={miscUiState.singleplayer}
       fullMap={fullMapOpened}
       toggleFullMap={toggleFullMap}
+      displayMode={displayMode}
     />
   </div>
 }
