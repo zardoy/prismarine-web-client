@@ -19,7 +19,7 @@ let lastNotUpdatedIndex
 let lastNotUpdatedArrSize
 let animationTick = 0
 
-const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 10_000)
 globalThis.camera = camera
 
 let webgpuRenderer: WebgpuRenderer | undefined
@@ -52,10 +52,11 @@ let newWidth: number | undefined
 let newHeight: number | undefined
 let autoTickUpdate = undefined as number | undefined
 export const workerProxyType = createWorkerProxy({
-    canvas (canvas, imageBlob, isPlayground, FragShaderOverride) {
+    canvas (canvas, imageBlob, isPlayground, localStorage) {
         started = true
-        webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, FragShaderOverride)
-        globalThis.webglRendererWorker = webgpuRenderer
+        webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera)
+        webgpuRenderer.localStorage
+        globalThis.webgpuRenderer = webgpuRenderer
     },
     startRender () {
         if (!webgpuRenderer) return
@@ -69,6 +70,62 @@ export const workerProxyType = createWorkerProxy({
         newWidth = newWidth
         newHeight = newHeight
         updateSize(newWidth, newHeight)
+    },
+    generateRandom(count: number) {
+        const square = Math.sqrt(count)
+        const blocks = {}
+        const getFace = (face: number) => {
+            return {
+                side: face,
+                textureIndex: Math.floor(Math.random() * 512)
+            }
+        }
+        for (let x = 0; x < square; x++) {
+            for (let z = 0; z < square; z++) {
+                blocks[`${x},${0},${z}`] = {
+                    faces: [
+                        getFace(0),
+                        getFace(1),
+                        getFace(2),
+                        getFace(3),
+                        getFace(4),
+                        getFace(5)
+                    ],
+                }
+            }
+        }
+        console.log('data ready')
+        // blocks[`0,0,0`] = {
+        //     faces: [
+        //         getFace(0),
+        //         getFace(1),
+        //         getFace(2),
+        //         getFace(3),
+        //         getFace(4),
+        //         getFace(5)
+        //     ],
+        // }
+        // blocks[`0,0,1`] = {
+        //     faces: [
+        //         getFace(0),
+        //         getFace(1),
+        //         getFace(2),
+        //         getFace(3),
+        //         getFace(4),
+        //         getFace(5)
+        //     ],
+        // }
+        // blocks[`0,0,3`] = {
+        //     faces: [
+        //         getFace(0),
+        //         getFace(1),
+        //         getFace(2),
+        //         getFace(3),
+        //         getFace(4),
+        //         getFace(5)
+        //     ],
+        // }
+        this.addBlocksSection(blocks, `0,0,0`)
     },
     addBlocksSection (tiles: Record<string, BlockType>, key: string) {
         const currentLength = allSides.length

@@ -258,53 +258,8 @@ async function main () {
 
   let blocks: Record<string, BlockType> = {}
   let i = 0
-  // for (let x = 0; x < 1; x++) {
-  //   blocks = {}
-  //   for (let i = 0; i < 1000; i++) {
-  //     const max = 100
-  //     const pos = new Vec3(Math.floor(Math.random() * max), Math.floor(Math.random() * max), Math.floor(Math.random() * max))
-  //     const getFace = (face: number) => {
-  //       return {
-  //         side: face,
-  //         textureIndex: Math.floor(Math.random() * 512)
-  //       }
-  //     }
-  //     blocks[`${pos.x},${pos.y},${pos.z}`] = {
-  //       faces: [
-  //         getFace(0),
-  //         getFace(1),
-  //         getFace(2),
-  //         getFace(3),
-  //         getFace(4),
-  //         getFace(5)
-  //       ],
-  //     }
-  //   }
-  //   webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
-  // }
-  // make platform
-  for (let x = 0; x < 10; x++) {
-    for (let z = 0; z < 10; z++) {
-      const pos = new Vec3(x, 0, z)
-      const getFace = (face: number) => {
-        return {
-          side: face,
-          textureIndex: Math.floor(Math.random() * 512)
-        }
-      }
-      blocks[`${pos.x},${pos.y},${pos.z}`] = {
-        faces: [
-          getFace(0),
-          getFace(1),
-          getFace(2),
-          getFace(3),
-          getFace(4),
-          getFace(5)
-        ],
-      }
-    }
-  }
-  webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
+  console.log('generating random data')
+  webgpuChannel.generateRandom(500_000)
 
   return
 

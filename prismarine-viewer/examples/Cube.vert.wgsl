@@ -6,6 +6,7 @@ struct Cube {
   position: vec3f,
   textureIndex: f32,
   colorBlend: vec3f,
+  //tt: f32
 }
 
 struct VertexOutput {

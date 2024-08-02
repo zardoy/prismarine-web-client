@@ -62,8 +62,8 @@ importers:
         specifier: ^2023.10.2
         version: 2023.10.2
       '@webgpu/types':
-        specifier: ^0.1.40
-        version: 0.1.40
+        specifier: ^0.1.44
+        version: 0.1.44
       '@xmcl/text-component':
         specifier: ^2.1.3
         version: 2.1.3
@@ -447,7 +447,7 @@ importers:
     dependencies:
       vite:
         specifier: ^4.4.9
-        version: 4.4.10(@types/node@20.11.19)(terser@5.19.2)
+        version: 4.4.10(@types/node@20.12.8)(terser@5.19.2)
 
 packages:
 
@@ -3046,8 +3046,8 @@ packages:
   '@vitest/utils@0.34.6':
     resolution: {integrity: sha512-IG5aDD8S6zlvloDsnzHw0Ut5xczlF+kv2BOTo+iXfPr54Yhi5qbVOgGB1hZaVq4iJ4C/MZ2J0y15IlsV/ZcI0A==}
 
-  '@webgpu/types@0.1.40':
-    resolution: {integrity: sha512-/BBkHLS6/eQjyWhY2H7Dx5DHcVrS2ICj9owvSRdgtQT6KcafLZA86tPze0xAOsd4FbsYKCUBUQyNi87q7gV7kw==}
+  '@webgpu/types@0.1.44':
+    resolution: {integrity: sha512-JDpYJN5E/asw84LTYhKyvPpxGnD+bAKPtpW9Ilurf7cZpxaTbxkQcGwOd7jgB9BPBrTYQ+32ufo4HiuomTjHNQ==}
 
   '@xboxreplay/errors@0.1.0':
     resolution: {integrity: sha512-Tgz1d/OIPDWPeyOvuL5+aai5VCcqObhPnlI3skQuf80GVF3k1I0lPCnGC+8Cm5PV9aLBT5m8qPcJoIUQ2U4y9g==}
@@ -12310,7 +12310,7 @@ snapshots:
       loupe: 2.3.6
       pretty-format: 29.7.0
 
-  '@webgpu/types@0.1.40': {}
+  '@webgpu/types@0.1.44': {}
 
   '@xboxreplay/errors@0.1.0': {}
 
@@ -19306,7 +19306,7 @@ snapshots:
       - supports-color
       - terser
 
-  vite@4.4.10(@types/node@20.11.19)(terser@5.19.2):
+  vite@4.4.10(@types/node@20.12.8)(terser@5.19.2):
     dependencies:
       esbuild: 0.18.20
       postcss: 8.4.31

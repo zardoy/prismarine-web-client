@@ -4,6 +4,7 @@ import { addNewStat } from './newStats'
 import type { workerProxyType } from './webgpuRendererWorker'
 import { useWorkerProxy } from './workerProxy'
 import { MesherGeometryOutput } from '../viewer/lib/mesher/shared'
+import { pickObj } from '@zardoy/utils'
 
 let worker: Worker
 
@@ -91,7 +92,7 @@ export const initWebgpuRenderer = async (texturesVersion: string, postRender = (
     worker = new Worker('./webgpuRendererWorker.js')
     addFpsCounters()
     webgpuChannel = useWorkerProxy<typeof workerProxyType>(worker, true)
-    webgpuChannel.canvas(offscreen, imageBlob, playgroundModeInWorker, localStorage.FragShader)
+    webgpuChannel.canvas(offscreen, imageBlob, playgroundModeInWorker, pickObj(localStorage, 'vertShader', 'fragShader', 'computeShader'))
 
     let oldWidth = window.innerWidth
     let oldHeight = window.innerHeight

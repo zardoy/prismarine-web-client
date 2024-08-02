@@ -2,6 +2,7 @@ struct Cube {
   position: vec3f,
   textureIndex: f32,
   colorBlend: vec3f,
+  //tt: f32
 }
 
 struct Uniforms {
@@ -21,7 +22,7 @@ struct IndirectDrawParams {
 @group(0) @binding(3) var<storage, read_write> drawParams: IndirectDrawParams;
 
 @compute @workgroup_size(64)
-fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+fn main(@builtin(global_invocation_id) global_id:  vec3<u32>) {
   let index = global_id.x;
   if (index >= arrayLength(&cubes)) {
     return;
@@ -30,39 +31,14 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let cube = cubes[index];
 
   // Transform cube position to clip space
-  let clipPos =  vec4<f32>(cube.position, 1.0) * uniforms.ViewProjectionMatrix ;
+let clipPos =  uniforms.ViewProjectionMatrix * (vec4<f32>(cube.position, 1.0) + vec4<f32>(0.5, 0.0, 0.5, 0.0) );
+let clipDepth = clipPos.z / clipPos.w; // Obtain depth in clip space
+let clipX = clipPos.x/clipPos.w;
+let clipY = clipPos.y/clipPos.w;
 
-  // Perform sphere-based occlusion test
-  //let screen_position = clipPos;
-  //let sphereRadius = 1.0 / clipPos.w; //Radius of fixed size for cubes
-  let screen_position = clipPos.xyz;
-  	// 	screen_position.x = screen_position.x / screen_position.w;
-		// screen_position.y = screen_position.y / screen_position.w;
-		// // screen_position.z = screen_position.z / screen_position.w;
-		// screen_position.x = clipPos.x / clipPos.w;
-		// screen_position.y = clipPos.y / clipPos.w;
-		// screen_position.z = clipPos.z / clipPos.w;
-
-// 		if (screen_position.x < -1 || 1 < screen_position.x) {
-// return;
-//     }
-// 	//		continue;
-// 		if (screen_position.y < -1 || 1 < screen_position.y) {
-// return;
-//     }
-			//continue;
-// 		if (screen_position.z < -1 || 1 < screen_position.z) {
-// return;
-//     }
-			//continue;
-		// if (screen_position.z < -1 || 1 < screen_position.z) {
-		// 	return;
-
-    // }
-
-  //Check if sphere is within view frustum and not completely behind near plane
-  //if (clipPos.x < 1.0 &&clipPos.x > 0.0 && clipPos.y < 1.0  && clipPos.y > 0.0) {
-    let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
-    visibleCubes[visibleIndex] = cube;
-  //}
+// Check if cube is within the view frustum z-range (depth within near and far planes)
+ if (clipDepth >= 0.0 && clipDepth <= 1.0&&clipX > -1.1 && clipX < 1.1&&clipY > -1.1 && clipY < 1.1) { //Small Oversize because binding size
+  let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
+  visibleCubes[visibleIndex] = cube;
+  }
 }
