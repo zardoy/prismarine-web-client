@@ -95,36 +95,6 @@ export const workerProxyType = createWorkerProxy({
             }
         }
         console.log('data ready')
-        // blocks[`0,0,0`] = {
-        //     faces: [
-        //         getFace(0),
-        //         getFace(1),
-        //         getFace(2),
-        //         getFace(3),
-        //         getFace(4),
-        //         getFace(5)
-        //     ],
-        // }
-        // blocks[`0,0,1`] = {
-        //     faces: [
-        //         getFace(0),
-        //         getFace(1),
-        //         getFace(2),
-        //         getFace(3),
-        //         getFace(4),
-        //         getFace(5)
-        //     ],
-        // }
-        // blocks[`0,0,3`] = {
-        //     faces: [
-        //         getFace(0),
-        //         getFace(1),
-        //         getFace(2),
-        //         getFace(3),
-        //         getFace(4),
-        //         getFace(5)
-        //     ],
-        // }
         this.addBlocksSection(blocks, `0,0,0`)
     },
     addBlocksSection (tiles: Record<string, BlockType>, key: string) {

@@ -259,8 +259,8 @@ async function main () {
   let blocks: Record<string, BlockType> = {}
   let i = 0
   console.log('generating random data')
-  webgpuChannel.generateRandom(500_000)
-
+  webgpuChannel.generateRandom(490_000)
+  
   return
 
   // Create viewer

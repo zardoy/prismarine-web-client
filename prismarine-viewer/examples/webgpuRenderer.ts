@@ -9,7 +9,7 @@ import { updateSize, allSides } from './webgpuRendererWorker';
 
 export class WebgpuRenderer {
     rendering = true
-    NUMBER_OF_CUBES = 500_000;
+    NUMBER_OF_CUBES = 490_000;
     renderedFrames = 0
     localStorage: any = {}
 
@@ -61,7 +61,7 @@ export class WebgpuRenderer {
         const ctx = this.ctx = canvas.getContext('webgpu')!;
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
-
+        
         ctx.configure({
             device,
             format: presentationFormat,
