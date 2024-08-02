@@ -274,7 +274,8 @@ const WarpInfo = (
       alignItems: 'center',
       flexDirection: 'column',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
-      fontSize: '0.8em'
+      fontSize: '0.8em',
+      transform: 'scale(3)'
     }}
   >
     <div
@@ -283,8 +284,8 @@ const WarpInfo = (
         flexDirection: 'column',
         gap: '10px',
         width: '40%',
-        minWidth: '300px',
-        maxWidth: '400px',
+        minWidth: '100px',
+        maxWidth: '150px',
         padding: '20px',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         border: '2px solid black'
@@ -311,17 +312,6 @@ const WarpInfo = (
           onChange={(e) => {
             if (!e.target) return
             setWarp(prev => { return { ...prev, x: Number(e.target.value) } })
-          }}
-        />
-        <div>
-          Y:
-        </div>
-        <Input
-          rootStyles={posInputStyle}
-          defaultValue={drawer?.y ?? 100}
-          onChange={(e) => {
-            if (!e.target) return
-            setWarp(prev => { return { ...prev, y: Number(e.target.value) } })
           }}
         />
         <div>
