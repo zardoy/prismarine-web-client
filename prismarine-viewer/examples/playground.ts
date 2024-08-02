@@ -23,8 +23,10 @@ import { renderPlayground } from './TouchControls2'
 import { WorldRendererWebgpu } from '../viewer/lib/worldrendererWebgpu'
 import { TextureAnimation } from './TextureAnimation'
 import { BlockType } from './shared'
+import { addNewStat } from './newStats'
 
 const gui = new GUI()
+const { updateText: updateTextEvent } = addNewStat('events', 90, 0, 40)
 
 // initial values
 const params = {
@@ -215,9 +217,11 @@ async function main () {
 
     // mouse
     const mouse = { x: 0, y: 0 }
+    let mouseMoveCounter = 0
     const mouseMove = (e: PointerEvent) => {
       if ((e.target as HTMLElement).closest('.lil-gui')) return
       if (e.buttons === 1 || e.pointerType === 'touch') {
+        mouseMoveCounter++
         viewer.camera.rotation.x -= e.movementY / 100
         //viewer.camera.
         viewer.camera.rotation.y -= e.movementX / 100
@@ -231,6 +235,10 @@ async function main () {
         viewer.camera.position.set(0, 0, 0)
       }
     }
+    setInterval(() => {
+      updateTextEvent(`Mouse Events: ${mouseMoveCounter}`)
+      mouseMoveCounter = 0
+    }, 1000)
     window.addEventListener('pointermove', mouseMove)
   }
   viewer.camera.position.set(0, 0, 8)
@@ -259,54 +267,9 @@ async function main () {
 
   let blocks: Record<string, BlockType> = {}
   let i = 0
-  // for (let x = 0; x < 1; x++) {
-  //   blocks = {}
-  //   for (let i = 0; i < 1000; i++) {
-  //     const max = 100
-  //     const pos = new Vec3(Math.floor(Math.random() * max), Math.floor(Math.random() * max), Math.floor(Math.random() * max))
-  //     const getFace = (face: number) => {
-  //       return {
-  //         side: face,
-  //         textureIndex: Math.floor(Math.random() * 512)
-  //       }
-  //     }
-  //     blocks[`${pos.x},${pos.y},${pos.z}`] = {
-  //       faces: [
-  //         getFace(0),
-  //         getFace(1),
-  //         getFace(2),
-  //         getFace(3),
-  //         getFace(4),
-  //         getFace(5)
-  //       ],
-  //     }
-  //   }
-  //   webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
-  // }
-  // make platform
-  for (let x = 0; x < 100; x++) {
-    for (let z = 0; z < 100; z++) {
-      const pos = new Vec3(x, 0, z)
-      const getFace = (face: number) => {
-        return {
-          side: face,
-          textureIndex: Math.floor(Math.random() * 512)
-        }
-      }
-      blocks[`${pos.x},${pos.y},${pos.z}`] = {
-        faces: [
-          getFace(0),
-          getFace(1),
-          getFace(2),
-          getFace(3),
-          getFace(4),
-          getFace(5)
-        ],
-      }
-    }
-  }
-  webgpuChannel.addBlocksSection(blocks, `0,0,${i++}`)
-
+  console.log('generating random data')
+  webgpuChannel.generateRandom(490_000)
+  
   return
 
   // Create viewer

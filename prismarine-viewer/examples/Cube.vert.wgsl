@@ -3,9 +3,10 @@ struct Uniforms {
 }
 
 struct Cube {
-  position: vec3<f32>,
+  position: vec3f,
   textureIndex: f32,
-  colorBlend: vec3<f32>,
+  colorBlend: vec3f,
+  //tt: f32
 }
 
 struct VertexOutput {
@@ -25,7 +26,7 @@ fn main(
   @location(1) uv: vec2<f32>
 ) -> VertexOutput {
   let cube = visibleCubes[instanceIndex];
-
+  //cube.position.x = instance_index * 2;
   var output: VertexOutput;
   output.Position = uniforms.ViewProjectionMatrix * (position + vec4<f32>(cube.position, 0.0) + vec4<f32>(0.5, 0.0, 0.5, 0.0));
   output.fragUV = uv;
