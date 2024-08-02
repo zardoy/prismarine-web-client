@@ -442,7 +442,8 @@ async function main () {
       viewer.world.mesherConfig.debugModelVariant = params.modelVariant === 0 ? undefined : [params.modelVariant]
     },
     animationTick () {
-      const webgl = (viewer.world as WorldRendererWebgpu).playgroundGetWebglData()
+      // TODO
+      const webgl = (viewer.world as WorldRendererWebgpu).playgroundGetWebglData() as unknown as { animation: any }
       if (!webgl?.animation) {
         setAnimationTick(0)
         return
@@ -526,13 +527,13 @@ async function main () {
   viewer.world.renderUpdateEmitter.addListener('update', () => {
     // const frames = viewer.world.hasWithFrames ? viewer.world.hasWithFrames - 1 : 0;
     const webgl = (viewer.world as WorldRendererWebgpu).playgroundGetWebglData()
-    if (webgl?.animation) {
-      params.animationTick = -1
-      animationController.show()
-      animationController.max(webgl.animation.framesCount)
-    } else {
-      animationController.hide()
-    }
+    // if (webgl?.animation) {
+    //   params.animationTick = -1
+    //   animationController.show()
+    //   animationController.max(webgl.animation.framesCount)
+    // } else {
+    //   animationController.hide()
+    // }
     onUpdate.animationTick()
   })
   animate2()

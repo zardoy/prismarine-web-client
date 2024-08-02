@@ -124,68 +124,6 @@ const everyArray = (array, callback) => {
   return array.every(callback)
 }
 
-let textureName = undefined
-let tint
-const getTextureIndexResult = (biome, block, face: string, world: World): number => {
-  const facesOrTexture = findTextureInBlockStates(block.name);
-  if (!facesOrTexture) return 0 // todo
-  let result
-  if ('u' in facesOrTexture) {
-    result = facesOrTexture
-  } else {
-    result = facesOrTexture?.[face]?.texture
-    const tintindex = facesOrTexture?.[face]?.tintindex
-    if (tintindex === 0) {
-      if (block.name === 'redstone_wire') {
-        tint = tints.redstone[`${block.getProperties().power}`]
-      } else if (block.name === 'birch_leaves' ||
-        block.name === 'spruce_leaves' ||
-        block.name === 'lily_pad') {
-        tint = tints.constant[block.name]
-      } else if (block.name.includes('leaves') || block.name === 'vine') {
-        tint = tints.foliage[biome]
-      } else {
-        tint = tints.grass[biome]
-      }
-    }
-  }
-  if (!result) return 0 // todo
-  if (result.textureName) {
-    textureName = result.textureName
-  }
-  return uvToTextureIndex(result.u, result.v, world) - (result.su < 0 ? 1 : 0) - (result.sv < 0 ? 1 : 0)
-}
-function uvToTextureIndex (u, v, world: World) {
-  const textureSize = world.config.textureSize
-  const textureWidth = textureSize
-  const textureHeight = textureSize
-  const tileSize = 16;
-  // Convert UV coordinates to pixel coordinates
-  let x = u * textureWidth;
-  let y = v * textureHeight;
-
-  // Convert pixel coordinates to tile index
-  const tileX = Math.floor(x / tileSize);
-  const tileY = Math.floor(y / tileSize);
-
-  // Calculate texture index
-  const textureIndex = tileY * (textureWidth / tileSize) + tileX;
-
-  return textureIndex;
-}
-
-const findTextureInBlockStates = (name): any => {
-  const vars = blockStates[name]?.variants
-  if (!vars) return blockStates[name]?.multipart?.[0]?.apply?.[0]?.model?.elements?.[0]?.faces?.south?.texture
-  let firstVar = Object.values(vars)[0] as any
-  if (Array.isArray(firstVar)) firstVar = firstVar[0]
-  if (!firstVar) return
-  const [element] = firstVar.model?.elements
-  if (!element) return firstVar.model?.textures?.particle
-  if (!element/*  || !(element?.from.every(a => a === 0) && element?.to.every(a => a === 16)) */) return
-  return element.faces
-}
-
 const isCube = (block) => {
   if (!block || block.transparent) return false
   if (block.isCube) return true
@@ -273,7 +211,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
   for (const face in element.faces) {
     const eFace = element.faces[face]
-    const { corners, mask1, mask2 } = elemFaces[face]
+    const { corners, mask1, mask2, side } = elemFaces[face]
     const dir = matmul3(globalMatrix, elemFaces[face].dir)
 
     if (eFace.cullface) {
@@ -405,6 +343,8 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
     }
 
+    const lightWithColor = [baseLight * tint[0], baseLight * tint[1], baseLight * tint[2]]
+
     if (needTiles) {
       const tiles = attr.tiles as Tiles
       tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
@@ -413,12 +353,13 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       }
       tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
         face,
-        side: eFace.texture.side,
-        textureIndex: getTextureIndexResult(biome, block, face, world),
+        side,
+        textureIndex: eFace.texture.tileIndex,
         neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
         light: baseLight,
+        // color: lightWithColor,
         //@ts-ignore debug prop
-        texture: textureName,
+        texture: eFace.texture.debugName || block.name,
       } satisfies BlockType['faces'][number] & TestTileData['faces'][number] as any)
     }
 
