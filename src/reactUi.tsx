@@ -28,7 +28,7 @@ import PauseScreen from './react/PauseScreen'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
-import { useIsWidgetActive } from './react/utilsApp'
+import { useIsModalActive, useIsWidgetActive } from './react/utilsApp'
 import GlobalSearchInput from './GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
@@ -101,6 +101,7 @@ const InGameComponent = ({ children }) => {
 const InGameUi = () => {
   const { gameLoaded, showUI: showUIRaw } = useSnapshot(miscUiState)
   const hasModals = useSnapshot(activeModalStack).length > 0
+  const isFullmap = useIsModalActive('full-map')
   const showUI = showUIRaw || hasModals
   if (!gameLoaded || !bot) return
 
@@ -115,6 +116,7 @@ const InGameUi = () => {
         <ChatProvider />
         <SoundMuffler />
         <TitleProvider />
+        {!isFullmap && <MinimapProvider />}
         <ScoreboardProvider />
         <IndicatorEffectsProvider />
         <Crosshair />
@@ -134,7 +136,7 @@ const InGameUi = () => {
       <DisplayQr />
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
-      <MinimapProvider />
+      {isFullmap && <MinimapProvider />}
       {/* because of z-index */}
       {showUI && <TouchControls />}
       <GlobalSearchInput />
