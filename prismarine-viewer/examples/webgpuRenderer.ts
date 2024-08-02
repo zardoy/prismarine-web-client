@@ -45,7 +45,7 @@ export class WebgpuRenderer {
 
     async init () {
         const { canvas, imageBlob, isPlayground, localStorage } = this;
-        
+
         updateSize(canvas.width, canvas.height);
         const textureBitmap = await createImageBitmap(imageBlob);
         const textureWidth = textureBitmap.width;
@@ -62,7 +62,7 @@ export class WebgpuRenderer {
         const ctx = this.ctx = canvas.getContext('webgpu')!;
 
         const presentationFormat = navigator.gpu.getPreferredCanvasFormat();
-        
+
         ctx.configure({
             device,
             format: presentationFormat,
@@ -256,7 +256,7 @@ export class WebgpuRenderer {
         // Create buffers for compute shader and indirect drawing
         this.cubesBuffer = device.createBuffer({
             label: 'cubesBuffer',
-            size: this.NUMBER_OF_CUBES * 32, // 8 floats per cube
+            size: this.NUMBER_OF_CUBES * 32, // 8 floats per cube - minimum buffer size
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
         });
 
@@ -308,9 +308,9 @@ export class WebgpuRenderer {
                 {
                     binding: 3,
                     resource: {
-                        buffer:this.visibleCubesBuffer
+                        buffer: this.visibleCubesBuffer
                     }
-                        
+
                 }
             ],
         });
@@ -374,9 +374,12 @@ export class WebgpuRenderer {
             ],
         })
 
+        this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
+
         // always last!
         this.rendering = false;
         console.log('init finish')
+        this.updateSides()
         this.loop();
         this.ready = true;
         return canvas;
@@ -417,7 +420,7 @@ export class WebgpuRenderer {
 
         const BYTES_PER_ELEMENT = 8;
         const cubeData = new Float32Array(this.NUMBER_OF_CUBES * BYTES_PER_ELEMENT);
-        for (let i = 0; i < this.NUMBER_OF_CUBES ; i++) {
+        for (let i = 0; i < this.NUMBER_OF_CUBES; i++) {
             const offset = i * BYTES_PER_ELEMENT;
             cubeData[offset] = positions[i * 3];
             cubeData[offset + 1] = positions[i * 3 + 1];
@@ -428,13 +431,13 @@ export class WebgpuRenderer {
             cubeData[offset + 6] = colors[i * 3 + 2];
             //cubeData[offset + 7] = 0.5; // Sphere radius
         }
-        
+
         console.time('writeCubes buffer')
         this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeData);
         console.timeEnd('writeCubes buffer')
 
         // Reset indirect draw parameters
-        this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
+        // this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
         //this.device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams);
 
         this.notRenderedAdditions++;
@@ -467,7 +470,7 @@ export class WebgpuRenderer {
 
         // const EmptyVisibleCubes = new Float32Array([36, 0, 0, 0]) ;
 
-         device.queue.writeBuffer(
+        device.queue.writeBuffer(
             this.indirectDrawBuffer, 0, this.indirectDrawParams);
 
         renderPassDescriptor.colorAttachments[0].view = ctx
@@ -488,7 +491,7 @@ export class WebgpuRenderer {
         commandEncoder = device.createCommandEncoder();
         //device.queue.submit([commandEncoder.finish()]);
         // Render pass
-       //console.log(this.indirectDrawBuffer.getMappedRange());
+        //console.log(this.indirectDrawBuffer.getMappedRange());
         const renderPass = commandEncoder.beginRenderPass(this.renderPassDescriptor);
         renderPass.label = "RenderPass"
         renderPass.setPipeline(pipeline);

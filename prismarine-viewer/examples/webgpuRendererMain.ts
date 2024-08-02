@@ -37,7 +37,7 @@ globalThis.tiles = {}
 export const addBlocksSection = (key, data: MesherGeometryOutput) => {
     if (globalThis.tiles[key]) return
     globalThis.tiles[key] = data.tiles
-    webgpuChannel.addBlocksSection(data.tiles, key)
+    webgpuChannel.addBlocksSection(data.tiles, key, false)
     if (playground && !isWaitingToUpload) {
         isWaitingToUpload = true
         // viewer.waitForChunksToRender().then(() => {
@@ -54,14 +54,17 @@ export const loadFixtureSides = (json) => {
 }
 
 export const sendCameraToWorker = () => {
-    const cameraData = ['rotation', 'position'].reduce((acc, key) => {
+    const cameraVectors = ['rotation', 'position'].reduce((acc, key) => {
         acc[key] = ['x', 'y', 'z'].reduce((acc2, key2) => {
             acc2[key2] = viewer.camera[key][key2]
             return acc2
         }, {})
         return acc
-    }, {})
-    webgpuChannel.camera(cameraData)
+    }, {}) as any
+    webgpuChannel.camera({
+        ...cameraVectors,
+        fov: viewer.camera.fov
+    })
 }
 
 export const removeBlocksSection = (key) => {

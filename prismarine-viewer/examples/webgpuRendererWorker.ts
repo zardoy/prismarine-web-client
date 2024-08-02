@@ -71,7 +71,7 @@ export const workerProxyType = createWorkerProxy({
         newHeight = newHeight
         updateSize(newWidth, newHeight)
     },
-    generateRandom(count: number) {
+    generateRandom (count: number) {
         const square = Math.sqrt(count)
         if (square % 1 !== 0) throw new Error('square must be a whole number')
         const blocks = {}
@@ -98,7 +98,7 @@ export const workerProxyType = createWorkerProxy({
         console.log('data ready')
         this.addBlocksSection(blocks, `0,0,0`)
     },
-    addBlocksSection (tiles: Record<string, BlockType>, key: string) {
+    addBlocksSection (tiles: Record<string, BlockType>, key: string, update = true) {
         const currentLength = allSides.length
         // in: object - name, out: [x, y, z, name]
         const newData = Object.entries(tiles).flatMap(([key, value]) => {
@@ -132,8 +132,9 @@ export const workerProxyType = createWorkerProxy({
         }
         lastNotUpdatedIndex ??= currentLength
         // if (webglRendererWorker && webglRendererWorker.notRenderedAdditions < 5) {
-        updateCubesWhenAvailable(currentLength)
-        // }
+        if (update) {
+            updateCubesWhenAvailable(currentLength)
+        }
     },
     addBlocksSectionDone () {
         updateCubesWhenAvailable(lastNotUpdatedIndex)
@@ -159,18 +160,23 @@ export const workerProxyType = createWorkerProxy({
         //     freeArrayIndexes.push([startIndex2, endIndex])
         // }
     },
-    camera (newCam) {
+    camera (newCam: { rotation: { x: number, y: number, z: number }, position: { x: number, y: number, z: number }, fov: number }) {
         // if (webgpuRenderer?.isPlayground) {
         //     camera.rotation.order = 'ZYX'
         //     new tweenJs.Tween(camera.rotation).to({ x: newCam.rotation.x, y: newCam.rotation.y, z: newCam.rotation.z }, 50).start()
         // } else {
-            camera.rotation.set(newCam.rotation.x, newCam.rotation.y, newCam.rotation.z, 'ZYX')
+        camera.rotation.set(newCam.rotation.x, newCam.rotation.y, newCam.rotation.z, 'ZYX')
         // }
         if (newCam.position.x === 0 && newCam.position.y === 0 && newCam.position.z === 0) {
             // initial camera position
             camera.position.set(newCam.position.x, newCam.position.y, newCam.position.z)
         } else {
             new tweenJs.Tween(camera.position).to({ x: newCam.position.x, y: newCam.position.y, z: newCam.position.z }, 50).start()
+        }
+
+        if (newCam.fov !== camera.fov) {
+            camera.fov = newCam.fov
+            camera.updateProjectionMatrix()
         }
     },
     animationTick (frames, tick) {
