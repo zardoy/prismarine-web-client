@@ -1,21 +1,20 @@
 import React, { CSSProperties } from 'react'
-import supportedVersions from '../supportedVersions.mjs'
 import Select from './Select'
 import Input from './Input'
 
 
 export default (
-  { inputProps, onChange, updateOptions, containerStyle } :
+  { versions, inputProps, onChange, updateOptions, containerStyle } :
   {
+    versions: string[] | undefined,
     inputProps?: React.ComponentProps<typeof Input>,
     onChange?: (event, value, reason) => void,
     updateOptions?: (options) => void,
     containerStyle?: CSSProperties
   }
 ) => {
-
   return <Select
-    initialOptions={{ options: supportedVersions ?? [], selected: '' }}
+    initialOptions={{ options: versions ?? [], selected: '' }}
     updateOptions={(options) => {
       updateOptions?.(options)
     }}
@@ -23,8 +22,8 @@ export default (
     inputProps={inputProps}
     containerStyle={containerStyle ?? { width: '190px' }}
     processInput={(value) => {
-      if (!supportedVersions || !value) return {}
-      const parsedsupportedVersions = supportedVersions.map(x => x.split('.').map(Number))
+      if (!versions || !value) return {}
+      const parsedsupportedVersions = versions.map(x => x.split('.').map(Number))
       const parsedValue = value.split('.').map(Number)
 
       const compareVersions = (v1, v2) => {
@@ -43,7 +42,7 @@ export default (
 
       const isWithinRange = compareVersions(parsedValue, minVersion) >= 0 && compareVersions(parsedValue, maxVersion) <= 0
       if (!isWithinRange) return { border: '1px solid red' }
-      if (!supportedVersions.includes(value)) return { border: '1px solid yellow' }
+      if (!versions.includes(value)) return { border: '1px solid yellow' }
     }}
   />
 

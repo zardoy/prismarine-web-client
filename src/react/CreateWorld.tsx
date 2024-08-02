@@ -43,6 +43,7 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
         placeholder='World name'
       />
       <SelectGameVersion
+        versions={versions}
         onChange={(event, value, reason) => {
           creatingWorldState.version = value ?? defaultVersion
         }}

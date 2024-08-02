@@ -100,6 +100,7 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         }}>
           <label style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Version Override</label>
           <SelectGameVersion
+            versions={versions}
             onChange={(event, value, reason) => {
               setVersionOverride(value)
             }}
