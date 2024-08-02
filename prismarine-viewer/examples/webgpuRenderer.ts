@@ -56,6 +56,7 @@ export class WebgpuRenderer {
         this.device = await adapter.requestDevice();
         const { device } = this;
         this.maxBufferSize = device.limits.maxStorageBufferBindingSize;
+        this.renderedFrames = device.limits.maxComputeWorkgroupSizeX;
         console.log('max buffer size', this.maxBufferSize / 1024 / 1024, 'MB')
 
         const ctx = this.ctx = canvas.getContext('webgpu')!;
@@ -461,9 +462,7 @@ export class WebgpuRenderer {
         device.queue.writeBuffer(
             uniformBuffer,
             0,
-            ViewProjection.buffer,
-            ViewProjection.byteOffset,
-            ViewProjection.byteLength
+            ViewProjection
         );
 
         // const EmptyVisibleCubes = new Float32Array([36, 0, 0, 0]) ;
@@ -483,7 +482,7 @@ export class WebgpuRenderer {
         computePass.setPipeline(this.computePipeline);
         //computePass.setBindGroup(0, this.uniformBindGroup);
         computePass.setBindGroup(0, this.computeBindGroup);
-        computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 64));
+        computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256));
         computePass.end();
         device.queue.submit([commandEncoder.finish()]);
         commandEncoder = device.createCommandEncoder();

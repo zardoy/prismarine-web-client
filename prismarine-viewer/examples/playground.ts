@@ -22,8 +22,10 @@ import { renderPlayground } from './TouchControls2'
 import { WorldRendererWebgpu } from '../viewer/lib/worldrendererWebgpu'
 import { TextureAnimation } from './TextureAnimation'
 import { BlockType } from './shared'
+import { addNewStat } from './newStats'
 
 const gui = new GUI()
+const { updateText: updateTextEvent } = addNewStat('events', 90, 0, 40)
 
 // initial values
 const params = {
@@ -214,9 +216,11 @@ async function main () {
 
     // mouse
     const mouse = { x: 0, y: 0 }
+    let mouseMoveCounter = 0
     const mouseMove = (e: PointerEvent) => {
       if ((e.target as HTMLElement).closest('.lil-gui')) return
       if (e.buttons === 1 || e.pointerType === 'touch') {
+        mouseMoveCounter++
         viewer.camera.rotation.x -= e.movementY / 100
         //viewer.camera.
         viewer.camera.rotation.y -= e.movementX / 100
@@ -230,6 +234,10 @@ async function main () {
         viewer.camera.position.set(0, 0, 0)
       }
     }
+    setInterval(() => {
+      updateTextEvent(`Mouse Events: ${mouseMoveCounter}`)
+      mouseMoveCounter = 0
+    }, 1000)
     window.addEventListener('pointermove', mouseMove)
   }
   viewer.camera.position.set(0, 0, 8)

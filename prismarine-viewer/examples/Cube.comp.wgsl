@@ -21,7 +21,7 @@ struct IndirectDrawParams {
 @group(0) @binding(2) var<storage, read_write> visibleCubes: array<Cube>; // Changed to @binding(4)
 @group(0) @binding(3) var<storage, read_write> drawParams: IndirectDrawParams;
 
-@compute @workgroup_size(64)
+@compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id:  vec3<u32>) {
   let index = global_id.x;
   if (index >= arrayLength(&cubes)) {

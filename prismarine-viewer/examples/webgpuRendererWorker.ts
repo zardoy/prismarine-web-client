@@ -73,6 +73,7 @@ export const workerProxyType = createWorkerProxy({
     },
     generateRandom(count: number) {
         const square = Math.sqrt(count)
+        if (square % 1 !== 0) throw new Error('square must be a whole number')
         const blocks = {}
         const getFace = (face: number) => {
             return {
@@ -159,12 +160,12 @@ export const workerProxyType = createWorkerProxy({
         // }
     },
     camera (newCam) {
-        if (webgpuRenderer?.isPlayground) {
-            camera.rotation.order = 'ZYX'
-            new tweenJs.Tween(camera.rotation).to({ x: newCam.rotation.x, y: newCam.rotation.y, z: newCam.rotation.z }, 50).start()
-        } else {
+        // if (webgpuRenderer?.isPlayground) {
+        //     camera.rotation.order = 'ZYX'
+        //     new tweenJs.Tween(camera.rotation).to({ x: newCam.rotation.x, y: newCam.rotation.y, z: newCam.rotation.z }, 50).start()
+        // } else {
             camera.rotation.set(newCam.rotation.x, newCam.rotation.y, newCam.rotation.z, 'ZYX')
-        }
+        // }
         if (newCam.position.x === 0 && newCam.position.y === 0 && newCam.position.z === 0) {
             // initial camera position
             camera.position.set(newCam.position.x, newCam.position.y, newCam.position.z)
