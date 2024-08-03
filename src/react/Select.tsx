@@ -1,6 +1,6 @@
 import { omitObj } from '@zardoy/utils'
 import { AutocompleteChangeReason, useAutocomplete } from '@mui/base'
-import { useState, CSSProperties, SyntheticEvent } from 'react'
+import { useState, CSSProperties, SyntheticEvent, useRef } from 'react'
 import PixelartIcon from './PixelartIcon'
 import Input from './Input'
 import './Select.css'
@@ -34,13 +34,19 @@ export default ({
   containerStyle,
   inputProps
 }: Props) => {
+  const rootRef = useRef<HTMLDivElement>(null)
   const [options, setOptions] = useState(initialOptions)
   const [inputStyle, setInputStyle] = useState<CSSProperties>({})
 
   const autocomplete = useAutocomplete({
     value: options.selected,
     options: options.options.filter(option => option !== options.selected),
-    onChange,
+    onChange (event, value, reason) {
+      onChange?.(event, value, reason)
+      if (!value) {
+        autocomplete.groupedOptions = [...options.options]
+      }
+    },
     onInputChange (event, value, reason) {
       setInputStyle(processInput?.(value) ?? {})
       if (value) {
@@ -55,9 +61,10 @@ export default ({
       }
     },
     freeSolo: true,
+    disableCloseOnSelect: true,
   })
 
-  return <div {...autocomplete.getRootProps()} style={{ width: 130, ...containerStyle }}>
+  return <div {...autocomplete.getRootProps()} ref={rootRef} style={{ width: 130, ...containerStyle }}>
     <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
