@@ -44,6 +44,7 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
       />
       <SelectGameVersion
         versions={versions.map((obj) => obj.version)}
+        selected={defaultVersion}
         onChange={(event, value, reason) => {
           creatingWorldState.version = value ?? defaultVersion
         }}

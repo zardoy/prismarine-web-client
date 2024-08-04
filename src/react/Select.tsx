@@ -41,12 +41,7 @@ export default ({
   const autocomplete = useAutocomplete({
     value: options.selected,
     options: options.options.filter(option => option !== options.selected),
-    onChange (event, value, reason) {
-      onChange?.(event, value, reason)
-      if (!value) {
-        autocomplete.groupedOptions = [...options.options]
-      }
-    },
+    onChange,
     onInputChange (event, value, reason) {
       setInputStyle(processInput?.(value) ?? {})
       if (value) {

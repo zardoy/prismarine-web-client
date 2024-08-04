@@ -4,9 +4,10 @@ import Input from './Input'
 
 
 export default (
-  { versions, inputProps, onChange, updateOptions, containerStyle } :
+  { versions, selected, inputProps, onChange, updateOptions, containerStyle } :
   {
     versions: string[] | undefined,
+    selected?: string,
     inputProps?: React.ComponentProps<typeof Input>,
     onChange?: (event, value, reason) => void,
     updateOptions?: (options) => void,
@@ -14,7 +15,7 @@ export default (
   }
 ) => {
   return <Select
-    initialOptions={{ options: versions ?? [], selected: '' }}
+    initialOptions={{ options: versions ?? [], selected: selected ?? '' }}
     updateOptions={(options) => {
       updateOptions?.(options)
     }}
