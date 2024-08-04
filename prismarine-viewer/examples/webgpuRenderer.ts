@@ -408,7 +408,11 @@ export class WebgpuRenderer {
             positions.push(...[side[0], side[1], side[2]]);
             const face = blocksPerFace[key];
             textureIndexes.push(face.textureIndex);
-            colors.push(1, 1, 1);
+            if (face.tint) {
+                colors.push(...face.tint);
+            } else {
+                colors.push(1, 1, 1);
+            }
         }
 
         const NUMBER_OF_CUBES_NEEDED = Math.ceil(positions.length / 3);

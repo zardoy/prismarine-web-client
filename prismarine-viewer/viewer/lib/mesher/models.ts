@@ -343,7 +343,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
     }
 
-    const lightWithColor = [baseLight * tint[0], baseLight * tint[1], baseLight * tint[2]]
+    const lightWithColor = [baseLight * tint[0], baseLight * tint[1], baseLight * tint[2]] as [number, number, number]
 
     if (needTiles) {
       const tiles = attr.tiles as Tiles
@@ -351,16 +351,19 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         block: block.name,
         faces: [],
       }
-      tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
-        face,
-        side,
-        textureIndex: eFace.texture.tileIndex,
-        neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
-        light: baseLight,
-        // color: lightWithColor,
-        //@ts-ignore debug prop
-        texture: eFace.texture.debugName || block.name,
-      } satisfies BlockType['faces'][number] & TestTileData['faces'][number] as any)
+      // TODO! only one face
+      if (tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.length < 1) {
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+          face,
+          side,
+          textureIndex: eFace.texture.tileIndex,
+          neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+          light: baseLight,
+          tint: lightWithColor,
+          //@ts-ignore debug prop
+          texture: eFace.texture.debugName || block.name,
+        } satisfies BlockType['faces'][number] & TestTileData['faces'][number] as any)
+      }
     }
 
     if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
