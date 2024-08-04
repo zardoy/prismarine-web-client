@@ -18,7 +18,7 @@ import WidgetsGui from 'mc-assets/dist/other-textures/latest/gui/widgets.png'
 import { RecipeItem } from 'minecraft-data'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import _itemsAtlases from 'prismarine-viewer/public/textures/items.json'
-import { flat } from '@xmcl/text-component'
+import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import nbt from 'prismarine-nbt'
 import { splitEvery, equals } from 'rambda'
@@ -327,8 +327,7 @@ const upJei = (search: string) => {
 }
 
 export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
-  const inv = showInventory(type, getImage, {}, _bot)
-  inv.canvasManager.children[0].mobileHelpers = miscUiState.currentTouch;
+  const inv = showInventory(type, getImage, {}, _bot);
   (inv.canvasManager.children[0].callbacks as any).getItemRecipes = (item) => {
     const allRecipes = getAllItemRecipes(item.name)
     inv.canvasManager.children[0].messageDisplay = ''
@@ -383,6 +382,8 @@ const openWindow = (type: string | undefined) => {
   })
   cleanLoadedImagesCache()
   const inv = openItemsCanvas(type)
+  inv.canvasManager.children[0].mobileHelpers = miscUiState.currentTouch
+  inv.canvasManager.children[0].customTitleText = bot.currentWindow?.title ? fromFormattedString(bot.currentWindow.title).text : undefined
   // todo
   inv.canvasManager.setScale(currentScaling.scale === 1 ? 1.5 : currentScaling.scale)
   inv.canvas.style.zIndex = '10'
