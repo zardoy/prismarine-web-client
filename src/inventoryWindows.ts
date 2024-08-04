@@ -198,7 +198,7 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): {
   if ('type' in itemTexture) {
     // is item
     return {
-      texture: 'items',
+      texture: itemTexture.type,
       slice: itemTexture.slice
     }
   } else {
