@@ -78,16 +78,18 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
 
 
   removeColumn (x, z) {
-    console.log('removeColumn', x, z)
-    super.removeColumn(x, z)
-    for (const key of Object.keys(this.newChunks)) {
-      const [xSec, _ySec, zSec] = key.split(',').map(Number)
-      // if (Math.floor(x / 16) === x && Math.floor(z / 16) === z) {
-      if (x === xSec && z === zSec) {
-        // foundSections.push(key)
-        removeBlocksSection(key)
-      }
-    }
+    // TODO! disabled for now!
+    // console.log('removeColumn', x, z)
+    // super.removeColumn(x, z)
+    // for (const key of Object.keys(this.newChunks)) {
+    //   const [xSec, _ySec, zSec] = key.split(',').map(Number)
+    //   // if (Math.floor(x / 16) === x && Math.floor(z / 16) === z) {
+    //   if (x === xSec && z === zSec) {
+    //     // foundSections.push(key)
+    //     removeBlocksSection(key)
+    //   }
+    // }
+
     // for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
     //   this.setSectionDirty(new Vec3(x, y, z), false)
     //   const key = `${x},${y},${z}`
