@@ -339,7 +339,7 @@ importers:
         version: 0.2.5
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
-        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4(@types/react@18.2.20)(react@18.2.0)
+        version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/90f47d04640d903366c91500d1b69a83c3a6d4e2(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
         version: https://codeload.github.com/zardoy/mineflayer/tar.gz/7f65e46a048f1bc2b57775d84b32400dce707321(encoding@0.1.13)
@@ -6350,8 +6350,8 @@ packages:
   minecraft-folder-path@1.2.0:
     resolution: {integrity: sha512-qaUSbKWoOsH9brn0JQuBhxNAzTDMwrOXorwuRxdJKKKDYvZhtml+6GVCUrY5HRiEsieBEjCUnhVpDuQiKsiFaw==}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4:
-    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4}
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/90f47d04640d903366c91500d1b69a83c3a6d4e2:
+    resolution: {tarball: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/90f47d04640d903366c91500d1b69a83c3a6d4e2}
     version: 1.0.1
 
   minecraft-protocol@https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/495eed56ab230b2615596590064671356d86a2dc:
@@ -16556,7 +16556,7 @@ snapshots:
 
   minecraft-folder-path@1.2.0: {}
 
-  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/c50afc54e39817f7e4d313ce0f6fdaad71e7e4f4(@types/react@18.2.20)(react@18.2.0):
+  minecraft-inventory-gui@https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/90f47d04640d903366c91500d1b69a83c3a6d4e2(@types/react@18.2.20)(react@18.2.0):
     dependencies:
       valtio: 1.11.2(@types/react@18.2.20)(react@18.2.0)
     transitivePeerDependencies:

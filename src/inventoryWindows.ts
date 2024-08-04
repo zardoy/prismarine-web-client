@@ -327,7 +327,8 @@ const upJei = (search: string) => {
 }
 
 export const openItemsCanvas = (type, _bot = bot as typeof bot | null) => {
-  const inv = showInventory(type, getImage, {}, _bot);
+  const inv = showInventory(type, getImage, {}, _bot)
+  inv.canvasManager.children[0].mobileHelpers = miscUiState.currentTouch;
   (inv.canvasManager.children[0].callbacks as any).getItemRecipes = (item) => {
     const allRecipes = getAllItemRecipes(item.name)
     inv.canvasManager.children[0].messageDisplay = ''

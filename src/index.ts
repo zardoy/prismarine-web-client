@@ -894,6 +894,10 @@ async function connect (connectOptions: ConnectOptions) {
     })
   })
 
+  if (singleplayer && connectOptions.serverOverrides.worldFolder) {
+    fsState.saveLoaded = true
+  }
+
   if (!connectOptions.ignoreQs) {
     // todo cleanup
     customEvents.on('gameLoaded', () => {

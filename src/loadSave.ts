@@ -178,7 +178,6 @@ export const loadSave = async (root = '/world') => {
   //   hideModal(undefined, undefined, { force: true })
   // }
 
-  fsState.saveLoaded = true
   window.dispatchEvent(new CustomEvent('singleplayer', {
     // todo check gamemode level.dat data etc
     detail: {
