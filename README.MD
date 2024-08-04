@@ -2,17 +2,18 @@
 
 ![banner](./docs-assets/banner.jpg)
 
-A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
-
-If you encounter any bugs or usability issues, please report them! For development, see [development](#development--debugging).
+A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using the best modern web technologies.
 
 You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
+
+For building the project yourself / contributing, see [Development, Debugging & Contributing](#development-debugging--contributing). If you encounter any bugs or usability issues, please report them!
 
 ### Big Features
 
 - Open any zip world file or even folder in read-write mode!
 - Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
 - Singleplayer mode with simple world generations!
+- Google Drive support for reading / saving worlds
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
@@ -82,13 +83,13 @@ There are many many settings, that are not exposed in the UI yet. You can find o
 
 To open the console, press `F12`, or if you are on mobile, you can type `#dev` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
 
-### Development & Debugging
+### Development, Debugging & Contributing
 
 It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info. Also you can look at Dockerfile for reference.
 
 There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
 
-However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:
+However, there are many things that can be done in online production version (like debugging actual source code). Also you can access some global variables in the console and there are a few useful examples:
 
 - `localStorage.debug = '*'` - Enables all debug messages! Warning: this will start all packets spam.
 Instead I recommend setting `options.debugLogNotFrequentPackets`. Also you can use `debugTopPackets` (with JSON.stringify) to see what packets were received/sent by name

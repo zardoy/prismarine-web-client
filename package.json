@@ -14,7 +14,6 @@
     "test-unit": "vitest",
     "test:e2e": "start-test http-get://localhost:8080 test:cypress",
     "prod-start": "node server.js --prod",
-    "postinstall": "tsx scripts/optimizeBlockCollisions.ts && pnpm build-mesher",
     "test-mc-server": "tsx cypress/minecraft-server.mjs",
     "lint": "eslint \"{src,cypress}/**/*.{ts,js,jsx,tsx}\"",
     "storybook": "storybook dev -p 6006",
