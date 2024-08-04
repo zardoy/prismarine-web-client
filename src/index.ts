@@ -102,6 +102,7 @@ import packetsPatcher from './packetsPatcher'
 import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
+import './mobileShim'
 
 window.debug = debug
 window.THREE = THREE
