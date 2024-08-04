@@ -109,10 +109,10 @@
     "workbox-build": "^7.0.0"
   },
   "devDependencies": {
-    "@rsbuild/core": "1.0.1-beta.4",
+    "@rsbuild/core": "^1.0.1-beta.9",
     "@rsbuild/plugin-node-polyfill": "^1.0.3",
-    "@rsbuild/plugin-react": "^1.0.1-beta.4",
-    "@rsbuild/plugin-type-check": "1.0.1-beta.4",
+    "@rsbuild/plugin-react": "^1.0.1-beta.9",
+    "@rsbuild/plugin-type-check": "^1.0.1-beta.9",
     "@rsbuild/plugin-typed-css-modules": "^1.0.1",
     "@storybook/addon-essentials": "^7.4.6",
     "@storybook/addon-links": "^7.4.6",
