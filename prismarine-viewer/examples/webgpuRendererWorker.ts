@@ -52,10 +52,9 @@ let newWidth: number | undefined
 let newHeight: number | undefined
 let autoTickUpdate = undefined as number | undefined
 export const workerProxyType = createWorkerProxy({
-    canvas (canvas, imageBlob, isPlayground, localStorage) {
+    canvas (canvas, imageBlob, isPlayground, localStorage, NUMBER_OF_CUBES) {
         started = true
-        webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera)
-        webgpuRenderer.localStorage
+        webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, NUMBER_OF_CUBES)
         globalThis.webgpuRenderer = webgpuRenderer
     },
     startRender () {

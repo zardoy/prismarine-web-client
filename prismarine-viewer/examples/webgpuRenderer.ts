@@ -9,9 +9,7 @@ import { updateSize, allSides } from './webgpuRendererWorker';
 
 export class WebgpuRenderer {
     rendering = true
-    NUMBER_OF_CUBES = 490_000;
     renderedFrames = 0
-    localStorage: any = {}
 
     ready = false;
 
@@ -39,7 +37,7 @@ export class WebgpuRenderer {
     indirectDrawParams: Uint32Array;
     maxBufferSize: number
 
-    constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera) {
+    constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
         this.init();
     }
 
