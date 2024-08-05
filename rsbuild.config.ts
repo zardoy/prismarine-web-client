@@ -98,6 +98,7 @@ export default defineConfig({
             setup (build: RsbuildPluginAPI) {
                 const prep = async () => {
                     console.time('total-prep')
+                    fs.mkdirSync('./generated', { recursive: true })
                     if (!fs.existsSync('./generated/minecraft-data-data.js')) {
                         childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })
                     }
