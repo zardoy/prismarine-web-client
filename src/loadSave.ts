@@ -11,6 +11,7 @@ import { isMajorVersionGreater } from './utils'
 
 import { activeModalStacks, insertActiveModalStack, miscUiState } from './globalState'
 import supportedVersions from './supportedVersions.mjs'
+import { ConnectOptions } from './connect'
 
 // todo include name of opened handle (zip)!
 // additional fs metadata
@@ -46,7 +47,7 @@ export const readLevelDat = async (path) => {
   return { levelDat, dataRaw: parsed.value.Data!.value as Record<string, any> }
 }
 
-export const loadSave = async (root = '/world') => {
+export const loadSave = async (root = '/world', connectOptions?: Partial<ConnectOptions>) => {
   // todo test
   if (miscUiState.gameLoaded) {
     await disconnect()
@@ -191,7 +192,8 @@ export const loadSave = async (root = '/world') => {
       } : {},
       ...root === '/world' ? {} : {
         'worldFolder': root
-      }
+      },
+      connectOptions
     },
   }))
 }

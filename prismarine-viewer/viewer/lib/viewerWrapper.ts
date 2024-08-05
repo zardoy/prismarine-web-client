@@ -52,9 +52,11 @@ export class ViewerWrapper {
     windowFocused = true
     trackWindowFocus () {
         window.addEventListener('focus', () => {
+            console.log('window focused')
             this.windowFocused = true
         })
         window.addEventListener('blur', () => {
+            console.log('window blurred')
             this.windowFocused = false
         })
     }

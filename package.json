@@ -11,6 +11,7 @@
     "build-analyze": "BUNDLE_ANALYZE=true rsbuild build",
     "check-build": "tsx scripts/genShims.ts && tsc && pnpm build",
     "test:cypress": "cypress run",
+    "test:benchmark": "PERFORMANCE_TEST=true cypress run",
     "test-unit": "vitest",
     "test:e2e": "start-test http-get://localhost:8080 test:cypress",
     "prod-start": "node server.js --prod",

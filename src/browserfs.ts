@@ -10,6 +10,7 @@ import { fsState, loadSave } from './loadSave'
 import { installTexturePack, installTexturePackFromHandle, updateTexturePackInstalledState } from './resourcePack'
 import { miscUiState } from './globalState'
 import { setLoadingScreenStatus } from './utils'
+import { ConnectOptions } from './connect'
 const { GoogleDriveFileSystem } = require('google-drive-browserfs/src/backends/GoogleDrive') // disable type checking
 
 browserfs.install(window)
@@ -434,7 +435,7 @@ export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopi
 }
 
 // todo rename method
-const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name']) => {
+const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name'], connectOptions?: Partial<ConnectOptions>) => {
   await new Promise<void>(async resolve => {
     browserfs.configure({
       // todo
@@ -478,7 +479,7 @@ const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name']) 
     }
 
     if (availableWorlds.length === 1) {
-      await loadSave(`/world/${availableWorlds[0]}`)
+      await loadSave(`/world/${availableWorlds[0]}`, connectOptions)
       return
     }
 
