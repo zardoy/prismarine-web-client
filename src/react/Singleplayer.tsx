@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
 // todo optimize size
-import missingWorldPreview from 'minecraft-assets/minecraft-assets/data/1.10/gui/presets/isles.png'
+import missingWorldPreview from 'mc-assets/dist/other-textures/latest/gui/presets/isles.png'
 import { filesize } from 'filesize'
 import useTypedEventListener from 'use-typed-event-listener'
 import { focusable } from 'tabbable'

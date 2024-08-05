@@ -8,10 +8,10 @@ const sounds: Record<string, any> = {}
 // load as many resources on page load as possible instead on demand as user can disable internet connection after he thinks the page is loaded
 const loadingSounds = [] as string[]
 const convertedSounds = [] as string[]
-export async function loadSound (path: string) {
+export async function loadSound (path: string, contents = path) {
   if (loadingSounds.includes(path)) return true
   loadingSounds.push(path)
-  const res = await window.fetch(path)
+  const res = await window.fetch(contents)
   if (!res.ok) {
     const error = `Failed to load sound ${path}`
     if (isCypress()) throw new Error(error)

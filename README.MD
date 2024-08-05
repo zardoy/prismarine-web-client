@@ -2,21 +2,22 @@
 
 ![banner](./docs-assets/banner.jpg)
 
-A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
-
-If you encounter any bugs or usability issues, please report them! For development, see [development](#development--debugging).
+A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using the best modern web technologies.
 
 You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
+
+For building the project yourself / contributing, see [Development, Debugging & Contributing](#development-debugging--contributing). If you encounter any bugs or usability issues, please report them!
 
 ### Big Features
 
 - Open any zip world file or even folder in read-write mode!
 - Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
 - Singleplayer mode with simple world generations!
+- Google Drive support for reading / saving worlds
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
-- Resource pack support
+- FULL Resource pack support: Custom GUI, all textures & custom models! Server resource packs are also supported.
 - Builtin JEI with recipes & guides for every item (also replaces creative inventory)
 - even even more!
 
@@ -42,7 +43,21 @@ Whatever offline mode you used (zip, folder, just single player), you can always
 You can play almost on any Java server, vanilla servers are fully supported.
 See the [Mineflayer](https://github.com/PrismarineJS/mineflayer) repo for the list of supported versions (should support majority of versions).
 There is a builtin proxy, but you can also host your one! Just clone the repo, run `pnpm i` (following CONTRIBUTING.MD) and run `pnpm prod-start`, then you can specify `http://localhost:8080` in the proxy field.
-MS account authentication will be supported soon.
+
+Proxy servers are used to connect to Minecraft servers which use TCP protocol. When you connect connect to a server with a proxy, websocket connection is created between you (browser client) and the proxy server located in Europe, then the proxy connects to the Minecraft server and sends the data to the client (you) without any packet deserialization to avoid any additional delays. That said all the Minecraft protocol packets are processed by the client, right in your browser.
+
+```mermaid
+graph LR
+    A[Web App - Client] --> C[Proxy Server]
+    C --> B[Minecraft Server]
+    style A fill:#f9d,stroke:#333,stroke-width:2px
+    style B fill:#fc0,stroke:#333,stroke-width:2px
+    style C fill:#fff,stroke:#333,stroke-width:2px
+```
+
+So if the server is located in Europe and you are connecting from Europe, you will have ~40ms ping (~180ms with residential proxy version), however if you are in the US and connecting to the server located in US, you will have >200ms ping, which is the worst case scenario.
+
+Again, the proxy server is not a part of the client, it is a separate service that you can host yourself.
 
 ### Docker Files
 
@@ -60,23 +75,21 @@ In case of using docker, you don't have to follow preparation steps from CONTRIB
 - Supports resource packs
 - Doesn't support occlusion culling
 
-<!-- TODO proxy server communication graph -->
-
 ### Advanced Settings
 
 There are many many settings, that are not exposed in the UI yet. You can find or change them by opening the browser console and typing `options`. You can also change them by typing `options.<setting_name> = <value>`.
 
 ### Console
 
-To open the console, press `F12`, or if you are on mobile, you can type `#debug` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
+To open the console, press `F12`, or if you are on mobile, you can type `#dev` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
 
-### Development & Debugging
+### Development, Debugging & Contributing
 
 It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info. Also you can look at Dockerfile for reference.
 
 There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
 
-However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:
+However, there are many things that can be done in online production version (like debugging actual source code). Also you can access some global variables in the console and there are a few useful examples:
 
 - `localStorage.debug = '*'` - Enables all debug messages! Warning: this will start all packets spam.
 Instead I recommend setting `options.debugLogNotFrequentPackets`. Also you can use `debugTopPackets` (with JSON.stringify) to see what packets were received/sent by name
@@ -113,6 +126,7 @@ Press `Y` to set query parameters to url of your current game state.
 There are some parameters you can set in the url to archive some specific behaviors:
 
 Server specific:
+
 - `?ip=<server_address>` - Display connect screen to the server on load with predefined server ip. `:<port>` is optional and can be added to the ip.
 - `?name=<name>` - Set the server name for saving to the server list
 - `?version=<version>` - Set the version for the server
@@ -122,6 +136,7 @@ Server specific:
 - `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
 
 Single player specific:
+
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?version=<version>` - Set the version for the singleplayer world (when used with `?singleplayer=1`)
@@ -129,6 +144,7 @@ Single player specific:
 - `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
 
 General:
+
 - `?setting=<setting_name>:<setting_value>` - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
 
 ### Notable Things that Power this Project

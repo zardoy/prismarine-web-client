@@ -159,6 +159,7 @@ export const loadSave = async (root = '/world') => {
   // improve compatibility with community saves
   const rootRemapFiles = ['Warp files']
   for (const rootRemapFile of rootRemapFiles) {
+    // eslint-disable-next-line no-await-in-loop
     if (await existsViaStats(path.join(root, '..', rootRemapFile))) {
       forceRedirectPaths[path.join(root, rootRemapFile)] = path.join(root, '..', rootRemapFile)
     }
@@ -177,6 +178,7 @@ export const loadSave = async (root = '/world') => {
   //   hideModal(undefined, undefined, { force: true })
   // }
 
+  // todo should not be set here
   fsState.saveLoaded = true
   window.dispatchEvent(new CustomEvent('singleplayer', {
     // todo check gamemode level.dat data etc

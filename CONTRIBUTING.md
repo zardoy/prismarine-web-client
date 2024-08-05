@@ -8,14 +8,50 @@ After forking the repository, run the following commands to get started:
 
 ## Project Structure
 
+There are 3 main parts of the project:
+
+### Core (`src`)
+
+This is the main app source code which reuses all the other parts of the project.
+
+> The first version used Webpack, then was migrated to Esbuild and now is using Rsbuild!
+
+- Scripts:
+  - Start: `pnpm start`, `pnpm dev-rsbuild` (if you don't need proxy server also running)
+  - Build: `pnpm build` (note that `build` script builds only the core app, not the whole project!)
+
+Paths:
+
 - `src` - main app source code
 - `src/react` - React components - almost all UI is in this folder. Almost every component has its base (reused in app and storybook) and `Provider` - which is a component that provides context to its children. Consider looking at DeathScreen component to see how it's used.
-- `src/menus` - Old Lit Element GUI. In the process of migration to React.
 
-- `prismarine-viewer` - Improved version of <https://github.com/prismarineJS/prismarine-viewer>. Here is everything related to rendering the game world itself (no ui at all). Two most important parts here are:
+### Renderer: Playground & Mesher (`prismarine-viewer`)
+
+- Playground Scripts:
+  - Start: `pnpm run-playground` (playground, mesher + server) or `pnpm watch-playground`
+  - Build: `pnpm build-playground` or `node prismarine-viewer/esbuild.mjs`
+
+- Mesher Scripts:
+  - Start: `pnpm watch-mesher`
+  - Build: `pnpm build-mesher`
+
+Paths:
+
+- `prismarine-viewer` - Improved and refactored version of <https://github.com/prismarineJS/prismarine-viewer>. Here is everything related to rendering the game world itself (no ui at all). Two most important parts here are:
 - `prismarine-viewer/viewer/lib/worldrenderer.ts` - adding new objects to three.js happens here (sections)
 - `prismarine-viewer/viewer/lib/models.ts` - preparing data for rendering (blocks) - happens in worker: out file - `worker.js`, building - `prismarine-viewer/buildWorker.mjs`
-- `prismarine-viewer/examples/playground.ts` - Playground (source of <mcraft.fun/playground.html>) Use this for testing render changes. You can also modify playground code.
+- `prismarine-viewer/examples/playground.ts` - Playground (source of <mcraft.fun/playground.html>) Use this for testing any rendering changes. You can also modify the playground code.
+
+### Storybook (`.storybook`)
+
+Storybook is a tool for easier developing and testing React components.
+Path of all Storybook stories is `src/react/**/*.stories.tsx`.
+
+- Scripts:
+  - Start: `pnpm storybook`
+  - Build: `pnpm build-storybook`
+
+## Core-related
 
 How different modules are used:
 

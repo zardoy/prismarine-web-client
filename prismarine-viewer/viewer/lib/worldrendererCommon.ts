@@ -5,10 +5,18 @@ import { loadTexture } from './utils.web'
 import { EventEmitter } from 'events'
 import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
-import { toMajor } from './version.js'
 import { chunkPos } from './simpleUtils'
 import { defaultMesherConfig } from './mesher/shared'
 import { buildCleanupDecorator } from './cleanupDecorator'
+import blocksAtlases from 'mc-assets/dist/blocksAtlases.json'
+import blocksAtlasLatest from 'mc-assets/dist/blocksAtlasLatest.png'
+import blocksAtlasLegacy from 'mc-assets/dist/blocksAtlasLegacy.png'
+import itemsAtlases from 'mc-assets/dist/itemsAtlases.json'
+import itemsAtlasLatest from 'mc-assets/dist/itemsAtlasLatest.png'
+import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
+import { AtlasParser } from 'mc-assets'
+import { getResourcepackTiles } from '../../../src/resourcePack'
+import { toMajorVersion } from '../../../src/utils'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -23,6 +31,11 @@ export const defaultWorldRendererConfig = {
 
 export type WorldRendererConfig = typeof defaultWorldRendererConfig
 
+type CustomTexturesData = {
+  tileSize: number | undefined
+  textures: Record<string, HTMLImageElement>
+}
+
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
   worldConfig = { minY: 0, worldHeight: 256 }
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
@@ -36,11 +49,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   finishedChunks = {} as Record<string, boolean>
   @worldCleanup()
   sectionsOutstanding = new Map<string, number>()
+  @worldCleanup()
   renderUpdateEmitter = new EventEmitter()
-  customBlockStatesData = undefined as any
   customTexturesDataUrl = undefined as string | undefined
-  downloadedBlockStatesData = undefined as any
-  downloadedTextureImage = undefined as any
+  currentTextureImage = undefined as any
   workers: any[] = []
   viewerPosition?: Vec3
   lastCamUpdate = 0
@@ -56,6 +68,18 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
   highestBlocks: Record<string, { y: number, name: string }> = {}
+  blockstatesModels: any
+  customBlockStates: Record<string, any> | undefined
+  customModels: Record<string, any> | undefined
+  itemsAtlasParser: AtlasParser | undefined
+  blocksAtlasParser: AtlasParser | undefined
+
+  blocksAtlases = blocksAtlases
+  itemsAtlases = itemsAtlases
+  customTextures: {
+    items?: CustomTexturesData
+    blocks?: CustomTexturesData
+  } = {}
 
   abstract outputFormat: 'threeJs' | 'webgl'
 
@@ -167,10 +191,14 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       worker.terminate()
     }
     this.workers = []
+    this.currentTextureImage = undefined
+    this.blocksAtlasParser = undefined
+    this.itemsAtlasParser = undefined
   }
 
   // new game load happens here
-  setVersion (version, texturesVersion = version) {
+  async setVersion (version, texturesVersion = version) {
+    if (!this.blockstatesModels) throw new Error('Blockstates models is not loaded yet')
     this.version = version
     this.texturesVersion = texturesVersion
     this.resetWorld()
@@ -180,11 +208,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.mesherConfig.version = this.version!
 
     this.sendMesherMcData()
-    this.updateTexturesData()
+    await this.updateTexturesData()
   }
 
   sendMesherMcData () {
-    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajor(this.version)]
+    const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajorVersion(this.version)]
     const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
     mcData.version = JSON.parse(JSON.stringify(mcData.version))
 
@@ -193,38 +221,56 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
-  updateTexturesData () {
-    loadTexture(this.customTexturesDataUrl || `textures/${this.texturesVersion}.png`, (texture: import('three').Texture) => {
-      texture.magFilter = THREE.NearestFilter
-      texture.minFilter = THREE.NearestFilter
-      texture.flipY = false
-      this.material.map = texture
-    }, () => {
-      this.downloadedTextureImage = this.material.map!.image
-      const loadBlockStates = async () => {
-        return new Promise(resolve => {
-          if (this.customBlockStatesData) return resolve(this.customBlockStatesData)
-          return loadJSON(`/blocksStates/${this.texturesVersion}.json`, (data) => {
-            this.downloadedBlockStatesData = data
-            this.renderUpdateEmitter.emit('blockStatesDownloaded')
-            resolve(data)
-          })
-        })
-      }
-      loadBlockStates().then((blockStates) => {
-        this.mesherConfig.textureSize = this.material.map!.image.width
+  async updateTexturesData () {
+    const blocksAssetsParser = new AtlasParser(this.blocksAtlases, blocksAtlasLatest, blocksAtlasLegacy)
+    const itemsAssetsParser = new AtlasParser(this.itemsAtlases, itemsAtlasLatest, itemsAtlasLegacy)
+    const { atlas: blocksAtlas, canvas: blocksCanvas } = await blocksAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
+      const texture = this.customTextures?.blocks?.textures[textureName]
+      if (!texture) return
+      return texture
+    }, this.customTextures?.blocks?.tileSize)
+    const { atlas: itemsAtlas, canvas: itemsCanvas } = await itemsAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
+      const texture = this.customTextures?.items?.textures[textureName]
+      if (!texture) return
+      return texture
+    }, this.customTextures?.items?.tileSize)
+    this.blocksAtlasParser = new AtlasParser({ latest: blocksAtlas }, blocksCanvas.toDataURL())
+    this.itemsAtlasParser = new AtlasParser({ latest: itemsAtlas }, itemsCanvas.toDataURL())
 
-        for (const worker of this.workers) {
-          worker.postMessage({
-            type: 'mesherData',
-            json: blockStates,
-            config: this.mesherConfig,
-          })
+    const texture = await new THREE.TextureLoader().loadAsync(this.blocksAtlasParser.latestImage)
+    texture.magFilter = THREE.NearestFilter
+    texture.minFilter = THREE.NearestFilter
+    texture.flipY = false
+    this.material.map = texture
+    this.currentTextureImage = this.material.map!.image
+    this.mesherConfig.textureSize = this.material.map!.image.width
+
+    for (const worker of this.workers) {
+      const blockstatesModels = this.blockstatesModels
+      if (this.customBlockStates) {
+        // TODO! remove from other versions as well
+        blockstatesModels.blockstates.latest = {
+          ...blockstatesModels.blockstates.latest,
+          ...this.customBlockStates
         }
-        this.renderUpdateEmitter.emit('textureDownloaded')
+      }
+      if (this.customModels) {
+        blockstatesModels.models.latest = {
+          ...blockstatesModels.models.latest,
+          ...this.customModels
+        }
+      }
+      worker.postMessage({
+        type: 'mesherData',
+        blocksAtlas: {
+          latest: blocksAtlas
+        },
+        blockstatesModels,
+        config: this.mesherConfig,
       })
-    })
-
+    }
+    this.renderUpdateEmitter.emit('textureDownloaded')
+    console.log('texture loaded')
   }
 
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {

@@ -1,6 +1,6 @@
 import { World } from './world'
 import { Vec3 } from 'vec3'
-import { getSectionGeometry, setBlockStatesData } from './models'
+import { getSectionGeometry, setBlockStatesData as setMesherData } from './models'
 
 if (module.require) {
   // If we are in a node environement, we need to fake some env variables
@@ -13,7 +13,7 @@ if (module.require) {
 
 let world: World
 let dirtySections: Map<string, number> = new Map()
-let blockStatesReady = false
+let allDataReady = false
 
 function sectionKey (x, y, z) {
   return `${x},${y},${z}`
@@ -74,14 +74,18 @@ const handleMessage = data => {
   }
 
   if (data.config) {
+    if (data.type === 'mesherData' && allDataReady) {
+      world = undefined as any // reset models
+    }
+
     world ??= new World(data.config.version)
     world.config = { ...world.config, ...data.config }
     globalThis.world = world
   }
 
   if (data.type === 'mesherData') {
-    setBlockStatesData(data.json)
-    blockStatesReady = true
+    setMesherData(data.blockstatesModels, data.blocksAtlas)
+    allDataReady = true
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)
     setSectionDirty(loc, data.value)
@@ -99,7 +103,7 @@ const handleMessage = data => {
     dirtySections = new Map()
     // todo also remove cached
     globalVar.mcData = null
-    blockStatesReady = false
+    allDataReady = false
   }
 }
 
@@ -113,7 +117,7 @@ self.onmessage = ({ data }) => {
 }
 
 setInterval(() => {
-  if (world === null || !blockStatesReady) return
+  if (world === null || !allDataReady) return
 
   if (dirtySections.size === 0) return
   // console.log(sections.length + ' dirty sections')
