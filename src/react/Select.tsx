@@ -59,7 +59,7 @@ export default ({
     disableCloseOnSelect: true,
   })
 
-  return <div {...autocomplete.getRootProps()} ref={rootRef} style={{ width: 130, ...containerStyle }}>
+  return <div {...autocomplete.getRootProps()} ref={rootRef} style={{ width: 130, position: 'relative', ...containerStyle }}>
     <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
