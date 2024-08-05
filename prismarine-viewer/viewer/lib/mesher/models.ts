@@ -70,19 +70,25 @@ export function preflatBlockCalculation (block: Block, world: World, position: V
       ]
       // set needed props to true: east:'false',north:'false',south:'false',west:'false'
       const props = {}
+      let changed = false
       for (const [i, neighbor] of neighbors.entries()) {
         const isConnectedToSolid = isSolidConnection ? (neighbor && !neighbor.transparent) : false
         if (isConnectedToSolid || neighbor?.name === block.name) {
           props[['south', 'north', 'east', 'west'][i]] = 'true'
+          changed = true
         }
       }
-      return props
+      return changed ? props : undefined
     }
     // case 'gate_in_wall': {}
     case 'block_snowy': {
       const aboveIsSnow = world.getBlock(position.offset(0, 1, 0))?.name === 'snow'
-      return {
-        snowy: `${aboveIsSnow}`
+      if (aboveIsSnow) {
+        return {
+          snowy: `${aboveIsSnow}`
+        }
+      } else {
+        return
       }
     }
     case 'door': {
@@ -119,18 +125,13 @@ function getLiquidRenderHeight (world, block, type, pos) {
   return ((block.metadata >= 8 ? 8 : 7 - block.metadata) + 1) / 9
 }
 
-const everyArray = (array, callback) => {
-  if (!array?.length) return false
-  return array.every(callback)
-}
 
-const isCube = (block) => {
+const isCube = (block: Block) => {
   if (!block || block.transparent) return false
   if (block.isCube) return true
-  // TODO!
-  // if (!block.variant) block.variant = getModelVariants(block)
-  if (!block.variant?.length) return false
-  return block.variant.every(v => everyArray(v?.model?.elements, e => {
+  if (!block.models?.length || block.models.length !== 1) return false
+  // all variants
+  return block.models[0].every(v => v.elements!.every(e => {
     return e.from[0] === 0 && e.from[1] === 0 && e.from[2] === 0 && e.to[0] === 16 && e.to[1] === 16 && e.to[2] === 16
   }))
 }
@@ -265,18 +266,18 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     let localMatrix = null as any
     let localShift = null as any
 
-    if (element.rotation) {
+    if (element.rotation && !needTiles) {
       // todo do we support rescale?
       localMatrix = buildRotationMatrix(
-        element.rotation.axis,
-        element.rotation.angle
+        element.rotation!.axis,
+        element.rotation!.angle
       )
 
       localShift = vecsub3(
-        element.rotation.origin,
+        element.rotation!.origin,
         matmul3(
           localMatrix,
-          element.rotation.origin
+          element.rotation!.origin
         )
       )
     }
@@ -291,21 +292,23 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         (pos[2] ? maxz : minz)
       ]
 
-      vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
-      vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
-      vertex = vertex.map(v => v / 16)
+      if (!needTiles) {
+        vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
+        vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
+        vertex = vertex.map(v => v / 16)
 
-      attr.positions.push(
-        vertex[0] + (cursor.x & 15) - 8,
-        vertex[1] + (cursor.y & 15) - 8,
-        vertex[2] + (cursor.z & 15) - 8
-      )
+        attr.positions.push(
+          vertex[0] + (cursor.x & 15) - 8,
+          vertex[1] + (cursor.y & 15) - 8,
+          vertex[2] + (cursor.z & 15) - 8
+        )
 
-      attr.normals.push(...dir)
+        attr.normals.push(...dir)
 
-      const baseu = (pos[3] - 0.5) * uvcs - (pos[4] - 0.5) * uvsn + 0.5
-      const basev = (pos[3] - 0.5) * uvsn + (pos[4] - 0.5) * uvcs + 0.5
-      attr.uvs.push(baseu * su + u, basev * sv + v)
+        const baseu = (pos[3] - 0.5) * uvcs - (pos[4] - 0.5) * uvsn + 0.5
+        const basev = (pos[3] - 0.5) * uvsn + (pos[4] - 0.5) * uvcs + 0.5
+        attr.uvs.push(baseu * su + u, basev * sv + v)
+      }
 
       let light = 1
       if (doAO) {
@@ -340,7 +343,9 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         aos.push(ao)
       }
 
-      attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
+      if (!needTiles) {
+        attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
+      }
     }
 
     const lightWithColor = [baseLight * tint[0], baseLight * tint[1], baseLight * tint[2]] as [number, number, number]
@@ -366,16 +371,18 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       }
     }
 
-    if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
-      attr.indices.push(
-        ndx, ndx + 3, ndx + 2,
-        ndx, ndx + 1, ndx + 3
-      )
-    } else {
-      attr.indices.push(
-        ndx, ndx + 1, ndx + 2,
-        ndx + 2, ndx + 1, ndx + 3
-      )
+    if (!needTiles) {
+      if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
+        attr.indices.push(
+          ndx, ndx + 3, ndx + 2,
+          ndx, ndx + 1, ndx + 3
+        )
+      } else {
+        attr.indices.push(
+          ndx, ndx + 1, ndx + 2,
+          ndx + 2, ndx + 1, ndx + 3
+        )
+      }
     }
   }
 }
@@ -431,19 +438,17 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         }
         const biome = block.biome.name
 
-        let preflatRecomputeVariant = !!(block as any)._originalProperties
         if (world.preflat) {
           const patchProperties = preflatBlockCalculation(block, world, cursor)
           if (patchProperties) {
-            //@ts-ignore
             block._originalProperties ??= block._properties
-            //@ts-ignore
             block._properties = { ...block._originalProperties, ...patchProperties }
-            preflatRecomputeVariant = true
+            if (block.models && JSON.stringify(block._originalProperties) !== JSON.stringify(block._properties)) {
+              // recompute models
+              block.models = undefined
+            }
           } else {
-            //@ts-ignore
             block._properties = block._originalProperties ?? block._properties
-            //@ts-ignore
             block._originalProperties = undefined
           }
         }
@@ -460,7 +465,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         if (block.name !== "water" && block.name !== "lava" && !invisibleBlocks.includes(block.name)) {
           // cache
           let models = block.models
-          if (block.models === undefined || preflatRecomputeVariant) {
+          if (block.models === undefined) {
             try {
               models = blockProvider.getAllResolvedModels0_1({
                 name: block.name,
@@ -489,7 +494,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             let globalMatrix = null as any
             let globalShift = null as any
             for (const axis of ['x', 'y', 'z'] as const) {
-              if (axis in model) {
+              if (model[axis]) { // not 0
                 if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0))
                 else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0)))
               }

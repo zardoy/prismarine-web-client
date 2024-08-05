@@ -26,6 +26,8 @@ export type WorldBlock = Omit<Block, 'position'> & {
   isCube: boolean
   /** cache */
   models?: BlockModelPartsResolved | null
+  _originalProperties?: Record<string, any>
+  _properties?: Record<string, any>
 }
 
 
@@ -37,7 +39,7 @@ export class World {
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
 
-  constructor (version) {
+  constructor(version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
     this.preflat = !mcData(version).supportFeature('blockStateId')

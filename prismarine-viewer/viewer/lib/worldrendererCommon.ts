@@ -79,10 +79,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     items?: CustomTexturesData
     blocks?: CustomTexturesData
   } = {}
+  workersProcessAverageTime = 0
+  workersProcessAverageTimeCount = 0
+  maxWorkersProcessTime = 0
 
   abstract outputFormat: 'threeJs' | 'webgpu'
 
-  constructor (public config: WorldRendererConfig) {
+  constructor(public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
   }
@@ -127,6 +130,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           }
 
           this.renderUpdateEmitter.emit('update')
+          if (data.processTime) {
+            this.workersProcessAverageTimeCount++
+            this.workersProcessAverageTime = ((this.workersProcessAverageTime * (this.workersProcessAverageTimeCount - 1)) + data.processTime) / this.workersProcessAverageTimeCount
+            this.maxWorkersProcessTime = Math.max(this.maxWorkersProcessTime, data.processTime)
+          }
         }
       }
       worker.onmessage = ({ data }) => {
@@ -239,7 +247,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.currentTextureImage = this.material.map!.image
     this.mesherConfig.textureSize = this.material.map!.image.width
 
-    for (const worker of this.workers) {
+    for (const [i, worker] of this.workers.entries()) {
       const blockstatesModels = this.blockstatesModels
       if (this.customBlockStates) {
         // TODO! remove from other versions as well
@@ -256,6 +264,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       worker.postMessage({
         type: 'mesherData',
+        workerIndex: i,
         blocksAtlas: {
           latest: blocksAtlas
         },

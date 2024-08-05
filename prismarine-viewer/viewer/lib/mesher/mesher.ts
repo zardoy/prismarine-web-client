@@ -11,6 +11,7 @@ if (module.require) {
   global.performance = r('perf_hooks').performance
 }
 
+let workerIndex = 0
 let world: World
 let dirtySections: Map<string, number> = new Map()
 let allDataReady = false
@@ -86,6 +87,7 @@ const handleMessage = data => {
   if (data.type === 'mesherData') {
     setMesherData(data.blockstatesModels, data.blocksAtlas, data.config.outputFormat === 'webgpu')
     allDataReady = true
+    workerIndex = data.workerIndex
   } else if (data.type === 'dirty') {
     const loc = new Vec3(data.x, data.y, data.z)
     setSectionDirty(loc, data.value)
@@ -126,18 +128,22 @@ setInterval(() => {
   for (const key of dirtySections.keys()) {
     let [x, y, z] = key.split(',').map(v => parseInt(v, 10))
     const chunk = world.getColumn(x, z)
+    let processTime = 0
     if (chunk?.getSection(new Vec3(x, y, z))) {
+      const start = performance.now()
       const geometry = getSectionGeometry(x, y, z, world)
       const transferable = [geometry.positions?.buffer, geometry.normals?.buffer, geometry.colors?.buffer, geometry.uvs?.buffer].filter(Boolean)
       //@ts-ignore
       postMessage({ type: 'geometry', key, geometry }, transferable)
+      processTime = performance.now() - start
     } else {
       // console.info('[mesher] Missing section', x, y, z)
     }
     const dirtyTimes = dirtySections.get(key)
     if (!dirtyTimes) throw new Error('dirtySections.get(key) is falsy')
     for (let i = 0; i < dirtyTimes; i++) {
-      postMessage({ type: 'sectionFinished', key })
+      postMessage({ type: 'sectionFinished', key, workerIndex, processTime })
+      processTime = 0
     }
     dirtySections.delete(key)
   }
