@@ -354,6 +354,7 @@ const invisibleBlocks = ['air', 'cave_air', 'void_air', 'barrier']
 const isBlockWaterlogged = (block: Block) => block.getProperties().waterlogged === true || block.getProperties().waterlogged === 'true'
 
 let unknownBlockModel: BlockModelPartsResolved
+let erroredBlockModel: BlockModelPartsResolved
 export function getSectionGeometry (sx, sy, sz, world: World) {
   let delayedRender = [] as (() => void)[]
 
@@ -372,7 +373,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     indices: [],
     tiles: {},
     // todo this can be removed here
-    signs: {}
+    signs: {},
+    hadErrors: false
   } as Record<string, any>
 
   const cursor = new Vec3(0, 0, 0)
@@ -437,7 +439,9 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
               })!
               if (!models.length) models = null
             } catch (err) {
+              models ??= erroredBlockModel
               console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(block.getProperties())}]: ` + err.message, err.stack)
+              attr.hadErrors = true
             }
           }
           block.models = models ?? null
@@ -526,6 +530,7 @@ export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTil
   globalThis.blockProvider = blockProvider
   if (useUnknownBlockModel) {
     unknownBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'unknown', properties: {} })
+    erroredBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'errored', properties: {} })
   }
 
   needTiles = _needTiles
