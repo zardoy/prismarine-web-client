@@ -18,7 +18,7 @@ import WidgetsGui from 'mc-assets/dist/other-textures/latest/gui/widgets.png'
 import { RecipeItem } from 'minecraft-data'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import _itemsAtlases from 'prismarine-viewer/public/textures/items.json'
-import { flat } from '@xmcl/text-component'
+import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import nbt from 'prismarine-nbt'
 import { splitEvery, equals } from 'rambda'
@@ -198,7 +198,7 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): {
   if ('type' in itemTexture) {
     // is item
     return {
-      texture: 'items',
+      texture: itemTexture.type,
       slice: itemTexture.slice
     }
   } else {
@@ -382,6 +382,8 @@ const openWindow = (type: string | undefined) => {
   })
   cleanLoadedImagesCache()
   const inv = openItemsCanvas(type)
+  inv.canvasManager.children[0].mobileHelpers = miscUiState.currentTouch
+  inv.canvasManager.children[0].customTitleText = bot.currentWindow?.title ? fromFormattedString(bot.currentWindow.title).text : undefined
   // todo
   inv.canvasManager.setScale(currentScaling.scale === 1 ? 1.5 : currentScaling.scale)
   inv.canvas.style.zIndex = '10'

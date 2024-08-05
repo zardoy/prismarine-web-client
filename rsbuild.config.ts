@@ -98,8 +98,12 @@ export default defineConfig({
             setup (build: RsbuildPluginAPI) {
                 const prep = async () => {
                     console.time('total-prep')
+                    fs.mkdirSync('./generated', { recursive: true })
                     if (!fs.existsSync('./generated/minecraft-data-data.js')) {
                         childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })
+                    }
+                    if (!fs.existsSync('./generated/latestBlockCollisionsShapes.json')) {
+                        childProcess.execSync('tsx ./scripts/optimizeBlockCollisions.ts', { stdio: 'inherit' })
                     }
                     fsExtra.copySync('./node_modules/mc-assets/dist/other-textures/latest/entity', './dist/textures/entity')
                     fsExtra.copySync('./assets/background', './dist/background')
@@ -115,7 +119,7 @@ export default defineConfig({
                     // childProcess.execSync('./scripts/prepareSounds.mjs', { stdio: 'inherit' })
                     // childProcess.execSync('tsx ./scripts/genMcDataTypes.ts', { stdio: 'inherit' })
                     // childProcess.execSync('tsx ./scripts/genPixelartTypes.ts', { stdio: 'inherit' })
-                    if (fs.existsSync('./prismarine-viewer/public/mesher.js')) {
+                    if (fs.existsSync('./prismarine-viewer/public/mesher.js') && dev) {
                         // copy mesher
                         fs.copyFileSync('./prismarine-viewer/public/mesher.js', './dist/mesher.js')
                     } else {

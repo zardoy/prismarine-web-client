@@ -178,6 +178,7 @@ export const loadSave = async (root = '/world') => {
   //   hideModal(undefined, undefined, { force: true })
   // }
 
+  // todo should not be set here
   fsState.saveLoaded = true
   window.dispatchEvent(new CustomEvent('singleplayer', {
     // todo check gamemode level.dat data etc

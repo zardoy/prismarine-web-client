@@ -17,6 +17,7 @@ const defaultVersionObj = {
 
 const mcDataContents = `window.mcData ??= ${JSON.stringify(defaultVersionObj)};module.exports = { pc: window.mcData }`
 
+fs.mkdirSync('./generated', { recursive: true })
 fs.writeFileSync('./generated/minecraft-data-data.js', mcDataContents, 'utf8')
 
 // app resources

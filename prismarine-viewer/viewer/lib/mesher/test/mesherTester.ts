@@ -28,7 +28,8 @@ export const setup = (version, initialBlocks: Array<[number[], string]>) => {
       centerFaces,
       totalTiles,
       centerTileNeighbors,
-      faces: sectionGeometry.tiles[`${pos.x},${pos.y},${pos.z}`]?.faces ?? []
+      faces: sectionGeometry.tiles[`${pos.x},${pos.y},${pos.z}`]?.faces ?? [],
+      attr: sectionGeometry
     }
   }
 
