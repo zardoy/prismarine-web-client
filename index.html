@@ -41,7 +41,7 @@
           // move loading div to the end of body
           const loadingDivElem = document.querySelector('.initial-loader');
           const newContainer = document.body; // replace with your new container
-          newContainer.appendChild(loadingDivElem);
+          if (loadingDivElem) newContainer.appendChild(loadingDivElem);
         })
     </script>
     <script type="module" async>
