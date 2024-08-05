@@ -17,7 +17,10 @@ import { disposeObject } from './threeJsUtils'
 
 export const TWEEN_DURATION = 50 // todo should be 100
 
-function getUsernameTexture (username, { fontFamily = 'sans-serif' }) {
+/**
+ * @param {string} username
+ */
+function getUsernameTexture(username, { fontFamily = 'sans-serif' }) {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2d context')
@@ -43,7 +46,7 @@ function getUsernameTexture (username, { fontFamily = 'sans-serif' }) {
 
 const addNametag = (entity, options, mesh) => {
   if (entity.username !== undefined) {
-    if (mesh.children.find(c => c.name === 'nametag')) return // todo update
+    if (mesh.children.some(c => c.name === 'nametag')) return // todo update
     const canvas = getUsernameTexture(entity.username, options)
     const tex = new THREE.Texture(canvas)
     tex.needsUpdate = true
@@ -61,7 +64,7 @@ const addNametag = (entity, options, mesh) => {
 // todo cleanup
 const nametags = {}
 
-function getEntityMesh (entity, scene, options, overrides) {
+function getEntityMesh(entity, scene, options, overrides) {
   if (entity.name) {
     try {
       // https://github.com/PrismarineJS/prismarine-viewer/pull/410
@@ -107,7 +110,7 @@ export class Entities extends EventEmitter {
     this.getItemUv = undefined
   }
 
-  clear () {
+  clear() {
     for (const mesh of Object.values(this.entities)) {
       this.scene.remove(mesh)
       disposeObject(mesh)
@@ -115,7 +118,7 @@ export class Entities extends EventEmitter {
     this.entities = {}
   }
 
-  setDebugMode (mode, /** @type {THREE.Object3D?} */entity = null) {
+  setDebugMode(mode, /** @type {THREE.Object3D?} */entity = null) {
     this.debugMode = mode
     for (const mesh of entity ? [entity] : Object.values(this.entities)) {
       const boxHelper = mesh.children.find(c => c.name === 'debug')
@@ -127,7 +130,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  setRendering (rendering, /** @type {THREE.Object3D?} */entity = null) {
+  setRendering(rendering, /** @type {THREE.Object3D?} */entity = null) {
     this.rendering = rendering
     for (const ent of entity ? [entity] : Object.values(this.entities)) {
       if (rendering) {
@@ -138,7 +141,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  render () {
+  render() {
     const dt = this.clock.getDelta()
     for (const entityId of Object.keys(this.entities)) {
       const playerObject = this.getPlayerObject(entityId)
@@ -148,7 +151,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  getPlayerObject (entityId) {
+  getPlayerObject(entityId) {
     /** @type {(PlayerObject & { animation?: PlayerAnimation }) | undefined} */
     const playerObject = this.entities[entityId]?.playerObject
     return playerObject
@@ -158,7 +161,7 @@ export class Entities extends EventEmitter {
   defaultSteveTexture
 
   // true means use default skin url
-  updatePlayerSkin (entityId, username, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
+  updatePlayerSkin(entityId, username, /** @type {string | true} */skinUrl, /** @type {string | true | undefined} */capeUrl = undefined) {
     let playerObject = this.getPlayerObject(entityId)
     if (!playerObject) return
     // const username = this.entities[entityId].username
@@ -167,7 +170,7 @@ export class Entities extends EventEmitter {
       skinUrl = `https://mulv.tycrek.dev/api/lookup?username=${username}&type=skin`
       if (!username) return
     }
-    loadImage(skinUrl).then((image) => {
+    loadImage(skinUrl).then(image => {
       playerObject = this.getPlayerObject(entityId)
       if (!playerObject) return
       /** @type {THREE.CanvasTexture} */
@@ -206,7 +209,7 @@ export class Entities extends EventEmitter {
       this.onSkinUpdate?.()
       if (capeUrl) {
         if (capeUrl === true) capeUrl = `https://mulv.tycrek.dev/api/lookup?username=${username}&type=cape`
-        loadImage(capeUrl).then((capeImage) => {
+        loadImage(capeUrl).then(capeImage => {
           playerObject = this.getPlayerObject(entityId)
           if (!playerObject) return
           const capeCanvas = document.createElement('canvas')
@@ -241,14 +244,14 @@ export class Entities extends EventEmitter {
       playerObject.cape.map = null
     }
 
-    function isCanvasBlank (canvas) {
+    function isCanvasBlank(canvas) {
       return !canvas.getContext('2d')
         .getImageData(0, 0, canvas.width, canvas.height).data
         .some(channel => channel !== 0)
     }
   }
 
-  playAnimation (entityPlayerId, /** @type {'walking' | 'running' | 'oneSwing' | 'idle'} */animation) {
+  playAnimation(entityPlayerId, /** @type {'walking' | 'running' | 'oneSwing' | 'idle'} */animation) {
     const playerObject = this.getPlayerObject(entityPlayerId)
     if (!playerObject) return
 
@@ -268,7 +271,7 @@ export class Entities extends EventEmitter {
 
   }
 
-  parseEntityLabel (jsonLike) {
+  parseEntityLabel(jsonLike) {
     if (!jsonLike) return
     try {
       const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
@@ -279,7 +282,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  update (/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
+  update(/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
     let isPlayerModel = entity.name === 'player'
     if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
       isPlayerModel = true
@@ -322,7 +325,7 @@ export class Entities extends EventEmitter {
               // top left and right bottom are black box materials others are transparent
               new THREE.MeshBasicMaterial({ color: 0x00_00_00 }), new THREE.MeshBasicMaterial({ color: 0x00_00_00 }),
               new THREE.MeshBasicMaterial({ color: 0x00_00_00 }), new THREE.MeshBasicMaterial({ color: 0x00_00_00 }),
-              material, materialFlipped
+              material, materialFlipped,
             ])
             mesh.scale.set(0.5, 0.5, 0.5)
             mesh.position.set(0, 0.2, 0)
@@ -382,11 +385,12 @@ export class Entities extends EventEmitter {
       group.position.set(entity.pos.x, entity.pos.y, entity.pos.z)
 
       // todo use width and height instead
-      const boxHelper = new THREE.BoxHelper(mesh,
+      const boxHelper = new THREE.BoxHelper(
+        mesh,
         entity.type === 'hostile' ? 0xff_00_00 :
           entity.type === 'mob' ? 0x00_ff_00 :
             entity.type === 'player' ? 0x00_00_ff :
-              0xff_a5_00
+              0xff_a5_00,
       )
       boxHelper.name = 'debug'
       group.add(mesh)
@@ -456,7 +460,8 @@ export class Entities extends EventEmitter {
 
     if (e?.playerObject && overrides?.rotation?.head) {
       /** @type {PlayerObject} */
-      const { playerObject } = e
+      // eslint-disable-next-line prefer-destructuring
+      const playerObject = e.playerObject
       const headRotationDiff = overrides.rotation.head.y ? overrides.rotation.head.y - entity.yaw : 0
       playerObject.skin.head.rotation.y = -headRotationDiff
       playerObject.skin.head.rotation.x = overrides.rotation.head.x ? - overrides.rotation.head.x : 0

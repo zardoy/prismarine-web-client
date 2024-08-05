@@ -29,10 +29,11 @@
                 "allowSingleLine": true
             }
         ],
-        "@stylistic/comma-dangle": [
-            "error",
-            "always-multiline"
-        ],
+        // too annoying to be forced to multi-line, probably should be enforced to never
+        // "@stylistic/comma-dangle": [
+        //     "error",
+        //     "always-multiline"
+        // ],
         "@stylistic/computed-property-spacing": "error",
         "@stylistic/dot-location": [
             "error",
@@ -42,8 +43,11 @@
         "@stylistic/function-call-spacing": "error",
         "@stylistic/function-paren-newline": "error",
         "@stylistic/generator-star-spacing": "error",
-        // last
         "@stylistic/implicit-arrow-linebreak": "error",
+        "@stylistic/indent-binary-ops": [
+            "error",
+            2
+        ],
         "@stylistic/function-call-argument-newline": [
             "error",
             "consistent"
@@ -78,6 +82,19 @@
                 "allowTemplateLiterals": true
             }
         ],
+        "@stylistic/key-spacing": "error",
+        "@stylistic/keyword-spacing": "error",
+        // "@stylistic/line-comment-position": "error", // not needed
+        // "@stylistic/lines-around-comment": "error", // also not sure if needed
+        // "@stylistic/max-len": "error", // also not sure if needed
+        // "@stylistic/linebreak-style": "error", // let git decide
+        "@stylistic/max-statements-per-line": [
+            "error",
+            {
+                "max": 5
+            }
+        ],
+        // "@stylistic/member-delimiter-style": "error",
         // perf
         "import/no-deprecated": "off",
         // ---
@@ -87,6 +104,7 @@
         // intentional: improve readability in some cases
         "no-else-return": "off",
         "@typescript-eslint/padding-line-between-statements": "off",
+        "@typescript-eslint/no-dynamic-delete": "off",
         "arrow-body-style": "off",
         "unicorn/prefer-ternary": "off",
         "unicorn/switch-case-braces": "off",

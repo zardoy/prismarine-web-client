@@ -338,8 +338,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       mc-assets:
-        specifier: ^0.2.6
-        version: 0.2.6
+        specifier: ^0.2.7
+        version: 0.2.7
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/75e940a4cd50d89e0ba03db3733d5d704917a3c8(@types/react@18.2.20)(react@18.2.0)
@@ -6233,8 +6233,8 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
-  mc-assets@0.2.6:
-    resolution: {integrity: sha512-nGnnySeCPA514CA3WyTR5sz3vpUhUoB6pKL5qRemNaYkp5utbik7OkoW/44qrtuCFejQ1eMBvkRnDkSKLdzDdA==}
+  mc-assets@0.2.7:
+    resolution: {integrity: sha512-914jxEEwNe+XhCZpEl690UTBMEBkaN9uGXdK0LXKCZQ3f6a9LUC6EUYGHdNNuvsLb2OHbYHGQdCIZoSJvkMPYw==}
     engines: {node: '>=18.0.0'}
 
   md5-file@4.0.0:
@@ -16471,7 +16471,7 @@ snapshots:
     dependencies:
       react: 18.2.0
 
-  mc-assets@0.2.6: {}
+  mc-assets@0.2.7: {}
 
   md5-file@4.0.0: {}
 

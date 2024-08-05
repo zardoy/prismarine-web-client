@@ -1,3 +1,4 @@
+import * as THREE from 'THREE'
 import { statsEnd, statsStart } from '../../../src/topRightStats'
 
 // wrapper for now
