@@ -202,8 +202,12 @@ export class MinimapDrawer {
         if (distance > this.mapSize) continue
       }
       const offset = full ? 0 : this.radius * 0.2
-      const z = Math.floor((this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z)) + offset
-      const x = Math.floor((this.mapSize / 2 - (centerPos?.x ?? this.adapter.playerPosition.x) + warp.x)) + offset
+      const z = Math.floor(
+        (this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z) * this.mapPixel
+      ) + offset
+      const x = Math.floor(
+        (this.mapSize / 2 - (centerPos?.x ?? this.adapter.playerPosition.x) + warp.x) * this.mapPixel
+      ) + offset
       const dz = z - this.centerX
       const dx = x - this.centerY
       const circleDist = Math.hypot(dx, dz)
@@ -216,9 +220,18 @@ export class MinimapDrawer {
         this.centerY + this.mapSize / 2 * Math.cos(angle)
         : x
       this.ctx.beginPath()
-      this.ctx.arc(circleX, circleZ, circleDist > this.mapSize / 2 && !full ? 1.5 : 2, 0, Math.PI * 2, false)
+      this.ctx.arc(
+        circleX,
+        circleZ,
+        circleDist > this.mapSize / 2 && !full
+          ? this.mapPixel * 1.5
+          : full ? this.mapPixel : this.mapPixel * 2,
+        0,
+        Math.PI * 2,
+        false
+      )
       this.ctx.strokeStyle = 'black'
-      this.ctx.lineWidth = 1
+      this.ctx.lineWidth = this.mapPixel
       this.ctx.stroke()
       this.ctx.fillStyle = warp.disabled ? 'rgba(255, 255, 255, 0.4)' : warp.color ?? '#d3d3d3'
       this.ctx.fill()

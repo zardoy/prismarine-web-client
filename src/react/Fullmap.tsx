@@ -171,7 +171,7 @@ const MapChunk = (
     const dpr = window.devicePixelRatio
     const x = (e.clientX - rect.left) / (scale * dpr)
     const y = (e.clientY - rect.top) / (scale * dpr)
-    drawerRef.current?.setWarpPosOnClick(new Vec3(Math.floor(x / 6), 0, Math.floor(y / 6)), new Vec3(worldX, 0, worldZ))
+    drawerRef.current?.setWarpPosOnClick(new Vec3(Math.floor(x / 3), 0, Math.floor(y / 3)), new Vec3(worldX, 0, worldZ))
     setLastWarpPos(drawerRef.current!.lastWarpPos)
     setIsWarpInfoOpened(true)
   }
@@ -228,7 +228,8 @@ const MapChunk = (
       ref={canvasRef}
       style={{
         width: '100%',
-        height: '100%'
+        height: '100%',
+        imageRendering: 'pixelated'
       }}
       width={64}
       height={64}
