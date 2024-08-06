@@ -1,23 +1,8 @@
 import { proxy, subscribe } from 'valtio'
 import { showInventory } from 'minecraft-inventory-gui/web/ext.mjs'
-import InventoryGui from 'mc-assets/dist/other-textures/latest/gui/container/inventory.png'
-import ChestLikeGui from 'mc-assets/dist/other-textures/latest/gui/container/shulker_box.png'
-import LargeChestLikeGui from 'mc-assets/dist/other-textures/latest/gui/container/generic_54.png'
-import FurnaceGui from 'mc-assets/dist/other-textures/latest/gui/container/furnace.png'
-import CraftingTableGui from 'mc-assets/dist/other-textures/latest/gui/container/crafting_table.png'
-import DispenserGui from 'mc-assets/dist/other-textures/latest/gui/container/dispenser.png'
-import HopperGui from 'mc-assets/dist/other-textures/latest/gui/container/hopper.png'
-import HorseGui from 'mc-assets/dist/other-textures/latest/gui/container/horse.png'
-import VillagerGui from 'mc-assets/dist/other-textures/latest/gui/container/villager2.png'
-import EnchantingGui from 'mc-assets/dist/other-textures/latest/gui/container/enchanting_table.png'
-import AnvilGui from 'mc-assets/dist/other-textures/latest/gui/container/anvil.png'
-import BeaconGui from 'mc-assets/dist/other-textures/latest/gui/container/beacon.png'
-import WidgetsGui from 'mc-assets/dist/other-textures/latest/gui/widgets.png'
 
 // import Dirt from 'mc-assets/dist/other-textures/latest/blocks/dirt.png'
 import { RecipeItem } from 'minecraft-data'
-import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
-import _itemsAtlases from 'prismarine-viewer/public/textures/items.json'
 import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import nbt from 'prismarine-nbt'
@@ -25,36 +10,18 @@ import { splitEvery, equals } from 'rambda'
 import PItem, { Item } from 'prismarine-item'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import Generic95 from '../assets/generic_95.png'
+import { appReplacableResources } from './generated/resources'
 import { activeModalStack, hideCurrentModal, hideModal, miscUiState, showModal } from './globalState'
-import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
 import { assertDefined, inGameError } from './utils'
 import { MessageFormatPart } from './botUtils'
 import { currentScaling } from './scaleInterface'
-import { descriptionGenerators, getItemDescription } from './itemsDescriptions'
+import { getItemDescription } from './itemsDescriptions'
 
 const loadedImagesCache = new Map<string, HTMLImageElement>()
 const cleanLoadedImagesCache = () => {
   loadedImagesCache.delete('blocks')
 }
-export type BlockStates = Record<string, null | {
-  variants: Record<string, {
-    model: {
-      elements: [{
-        faces: {
-          [face: string]: {
-            texture: {
-              u
-              v
-              su
-              sv
-            }
-          }
-        }
-      }]
-    }
-  }>
-}>
 
 let lastWindow: ReturnType<typeof showInventory>
 /** bot version */
@@ -143,22 +110,22 @@ export const onGameLoad = (onLoad) => {
 const getImageSrc = (path): string | HTMLImageElement => {
   assertDefined(viewer)
   switch (path) {
-    case 'gui/container/inventory': return InventoryGui
+    case 'gui/container/inventory': return appReplacableResources.latest_gui_container_inventory.content
     case 'blocks': return viewer.world.blocksAtlasParser!.latestImage
     case 'items': return viewer.world.itemsAtlasParser!.latestImage
-    case 'gui/container/dispenser': return DispenserGui
-    case 'gui/container/furnace': return FurnaceGui
-    case 'gui/container/crafting_table': return CraftingTableGui
-    case 'gui/container/shulker_box': return ChestLikeGui
-    case 'gui/container/generic_54': return LargeChestLikeGui
+    case 'gui/container/dispenser': return appReplacableResources.latest_gui_container_dispenser.content
+    case 'gui/container/furnace': return appReplacableResources.latest_gui_container_furnace.content
+    case 'gui/container/crafting_table': return appReplacableResources.latest_gui_container_crafting_table.content
+    case 'gui/container/shulker_box': return appReplacableResources.latest_gui_container_shulker_box.content
+    case 'gui/container/generic_54': return appReplacableResources.latest_gui_container_generic_54.content
     case 'gui/container/generic_95': return Generic95
-    case 'gui/container/hopper': return HopperGui
-    case 'gui/container/horse': return HorseGui
-    case 'gui/container/villager2': return VillagerGui
-    case 'gui/container/enchanting_table': return EnchantingGui
-    case 'gui/container/anvil': return AnvilGui
-    case 'gui/container/beacon': return BeaconGui
-    case 'gui/widgets': return WidgetsGui
+    case 'gui/container/hopper': return appReplacableResources.latest_gui_container_hopper.content
+    case 'gui/container/horse': return appReplacableResources.latest_gui_container_horse.content
+    case 'gui/container/villager2': return appReplacableResources.latest_gui_container_villager2.content
+    case 'gui/container/enchanting_table': return appReplacableResources.latest_gui_container_enchanting_table.content
+    case 'gui/container/anvil': return appReplacableResources.latest_gui_container_anvil.content
+    case 'gui/container/beacon': return appReplacableResources.latest_gui_container_beacon.content
+    case 'gui/widgets': return appReplacableResources.other_textures_latest_gui_widgets.content
   }
   // empty texture
   return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
