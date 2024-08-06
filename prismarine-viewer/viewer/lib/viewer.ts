@@ -135,7 +135,9 @@ export class Viewer {
     let yOffset = this.playerHeight
     if (this.isSneaking) yOffset -= 0.3
 
-    if (this.world instanceof WorldRendererThree) this.world.camera = cam as THREE.PerspectiveCamera
+    if (this.world instanceof WorldRendererThree) {
+      this.world.camera = cam as THREE.PerspectiveCamera
+    }
     this.world.updateCamera(pos?.offset(0, yOffset, 0) ?? null, yaw, pitch)
   }
 
@@ -149,7 +151,7 @@ export class Viewer {
 
     const audioLoader = new THREE.AudioLoader()
     const start = Date.now()
-    audioLoader.loadAsync(path).then((buffer) => {
+    void audioLoader.loadAsync(path).then((buffer) => {
       if (Date.now() - start > 500) return
       // play
       sound.setBuffer(buffer)

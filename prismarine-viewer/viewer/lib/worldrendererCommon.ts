@@ -10,13 +10,11 @@ import itemsAtlases from 'mc-assets/dist/itemsAtlases.json'
 import itemsAtlasLatest from 'mc-assets/dist/itemsAtlasLatest.png'
 import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
 import { AtlasParser } from 'mc-assets'
+import TypedEmitter from 'typed-emitter'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
-import { getResourcepackTiles } from '../../../src/resourcePack'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
 import { defaultMesherConfig } from './mesher/shared'
-import { loadTexture } from './utils.web'
-import { loadJSON } from './utils'
 import { chunkPos } from './simpleUtils'
 
 function mod (x, n) {
@@ -55,8 +53,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   sectionsOutstanding = new Map<string, number>()
 
   @worldCleanup()
-  renderUpdateEmitter = new EventEmitter()
-
+  renderUpdateEmitter = new EventEmitter() as unknown as TypedEmitter<{
+    dirty (pos: Vec3, value: boolean): void
+    update (/* pos: Vec3, value: boolean */): void
+    textureDownloaded (): void
+  }>
   customTexturesDataUrl = undefined as string | undefined
   currentTextureImage = undefined as any
   workers: any[] = []

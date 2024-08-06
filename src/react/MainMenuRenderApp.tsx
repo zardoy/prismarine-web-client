@@ -62,7 +62,7 @@ export default () => {
           return
         }
         const upStatus = () => {
-          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}) ${mainMenuState.serviceWorkerLoaded ? '(Available Offline)' : ''}`)
+          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}${mainMenuState.serviceWorkerLoaded ? ' - Available Offline' : ''})`)
         }
         subscribe(mainMenuState, upStatus)
         setVersionTitle(`Loaded: ${process.env.BUILD_VERSION}. Remote: ${contents}`)
