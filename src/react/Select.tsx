@@ -1,6 +1,6 @@
 import { omitObj } from '@zardoy/utils'
 import { AutocompleteChangeReason, useAutocomplete } from '@mui/base'
-import { useState, CSSProperties, SyntheticEvent, useRef } from 'react'
+import { useState, CSSProperties, SyntheticEvent, useRef, useEffect } from 'react'
 import PixelartIcon from './PixelartIcon'
 import Input from './Input'
 import './Select.css'
@@ -35,6 +35,8 @@ export default ({
   inputProps
 }: Props) => {
   const rootRef = useRef<HTMLDivElement>(null)
+  const inputRootRef = useRef<HTMLDivElement>(null)
+  const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState(initialOptions)
   const [inputStyle, setInputStyle] = useState<CSSProperties>({})
 
@@ -44,6 +46,7 @@ export default ({
     onChange,
     onInputChange (event, value, reason) {
       setInputStyle(processInput?.(value) ?? {})
+      setInputValue(value)
       if (value) {
         updateOptions({
           ...options,
@@ -56,13 +59,15 @@ export default ({
       }
     },
     freeSolo: true,
-    disableCloseOnSelect: true,
+    // disableCloseOnSelect: true,
   })
 
   return <div {...autocomplete.getRootProps()} ref={rootRef} style={{ width: 130, position: 'relative', ...containerStyle }}>
     <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
+      ref={inputRootRef}
+      value={inputValue}
       inputStyle={inputStyle}
       inputProps={inputProps}
       option={autocomplete.inputValue ?? ''}
@@ -90,6 +95,12 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
   inputProps?: React.ComponentProps<typeof Input>
   inputStyle?: CSSProperties
 } & Record<string, any>) => {
+  const [firstRender, setFirstRender] = useState(true)
+
+  useEffect(() => {
+    if (firstRender) setFirstRender(false)
+    if (value === '' && !firstRender) props.onMouseDown()
+  }, [value])
 
   return <div style={{
     position: 'relative',
@@ -97,6 +108,7 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
     alignItems: 'center',
   }}
   {...omitObj(props, 'id')}
+
   >
     {icon && <PixelartIcon styles={{ position: 'absolute', zIndex: 3 }} iconName={icon} />}
     <Input
