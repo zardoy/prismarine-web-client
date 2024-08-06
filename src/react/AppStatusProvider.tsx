@@ -6,6 +6,7 @@ import { fsState } from '../loadSave'
 import { guessProblem } from '../errorLoadingScreenHelpers'
 import { ConnectOptions } from '../connect'
 import { downloadPacketsReplay, packetsReplaceSessionState } from '../packetsReplay'
+import { getProxyDetails } from '../microsoftAuthflow'
 import AppStatus from './AppStatus'
 import DiveTransition from './DiveTransition'
 import { useDidUpdateEffect } from './utils'
@@ -13,7 +14,6 @@ import { useIsModalActive } from './utilsApp'
 import Button from './Button'
 import { AuthenticatedAccount, updateAuthenticatedAccountData, updateLoadedServerData } from './ServersListProvider'
 import { showOptionsModal } from './SelectOption'
-import { getProxyDetails } from '../microsoftAuthflow'
 
 const initialState = {
   status: '',
@@ -133,7 +133,7 @@ const PossiblyVpnBypassProxyButton = ({ reconnect }: { reconnect: () => void }) 
     const proxy = lastConnectOptions.value?.proxy
     if (!proxy) return
     getProxyDetails(proxy)
-      .then((r) => r.json())
+      .then(async (r) => r.json())
       .then(({ capabilities }) => {
         const { vpnBypassProxy } = capabilities
         if (!vpnBypassProxy) return
