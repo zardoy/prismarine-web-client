@@ -28,7 +28,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
     this.starField = new StarField(scene)
-    this.initCameraGroup()
+    // this.initCameraGroup()
     // this.initHandObject()
   }
 
