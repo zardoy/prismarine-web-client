@@ -187,7 +187,7 @@ export class MinimapDrawer {
     // const worldZ = z
 
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
-    this.lastWarpPos = new Vec3(Math.floor(botPos.x + mousePos.x), botPos.y, Math.floor(botPos.z + mousePos.z))
+    this.lastWarpPos = new Vec3(Math.floor(botPos.x + mousePos.x), 0, Math.floor(botPos.z + mousePos.z))
   }
 
   drawWarps (centerPos?: Vec3, full?: boolean) {

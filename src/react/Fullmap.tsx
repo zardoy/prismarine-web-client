@@ -121,8 +121,8 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
             y={y}
             scale={stateRef.current.scale}
             adapter={adapter}
-            worldX={playerChunkLeft + x / 4 - offsetX }
-            worldZ={playerChunkTop + y / 4 - offsetY }
+            worldX={playerChunkLeft + x / 4 - offsetX}
+            worldZ={playerChunkTop + y / 4 - offsetY}
             setIsWarpInfoOpened={setIsWarpInfoOpened}
             setLastWarpPos={setLastWarpPos}
             redraw={redrawCell.current}
@@ -169,9 +169,10 @@ const MapChunk = (
     if ('buttons' in e && e.button !== 2) return
     const rect = canvasRef.current!.getBoundingClientRect()
     const dpr = window.devicePixelRatio
-    const x = (e.clientX - rect.left) / (scale * dpr)
-    const y = (e.clientY - rect.top) / (scale * dpr)
-    drawerRef.current?.setWarpPosOnClick(new Vec3(Math.floor(x / 3), 0, Math.floor(y / 3)), new Vec3(worldX, 0, worldZ))
+    const factor = scale * (drawerRef.current?.mapPixel ?? 1)
+    const x = (e.clientX - rect.left) / factor
+    const y = (e.clientY - rect.top) / factor
+    drawerRef.current?.setWarpPosOnClick(new Vec3(Math.floor(x), 0, Math.floor(y)), new Vec3(worldX, 0, worldZ))
     setLastWarpPos(drawerRef.current!.lastWarpPos)
     setIsWarpInfoOpened(true)
   }
@@ -195,7 +196,11 @@ const MapChunk = (
 
   useEffect(() => {
     if (drawerRef.current) {
-      drawerRef.current.draw(new Vec3(worldX + 8, 0, worldZ + 8), undefined, true)
+      drawerRef.current.draw(
+        new Vec3(worldX + 8, 0, worldZ + 8),
+        undefined,
+        true
+      )
     }
   }, [drawerRef.current, redraw])
 
