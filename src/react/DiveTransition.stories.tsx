@@ -9,7 +9,7 @@ const meta: Meta<{ open }> = {
 }
 
 export default meta
-type Story = StoryObj<{ open }>;
+type Story = StoryObj<{ open }>
 
 export const Primary: Story = {
   args: {

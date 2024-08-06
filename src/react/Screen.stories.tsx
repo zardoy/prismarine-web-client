@@ -13,7 +13,7 @@ const meta: Meta<typeof Screen> = {
 }
 
 export default meta
-type Story = StoryObj<typeof Screen>;
+type Story = StoryObj<typeof Screen>
 
 export const Primary: Story = {
   args: {

@@ -7,7 +7,7 @@ const meta: Meta<typeof DeathScreen> = {
 }
 
 export default meta
-type Story = StoryObj<typeof DeathScreen>;
+type Story = StoryObj<typeof DeathScreen>
 
 export const Primary: Story = {
   args: {

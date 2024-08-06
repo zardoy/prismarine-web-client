@@ -64,6 +64,7 @@ export const DropdownButton = ({ text, links }: { text: string, links: DropdownB
       isOpen && <div ref={refs.setFloating} style={styles}>
         {links.map(el => {
           return <Button
+            key={el.text}
             style={{ width: '98px', fontSize: '7px' }}
             onClick={el.clickHandler}
           >{el.text}</Button>

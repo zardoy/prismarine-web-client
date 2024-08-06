@@ -54,9 +54,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
   }, [signClickedOnce])
 
   const handlePageChange = (direction: number) => {
-    setCurrentPage((prevPage) =>
-      Math.min(Math.max(prevPage + direction, 0), Math.ceil(pages.length / (isSinglePage ? 1 : 2)) - 1)
-    )
+    setCurrentPage((prevPage) => Math.min(Math.max(prevPage + direction, 0), Math.ceil(pages.length / (isSinglePage ? 1 : 2)) - 1))
   }
 
   const updatePage = (index, text) => {
@@ -197,7 +195,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
           maxLength={500}
         />
       ) : (
-        <div className={getAnimationClass(animatePageIcon, styles.pageText)}>
+        <div className={getAnimationClass(animatePageIcon, '')}>
           <MessageFormattedString message={pages[index]} fallbackColor='black' className={styles.messageFormattedString} />
         </div>
       )}
@@ -286,7 +284,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
               }}>
                 <input
                   ref={inputRef}
-                  className={`${styles.inputTitle}`}
+                  className={''}
                 />
                 {/* for some reason this is needed to make Enter work on android chrome */}
                 <button type='submit' style={{ visibility: 'hidden', height: 0, width: 0 }} />

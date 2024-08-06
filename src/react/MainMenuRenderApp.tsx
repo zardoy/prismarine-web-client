@@ -1,14 +1,37 @@
 import fs from 'fs'
 import { Transition } from 'react-transition-group'
-import { useSnapshot } from 'valtio'
-import { useEffect } from 'react'
-import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
+import { proxy, subscribe, useSnapshot } from 'valtio'
+import { useEffect, useState } from 'react'
 import { activeModalStack, miscUiState, openOptionsMenu, showModal } from '../globalState'
 import { openGithub, setLoadingScreenStatus } from '../utils'
 import { openFilePicker, copyFilesAsync, mkdirRecursive, openWorldDirectory, removeFileRecursiveAsync } from '../browserfs'
 
 import MainMenu from './MainMenu'
 import { DiscordButton } from './DiscordButton'
+
+const refreshApp = async (failedUpdate = false) => {
+  const registration = await navigator.serviceWorker.getRegistration()
+  await registration?.unregister()
+  if (failedUpdate) {
+    await new Promise(resolve => {
+      setTimeout(resolve, 2000)
+    })
+  }
+  if (activeModalStack.length !== 0) return
+  if (failedUpdate) {
+    sessionStorage.justReloaded = false
+    // try to force bypass cache
+    location.search = '?update=true'
+  } else {
+    window.justReloaded = true
+    sessionStorage.justReloaded = true
+    window.location.reload()
+  }
+}
+
+export const mainMenuState = proxy({
+  serviceWorkerLoaded: false,
+})
 
 // todo clean
 let disableAnimation = false
@@ -21,6 +44,31 @@ export default () => {
   useEffect(() => {
     if (noDisplay && appLoaded) disableAnimation = true
   }, [noDisplay])
+
+  const [versionStatus, setVersionStatus] = useState('')
+  const [versionTitle, setVersionTitle] = useState('')
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      setVersionStatus('(dev)')
+    } else {
+      fetch('./version.txt').then(async (f) => {
+        if (f.status === 404) return
+        const contents = await f.text()
+        const isLatest = contents === process.env.BUILD_VERSION
+        if (!isLatest && sessionStorage.justReloaded) {
+          setVersionStatus('(force reloading, wait)')
+          void refreshApp(true)
+          return
+        }
+        const upStatus = () => {
+          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}${mainMenuState.serviceWorkerLoaded ? ' - Available Offline' : ''})`)
+        }
+        subscribe(mainMenuState, upStatus)
+        setVersionTitle(`Loaded: ${process.env.BUILD_VERSION}. Remote: ${contents}`)
+      }, () => { })
+    }
+  }, [])
 
   // todo clean, use custom csstransition
   return <Transition in={!noDisplay} timeout={disableAnimation ? 0 : 100} mountOnEnter unmountOnExit>
@@ -59,6 +107,12 @@ export default () => {
           }
         }}
         mapsProvider={appConfig?.mapsProvider}
+        versionStatus={versionStatus}
+        versionTitle={versionTitle}
+        onVersionClick={async () => {
+          setVersionStatus('(reloading)')
+          await refreshApp()
+        }}
       />
     </div>}
   </Transition>

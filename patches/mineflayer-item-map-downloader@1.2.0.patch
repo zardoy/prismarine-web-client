@@ -1,0 +1,16 @@
+diff --git a/package.json b/package.json
+index 2a7aff75a9f1c7fe4eebb657002e58f4581dad0e..cd3490983353336efeb13f24f0af69c6c1d16444 100644
+--- a/package.json
++++ b/package.json
+@@ -9,10 +9,7 @@
+   "keywords": [],
+   "author": "Ic3Tank",
+   "license": "ISC",
+-  "dependencies": {
+-    "mineflayer": "^4.3.0",
+-    "sharp": "^0.30.6"
+-  },
++  "dependencies": {},
+   "devDependencies": {
+     "mineflayer-item-map-downloader": "file:./"
+   }

@@ -1,10 +1,11 @@
 import Chunks from 'prismarine-chunk'
 import mcData from 'minecraft-data'
-import { Block } from "prismarine-block"
+import { Block } from 'prismarine-block'
 import { Vec3 } from 'vec3'
+import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
-import { defaultMesherConfig } from './shared'
 import legacyJson from '../../../../src/preflatMap.json'
+import { defaultMesherConfig } from './shared'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -18,10 +19,13 @@ function isCube (shapes) {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
+export type BlockModelPartsResolved = ReturnType<WorldBlockProvider['getAllResolvedModels0_1']>
+
 export type WorldBlock = Omit<Block, 'position'> & {
-  variant?: any
   // todo
   isCube: boolean
+  /** cache */
+  models?: BlockModelPartsResolved | null
 }
 
 
@@ -55,7 +59,7 @@ export class World {
       ) + 2
     )
     // lightsCache.set(key, result)
-    if (result === 2 && [this.getBlock(pos)?.name ?? '', curBlockName].some(x => x.match(/_stairs|slab|glass_pane/)) && !skipMoreChecks) { // todo this is obviously wrong
+    if (result === 2 && [this.getBlock(pos)?.name ?? '', curBlockName].some(x => /_stairs|slab|glass_pane/.exec(x)) && !skipMoreChecks) { // todo this is obviously wrong
       const lights = [
         this.getLight(pos.offset(0, 1, 0), undefined, true),
         this.getLight(pos.offset(0, -1, 0), undefined, true),
@@ -126,7 +130,7 @@ export class World {
         }
       })
       if (this.preflat) {
-        //@ts-ignore
+        //@ts-expect-error
         b._properties = {}
 
         const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || findClosestLegacyBlockFallback(b.type, b.metadata, pos)
@@ -135,11 +139,11 @@ export class World {
           const propsStr = namePropsStr.split('[')?.[1]?.split(']')
           if (propsStr) {
             const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
-              let [key, val] = x.split('=') as any
-              if (!isNaN(val)) val = parseInt(val)
+              let [key, val] = x.split('=')
+              if (!isNaN(val)) val = parseInt(val, 10)
               return [key, val]
             }))
-            //@ts-ignore
+            //@ts-expect-error
             b._properties = newProperties
           }
         }

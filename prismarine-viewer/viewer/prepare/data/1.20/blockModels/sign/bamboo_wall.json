@@ -1,6 +1,0 @@
-{
-  "parent": "sign/sign_wall",
-  "textures": {
-    "sign": "entity/signs/bamboo"
-  }
-}

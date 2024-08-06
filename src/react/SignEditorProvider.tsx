@@ -17,7 +17,7 @@ const isWysiwyg = async () => {
 }
 
 export default () => {
-  const [location, setLocation] = useState<{x: number, y: number, z: number} | null>(null)
+  const [location, setLocation] = useState<{ x: number, y: number, z: number } | null>(null)
   const [isFrontText, setIsFrontText] = useState(true)
   const text = useRef<string[]>(['', '', '', ''])
   const [enableWysiwyg, setEnableWysiwyg] = useState(false)

@@ -6,7 +6,7 @@ import './devtools'
 import './entities'
 import './globalDomListeners'
 import initCollisionShapes from './getCollisionShapes'
-import { itemsAtlases, onGameLoad } from './inventoryWindows'
+import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
@@ -21,7 +21,7 @@ import PrismarineBlock from 'prismarine-block'
 import PrismarineItem from 'prismarine-item'
 
 import { options, watchValue } from './optionsStorage'
-import './reactUi.jsx'
+import './reactUi'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
@@ -51,6 +51,7 @@ import {
   hideModal,
   insertActiveModalStack,
   isGameActive,
+  loadedGameState,
   miscUiState,
   showModal
 } from './globalState'
@@ -71,7 +72,7 @@ import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalS
 import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
-import { genTexturePackTextures, watchTexturepackInViewer } from './texturePack'
+import { onAppLoad, resourcepackReload } from './resourcePack'
 import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
@@ -98,6 +99,10 @@ import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
+import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
+import { mainMenuState } from './react/MainMenuRenderApp'
+import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
+import './mobileShim'
 
 window.debug = debug
 window.THREE = THREE
@@ -106,11 +111,14 @@ window.beforeRenderFrame = []
 
 // ACTUAL CODE
 
-void registerServiceWorker()
+void registerServiceWorker().then(() => {
+  mainMenuState.serviceWorkerLoaded = true
+})
 watchFov()
 initCollisionShapes()
 initializePacketsReplay()
 packetsPatcher()
+onAppLoad()
 
 // Create three.js context, add to page
 let renderer: THREE.WebGLRenderer
@@ -149,46 +157,45 @@ if (isIphone) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
-new THREE.TextureLoader().load(itemsPng, (texture) => {
-  viewer.entities.itemsTexture = texture
-  // todo unify
-  viewer.entities.getItemUv = (id) => {
-    try {
-      const name = loadedData.items[id]?.name
-      const uv = itemsAtlases.latest.textures[name]
-      if (!uv) {
-        const variant = viewer.world.downloadedBlockStatesData[name]?.variants?.['']
-        if (!variant) return
-        const faces = (Array.isArray(variant) ? variant[0] : variant).model?.elements?.[0]?.faces
-        const uvBlock = faces?.north?.texture ?? faces?.up?.texture ?? faces?.down?.texture ?? faces?.west?.texture ?? faces?.east?.texture ?? faces?.south?.texture
-        if (!uvBlock) return
-        return {
-          ...uvBlock,
-          size: Math.abs(uvBlock.su),
-          texture: viewer.world.material.map
-        }
-      }
-      return {
-        ...uv,
-        size: itemsAtlases.latest.size,
-        texture: viewer.entities.itemsTexture
-      }
-    } catch (err) {
-      reportError?.(err)
-      return {
-        u: 0,
-        v: 0,
-        size: 16 / viewer.world.material.map!.image.width,
-        texture: viewer.world.material.map
-      }
+// todo unify
+viewer.entities.getItemUv = (idOrName: number | string) => {
+  try {
+    const name = typeof idOrName === 'number' ? loadedData.items[idOrName]?.name : idOrName
+    // TODO
+    if (!viewer.world.itemsAtlasParser) throw new Error('itemsAtlasParser not loaded yet')
+    const itemsRenderer = new ItemsRenderer('latest', viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
+    const textureInfo = itemsRenderer.getItemTexture(name)
+    if (!textureInfo) throw new Error(`Texture not found for item ${name}`)
+    const tex = 'type' in textureInfo ? textureInfo : textureInfo.left
+    const [x, y, w, h] = tex.slice
+    const textureThree = tex.type === 'blocks' ? viewer.world.material.map! : viewer.entities.itemsTexture!
+    const img = textureThree.image
+    const [u, v, su, sv] = [x / img.width, y / img.height, (w / img.width), (h / img.height)]
+    const uvInfo = {
+      u,
+      v,
+      su,
+      sv
+    }
+    return {
+      ...uvInfo,
+      texture: textureThree
+    }
+  } catch (err) {
+    reportError?.(err)
+    return {
+      u: 0,
+      v: 0,
+      size: 16 / viewer.world.material.map!.image.width,
+      texture: viewer.world.material.map
     }
   }
-})
+}
+
 viewer.entities.entitiesOptions = {
   fontFamily: 'mojangles'
 }
 watchOptionsAfterViewerInit()
-watchTexturepackInViewer(viewer)
 
 let mouseMovePostHandle = (e) => { }
 let lastMouseMove: number
@@ -282,6 +289,9 @@ async function connect (connectOptions: ConnectOptions) {
   miscUiState.flyingSquid = singleplayer || p2pMultiplayer
   const { renderDistance: renderDistanceSingleplayer, multiplayerRenderDistance } = options
   const server = cleanConnectIp(connectOptions.server, '25565')
+  if (connectOptions.proxy?.startsWith(':')) {
+    connectOptions.proxy = `${location.protocol}//${location.hostname}${connectOptions.proxy}`
+  }
   const proxy = cleanConnectIp(connectOptions.proxy, undefined)
   let { username } = connectOptions
 
@@ -393,7 +403,7 @@ async function connect (connectOptions: ConnectOptions) {
       await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       miscUiState.loadedDataVersion = version
       try {
-        await genTexturePackTextures(version)
+        await resourcepackReload(version)
       } catch (err) {
         console.error(err)
         const doContinue = confirm('Failed to apply texture pack. See errors in the console. Continue?')
@@ -401,7 +411,8 @@ async function connect (connectOptions: ConnectOptions) {
           throw err
         }
       }
-      viewer.setVersion(version)
+      viewer.world.blockstatesModels = blockstatesModels
+      viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
@@ -851,13 +862,8 @@ async function connect (connectOptions: ConnectOptions) {
 
     // todo
     onGameLoad(async () => {
-      if (!viewer.world.downloadedBlockStatesData && !viewer.world.customBlockStatesData) {
-        await new Promise<void>(resolve => {
-          viewer.world.renderUpdateEmitter.once('blockStatesDownloaded', () => resolve())
-        })
-      }
-      miscUiState.serverIp = server.host as string | null
-      miscUiState.username = username
+      loadedGameState.serverIp = server.host ?? null
+      loadedGameState.username = username
     })
 
     if (appStatusState.isError) return
@@ -888,6 +894,10 @@ async function connect (connectOptions: ConnectOptions) {
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
   })
+
+  if (singleplayer && connectOptions.serverOverrides.worldFolder) {
+    fsState.saveLoaded = true
+  }
 
   if (!connectOptions.ignoreQs) {
     // todo cleanup

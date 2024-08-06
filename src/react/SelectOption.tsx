@@ -6,23 +6,29 @@ import Button from './Button'
 
 const state = proxy({
   title: '',
-  options: [] as string[]
+  options: [] as string[],
+  showCancel: true,
 })
 
 let resolve
-export const showOptionsModal = async <T extends string>(title: string, options: T[]): Promise<T | undefined> => {
+export const showOptionsModal = async <T extends string> (
+  title: string,
+  options: T[],
+  { cancel = true }: { cancel?: boolean } = {}
+): Promise<T | undefined> => {
   showModal({ reactType: 'general-select' })
   return new Promise((_resolve) => {
     resolve = _resolve
     Object.assign(state, {
       title,
-      options
+      options,
+      showCancel: cancel,
     })
   })
 }
 
 export default () => {
-  const { title, options } = useSnapshot(state)
+  const { title, options, showCancel } = useSnapshot(state)
   const isModalActive = useIsModalActive('general-select')
   if (!isModalActive) return
 
@@ -31,9 +37,9 @@ export default () => {
       hideCurrentModal()
       resolve(option)
     }}>{option}</Button>)}
-    <Button style={{ marginTop: 30 }} onClick={() => {
+    {showCancel && <Button style={{ marginTop: 30 }} onClick={() => {
       hideCurrentModal()
       resolve(undefined)
-    }}>Cancel</Button>
+    }}>Cancel</Button>}
   </Screen>
 }

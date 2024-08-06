@@ -1,19 +1,20 @@
 import { useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
-import { miscUiState, openOptionsMenu, showModal } from './globalState'
+import { loadedGameState, miscUiState, openOptionsMenu, showModal } from './globalState'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
 import { OptionMeta, OptionSlider } from './react/OptionsItems'
 import Slider from './react/Slider'
 import { getScreenRefreshRate, setLoadingScreenStatus } from './utils'
 import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
-import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
+import { completeTexturePackInstall, getResourcePackNames, resourcePackState, uninstallTexturePack } from './resourcePack'
 import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay'
+import { showOptionsModal } from './react/SelectOption'
 
 
 export const guiOptionsScheme: {
-  [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom?}>
+  [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
 } = {
   render: [
     {
@@ -119,12 +120,30 @@ export const guiOptionsScheme: {
     {
       custom () {
         const { resourcePackInstalled } = useSnapshot(resourcePackState)
-        return <Button label={`Resource Pack... ${resourcePackInstalled ? 'ON' : 'OFF'}`} inScreen onClick={async () => {
+        const { usingServerResourcePack } = useSnapshot(loadedGameState)
+        const { enabledResourcepack } = useSnapshot(options)
+        return <Button label={`Resource Pack: ${usingServerResourcePack ? 'SERVER ON' : resourcePackInstalled ? enabledResourcepack ? 'ON' : 'OFF' : 'NO'}`} inScreen onClick={async () => {
           if (resourcePackState.resourcePackInstalled) {
-            const resourcePackName = await getResourcePackName()
-            if (confirm(`Uninstall ${resourcePackName} resource pack?`)) {
+            const names = Object.keys(await getResourcePackNames())
+            const name = names[0]
+            const choices = [
+              options.enabledResourcepack ? 'Disable' : 'Enable',
+              'Uninstall',
+            ]
+            const choice = await showOptionsModal(`Resource Pack ${name} action`, choices)
+            if (!choice) return
+            if (choice === 'Disable') {
+              options.enabledResourcepack = null
+              return
+            }
+            if (choice === 'Enable') {
+              options.enabledResourcepack = name
+              await completeTexturePackInstall(name, name)
+              return
+            }
+            if (choice === 'Uninstall') {
               // todo make hidable
-              setLoadingScreenStatus('Uninstalling texturepack...')
+              setLoadingScreenStatus('Uninstalling texturepack')
               await uninstallTexturePack()
               setLoadingScreenStatus(undefined)
             }

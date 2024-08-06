@@ -1,4 +1,4 @@
-function safeRequire (path) {
+function safeRequire(path) {
   try {
     return require(path)
   } catch (e) {
@@ -11,7 +11,7 @@ const THREE = require('three')
 
 const textureCache = {}
 // todo not ideal, export different functions for browser and node
-export function loadTexture (texture, cb) {
+export function loadTexture(texture, cb) {
   if (process.platform === 'browser') {
     return require('./utils.web').loadTexture(texture, cb)
   }
@@ -26,7 +26,7 @@ export function loadTexture (texture, cb) {
   }
 }
 
-export function loadJSON (json, cb) {
+export function loadJSON(json, cb) {
   if (process.platform === 'browser') {
     return require('./utils.web').loadJSON(json, cb)
   }

@@ -15,17 +15,16 @@ export type HealthBarProps = {
   style?: React.CSSProperties
 }
 
-export default (
-  {
-    gameMode,
-    isHardcore,
-    damaged,
-    healthValue,
-    effectToAdd,
-    effectToRemove,
-    resetEffects,
-    style
-  }: HealthBarProps) => {
+export default ({
+  gameMode,
+  isHardcore,
+  damaged,
+  healthValue,
+  effectToAdd,
+  effectToRemove,
+  resetEffects,
+  style
+}: HealthBarProps) => {
   const healthRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -97,11 +96,10 @@ export default (
     <div ref={healthRef} className='health' style={style}>
       {
         Array.from({ length: 10 }, () => 0)
-          .map(
-            (num, index) => <div
-              key={`heart-${index}`}
-              className='heart'></div>
-          )
+          .map((num, index) => <div
+            key={`heart-${index}`}
+            className='heart'></div>)
       }
     </div>
-  </SharedHudVars>}
+  </SharedHudVars>
+}
