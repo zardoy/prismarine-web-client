@@ -127,8 +127,10 @@ const handleMessage = data => {
   }
 }
 
+// eslint-disable-next-line no-restricted-globals -- TODO
 self.onmessage = ({ data }) => {
   if (Array.isArray(data)) {
+    // eslint-disable-next-line unicorn/no-array-for-each
     data.forEach(handleMessage)
     return
   }

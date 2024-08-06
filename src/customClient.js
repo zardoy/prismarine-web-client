@@ -57,7 +57,7 @@ class CustomChannelClient extends EventEmitter {
   }
 
   write(name, params) {
-    if(!options.excludeCommunicationDebugEvents.includes(name)) {
+    if (!options.excludeCommunicationDebugEvents.includes(name)) {
       debug(`[${this.state}] from ${this.isServer ? 'server' : 'client'}: ` + name)
       debug(params)
     }

@@ -123,7 +123,7 @@ export type AppConfig = {
   defaultProxy?: string
   // defaultProxySave?: string
   // defaultVersion?: string
-  promoteServers?: Array<{ ip, description, version?}>
+  promoteServers?: Array<{ ip, description, version? }>
   mapsProvider?: string
 }
 

@@ -53,6 +53,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.viewerPosition = pos
     const cameraPos = this.camera.position.toArray().map(x => Math.floor(x / 16)) as [number, number, number]
     this.cameraSectionPos = new Vec3(...cameraPos)
+    // eslint-disable-next-line guard-for-in
     for (const key in this.sectionObjects) {
       const value = this.sectionObjects[key]
       if (!value) continue
@@ -196,9 +197,11 @@ export class WorldRendererThree extends WorldRendererCommon {
     }
 
     const group = new THREE.Group()
-    group.rotation.set(0, -THREE.MathUtils.degToRad(
-      rotation * (isWall ? 90 : 45 / 2)
-    ), 0)
+    group.rotation.set(
+      0,
+      -THREE.MathUtils.degToRad(rotation * (isWall ? 90 : 45 / 2)),
+      0
+    )
     group.add(mesh)
     const height = (isHanging ? 10 : 8) / 16
     const heightOffset = (isHanging ? 0 : isWall ? 4.333 : 9.333) / 16
@@ -217,13 +220,13 @@ export class WorldRendererThree extends WorldRendererCommon {
   async doHmr () {
     const oldSections = { ...this.sectionObjects }
     this.sectionObjects = {} // skip clearing
-        worldView!.unloadAllChunks()
-        this.setVersion(this.version, this.texturesVersion)
-        this.sectionObjects = oldSections
-        // this.rerenderAllChunks()
+    worldView!.unloadAllChunks()
+    void this.setVersion(this.version, this.texturesVersion)
+    this.sectionObjects = oldSections
+    // this.rerenderAllChunks()
 
-        // supply new data
-        await worldView!.updatePosition(bot.entity.position, true)
+    // supply new data
+    await worldView!.updatePosition(bot.entity.position, true)
   }
 
   rerenderAllChunks () { // todo not clear what to do with loading chunks
@@ -386,7 +389,7 @@ class StarField {
   }
 }
 
-const version = parseInt(THREE.REVISION.replaceAll(/\D+/g, ''))
+const version = parseInt(THREE.REVISION.replaceAll(/\D+/g, ''), 10)
 class StarfieldMaterial extends THREE.ShaderMaterial {
   constructor () {
     super({

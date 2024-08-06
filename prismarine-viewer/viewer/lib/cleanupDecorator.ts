@@ -1,6 +1,6 @@
 export function buildCleanupDecorator (cleanupMethod: string) {
   return function () {
-    return function (_target: {snapshotInitialValues}, propertyKey: string) {
+    return function (_target: { snapshotInitialValues }, propertyKey: string) {
       const target = _target as any
       // Store the initial value of the property
       if (!target._snapshotMethodPatched) {
@@ -19,6 +19,7 @@ export function buildCleanupDecorator (cleanupMethod: string) {
           for (const key of target._toCleanup) {
             this[key] = this._initialValues[key]
           }
+          // eslint-disable-next-line prefer-rest-params
           Reflect.apply(originalMethod, this, arguments)
         }
       }

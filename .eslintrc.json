@@ -16,10 +16,11 @@
         "@stylistic/no-trailing-spaces": "error",
         "@stylistic/space-before-function-paren": "error",
         "@stylistic/array-bracket-spacing": "error",
-        "@stylistic/arrow-parens": [
-            "error",
-            "as-needed"
-        ],
+        // would be great to have but breaks TS code like (url?) => ...
+        // "@stylistic/arrow-parens": [
+        //     "error",
+        //     "as-needed"
+        // ],
         "@stylistic/arrow-spacing": "error",
         "@stylistic/block-spacing": "error",
         "@stylistic/brace-style": [
@@ -41,7 +42,10 @@
         ],
         "@stylistic/eol-last": "error",
         "@stylistic/function-call-spacing": "error",
-        "@stylistic/function-paren-newline": "error",
+        "@stylistic/function-paren-newline": [
+            "error",
+            "consistent"
+        ],
         "@stylistic/generator-star-spacing": "error",
         "@stylistic/implicit-arrow-linebreak": "error",
         "@stylistic/indent-binary-ops": [
@@ -95,6 +99,10 @@
             }
         ],
         // "@stylistic/member-delimiter-style": "error",
+        // "@stylistic/multiline-ternary": "error", // not needed
+        // "@stylistic/newline-per-chained-call": "error", // not sure if needed
+        "@stylistic/new-parens": "error",
+        "@stylistic/no-confusing-arrow": "error",
         // perf
         "import/no-deprecated": "off",
         // ---

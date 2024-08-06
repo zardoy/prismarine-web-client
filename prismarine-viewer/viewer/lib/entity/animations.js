@@ -9,11 +9,11 @@ export class WalkingGeneralSwing extends PlayerAnimation {
 
   _startArmSwing
 
-  swingArm () {
+  swingArm() {
     this._startArmSwing = this.progress
   }
 
-  animate (player) {
+  animate(player) {
     // Multiply by animation's natural speed
     let t
     const updateT = () => {

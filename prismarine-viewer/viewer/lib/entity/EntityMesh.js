@@ -106,7 +106,7 @@ function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
       const u = (cube.uv[0] + dot(pos[3] ? u1 : u0, cube.size)) / texWidth
       const v = (cube.uv[1] + dot(pos[4] ? v1 : v0, cube.size)) / texHeight
 
-      const inflate = cube.inflate ? cube.inflate : 0
+      const inflate = cube.inflate ?? 0
       let vecPos = new THREE.Vector3(
         cube.origin[0] + pos[0] * cube.size[0] + (pos[0] ? inflate : -inflate),
         cube.origin[1] + pos[1] * cube.size[1] + (pos[1] ? inflate : -inflate),
@@ -125,10 +125,7 @@ function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
       attr.skinWeights.push(1, 0, 0, 0)
     }
 
-    attr.indices.push(
-      ndx, ndx + 1, ndx + 2,
-      ndx + 2, ndx + 1, ndx + 3
-    )
+    attr.indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3)
   }
 }
 
@@ -178,8 +175,7 @@ function getMesh(texture, jsonModel, overrides = {}) {
 
   const rootBones = []
   for (const jsonBone of jsonModel.bones) {
-    if (jsonBone.parent && bones[jsonBone.parent]) {bones[jsonBone.parent].add(bones[jsonBone.name])}
-    else {
+    if (jsonBone.parent && bones[jsonBone.parent]) { bones[jsonBone.parent].add(bones[jsonBone.name]) } else {
       rootBones.push(bones[jsonBone.name])
     }
   }
@@ -294,6 +290,7 @@ const getEntity = (name) => {
 //   zombie_villager: 'zombie_villager/zombie_villager'
 // }
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EntityMesh {
   constructor(version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
     const originalType = type

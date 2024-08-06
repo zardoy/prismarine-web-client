@@ -1,3 +1,4 @@
+/* eslint-disable guard-for-in */
 import { EventEmitter } from 'events'
 import { Vec3 } from 'vec3'
 import * as THREE from 'three'
@@ -41,20 +42,20 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
   @worldCleanup()
-    active = false
+  active = false
 
   version = undefined as string | undefined
   @worldCleanup()
-    loadedChunks = {} as Record<string, boolean>
+  loadedChunks = {} as Record<string, boolean>
 
   @worldCleanup()
-    finishedChunks = {} as Record<string, boolean>
+  finishedChunks = {} as Record<string, boolean>
 
   @worldCleanup()
-    sectionsOutstanding = new Map<string, number>()
+  sectionsOutstanding = new Map<string, number>()
 
   @worldCleanup()
-    renderUpdateEmitter = new EventEmitter()
+  renderUpdateEmitter = new EventEmitter()
 
   customTexturesDataUrl = undefined as string | undefined
   currentTextureImage = undefined as any
@@ -68,7 +69,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   viewDistance = -1
   chunksLength = 0
   @worldCleanup()
-    allChunksFinished = false
+  allChunksFinished = false
 
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
@@ -100,6 +101,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
       const workerName = 'mesher.js'
+      // eslint-disable-next-line node/no-path-concat
       const src = typeof window === 'undefined' ? `${__dirname}/${workerName}` : workerName
 
       const worker: any = new Worker(src)
@@ -134,6 +136,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       worker.onmessage = ({ data }) => {
         if (Array.isArray(data)) {
+          // eslint-disable-next-line unicorn/no-array-for-each
           data.forEach(handleMessage)
           return
         }

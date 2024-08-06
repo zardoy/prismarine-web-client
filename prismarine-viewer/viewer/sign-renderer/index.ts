@@ -2,23 +2,23 @@ import { fromFormattedString, render, RenderNode, TextComponent } from '@xmcl/te
 import type { ChatMessage } from 'prismarine-chat'
 
 type SignBlockEntity = {
-    Color?: string
-    GlowingText?: 0 | 1
-    Text1?: string
-    Text2?: string
-    Text3?: string
-    Text4?: string
+  Color?: string
+  GlowingText?: 0 | 1
+  Text1?: string
+  Text2?: string
+  Text3?: string
+  Text4?: string
 } | {
+  // todo
+  is_waxed?: 0 | 1
+  front_text: {
+    color: string
+    messages: string[]
     // todo
-    is_waxed?: 0 | 1
-    front_text: {
-        color: string
-        messages: string[]
-        // todo
-        has_glowing_text?: 0 | 1
-    }
-    // todo
-    // back_text: {}
+    has_glowing_text?: 0 | 1
+  }
+  // todo
+  // back_text: {}
 }
 
 type JsonEncodedType = string | null | Record<string, any>
@@ -83,12 +83,12 @@ export const renderSign = (blockEntity: SignBlockEntity, PrismarineChat: typeof 
     const rendered = render(message)
 
     const toRenderCanvas: Array<{
-            fontStyle: string
-            fillStyle: string
-            underlineStyle: boolean
-            strikeStyle: boolean
-            text: string
-        }> = []
+      fontStyle: string
+      fillStyle: string
+      underlineStyle: boolean
+      strikeStyle: boolean
+      text: string
+    }> = []
     let plainText = ''
     // todo the text should be clipped based on it's render width (needs investigate)
     const MAX_LENGTH = 50 // avoid abusing the signboard

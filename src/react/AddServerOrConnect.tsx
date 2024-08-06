@@ -141,7 +141,7 @@ const ButtonWrapper = ({ ...props }: React.ComponentProps<typeof Button>) => {
   return <Button {...props} />
 }
 
-const InputWithLabel = ({ label, span, ...props }: React.ComponentProps<typeof Input> & { label, span?}) => {
+const InputWithLabel = ({ label, span, ...props }: React.ComponentProps<typeof Input> & { label, span? }) => {
   return <div style={{
     display: 'flex',
     flexDirection: 'column',
@@ -152,4 +152,4 @@ const InputWithLabel = ({ label, span, ...props }: React.ComponentProps<typeof I
   </div>
 }
 
-const fallbackIfNotFound = (index: number) => index === -1 ? undefined : index
+const fallbackIfNotFound = (index: number) => (index === -1 ? undefined : index)

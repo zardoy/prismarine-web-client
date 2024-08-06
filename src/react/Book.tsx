@@ -54,9 +54,7 @@ const Book: React.FC<BookProps> = ({ textPages, editable, onSign, onEdit, onClos
   }, [signClickedOnce])
 
   const handlePageChange = (direction: number) => {
-    setCurrentPage((prevPage) =>
-      Math.min(Math.max(prevPage + direction, 0), Math.ceil(pages.length / (isSinglePage ? 1 : 2)) - 1)
-    )
+    setCurrentPage((prevPage) => Math.min(Math.max(prevPage + direction, 0), Math.ceil(pages.length / (isSinglePage ? 1 : 2)) - 1))
   }
 
   const updatePage = (index, text) => {

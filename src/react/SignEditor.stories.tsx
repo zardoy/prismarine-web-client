@@ -12,7 +12,7 @@ const meta: Meta<typeof SignEditor> = {
 }
 
 export default meta
-type Story = StoryObj<typeof SignEditor>;
+type Story = StoryObj<typeof SignEditor>
 
 export const Primary: Story = {
   args: {

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-dynamic-delete */
 /* eslint-disable guard-for-in */
 
 // todo refactor into its own commons module
@@ -83,7 +82,7 @@ export class WorldDataEmitter extends EventEmitter {
 
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {
       const chunkPos = new Vec3(chunkX * 16, 0, chunkZ * 16)
-      this.loadChunk(chunkPos, true)
+      void this.loadChunk(chunkPos, true)
     })
 
     this.emitter.on('listening', () => {
@@ -127,17 +126,17 @@ export class WorldDataEmitter extends EventEmitter {
     const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => new Vec3((botX + x) * 16, 0, (botZ + z) * 16))
 
     this.lastPos.update(pos)
-    await this._loadChunks(positions)
+    this._loadChunks(positions)
   }
 
-  async _loadChunks (positions: Vec3[], sliceSize = 5, waitTime = 0) {
+  _loadChunks (positions: Vec3[], sliceSize = 5, waitTime = 0) {
     let i = 0
     const interval = setInterval(() => {
       if (i >= positions.length) {
         clearInterval(interval)
         return
       }
-      this.loadChunk(positions[i])
+      void this.loadChunk(positions[i])
       i++
     }, 1)
   }
@@ -213,7 +212,7 @@ export class WorldDataEmitter extends EventEmitter {
         return undefined!
       }).filter(a => !!a)
       this.lastPos.update(pos)
-      await this._loadChunks(positions)
+      this._loadChunks(positions)
     } else {
       this.emitter.emit('chunkPosUpdate', { pos }) // todo-low
       this.lastPos.update(pos)

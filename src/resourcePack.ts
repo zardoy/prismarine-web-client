@@ -208,15 +208,13 @@ export const getResourcepackTiles = async (type: 'blocks' | 'items', existingTex
     // todo compare sizes from atlas
     firstTextureSize = await getSizeFromImage(`${firstImageFile}.png`)
   } catch (err) { }
-  const textures = Object.fromEntries(
-    await Promise.all(allInterestedImages.map(async (image) => {
-      const imagePath = `${image}.png`
-      const contents = await fs.promises.readFile(imagePath, 'base64')
-      const img = await getLoadedImage(`data:image/png;base64,${contents}`)
-      const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
-      return [imageRelative, img]
-    }))
-  )
+  const textures = Object.fromEntries(await Promise.all(allInterestedImages.map(async (image) => {
+    const imagePath = `${image}.png`
+    const contents = await fs.promises.readFile(imagePath, 'base64')
+    const img = await getLoadedImage(`data:image/png;base64,${contents}`)
+    const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
+    return [imageRelative, img]
+  })))
   return {
     firstTextureSize,
     textures

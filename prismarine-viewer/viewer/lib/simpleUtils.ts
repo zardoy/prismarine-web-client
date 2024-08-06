@@ -1,14 +1,12 @@
 export async function getBufferFromStream (stream) {
-  return new Promise(
-    (resolve, reject) => {
-      let buffer = Buffer.from([])
-      stream.on('data', buf => {
-        buffer = Buffer.concat([buffer, buf])
-      })
-      stream.on('end', () => resolve(buffer))
-      stream.on('error', reject)
-    }
-  )
+  return new Promise((resolve, reject) => {
+    let buffer = Buffer.from([])
+    stream.on('data', buf => {
+      buffer = Buffer.concat([buffer, buf])
+    })
+    stream.on('end', () => resolve(buffer))
+    stream.on('error', reject)
+  })
 }
 
 export function openURL (url, newTab = true) {

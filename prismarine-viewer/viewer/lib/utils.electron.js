@@ -2,7 +2,7 @@ const path = require('path')
 const THREE = require('three')
 
 const textureCache = {}
-function loadTexture (texture, cb) {
+function loadTexture(texture, cb) {
   if (!textureCache[texture]) {
     const url = path.resolve(__dirname, '../../public/' + texture)
     textureCache[texture] = new THREE.TextureLoader().load(url)
@@ -10,7 +10,7 @@ function loadTexture (texture, cb) {
   cb(textureCache[texture])
 }
 
-function loadJSON (json, cb) {
+function loadJSON(json, cb) {
   cb(require(path.resolve(__dirname, '../../public/' + json)))
 }
 

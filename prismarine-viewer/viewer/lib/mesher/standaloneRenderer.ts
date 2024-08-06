@@ -1,3 +1,4 @@
+/* eslint-disable @stylistic/function-call-argument-newline */
 import { Vec3 } from 'vec3'
 import { Block } from 'prismarine-block'
 import { IndexedData } from 'minecraft-data'
@@ -170,11 +171,13 @@ function renderElement (element: BlockElement, doAO: boolean, attr, globalMatrix
 
     if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
       attr.indices.push(
+
         ndx, ndx + 3, ndx + 2,
         ndx, ndx + 1, ndx + 3
       )
     } else {
       attr.indices.push(
+
         ndx, ndx + 1, ndx + 2,
         ndx + 2, ndx + 1, ndx + 3
       )
@@ -210,8 +213,7 @@ export const renderBlockThreeAttr = (models: BlockModelPartsResolved, block: Blo
     let globalShift = null as any
     for (const axis of ['x', 'y', 'z'] as const) {
       if (axis in model) {
-        if (globalMatrix) {globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0)))}
-        else {globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0))}
+        if (globalMatrix) { globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0))) } else { globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0)) }
       }
     }
     if (globalMatrix) {
@@ -229,11 +231,9 @@ export const renderBlockThreeAttr = (models: BlockModelPartsResolved, block: Blo
   let ndx = attr.positions.length / 3
   for (let i = 0; i < attr.t_positions.length / 12; i++) {
     attr.indices.push(
-      ndx, ndx + 1, ndx + 2,
-      ndx + 2, ndx + 1, ndx + 3,
+      ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3,
       // back face
-      ndx, ndx + 2, ndx + 1,
-      ndx + 2, ndx + 3, ndx + 1
+      ndx, ndx + 2, ndx + 1, ndx + 2, ndx + 3, ndx + 1
     )
     ndx += 4
   }

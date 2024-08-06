@@ -172,7 +172,8 @@ function renderLiquid (world: World, cursor: Vec3, texture: any | undefined, typ
       attr.t_positions.push(
         (pos[0] ? 0.999 : 0.001) + (cursor.x & 15) - 8,
         (pos[1] ? height - 0.001 : 0.001) + (cursor.y & 15) - 8,
-        (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8)
+        (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8
+      )
       attr.t_normals.push(...dir)
       attr.t_uvs.push(pos[3] * su + u, pos[4] * sv * (pos[1] ? 1 : height) + v)
       attr.t_colors.push(tint[0], tint[1], tint[2])
@@ -297,6 +298,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
         let cornerLightResult = 15
+        // eslint-disable-next-line no-constant-condition, sonarjs/no-gratuitous-expressions
         if (/* world.config.smoothLighting */false) { // todo fix
           const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
           const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
@@ -335,11 +337,13 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
     if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
       attr.indices.push(
+        // eslint-disable-next-line @stylistic/function-call-argument-newline
         ndx, ndx + 3, ndx + 2,
         ndx, ndx + 1, ndx + 3
       )
     } else {
       attr.indices.push(
+        // eslint-disable-next-line @stylistic/function-call-argument-newline
         ndx, ndx + 1, ndx + 2,
         ndx + 2, ndx + 1, ndx + 3
       )
@@ -420,6 +424,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         const isWaterlogged = isBlockWaterlogged(block)
         if (block.name === 'water' || isWaterlogged) {
           const pos = cursor.clone()
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
           delayedRender.push(() => {
             renderLiquid(world, pos, blockProvider.getTextureInfo('water_still'), block.type, biome, true, attr)
           })
@@ -461,8 +466,9 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             let globalShift = null as any
             for (const axis of ['x', 'y', 'z'] as const) {
               if (axis in model) {
-                if (globalMatrix) {globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0)))}
-                else {globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0))}
+                globalMatrix = globalMatrix ?
+                  matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0))) :
+                  buildRotationMatrix(axis, -(model[axis] ?? 0))
               }
             }
             if (globalMatrix) {
@@ -496,11 +502,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   let ndx = attr.positions.length / 3
   for (let i = 0; i < attr.t_positions.length / 12; i++) {
     attr.indices.push(
-      ndx, ndx + 1, ndx + 2,
-      ndx + 2, ndx + 1, ndx + 3,
+      ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3,
+      // eslint-disable-next-line @stylistic/function-call-argument-newline
       // back face
-      ndx, ndx + 2, ndx + 1,
-      ndx + 2, ndx + 3, ndx + 1
+      ndx, ndx + 2, ndx + 1, ndx + 2, ndx + 3, ndx + 1
     )
     ndx += 4
   }
