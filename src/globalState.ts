@@ -1,6 +1,7 @@
 //@ts-check
 
 import { proxy, ref, subscribe } from 'valtio'
+import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { pointerLock } from './utils'
 import type { OptionsGroupType } from './optionsGuiScheme'
 
@@ -13,6 +14,8 @@ type Modal = ({ elem?: HTMLElement & Record<string, any> } & { reactType: string
 type ContextMenuItem = { callback; label }
 
 export const activeModalStack: Modal[] = proxy([])
+
+export const warps: WorldWarp[] = proxy([])
 
 export const insertActiveModalStack = (name: string, newModalStack = activeModalStacks[name]) => {
   hideModal(undefined, undefined, { restorePrevious: false, force: true })

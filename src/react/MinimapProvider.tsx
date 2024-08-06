@@ -5,7 +5,7 @@ import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
-import { showModal, hideModal, miscUiState } from '../globalState'
+import { warps, showModal, hideModal, miscUiState } from '../globalState'
 import { options } from '../optionsStorage'
 import Minimap, { DisplayMode } from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
@@ -19,10 +19,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
 
-  constructor (pos?: Vec3, warps?: WorldWarp[]) {
+  constructor (pos?: Vec3, initialWarps?: WorldWarp[]) {
     super()
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
-    this.warps = warps ?? localServer?.warps ?? [] as WorldWarp[]
+    this.warps = initialWarps ?? localServer?.warps ?? warps
   }
 
   async getHighestBlockColor (x: number, z: number) {
@@ -97,7 +97,11 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     } else {
       this.warps[index] = warp
     }
-    if (localServer) void localServer.setWarp(warp)
+    if (localServer) {
+      void localServer.setWarp(warp)
+    } else if (!warps.some(w => w.name === warp.name)) {
+      warps.push(warp)
+    }
     this.emit('updateWarps')
   }
 
