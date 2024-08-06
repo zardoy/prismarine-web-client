@@ -22,7 +22,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   constructor (pos?: Vec3, warps?: WorldWarp[]) {
     super()
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
-    this.warps = warps ?? [] as WorldWarp[]
+    this.warps = warps ?? localServer?.warps ?? [] as WorldWarp[]
   }
 
   async getHighestBlockColor (x: number, z: number) {
@@ -97,7 +97,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     } else {
       this.warps[index] = warp
     }
-    // if (localServer) void localServer.setWarp(warp)
+    if (localServer) void localServer.setWarp(warp)
     this.emit('updateWarps')
   }
 
