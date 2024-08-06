@@ -289,9 +289,9 @@ const WarpInfo = (
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
-        width: '40%',
+        width: '100%',
         minWidth: '100px',
-        maxWidth: '150px',
+        maxWidth: '300px',
         padding: '20px',
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         border: '2px solid black'
