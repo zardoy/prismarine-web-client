@@ -31,7 +31,7 @@ const finalItemsScheme: Record<keyof typeof guiOptionsScheme, OptionMeta[]> = Ob
   })]
 }))
 
-export default ({ group, backButtonAction }: { group: OptionsGroupType, backButtonAction?}) => {
+export default ({ group, backButtonAction }: { group: OptionsGroupType, backButtonAction? }) => {
   const items = finalItemsScheme[group]
 
   const title = group === 'main' ? 'Settings' : `${titleCase(group)} Settings`

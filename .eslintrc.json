@@ -1,33 +1,75 @@
 {
-    "extends": "zardoy",
+    "extends": [
+        "zardoy",
+        "plugin:@stylistic/disable-legacy"
+    ],
     "ignorePatterns": [
-        "!*.js",
-        "prismarine-viewer/"
+        "!*.js"
+    ],
+    "plugins": [
+        "@stylistic"
     ],
     "rules": {
-        "space-infix-ops": "error",
-        "no-multi-spaces": "error",
-        "no-trailing-spaces": "error",
-        "space-before-function-paren": "error",
-        "space-in-parens": [
+        // style
+        "@stylistic/space-infix-ops": "error",
+        "@stylistic/no-multi-spaces": "error",
+        "@stylistic/no-trailing-spaces": "error",
+        "@stylistic/space-before-function-paren": "error",
+        "@stylistic/array-bracket-spacing": "error",
+        // would be great to have but breaks TS code like (url?) => ...
+        // "@stylistic/arrow-parens": [
+        //     "error",
+        //     "as-needed"
+        // ],
+        "@stylistic/arrow-spacing": "error",
+        "@stylistic/block-spacing": "error",
+        "@stylistic/brace-style": [
+            "error",
+            "1tbs",
+            {
+                "allowSingleLine": true
+            }
+        ],
+        // too annoying to be forced to multi-line, probably should be enforced to never
+        // "@stylistic/comma-dangle": [
+        //     "error",
+        //     "always-multiline"
+        // ],
+        "@stylistic/computed-property-spacing": "error",
+        "@stylistic/dot-location": [
+            "error",
+            "property"
+        ],
+        "@stylistic/eol-last": "error",
+        "@stylistic/function-call-spacing": "error",
+        "@stylistic/function-paren-newline": [
+            "error",
+            "consistent"
+        ],
+        "@stylistic/generator-star-spacing": "error",
+        "@stylistic/implicit-arrow-linebreak": "error",
+        "@stylistic/indent-binary-ops": [
+            "error",
+            2
+        ],
+        "@stylistic/function-call-argument-newline": [
+            "error",
+            "consistent"
+        ],
+        "@stylistic/space-in-parens": [
             "error",
             "never"
         ],
-        "object-curly-spacing": [
+        "@stylistic/object-curly-spacing": [
             "error",
             "always"
         ],
-        "comma-spacing": "error",
-        "semi": [
+        "@stylistic/comma-spacing": "error",
+        "@stylistic/semi": [
             "error",
             "never"
         ],
-        "comma-dangle": [
-            "error",
-            // todo maybe "always-multiline"?
-            "only-multiline"
-        ],
-        "indent": [
+        "@stylistic/indent": [
             "error",
             2,
             {
@@ -37,13 +79,30 @@
                 ]
             }
         ],
-        "quotes": [
+        "@stylistic/quotes": [
             "error",
             "single",
             {
                 "allowTemplateLiterals": true
             }
         ],
+        "@stylistic/key-spacing": "error",
+        "@stylistic/keyword-spacing": "error",
+        // "@stylistic/line-comment-position": "error", // not needed
+        // "@stylistic/lines-around-comment": "error", // also not sure if needed
+        // "@stylistic/max-len": "error", // also not sure if needed
+        // "@stylistic/linebreak-style": "error", // let git decide
+        "@stylistic/max-statements-per-line": [
+            "error",
+            {
+                "max": 5
+            }
+        ],
+        // "@stylistic/member-delimiter-style": "error",
+        // "@stylistic/multiline-ternary": "error", // not needed
+        // "@stylistic/newline-per-chained-call": "error", // not sure if needed
+        "@stylistic/new-parens": "error",
+        "@stylistic/no-confusing-arrow": "error",
         // perf
         "import/no-deprecated": "off",
         // ---
@@ -53,6 +112,7 @@
         // intentional: improve readability in some cases
         "no-else-return": "off",
         "@typescript-eslint/padding-line-between-statements": "off",
+        "@typescript-eslint/no-dynamic-delete": "off",
         "arrow-body-style": "off",
         "unicorn/prefer-ternary": "off",
         "unicorn/switch-case-braces": "off",
@@ -89,6 +149,7 @@
         "@typescript-eslint/no-confusing-void-expression": "off",
         "unicorn/no-empty-file": "off",
         "unicorn/prefer-event-target": "off",
+        "@typescript-eslint/member-ordering": "off",
         // needs to be fixed actually
         "complexity": "off",
         "@typescript-eslint/no-floating-promises": "warn",
@@ -103,7 +164,7 @@
                 "*.js"
             ],
             "rules": {
-                "space-before-function-paren": [
+                "@stylistic/space-before-function-paren": [
                     "error",
                     {
                         "anonymous": "always",

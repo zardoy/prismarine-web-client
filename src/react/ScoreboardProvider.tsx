@@ -31,7 +31,7 @@ export default function ScoreboardProvider () {
     })
   }, [])
 
-  return(
+  return (
     <Scoreboard
       title={title}
       items={items}

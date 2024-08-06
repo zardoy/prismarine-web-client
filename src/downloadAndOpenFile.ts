@@ -35,34 +35,32 @@ const inner = async () => {
   setLoadingScreenStatus(`Downloading ${downloadThing} ${name}: have to download ${contentLength && getFixedFilesize(contentLength)}...`)
 
   let downloadedBytes = 0
-  const buffer = await new Response(
-    new ReadableStream({
-      async start (controller) {
-        if (!response.body) throw new Error('Server returned no response!')
-        const reader = response.body.getReader()
+  const buffer = await new Response(new ReadableStream({
+    async start (controller) {
+      if (!response.body) throw new Error('Server returned no response!')
+      const reader = response.body.getReader()
 
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-          const { done, value } = await reader.read()
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        const { done, value } = await reader.read()
 
-          if (done) {
-            controller.close()
-            break
-          }
-
-          downloadedBytes += value.byteLength
-
-          // Calculate download progress as a percentage
-          const progress = contentLength ? (downloadedBytes / contentLength) * 100 : undefined
-          setLoadingScreenStatus(`Download ${downloadThing} progress: ${progress === undefined ? '?' : Math.floor(progress)}% (${getFixedFilesize(downloadedBytes)} / ${contentLength && getFixedFilesize(contentLength)})`, false, true)
-
-
-          // Pass the received data to the controller
-          controller.enqueue(value)
+        if (done) {
+          controller.close()
+          break
         }
-      },
-    })
-  ).arrayBuffer()
+
+        downloadedBytes += value.byteLength
+
+        // Calculate download progress as a percentage
+        const progress = contentLength ? (downloadedBytes / contentLength) * 100 : undefined
+        setLoadingScreenStatus(`Download ${downloadThing} progress: ${progress === undefined ? '?' : Math.floor(progress)}% (${getFixedFilesize(downloadedBytes)} / ${contentLength && getFixedFilesize(contentLength)})`, false, true)
+
+
+        // Pass the received data to the controller
+        controller.enqueue(value)
+      }
+    },
+  })).arrayBuffer()
   if (texturepack) {
     const name = mapUrl.slice(mapUrl.lastIndexOf('/') + 1).slice(-30)
     await installTexturePack(buffer, name)

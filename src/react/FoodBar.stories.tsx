@@ -7,7 +7,7 @@ const meta: Meta<typeof FoodBar> = {
 }
 
 export default meta
-type Story = StoryObj<typeof FoodBar>;
+type Story = StoryObj<typeof FoodBar>
 
 export const Primary: Story = {
   args: {

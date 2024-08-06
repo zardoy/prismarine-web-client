@@ -1,5 +1,5 @@
-import { renderSign } from '.'
 import PrismarineChatLoader from 'prismarine-chat'
+import { renderSign } from '.'
 
 const PrismarineChat = PrismarineChatLoader({ language: {} } as any)
 
@@ -11,12 +11,12 @@ await new Promise<void>(resolve => {
 })
 
 const blockEntity = {
-  "GlowingText": 0,
-  "Color": "black",
-  "Text4": "{\"text\":\"\"}",
-  "Text3": "{\"text\":\"\"}",
-  "Text2": "{\"text\":\"\"}",
-  "Text1": "{\"extra\":[{\"color\":\"dark_green\",\"text\":\"Minecraft \"},{\"text\":\"Tools\"}],\"text\":\"\"}"
+  'GlowingText': 0,
+  'Color': 'black',
+  'Text4': '{"text":""}',
+  'Text3': '{"text":""}',
+  'Text2': '{"text":""}',
+  'Text1': '{"extra":[{"color":"dark_green","text":"Minecraft "},{"text":"Tools"}],"text":""}'
 } as const
 
 await document.fonts.load('1em mojangles')

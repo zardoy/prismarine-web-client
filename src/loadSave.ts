@@ -60,12 +60,12 @@ export const loadSave = async (root = '/world') => {
   // todo do it in singleplayer as well
   // eslint-disable-next-line guard-for-in
   for (const key in forceCachedDataPaths) {
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
     delete forceCachedDataPaths[key]
   }
   // eslint-disable-next-line guard-for-in
   for (const key in forceRedirectPaths) {
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
     delete forceRedirectPaths[key]
   }
   // todo check jsHeapSizeLimit

@@ -7,7 +7,7 @@ const meta: Meta<typeof XPBar> = {
 }
 
 export default meta
-type Story = StoryObj<typeof XPBar>;
+type Story = StoryObj<typeof XPBar>
 
 export const Primary: Story = {
   args: {

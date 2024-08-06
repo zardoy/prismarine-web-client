@@ -194,7 +194,13 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): {
   const itemName = slot.name
   const isItem = loadedData.itemsByName[itemName]
 
-  const itemTexture = itemsRenderer.getItemTexture(itemName) ?? itemsRenderer.getItemTexture('item/missing_texture')!
+  let itemTexture
+  try {
+    itemTexture = itemsRenderer.getItemTexture(itemName) ?? itemsRenderer.getItemTexture('item/missing_texture')!
+  } catch (err) {
+    itemTexture = itemsRenderer.getItemTexture('block/errored')!
+    inGameError(err)
+  }
   if ('type' in itemTexture) {
     // is item
     return {
@@ -513,7 +519,7 @@ const getResultingRecipe = (slots: Array<Item | null>, gridRows: number) => {
   return item
 }
 
-const ingredientToItem = (recipeItem) => recipeItem === null ? null : new PrismarineItem(recipeItem, 1)
+const ingredientToItem = (recipeItem) => (recipeItem === null ? null : new PrismarineItem(recipeItem, 1))
 
 const getAllItemRecipes = (itemName: string) => {
   const item = loadedData.itemsByName[itemName]

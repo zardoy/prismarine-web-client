@@ -8,11 +8,10 @@ export type ArmorBarProps = {
   style?: CSSProperties
 }
 
-export default (
-  {
-    armorValue,
-    style
-  }: ArmorBarProps) => {
+export default ({
+  armorValue,
+  style
+}: ArmorBarProps) => {
   const armorRef = useRef<HTMLDivElement>(null!)
 
   useEffect(() => {
@@ -39,11 +38,9 @@ export default (
     <div style={style ?? {}} ref={armorRef} className='armor_container' >
       {
         Array.from({ length: 10 }, () => 0)
-          .map(
-            (num, index) => <div
-              key={`armor-${index}`}
-              className='armor'></div>
-          )
+          .map((num, index) => <div
+            key={`armor-${index}`}
+            className='armor'></div>)
       }
     </div>
   </SharedHudVars>

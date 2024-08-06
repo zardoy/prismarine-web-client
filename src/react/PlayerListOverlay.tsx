@@ -2,7 +2,7 @@ import MessageFormattedString from './MessageFormattedString'
 import './PlayerListOverlay.css'
 
 
-type PlayersLists = Array<Array<Pick<import('mineflayer').Player, 'uuid'|'username'|'ping'>>>
+type PlayersLists = Array<Array<Pick<import('mineflayer').Player, 'uuid' | 'username' | 'ping'>>>
 
 type PlayerListOverlayProps = {
   playersLists: PlayersLists,
