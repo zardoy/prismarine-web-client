@@ -62,7 +62,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
       zIndex: 100
     }}
   >
-    { window.screen.width > 500 ? <div
+    {window.screen.width > 500 ? <div
       style={{
         position: 'absolute',
         width: '100%',
@@ -80,7 +80,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           right: '20px',
           zIndex: 1
         }}
-      /> }
+      />}
     <TransformWrapper
       limitToBounds={false}
       ref={zoomRef}
@@ -149,19 +149,19 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 
 const MapChunk = (
   { x, y, scale, adapter, worldX, worldZ, setIsWarpInfoOpened, setLastWarpPos, redraw, setInitWarp }
-  :
-  {
-    x: number,
-    y: number,
-    scale: number,
-    adapter: DrawerAdapter,
-    worldX: number,
-    worldZ: number,
-    setIsWarpInfoOpened: (x: boolean) => void,
-    setLastWarpPos: (obj: { x: number, y: number, z: number }) => void,
-    redraw?: boolean
-    setInitWarp?: (warp: WorldWarp) => void
-  }
+    :
+    {
+      x: number,
+      y: number,
+      scale: number,
+      adapter: DrawerAdapter,
+      worldX: number,
+      worldZ: number,
+      setIsWarpInfoOpened: (x: boolean) => void,
+      setLastWarpPos: (obj: { x: number, y: number, z: number }) => void,
+      redraw?: boolean
+      setInitWarp?: (warp: WorldWarp | undefined) => void
+    }
 ) => {
   const containerRef = useRef(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
@@ -170,19 +170,17 @@ const MapChunk = (
 
   const handleClick = (e: MouseEvent) => {
     console.log('click:', e)
+    if (!drawerRef.current) return
     if ('buttons' in e && e.button !== 2) return
     const rect = canvasRef.current!.getBoundingClientRect()
     const factor = scale * (drawerRef.current?.mapPixel ?? 1)
     const x = (e.clientX - rect.left) / factor
     const y = (e.clientY - rect.top) / factor
-    if (!drawerRef.current) return
     drawerRef.current.setWarpPosOnClick(new Vec3(Math.floor(x), 0, Math.floor(y)), new Vec3(worldX, 0, worldZ))
     setLastWarpPos(drawerRef.current.lastWarpPos)
     const { lastWarpPos } = drawerRef.current
-    if (adapter.warps.some(warp => Math.hypot(lastWarpPos.x - warp.x, lastWarpPos.z - warp.z) < 5)) {
-      const initWarp = adapter.warps.find(warp => Math.hypot(lastWarpPos.x - warp.x, lastWarpPos.z - warp.z) < 5)
-      if (initWarp) setInitWarp?.(initWarp)
-    }
+    const initWarp = adapter.warps.find(warp => Math.hypot(lastWarpPos.x - warp.x, lastWarpPos.z - warp.z) < 2)
+    setInitWarp?.(initWarp)
     setIsWarpInfoOpened(true)
   }
 
@@ -253,21 +251,21 @@ const MapChunk = (
 
 const WarpInfo = (
   { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp }
-  :
-  {
-    adapter: DrawerAdapter,
-    warpPos: { x: number, y: number, z: number },
-    setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
-    afterWarpIsSet?: () => void
-    initWarp?: WorldWarp
-  }
+    :
+    {
+      adapter: DrawerAdapter,
+      warpPos: { x: number, y: number, z: number },
+      setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
+      afterWarpIsSet?: () => void
+      initWarp?: WorldWarp
+    }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>(initWarp ?? {
     name: '',
     x: warpPos?.x ?? 100,
     y: warpPos?.y ?? 100,
     z: warpPos?.z ?? 100,
-    color: '#d3d3d3',
+    color: '',
     disabled: false,
     world: adapter.world
   })
@@ -312,7 +310,7 @@ const WarpInfo = (
           Name:
         </div>
         <Input
-          defaultValue={warp.name ?? ''}
+          defaultValue={warp.name}
           onChange={(e) => {
             if (!e.target) return
             setWarp(prev => { return { ...prev, name: e.target.value } })
@@ -325,7 +323,7 @@ const WarpInfo = (
         </div>
         <Input
           rootStyles={posInputStyle}
-          defaultValue={warpPos?.x ?? 100}
+          defaultValue={warp.x ?? 100}
           onChange={(e) => {
             if (!e.target) return
             setWarp(prev => { return { ...prev, x: Number(e.target.value) } })
@@ -336,7 +334,7 @@ const WarpInfo = (
         </div>
         <Input
           rootStyles={posInputStyle}
-          defaultValue={warpPos?.z ?? 100}
+          defaultValue={warp.z ?? 100}
           onChange={(e) => {
             if (!e.target) return
             setWarp(prev => { return { ...prev, z: Number(e.target.value) } })
@@ -384,6 +382,13 @@ const WarpInfo = (
             afterWarpIsSet?.()
           }}
         >Add</Button>
+        <Button
+          onClick={() => {
+            const index = adapter.warps.findIndex(thisWarp => thisWarp.name === warp.name)
+            if (index !== -1) adapter.warps.splice(index, 1)
+            setIsWarpInfoOpened(false)
+          }}
+        >Delete</Button>
         <Button
           onClick={() => {
             setIsWarpInfoOpened(false)
