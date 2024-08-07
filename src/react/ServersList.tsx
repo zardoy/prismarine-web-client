@@ -86,7 +86,7 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
               options: [...proxies.proxies],
               selected: proxies.selected
             }}
-            updateOptions={(options)=>{
+            updateOptions={(options) => {
               updateProxies({ proxies: [...options.options], selected: options.selected })
             }}
 

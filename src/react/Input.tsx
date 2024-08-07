@@ -14,7 +14,7 @@ export default ({ autoFocus, rootStyles, inputRef, validateInput, ...inputProps 
   const [validationStyle, setValidationStyle] = useState<CSSProperties>({})
   const [value, setValue] = useState(inputProps.value ?? '')
 
-  useEffect(()=>{
+  useEffect(() => {
     setValue(inputProps.value === '' || inputProps.value ? inputProps.value : value)
   }, [inputProps.value])
 

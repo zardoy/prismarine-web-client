@@ -59,6 +59,7 @@ export default ({
       }
     },
     freeSolo: true,
+    openOnFocus: true
     // disableCloseOnSelect: true,
   })
 
@@ -99,7 +100,7 @@ const SelectOption = ({ option, inputRef, icon, inputStyle, inputProps, value, s
 
   useEffect(() => {
     if (firstRender) setFirstRender(false)
-    if (value === '' && !firstRender) props.onMouseDown()
+    if (value === '' && !firstRender) props.onFocus?.()
   }, [value])
 
   return <div style={{
