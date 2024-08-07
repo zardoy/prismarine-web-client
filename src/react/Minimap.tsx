@@ -89,7 +89,7 @@ export default (
 
   return fullMap && displayMode !== 'minimapOnly' && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
     ? <Fullmap
-      toggleFullMap={()=>{
+      toggleFullMap={() => {
         toggleFullMap?.({ command: 'ui.toggleMap' })
       }}
       adapter={adapter}

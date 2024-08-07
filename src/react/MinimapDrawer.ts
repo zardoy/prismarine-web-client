@@ -164,7 +164,7 @@ export class MinimapDrawer {
     for (const key of Object.keys(this.worldColors)) {
       const [x, z] = key.split(',').map(Number)
       if (this.getDistance(x, z, currX, currZ) > this.radius * 5) {
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+
         delete this.worldColors[`${x},${z}`]
       }
     }

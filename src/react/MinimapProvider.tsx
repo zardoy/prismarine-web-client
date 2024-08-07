@@ -99,7 +99,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
     if (localServer) {
       void localServer.setWarp(warp)
-    } 
+    }
     this.emit('updateWarps')
   }
 

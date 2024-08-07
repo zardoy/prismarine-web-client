@@ -149,19 +149,19 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 
 const MapChunk = (
   { x, y, scale, adapter, worldX, worldZ, setIsWarpInfoOpened, setLastWarpPos, redraw, setInitWarp }
-    :
-    {
-      x: number,
-      y: number,
-      scale: number,
-      adapter: DrawerAdapter,
-      worldX: number,
-      worldZ: number,
-      setIsWarpInfoOpened: (x: boolean) => void,
-      setLastWarpPos: (obj: { x: number, y: number, z: number }) => void,
-      redraw?: boolean
-      setInitWarp?: (warp: WorldWarp | undefined) => void
-    }
+  :
+  {
+    x: number,
+    y: number,
+    scale: number,
+    adapter: DrawerAdapter,
+    worldX: number,
+    worldZ: number,
+    setIsWarpInfoOpened: (x: boolean) => void,
+    setLastWarpPos: (obj: { x: number, y: number, z: number }) => void,
+    redraw?: boolean
+    setInitWarp?: (warp: WorldWarp | undefined) => void
+  }
 ) => {
   const containerRef = useRef(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
@@ -251,14 +251,14 @@ const MapChunk = (
 
 const WarpInfo = (
   { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp }
-    :
-    {
-      adapter: DrawerAdapter,
-      warpPos: { x: number, y: number, z: number },
-      setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
-      afterWarpIsSet?: () => void
-      initWarp?: WorldWarp
-    }
+  :
+  {
+    adapter: DrawerAdapter,
+    warpPos: { x: number, y: number, z: number },
+    setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
+    afterWarpIsSet?: () => void
+    initWarp?: WorldWarp
+  }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>(initWarp ?? {
     name: '',

@@ -159,7 +159,7 @@ export const DropdownButton = ({ text, links }: { text: string, links: DropdownB
     <Button
       style={{ position: 'relative', width: '98px' }}
       rootRef={refs.setReference}
-      onClick={()=>{
+      onClick={() => {
         setIsOpen(!isOpen)
       }}
     >{text}<PixelartIcon

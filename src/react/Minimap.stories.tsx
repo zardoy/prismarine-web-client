@@ -24,7 +24,7 @@ const meta: Meta<typeof Minimap> = {
 }
 
 export default meta
-type Story = StoryObj<typeof Minimap>;
+type Story = StoryObj<typeof Minimap>
 
 
 class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
