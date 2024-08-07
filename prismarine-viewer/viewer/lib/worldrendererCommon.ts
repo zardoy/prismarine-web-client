@@ -1,13 +1,8 @@
-import * as THREE from 'three'
-import { Vec3 } from 'vec3'
-import { loadJSON } from './utils'
-import { loadTexture } from './utils.web'
+/* eslint-disable guard-for-in */
 import { EventEmitter } from 'events'
+import { Vec3 } from 'vec3'
+import * as THREE from 'three'
 import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
-import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
-import { chunkPos } from './simpleUtils'
-import { defaultMesherConfig } from './mesher/shared'
-import { buildCleanupDecorator } from './cleanupDecorator'
 import blocksAtlases from 'mc-assets/dist/blocksAtlases.json'
 import blocksAtlasLatest from 'mc-assets/dist/blocksAtlasLatest.png'
 import blocksAtlasLegacy from 'mc-assets/dist/blocksAtlasLegacy.png'
@@ -15,8 +10,12 @@ import itemsAtlases from 'mc-assets/dist/itemsAtlases.json'
 import itemsAtlasLatest from 'mc-assets/dist/itemsAtlasLatest.png'
 import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
 import { AtlasParser } from 'mc-assets'
-import { getResourcepackTiles } from '../../../src/resourcePack'
+import TypedEmitter from 'typed-emitter'
+import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
+import { buildCleanupDecorator } from './cleanupDecorator'
+import { defaultMesherConfig } from './mesher/shared'
+import { chunkPos } from './simpleUtils'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -42,15 +41,23 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   @worldCleanup()
   active = false
+
   version = undefined as string | undefined
   @worldCleanup()
   loadedChunks = {} as Record<string, boolean>
+
   @worldCleanup()
   finishedChunks = {} as Record<string, boolean>
+
   @worldCleanup()
   sectionsOutstanding = new Map<string, number>()
+
   @worldCleanup()
-  renderUpdateEmitter = new EventEmitter()
+  renderUpdateEmitter = new EventEmitter() as unknown as TypedEmitter<{
+    dirty (pos: Vec3, value: boolean): void
+    update (/* pos: Vec3, value: boolean */): void
+    textureDownloaded (): void
+  }>
   customTexturesDataUrl = undefined as string | undefined
   currentTextureImage = undefined as any
   workers: any[] = []
@@ -64,6 +71,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   chunksLength = 0
   @worldCleanup()
   allChunksFinished = false
+
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
@@ -95,6 +103,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
       const workerName = 'mesher.js'
+      // eslint-disable-next-line node/no-path-concat
       const src = typeof window === 'undefined' ? `${__dirname}/${workerName}` : workerName
 
       const worker: any = new Worker(src)
@@ -137,6 +146,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       worker.onmessage = ({ data }) => {
         if (Array.isArray(data)) {
+          // eslint-disable-next-line unicorn/no-array-for-each
           data.forEach(handleMessage)
           return
         }
@@ -156,11 +166,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   /**
    * Optionally update data that are depedendent on the viewer position
    */
-  updatePosDataChunk?(key: string): void
+  updatePosDataChunk? (key: string): void
 
-  allChunksLoaded?(): void
+  allChunksLoaded? (): void
 
-  timeUpdated?(newTime: number): void
+  timeUpdated? (newTime: number): void
 
   updateViewerPosition (pos: Vec3) {
     this.viewerPosition = pos
@@ -242,11 +252,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     texture.minFilter = THREE.NearestFilter
     texture.flipY = false
     this.material.map = texture
-    this.currentTextureImage = this.material.map!.image
-    this.mesherConfig.textureSize = this.material.map!.image.width
+    this.currentTextureImage = this.material.map.image
+    this.mesherConfig.textureSize = this.material.map.image.width
 
     for (const worker of this.workers) {
-      const blockstatesModels = this.blockstatesModels
+      const { blockstatesModels } = this
       if (this.customBlockStates) {
         // TODO! remove from other versions as well
         blockstatesModels.blockstates.latest = {

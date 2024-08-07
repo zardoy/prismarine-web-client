@@ -13,15 +13,14 @@ export type FoodBarProps = {
   style?: React.CSSProperties
 }
 
-export default (
-  {
-    gameMode,
-    food,
-    effectToAdd,
-    effectToRemove,
-    resetEffects,
-    style
-  }: FoodBarProps) => {
+export default ({
+  gameMode,
+  food,
+  effectToAdd,
+  effectToRemove,
+  resetEffects,
+  style
+}: FoodBarProps) => {
   const foodRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -68,11 +67,9 @@ export default (
     <div ref={foodRef} className='foodbar' style={style}>
       {
         Array.from({ length: 10 }, () => 0)
-          .map(
-            (num, index) => <div
-              key={`food-${index}`}
-              className='food'></div>
-          )
+          .map((num, index) => <div
+            key={`food-${index}`}
+            className='food'></div>)
       }
     </div>
   </SharedHudVars>

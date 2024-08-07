@@ -150,17 +150,15 @@ export default () => {
       {cursorBlock ? (<>
         <p>{cursorBlock.name}</p>
         {
-          Object.entries(cursorBlock.getProperties()).map(
-            ([name, value], idx, arr) => {
-              return <p key={name}>
-                {name}: {
-                  typeof value === 'boolean' ? (
-                    <span style={{ color: value ? 'lightgreen' : 'red' }}>{value}</span>
-                  ) : value
-                }
-              </p>
-            }
-          )
+          Object.entries(cursorBlock.getProperties()).map(([name, value], idx, arr) => {
+            return <p key={name}>
+              {name}: {
+                typeof value === 'boolean' ? (
+                  <span style={{ color: value ? 'lightgreen' : 'red' }}>{value}</span>
+                ) : value
+              }
+            </p>
+          })
         }
       </>)
         : ''}

@@ -1,21 +1,23 @@
 import _ from 'lodash'
-import { WorldDataEmitter, Viewer } from '../viewer'
 import { Vec3 } from 'vec3'
 import BlockLoader from 'prismarine-block'
 import ChunkLoader from 'prismarine-chunk'
 import WorldLoader from 'prismarine-world'
 import * as THREE from 'three'
 import { GUI } from 'lil-gui'
-import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
-import { TWEEN_DURATION } from '../viewer/lib/entities'
-import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
 import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 
-globalThis.THREE = THREE
-//@ts-ignore
+//@ts-expect-error
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { IndexedData } from 'minecraft-data'
+import { loadScript } from '../viewer/lib/utils'
+import { TWEEN_DURATION } from '../viewer/lib/entities'
+import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
+import { WorldDataEmitter, Viewer } from '../viewer'
 import { toMajorVersion } from '../../src/utils'
+
+window.THREE = THREE
 
 const gui = new GUI()
 
@@ -44,18 +46,17 @@ const params = {
 }
 
 const qs = new URLSearchParams(window.location.search)
-qs.forEach((value, key) => {
-  const parsed = value.match(/^-?\d+$/) ? parseInt(value) : value === 'true' ? true : value === 'false' ? false : value
+for (const [key, value] of qs.entries()) {
+  const parsed = /^-?\d+$/.test(value) ? Number(value) : value === 'true' ? true : value === 'false' ? false : value
   params[key] = parsed
-})
+}
 const setQs = () => {
   const newQs = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
     if (!value || typeof value === 'function' || params.skipQs.includes(key)) continue
-    //@ts-ignore
     newQs.set(key, value)
   }
-  window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
+  window.history.replaceState({}, '', `${window.location.pathname}?${newQs.toString()}`)
 }
 
 let ignoreResize = false
@@ -80,7 +81,7 @@ async function main () {
     }
   }
 
-  const mcData = require('minecraft-data')(version)
+  const mcData: IndexedData = require('minecraft-data')(version)
   window['loadedData'] = mcData
 
   gui.add(params, 'version', globalThis.includedVersions)
@@ -110,17 +111,17 @@ async function main () {
 
   // const diamondSquare = require('diamond-square')({ version, seed: Math.floor(Math.random() * Math.pow(2, 31)) })
 
-  //@ts-ignore
+  //@ts-expect-error
   const chunk1 = new Chunk()
-  //@ts-ignore
+  //@ts-expect-error
   const chunk2 = new Chunk()
   chunk1.setBlockStateId(targetPos, 34)
   chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
-  //@ts-ignore
+  //@ts-expect-error
   const world = new World((chunkX, chunkZ) => {
     // if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
-    //@ts-ignore
+    //@ts-expect-error
     const chunk = new Chunk()
     return chunk
   })
@@ -156,7 +157,7 @@ async function main () {
     const onlyCurrent = !confirm('Ok - render all blocks, Cancel - render only current one')
     const sizeRaw = prompt('Size', '512')
     if (!sizeRaw) return
-    const size = parseInt(sizeRaw)
+    const size = parseInt(sizeRaw, 10)
     // const size = 512
 
     ignoreResize = true
@@ -164,7 +165,7 @@ async function main () {
     canvas.height = size
     renderer.setSize(size, size)
 
-    //@ts-ignore
+    //@ts-expect-error
     viewer.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 10)
     viewer.scene.background = null
 
@@ -190,15 +191,13 @@ async function main () {
     let blockName = allBlocks[0]
 
     const updateBlock = () => {
-
-      //@ts-ignore
       // viewer.setBlockStateId(targetPos, mcData.blocksByName[blockName].minStateId)
       params.block = blockName
       // todo cleanup (introduce getDefaultState)
       onUpdate.block()
       applyChanges(false, true)
     }
-    viewer.waitForChunksToRender().then(async () => {
+    void viewer.waitForChunksToRender().then(async () => {
       // wait for next macro task
       await new Promise(resolve => {
         setTimeout(resolve, 0)
@@ -261,7 +260,6 @@ async function main () {
     }
   }
 
-  //@ts-ignore
   const controls = new OrbitControls(viewer.camera, renderer.domElement)
   controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
@@ -274,7 +272,7 @@ async function main () {
   controls.update()
 
   let blockProps = {}
-  let entityOverrides = {}
+  const entityOverrides = {}
   const getBlock = () => {
     return mcData.blocksByName[params.block || 'air']
   }
@@ -304,7 +302,7 @@ async function main () {
 
   const onUpdate = {
     version (initialUpdate) {
-      if (initialUpdate) return
+      // if (initialUpdate) return
       // viewer.world.texturesVersion = params.version
       // viewer.world.updateTexturesData()
       // todo warning
@@ -316,7 +314,7 @@ async function main () {
       if (!block) return
       console.log('block', block.name)
       const props = new Block(block.id, 0, 0).getProperties()
-      //@ts-ignore
+      //@ts-expect-error
       const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
       metadataFolder = gui.addFolder('metadata')
       if (states) {
@@ -397,7 +395,6 @@ async function main () {
       }
     } else {
       try {
-        //@ts-ignore
         block = Block.fromProperties(blockId ?? -1, blockProps, 0)
       } catch (err) {
         console.error(err)
@@ -405,7 +402,7 @@ async function main () {
       }
     }
 
-    //@ts-ignore
+    //@ts-expect-error
     viewer.setBlockStateId(targetPos, block.stateId)
     console.log('up stateId', block.stateId)
     params.metadata = block.metadata
@@ -423,7 +420,7 @@ async function main () {
       applyChanges()
     }
   })
-  viewer.waitForChunksToRender().then(async () => {
+  void viewer.waitForChunksToRender().then(async () => {
     // TODO!
     await new Promise(resolve => {
       setTimeout(resolve, 50)

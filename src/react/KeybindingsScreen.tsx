@@ -16,25 +16,21 @@ type HandleClick = (group: string, action: string, index: number, type: string |
 
 type setBinding = (data: any, group: string, command: string, buttonIndex: number) => void
 
-export const Context = createContext(
-  {
-    isPS: false as boolean | undefined,
-    userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig (config) { },
-    handleClick: (() => { }) as HandleClick,
-    bindsMap: { keyboard: {} as any, gamepad: {} as any }
-  }
-)
+export const Context = createContext({
+  isPS: false as boolean | undefined,
+  userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
+  setUserConfig (config) { },
+  handleClick: (() => { }) as HandleClick,
+  bindsMap: { keyboard: {} as any, gamepad: {} as any }
+})
 
-export default (
-  {
-    contro,
-    isPS,
-  }: {
-    contro: typeof controEx,
-    isPS?: boolean
-  }
-) => {
+export default ({
+  contro,
+  isPS,
+}: {
+  contro: typeof controEx,
+  isPS?: boolean
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
   const { commands } = contro.inputSchema
@@ -107,9 +103,7 @@ export default (
         setAwaitingInputType(null)
         return
       }
-      const pressedModifiers = [...contro.pressedKeys].filter(
-        key => /^(Meta|Control|Alt|Shift)?$/.test(key)
-      )
+      const pressedModifiers = [...contro.pressedKeys].filter(key => /^(Meta|Control|Alt|Shift)?$/.test(key))
       setBinding(
         { code: pressedModifiers.length ? `${pressedModifiers[0]}+${data.code}` : data.code, state: true },
         groupName,
@@ -304,15 +298,11 @@ export const ButtonWithMatchesAlert = ({
     >
       <Keybinding type={inputType} val={buttonSign as AllKeyCodes} />
     </Button>
-    {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(
-      key => Object.keys(bindsMap[inputType]).includes(key)
-        && bindsMap[inputType][key].length > 1
-        && bindsMap[inputType][key].some(
-          prop => prop.index === index
-            && prop.group === group
-            && prop.action === action
-        )
-    ) ? (
+    {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(key => Object.keys(bindsMap[inputType]).includes(key)
+    && bindsMap[inputType][key].length > 1
+    && bindsMap[inputType][key].some(prop => prop.index === index
+    && prop.group === group
+    && prop.action === action)) ? (
       //@ts-format-ignore-region
         <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
           <PixelartIcon
@@ -326,7 +316,7 @@ export const ButtonWithMatchesAlert = ({
             }}
           />
           <div>
-          This bind is already in use. <span></span>
+            This bind is already in use. <span></span>
           </div>
         </div>
       )

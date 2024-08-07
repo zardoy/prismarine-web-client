@@ -9,7 +9,7 @@ const meta: Meta<typeof BossBarOverlay> = {
 }
 
 export default meta
-type Story = StoryObj<typeof BossBarOverlay>;
+type Story = StoryObj<typeof BossBarOverlay>
 
 
 export const Primary: Story = {

@@ -14,13 +14,14 @@ export const goFullscreen = async (doToggle = false) => {
   }
 }
 
-export const toNumber = (val) => {
+export const toNumber = val => {
   const num = Number(val)
   return isNaN(num) ? undefined : num
 }
 
-export const inGameError = (err) => {
+export const inGameError = err => {
   console.error(err)
+  window.reportError?.(err)
   // todo report
   miscUiState.hasErrors = true
 }
@@ -48,7 +49,7 @@ export const pointerLock = {
       const promise: any = document.documentElement.requestPointerLock({
         unadjustedMovement: options.mouseRawInput
       })
-      promise?.catch((error) => {
+      promise?.catch(error => {
         if (error.name === 'NotSupportedError') {
           // Some platforms may not support unadjusted movement, request again a regular pointer lock.
           document.documentElement.requestPointerLock()
@@ -76,7 +77,7 @@ export async function getScreenRefreshRate (): Promise<number> {
 
   const DOMHighResTimeStampCollection = [] as number[]
 
-  const triggerAnimation = (DOMHighResTimeStamp) => {
+  const triggerAnimation = DOMHighResTimeStamp => {
     DOMHighResTimeStampCollection.unshift(DOMHighResTimeStamp)
 
     if (DOMHighResTimeStampCollection.length > 10) {
@@ -105,7 +106,7 @@ export async function getScreenRefreshRate (): Promise<number> {
   })
 }
 
-export const getGamemodeNumber = (bot) => {
+export const getGamemodeNumber = bot => {
   switch (bot.game.gameMode) {
     case 'survival': return 0
     case 'creative': return 1
@@ -151,7 +152,7 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
 }
 
 // doesn't support snapshots
-export const toMajorVersion = (version) => {
+export const toMajorVersion = version => {
   const [a, b] = (String(version)).split('.')
   return `${a}.${b}`
 }

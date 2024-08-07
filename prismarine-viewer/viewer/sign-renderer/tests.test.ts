@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
-import { renderSign } from '.'
 import PrismarineChatLoader from 'prismarine-chat'
+import { renderSign } from '.'
 
 const PrismarineChat = PrismarineChatLoader({ language: {} } as any)
 let ctxTexts = [] as any[]
@@ -28,12 +28,12 @@ const render = (entity) => {
 
 test('sign renderer', () => {
   let blockEntity = {
-    "GlowingText": 0,
-    "Color": "black",
-    "Text4": "{\"text\":\"\"}",
-    "Text3": "{\"text\":\"\"}",
-    "Text2": "{\"text\":\"\"}",
-    "Text1": "{\"extra\":[{\"color\":\"dark_green\",\"text\":\"Minecraft \"},{\"text\":\"Tools\"}],\"text\":\"\"}"
+    'GlowingText': 0,
+    'Color': 'black',
+    'Text4': '{"text":""}',
+    'Text3': '{"text":""}',
+    'Text2': '{"text":""}',
+    'Text1': '{"extra":[{"color":"dark_green","text":"Minecraft "},{"text":"Tools"}],"text":""}'
   } as any
   expect(render(blockEntity)).toMatchInlineSnapshot(`
     [
@@ -53,10 +53,10 @@ test('sign renderer', () => {
   `)
 
   blockEntity = { // pre flatenning
-    "Text1": "Welcome to",
-    "Text2": "",
-    "Text3": "null",
-    "Text4": "\"Version 2.1\"",
+    'Text1': 'Welcome to',
+    'Text2': '',
+    'Text3': 'null',
+    'Text4': '"Version 2.1"',
   } as const
   expect(render(blockEntity)).toMatchInlineSnapshot(`
     [

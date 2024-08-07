@@ -1,8 +1,8 @@
 // fix double tap on mobile
 
 let lastElement = null as {
-    clickTime: number
-    element: HTMLElement
+  clickTime: number
+  element: HTMLElement
 } | null
 document.addEventListener('touchstart', (e) => {
   if (e.touches.length > 1) {

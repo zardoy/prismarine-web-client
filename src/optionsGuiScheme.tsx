@@ -14,7 +14,7 @@ import { showOptionsModal } from './react/SelectOption'
 
 
 export const guiOptionsScheme: {
-  [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom?}>
+  [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
 } = {
   render: [
     {

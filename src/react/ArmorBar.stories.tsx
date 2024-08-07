@@ -9,7 +9,7 @@ const meta: Meta<typeof ArmorBar> = {
 }
 
 export default meta
-type Story = StoryObj<typeof ArmorBar>;
+type Story = StoryObj<typeof ArmorBar>
 
 export const Primary: Story = {
   args: {

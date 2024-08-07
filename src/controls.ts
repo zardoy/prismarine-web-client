@@ -305,9 +305,7 @@ const customCommandsHandler = ({ command }) => {
   if (!isGameActive(true) || section !== 'custom') return
 
   if (contro.userConfig?.custom) {
-    customCommandsConfig[(contro.userConfig.custom[name] as CustomCommand).type].handler(
-      (contro.userConfig.custom[name] as CustomCommand).inputs
-    )
+    customCommandsConfig[(contro.userConfig.custom[name] as CustomCommand).type].handler((contro.userConfig.custom[name] as CustomCommand).inputs)
   }
 }
 contro.on('trigger', customCommandsHandler)

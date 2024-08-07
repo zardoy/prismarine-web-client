@@ -14,7 +14,7 @@ const meta: Meta<typeof Slider> = {
 }
 
 export default meta
-type Story = StoryObj<typeof Slider>;
+type Story = StoryObj<typeof Slider>
 
 export const Primary: Story = {
   args: {

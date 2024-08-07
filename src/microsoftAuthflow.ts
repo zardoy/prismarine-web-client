@@ -1,17 +1,23 @@
-export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult }) => {
-  let onMsaCodeCallback
-  // const authEndpoint = 'http://localhost:3000/'
-  // const sessionEndpoint = 'http://localhost:3000/session'
-  let authEndpoint = ''
-  let sessionEndpoint = ''
+export const getProxyDetails = async (proxyBaseUrl: string) => {
   if (!proxyBaseUrl.startsWith('http')) proxyBaseUrl = `${isPageSecure() ? 'https' : 'http'}://${proxyBaseUrl}`
-  const url = proxyBaseUrl + '/api/vm/net/connect'
+  const url = `${proxyBaseUrl}/api/vm/net/connect`
   let result: Response
   try {
     result = await fetch(url)
   } catch (err) {
     throw new Error(`Selected proxy server ${proxyBaseUrl} most likely is down`)
   }
+  return result
+}
+
+export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult }) => {
+  let onMsaCodeCallback
+  // const authEndpoint = 'http://localhost:3000/'
+  // const sessionEndpoint = 'http://localhost:3000/session'
+  let authEndpoint = ''
+  let sessionEndpoint = ''
+  const result = await getProxyDetails(proxyBaseUrl)
+
   try {
     const json = await result.json()
     authEndpoint = urlWithBase(json.capabilities.authEndpoint, proxyBaseUrl)
