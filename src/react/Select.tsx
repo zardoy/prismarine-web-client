@@ -60,7 +60,6 @@ export default ({
     },
     freeSolo: true,
     openOnFocus: true
-    // disableCloseOnSelect: true,
   })
 
   return <div {...autocomplete.getRootProps()} ref={rootRef} style={{ width: 130, position: 'relative', ...containerStyle }}>
