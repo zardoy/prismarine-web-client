@@ -141,6 +141,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
           redrawCell.current = !redrawCell.current
         }}
         initWarp={initWarp}
+        setInitWarp={setInitWarp}
       />
     }
   </div>
@@ -250,14 +251,15 @@ const MapChunk = (
 }
 
 const WarpInfo = (
-  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp }
+  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp, setInitWarp }
   :
   {
     adapter: DrawerAdapter,
     warpPos: { x: number, y: number, z: number },
     setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
     afterWarpIsSet?: () => void
-    initWarp?: WorldWarp
+    initWarp?: WorldWarp,
+    setInitWarp?: React.Dispatch<React.SetStateAction<WorldWarp | undefined>>
   }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>(initWarp ?? {
@@ -366,10 +368,6 @@ const WarpInfo = (
       <div style={fieldCont}>
         <Button
           onClick={() => {
-            if (initWarp) {
-              const index = adapter.warps.findIndex(warp => warp.name === initWarp.name)
-              if (index !== -1) adapter.warps.splice(index, 1)
-            }
             adapter.setWarp(
               warp.name,
               new Vec3(warp.x, warp.y, warp.z),
@@ -388,6 +386,7 @@ const WarpInfo = (
             if (index !== -1) {
               adapter.setWarp(warp.name, new Vec3(0, 0, 0), '', false, '', true)
               setIsWarpInfoOpened(false)
+              afterWarpIsSet?.()
             }
           }}
         >Delete</Button> }

@@ -100,7 +100,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const index = this.warps.findIndex(w => w.name === name)
     if (index === -1) {
       this.warps.push(warp)
-    } else if (remove) {
+    } else if (remove && index !== -1) {
       this.warps.splice(index, 1)
     } else {
       this.warps[index] = warp
