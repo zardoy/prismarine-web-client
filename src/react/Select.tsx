@@ -34,8 +34,6 @@ export default ({
   containerStyle,
   inputProps
 }: Props) => {
-  const rootRef = useRef<HTMLDivElement>(null)
-  const inputRootRef = useRef<HTMLDivElement>(null)
   const [inputValue, setInputValue] = useState('')
   const [options, setOptions] = useState(initialOptions)
   const [inputStyle, setInputStyle] = useState<CSSProperties>({})
@@ -62,11 +60,10 @@ export default ({
     openOnFocus: true
   })
 
-  return <div {...autocomplete.getRootProps()} ref={rootRef} style={{ width: 130, position: 'relative', ...containerStyle }}>
+  return <div {...autocomplete.getRootProps()} style={{ width: 130, position: 'relative', ...containerStyle }}>
     <SelectOption
       {...omitObj(autocomplete.getInputProps(), 'ref')}
       inputRef={autocomplete.getInputProps().ref as any}
-      ref={inputRootRef}
       value={inputValue}
       inputStyle={inputStyle}
       inputProps={inputProps}
