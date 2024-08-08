@@ -27,10 +27,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = warps
     if (localServer) {
-      this.serverWarpsProxy = proxy(localServer.warps)
-      this.warpsSubscription = subscribe(this.serverWarpsProxy, () => {
-        this.overwriteWarps(localServer.warps)
-      })
       this.overwriteWarps(localServer.warps)
     }
   }
@@ -136,6 +132,10 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
   const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position))
   const fullMapOpened = useIsModalActive('full-map')
 
+  const updateWarps = (newWarps) => {
+    adapter.overwriteWarps(newWarps)
+  }
+
   const updateMap = () => {
     if (!adapter) return
     adapter.playerPosition = bot.entity.position
@@ -156,18 +156,13 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
 
   useEffect(() => {
     bot.on('move', updateMap)
-    // bot._client.on('map_chunk', (data) => {
-    //   console.log('x:', data.x, 'z:', data.z)
-    //   console.log(data)
-    //   console.log(longArrayToNumber((data as any).heightmaps.value.WORLD_SURFACE.value[0]))
-    // })
-    // viewer.world.renderUpdateEmitter.on('update', updateMap)
     contro.on('trigger', toggleFullMap)
+    localServer?.on('warpsUpdated' as keyof ServerEvents, updateWarps)
 
     return () => {
       bot.off('move', updateMap)
-      // viewer.world.renderUpdateEmitter.off('update', updateMap)
       contro.off('trigger', toggleFullMap)
+      localServer?.off('warpsUpdated' as keyof ServerEvents, updateWarps)
     }
   }, [])
 
