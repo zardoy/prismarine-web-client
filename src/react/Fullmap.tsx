@@ -382,13 +382,15 @@ const WarpInfo = (
             afterWarpIsSet?.()
           }}
         >Add</Button>
-        <Button
+        { initWarp && <Button
           onClick={() => {
             const index = adapter.warps.findIndex(thisWarp => thisWarp.name === warp.name)
-            if (index !== -1) adapter.warps.splice(index, 1)
-            setIsWarpInfoOpened(false)
+            if (index !== -1) {
+              adapter.setWarp(warp.name, new Vec3(0, 0, 0), '', false, '', true)
+              setIsWarpInfoOpened(false)
+            }
           }}
-        >Delete</Button>
+        >Delete</Button> }
         <Button
           onClick={() => {
             setIsWarpInfoOpened(false)

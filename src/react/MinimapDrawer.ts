@@ -14,7 +14,7 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   warps: WorldWarp[]
   world?: string
   yaw: number
-  setWarp: (name: string, pos: Vec3, color: string, disabled: boolean, world?: string) => void
+  setWarp: (name: string, pos: Vec3, color: string, disabled: boolean, world?: string, remove?: boolean) => void
 }
 
 export class MinimapDrawer {
