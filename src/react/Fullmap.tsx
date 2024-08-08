@@ -24,6 +24,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
   const cells = useRef({ columns: 0, rows: 0 })
   const [isWarpInfoOpened, setIsWarpInfoOpened] = useState(false)
   const [initWarp, setInitWarp] = useState<WorldWarp | undefined>(undefined)
+  const [warpPreview, setWarpPreview] = useState<{ name: string, x: number, z: number, clientX: number, clientY: number } | undefined>(undefined)
 
   const updateGrid = () => {
     const wrapperRect = zoomRef.current?.instance.wrapperComponent?.getBoundingClientRect()
@@ -128,10 +129,26 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
             setLastWarpPos={setLastWarpPos}
             redraw={redrawCell.current}
             setInitWarp={setInitWarp}
+            setWarpPreview={setWarpPreview}
           />
         })}
       </TransformComponent>
     </TransformWrapper>
+    {warpPreview && <div
+      style={{
+        position: 'absolute',
+        top: warpPreview.clientY - 70,
+        left: warpPreview.clientX - 70,
+        textAlign: 'center',
+        fontSize: '1.5em',
+        textShadow: '0.1em 0 black, 0 0.1em black, -0.1em 0 black, 0 -0.1em black, -0.1em -0.1em black, -0.1em 0.1em black, 0.1em -0.1em black, 0.1em 0.1em black'
+      } as any}
+    >
+      {warpPreview.name}
+      <div>
+        {warpPreview.x} {warpPreview.z}
+      </div>
+    </div>}
     {
       isWarpInfoOpened && <WarpInfo
         adapter={adapter}
@@ -149,7 +166,7 @@ export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => 
 
 
 const MapChunk = (
-  { x, y, scale, adapter, worldX, worldZ, setIsWarpInfoOpened, setLastWarpPos, redraw, setInitWarp }
+  { x, y, scale, adapter, worldX, worldZ, setIsWarpInfoOpened, setLastWarpPos, redraw, setInitWarp, setWarpPreview }
   :
   {
     x: number,
@@ -162,12 +179,14 @@ const MapChunk = (
     setLastWarpPos: (obj: { x: number, y: number, z: number }) => void,
     redraw?: boolean
     setInitWarp?: (warp: WorldWarp | undefined) => void
+    setWarpPreview?: (warpInfo) => void
   }
 ) => {
   const containerRef = useRef(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
   const touchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const mousePos = useRef({ x: 0, y: 0 })
   const [isCanvas, setIsCanvas] = useState(false)
 
   const longPress = (e) => {
@@ -193,16 +212,29 @@ const MapChunk = (
       clientX = (e).changedTouches[0].clientX
       clientY = (e).changedTouches[0].clientY
     } else { return }
-    const rect = canvasRef.current!.getBoundingClientRect()
-    const factor = scale * (drawerRef.current?.mapPixel ?? 1)
-    const x = (clientX - rect.left) / factor
-    const y = (clientY - rect.top) / factor
-    drawerRef.current.setWarpPosOnClick(new Vec3(Math.floor(x), 0, Math.floor(y)), new Vec3(worldX, 0, worldZ))
+    const [x, z] = getXZ(clientX, clientY)
+    drawerRef.current.setWarpPosOnClick(new Vec3(Math.floor(x), 0, Math.floor(z)), new Vec3(worldX, 0, worldZ))
     setLastWarpPos(drawerRef.current.lastWarpPos)
     const { lastWarpPos } = drawerRef.current
     const initWarp = adapter.warps.find(warp => Math.hypot(lastWarpPos.x - warp.x, lastWarpPos.z - warp.z) < 2)
     setInitWarp?.(initWarp)
     setIsWarpInfoOpened(true)
+  }
+
+  const getXZ = (clientX: number, clientY: number) => {
+    const rect = canvasRef.current!.getBoundingClientRect()
+    const factor = scale * (drawerRef.current?.mapPixel ?? 1)
+    const x = (clientX - rect.left) / factor
+    const y = (clientY - rect.top) / factor
+    return [x, y]
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    const [x, z] = getXZ(e.clientX, e.clientY)
+    const warp = adapter.warps.find(w => Math.hypot(w.x - x - worldX, w.z - z - worldZ) < 2)
+    setWarpPreview?.(
+      warp ? { name: warp.name, x: warp.x, z: warp.z, clientX: e.clientX, clientY: e.clientY } : undefined
+    )
   }
 
   useEffect(() => {
@@ -219,12 +251,14 @@ const MapChunk = (
     canvasRef.current?.addEventListener('touchstart', longPress)
     canvasRef.current?.addEventListener('touchend', cancel)
     canvasRef.current?.addEventListener('touchmove', cancel)
+    canvasRef.current?.addEventListener('mousemove', handleMouseMove)
 
     return () => {
       canvasRef.current?.removeEventListener('contextmenu', handleClick)
       canvasRef.current?.removeEventListener('touchstart', longPress)
       canvasRef.current?.removeEventListener('touchend', cancel)
       canvasRef.current?.removeEventListener('touchmove', cancel)
+      canvasRef.current?.removeEventListener('mousemove', handleMouseMove)
     }
   }, [canvasRef.current, scale])
 
