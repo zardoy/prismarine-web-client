@@ -40,7 +40,7 @@ export default (
             drawerRef.current!.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
           })
         } else {
-          drawerRef.current!.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
+          drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
         }
         canvasTick.current = 0
       }
