@@ -35,7 +35,7 @@ export default (
         drawerRef.current.updateWorldColors(adapter.getHighestBlockColor, adapter.playerPosition.x, adapter.playerPosition.z, false)
       }
       if (canvasTick.current % 300 === 0) {
-        drawerRef.current!.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
+        drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
         canvasTick.current = 0
       }
     }
