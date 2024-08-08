@@ -3,6 +3,7 @@ import { Vec3 } from 'vec3'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
+import { proxy, subscribe, snapshot } from 'valtio'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
 import { warps, showModal, hideModal, miscUiState } from '../globalState'
@@ -15,19 +16,29 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   playerPosition: Vec3
   yaw: number
   warps: WorldWarp[]
+  serverWarpsProxy: WorldWarp[]
+  warpsSubscription: ReturnType<typeof subscribe>
   world: string
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
 
-  constructor (pos?: Vec3, initialWarps?: WorldWarp[]) {
+  constructor (pos?: Vec3) {
     super()
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = warps
+    if (localServer) {
+      this.serverWarpsProxy = proxy(localServer.warps)
+      this.warpsSubscription = subscribe(this.serverWarpsProxy, () => {
+        this.overwriteWarps(localServer.warps)
+      })
+      this.overwriteWarps(localServer.warps)
+    }
+  }
+
+  overwriteWarps (newWarps: WorldWarp[]) {
     this.warps.splice(0, this.warps.length)
-    if (initialWarps) {
-      for (const warp of initialWarps) {
-        this.warps.push({ ...warp })
-      }
+    for (const warp of newWarps) {
+      this.warps.push({ ...warp })
     }
   }
 
@@ -106,7 +117,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       this.warps[index] = warp
     }
     if (localServer) {
-      void localServer.setWarp(warp, remove)
+      // type suppressed until server is updated. It works fine
+      void (localServer as any).setWarp(warp, remove)
     }
     this.emit('updateWarps')
   }
@@ -121,7 +133,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
 }
 
 export default ({ displayMode }: { displayMode?: DisplayMode }) => {
-  const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position, localServer?.warps))
+  const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position))
   const fullMapOpened = useIsModalActive('full-map')
 
   const updateMap = () => {

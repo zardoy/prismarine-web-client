@@ -186,13 +186,13 @@ const MapChunk = (
     if (!drawerRef.current) return
     let clientX: number
     let clientY: number
-    if ('buttons' in e && e.button !== 2) {
+    if ('buttons' in e && e.button === 2) {
       clientX = e.clientX
       clientY = e.clientY
-    } else {
-      clientX = (e as TouchEvent).changedTouches[0].clientX
-      clientY = (e as TouchEvent).changedTouches[0].clientY
-    }
+    } else if ('changedTouches' in e) {
+      clientX = (e).changedTouches[0].clientX
+      clientY = (e).changedTouches[0].clientY
+    } else { return }
     const rect = canvasRef.current!.getBoundingClientRect()
     const factor = scale * (drawerRef.current?.mapPixel ?? 1)
     const x = (clientX - rect.left) / factor

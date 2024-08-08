@@ -187,7 +187,19 @@ export class MinimapDrawer {
     // const worldZ = z
 
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
-    this.lastWarpPos = new Vec3(Math.floor(botPos.x + mousePos.x), 0, Math.floor(botPos.z + mousePos.z))
+    const x = Math.floor(botPos.x + mousePos.x)
+    const z = Math.floor(botPos.z + mousePos.z)
+    const { height } = (bot.game as any)
+    let y = (bot.game as any).minY + height
+    const transparentBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
+    for (let i = height; i > 0; i -= 1) {
+      const block = bot.world.getBlock(new Vec3(x, (bot.game as any).minY + i, z))
+      if (block && !transparentBlocks.has(block.name)) {
+        y = block.position.y + 3
+        break
+      }
+    }
+    this.lastWarpPos = new Vec3(x, y, z)
   }
 
   drawWarps (centerPos?: Vec3, full?: boolean) {

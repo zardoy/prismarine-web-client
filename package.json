@@ -167,7 +167,6 @@
   },
   "pnpm": {
     "overrides": {
-      "flying-squid": "file:../space-squid",
       "buffer": "^6.0.3",
       "@nxg-org/mineflayer-physics-util": "1.5.8",
       "three": "0.154.0",
