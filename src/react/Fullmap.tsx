@@ -166,17 +166,37 @@ const MapChunk = (
 ) => {
   const containerRef = useRef(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
+  const touchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isCanvas, setIsCanvas] = useState(false)
 
-  const handleClick = (e: MouseEvent) => {
+  const longPress = (e) => {
+    touchTimer.current = setTimeout(() => {
+      touchTimer.current = null
+      handleClick(e)
+    }, 500)
+  }
+
+  const cancel = () => {
+    if (touchTimer.current) clearTimeout(touchTimer.current)
+  }
+
+  const handleClick = (e: MouseEvent | TouchEvent) => {
     console.log('click:', e)
     if (!drawerRef.current) return
-    if ('buttons' in e && e.button !== 2) return
+    let clientX: number
+    let clientY: number
+    if ('buttons' in e && e.button !== 2) {
+      clientX = e.clientX
+      clientY = e.clientY
+    } else {
+      clientX = (e as TouchEvent).changedTouches[0].clientX
+      clientY = (e as TouchEvent).changedTouches[0].clientY
+    }
     const rect = canvasRef.current!.getBoundingClientRect()
     const factor = scale * (drawerRef.current?.mapPixel ?? 1)
-    const x = (e.clientX - rect.left) / factor
-    const y = (e.clientY - rect.top) / factor
+    const x = (clientX - rect.left) / factor
+    const y = (clientY - rect.top) / factor
     drawerRef.current.setWarpPosOnClick(new Vec3(Math.floor(x), 0, Math.floor(y)), new Vec3(worldX, 0, worldZ))
     setLastWarpPos(drawerRef.current.lastWarpPos)
     const { lastWarpPos } = drawerRef.current
@@ -196,9 +216,15 @@ const MapChunk = (
 
   useEffect(() => {
     canvasRef.current?.addEventListener('contextmenu', handleClick)
+    canvasRef.current?.addEventListener('touchstart', longPress)
+    canvasRef.current?.addEventListener('touchend', cancel)
+    canvasRef.current?.addEventListener('touchmove', cancel)
 
     return () => {
       canvasRef.current?.removeEventListener('contextmenu', handleClick)
+      canvasRef.current?.removeEventListener('touchstart', longPress)
+      canvasRef.current?.removeEventListener('touchend', cancel)
+      canvasRef.current?.removeEventListener('touchmove', cancel)
     }
   }, [canvasRef.current, scale])
 
@@ -380,7 +406,7 @@ const WarpInfo = (
             afterWarpIsSet?.()
           }}
         >Add</Button>
-        { initWarp && <Button
+        {initWarp && <Button
           onClick={() => {
             const index = adapter.warps.findIndex(thisWarp => thisWarp.name === warp.name)
             if (index !== -1) {
@@ -389,7 +415,7 @@ const WarpInfo = (
               afterWarpIsSet?.()
             }
           }}
-        >Delete</Button> }
+        >Delete</Button>}
         <Button
           onClick={() => {
             setIsWarpInfoOpened(false)
