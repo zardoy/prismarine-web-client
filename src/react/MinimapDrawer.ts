@@ -10,6 +10,7 @@ export type MapUpdates = {
 
 export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   getHighestBlockColor: (x: number, z: number) => Promise<string>
+  getHighestBlockY: (x: number, z: number) => number
   playerPosition: Vec3
   warps: WorldWarp[]
   world?: string
@@ -170,7 +171,7 @@ export class MinimapDrawer {
     }
   }
 
-  setWarpPosOnClick (mousePos: Vec3, botPos: Vec3, worldParameters: typeof bot.game) {
+  setWarpPosOnClick (mousePos: Vec3) {
     // if (!e.target) return
     // const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
     // const clickX = (e as MouseEvent).clientX - rect.left
@@ -187,19 +188,7 @@ export class MinimapDrawer {
     // const worldZ = z
 
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
-    const x = Math.floor(botPos.x + mousePos.x)
-    const z = Math.floor(botPos.z + mousePos.z)
-    const { height, minY } = (worldParameters as any)
-    let y = minY + height
-    const transparentBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
-    for (let i = height; i > 0; i -= 1) {
-      const block = bot.world.getBlock(new Vec3(x, minY + i, z))
-      if (block && !transparentBlocks.has(block.name)) {
-        y = block.position.y + 3
-        break
-      }
-    }
-    this.lastWarpPos = new Vec3(x, y, z)
+    this.lastWarpPos = new Vec3(mousePos.x, mousePos.y, mousePos.z)
   }
 
   drawWarps (centerPos?: Vec3, full?: boolean) {

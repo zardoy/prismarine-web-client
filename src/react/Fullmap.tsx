@@ -186,7 +186,6 @@ const MapChunk = (
   const drawerRef = useRef<MinimapDrawer | null>(null)
   const touchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const mousePos = useRef({ x: 0, y: 0 })
   const [isCanvas, setIsCanvas] = useState(false)
 
   const longPress = (e) => {
@@ -213,7 +212,10 @@ const MapChunk = (
       clientY = (e).changedTouches[0].clientY
     } else { return }
     const [x, z] = getXZ(clientX, clientY)
-    drawerRef.current.setWarpPosOnClick(new Vec3(Math.floor(x), 0, Math.floor(z)), new Vec3(worldX, 0, worldZ), bot.game)
+    const mapX = Math.floor(x + worldX)
+    const mapZ = Math.floor(z + worldZ)
+    const y = adapter.getHighestBlockY(mapX, mapZ)
+    drawerRef.current.setWarpPosOnClick(new Vec3(mapX, y, mapZ))
     setLastWarpPos(drawerRef.current.lastWarpPos)
     const { lastWarpPos } = drawerRef.current
     const initWarp = adapter.warps.find(warp => Math.hypot(lastWarpPos.x - warp.x, lastWarpPos.z - warp.z) < 2)

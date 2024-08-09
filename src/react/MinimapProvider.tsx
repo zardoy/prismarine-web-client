@@ -3,7 +3,6 @@ import { Vec3 } from 'vec3'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
-import { proxy, subscribe, snapshot } from 'valtio'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
 import { warps, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
@@ -16,8 +15,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   playerPosition: Vec3
   yaw: number
   warps: WorldWarp[]
-  serverWarpsProxy: WorldWarp[]
-  warpsSubscription: ReturnType<typeof subscribe>
   world: string
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
@@ -26,10 +23,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     super()
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = warps
-    const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp}`)
     if (localServer) {
       this.overwriteWarps(localServer.warps)
     } else {
+      const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp ?? ''}`)
       this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
     }
   }
@@ -124,6 +121,20 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       localStorage.setItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp}`, JSON.stringify(this.warps))
     }
     this.emit('updateWarps')
+  }
+
+  getHighestBlockY (x: number, z: number) {
+    const { height, minY } = (bot.game as any)
+    let y = minY + height
+    const transparentBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
+    for (let i = height; i > 0; i -= 1) {
+      const block = bot.world.getBlock(new Vec3(x, minY + i, z))
+      if (block && !transparentBlocks.has(block.name)) {
+        y = block.position.y + 3
+        break
+      }
+    }
+    return y
   }
 
   async getChunkSingleplayer (chunkX: number, chunkZ: number) {
