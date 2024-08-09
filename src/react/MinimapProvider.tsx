@@ -150,7 +150,12 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
   const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position))
   const fullMapOpened = useIsModalActive('full-map')
 
-  const updateWarps = (newWarps) => {
+  const updateWarps = (newWarps: WorldWarp[] | Error) => {
+    if (newWarps instanceof Error) {
+      console.error('An error occurred:', newWarps.message)
+      return
+    }
+
     adapter.overwriteWarps(newWarps)
   }
 
@@ -178,8 +183,8 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
     localServer?.on('warpsUpdated' as keyof ServerEvents, updateWarps)
 
     return () => {
-      bot.off('move', updateMap)
-      contro.off('trigger', toggleFullMap)
+      bot?.off('move', updateMap)
+      contro?.off('trigger', toggleFullMap)
       localServer?.off('warpsUpdated' as keyof ServerEvents, updateWarps)
     }
   }, [])

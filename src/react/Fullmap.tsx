@@ -1,5 +1,5 @@
 import { Vec3 } from 'vec3'
-import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction, RefObject } from 'react'
+import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
 import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
@@ -15,7 +15,7 @@ type FullmapProps = {
   canvasRef: any
 }
 
-export default ({ toggleFullMap, adapter, drawer, canvasRef }: FullmapProps) => {
+export default ({ toggleFullMap, adapter }: FullmapProps) => {
   const [grid, setGrid] = useState(() => new Set<string>())
   const zoomRef = useRef<ReactZoomPanPinchRef>(null)
   const redrawCell = useRef(false)
@@ -313,7 +313,7 @@ const MapChunk = (
 }
 
 const WarpInfo = (
-  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp, setInitWarp }
+  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp }
   :
   {
     adapter: DrawerAdapter,
