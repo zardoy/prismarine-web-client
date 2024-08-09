@@ -30,6 +30,7 @@ export class MinimapDrawer {
   lastWarpPos: Vec3
   mapPixel: number
   isMapUpdating: boolean
+  full: boolean | undefined
 
   constructor (
     canvas: HTMLCanvasElement,
@@ -109,41 +110,52 @@ export class MinimapDrawer {
   ) {
     if (this.isMapUpdating) return
     this.isMapUpdating = true
-    const left = this.centerX - this.radius
-    const top = this.centerY - this.radius
+    this.full = full
 
-    this.ctx.save()
-
-    this.ctx.beginPath()
-    if (full) {
-      this.ctx.rect(this.centerX - this.radius, this.centerY - this.radius, this.radius * 2, this.radius * 2)
-    } else {
-      this.ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2, true)
-    }
-    this.ctx.clip()
+    // this.ctx.save()
+    //
+    // this.ctx.beginPath()
+    // if (full) {
+    //   this.ctx.rect(this.centerX - this.radius, this.centerY - this.radius, this.radius * 2, this.radius * 2)
+    // } else {
+    //   this.ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2, true)
+    // }
+    // this.ctx.clip()
 
     for (let row = 0; row < this.mapSize; row += 1) {
       for (let col = 0; col < this.mapSize; col += 1) {
-        const roundX = Math.floor(x - this.mapSize / 2 + col)
-        const roundZ = Math.floor(z - this.mapSize / 2 + row)
-        const key = `${roundX},${roundZ}`
-        const fillColor = this.worldColors[key] ?? await this.adapter.getHighestBlockColor(roundX, roundZ)
-        if (fillColor !== 'rgb(200, 200, 200)' && !this.worldColors[key]) this.worldColors[key] = fillColor
-        this.ctx.fillStyle = fillColor
-        this.ctx.fillRect(
-          left + this.mapPixel * col,
-          top + this.mapPixel * row,
-          this.mapPixel,
-          this.mapPixel
-        )
+        void this.drawPixel(x, z, col, row)
       }
     }
 
-    const clippedImage = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-    this.ctx.restore()
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.ctx.putImageData(clippedImage, 0, 0)
+    // const clippedImage = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
+    // this.ctx.restore()
+    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    // this.ctx.putImageData(clippedImage, 0, 0)
     this.isMapUpdating = false
+  }
+
+  async drawPixel (x: number, z: number, col: number, row: number) {
+    const left = this.centerX - this.radius
+    const top = this.centerY - this.radius
+    const pixelX = left + this.mapPixel * col
+    const pixelY = top + this.mapPixel * row
+    if (!this.full && Math.hypot(pixelX - this.centerX, pixelY - this.centerY) > this.radius) {
+      this.ctx.clearRect(pixelX, pixelY, this.mapPixel, this.mapPixel)
+      return
+    }
+    const roundX = Math.floor(x - this.mapSize / 2 + col)
+    const roundZ = Math.floor(z - this.mapSize / 2 + row)
+    const key = `${roundX},${roundZ}`
+    const fillColor = this.worldColors[key] ?? await this.adapter.getHighestBlockColor(roundX, roundZ)
+    if (fillColor !== 'rgb(200, 200, 200)' && !this.worldColors[key]) this.worldColors[key] = fillColor
+    this.ctx.fillStyle = fillColor
+    this.ctx.fillRect(
+      pixelX,
+      pixelY,
+      this.mapPixel,
+      this.mapPixel
+    )
   }
 
   async getHighestBlockColorCached (

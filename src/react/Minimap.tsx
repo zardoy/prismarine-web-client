@@ -117,7 +117,7 @@ export default (
         <canvas style={{
           transition: '0.5s',
           transitionTimingFunction: 'ease-out',
-          borderRadius: '100px'
+          borderRadius: '1000px'
         }}
         width={80}
         height={80}
