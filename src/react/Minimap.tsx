@@ -32,7 +32,7 @@ export default (
       if (!full.current && canvasTick.current % 3 === 0) {
         rotateMap()
         drawerRef.current.clearRect()
-        drawerRef.current.updateWorldColors(adapter.getHighestBlockColor, adapter.playerPosition.x, adapter.playerPosition.z, false)
+        void drawerRef.current.updateWorldColors(adapter.getHighestBlockColor, adapter.playerPosition.x, adapter.playerPosition.z, false)
       }
       if (canvasTick.current % 300 === 0) {
         if ('requestIdleCallback' in window) {

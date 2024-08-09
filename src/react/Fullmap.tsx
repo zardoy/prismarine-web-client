@@ -430,13 +430,7 @@ const WarpInfo = (
       <div style={fieldCont}>
         <Button
           onClick={() => {
-            adapter.setWarp(
-              warp.name,
-              new Vec3(warp.x, warp.y, warp.z),
-              warp.color ?? '#d3d3d3',
-              warp.disabled ?? false,
-              warp.world ?? 'overworld'
-            )
+            adapter.setWarp({ ...warp })
             console.log(adapter.warps)
             setIsWarpInfoOpened(false)
             afterWarpIsSet?.()
@@ -446,7 +440,7 @@ const WarpInfo = (
           onClick={() => {
             const index = adapter.warps.findIndex(thisWarp => thisWarp.name === warp.name)
             if (index !== -1) {
-              adapter.setWarp(warp.name, new Vec3(0, 0, 0), '', false, '', true)
+              adapter.setWarp({ name: warp.name, x: 0, y: 0, z: 0, color: '', disabled: false, world: '' }, true)
               setIsWarpInfoOpened(false)
               afterWarpIsSet?.()
             }

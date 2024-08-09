@@ -47,9 +47,8 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
     return 0
   }
 
-  setWarp (name: string, pos: Vec3, color: string, disabled: boolean, world?: string): void {
-    const warp: WorldWarp = { name, x: pos.x, y: pos.y, z: pos.z, world, color, disabled }
-    const index = this.warps.findIndex(w => w.name === name)
+  setWarp (warp: WorldWarp, remove?: boolean): void {
+    const index = this.warps.findIndex(w => w.name === warp.name)
     if (index === -1) {
       this.warps.push(warp)
     } else {

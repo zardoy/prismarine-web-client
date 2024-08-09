@@ -101,10 +101,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return color
   }
 
-  setWarp (name: string, pos: Vec3, color: string, disabled: boolean, world?: string, remove?: boolean): void {
+  setWarp (warp: WorldWarp, remove?: boolean): void {
     this.world = bot.game.dimension
-    const warp: WorldWarp = { name, x: pos.x, y: pos.y, z: pos.z, world: world ?? this.world, color, disabled }
-    const index = this.warps.findIndex(w => w.name === name)
+    const index = this.warps.findIndex(w => w.name === warp.name)
     if (index === -1) {
       this.warps.push(warp)
     } else if (remove && index !== -1) {
