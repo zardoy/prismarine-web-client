@@ -29,7 +29,7 @@ export class MinimapDrawer {
   lastBotPos: Vec3
   lastWarpPos: Vec3
   mapPixel: number
-  isMapUpdating: boolean
+  updatingPixels: Set<string>
   full: boolean | undefined
 
   constructor (
@@ -38,6 +38,7 @@ export class MinimapDrawer {
   ) {
     this.canvas = canvas
     this.adapter = adapter
+    this.updatingPixels = new Set([] as string[])
   }
 
   get canvas () {
@@ -108,31 +109,13 @@ export class MinimapDrawer {
     z: number,
     full?: boolean
   ) {
-    if (this.isMapUpdating) return
-    this.isMapUpdating = true
     this.full = full
-
-    // this.ctx.save()
-    //
-    // this.ctx.beginPath()
-    // if (full) {
-    //   this.ctx.rect(this.centerX - this.radius, this.centerY - this.radius, this.radius * 2, this.radius * 2)
-    // } else {
-    //   this.ctx.arc(this.centerX, this.centerY, this.radius, 0, Math.PI * 2, true)
-    // }
-    // this.ctx.clip()
 
     for (let row = 0; row < this.mapSize; row += 1) {
       for (let col = 0; col < this.mapSize; col += 1) {
         void this.drawPixel(x, z, col, row)
       }
     }
-
-    // const clippedImage = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-    // this.ctx.restore()
-    // this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    // this.ctx.putImageData(clippedImage, 0, 0)
-    this.isMapUpdating = false
   }
 
   async drawPixel (x: number, z: number, col: number, row: number) {
@@ -140,6 +123,9 @@ export class MinimapDrawer {
     const top = this.centerY - this.radius
     const pixelX = left + this.mapPixel * col
     const pixelY = top + this.mapPixel * row
+    const pixelKey = `${pixelX},${pixelY}`
+    if (this.updatingPixels.has(pixelKey)) return
+    this.updatingPixels.add(pixelKey)
     if (!this.full && Math.hypot(pixelX - this.centerX, pixelY - this.centerY) > this.radius) {
       this.ctx.clearRect(pixelX, pixelY, this.mapPixel, this.mapPixel)
       return
@@ -156,6 +142,7 @@ export class MinimapDrawer {
       this.mapPixel,
       this.mapPixel
     )
+    this.updatingPixels.delete(pixelKey)
   }
 
   async getHighestBlockColorCached (
