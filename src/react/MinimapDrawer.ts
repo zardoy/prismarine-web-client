@@ -170,7 +170,7 @@ export class MinimapDrawer {
     }
   }
 
-  setWarpPosOnClick (mousePos: Vec3, botPos: Vec3) {
+  setWarpPosOnClick (mousePos: Vec3, botPos: Vec3, worldParameters: typeof bot.game) {
     // if (!e.target) return
     // const rect = (e.target as HTMLCanvasElement).getBoundingClientRect()
     // const clickX = (e as MouseEvent).clientX - rect.left
@@ -189,11 +189,11 @@ export class MinimapDrawer {
     // console.log([(botPos.x + worldX).toFixed(0), (botPos.z + worldZ).toFixed(0)])
     const x = Math.floor(botPos.x + mousePos.x)
     const z = Math.floor(botPos.z + mousePos.z)
-    const { height } = (bot.game as any)
-    let y = (bot.game as any).minY + height
+    const { height, minY } = (worldParameters as any)
+    let y = minY + height
     const transparentBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
     for (let i = height; i > 0; i -= 1) {
-      const block = bot.world.getBlock(new Vec3(x, (bot.game as any).minY + i, z))
+      const block = bot.world.getBlock(new Vec3(x, minY + i, z))
       if (block && !transparentBlocks.has(block.name)) {
         y = block.position.y + 3
         break

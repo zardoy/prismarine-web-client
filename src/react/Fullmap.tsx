@@ -213,7 +213,7 @@ const MapChunk = (
       clientY = (e).changedTouches[0].clientY
     } else { return }
     const [x, z] = getXZ(clientX, clientY)
-    drawerRef.current.setWarpPosOnClick(new Vec3(Math.floor(x), 0, Math.floor(z)), new Vec3(worldX, 0, worldZ))
+    drawerRef.current.setWarpPosOnClick(new Vec3(Math.floor(x), 0, Math.floor(z)), new Vec3(worldX, 0, worldZ), bot.game)
     setLastWarpPos(drawerRef.current.lastWarpPos)
     const { lastWarpPos } = drawerRef.current
     const initWarp = adapter.warps.find(warp => Math.hypot(lastWarpPos.x - warp.x, lastWarpPos.z - warp.z) < 2)

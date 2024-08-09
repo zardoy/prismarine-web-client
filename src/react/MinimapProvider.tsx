@@ -6,7 +6,7 @@ import { PCChunk } from 'prismarine-chunk'
 import { proxy, subscribe, snapshot } from 'valtio'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
-import { warps, showModal, hideModal, miscUiState } from '../globalState'
+import { warps, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
 import { options } from '../optionsStorage'
 import Minimap, { DisplayMode } from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
@@ -26,8 +26,11 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     super()
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = warps
+    const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp}`)
     if (localServer) {
       this.overwriteWarps(localServer.warps)
+    } else {
+      this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
     }
   }
 
@@ -115,6 +118,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     if (localServer) {
       // type suppressed until server is updated. It works fine
       void (localServer as any).setWarp(warp, remove)
+    } else if (remove) {
+      localStorage.removeItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp}`)
+    } else {
+      localStorage.setItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp}`, JSON.stringify(this.warps))
     }
     this.emit('updateWarps')
   }
