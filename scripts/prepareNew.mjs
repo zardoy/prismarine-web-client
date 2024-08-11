@@ -8,6 +8,7 @@ import { gzipSizeFromFileSync } from 'gzip-size'
 import fs from 'fs'
 import  {default as _JsonOptimizer}  from './optimizeJson'
 import { buildSync } from 'esbuild'
+import { gzipSync } from 'zlib';
 
 /** @type {typeof _JsonOptimizer} */
 //@ts-ignore
@@ -41,11 +42,19 @@ const versionToNumber = (ver) => {
 }
 
 // if not included here (even as {}) will not be bundled & accessible!
+const minify = true
+// const dataTypeBundling = {
+//   recipes: {
+//     arrKey: 'name',
+//     // ignoreRemoved: true,
+//     // ignoreChanges: true
+//   }
+// }
 const dataTypeBundling = {
-  language: {
-    ignoreRemoved: true,
-    ignoreChanges: true
-  },
+  // language: {
+  //   ignoreRemoved: true,
+  //   ignoreChanges: true
+  // },
   blocks: {
     arrKey: 'name',
     // ignoreRemoved: true,
@@ -123,8 +132,10 @@ console.log("Not bundling minecraft-data data:", notBundling)
 
 let contents = 'Object.assign(window.mcData, {\n'
 let previousData = {}
+// /** @type {Record<string, JsonOptimizer>} */
 const diffSources = {}
 const versionsArr = Object.entries(versions)
+const sizePerDataType = {}
 // const versionsArr = Object.entries(versions).slice(-1)
 for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
   // console.log(i, '/', versionsArr.length)
@@ -140,42 +151,77 @@ for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
     const dataPathAbsolute = require.resolve(`minecraft-data/${loc}${dataType}`)
     // const data = fs.readFileSync(dataPathAbsolute, 'utf8')
     const dataRaw = require(dataPathAbsolute)
-    let data
+    let injectCode = ''
+    let rawData = dataRaw
     if (config.raw) {
-      data = dataRaw
+      rawData = dataRaw
     } else {
       if (!diffSources[dataType]) {
-        diffSources[dataType] = new JsonOptimizer()
-        diffSources[dataType].source = dataRaw
-        if (config.arrKey) diffSources[dataType].arrKey = config.arrKey
-        if (config.ignoreChanges) diffSources[dataType].ignoreChanges = config.ignoreChanges
-        if (config.ignoreRemoved) diffSources[dataType].ignoreRemoved = config.ignoreRemoved
+        diffSources[dataType] = new JsonOptimizer(config.arrKey, config.ignoreChanges, config.ignoreRemoved)
       }
-      data = diffSources[dataType].diffObj(dataRaw)
+      try {
+        diffSources[dataType].recordDiff(version, dataRaw)
+        injectCode = `restoreDiff(sources, ${JSON.stringify(dataType)}, ${JSON.stringify(version)})`
+      } catch (err) {
+        const error = new Error(`Failed to diff ${dataType} for ${version}: ${err.message}`)
+        error.stack = err.stack
+        throw error
+      }
     }
+    sizePerDataType[dataType] ??= 0
+    sizePerDataType[dataType] += Buffer.byteLength(JSON.stringify(injectCode || rawData), 'utf8')
     if (config.genChanges && previousData[dataType]) {
       const changes = config.genChanges(previousData[dataType], dataRaw)
-      Object.assign(data, changes)
+      // Object.assign(data, changes)
     }
     previousData[dataType] = dataRaw
-    contents += `      get ${dataType} () { return ${JSON.stringify(data)} },\n`
+    contents += `      get ${dataType} () { return ${injectCode || JSON.stringify(rawData)} },\n`
   }
   contents += '    },\n'
 }
 contents += '})'
-contents += `\n\nwindow.sources = ${JSON.stringify(Object.fromEntries(Object.entries(diffSources).map(x => [x[0], x[1].export()])), null, 4)}`
+contents += `\n\nconst sources = ${JSON.stringify(Object.fromEntries(Object.entries(diffSources).map(x => {
+  const data = x[1].export();
+  // const data = {}
+  sizePerDataType[x[0]] += Buffer.byteLength(JSON.stringify(data), 'utf8')
+  return [x[0], data];
+})), null, 4)}`
+
+const totalSize = Object.values(sizePerDataType).reduce((acc, val) => acc + val, 0)
+console.log('total size (mb)', totalSize / 1024 / 1024)
+console.log(
+  'size per data type (mb, %)',
+  Object.fromEntries(Object.entries(sizePerDataType).map(([dataType, size]) => {
+    return [dataType, [size / 1024 / 1024, Math.round(size / totalSize * 100)]];
+  }).sort((a, b) => {
+    //@ts-ignore
+    return b[1][1] - a[1][1];
+  }))
+)
+
+function compressToBase64(input) {
+  const buffer = gzipSync(input);
+  return buffer.toString('base64');
+}
 
 const filePath = './generated/new.js'
-buildSync({
-  bundle: true,
-  minify: true,
-  outfile: filePath,
-  stdin: {
-    contents,
+if (minify) {
+  buildSync({
+    bundle: true,
+    minify: true,
+    outfile: filePath,
+    stdin: {
+      contents,
 
-    loader: 'js',
-  },
-})
-// fs.writeFileSync(filePath, contents, 'utf8')
+      loader: 'js',
+    },
+  })
+  const minizedCompressed = compressToBase64(fs.readFileSync(filePath))
+  console.log('size of compressed', Buffer.byteLength(minizedCompressed, 'utf8') / 1000 / 1000)
+  const compressedFilePath = './experiments/compressed.js'
+  fs.writeFileSync(compressedFilePath, minizedCompressed, 'utf8')
+} else {
+  fs.writeFileSync(filePath, contents, 'utf8')
+}
 
-console.log('size', fs.lstatSync(filePath).size / 1024 / 1024, gzipSizeFromFileSync(filePath) / 1024 / 1024)
+console.log('size', fs.lstatSync(filePath).size / 1000 / 1000, gzipSizeFromFileSync(filePath) / 1000 / 1000)
