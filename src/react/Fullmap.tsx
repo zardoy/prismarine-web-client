@@ -353,7 +353,7 @@ const WarpInfo = (
       flexDirection: 'column',
       backgroundColor: 'rgba(0, 0, 0, 0.5)',
       fontSize: '0.8em',
-      transform: 'scale(3)'
+      transform: 'scale(2)'
     }}
   >
     <div
@@ -361,7 +361,7 @@ const WarpInfo = (
         display: 'flex',
         flexDirection: 'column',
         gap: '10px',
-        width: '100%',
+        width: window.screen.width > 500 ? '100%' : '50%',
         minWidth: '100px',
         maxWidth: '300px',
         padding: '20px',
