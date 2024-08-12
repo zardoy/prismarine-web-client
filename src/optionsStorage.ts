@@ -43,6 +43,10 @@ const defaultOptions = {
   loadPlayerSkins: true,
   lowMemoryMode: false,
   starfieldRendering: true,
+  enabledResourcepack: null as string | null,
+  useVersionsTextures: 'latest',
+  serverResourcePacks: 'prompt' as 'prompt' | 'always' | 'never',
+
   // antiAliasing: false,
 
   showChunkBorders: false, // todo rename option

@@ -15,17 +15,15 @@ export type CustomCommand = {
 
 export type CustomCommandsMap = Record<string, CustomCommand>
 
-export default (
-  {
-    customCommands,
-    updateCurrBind,
-    resetBinding,
-  }: {
-    customCommands: CustomCommandsMap,
-    updateCurrBind: (group: string, action: string) => void,
-    resetBinding: (group: string, action: string, inputType: string) => void,
-  }
-) => {
+export default ({
+  customCommands,
+  updateCurrBind,
+  resetBinding,
+}: {
+  customCommands: CustomCommandsMap,
+  updateCurrBind: (group: string, action: string) => void,
+  resetBinding: (group: string, action: string, inputType: string) => void,
+}) => {
   const { userConfig, setUserConfig } = useContext(Context)
   const [customConfig, setCustomConfig] = useState<any>({ ...customCommands })
 
@@ -77,16 +75,14 @@ export default (
   </>
 }
 
-const CustomCommandContainer = (
-  {
-    indexOption,
-    commandData,
-    updateCurrBind,
-    setCustomConfig,
-    resetBinding,
-    groupData
-  }
-) => {
+const CustomCommandContainer = ({
+  indexOption,
+  commandData,
+  updateCurrBind,
+  setCustomConfig,
+  resetBinding,
+  groupData
+}) => {
   const { userConfig } = useContext(Context)
 
   const [commandKey, { keys, gamepad, inputs }] = commandData
@@ -132,8 +128,7 @@ const CustomCommandContainer = (
         inputType={'keyboard'}
         keys={keys}
         gamepad={gamepad}
-      />
-      )}
+      />)}
 
       <div style={{ marginRight: 'auto' }} ></div>
 

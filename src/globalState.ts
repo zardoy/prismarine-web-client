@@ -123,15 +123,13 @@ export type AppConfig = {
   defaultProxy?: string
   // defaultProxySave?: string
   // defaultVersion?: string
-  promoteServers?: Array<{ ip, description, version?}>
+  promoteServers?: Array<{ ip, description, version? }>
   mapsProvider?: string
 }
 
 export const miscUiState = proxy({
   currentDisplayQr: null as string | null,
   currentTouch: null as boolean | null,
-  serverIp: null as string | null,
-  username: '',
   hasErrors: false,
   singleplayer: false,
   flyingSquid: false,
@@ -146,6 +144,12 @@ export const miscUiState = proxy({
   usingGamepadInput: false,
   appConfig: null as AppConfig | null,
   displaySearchInput: false,
+})
+
+export const loadedGameState = proxy({
+  username: '',
+  serverIp: '' as string | null,
+  usingServerResourcePack: false,
 })
 
 export const isGameActive = (foregroundCheck: boolean) => {

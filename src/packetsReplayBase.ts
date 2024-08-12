@@ -27,11 +27,11 @@ export class PacketsLogger {
 }
 
 export type ParsedReplayPacket = {
-    name: string
-    params: any
-    state: string
-    diff: number
-    isFromServer: boolean
+  name: string
+  params: any
+  state: string
+  diff: number
+  isFromServer: boolean
 }
 export function parseReplayContents (contents: string) {
   const lines = contents.split('\n')

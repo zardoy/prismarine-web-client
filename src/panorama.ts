@@ -2,9 +2,10 @@
 
 import { join } from 'path'
 import fs from 'fs'
+import * as THREE from 'three'
 import { subscribeKey } from 'valtio/utils'
 import { EntityMesh } from 'prismarine-viewer/viewer/lib/entity/EntityMesh'
-import { fromTexturePackPath, resourcePackState } from './texturePack'
+import { fromTexturePackPath, resourcePackState } from './resourcePack'
 import { options, watchValue } from './optionsStorage'
 import { miscUiState } from './globalState'
 
@@ -26,18 +27,20 @@ const possiblyLoadPanoramaFromResourcePack = async (file) => {
   let base64Texture
   if (panoramaUsesResourcePack) {
     try {
-      base64Texture = await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, file)), 'base64')
+      // TODO!
+      // base64Texture = await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, file)), 'base64')
     } catch (err) {
       panoramaUsesResourcePack = false
     }
   }
   if (base64Texture) return `data:image/png;base64,${base64Texture}`
-  else return join('extra-textures/background', file)
+  else return join('background', file)
 }
 
 const updateResourcePackSupportPanorama = async () => {
   try {
-    await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, panoramaFiles[0])), 'base64')
+    // TODO!
+    // await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, panoramaFiles[0])), 'base64')
     panoramaUsesResourcePack = true
   } catch (err) {
     panoramaUsesResourcePack = false

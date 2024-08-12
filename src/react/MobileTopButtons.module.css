@@ -16,7 +16,7 @@
   outline: 0.5px solid white;
   width: calc(14px * var(--scale));
   height: calc(14px * var(--scale));
-  background-image: url('extra-textures/gui.png');
+  background-image: url('../../assets/gui.png');
   background-size: calc(256px * var(--scale));
   background-position-x: calc(var(--scale) * -202px);
   background-position-y: calc(var(--scale) * -66px);

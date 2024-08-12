@@ -1,17 +1,14 @@
 import { useState, useEffect, useRef, createContext, useContext } from 'react'
 import { UserOverridesConfig } from 'contro-max/build/types/store'
-import { ModifierOnlyKeys } from 'contro-max/build/types/keyCodes'
+import { AllKeyCodes } from 'contro-max/build/types/keyCodes'
 import { contro as controEx } from '../controls'
 import { hideModal } from '../globalState'
-import triangle from './ps_icons/playstation_triangle_console_controller_gamepad_icon.svg'
-import square from './ps_icons/playstation_square_console_controller_gamepad_icon.svg'
-import circle from './ps_icons/circle_playstation_console_controller_gamepad_icon.svg'
-import cross from './ps_icons/cross_playstation_console_controller_gamepad_icon.svg'
 import PixelartIcon, { pixelartIcons } from './PixelartIcon'
 import KeybindingsCustom, { CustomCommandsMap } from './KeybindingsCustom'
 import { BindingActionsContext } from './KeybindingsScreenProvider'
 import Button from './Button'
 import Screen from './Screen'
+import Keybinding from './Keybinding'
 import styles from './KeybindingsScreen.module.css'
 
 
@@ -19,26 +16,21 @@ type HandleClick = (group: string, action: string, index: number, type: string |
 
 type setBinding = (data: any, group: string, command: string, buttonIndex: number) => void
 
-export const Context = createContext(
-  {
-    isPS: false as boolean | undefined,
-    userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig (config) { },
-    handleClick: (() => { }) as HandleClick,
-    parseBindingName (binding) { return '' as string },
-    bindsMap: { keyboard: {} as any, gamepad: {} as any }
-  }
-)
+export const Context = createContext({
+  isPS: false as boolean | undefined,
+  userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
+  setUserConfig (config) { },
+  handleClick: (() => { }) as HandleClick,
+  bindsMap: { keyboard: {} as any, gamepad: {} as any }
+})
 
-export default (
-  {
-    contro,
-    isPS,
-  }: {
-    contro: typeof controEx,
-    isPS?: boolean
-  }
-) => {
+export default ({
+  contro,
+  isPS,
+}: {
+  contro: typeof controEx,
+  isPS?: boolean
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
   const { commands } = contro.inputSchema
@@ -111,9 +103,7 @@ export default (
         setAwaitingInputType(null)
         return
       }
-      const pressedModifiers = [...contro.pressedKeys].filter(
-        key => /^(Meta|Control|Alt|Shift)?$/.test(key)
-      )
+      const pressedModifiers = [...contro.pressedKeys].filter(key => /^(Meta|Control|Alt|Shift)?$/.test(key))
       setBinding(
         { code: pressedModifiers.length ? `${pressedModifiers[0]}+${data.code}` : data.code, state: true },
         groupName,
@@ -187,7 +177,6 @@ export default (
     userConfig,
     setUserConfig,
     handleClick,
-    parseBindingName,
     bindsMap: bindsMap.current
   }}>
     <Screen title="Keybindings" backdrop>
@@ -282,7 +271,7 @@ export const ButtonWithMatchesAlert = ({
   keys,
   gamepad,
 }) => {
-  const { isPS, userConfig, handleClick, parseBindingName, bindsMap } = useContext(Context)
+  const { isPS, userConfig, handleClick, bindsMap } = useContext(Context)
   const [buttonSign, setButtonSign] = useState('')
 
   useEffect(() => {
@@ -290,19 +279,11 @@ export const ButtonWithMatchesAlert = ({
 
     const customValue = userConfig?.[group]?.[action]?.[type]?.[index]
     if (customValue) {
-      if (type === 'keys') {
-        setButtonSign(parseBindingName(customValue))
-      } else {
-        setButtonSign(isPS && buttonsMap[customValue] ? buttonsMap[customValue] : customValue)
-      }
+      setButtonSign(customValue)
     } else if (type === 'keys') {
-      setButtonSign(keys?.length ? parseBindingName(keys[index]) : '')
+      setButtonSign(keys?.length ? keys[index] : '')
     } else {
-      setButtonSign(gamepad?.[0] ?
-        isPS ?
-          buttonsMap[gamepad[0]] ?? gamepad[0]
-          : gamepad[0]
-        : '')
+      setButtonSign(gamepad?.[0] ?? '')
     }
   }, [userConfig, isPS])
 
@@ -313,18 +294,15 @@ export const ButtonWithMatchesAlert = ({
     <Button
       key={`${inputType}-${group}-${action}-${index}`}
       onClick={() => handleClick(group, action, index, inputType)}
-      className={`${styles.button}`}>
-      {buttonSign}
+      className={`${styles.button}`}
+    >
+      <Keybinding type={inputType} val={buttonSign as AllKeyCodes} />
     </Button>
-    {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(
-      key => Object.keys(bindsMap[inputType]).includes(key)
-        && bindsMap[inputType][key].length > 1
-        && bindsMap[inputType][key].some(
-          prop => prop.index === index
-            && prop.group === group
-            && prop.action === action
-        )
-    ) ? (
+    {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(key => Object.keys(bindsMap[inputType]).includes(key)
+    && bindsMap[inputType][key].length > 1
+    && bindsMap[inputType][key].some(prop => prop.index === index
+    && prop.group === group
+    && prop.action === action)) ? (
       //@ts-format-ignore-region
         <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
           <PixelartIcon
@@ -338,7 +316,7 @@ export const ButtonWithMatchesAlert = ({
             }}
           />
           <div>
-          This bind is already in use. <span></span>
+            This bind is already in use. <span></span>
           </div>
         </div>
       )
@@ -383,22 +361,4 @@ const parseActionName = (action: string) => {
   const parts = action.split(/(?=[A-Z])/)
   parts[0] = parts[0].charAt(0).toUpperCase() + parts[0].slice(1)
   return parts.join(' ')
-}
-
-const parseBindingName = (binding: string | undefined) => {
-  if (!binding) return ''
-  const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
-
-  const parts = cut.includes('+') ? cut.split('+') : [cut]
-  for (let i = 0; i < parts.length; i++) {
-    parts[i] = parts[i].split(/(?=[A-Z\d])/).reverse().join(' ')
-  }
-  return parts.join(' + ')
-}
-
-const buttonsMap = {
-  'A': cross,
-  'B': circle,
-  'X': square,
-  'Y': triangle
 }

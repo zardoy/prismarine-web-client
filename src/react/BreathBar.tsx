@@ -6,10 +6,9 @@ export type BreathBarProps = {
   oxygen: number,
 }
 
-export default (
-  {
-    oxygen,
-  }: BreathBarProps) => {
+export default ({
+  oxygen,
+}: BreathBarProps) => {
   const breathRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -43,12 +42,10 @@ export default (
     <div ref={breathRef} className='breathbar'>
       {
         Array.from({ length: 10 }, () => 0)
-          .map(
-            (num, index) => <div
-              key={`breath-${index}`}
-              className='breath'
-            ></div>
-          )
+          .map((num, index) => <div
+            key={`breath-${index}`}
+            className='breath'
+          ></div>)
       }
     </div>
   </SharedHudVars>

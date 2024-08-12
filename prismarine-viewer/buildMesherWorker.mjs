@@ -108,6 +108,7 @@ const buildOptions = {
         })
         build.onEnd(({ metafile, outputFiles }) => {
           if (!metafile) return
+          fs.mkdirSync(path.join(__dirname, './public'), { recursive: true })
           fs.writeFileSync(path.join(__dirname, './public/metafile.json'), JSON.stringify(metafile))
           for (const outDir of ['../dist/', './public/']) {
             for (const outputFile of outputFiles) {
@@ -115,8 +116,9 @@ const buildOptions = {
                 // skip writing & browser loading sourcemap there, worker debugging should be done in playground
                 // continue
               }
-              fs.mkdirSync(outDir, { recursive: true })
-              fs.writeFileSync(path.join(__dirname, outDir, path.basename(outputFile.path)), outputFile.text)
+              const writePath = path.join(__dirname, outDir, path.basename(outputFile.path))
+              fs.mkdirSync(path.dirname(writePath), { recursive: true })
+              fs.writeFileSync(writePath, outputFile.text)
             }
           }
         })

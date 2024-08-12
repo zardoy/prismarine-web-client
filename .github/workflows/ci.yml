@@ -21,6 +21,8 @@ jobs:
           # cache: "pnpm"
       - run: pnpm install
       - run: pnpm check-build
+      - run: pnpm build-playground
+      - run: pnpm build-storybook
       - run: pnpm test-unit
       - run: pnpm lint
       - run: pnpm tsx scripts/buildNpmReact.ts

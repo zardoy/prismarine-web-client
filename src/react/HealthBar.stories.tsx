@@ -7,7 +7,7 @@ const meta: Meta<typeof HealthBar> = {
 }
 
 export default meta
-type Story = StoryObj<typeof HealthBar>;
+type Story = StoryObj<typeof HealthBar>
 
 export const Primary: Story = {
   args: {

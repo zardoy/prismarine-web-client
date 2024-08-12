@@ -18,16 +18,14 @@ type TitleProps = {
   openActionBar: boolean
 }
 
-const Title = (
-  {
-    title,
-    subtitle,
-    actionBar,
-    transitionTimes,
-    openTitle = false,
-    openActionBar = false
-  }: TitleProps
-) => {
+const Title = ({
+  title,
+  subtitle,
+  actionBar,
+  transitionTimes,
+  openTitle = false,
+  openActionBar = false
+}: TitleProps) => {
   const [mounted, setMounted] = useState(false)
   const [useEnterTransition, setUseEnterTransition] = useState(true)
 
@@ -80,7 +78,8 @@ const Title = (
                 <MessageFormattedString message={subtitle} />
               </h4>
             </div>
-          )}}
+          )
+        }}
       </Transition>
       <Transition
         in={openActionBar}
