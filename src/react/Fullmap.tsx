@@ -53,7 +53,7 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
 
   return <div
     style={{
-      position: 'absolute',
+      position: 'fixed',
       isolation: 'isolate',
       inset: '0px',
       display: 'flex',
