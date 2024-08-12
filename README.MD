@@ -25,10 +25,10 @@ All components that are in [Storybook](https://mcraft.fun/storybook) are publish
 
 ### Recommended Settings
 
-- Controls -> **Raw Input** -> **On** - This will make the controls more precise
 - Controls -> **Touch Controls Type** -> **Joystick**
 - Controls -> **Auto Full Screen** -> **On** - To avoid ctrl+w issue
-- Interface -> **Chat Select** -> **On** - To select chat messages
+- Controls -> **Raw Input** -> **On** - This will make the controls more precise (UPD: already enabled by default)
+- Interface -> **Chat Select** -> **On** - To select chat messages (UPD: already enabled by default)
 
 ### World Loading
 
