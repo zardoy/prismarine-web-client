@@ -189,8 +189,8 @@ importers:
         specifier: ^4.4.5
         version: 4.4.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       react-zoom-pan-pinch:
-        specifier: ^3.6.1
-        version: 3.6.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: 3.4.4
+        version: 3.4.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       remark:
         specifier: ^15.0.1
         version: 15.0.1
@@ -7510,8 +7510,8 @@ packages:
       react: ^18.2.0
       react-dom: ^16.8.0  || ^17.0.0
 
-  react-zoom-pan-pinch@3.6.1:
-    resolution: {integrity: sha512-SdPqdk7QDSV7u/WulkFOi+cnza8rEZ0XX4ZpeH7vx3UZEg7DoyuAy3MCmm+BWv/idPQL2Oe73VoC0EhfCN+sZQ==}
+  react-zoom-pan-pinch@3.4.4:
+    resolution: {integrity: sha512-lGTu7D9lQpYEQ6sH+NSlLA7gicgKRW8j+D/4HO1AbSV2POvKRFzdWQ8eI0r3xmOsl4dYQcY+teV6MhULeg1xBw==}
     engines: {node: '>=8', npm: '>=5'}
     peerDependencies:
       react: ^18.2.0
@@ -18130,7 +18130,7 @@ snapshots:
       ts-easing: 0.2.0
       tslib: 2.6.2
 
-  react-zoom-pan-pinch@3.6.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
+  react-zoom-pan-pinch@3.4.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
