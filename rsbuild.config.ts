@@ -130,7 +130,7 @@ export default defineConfig({
                 }
                 if (!dev) {
                     build.onBeforeBuild(async () => {
-                        await prep()
+                        prep()
                     })
                     build.onAfterBuild(async () => {
                         const { count, size, warnings } = await generateSW({
@@ -144,7 +144,7 @@ export default defineConfig({
                         })
                     })
                 }
-                build.onBeforeStartDevServer(prep)
+                build.onBeforeStartDevServer(() => prep())
             },
         },
     ],
