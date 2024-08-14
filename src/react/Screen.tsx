@@ -9,7 +9,7 @@ interface Props {
 export default ({ title, children, backdrop = true, style, className }: Props) => {
   return (
     <>
-      {backdrop === 'dirt' ? <div className='dirt-bg'></div> : backdrop ? <div className="backdrop"></div> : null}
+      {backdrop === 'dirt' ? <div className='dirt-bg' /> : backdrop ? <div className="backdrop" /> : null}
       <div className={`fullscreen ${className}`} style={{ overflow: 'auto', ...style }}>
         <div className="screen-content">
           <div className="screen-title">{title}</div>

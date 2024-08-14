@@ -35,7 +35,7 @@ const AddElem = ({ elem }) => {
     }
   }, [])
 
-  return <div ref={ref}></div>
+  return <div ref={ref} />
 }
 
 // for (const key of Object.keys(viewer.world.sectionObjects)) {

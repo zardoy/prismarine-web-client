@@ -2,7 +2,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 import Button from './Button'
 
-const defaultIcon = <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3 21H5H19H21V3H19H5H3V21ZM19 5V19H5V5H19ZM11 17H13V11H15V9H13V7H11V9H9V11H11V17ZM9 13V11H7V13H9ZM17 13H15V11H17V13Z" fill="currentColor"></path></svg>
+const defaultIcon = <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3 21H5H19H21V3H19H5H3V21ZM19 5V19H5V5H19ZM11 17H13V11H15V9H13V7H11V9H9V11H11V17ZM9 13V11H7V13H9ZM17 13H15V11H17V13Z" fill="currentColor" /></svg>
 
 const Button2 = ({ title, icon }) => {
   //@ts-expect-error
@@ -23,7 +23,8 @@ const Comp = () => {
     display: 'grid',
     gridTemplateColumns: 'repeat(4, 1fr)',
     gap: 10
-  }}>
+  }}
+  >
     <Button2 title="/give" icon={defaultIcon} />
     <Button2 title="/tell" icon={<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <path d="M4 2h18v16H6v2H4v-2h2v-2h14V4H4v18H2V2h2zm5 7H7v2h2V9zm2 0h2v2h-2V9zm6 0h-2v2h2V9z" fill="currentColor" /> </svg>} />
     <Button2 title="/setblock" icon={<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"> <path d="M2 2h20v20H2V2zm2 2v4h4V4H4zm6 0v4h4V4h-4zm6 0v4h4V4h-4zm4 6h-4v4h4v-4zm0 6h-4v4h4v-4zm-6 4v-4h-4v4h4zm-6 0v-4H4v4h4zm-4-6h4v-4H4v4zm6-4v4h4v-4h-4z" fill="currentColor" /> </svg>} />

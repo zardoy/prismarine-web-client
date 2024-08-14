@@ -40,7 +40,7 @@ export default ({
     <div className={styles.root}>
       <div className={styles['game-title']}>
         <div className={styles.minecraft}>
-          <div className={styles.edition}></div>
+          <div className={styles.edition} />
           <span className={styles.splash}>Prismarine is a beautiful block</span>
         </div>
       </div>
@@ -108,10 +108,13 @@ export default ({
           Prismarine Web Client {versionStatus}
         </span>
         <span className={styles['product-description']}>
-          <a style={{
-            color: 'lightgray',
-            fontSize: 9,
-          }} href='https://privacy.mcraft.fun'>Privacy Policy</a>
+          <a
+            style={{
+              color: 'lightgray',
+              fontSize: 9,
+            }} href='https://privacy.mcraft.fun'
+          >Privacy Policy
+          </a>
           <span>A Minecraft client in the browser!</span>
         </span>
       </div>

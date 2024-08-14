@@ -103,6 +103,47 @@
         // "@stylistic/newline-per-chained-call": "error", // not sure if needed
         "@stylistic/new-parens": "error",
         "@stylistic/no-confusing-arrow": "error",
+        "@stylistic/wrap-iife": "error",
+        "@stylistic/space-before-blocks": "error",
+        "@stylistic/type-generic-spacing": "error",
+        "@stylistic/template-tag-spacing": "error",
+        "@stylistic/template-curly-spacing": "error",
+        "@stylistic/type-annotation-spacing": "error",
+        "@stylistic/jsx-child-element-spacing": "error",
+        // buggy
+        // "@stylistic/jsx-closing-bracket-location": "error",
+        // "@stylistic/jsx-closing-tag-location": "error",
+        "@stylistic/jsx-curly-brace-presence": "error",
+        "@stylistic/jsx-curly-newline": "error",
+        "@stylistic/jsx-curly-spacing": "error",
+        "@stylistic/jsx-equals-spacing": "error",
+        "@stylistic/jsx-first-prop-new-line": "error",
+        "@stylistic/jsx-function-call-newline": "error",
+        "@stylistic/jsx-max-props-per-line": [
+            "error",
+            {
+                "maximum": 7
+            }
+        ],
+        "@stylistic/jsx-pascal-case": "error",
+        "@stylistic/jsx-props-no-multi-spaces": "error",
+        "@stylistic/jsx-self-closing-comp": "error",
+        // "@stylistic/jsx-sort-props": [
+        //     "error",
+        //     {
+        //         "callbacksLast": false,
+        //         "shorthandFirst": true,
+        //         "shorthandLast": false,
+        //         "multiline": "ignore",
+        //         "ignoreCase": true,
+        //         "noSortAlphabetically": true,
+        //         "reservedFirst": [
+        //             "key",
+        //             "className"
+        //         ],
+        //         "locale": "auto"
+        //     }
+        // ],
         // perf
         "import/no-deprecated": "off",
         // ---

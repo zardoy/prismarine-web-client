@@ -52,11 +52,10 @@ export default ({ bar }: { bar: BossBarType }) => {
     <div className="bossbar-container">
       <div className="bossbar-title"><MessageFormattedString message={title} /></div>
       <div className="bossbar" style={bossBarStyles}>
-        <div className="fill" style={fillStyles}></div>
-        <div className="fill" style={div1Styles}></div>
-        <div className="fill" style={div2Styles}></div>
+        <div className="fill" style={fillStyles} />
+        <div className="fill" style={div1Styles} />
+        <div className="fill" style={div2Styles} />
       </div>
     </div>
   )
 }
-

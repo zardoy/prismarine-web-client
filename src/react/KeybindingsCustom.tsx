@@ -64,7 +64,7 @@ export default ({
           })}
           <Button
             onClick={() => addNewCommand(group)}
-            icon={'pixelarticons:add-box'}
+            icon="pixelarticons:add-box"
             style={{
               alignSelf: 'center'
             }}
@@ -103,9 +103,12 @@ const CustomCommandContainer = ({
       if (!config) return null
 
       return config.type === 'select'
-        ? <select key={indexInput} onChange={(e) => {
-          setInputValue(commandKey, indexInput, e.target.value)
-        }}>{config.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+        ? <select
+          key={indexInput} onChange={(e) => {
+            setInputValue(commandKey, indexInput, e.target.value)
+          }}
+        >{config.options.map((option) => <option key={option} value={option}>{option}</option>)}
+        </select>
         : <Input key={indexInput} rootStyles={{ width: '99%' }} placeholder={config.placeholder} value={inputs[indexInput] ?? ''} onChange={(e) => setInputValue(commandKey, indexInput, e.target.value)} />
     })}
     <div className={styles.actionBinds}>
@@ -116,21 +119,22 @@ const CustomCommandContainer = ({
             resetBinding('custom', commandKey, 'keyboard')
           }}
           className={styles['undo-keyboard']}
-          icon={'pixelarticons:undo'}
+          icon="pixelarticons:undo"
         />
-          : null}
+          : null
+      }
 
       {[0, 1].map((key, index) => <ButtonWithMatchesAlert
         key={`custom-keyboard-${group}-${commandKey}-${index}`}
-        group={'custom'}
+        group="custom"
         action={commandKey}
         index={index}
-        inputType={'keyboard'}
+        inputType="keyboard"
         keys={keys}
         gamepad={gamepad}
       />)}
 
-      <div style={{ marginRight: 'auto' }} ></div>
+      <div style={{ marginRight: 'auto' }} />
 
       {
         userConfig?.['custom']?.[commandKey]?.gamepad ? <Button
@@ -139,14 +143,15 @@ const CustomCommandContainer = ({
             resetBinding('custom', commandKey, 'gamepad')
           }}
           className={styles['undo-keyboard']}
-          icon={'pixelarticons:undo'}
+          icon="pixelarticons:undo"
         />
-          : null}
+          : null
+      }
       <ButtonWithMatchesAlert
-        group={'custom'}
+        group="custom"
         action={commandKey}
         index={0}
-        inputType={'gamepad'}
+        inputType="gamepad"
         keys={keys}
         gamepad={gamepad}
       />
@@ -159,7 +164,7 @@ const CustomCommandContainer = ({
         }}
 
         style={{ color: 'red' }}
-        icon={'pixelarticons:delete'}
+        icon="pixelarticons:delete"
       />
     </div>
   </div>
