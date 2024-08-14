@@ -162,7 +162,6 @@ const CustomCommandContainer = ({
             return newConfig
           })
         }}
-
         style={{ color: 'red' }}
         icon="pixelarticons:delete"
       />
