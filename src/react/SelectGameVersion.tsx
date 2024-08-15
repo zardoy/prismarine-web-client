@@ -5,7 +5,7 @@ import Input from './Input'
 type Version = { value: string, label: string }
 
 export default (
-  { versions, selected, onChange, updateOptions, containerStyle } :
+  { versions, selected, onChange, updateOptions, containerStyle }:
   {
     versions: Version[],
     selected?: string,

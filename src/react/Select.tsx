@@ -18,6 +18,7 @@ interface Props {
   onValueChange?: (newVal: string) => void
   defaultValue?: { value: string, label: string }
   iconInput?: string
+  placeholder?: string
   iconOption?: string
   containerStyle?: CSSProperties
   inputProps?: React.ComponentProps<typeof Input>
@@ -30,6 +31,7 @@ export default ({
   onValueChange,
   defaultValue,
   containerStyle,
+  placeholder
 }: Props) => {
   const [inputValue, setInputValue] = useState<string | undefined>(defaultValue?.label ?? '')
   const [currValue, setCurrValue] = useState<string | undefined>(defaultValue?.label ?? '')
@@ -37,14 +39,14 @@ export default ({
 
   return <Creatable
     options={initialOptions}
-    aria-invalid={'true'}
+    aria-invalid="true"
     defaultValue={defaultValue}
-    defaultInputValue={'input value'}
+    defaultInputValue="input value"
     blurInputOnSelect={true}
     hideSelectedOptions={true}
     maxMenuHeight={100}
     isClearable={true}
-    // backspaceRemovesValue={true}
+    placeholder={placeholder ?? ''}
     onChange={(e, action) => {
       console.log('value:', e?.value)
       setCurrValue(e?.label)
@@ -80,14 +82,15 @@ export default ({
         return {
           boxSizing: 'border-box',
           padding: '3px',
-          backgroundColor: state.isFocused ? '#4a4646' : 'black',
+          backgroundColor: 'black',
+          border: state.isFocused ? '1px solid white' : '1px solid grey',
           height: 'fit-content',
           ...containerStyle
         }
       },
       input (base, state) { return {} },
       indicatorsContainer (base, state) { return { display: 'none' } },
-      placeholder (base, state) { return { ...base, position: 'absolute' } },
+      placeholder (base, state) { return { ...base, padding: '3px', position: 'absolute' } },
       singleValue (base, state) { return { ...base, margin: '0px', position: 'absolute', color: 'white' } },
       valueContainer (base, state) { return { ...base, padding: '3px' } },
       noOptionsMessage (base, state) { return { display: 'none' } }
