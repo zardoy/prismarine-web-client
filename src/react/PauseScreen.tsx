@@ -107,7 +107,7 @@ export default () => {
   if (!isModalActive) return null
   return <Screen title='Game Menu'>
     <Button
-      icon={'pixelarticons:folder'}
+      icon="pixelarticons:folder"
       style={{ position: 'fixed', top: '5px', left: 'calc(env(safe-area-inset-left) + 5px)' }}
       onClick={async () => openWorldActions()}
     />
@@ -126,14 +126,14 @@ export default () => {
           {(navigator.share as typeof navigator.share | undefined) ? (
             <Button
               className="button"
-              icon={'pixelarticons:arrow-up'}
+              icon="pixelarticons:arrow-up"
               style={{ width: '20px' }}
               onClick={async () => clickWebShareButton()}
             />
           ) : null}
           <Button
             className="button"
-            icon={'pixelarticons:dice'}
+            icon="pixelarticons:dice"
             style={{ width: '20px' }}
             onClick={async () => clickJoinLinkButton(true)}
           />

@@ -178,16 +178,19 @@ export default ({
     setUserConfig,
     handleClick,
     bindsMap: bindsMap.current
-  }}>
+  }}
+  >
     <Screen title="Keybindings" backdrop>
       {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
-      <div className={styles.container}
+      <div
+        className={styles.container}
         ref={containerRef}
       >
         <Button
           onClick={() => { hideModal() }}
           style={{ alignSelf: 'center' }}
-        >Back</Button>
+        >Back
+        </Button>
 
         {Object.entries(commands).map(([group, actions], index) => {
           if (group === 'custom') return null
@@ -198,7 +201,8 @@ export default ({
                 color: 'rgba(255, 255, 255, 0.7)',
                 fontSize: '6px',
                 textAlign: 'center'
-              }}>
+              }}
+              >
                 Note: Left, right and middle click keybindings are hardcoded and cannot be changed currently.
               </div>
             ) : null}
@@ -221,7 +225,7 @@ export default ({
                   group={group}
                   action={action}
                   index={index}
-                  inputType={'keyboard'}
+                  inputType="keyboard"
                   keys={keys}
                   gamepad={gamepad}
                 />)}
@@ -244,7 +248,7 @@ export default ({
                   group={group}
                   action={action}
                   index={0}
-                  inputType={'gamepad'}
+                  inputType="gamepad"
                   keys={keys}
                   gamepad={gamepad}
                 />
@@ -306,7 +310,7 @@ export const ButtonWithMatchesAlert = ({
       //@ts-format-ignore-region
         <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
           <PixelartIcon
-            iconName={'alert'}
+            iconName="alert"
             width={5}
             styles={{
               display: 'flex',
@@ -316,13 +320,12 @@ export const ButtonWithMatchesAlert = ({
             }}
           />
           <div>
-            This bind is already in use. <span></span>
+            This bind is already in use. <span />
           </div>
         </div>
       )
       //@ts-format-ignore-endregion
-      : null
-    }
+      : null}
   </div>
 }
 

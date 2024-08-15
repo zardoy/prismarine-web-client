@@ -34,7 +34,8 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
           <span style={{
             userSelect: isError ? 'text' : undefined,
             wordBreak: 'break-word',
-          }}>
+          }}
+          >
             {status}
           </span>
           {isError || hideDots ? '' : loadingDots}
@@ -48,7 +49,7 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
         <>
           {backAction && <Button label="Back" onClick={backAction} />}
           {actionsSlot}
-          <Button onClick={() => window.location.reload()} label="Reset App (recommended)"></Button>
+          <Button onClick={() => window.location.reload()} label="Reset App (recommended)" />
         </>
       )}
     </Screen>

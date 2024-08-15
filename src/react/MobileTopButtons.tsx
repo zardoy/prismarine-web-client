@@ -35,24 +35,34 @@ export default () => {
 
   // ios note: just don't use <button>
   return <div ref={elRef} className={styles['mobile-top-btns']} id="mobile-top">
-    <div className={styles['debug-btn']} onPointerDown={(e) => {
-      window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
-    }}>S</div>
-    <div className={styles['debug-btn']} onPointerDown={(e) => {
-      document.dispatchEvent(new KeyboardEvent('keydown', { code: 'F3' }))
-      document.dispatchEvent(new KeyboardEvent('keyup', { code: 'F3' }))
-    }} { ...longPressEvent }>F3</div>
-    <div className={styles['chat-btn']} onPointerDown={(e) => {
-      e.stopPropagation()
-      if (activeModalStack.at(-1)?.reactType === 'chat') {
-        hideCurrentModal()
-      } else {
-        showModal({ reactType: 'chat' })
-      }
-    }}></div>
-    <div className={styles['pause-btn']} onPointerDown={(e) => {
-      e.stopPropagation()
-      showModal({ reactType: 'pause-screen' })
-    }}></div>
+    <div
+      className={styles['debug-btn']} onPointerDown={(e) => {
+        window.dispatchEvent(new MouseEvent('mousedown', { button: 1 }))
+      }}
+    >S
+    </div>
+    <div
+      className={styles['debug-btn']} onPointerDown={(e) => {
+        document.dispatchEvent(new KeyboardEvent('keydown', { code: 'F3' }))
+        document.dispatchEvent(new KeyboardEvent('keyup', { code: 'F3' }))
+      }} {...longPressEvent}
+    >F3
+    </div>
+    <div
+      className={styles['chat-btn']} onPointerDown={(e) => {
+        e.stopPropagation()
+        if (activeModalStack.at(-1)?.reactType === 'chat') {
+          hideCurrentModal()
+        } else {
+          showModal({ reactType: 'chat' })
+        }
+      }}
+    />
+    <div
+      className={styles['pause-btn']} onPointerDown={(e) => {
+        e.stopPropagation()
+        showModal({ reactType: 'pause-screen' })
+      }}
+    />
   </div>
 }

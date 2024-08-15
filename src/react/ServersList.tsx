@@ -56,45 +56,50 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
   const [serverIp, setServerIp] = React.useState('')
   const [save, setSave] = React.useState(true)
 
-  return <Singleplayer {...props}
-    firstRowChildrenOverride={<form style={{ width: '100%', display: 'flex', justifyContent: 'center' }} onSubmit={(e) => {
-      e.preventDefault()
-      let ip = serverIp
-      let version
-      let msAuth = false
-      const parts = ip.split(':')
-      if (parts.at(-1) === 'ms') {
-        msAuth = true
-        parts.pop()
-      }
-      if (parts.length > 1 && parts.at(-1)!.includes('.')) {
-        version = parts.at(-1)!
-        ip = parts.slice(0, -1).join(':')
-      }
-      joinServer({
-        ip,
-        versionOverride: version,
-        authenticatedAccountOverride: msAuth ? true : undefined, // todo popup selector
-      }, {
-        shouldSave: save,
-      })
-    }}
+  return <Singleplayer
+    {...props}
+    firstRowChildrenOverride={<form
+      style={{ width: '100%', display: 'flex', justifyContent: 'center' }} onSubmit={(e) => {
+        e.preventDefault()
+        let ip = serverIp
+        let version
+        let msAuth = false
+        const parts = ip.split(':')
+        if (parts.at(-1) === 'ms') {
+          msAuth = true
+          parts.pop()
+        }
+        if (parts.length > 1 && parts.at(-1)!.includes('.')) {
+          version = parts.at(-1)!
+          ip = parts.slice(0, -1).join(':')
+        }
+        joinServer({
+          ip,
+          versionOverride: version,
+          authenticatedAccountOverride: msAuth ? true : undefined, // todo popup selector
+        }, {
+          shouldSave: save,
+        })
+      }}
     >
       <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
         {/* todo history */}
         <Input required placeholder='Quick Connect IP (:version)' value={serverIp} onChange={({ target: { value } }) => setServerIp(value)} />
         <label style={{ fontSize: 10, display: 'flex', alignItems: 'center', gap: 5, height: '100%', marginTop: '-1px' }}>
-          <input type='checkbox' checked={save}
+          <input
+            type='checkbox' checked={save}
             style={{ borderRadius: 0 }}
             onChange={({ target: { checked } }) => setSave(checked)}
-          /> Save</label>
+          /> Save
+        </label>
         <Button style={{ width: 90 }} type='submit'>Join Server</Button>
       </div>
     </form>}
     searchRowChildrenOverride={
       <div style={{
         // marginTop: 12,
-      }}>
+      }}
+      >
         <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
           <span style={{ color: 'lightgray', fontSize: 14 }}>Proxy:</span>
           <div {...autocomplete.getRootProps()} style={{ position: 'relative', width: 130 }}>
@@ -104,11 +109,13 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
               status='unknown'
               ip=''
             />
-            {autocomplete.groupedOptions && <ul {...autocomplete.getListboxProps()} style={{
-              position: 'absolute',
-              zIndex: 1,
+            {autocomplete.groupedOptions && <ul
+              {...autocomplete.getListboxProps()} style={{
+                position: 'absolute',
+                zIndex: 1,
               // marginTop: 10,
-            }}>
+              }}
+            >
               {autocomplete.groupedOptions.map((proxy, index) => {
                 const { itemRef, ...optionProps } = autocomplete.getOptionProps({ option: proxy, index })
                 return <ProxyRender {...optionProps as any} ip={proxy} disabled />
@@ -144,9 +151,11 @@ const ProxyRender = ({ status, ip, inputRef, value, setValue, ...props }: {
     success: 'cellular-signal-3',
   }
 
-  return <div style={{
-    position: 'relative',
-  }} {...props}>
+  return <div
+    style={{
+      position: 'relative',
+    }} {...props}
+  >
     <Input
       inputRef={inputRef}
       style={{
@@ -165,7 +174,8 @@ const ProxyRender = ({ status, ip, inputRef, value, setValue, ...props }: {
       display: 'flex',
       alignItems: 'center',
       gap: 2
-    }}>
+    }}
+    >
       <PixelartIcon iconName={iconPerStatus.unknown} />
       <div style={{
         fontSize: 10,
@@ -174,7 +184,8 @@ const ProxyRender = ({ status, ip, inputRef, value, setValue, ...props }: {
         width: '100%',
         overflow: 'hidden',
         textOverflow: 'ellipsis',
-      }}>
+      }}
+      >
         {ip.replace(/^https?:\/\//, '')}
       </div>
     </div>

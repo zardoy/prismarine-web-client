@@ -18,6 +18,9 @@ export default ({ autoFocus, rootStyles, inputRef, ...inputProps }: Props) => {
   }, [])
 
   return <div className={styles.container} style={rootStyles}>
-    <input ref={ref} className={styles.input} autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' spellCheck='false' {...inputProps} />
+    <input
+      ref={ref} className={styles.input} autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' spellCheck='false'
+      {...inputProps}
+    />
   </div>
 }

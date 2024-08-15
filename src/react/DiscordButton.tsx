@@ -67,7 +67,8 @@ export const DropdownButton = ({ text, links }: { text: string, links: DropdownB
             key={el.text}
             style={{ width: '98px', fontSize: '7px' }}
             onClick={el.clickHandler}
-          >{el.text}</Button>
+          >{el.text}
+          </Button>
         })}
       </div>
     }

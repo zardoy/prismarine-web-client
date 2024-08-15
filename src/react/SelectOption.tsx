@@ -33,13 +33,19 @@ export default () => {
   if (!isModalActive) return
 
   return <Screen title={title} backdrop>
-    {options.map(option => <Button key={option} onClick={() => {
-      hideCurrentModal()
-      resolve(option)
-    }}>{option}</Button>)}
-    {showCancel && <Button style={{ marginTop: 30 }} onClick={() => {
-      hideCurrentModal()
-      resolve(undefined)
-    }}>Cancel</Button>}
+    {options.map(option => <Button
+      key={option} onClick={() => {
+        hideCurrentModal()
+        resolve(option)
+      }}
+    >{option}
+    </Button>)}
+    {showCancel && <Button
+      style={{ marginTop: 30 }} onClick={() => {
+        hideCurrentModal()
+        resolve(undefined)
+      }}
+    >Cancel
+    </Button>}
   </Screen>
 }

@@ -83,7 +83,8 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         display: 'grid',
         gap: 3,
         gridTemplateColumns: smallWidth ? '1fr' : '1fr 1fr'
-      }}>
+      }}
+      >
         {!lockConnect && <>
           <div style={{ gridColumn: smallWidth ? '' : 'span 2', display: 'flex', justifyContent: 'center' }}>
             <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
@@ -98,7 +99,8 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         <label style={{
           display: 'flex',
           flexDirection: 'column',
-        }}>
+        }}
+        >
           <span style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Account Override</span>
           <select
             onChange={({ target: { value } }) => setAccountIndex(Number(value))}
@@ -146,7 +148,8 @@ const InputWithLabel = ({ label, span, ...props }: React.ComponentProps<typeof I
     display: 'flex',
     flexDirection: 'column',
     gridRow: span ? 'span 2 / span 2' : undefined,
-  }}>
+  }}
+  >
     <label style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>{label}</label>
     <Input rootStyles={{ width: ELEMENTS_WIDTH }} {...props} />
   </div>

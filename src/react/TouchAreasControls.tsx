@@ -201,7 +201,8 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
           left: `${pointer.x / window.innerWidth * 100}%`,
           top: `${pointer.y / window.innerHeight * 100}%`
         } : {}
-      }}>
+      }}
+    >
       <div
         className='movement_joystick_inner'
         style={{
@@ -232,13 +233,18 @@ export default ({ touchActive, setupActive, buttonsPositions, closeButtonsSetup 
       display: 'flex',
       justifyContent: 'center',
       gap: 3
-    }}>
+    }}
+    >
       <Button onClick={() => {
         closeButtonsSetup()
-      }}>Cancel</Button>
+      }}
+      >Cancel
+      </Button>
       <Button onClick={() => {
         closeButtonsSetup(newButtonPositions)
-      }}>Apply</Button>
+      }}
+      >Apply
+      </Button>
     </div>}
   </div>
 }
