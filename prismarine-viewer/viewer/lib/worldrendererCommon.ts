@@ -82,6 +82,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   workersProcessAverageTime = 0
   workersProcessAverageTimeCount = 0
   maxWorkersProcessTime = 0
+  edgeChunks = {} as Record<string, boolean>
+  lastAddChunk = null as null | {
+    timeout: any
+    x: number
+    z: number
+  }
 
   abstract outputFormat: 'threeJs' | 'webgpu'
 
@@ -289,11 +295,20 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const loc = new Vec3(x, y, z)
       this.setSectionDirty(loc)
       if (!isLightUpdate || this.mesherConfig.smoothLighting) {
-        this.setSectionDirty(loc.offset(-16, 0, 0))
-        this.setSectionDirty(loc.offset(16, 0, 0))
-        this.setSectionDirty(loc.offset(0, 0, -16))
-        this.setSectionDirty(loc.offset(0, 0, 16))
+        // const updateIfEdge = (x, z) => {
+        //   if (this.edgeChunks[`${x},${z}`]) return
+        //   this.setSectionDirty(loc.offset(x, 0, z))
+        // }
+        // updateIfEdge(-16, 0)
+        // updateIfEdge(16, 0)
+        // updateIfEdge(0, -16)
+        // updateIfEdge(0, 16)
       }
+    }
+    this.lastAddChunk = {
+      timeout: null as any,
+      x,
+      z,
     }
   }
 

@@ -29,4 +29,5 @@ export type MesherGeometryOutput = {
   indices: number[],
   tiles: Record<string, BlockType>,
   signs: Record<string, any>,
+  isFull: boolean
 }
