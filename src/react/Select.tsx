@@ -1,5 +1,5 @@
-import { useState, CSSProperties, SyntheticEvent, useRef, useEffect } from 'react'
-import Creatable, { useCreatable } from 'react-select/creatable'
+import { useState, CSSProperties } from 'react'
+import Creatable from 'react-select/creatable'
 import Input from './Input'
 import './Select.css'
 import styles from './select.module.css'
@@ -26,30 +26,40 @@ interface Props {
 export default ({
   initialOptions,
   updateOptions,
-  processOption,
   processInput,
   onValueChange,
   defaultValue,
-  iconInput,
-  iconOption,
   containerStyle,
 }: Props) => {
-  const [inputValue, setInputValue] = useState('')
+  const [inputValue, setInputValue] = useState<string | undefined>(defaultValue?.label ?? '')
+  const [currValue, setCurrValue] = useState<string | undefined>(defaultValue?.label ?? '')
   const [inputStyle, setInputStyle] = useState<CSSProperties>({})
 
   return <Creatable
     options={initialOptions}
     aria-invalid={'true'}
     defaultValue={defaultValue}
+    defaultInputValue={'input value'}
+    blurInputOnSelect={true}
     hideSelectedOptions={true}
     maxMenuHeight={100}
     isClearable={true}
+    // backspaceRemovesValue={true}
     onChange={(e, action) => {
       console.log('value:', e?.value)
-      setInputValue(e?.label ?? '')
+      setCurrValue(e?.label)
+      setInputValue(e?.label)
       onValueChange?.(e?.value ?? '')
       updateOptions?.(e?.value ?? '')
       setInputStyle(processInput?.(e?.value ?? '') ?? {})
+    }}
+    onInputChange={(e) => {
+      console.log('input:', e)
+      setInputValue(e)
+    }}
+    inputValue={inputValue}
+    onFocus={(state) => {
+      setInputValue(currValue)
     }}
     classNames={{
       control (state) {
