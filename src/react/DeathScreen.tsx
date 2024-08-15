@@ -18,12 +18,16 @@ export default ({ dieReasonMessage, respawnCallback, disconnectCallback }: Props
           <MessageFormatted parts={dieReasonMessage} />
         </h5>
         <div className='deathScreen-buttons-grouped'>
-          <Button label="Respawn" onClick={() => {
-            respawnCallback()
-          }} />
-          <Button label="Disconnnect" onClick={() => {
-            disconnectCallback()
-          }} />
+          <Button
+            label="Respawn" onClick={() => {
+              respawnCallback()
+            }}
+          />
+          <Button
+            label="Disconnnect" onClick={() => {
+              disconnectCallback()
+            }}
+          />
         </div>
       </div>
     </div>

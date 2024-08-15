@@ -10,7 +10,7 @@ const defaultOptions = {
   multiplayerRenderDistance: 3,
   closeConfirmation: true,
   autoFullScreen: false,
-  mouseRawInput: false,
+  mouseRawInput: true,
   autoExitFullscreen: false,
   localUsername: 'wanderer',
   mouseSensX: 50,
@@ -69,7 +69,7 @@ const defaultOptions = {
   renderEntities: true,
   smoothLighting: true,
   newVersionsLighting: false,
-  chatSelect: false,
+  chatSelect: true,
   autoJump: 'auto' as 'auto' | 'always' | 'never',
   autoParkour: false,
 

@@ -48,11 +48,12 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
         const nextElem = elements[focusedElemIndex + dir]
         nextElem?.focus()
       }
-    }}>
+    }}
+  >
     <div className='signs-editor-inner-container'>
       <img className='signs-editor-bg-image' src={imageSource} alt='' />
       {isWysiwyg ? (
-        <p ref={prosemirrorContainer} className='wysiwyg-editor'></p>
+        <p ref={prosemirrorContainer} className='wysiwyg-editor' />
       ) : [1, 2, 3, 4].map((value, index) => {
         return <input
           className='sign-editor'
@@ -61,23 +62,25 @@ export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
           maxLength={15} // overriden by handleInput
           onChange={(e) => {
             handleInput(e.currentTarget)
-          }} />
-      })
-      }
-      <Button onClick={async () => {
-        if (handleClick) {
-          if (isWysiwyg) {
-            const text = markdownToFormattedText(editorView.current!.content)
-            handleClick({ dataText: text })
-          } else {
-            const text = [] as string[]
-            for (const input of document.getElementsByClassName('sign-editor')) {
-              text.push((input as HTMLInputElement).value)
+          }}
+        />
+      })}
+      <Button
+        onClick={async () => {
+          if (handleClick) {
+            if (isWysiwyg) {
+              const text = markdownToFormattedText(editorView.current!.content)
+              handleClick({ dataText: text })
+            } else {
+              const text = [] as string[]
+              for (const input of document.getElementsByClassName('sign-editor')) {
+                text.push((input as HTMLInputElement).value)
+              }
+              handleClick({ plainText: text })
             }
-            handleClick({ plainText: text })
           }
-        }
-      }} className='sign-editor-button' label={'Done'} />
+        }} className='sign-editor-button' label="Done"
+      />
     </div>
   </div>
 }

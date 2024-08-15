@@ -45,12 +45,14 @@ const World = ({ name, isFocused, title, lastPlayed, size, detail = '', onFocus,
     return filesize(size)
   }, [size])
 
-  return <div className={classNames(styles.world_root, isFocused ? styles.world_focused : undefined)} tabIndex={0} onFocus={() => onFocus?.(name)} onKeyDown={(e) => {
-    if (e.code === 'Enter' || e.code === 'Space') {
-      e.preventDefault()
-      onInteraction?.(e.code === 'Enter' ? 'enter' : 'space')
-    }
-  }} onDoubleClick={() => onInteraction?.('enter')}>
+  return <div
+    className={classNames(styles.world_root, isFocused ? styles.world_focused : undefined)} tabIndex={0} onFocus={() => onFocus?.(name)} onKeyDown={(e) => {
+      if (e.code === 'Enter' || e.code === 'Space') {
+        e.preventDefault()
+        onInteraction?.(e.code === 'Enter' ? 'enter' : 'space')
+      }
+    }} onDoubleClick={() => onInteraction?.('enter')}
+  >
     <img className={`${styles.world_image} ${iconSrc ? '' : styles.image_missing}`} src={iconSrc ?? missingWorldPreview} alt='world preview' />
     <div className={styles.world_info}>
       <div className={styles.world_title}>
@@ -134,18 +136,22 @@ export default ({
         <Input autoFocus value={search} onChange={({ target: { value } }) => setSearch(value)} />
       </div>}
       <div className={classNames(styles.content, !worldData && styles.content_loading)}>
-        <Tabs tabs={Object.keys(providers)} disabledTabs={disabledProviders} activeTab={activeProvider ?? ''} labels={providers} onTabChange={(tab) => {
-          setActiveProvider?.(tab as any)
-        }} fullSize />
+        <Tabs
+          tabs={Object.keys(providers)} disabledTabs={disabledProviders} activeTab={activeProvider ?? ''} labels={providers} onTabChange={(tab) => {
+            setActiveProvider?.(tab as any)
+          }} fullSize
+        />
         <div style={{
           marginTop: 3,
-        }}>
+        }}
+        >
           {
             providerActions && <div style={{
               display: 'flex',
               alignItems: 'center',
               // overflow: 'auto',
-            }}>
+            }}
+            >
               <span style={{ fontSize: 9, marginRight: 3 }}>Actions: </span> {Object.entries(providerActions).map(([label, action]) => (
                 typeof action === 'function' ? <Button key={label} onClick={action} style={{ width: 100 }}>{label}</Button> : <Fragment key={label}>{action}</Fragment>
               ))}
@@ -154,15 +160,19 @@ export default ({
           {
             worldData
               ? worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, size, detail, ...rest }) => (
-                <World {...rest} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
-                  if (interaction === 'enter') onWorldAction('load', name)
-                  else if (interaction === 'space') firstButton.current?.focus()
-                }} detail={detail} />
+                <World
+                  {...rest} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
+                    if (interaction === 'enter') onWorldAction('load', name)
+                    else if (interaction === 'space') firstButton.current?.focus()
+                  }}
+                  detail={detail}
+                />
               ))
               : <div style={{
                 fontSize: 10,
                 color: error ? 'red' : 'lightgray',
-              }}>{error || 'Loading (check #dev console if loading too long)...'}</div>
+              }}>{error || 'Loading (check #dev console if loading too long)...'}
+              </div>
           }
           {
             warning && <div style={{
@@ -170,7 +180,8 @@ export default ({
               color: '#ffa500ba',
               marginTop: 5,
               textAlign: 'center',
-            }}>
+            }}
+            >
               {warning} {warningAction && <a onClick={warningAction}>{warningActionLabel}</a>}
             </div>
           }
@@ -186,7 +197,7 @@ export default ({
           <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('delete', focusedWorld)}>Delete</Button>
           {serversLayout ?
             <Button style={{ width: 100 }} onClick={() => onGeneralAction('create')}>Add</Button> :
-            <Button style={{ width: 100 }} /* disabled={!focusedWorld}  */ onClick={() => onWorldAction('edit', focusedWorld)} disabled>Edit</Button>}
+            <Button style={{ width: 100 }} onClick={() => onWorldAction('edit', focusedWorld)} disabled>Edit</Button>}
           <Button style={{ width: 100 }} onClick={() => onGeneralAction('cancel')}>Cancel</Button>
         </div>
       </div>

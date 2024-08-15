@@ -205,16 +205,18 @@ export default () => {
   return <SharedHudVars>
     <ItemName itemKey={itemKey} />
     <Portal>
-      <div className='hotbar' ref={container} style={{
-        position: 'fixed',
-        left: 0,
-        right: 0,
-        display: 'flex',
-        justifyContent: 'center',
-        zIndex: hasModals ? 1 : 8,
-        pointerEvents: 'none',
-        bottom: 'var(--hud-bottom-raw)'
-      }} />
+      <div
+        className='hotbar' ref={container} style={{
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'center',
+          zIndex: hasModals ? 1 : 8,
+          pointerEvents: 'none',
+          bottom: 'var(--hud-bottom-raw)'
+        }}
+      />
     </Portal>
   </SharedHudVars>
 }

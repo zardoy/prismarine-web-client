@@ -15,7 +15,6 @@ import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 
 import './scaleInterface'
-import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 import PrismarineItem from 'prismarine-item'
@@ -83,7 +82,7 @@ import { fsState } from './loadSave'
 import { watchFov } from './rendererUtils'
 import { loadInMemorySave } from './react/SingleplayerProvider'
 
-import { downloadSoundsIfNeeded, earlyCheck as earlySoundsMapCheck } from './soundSystem'
+import { downloadSoundsIfNeeded } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
@@ -552,7 +551,6 @@ async function connect (connectOptions: ConnectOptions) {
       // "mapDownloader-saveInternal": false, // do not save into memory, todo must be implemeneted as we do really care of ram
     }) as unknown as typeof __type_bot
     window.bot = bot
-    earlySoundsMapCheck()
     customEvents.emit('mineflayerBotCreated')
     if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
