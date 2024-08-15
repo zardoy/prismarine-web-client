@@ -2,29 +2,30 @@ import React, { CSSProperties } from 'react'
 import Select from './Select'
 import Input from './Input'
 
+type Version = { value: string, label: string }
 
 export default (
-  { versions, selected, inputProps, onChange, updateOptions, containerStyle } :
+  { versions, selected, onChange, updateOptions, containerStyle } :
   {
-    versions: string[] | undefined,
+    versions: Version[],
     selected?: string,
     inputProps?: React.ComponentProps<typeof Input>,
-    onChange?: (event, value, reason) => void,
-    updateOptions?: (options) => void,
+    onChange?: (newValue: string) => void,
+    updateOptions?: (newSel: string) => void,
     containerStyle?: CSSProperties
   }
 ) => {
   return <Select
-    initialOptions={{ options: versions ?? [], selected: selected ?? '' }}
-    updateOptions={(options) => {
-      updateOptions?.(options)
+    initialOptions={versions}
+    defaultValue={{ value: selected ?? '', label: selected ?? '' }}
+    updateOptions={(newSel) => {
+      updateOptions?.(newSel)
     }}
-    onChange={onChange}
-    inputProps={inputProps}
+    onValueChange={onChange}
     containerStyle={containerStyle ?? { width: '190px' }}
     processInput={(value) => {
       if (!versions || !value) return {}
-      const parsedsupportedVersions = versions.map(x => x.split('.').map(Number))
+      const parsedsupportedVersions = versions.map(x => x.value.split('.').map(Number))
       const parsedValue = value.split('.').map(Number)
 
       const compareVersions = (v1, v2) => {
@@ -43,7 +44,7 @@ export default (
 
       const isWithinRange = compareVersions(parsedValue, minVersion) >= 0 && compareVersions(parsedValue, maxVersion) <= 0
       if (!isWithinRange) return { border: '1px solid red' }
-      if (!versions.includes(value)) return { border: '1px solid yellow' }
+      if (!versions.some(x => x.value === value)) return { border: '1px solid yellow' }
     }}
   />
 

@@ -100,14 +100,14 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         }}>
           <label style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Version Override</label>
           <SelectGameVersion
-            versions={versions}
-            onChange={(event, value, reason) => {
+            versions={versions?.map(v => { return { value: v, label: v } }) ?? []}
+            onChange={(value) => {
               setVersionOverride(value)
             }}
-            inputProps={{
-              placeholder: 'Optional, but recommended to specify',
-              disabled: lockConnect && qsParamVersion !== null
-            }}
+            // inputProps={{
+            //   placeholder: 'Optional, but recommended to specify',
+            //   disabled: lockConnect && qsParamVersion !== null
+            // }}
           />
         </div>
 

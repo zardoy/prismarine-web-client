@@ -82,12 +82,10 @@ export default ({ initialProxies, updateProxies: updateProxiesProp, joinServer, 
         <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
           <span style={{ color: 'lightgray', fontSize: 14 }}>Proxy:</span>
           <Select
-            initialOptions={{
-              options: [...proxies.proxies],
-              selected: proxies.selected
-            }}
-            updateOptions={(options) => {
-              updateProxies({ proxies: [...options.options], selected: options.selected })
+            initialOptions={proxies.proxies.map(p => { return { value: p, label: p } })}
+            defaultValue={{ value: proxies.selected, label: proxies.selected }}
+            updateOptions={(newSel) => {
+              updateProxies({ proxies: [...proxies.proxies], selected: newSel })
             }}
 
           />

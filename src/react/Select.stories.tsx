@@ -12,7 +12,7 @@ type Story = StoryObj<typeof Select>
 
 export const Primary: Story = {
   args: {
-    initialOptions: { options: ['option 1', 'option 2', 'option 3'], selected: 'option 1' },
+    initialOptions: [{ value: '1', label: 'option 1' }, { value: '2', label: 'option 2' }, { value: '3', label: 'option 3' },],
     updateOptions (options) {},
     processInput (input) {
       console.log('input:', input)

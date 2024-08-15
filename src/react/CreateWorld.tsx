@@ -43,9 +43,9 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
         placeholder='World name'
       />
       <SelectGameVersion
-        versions={versions.map((obj) => obj.version)}
+        versions={versions.map((obj) => { return { value: obj.version, label: obj.version === defaultVersion ? obj.version + ' (available offline)' : obj.version } })}
         selected={defaultVersion}
-        onChange={(event, value, reason) => {
+        onChange={(value) => {
           creatingWorldState.version = value ?? defaultVersion
         }}
         containerStyle={{ width: '100px' }}
