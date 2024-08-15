@@ -1,0 +1,15 @@
+.container {
+  width: 200px;
+  background: black;
+  border: 1px solid grey;
+  box-sizing: content-box;
+}
+
+.input {
+  border: none;
+  background: none;
+  height: 100%;
+  font-family: minecraft, mojangles, monospace;
+  color: white;
+  text-shadow: 1px 1px #222;
+}
