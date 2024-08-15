@@ -410,7 +410,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     indices: [],
     tiles: {},
     // todo this can be removed here
-    signs: {}
+    signs: {},
+    isFull: true
   }
 
   const cursor = new Vec3(0, 0, 0)
