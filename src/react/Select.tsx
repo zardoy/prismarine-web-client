@@ -5,14 +5,14 @@ import './Select.css'
 import styles from './select.module.css'
 
 
-export interface OptionsStorage {
-  options: readonly string[]
-  selected: string
+export interface OptionStorage {
+  value: string,
+  label: string
 }
 
 interface Props {
-  initialOptions: OptionsStorage
-  updateOptions: (options: OptionsStorage) => void
+  initialOptions: OptionStorage[]
+  updateOptions: (options: OptionStorage) => void
   processInput?: (input: string) => CSSProperties | undefined
   processOption?: (option: string) => string
   onValueChange?: (newVal: string) => void
@@ -35,10 +35,8 @@ export default ({
   const [inputValue, setInputValue] = useState('')
   const [inputStyle, setInputStyle] = useState<CSSProperties>({})
 
-  const options = initialOptions.options.map(opt => { return { value: opt, label: opt } })
-
   return <Select
-    options={options}
+    options={initialOptions}
     aria-invalid={'true'}
     hideSelectedOptions={true}
     isClearable={true}
