@@ -20,6 +20,7 @@ interface Props {
   versionStatus?: string
   versionTitle?: string
   onVersionClick?: () => void
+  bottomRightLinks?: string
 }
 
 const httpsRegex = /^https?:\/\//
@@ -34,8 +35,11 @@ export default ({
   openFileAction,
   versionStatus,
   versionTitle,
-  onVersionClick
+  onVersionClick,
+  bottomRightLinks
 }: Props) => {
+  const linksParsed = (bottomRightLinks ?? '').split(';').map(l => l.split(':')) as Array<[string, string]>
+
   return (
     <div className={styles.root}>
       <div className={styles['game-title']}>
@@ -108,13 +112,24 @@ export default ({
           Prismarine Web Client {versionStatus}
         </span>
         <span className={styles['product-description']}>
-          <a
-            style={{
-              color: 'lightgray',
-              fontSize: 9,
-            }} href='https://privacy.mcraft.fun'
-          >Privacy Policy
-          </a>
+          <div className={styles['product-link']}>
+            {linksParsed.map(([name, link], i, arr) => {
+              if (!link.startsWith('http')) link = `https://${link}`
+              return <div style={{
+                color: 'lightgray',
+                fontSize: 8,
+              }}>
+                <a
+                  key={name}
+                  style={{
+                    whiteSpace: 'nowrap',
+                  }} href={link}
+                >{name}
+                </a>
+                {i < arr.length - 1 && <span style={{ marginLeft: 2 }}>·</span>}
+              </div>
+            })}
+          </div>
           <span>A Minecraft client in the browser!</span>
         </span>
       </div>
