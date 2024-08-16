@@ -36,12 +36,12 @@ export default ({
   const [inputValue, setInputValue] = useState<string | undefined>(defaultValue?.label ?? '')
   const [currValue, setCurrValue] = useState<string | undefined>(defaultValue?.label ?? '')
   const [inputStyle, setInputStyle] = useState<CSSProperties>({})
+  const [isFirstClick, setIsFirstClick] = useState(true)
 
   return <Creatable
     options={initialOptions}
     aria-invalid="true"
-    // defaultValue={defaultValue}
-    defaultInputValue={defaultValue?.label}
+    defaultValue={defaultValue}
     blurInputOnSelect={true}
     hideSelectedOptions={false}
     maxMenuHeight={100}
@@ -59,12 +59,18 @@ export default ({
       setInputStyle(processInput?.(e?.value ?? '') ?? {})
     }}
     onInputChange={(e) => {
-      console.log('input:', e)
+      setIsFirstClick(false)
       setInputValue(e)
     }}
     inputValue={inputValue}
     onFocus={(state) => {
       setInputValue(currValue)
+    }}
+    onBlur={() => {
+      setIsFirstClick(true)
+    }}
+    filterOption={(option, value) => {
+      return isFirstClick || option.label.includes(value)
     }}
     classNames={{
       control (state) {
