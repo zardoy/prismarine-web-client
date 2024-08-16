@@ -38,7 +38,8 @@ export default ({
   onVersionClick,
   bottomRightLinks
 }: Props) => {
-  const linksParsed = (bottomRightLinks ?? '').split(';').map(l => l.split(':')) as Array<[string, string]>
+  if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
+  const linksParsed = bottomRightLinks?.split(';').map(l => l.split(':')) as Array<[string, string]> | undefined
 
   return (
     <div className={styles.root}>
@@ -113,7 +114,7 @@ export default ({
         </span>
         <span className={styles['product-description']}>
           <div className={styles['product-link']}>
-            {linksParsed.map(([name, link], i, arr) => {
+            {linksParsed?.map(([name, link], i, arr) => {
               if (!link.startsWith('http')) link = `https://${link}`
               return <div style={{
                 color: 'lightgray',
