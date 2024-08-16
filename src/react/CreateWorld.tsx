@@ -4,6 +4,7 @@ import { filesize } from 'filesize'
 import Input from './Input'
 import Screen from './Screen'
 import Button from './Button'
+import SelectGameVersion from './SelectGameVersion'
 import styles from './createWorld.module.css'
 
 // const worldTypes = ['default', 'flat', 'largeBiomes', 'amplified', 'customized', 'buffet', 'debug_all_block_states']
@@ -43,18 +44,14 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
         }}
         placeholder='World name'
       />
-      <select
-        value={version} style={{
-          background: 'gray',
-          color: 'white'
-        }} onChange={({ target: { value } }) => {
-          creatingWorldState.version = value
+      <SelectGameVersion
+        versions={versions.map((obj) => { return { value: obj.version, label: obj.version === defaultVersion ? obj.version + ' (available offline)' : obj.version } })}
+        selected={{ value: defaultVersion, label: defaultVersion + ' (available offline)' }}
+        onChange={(value) => {
+          creatingWorldState.version = value ?? defaultVersion
         }}
-      >
-        {versions.map(({ version, label }) => {
-          return <option key={version} value={version}>{label}</option>
-        })}
-      </select>
+        containerStyle={{ width: '100px' }}
+      />
     </form>
     <div style={{ display: 'flex' }}>
       <Button onClick={() => {

@@ -110,7 +110,7 @@ export default ({
   const firstButton = useRef<HTMLButtonElement>(null)
 
   useTypedEventListener(window, 'keydown', (e) => {
-    if (e.code === 'ArrowDown' || e.code === 'ArrowUp') {
+    if ((e.code === 'ArrowDown' || e.code === 'ArrowUp') && e.ctrlKey) {
       e.preventDefault()
       const dir = e.code === 'ArrowDown' ? 1 : -1
       const elements = focusable(containerRef.current)
