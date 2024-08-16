@@ -8,7 +8,7 @@ export default (
   { versions, selected, onChange, updateOptions, containerStyle }:
   {
     versions: Version[],
-    selected?: string,
+    selected?: Version,
     inputProps?: React.ComponentProps<typeof Input>,
     onChange?: (newValue: string) => void,
     updateOptions?: (newSel: string) => void,
@@ -17,7 +17,7 @@ export default (
 ) => {
   return <Select
     initialOptions={versions}
-    defaultValue={{ value: selected ?? '', label: selected ?? '' }}
+    defaultValue={selected}
     updateOptions={(newSel) => {
       updateOptions?.(newSel)
     }}

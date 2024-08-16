@@ -40,12 +40,15 @@ export default ({
   return <Creatable
     options={initialOptions}
     aria-invalid="true"
-    defaultValue={defaultValue}
-    defaultInputValue="input value"
+    // defaultValue={defaultValue}
+    defaultInputValue={defaultValue?.label}
     blurInputOnSelect={true}
-    hideSelectedOptions={true}
+    hideSelectedOptions={false}
     maxMenuHeight={100}
     isClearable={true}
+    formatCreateLabel={(value) => {
+      return 'Use "' + value + '"'
+    }}
     placeholder={placeholder ?? ''}
     onChange={(e, action) => {
       console.log('value:', e?.value)
