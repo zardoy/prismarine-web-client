@@ -66,11 +66,11 @@ export default ({
     onFocus={(state) => {
       setInputValue(currValue)
     }}
-    onBlur={() => {
-      setIsFirstClick(true)
-    }}
     filterOption={(option, value) => {
       return isFirstClick || option.label.includes(value)
+    }}
+    onMenuOpen={() => {
+      setIsFirstClick(true)
     }}
     classNames={{
       control (state) {
