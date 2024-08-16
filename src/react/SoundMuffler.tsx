@@ -17,13 +17,15 @@ const SoundRow = ({ sound, children }) => {
       <span style={{ fontSize: 12, marginRight: 2, ...isMuted ? { color: '#af1c1c' } : {} }}>{sound}</span>
       {children}
     </div>
-    <Button icon={isMuted ? 'pixelarticons:music' : 'pixelarticons:close'} onClick={() => {
-      if (isMuted) {
-        options.mutedSounds.splice(options.mutedSounds.indexOf(sound), 1)
-      } else {
-        options.mutedSounds.push(sound)
-      }
-    }}></Button>
+    <Button
+      icon={isMuted ? 'pixelarticons:music' : 'pixelarticons:close'} onClick={() => {
+        if (isMuted) {
+          options.mutedSounds.splice(options.mutedSounds.indexOf(sound), 1)
+        } else {
+          options.mutedSounds.push(sound)
+        }
+      }}
+    />
   </div>
 }
 

@@ -45,7 +45,7 @@ export default ({
           .map((num, index) => <div
             key={`breath-${index}`}
             className='breath'
-          ></div>)
+          />)
       }
     </div>
   </SharedHudVars>

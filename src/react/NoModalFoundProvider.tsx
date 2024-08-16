@@ -33,8 +33,11 @@ export default () => {
     }}
     backdrop={false}
   >
-    <Button style={{ marginTop: 30 }} onClick={() => {
-      hideCurrentModal()
-    }}>Back</Button>
+    <Button
+      style={{ marginTop: 30 }} onClick={() => {
+        hideCurrentModal()
+      }}
+    >Back
+    </Button>
   </Screen>
 }

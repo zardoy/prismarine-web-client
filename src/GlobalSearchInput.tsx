@@ -13,7 +13,8 @@ function InnerSearch () {
     margin: 'auto',
     zIndex: 11,
     width: 'min-content',
-  }}>
+  }}
+  >
     <Input
       autoFocus={currentTouch === false}
       width={50}

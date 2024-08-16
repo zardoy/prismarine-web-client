@@ -5,9 +5,11 @@ import SignEditor from './SignEditor'
 const meta: Meta<typeof SignEditor> = {
   component: SignEditor,
   render (args) {
-    return <SignEditor {...args} handleClick={(result) => {
-      console.log('handleClick', result)
-    }} />
+    return <SignEditor
+      {...args} handleClick={(result) => {
+        console.log('handleClick', result)
+      }}
+    />
   }
 }
 

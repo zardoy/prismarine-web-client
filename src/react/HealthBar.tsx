@@ -98,7 +98,8 @@ export default ({
         Array.from({ length: 10 }, () => 0)
           .map((num, index) => <div
             key={`heart-${index}`}
-            className='heart'></div>)
+            className='heart'
+          />)
       }
     </div>
   </SharedHudVars>

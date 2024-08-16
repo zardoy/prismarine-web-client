@@ -15,7 +15,6 @@ import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 
 import './scaleInterface'
-import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 import PrismarineItem from 'prismarine-item'
