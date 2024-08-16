@@ -39,7 +39,11 @@ export default ({
   bottomRightLinks
 }: Props) => {
   if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
-  const linksParsed = bottomRightLinks?.split(';').map(l => l.split(':')) as Array<[string, string]> | undefined
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const linksParsed = bottomRightLinks?.split(';').map(l => {
+    const parts = l.split(':')
+    return [parts[0], parts.slice(1).join(':')]
+  }) as Array<[string, string]> | undefined
 
   return (
     <div className={styles.root}>
