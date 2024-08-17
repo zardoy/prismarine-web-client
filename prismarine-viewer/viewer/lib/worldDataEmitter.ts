@@ -19,6 +19,7 @@ export class WorldDataEmitter extends EventEmitter {
   private readonly lastPos: Vec3
   private eventListeners: Record<string, any> = {}
   private readonly emitter: WorldDataEmitter
+  preserveChunksDistance = 0
 
   constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
@@ -191,14 +192,14 @@ export class WorldDataEmitter extends EventEmitter {
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {
       this.emitter.emit('chunkPosUpdate', { pos })
-      const newView = new ViewRect(botX, botZ, this.viewDistance)
+      const newViewToUnload = new ViewRect(botX, botZ, this.viewDistance + this.preserveChunksDistance)
       const chunksToUnload: Vec3[] = []
       for (const coords of Object.keys(this.loadedChunks)) {
         const x = parseInt(coords.split(',')[0], 10)
         const z = parseInt(coords.split(',')[1], 10)
         const p = new Vec3(x, 0, z)
         const [chunkX, chunkZ] = chunkPos(p)
-        if (!newView.contains(chunkX, chunkZ)) {
+        if (!newViewToUnload.contains(chunkX, chunkZ)) {
           chunksToUnload.push(p)
         }
       }

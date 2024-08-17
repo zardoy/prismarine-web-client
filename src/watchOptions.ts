@@ -63,3 +63,13 @@ export const watchOptionsAfterViewerInit = () => {
     viewer.world.starField.enabled = o.starfieldRendering
   })
 }
+
+let viewWatched = false
+export const watchOptionsAfterWorldViewInit = () => {
+  worldView!.preserveChunksDistance = options.preserveChunksDistance
+  if (viewWatched) return
+  watchValue(options, o => {
+    if (!worldView) return
+    worldView.preserveChunksDistance = o.preserveChunksDistance
+  })
+}

@@ -24,7 +24,7 @@ import './reactUi'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
-import { watchOptionsAfterViewerInit } from './watchOptions'
+import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
 import fs from 'fs'
@@ -690,6 +690,7 @@ async function connect (connectOptions: ConnectOptions) {
     const center = bot.entity.position
 
     const worldView = window.worldView = new WorldDataEmitter(bot.world, renderDistance, center)
+    watchOptionsAfterWorldViewInit()
 
     bot.on('physicsTick', () => updateCursor())
 
