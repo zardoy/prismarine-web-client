@@ -6,7 +6,7 @@ import { dirname } from 'node:path'
 import supportedVersions from '../src/supportedVersions.mjs'
 import { gzipSizeFromFileSync } from 'gzip-size'
 import fs from 'fs'
-import  {default as _JsonOptimizer}  from './optimizeJson'
+import  {default as _JsonOptimizer}  from '../src/optimizeJson'
 import { buildSync } from 'esbuild'
 import { gzipSync } from 'zlib';
 
@@ -42,9 +42,9 @@ const versionToNumber = (ver) => {
 }
 
 // if not included here (even as {}) will not be bundled & accessible!
-const minify = true
+const minifyTestOutput = false
 // const dataTypeBundling = {
-//   recipes: {
+//   biomes: {
 //     arrKey: 'name',
 //     // ignoreRemoved: true,
 //     // ignoreChanges: true
@@ -130,21 +130,22 @@ const dataTypeBundling = {
 const notBundling = [...dataTypes.keys()].filter(x => !Object.keys(dataTypeBundling).includes(x))
 console.log("Not bundling minecraft-data data:", notBundling)
 
-let contents = 'Object.assign(window.mcData, {\n'
+// let contents = 'Object.assign(window.mcData, {\n'
 let previousData = {}
 // /** @type {Record<string, JsonOptimizer>} */
 const diffSources = {}
 const versionsArr = Object.entries(versions)
 const sizePerDataType = {}
+const rawDataVersions = {}
 // const versionsArr = Object.entries(versions).slice(-1)
 for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
   // console.log(i, '/', versionsArr.length)
-  contents += `    '${version}': {\n`
+  // contents += `    '${version}': {\n`
   for (const [dataType, dataPath] of Object.entries(dataSet)) {
     const config = dataTypeBundling[dataType]
     if (!config) continue
     if (dataType === 'blockCollisionShapes' && versionToNumber(version) >= versionToNumber('1.13')) {
-      contents += `      get ${dataType} () { return window.globalGetCollisionShapes?.("${version}") },\n`
+      // contents += `      get ${dataType} () { return window.globalGetCollisionShapes?.("${version}") },\n`
       continue
     }
     const loc = `minecraft-data/data/${dataPath}/`
@@ -154,6 +155,8 @@ for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
     let injectCode = ''
     let rawData = dataRaw
     if (config.raw) {
+      rawDataVersions[dataType] ??= {}
+      rawDataVersions[dataType][version] = rawData
       rawData = dataRaw
     } else {
       if (!diffSources[dataType]) {
@@ -175,17 +178,19 @@ for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
       // Object.assign(data, changes)
     }
     previousData[dataType] = dataRaw
-    contents += `      get ${dataType} () { return ${injectCode || JSON.stringify(rawData)} },\n`
+    // contents += `      get ${dataType} () { return ${injectCode || JSON.stringify(rawData)} },\n`
   }
-  contents += '    },\n'
+  // contents += '    },\n'
 }
-contents += '})'
-contents += `\n\nconst sources = ${JSON.stringify(Object.fromEntries(Object.entries(diffSources).map(x => {
-  const data = x[1].export();
+// contents += '})'
+const sources = Object.fromEntries(Object.entries(diffSources).map(x => {
+  const data = x[1].export()
   // const data = {}
   sizePerDataType[x[0]] += Buffer.byteLength(JSON.stringify(data), 'utf8')
-  return [x[0], data];
-})), null, 4)}`
+  return [x[0], data]
+}))
+Object.assign(sources, rawDataVersions)
+// contents += `\n\nconst sources = ${JSON.stringify(sources, null, 4)}`
 
 const totalSize = Object.values(sizePerDataType).reduce((acc, val) => acc + val, 0)
 console.log('total size (mb)', totalSize / 1024 / 1024)
@@ -204,24 +209,13 @@ function compressToBase64(input) {
   return buffer.toString('base64');
 }
 
-const filePath = './generated/new.js'
-if (minify) {
-  buildSync({
-    bundle: true,
-    minify: true,
-    outfile: filePath,
-    stdin: {
-      contents,
-
-      loader: 'js',
-    },
-  })
+const filePath = './generated/minecraft-data-optimized.json'
+fs.writeFileSync(filePath, JSON.stringify(sources), 'utf8')
+if (minifyTestOutput) {
   const minizedCompressed = compressToBase64(fs.readFileSync(filePath))
   console.log('size of compressed', Buffer.byteLength(minizedCompressed, 'utf8') / 1000 / 1000)
   const compressedFilePath = './experiments/compressed.js'
   fs.writeFileSync(compressedFilePath, minizedCompressed, 'utf8')
-} else {
-  fs.writeFileSync(filePath, contents, 'utf8')
 }
 
 console.log('size', fs.lstatSync(filePath).size / 1000 / 1000, gzipSizeFromFileSync(filePath) / 1000 / 1000)

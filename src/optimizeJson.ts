@@ -1,3 +1,5 @@
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
+
 type IdMap = Record<string, number>
 
 type DiffData = {
@@ -12,6 +14,7 @@ type SourceData = {
     source: Record<number, any>
     diffs: Record<string, DiffData>
     arrKey?
+    __IS_OPTIMIZED__: true
 }
 
 export default class JsonOptimizer {
@@ -20,9 +23,10 @@ export default class JsonOptimizer {
     properties = {} as IdMap
     source = {}
     previousKeys = [] as number[]
+    previousValues = {} as Record<number, any>
     diffs = {} as Record<string, DiffData>
 
-    constructor(public arrKey?: string, public ignoreChanges = false, public ignoreRemoved = false) { }
+    constructor (public arrKey?: string, public ignoreChanges = false, public ignoreRemoved = false) { }
 
     export () {
         const { keys, properties, source, arrKey, diffs } = this
@@ -31,7 +35,8 @@ export default class JsonOptimizer {
             properties,
             source,
             arrKey,
-            diffs
+            diffs,
+            '__IS_OPTIMIZED__': true
         } satisfies SourceData
     }
 
@@ -40,12 +45,11 @@ export default class JsonOptimizer {
         const changed = [] as any[]
         const { arrKey, ignoreChanges, ignoreRemoved } = this
         const added = [] as number[]
-        // const added = {} as any
 
         if (!diffing || typeof diffing !== 'object') throw new Error('diffing data is not object')
         if (Array.isArray(diffing) && !arrKey) throw new Error('arrKey is required for arrays')
         const diffingObj = Array.isArray(diffing) ? Object.fromEntries(diffing.map(x => {
-            const key = x[arrKey]
+            const key = x[arrKey!]
             return [key, x]
         })) : diffing
 
@@ -58,42 +62,43 @@ export default class JsonOptimizer {
             this.keys[key] ??= lastRootKeyId++
             this.idToKey[this.keys[key]] = key
         }
+        const DEBUG = false
 
         const addDiff = (key, newVal, prevVal) => {
-            // const valueMapped = {} as Record<string, any>
             const valueMapped = [] as any[]
             const isItemObj = typeof newVal === 'object' && newVal
             if (isItemObj) {
-                for (const [key, val] of Object.entries(newVal)) {
-                    if (!isEqualStructured(newVal[key], prevVal[key])) {
-                        let keyMapped = this.properties[key]
+                for (const [prop, val] of Object.entries(newVal)) {
+                    // mc-data: why push only changed props? eg for blocks only stateId are different between all versions so we skip a lot of duplicated data like block props
+                    if (!isEqualStructured(newVal[prop], prevVal[prop])) {
+                        let keyMapped = this.properties[prop]
                         if (keyMapped === undefined) {
-                            this.properties[key] = lastItemKeyId++
-                            keyMapped = this.properties[key]
+                            this.properties[prop] = lastItemKeyId++
+                            keyMapped = this.properties[prop]
                         }
-                        // valueMapped[keyMapped] = newVal[key]
-                        // valueMapped.push(key, newVal[key])
-                        valueMapped.push(keyMapped, newVal[key])
+                        valueMapped.push(DEBUG ? prop : keyMapped, newVal[prop])
                     }
                 }
             }
-            changed.push(this.keys[key], isItemObj ? valueMapped : newVal)
-            // changed.push(key, valueMapped)
+            const keyId = this.keys[key]
+            changed.push(DEBUG ? key : keyId, isItemObj ? valueMapped : newVal)
         }
-        for (const [id, val] of Object.entries(this.source)) {
+        for (const [id, sourceVal] of Object.entries(this.source)) {
             const key = this.idToKey[id]
             const diffVal = diffingObj[key]
             if (!ignoreChanges && diffVal !== undefined) {
-                if (!isEqualStructured(val, diffVal)) {
-                    addDiff(key, val, diffVal)
+                this.previousValues[id] ??= this.source[id]
+                const prevVal = this.previousValues[id]
+                if (!isEqualStructured(prevVal, diffVal)) {
+                    addDiff(key, diffVal, prevVal)
                 }
+                this.previousValues[id] = diffVal
             }
         }
         for (const [key, val] of Object.entries(diffingObj)) {
             const id = this.keys[key]
             if (!this.source[id]) {
                 this.source[id] = val
-                continue
             }
             added.push(id)
         }
@@ -102,8 +107,11 @@ export default class JsonOptimizer {
             const key = this.idToKey[previousKey]
             if (!diffingObj[key] && !ignoreRemoved) {
                 removed.push(previousKey)
-                this.previousKeys.splice(this.previousKeys.indexOf(previousKey), 1)
             }
+        }
+
+        for (const toRemove of removed) {
+            this.previousKeys.splice(this.previousKeys.indexOf(toRemove), 1)
         }
 
         for (const previousKey of this.previousKeys) {
@@ -126,7 +134,7 @@ export default class JsonOptimizer {
         this.diffs[key] = diff
     }
 
-    static isOptimizedChangeDiff(changePossiblyArrDiff) {
+    static isOptimizedChangeDiff (changePossiblyArrDiff) {
         if (!Array.isArray(changePossiblyArrDiff)) return false
         if (changePossiblyArrDiff.length % 2 !== 0) return false
         for (let i = 0; i < changePossiblyArrDiff.length; i += 2) {
@@ -135,36 +143,44 @@ export default class JsonOptimizer {
         return true
     }
 
-    static restoreData ({ keys, properties, source, arrKey }: SourceData, key: string) {
-        // const data = arrKey ? [] : {}
-        // if (arrKey) {
-        //     data.push(...added ?? [])
-        // } else {
-        //     Object.assign(data, added ?? {})
-        // }
-        // const changeData = (id, newData) => {
-        //     const key = keys[id]
-        //     if (arrKey) {
-        //         const index = data.findIndex(a => a[arrKey] === key)
-        //         const oldData = data[index]
-        //         const isOptimizedChange = JsonOptimizer.isOptimizedChangeDiff(newData)
-        //         let newDataMapped = {} as Record<string, any>
-        //         if (isOptimizedChange) {
-        //             for (let i = 0; i < newData.length / 2; i++) {
-        //                 let id = newData[i]
-        //                 let val = newData[i + 1]
-        //                 const key = properties[id]
-        //                 newDataMapped[key] = val
-        //             }
-        //         }
-        //         data.splice(index, 1, isOptimizedChange ? { ...oldData, ...newDataMapped } : newData)
-        //     } else {
-        //         data[key] = newData
-        //     }
-        // }
-        // for (const id of removed) {
-        //     changeData(id, undefined)
-        // }
+    static restoreData ({ keys, properties, source, arrKey, diffs }: SourceData, targetKey: string) {
+        // if (!diffs[targetKey]) throw new Error(`The requested data to restore with key ${targetKey} does not exist`)
+        const keysById = Object.fromEntries(Object.entries(keys).map(x => [x[1], x[0]]))
+        const propertiesById = Object.fromEntries(Object.entries(properties).map(x => [x[1], x[0]]))
+        const dataByKeys = {} as Record<string, any>
+        for (const [versionKey, { added, changed, removed }] of Object.entries(diffs)) {
+            if (versionToNumber(versionKey) >= versionToNumber(targetKey)) {
+                for (const toAdd of added) {
+                    dataByKeys[toAdd] = source[toAdd]
+                }
+                for (const toRemove of removed) {
+                    delete dataByKeys[toRemove]
+                }
+                for (let i = 0; i < changed.length; i += 2) {
+                    const key = changed[i]
+                    const change = changed[i+1]
+                    const isOptimizedChange = JsonOptimizer.isOptimizedChangeDiff(change)
+                    if (isOptimizedChange) {
+                        // apply optimized diff
+                        for (let k = 0; k < change.length; k += 2) {
+                            const propId = change[k]
+                            const newVal = change[k + 1]
+                            const prop = propertiesById[propId];
+                            // const prop = propId
+                            if (prop === undefined) throw new Error(`Property id change is undefined: ${propId}`)
+                            dataByKeys[key][prop] = newVal
+                        }
+                    } else {
+                        dataByKeys[key] = change
+                    }
+                }
+            }
+        }
+        if (arrKey) {
+            return Object.values(dataByKeys)
+        } else {
+            return Object.fromEntries(Object.entries(dataByKeys).map(([key, val]) => [keysById[key], val]))
+        }
     }
 
     static resolveDefaults (arr) {
