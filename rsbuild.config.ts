@@ -140,15 +140,22 @@ export default defineConfig({
                         prep()
                     })
                     build.onAfterBuild(async () => {
-                        const { count, size, warnings } = await generateSW({
-                            // dontCacheBustURLsMatching: [new RegExp('...')],
-                            globDirectory: 'dist',
-                            skipWaiting: true,
-                            clientsClaim: true,
-                            additionalManifestEntries: getSwAdditionalEntries(),
-                            globPatterns: [],
-                            swDest: './dist/service-worker.js',
-                        })
+                        if (process.env.ONE_FILE_BUILD) {
+                            // process index.html
+                            let html = fs.readFileSync('./dist/index.html', 'utf8')
+                            html += '<script id="mesher-worker-code">' + fs.readFileSync('./dist/mesher.js', 'utf8') + '</script>'
+                            fs.writeFileSync('./dist/index.html', html, 'utf8')
+                        } else {
+                            const { count, size, warnings } = await generateSW({
+                                // dontCacheBustURLsMatching: [new RegExp('...')],
+                                globDirectory: 'dist',
+                                skipWaiting: true,
+                                clientsClaim: true,
+                                additionalManifestEntries: getSwAdditionalEntries(),
+                                globPatterns: [],
+                                swDest: './dist/service-worker.js',
+                            })
+                        }
                     })
                 }
                 build.onBeforeStartDevServer(() => prep())
@@ -158,7 +165,7 @@ export default defineConfig({
     tools: {
         bundlerChain (chain, { CHAIN_ID }) {
         },
-        rspack (config, { addRules, appendPlugins, rspack }) {
+        rspack (config, { addRules, appendPlugins, rspack, mergeConfig }) {
             appendPlugins(new rspack.NormalModuleReplacementPlugin(/data/, (resource) => {
                 let absolute: string
                 const request = resource.request.replaceAll('\\', '/')
@@ -186,6 +193,9 @@ export default defineConfig({
                 /the request of a dependency is an expression/,
                 /Unsupported pseudo class or element: xr-overlay/
             ]
+            if (ONE_FILE_BUILD) {
+                config.module!.parser!.javascript!.dynamicImportMode = 'eager'
+            }
         }
     },
     performance: {
