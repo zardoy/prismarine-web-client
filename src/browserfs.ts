@@ -433,6 +433,45 @@ export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopi
   }))
 }
 
+export const openWorldFromHttpDir = async (fileDescriptorUrl: string/*  | undefined */, baseUrl?: string) => {
+  // todo try go guess mode
+  baseUrl = fileDescriptorUrl.split('/').slice(0, -1).join('/')
+  let index
+  const file = await fetch(fileDescriptorUrl).then(a => a.json())
+  if (file.baseUrl) {
+    baseUrl = new URL(file.baseUrl, baseUrl).toString()
+    index = file.index
+  } else {
+    index = file
+  }
+  if (!index) throw new Error(`The provided mapDir file is not valid descriptor file! ${fileDescriptorUrl}`)
+  await new Promise<void>(async resolve => {
+    browserfs.configure({
+      fs: 'MountableFileSystem',
+      options: {
+        ...defaultMountablePoints,
+        '/world': {
+          fs: 'HTTPRequest',
+          options: {
+            index,
+            baseUrl
+          }
+        }
+      },
+    }, (e) => {
+      if (e) throw e
+      resolve()
+    })
+  })
+
+  fsState.saveLoaded = false
+  fsState.isReadonly = true
+  fsState.syncFs = false
+  fsState.inMemorySave = false
+
+  await loadSave()
+}
+
 // todo rename method
 const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name']) => {
   await new Promise<void>(async resolve => {

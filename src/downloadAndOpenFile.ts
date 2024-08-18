@@ -1,5 +1,5 @@
 import prettyBytes from 'pretty-bytes'
-import { openWorldZip } from './browserfs'
+import { openWorldFromHttpDir, openWorldZip } from './browserfs'
 import { getResourcePackNames, installTexturePack, resourcePackState, updateTexturePackInstalledState } from './resourcePack'
 import { setLoadingScreenStatus } from './utils'
 
@@ -9,6 +9,16 @@ export const getFixedFilesize = (bytes: number) => {
 
 const inner = async () => {
   const qs = new URLSearchParams(window.location.search)
+  const mapUrlDir = qs.get('mapDir')
+  const mapUrlDirGuess = qs.get('mapDir')
+  if (mapUrlDir) {
+    await openWorldFromHttpDir(mapUrlDir)
+    return true
+  }
+  if (mapUrlDirGuess) {
+    // await openWorldFromHttpDir(undefined, mapUrlDirGuess)
+    return true
+  }
   let mapUrl = qs.get('map')
   const texturepack = qs.get('texturepack')
   // fixme
