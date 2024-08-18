@@ -98,7 +98,6 @@ import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
-import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
@@ -410,7 +409,7 @@ async function connect (connectOptions: ConnectOptions) {
           throw err
         }
       }
-      viewer.world.blockstatesModels = blockstatesModels
+      viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
       viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
     }
 
