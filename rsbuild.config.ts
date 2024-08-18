@@ -11,6 +11,8 @@ import { promisify } from 'util'
 import { generateSW } from 'workbox-build'
 import { getSwAdditionalEntries } from './scripts/build'
 
+const ONE_FILE_BUILD = true
+
 //@ts-ignore
 try { require('./localSettings.js') } catch { }
 
@@ -27,6 +29,7 @@ export default defineConfig({
     },
     html: {
         template: './index.html',
+        inject: 'body'
     },
     output: {
         polyfill: 'usage',
@@ -37,8 +40,10 @@ export default defineConfig({
             js: 'source-map',
             css: true,
         },
+        inlineScripts: ONE_FILE_BUILD,
+        inlineStyles: ONE_FILE_BUILD,
         // 50kb limit for data uri
-        dataUriLimit: 50 * 1024
+        dataUriLimit: ONE_FILE_BUILD ? 1 * 1024 * 1024 * 1024 : 50 * 1024
     },
     source: {
         alias: {
