@@ -83,8 +83,9 @@ export const guiOptionsScheme: {
       },
       starfieldRendering: {},
       renderEntities: {},
-      preserveChunksDistance: {
+      keepChunksDistance: {
         max: 5,
+        unit: '',
       },
     },
   ],

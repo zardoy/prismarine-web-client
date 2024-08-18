@@ -7,7 +7,7 @@ import { omitObj } from '@zardoy/utils'
 
 const defaultOptions = {
   renderDistance: 3,
-  preserveChunksDistance: 1,
+  keepChunksDistance: 1,
   multiplayerRenderDistance: 3,
   closeConfirmation: true,
   autoFullScreen: false,

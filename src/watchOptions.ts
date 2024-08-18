@@ -66,10 +66,10 @@ export const watchOptionsAfterViewerInit = () => {
 
 let viewWatched = false
 export const watchOptionsAfterWorldViewInit = () => {
-  worldView!.preserveChunksDistance = options.preserveChunksDistance
+  worldView!.keepChunksDistance = options.keepChunksDistance
   if (viewWatched) return
   watchValue(options, o => {
     if (!worldView) return
-    worldView.preserveChunksDistance = o.preserveChunksDistance
+    worldView.keepChunksDistance = o.keepChunksDistance
   })
 }
