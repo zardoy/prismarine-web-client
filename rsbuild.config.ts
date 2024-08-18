@@ -11,7 +11,7 @@ import { promisify } from 'util'
 import { generateSW } from 'workbox-build'
 import { getSwAdditionalEntries } from './scripts/build'
 
-const ONE_FILE_BUILD = true
+const ONE_FILE_BUILD = process.env.ONE_FILE_BUILD === 'true'
 
 //@ts-ignore
 try { require('./localSettings.js') } catch { }
@@ -69,6 +69,7 @@ export default defineConfig({
         define: {
             'process.env.BUILD_VERSION': JSON.stringify(!dev ? buildingVersion : 'undefined'),
             'process.env.MAIN_MENU_LINKS': JSON.stringify(process.env.MAIN_MENU_LINKS),
+            'process.env.ONE_FILE_BUILD': JSON.stringify(process.env.ONE_FILE_BUILD),
             'process.platform': '"browser"',
             'process.env.GITHUB_URL':
                 JSON.stringify(`https://github.com/${process.env.GITHUB_REPOSITORY || `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`}`),
