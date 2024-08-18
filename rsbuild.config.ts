@@ -186,5 +186,20 @@ export default defineConfig({
         // bundleAnalyze: {
         //     analyzerMode: 'json',
         // },
+        chunkSplit: {
+            strategy: 'split-by-experience',
+            forceSplitting: [
+                // todo remove small chunks eg lodash
+                /minecraft-protocol/,
+                /prismarine-viewer/,
+                /three/,
+                /react/,
+                /blockStatesModels/,
+                /browserfs/,
+                /minecraft-data/, // todo remove
+                /mc-assets/,
+                /prosemirror-markdown|flying-squid|/
+            ],
+        },
     },
 })
