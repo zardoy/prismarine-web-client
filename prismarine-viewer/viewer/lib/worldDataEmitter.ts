@@ -150,6 +150,9 @@ export class WorldDataEmitter extends EventEmitter {
     }
   }
 
+  // debugGotChunkLatency = [] as number[]
+  // lastTime = 0
+
   async loadChunk (pos: ChunkPos, isLightUpdate = false) {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
@@ -158,6 +161,9 @@ export class WorldDataEmitter extends EventEmitter {
       // eslint-disable-next-line @typescript-eslint/await-thenable -- todo allow to use async world provider but not sure if needed
       const column = await this.world.getColumnAt(pos['y'] ? pos as Vec3 : new Vec3(pos.x, 0, pos.z))
       if (column) {
+        // const latency = Math.floor(performance.now() - this.lastTime)
+        // this.debugGotChunkLatency.push(latency)
+        // this.lastTime = performance.now()
         // todo optimize toJson data, make it clear why it is used
         const chunk = column.toJson()
         // TODO: blockEntities

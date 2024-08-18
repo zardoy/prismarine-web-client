@@ -170,6 +170,8 @@ export class Viewer {
     })
   }
 
+  addChunksBatchWaitTime = 200
+
   // todo type
   listen (emitter: EventEmitter) {
     emitter.on('entity', (e) => {
@@ -180,9 +182,26 @@ export class Viewer {
       // this.updatePrimitive(p)
     })
 
+    let currentLoadChunkBatch = null as {
+      timeout
+      data
+    } | null
     emitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
       this.world.worldConfig = worldConfig
-      this.addColumn(x, z, chunk, isLightUpdate)
+      if (!currentLoadChunkBatch) {
+        // add a setting to use debounce instead
+        currentLoadChunkBatch = {
+          data: [],
+          timeout: setTimeout(() => {
+            for (const args of currentLoadChunkBatch!.data) {
+              //@ts-ignore
+              this.addColumn(...args)
+            }
+            currentLoadChunkBatch = null
+          }, this.addChunksBatchWaitTime)
+        }
+      }
+      currentLoadChunkBatch.data.push([x, z, chunk, isLightUpdate])
     })
     // todo remove and use other architecture instead so data flow is clear
     emitter.on('blockEntities', (blockEntities) => {
