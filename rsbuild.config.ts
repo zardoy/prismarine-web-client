@@ -54,6 +54,7 @@ export default defineConfig({
             crypto: './src/shims/crypto.js',
             dns: './src/shims/dns.js',
             yggdrasil: './src/shims/yggdrasilReplacement.ts',
+            'three$': 'three/src/Three.js'
         },
         entry: {
             index: './src/index.ts',
@@ -182,9 +183,10 @@ export default defineConfig({
             ]
         }
     },
-    performance: {
-        // bundleAnalyze: {
-        //     analyzerMode: 'json',
-        // },
-    },
+    // performance: {
+    //     bundleAnalyze: {
+    //         analyzerMode: 'json',
+    //         reportFilename: 'report.json',
+    //     },
+    // },
 })
