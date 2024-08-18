@@ -194,7 +194,7 @@ export class Viewer {
           data: [],
           timeout: setTimeout(() => {
             for (const args of currentLoadChunkBatch!.data) {
-              //@ts-ignore
+              //@ts-expect-error
               this.addColumn(...args)
             }
             currentLoadChunkBatch = null
