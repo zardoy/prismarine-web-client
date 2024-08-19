@@ -8,7 +8,7 @@ export const DiscordButton = () => {
   const links: DropdownButtonItem[] = [
     {
       text: 'Support Official Server (mcraft.fun)',
-      clickHandler: () => openURL('https://discord.gg/JCPnD4Qh')
+      clickHandler: () => openURL('https://discord.gg/xzGRhxtRUt')
     },
     {
       text: 'Community Server (PrismarineJS)',
