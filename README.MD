@@ -159,6 +159,12 @@ Single player specific:
 }
 ```
 
+Note that `mapDir` also accepts base64 encoded JSON like so:
+`?mapDir=data:application/json;base64,...` where `...` is the base64 encoded JSON of the index file.
+In this case you must use `?mapDirBaseUrl` to specify the base URL to fetch the files from index.
+
+- `?mapDirBaseUrl` - See above.
+
 <!-- - `?mapDirGuess=<base_url>` - Load the map from the provided URL and paths will be guessed with a few additional fetch requests. -->
 
 General:

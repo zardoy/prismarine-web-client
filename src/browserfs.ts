@@ -433,11 +433,10 @@ export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopi
   }))
 }
 
-export const openWorldFromHttpDir = async (fileDescriptorUrl: string/*  | undefined */, baseUrl?: string) => {
+export const openWorldFromHttpDir = async (fileDescriptorUrl: string/*  | undefined */, baseUrl = fileDescriptorUrl.split('/').slice(0, -1).join('/')) => {
   // todo try go guess mode
-  baseUrl = fileDescriptorUrl.split('/').slice(0, -1).join('/')
   let index
-  const file = await fetch(fileDescriptorUrl).then(a => a.json())
+  const file = await fetch(fileDescriptorUrl).then(async a => a.json())
   if (file.baseUrl) {
     baseUrl = new URL(file.baseUrl, baseUrl).toString()
     index = file.index
