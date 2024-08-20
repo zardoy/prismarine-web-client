@@ -86,6 +86,7 @@ export const guiOptionsScheme: {
       keepChunksDistance: {
         max: 5,
         unit: '',
+        tooltip: 'Additional distance to keep the chunks loading before unloading them by marking them as too far',
       },
     },
   ],
