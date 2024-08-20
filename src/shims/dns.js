@@ -1,11 +1,12 @@
 /* global XMLHttpRequest */
 
-// Custom DNS resolver made by SiebeDW. Powered by google dns.
+// Custom DNS resolver. Powered by Cloudflare DNS-over-HTTPS.
 // Supported: SRV (not all errors support)
 module.exports.resolveSrv = function (hostname, callback) {
   const Http = new XMLHttpRequest()
-  const url = `https://dns.google.com/resolve?name=${hostname}&type=SRV`
+  const url = `https://cloudflare-dns.com/dns-query?name=${hostname}&type=SRV`
   Http.open('GET', url)
+  Http.setRequestHeader('Accept', 'application/dns-json')
   Http.responseType = 'json'
   Http.send()
 

@@ -274,7 +274,51 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     console.log('texture loaded')
   }
 
-  addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
+  getHighestTerrainBlock(x: number, z: number): number[] {
+    const chunk = bot.world.getColumn(Math.floor(x / 16), Math.floor(z / 16));
+    if (!chunk) {
+      console.error('Chunk not found at', x, z);
+      return [];
+    }
+  
+    // Create a set for ignored blocks
+    const ignoreBlocks = new Set([
+      'air', 'log', 'leaves', 'tallgrass', 'deadbush', 'waterlily', 'reeds',
+      'vine', 'lilypad', 'nether_wart', 'fire', 'magma', 'portal', 'end_portal',
+      'end_portal_frame', 'end_gateway', 'end_rod', 'chorus_flower', 'chorus_plant',
+      'beetroots', 'carrots', 'potatoes', 'wheat', 'cactus', 'sugar_cane', 'deadbush',
+      'grass', 'fern', 'tallgrass', 'seagrass', 'tall_seagrass', 'kelp', 'short_grass'
+    ]);
+  
+    const baseX = x % 16;
+    const baseZ = z % 16;
+    const highestYMap: Map<number, boolean> = new Map();
+  
+    // Iterate through the 16x16 area
+    for (let dx = 0; dx <= 16; dx++) {
+      for (let dz = 0; dz <= 16; dz++) {
+        let highestY = this.worldConfig.minY - 1;
+        // Iterate from the top of the world to the bottom
+        for (let y = this.worldConfig.worldHeight - 1; y >= this.worldConfig.minY; y--) {
+          const block = chunk.getBlock(new Vec3(baseX + dx, y, baseZ + dz));
+          if (!ignoreBlocks.has(block.name)) {
+            highestY = y;
+            break;
+          }
+        }
+        if (highestY >= this.worldConfig.minY) {
+          highestYMap.set(highestY, true);
+        }
+      }
+    }
+  
+    // Convert Map keys to an array
+    return Array.from(highestYMap.keys());
+  }
+  
+  
+
+  async addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
     if (!this.active) return
     if (this.workers.length === 0) throw new Error('workers not initialized yet')
     this.initialChunksLoad = false
@@ -283,7 +327,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       // todo optimize
       worker.postMessage({ type: 'chunk', x, z, chunk })
     }
-    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+    const highestTerrainBlock = this.getHighestTerrainBlock(x, z)
+    for (const y of highestTerrainBlock) {
       const loc = new Vec3(x, y, z)
       this.setSectionDirty(loc)
       if (!isLightUpdate || this.mesherConfig.smoothLighting) {
