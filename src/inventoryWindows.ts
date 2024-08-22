@@ -39,7 +39,7 @@ export const onGameLoad = (onLoad) => {
 
   const checkIfLoaded = () => {
     if (!viewer.world.itemsAtlasParser) return
-    itemsRenderer = new ItemsRenderer('latest', viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
+    itemsRenderer = new ItemsRenderer(bot.version, viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
     globalThis.itemsRenderer = itemsRenderer
     if (allImagesLoadedState.value) return
     onLoad?.()

@@ -60,11 +60,13 @@ export default () => {
 
   return <SharedHudVars>
     <div className='crosshair' />
-    {displayIndicator && <div className='crosshair-indicator' style={{
+    {displayIndicator && <div
+      className='crosshair-indicator' style={{
       //@ts-expect-error
-      '--crosshair-indicator-size': `${indicatorSize}px`,
-      borderLeft: `solid ${indicatorSize * indicatorProgress}px white`,
-      backgroundColor: alternativeIndicator ? 'dodgerblue' : undefined,
-    }} />}
+        '--crosshair-indicator-size': `${indicatorSize}px`,
+        borderLeft: `solid ${indicatorSize * indicatorProgress}px white`,
+        backgroundColor: alternativeIndicator ? 'dodgerblue' : undefined,
+      }}
+    />}
   </SharedHudVars>
 }

@@ -73,8 +73,8 @@ const Slider: React.FC<Props> = ({
             fireValueUpdate(true)
           }}
         />
-        <div className={styles.disabled} title={disabledReason}></div>
-        <div className={styles['slider-thumb']} style={{ left: `calc((100% * ${ratio}) - (8px * ${ratio}))` }}></div>
+        <div className={styles.disabled} title={disabledReason} />
+        <div className={styles['slider-thumb']} style={{ left: `calc((100% * ${ratio}) - (8px * ${ratio}))` }} />
         <label className={styles.label}>
           {label}: {valueDisplay ?? value} {unit}
         </label>

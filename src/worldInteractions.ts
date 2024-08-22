@@ -221,7 +221,12 @@ class WorldInteraction {
   // todo this shouldnt be done in the render loop, migrate the code to dom events to avoid delays on lags
   update () {
     const inSpectator = bot.game.gameMode === 'spectator'
-    const cursorBlock = inSpectator && !options.showCursorBlockInSpectator ? null : bot.blockAtCursor(5)
+    const entity = getEntityCursor()
+    let cursorBlock = inSpectator && !options.showCursorBlockInSpectator ? null : bot.blockAtCursor(5)
+    if (entity) {
+      cursorBlock = null
+    }
+
     let cursorBlockDiggable = cursorBlock
     if (cursorBlock && !bot.canDigBlock(cursorBlock) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
 

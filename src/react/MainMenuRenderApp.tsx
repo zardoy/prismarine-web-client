@@ -99,6 +99,7 @@ export default () => {
         githubAction={() => openGithub()}
         optionsAction={() => openOptionsMenu('main')}
         linksButton={<DiscordButton />}
+        bottomRightLinks={process.env.MAIN_MENU_LINKS}
         openFileAction={e => {
           if (!!window.showDirectoryPicker && !e.shiftKey) {
             void openWorldDirectory()

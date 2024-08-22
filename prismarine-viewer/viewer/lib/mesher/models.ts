@@ -236,7 +236,10 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     }
 
     // UV rotation
-    const r = eFace.rotation || 0
+    let r = eFace.rotation || 0
+    if (face === 'down') {
+      r += 180
+    }
     const uvcs = Math.cos(r * Math.PI / 180)
     const uvsn = -Math.sin(r * Math.PI / 180)
 

@@ -212,9 +212,11 @@ export default ({
 
   return (
     <>
-      <div className={`chat-wrapper chat-messages-wrapper ${usingTouch ? 'display-mobile' : ''}`} style={{
-        userSelect: opened && allowSelection ? 'text' : undefined,
-      }}>
+      <div
+        className={`chat-wrapper chat-messages-wrapper ${usingTouch ? 'display-mobile' : ''}`} style={{
+          userSelect: opened && allowSelection ? 'text' : undefined,
+        }}
+      >
         {opacity && <div ref={chatMessages} className={`chat ${opened ? 'opened' : ''}`} id="chat-messages" style={{ opacity }}>
           {messages.map((m) => (
             <MessageLine key={reactKeyForMessage(m)} message={m} />
@@ -246,7 +248,8 @@ export default ({
                 onClose?.()
               }
             }
-          }}>
+          }}
+          >
             {isIos && <input
               value=''
               type="text"

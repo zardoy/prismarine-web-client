@@ -53,24 +53,5 @@ test('Known blocks are not rendered', () => {
       "trial_spawner": true,
     }
   `)
-  expect(erroredBlocks).toMatchInlineSnapshot(`
-    {
-      "black_glazed_terracotta": true,
-      "blue_glazed_terracotta": true,
-      "brown_glazed_terracotta": true,
-      "cyan_glazed_terracotta": true,
-      "gray_glazed_terracotta": true,
-      "green_glazed_terracotta": true,
-      "light_blue_glazed_terracotta": true,
-      "light_gray_glazed_terracotta": true,
-      "lime_glazed_terracotta": true,
-      "magenta_glazed_terracotta": true,
-      "orange_glazed_terracotta": true,
-      "pink_glazed_terracotta": true,
-      "purple_glazed_terracotta": true,
-      "red_glazed_terracotta": true,
-      "white_glazed_terracotta": true,
-      "yellow_glazed_terracotta": true,
-    }
-  `)
+  expect(erroredBlocks).toMatchInlineSnapshot('{}')
 })

@@ -18,7 +18,8 @@ const meta: Meta<typeof ServersList> = {
         accounts={['testting']}
         onConfirm={(info) => {
           console.log('add server', info)
-        }} /> :
+        }}
+      /> :
       <ServersList
         worldData={[{
           name: 'test',

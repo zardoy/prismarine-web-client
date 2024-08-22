@@ -54,6 +54,7 @@ export default defineConfig({
             crypto: './src/shims/crypto.js',
             dns: './src/shims/dns.js',
             yggdrasil: './src/shims/yggdrasilReplacement.ts',
+            'three$': 'three/src/Three.js'
         },
         entry: {
             index: './src/index.ts',
@@ -63,6 +64,7 @@ export default defineConfig({
         // ],
         define: {
             'process.env.BUILD_VERSION': JSON.stringify(!dev ? buildingVersion : 'undefined'),
+            'process.env.MAIN_MENU_LINKS': JSON.stringify(process.env.MAIN_MENU_LINKS),
             'process.platform': '"browser"',
             'process.env.GITHUB_URL':
                 JSON.stringify(`https://github.com/${process.env.GITHUB_REPOSITORY || `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`}`),
@@ -130,7 +132,7 @@ export default defineConfig({
                 }
                 if (!dev) {
                     build.onBeforeBuild(async () => {
-                        await prep()
+                        prep()
                     })
                     build.onAfterBuild(async () => {
                         const { count, size, warnings } = await generateSW({
@@ -144,7 +146,7 @@ export default defineConfig({
                         })
                     })
                 }
-                build.onBeforeStartDevServer(prep)
+                build.onBeforeStartDevServer(() => prep())
             },
         },
     ],
@@ -181,9 +183,10 @@ export default defineConfig({
             ]
         }
     },
-    performance: {
-        // bundleAnalyze: {
-        //     analyzerMode: 'json',
-        // },
-    },
+    // performance: {
+    //     bundleAnalyze: {
+    //         analyzerMode: 'json',
+    //         reportFilename: 'report.json',
+    //     },
+    // },
 })

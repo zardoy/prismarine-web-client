@@ -163,7 +163,7 @@ const App = () => {
             <HeldMapUi />
           </InGameComponent>
         </div>
-        <div></div>
+        <div />
       </RobustPortal>
       <EnterFullscreenButton />
       <InGameUi />
@@ -189,18 +189,23 @@ const App = () => {
         <div className='overlay-top-scaled'>
           <GamepadUiCursor />
         </div>
-        <div></div>
+        <div />
       </RobustPortal>
     </ButtonAppProvider>
   </div>
 }
 
 const PerComponentErrorBoundary = ({ children }) => {
-  return children.map((child, i) => <ErrorBoundary key={i} renderError={(error) => {
-    const componentNameClean = (child.type.name || child.type.displayName || 'Unknown').replaceAll(/__|_COMPONENT/g, '')
-    showNotification(`UI component ${componentNameClean} crashed!`, 'Please report this. Use console for more.', true, undefined)
-    return null
-  }}>{child}</ErrorBoundary>)
+  return children.map((child, i) => <ErrorBoundary
+    key={i}
+    renderError={(error) => {
+      const componentNameClean = (child.type.name || child.type.displayName || 'Unknown').replaceAll(/__|_COMPONENT/g, '')
+      showNotification(`UI component ${componentNameClean} crashed!`, 'Please report this. Use console for more.', true, undefined)
+      return null
+    }}
+  >
+    {child}
+  </ErrorBoundary>)
 }
 
 renderToDom(<App />, {

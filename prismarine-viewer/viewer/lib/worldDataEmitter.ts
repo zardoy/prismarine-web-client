@@ -19,6 +19,7 @@ export class WorldDataEmitter extends EventEmitter {
   private readonly lastPos: Vec3
   private eventListeners: Record<string, any> = {}
   private readonly emitter: WorldDataEmitter
+  keepChunksDistance = 0
 
   constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
@@ -150,6 +151,9 @@ export class WorldDataEmitter extends EventEmitter {
     }
   }
 
+  // debugGotChunkLatency = [] as number[]
+  // lastTime = 0
+
   async loadChunk (pos: ChunkPos, isLightUpdate = false) {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
@@ -158,6 +162,9 @@ export class WorldDataEmitter extends EventEmitter {
       // eslint-disable-next-line @typescript-eslint/await-thenable -- todo allow to use async world provider but not sure if needed
       const column = await this.world.getColumnAt(pos['y'] ? pos as Vec3 : new Vec3(pos.x, 0, pos.z))
       if (column) {
+        // const latency = Math.floor(performance.now() - this.lastTime)
+        // this.debugGotChunkLatency.push(latency)
+        // this.lastTime = performance.now()
         // todo optimize toJson data, make it clear why it is used
         const chunk = column.toJson()
         // TODO: blockEntities
@@ -191,14 +198,14 @@ export class WorldDataEmitter extends EventEmitter {
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {
       this.emitter.emit('chunkPosUpdate', { pos })
-      const newView = new ViewRect(botX, botZ, this.viewDistance)
+      const newViewToUnload = new ViewRect(botX, botZ, this.viewDistance + this.keepChunksDistance)
       const chunksToUnload: Vec3[] = []
       for (const coords of Object.keys(this.loadedChunks)) {
         const x = parseInt(coords.split(',')[0], 10)
         const z = parseInt(coords.split(',')[1], 10)
         const p = new Vec3(x, 0, z)
         const [chunkX, chunkZ] = chunkPos(p)
-        if (!newView.contains(chunkX, chunkZ)) {
+        if (!newViewToUnload.contains(chunkX, chunkZ)) {
           chunksToUnload.push(p)
         }
       }

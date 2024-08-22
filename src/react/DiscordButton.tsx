@@ -8,7 +8,7 @@ export const DiscordButton = () => {
   const links: DropdownButtonItem[] = [
     {
       text: 'Support Official Server (mcraft.fun)',
-      clickHandler: () => openURL('https://discord.gg/JCPnD4Qh')
+      clickHandler: () => openURL('https://discord.gg/xzGRhxtRUt')
     },
     {
       text: 'Community Server (PrismarineJS)',
@@ -67,7 +67,8 @@ export const DropdownButton = ({ text, links }: { text: string, links: DropdownB
             key={el.text}
             style={{ width: '98px', fontSize: '7px' }}
             onClick={el.clickHandler}
-          >{el.text}</Button>
+          >{el.text}
+          </Button>
         })}
       </div>
     }

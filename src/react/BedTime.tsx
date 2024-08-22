@@ -14,7 +14,8 @@ export default () => {
     right: 0,
     display: 'flex',
     justifyContent: 'center',
-  }}>
+  }}
+  >
     <Button onClick={() => {
       void bot.wake()
       hideCurrentModal()
