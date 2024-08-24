@@ -5,12 +5,12 @@ type Version = { value: string, label: string }
 
 export default (
   { versions, selected, onChange, updateOptions, containerStyle }:
-  {
-    versions: Version[],
-    selected?: Version,
-    onChange?: (newValue: string) => void,
-    updateOptions?: (newSel: string) => void,
-  } & Pick<React.ComponentProps<typeof Select>, 'containerStyle' | 'placeholder' | 'disabled'>
+    {
+      versions: Version[],
+      selected?: Version,
+      onChange?: (newValue: string) => void,
+      updateOptions?: (newSel: string) => void,
+    } & Pick<React.ComponentProps<typeof Select>, 'containerStyle' | 'placeholder' | 'disabled'>
 ) => {
   return <Select
     initialOptions={versions}

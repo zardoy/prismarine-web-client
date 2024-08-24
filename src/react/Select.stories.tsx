@@ -18,7 +18,5 @@ export const Primary: Story = {
       console.log('input:', input)
       if (input === 'option 3') return { border: '1px solid yellow' } as CSSProperties
     },
-    iconInput: 'user',
-    iconOption: 'user'
   },
 }

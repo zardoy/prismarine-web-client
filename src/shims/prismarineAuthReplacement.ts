@@ -3,5 +3,5 @@
 const Titles = {}
 
 export {
-    Titles
+  Titles
 }
