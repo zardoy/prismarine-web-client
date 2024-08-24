@@ -33,7 +33,7 @@ export default ({
       background: 'white',
       padding: '20px 18px',
       width: 300,
-      height: 213,
+      maxHeight: 240,
       color: 'black',
       // borderRadius: 8,
     }}
