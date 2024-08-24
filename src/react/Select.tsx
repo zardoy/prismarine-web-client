@@ -14,14 +14,11 @@ interface Props {
   initialOptions: OptionStorage[]
   updateOptions: (options: string) => void
   getCssOnInput?: (input: string) => CSSProperties | undefined
-  processOption?: (option: string) => string
   onValueChange?: (newVal: string) => void
   defaultValue?: { value: string, label: string }
-  iconInput?: string
   placeholder?: string
-  iconOption?: string
   containerStyle?: CSSProperties
-  inputProps?: React.ComponentProps<typeof Input>
+  disabled?: boolean
 }
 
 export default ({
@@ -31,7 +28,8 @@ export default ({
   onValueChange,
   defaultValue,
   containerStyle,
-  placeholder
+  placeholder,
+  disabled
 }: Props) => {
   const [inputValue, setInputValue] = useState<string | undefined>(defaultValue?.label ?? '')
   const [currValue, setCurrValue] = useState<string | undefined>(defaultValue?.label ?? '')
@@ -48,6 +46,7 @@ export default ({
     formatCreateLabel={(value) => {
       return 'Use "' + value + '"'
     }}
+    isDisabled={disabled}
     placeholder={placeholder ?? ''}
     onChange={(e, action) => {
       console.log('value:', e?.value)

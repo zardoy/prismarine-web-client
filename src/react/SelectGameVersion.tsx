@@ -1,6 +1,5 @@
 import React, { CSSProperties } from 'react'
 import Select from './Select'
-import Input from './Input'
 
 type Version = { value: string, label: string }
 
@@ -9,11 +8,9 @@ export default (
   {
     versions: Version[],
     selected?: Version,
-    inputProps?: React.ComponentProps<typeof Input>,
     onChange?: (newValue: string) => void,
     updateOptions?: (newSel: string) => void,
-    containerStyle?: CSSProperties
-  }
+  } & Pick<React.ComponentProps<typeof Select>, 'containerStyle' | 'placeholder' | 'disabled'>
 ) => {
   return <Select
     initialOptions={versions}
