@@ -13,7 +13,7 @@ export interface OptionStorage {
 interface Props {
   initialOptions: OptionStorage[]
   updateOptions: (options: string) => void
-  processInput?: (input: string) => CSSProperties | undefined
+  getCssOnInput?: (input: string) => CSSProperties | undefined
   processOption?: (option: string) => string
   onValueChange?: (newVal: string) => void
   defaultValue?: { value: string, label: string }
@@ -27,7 +27,7 @@ interface Props {
 export default ({
   initialOptions,
   updateOptions,
-  processInput,
+  getCssOnInput,
   onValueChange,
   defaultValue,
   containerStyle,
@@ -40,7 +40,6 @@ export default ({
 
   return <Creatable
     options={initialOptions}
-    aria-invalid="true"
     defaultValue={defaultValue}
     blurInputOnSelect={true}
     hideSelectedOptions={false}
@@ -56,7 +55,7 @@ export default ({
       setInputValue(e?.label)
       onValueChange?.(e?.value ?? '')
       updateOptions?.(e?.value ?? '')
-      setInputStyle(processInput?.(e?.value ?? '') ?? {})
+      setInputStyle(getCssOnInput?.(e?.value ?? '') ?? {})
     }}
     onInputChange={(e) => {
       setIsFirstClick(false)
@@ -72,6 +71,7 @@ export default ({
     onMenuOpen={() => {
       setIsFirstClick(true)
     }}
+    menuPortalTarget={document.body}
     classNames={{
       control (state) {
         return styles.container
@@ -84,7 +84,8 @@ export default ({
       }
     }}
     styles={{
-      container (base, state) { return { ...base, position: 'relative' } },
+      menuPortal (base, state) { return { ...base, zIndex: 10, transform: 'scale(var(--guiScale))', transformOrigin: 'top left' } },
+      container (base, state) { return { ...base, position: 'relative', zIndex: 10 } },
       control (base, state) { return { ...containerStyle, ...inputStyle } },
       menu (base, state) { return { position: 'absolute', zIndex: 10 } },
       option (base, state) {
@@ -106,4 +107,3 @@ export default ({
     }}
   />
 }
-

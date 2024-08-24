@@ -23,7 +23,7 @@ export default (
     }}
     onValueChange={onChange}
     containerStyle={containerStyle ?? { width: '190px' }}
-    processInput={(value) => {
+    getCssOnInput={(value) => {
       if (!versions || !value) return {}
       const parsedsupportedVersions = versions.map(x => x.value.split('.').map(Number))
       const parsedValue = value.split('.').map(Number)
