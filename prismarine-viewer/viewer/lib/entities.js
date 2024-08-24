@@ -485,4 +485,56 @@ export class Entities extends EventEmitter {
       new TWEEN.Tween(e.rotation).to({ y: e.rotation.y + dy }, TWEEN_DURATION).start()
     }
   }
+  handleDamageEvent(entityId, damageAmount) {
+    const entityMesh = this.entities[entityId]?.children.find(c => c.name === 'mesh')
+    if (entityMesh) {
+      entityMesh.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const originalColor = child.material.color.clone()
+          child.material.color.set(0xff_00_00)
+          new TWEEN.Tween(child.material.color)
+            .to(originalColor, 500)
+            .start()
+        }
+      })
+
+      const damageText = this.createDamageText(damageAmount)
+      damageText.position.copy(entityMesh.position).add(new THREE.Vector3(0, entityMesh.geometry.boundingBox.max.y, 0))
+      this.scene.add(damageText)
+
+      new TWEEN.Tween(damageText.position)
+        .to({ y: damageText.position.y + 1 }, 1000)
+        .start()
+
+      new TWEEN.Tween(damageText.material)
+        .to({ opacity: 0 }, 1000)
+        .onComplete(() => {
+          this.scene.remove(damageText)
+        })
+        .start()
+    }
+  }
+
+  createDamageText(damageAmount) {
+    const canvas = document.createElement('canvas')
+    const context = canvas.getContext('2d')
+
+    if (!context) {
+      throw new Error('Could not get canvas context')
+    }
+
+    const fontSize = 64
+    canvas.width = 256
+    canvas.height = 128
+
+    context.font = `${fontSize}px Arial`
+    context.fillStyle = 'red'
+    context.fillText(damageAmount.toString(), 0, fontSize)
+
+    const texture = new THREE.Texture(canvas)
+    texture.needsUpdate = true
+
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true })
+    return new THREE.Sprite(spriteMaterial)
+  }
 }

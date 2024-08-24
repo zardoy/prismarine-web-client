@@ -88,6 +88,13 @@ customEvents.on('gameLoaded', () => {
     }
   })
 
+  bot._client.on('damage_event', (data) => {
+    const { entityId, sourceTypeId: damage } = data
+    if (viewer.entities.entities[entityId]) {
+      viewer.entities.handleDamageEvent(entityId, damage)
+    }
+  })
+
   const loadedSkinEntityIds = new Set<number>()
 
   const playerRenderSkin = (e: Entity) => {
