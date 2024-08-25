@@ -166,7 +166,7 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): {
     itemTexture = itemsRenderer.getItemTexture(itemName) ?? itemsRenderer.getItemTexture('item/missing_texture')!
   } catch (err) {
     itemTexture = itemsRenderer.getItemTexture('block/errored')!
-    inGameError(err)
+    inGameError(`Failed to render item ${itemName} on ${bot.version} (resourcepack: ${options.enabledResourcepack}): ${err.message}`)
   }
   if ('type' in itemTexture) {
     // is item
