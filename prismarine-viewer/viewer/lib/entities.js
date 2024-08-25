@@ -497,21 +497,6 @@ export class Entities extends EventEmitter {
             .start()
         }
       })
-
-      const damageText = this.createDamageText(damageAmount)
-      damageText.position.copy(entityMesh.position).add(new THREE.Vector3(0, entityMesh.geometry.boundingBox.max.y, 0))
-      this.scene.add(damageText)
-
-      new TWEEN.Tween(damageText.position)
-        .to({ y: damageText.position.y + 1 }, 1000)
-        .start()
-
-      new TWEEN.Tween(damageText.material)
-        .to({ opacity: 0 }, 1000)
-        .onComplete(() => {
-          this.scene.remove(damageText)
-        })
-        .start()
     }
   }
 
