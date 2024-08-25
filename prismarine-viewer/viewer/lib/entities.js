@@ -15,7 +15,7 @@ import { WalkingGeneralSwing } from './entity/animations'
 import externalTexturesJson from './entity/externalTextures.json'
 import { disposeObject } from './threeJsUtils'
 
-export const TWEEN_DURATION = 50 // todo should be 100
+export const TWEEN_DURATION = 120
 
 /**
  * @param {string} username
