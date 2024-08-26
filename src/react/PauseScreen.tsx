@@ -22,6 +22,7 @@ import Button from './Button'
 import Screen from './Screen'
 import styles from './PauseScreen.module.css'
 import { DiscordButton } from './DiscordButton'
+import { showNotification } from './NotificationProvider'
 
 export const saveToBrowserMemory = async () => {
   setLoadingScreenStatus('Saving world')
@@ -33,10 +34,12 @@ export const saveToBrowserMemory = async () => {
     const allRootPaths = [...usedServerPathsV1]
     const allFilesToCopy = [] as string[]
     for (const dirBase of allRootPaths) {
+      // eslint-disable-next-line no-await-in-loop
       if (dirBase.includes('.') && await fileExistsAsyncOptimized(join(worldFolder, dirBase))) {
         allFilesToCopy.push(dirBase)
         continue
       }
+      // eslint-disable-next-line no-await-in-loop
       let res = await collectFilesToCopy(join(worldFolder, dirBase), true)
       if (dirBase === 'region') {
         res = res.filter(x => x.endsWith('.mca'))
@@ -133,7 +136,10 @@ export default () => {
     }
     const action = await showOptionsModal('World actions...', ['Save to browser memory'])
     if (action === 'Save to browser memory') {
-      await saveToBrowserMemory()
+      const path = await saveToBrowserMemory()
+      if (!path) return
+      const saveName = path.split('/').at(-1)
+      showNotification(`World saved to ${saveName}`, 'Load it to keep your progress!')
       // fsState.inMemorySave = true
       // fsState.syncFs = false
       // fsState.isReadonly = false
