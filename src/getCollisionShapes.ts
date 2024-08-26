@@ -1,5 +1,5 @@
-import collisionShapesInit from '../generated/latestBlockCollisionsShapes.json'
 import { getRenamedData } from 'flying-squid/dist/blockRenames'
+import collisionShapesInit from '../generated/latestBlockCollisionsShapes.json'
 
 // defining globally to be used in loaded data, not sure of better workaround
 window.globalGetCollisionShapes = (version) => {
