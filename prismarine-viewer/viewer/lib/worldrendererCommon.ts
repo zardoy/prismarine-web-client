@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events'
 import { Vec3 } from 'vec3'
 import * as THREE from 'three'
-import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
+import mcDataRaw from 'minecraft-data/data.js' // note: using alias
 import blocksAtlases from 'mc-assets/dist/blocksAtlases.json'
 import blocksAtlasLatest from 'mc-assets/dist/blocksAtlasLatest.png'
 import blocksAtlasLegacy from 'mc-assets/dist/blocksAtlasLegacy.png'

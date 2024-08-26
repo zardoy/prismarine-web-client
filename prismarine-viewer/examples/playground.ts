@@ -15,6 +15,7 @@ import { loadScript } from '../viewer/lib/utils'
 import { TWEEN_DURATION } from '../viewer/lib/entities'
 import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
 import { WorldDataEmitter, Viewer } from '../viewer'
+import '../../src/getCollisionShapes'
 import { toMajorVersion } from '../../src/utils'
 
 window.THREE = THREE
@@ -65,21 +66,21 @@ async function main () {
   let continuousRender = false
 
   const { version } = params
+  await window._LOAD_MC_DATA()
   // temporary solution until web worker is here, cache data for faster reloads
-  const globalMcData = window['mcData']
-  if (!globalMcData['version']) {
-    const major = toMajorVersion(version)
-    const sessionKey = `mcData-${major}`
-    if (sessionStorage[sessionKey]) {
-      Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))
-    } else {
-      if (sessionStorage.length > 1) sessionStorage.clear()
-      await loadScript(`./mc-data/${major}.js`)
-      try {
-        sessionStorage[sessionKey] = JSON.stringify(Object.fromEntries(Object.entries(globalMcData).filter(([ver]) => ver.startsWith(major))))
-      } catch { }
-    }
-  }
+  // const globalMcData = window['mcData']
+  // if (!globalMcData['version']) {
+  //   const major = toMajorVersion(version)
+  //   const sessionKey = `mcData-${major}`
+  //   if (sessionStorage[sessionKey]) {
+  //     Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))
+  //   } else {
+  //     if (sessionStorage.length > 1) sessionStorage.clear()
+  //     try {
+  //       sessionStorage[sessionKey] = JSON.stringify(Object.fromEntries(Object.entries(globalMcData).filter(([ver]) => ver.startsWith(major))))
+  //     } catch { }
+  //   }
+  // }
 
   const mcData: IndexedData = require('minecraft-data')(version)
   window['loadedData'] = mcData

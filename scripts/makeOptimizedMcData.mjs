@@ -7,8 +7,9 @@ import supportedVersions from '../src/supportedVersions.mjs'
 import { gzipSizeFromFileSync } from 'gzip-size'
 import fs from 'fs'
 import  {default as _JsonOptimizer}  from '../src/optimizeJson'
-import { buildSync } from 'esbuild'
 import { gzipSync } from 'zlib';
+import MinecraftData from 'minecraft-data'
+import MCProtocol from 'minecraft-protocol'
 
 /** @type {typeof _JsonOptimizer} */
 //@ts-ignore
@@ -42,7 +43,7 @@ const versionToNumber = (ver) => {
 }
 
 // if not included here (even as {}) will not be bundled & accessible!
-const minifyTestOutput = false
+const compressedOutput = false
 // const dataTypeBundling = {
 //   biomes: {
 //     arrKey: 'name',
@@ -130,7 +131,6 @@ const dataTypeBundling = {
 const notBundling = [...dataTypes.keys()].filter(x => !Object.keys(dataTypeBundling).includes(x))
 console.log("Not bundling minecraft-data data:", notBundling)
 
-// let contents = 'Object.assign(window.mcData, {\n'
 let previousData = {}
 // /** @type {Record<string, JsonOptimizer>} */
 const diffSources = {}
@@ -139,8 +139,6 @@ const sizePerDataType = {}
 const rawDataVersions = {}
 // const versionsArr = Object.entries(versions).slice(-1)
 for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
-  // console.log(i, '/', versionsArr.length)
-  // contents += `    '${version}': {\n`
   for (const [dataType, dataPath] of Object.entries(dataSet)) {
     const config = dataTypeBundling[dataType]
     if (!config) continue
@@ -178,11 +176,8 @@ for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
       // Object.assign(data, changes)
     }
     previousData[dataType] = dataRaw
-    // contents += `      get ${dataType} () { return ${injectCode || JSON.stringify(rawData)} },\n`
   }
-  // contents += '    },\n'
 }
-// contents += '})'
 const sources = Object.fromEntries(Object.entries(diffSources).map(x => {
   const data = x[1].export()
   // const data = {}
@@ -190,7 +185,7 @@ const sources = Object.fromEntries(Object.entries(diffSources).map(x => {
   return [x[0], data]
 }))
 Object.assign(sources, rawDataVersions)
-// contents += `\n\nconst sources = ${JSON.stringify(sources, null, 4)}`
+sources.versionKey = require('minecraft-data/package.json').version
 
 const totalSize = Object.values(sizePerDataType).reduce((acc, val) => acc + val, 0)
 console.log('total size (mb)', totalSize / 1024 / 1024)
@@ -211,7 +206,7 @@ function compressToBase64(input) {
 
 const filePath = './generated/minecraft-data-optimized.json'
 fs.writeFileSync(filePath, JSON.stringify(sources), 'utf8')
-if (minifyTestOutput) {
+if (compressedOutput) {
   const minizedCompressed = compressToBase64(fs.readFileSync(filePath))
   console.log('size of compressed', Buffer.byteLength(minizedCompressed, 'utf8') / 1000 / 1000)
   const compressedFilePath = './experiments/compressed.js'
@@ -219,3 +214,16 @@ if (minifyTestOutput) {
 }
 
 console.log('size', fs.lstatSync(filePath).size / 1000 / 1000, gzipSizeFromFileSync(filePath) / 1000 / 1000)
+
+// always bundled
+
+const { defaultVersion } = MCProtocol
+const data = MinecraftData(defaultVersion)
+const defaultVersionObj = {
+  [defaultVersion]: {
+    version: data.version,
+    protocol: data.protocol,
+  }
+}
+
+fs.writeFileSync('./generated/minecraft-initial-data.json', JSON.stringify(defaultVersionObj), 'utf8')

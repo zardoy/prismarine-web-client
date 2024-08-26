@@ -44,6 +44,7 @@ const validateData = (ver, type) => {
 }
 
 const checkObj = (source, diffing) => {
+  checkKeys(Object.keys(source), Object.keys(diffing))
   for (const [key, val] of Object.entries(source)) {
     if (JSON.stringify(val) !== JSON.stringify(diffing[key])) {
       throw new Error(`different value of ${key}: ${val} ${diffing[key]}`)
@@ -61,13 +62,13 @@ const checkKeys = (source, diffing, isUniq = true, msg = '', redunantOk = false)
   }
   for (const key of source) {
     if (!diffing.includes(key)) {
-      throw new Error(`Diffing does not include ${key} ${msg}`)
+      throw new Error(`Diffing does not include "${key}" (${msg})`)
     }
   }
   if (!redunantOk) {
     for (const key of diffing) {
       if (!source.includes(key)) {
-        throw new Error(`Source does not include ${key} ${msg}`)
+        throw new Error(`Source does not include "${key}" (${msg})`)
       }
     }
   }
@@ -87,9 +88,8 @@ for (const type of Object.keys(json)) {
     try {
       validateData(ver, type)
     } catch (err) {
-      const error = new Error(`Failed to validate ${type} for ${ver}: ${err.message}`);
-      error.stack = err.stack
-      throw error
+      err.message = `Failed to validate ${type} for ${ver}: ${err.message}`
+      throw err;
     }
     checkedVer++
   }

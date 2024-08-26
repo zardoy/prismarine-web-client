@@ -5,6 +5,7 @@ type IdMap = Record<string, number>
 type DiffData = {
   removed: number[],
   changed: any[],
+  removedProps: Array<[number, number[]]>,
   added
 }
 
@@ -43,6 +44,7 @@ export default class JsonOptimizer {
   diffObj (diffing): DiffData {
     const removed = [] as number[]
     const changed = [] as any[]
+    const removedProps = [] as any[]
     const { arrKey, ignoreChanges, ignoreRemoved } = this
     const added = [] as number[]
 
@@ -67,7 +69,9 @@ export default class JsonOptimizer {
     const addDiff = (key, newVal, prevVal) => {
       const valueMapped = [] as any[]
       const isItemObj = typeof newVal === 'object' && newVal
+      const keyId = this.keys[key]
       if (isItemObj) {
+        const removedPropsLocal = [] as any[]
         for (const [prop, val] of Object.entries(newVal)) {
           // mc-data: why push only changed props? eg for blocks only stateId are different between all versions so we skip a lot of duplicated data like block props
           if (!isEqualStructured(newVal[prop], prevVal[prop])) {
@@ -79,8 +83,18 @@ export default class JsonOptimizer {
             valueMapped.push(DEBUG ? prop : keyMapped, newVal[prop])
           }
         }
+        // also add undefined for removed props
+        for (const prop of Object.keys(prevVal)) {
+          if (prop in newVal) continue
+          let keyMapped = this.properties[prop]
+          if (keyMapped === undefined) {
+            this.properties[prop] = lastItemKeyId++
+            keyMapped = this.properties[prop]
+          }
+          removedPropsLocal.push(DEBUG ? prop : keyMapped)
+        }
+        removedProps.push([keyId, removedPropsLocal])
       }
-      const keyId = this.keys[key]
       changed.push(DEBUG ? key : keyId, isItemObj ? valueMapped : newVal)
     }
     for (const [id, sourceVal] of Object.entries(this.source)) {
@@ -125,7 +139,8 @@ export default class JsonOptimizer {
     return {
       removed,
       changed,
-      added
+      added,
+      removedProps
     }
   }
 
@@ -148,7 +163,7 @@ export default class JsonOptimizer {
     const keysById = Object.fromEntries(Object.entries(keys).map(x => [x[1], x[0]]))
     const propertiesById = Object.fromEntries(Object.entries(properties).map(x => [x[1], x[0]]))
     const dataByKeys = {} as Record<string, any>
-    for (const [versionKey, { added, changed, removed }] of Object.entries(diffs)) {
+    for (const [versionKey, { added, changed, removed, removedProps }] of Object.entries(diffs)) {
       if (versionToNumber(versionKey) >= versionToNumber(targetKey)) {
         for (const toAdd of added) {
           dataByKeys[toAdd] = source[toAdd]
@@ -172,6 +187,12 @@ export default class JsonOptimizer {
             }
           } else {
             dataByKeys[key] = change
+          }
+        }
+        for (const [key, removePropsId] of removedProps) {
+          for (const removePropId of removePropsId) {
+            const removeProp = propertiesById[removePropId]
+            delete dataByKeys[key][removeProp]
           }
         }
       }
