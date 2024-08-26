@@ -71,9 +71,9 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
         zIndex: '-1'
       }}
       onClick={toggleFullMap}
-    ></div>
+    />
       : <Button
-        icon={'close-box'}
+        icon="close-box"
         onClick={toggleFullMap}
         style={{
           position: 'absolute',
@@ -104,7 +104,7 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
       }}
     >
       <TransformComponent
-        wrapperClass={'map'}
+        wrapperClass="map"
         wrapperStyle={{
           willChange: 'transform',
         }}
@@ -166,8 +166,7 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
 
 
 const MapChunk = (
-  { x, y, scale, adapter, worldX, worldZ, setIsWarpInfoOpened, setLastWarpPos, redraw, setInitWarp, setWarpPreview }
-  :
+  { x, y, scale, adapter, worldX, worldZ, setIsWarpInfoOpened, setLastWarpPos, redraw, setInitWarp, setWarpPreview }:
   {
     x: number,
     y: number,
@@ -308,13 +307,12 @@ const MapChunk = (
       }}
       width={64}
       height={64}
-    ></canvas>}
+    />}
   </div>
 }
 
 const WarpInfo = (
-  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp }
-  :
+  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp }:
   {
     adapter: DrawerAdapter,
     warpPos: { x: number, y: number, z: number },
@@ -408,7 +406,7 @@ const WarpInfo = (
       <div style={fieldCont}>
         <div>Color:</div>
         <Input
-          placeholder={'#232323 or rgb(0, 0, 0)'}
+          placeholder="#232323 or rgb(0, 0, 0)"
           defaultValue={warp.color ?? ''}
           onChange={(e) => {
             if (!e.target) return
@@ -419,7 +417,7 @@ const WarpInfo = (
       <div style={fieldCont} >
         <div>Disabled:</div>
         <input
-          type={'checkbox'}
+          type="checkbox"
           checked={warp.disabled ?? false}
           onChange={(e) => {
             if (!e.target) return

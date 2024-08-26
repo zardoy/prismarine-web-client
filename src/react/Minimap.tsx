@@ -6,8 +6,7 @@ import Fullmap from './Fullmap'
 export type DisplayMode = 'fullmapOnly' | 'minimapOnly'
 
 export default (
-  { adapter, showMinimap, showFullmap, singleplayer, fullMap, toggleFullMap, displayMode }
-  :
+  { adapter, showMinimap, showFullmap, singleplayer, fullMap, toggleFullMap, displayMode }:
   {
     adapter: DrawerAdapter,
     showMinimap: string,
@@ -114,15 +113,16 @@ export default (
           toggleFullMap?.({ command: 'ui.toggleMap' })
         }}
       >
-        <canvas style={{
-          transition: '0.5s',
-          transitionTimingFunction: 'ease-out',
-          borderRadius: '1000px'
-        }}
-        width={80}
-        height={80}
-        ref={canvasRef}
-        ></canvas>
+        <canvas
+          style={{
+            transition: '0.5s',
+            transitionTimingFunction: 'ease-out',
+            borderRadius: '1000px'
+          }}
+          width={80}
+          height={80}
+          ref={canvasRef}
+        />
         <canvas
           style={{
             transition: '0.5s',
@@ -133,7 +133,7 @@ export default (
           width={80}
           height={80}
           ref={warpsAndPartsCanvasRef}
-        ></canvas>
+        />
         <div
           style={{
             fontSize: '0.5em'

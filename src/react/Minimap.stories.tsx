@@ -38,7 +38,7 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
     this.warps = warps ?? [] as WorldWarp[]
   }
 
-  async getHighestBlockColor (x: number, z:number) {
+  async getHighestBlockColor (x: number, z: number) {
     console.log('got color')
     return 'green'
   }
