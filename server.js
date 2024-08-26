@@ -17,6 +17,7 @@ const app = express()
 
 const isProd = process.argv.includes('--prod')
 app.use(compression())
+// app.use(cors())
 app.use(netApi({ allowOrigin: '*' }))
 if (!isProd) {
   app.use('/sounds', express.static(path.join(__dirname, './generated/sounds/')))

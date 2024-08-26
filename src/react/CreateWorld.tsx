@@ -81,7 +81,7 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
       </Button>
       <Button disabled={!title} onClick={createClick}>Create</Button>
     </div>
-    <div className='muted' style={{ fontSize: 9 }}>Note: store important saves in folders on the drive!</div>
+    <div className='muted' style={{ fontSize: 9 }}>Note: save important worlds in folders on your hard drive!</div>
     <div className='muted' style={{ fontSize: 9 }}>{quota}</div>
   </Screen>
 }

@@ -354,6 +354,8 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
   }
 }
 
+const makeLooseObj = <T extends string> (obj: Record<T, any>) => obj
+
 const invisibleBlocks = new Set(['air', 'cave_air', 'void_air', 'barrier'])
 
 const isBlockWaterlogged = (block: Block) => block.getProperties().waterlogged === true || block.getProperties().waterlogged === 'true'
@@ -363,7 +365,7 @@ let erroredBlockModel: BlockModelPartsResolved
 export function getSectionGeometry (sx, sy, sz, world: World) {
   let delayedRender = [] as Array<() => void>
 
-  const attr = {
+  const attr = makeLooseObj({
     sx: sx + 8,
     sy: sy + 8,
     sz: sz + 8,
@@ -379,14 +381,24 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     tiles: {},
     // todo this can be removed here
     signs: {},
+    highestBlocks: {},
     hadErrors: false
-  } as Record<string, any>
+  } as Record<string, any>)
 
   const cursor = new Vec3(0, 0, 0)
   for (cursor.y = sy; cursor.y < sy + 16; cursor.y++) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
+        if (!invisibleBlocks.has(block.name)) {
+          const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
+          if (!highest || highest.y < cursor.y) {
+            attr.highestBlocks[`${cursor.x},${cursor.z}`] = {
+              y: cursor.y,
+              name: block.name
+            }
+          }
+        }
         if (invisibleBlocks.has(block.name)) continue
         if (block.name.includes('_sign') || block.name === 'sign') {
           const key = `${cursor.x},${cursor.y},${cursor.z}`

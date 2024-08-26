@@ -75,6 +75,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
+  highestBlocks: Record<string, { y: number, name: string }> = {}
   blockstatesModels: any
   customBlockStates: Record<string, any> | undefined
   customModels: Record<string, any> | undefined
@@ -109,7 +110,15 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const handleMessage = (data) => {
         if (!this.active) return
         this.handleWorkerMessage(data)
-        if (data.type === 'sectionFinished') {
+        if (data.type === 'geometry') {
+          for (const key in data.geometry.highestBlocks) {
+            const highest = data.geometry.highestBlocks[key]
+            if (!this.highestBlocks[key] || this.highestBlocks[key].y < highest.y) {
+              this.highestBlocks[key] = highest
+            }
+          }
+        }
+        if (data.type === 'sectionFinished') { // on after load & unload section
           if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
           this.sectionsOutstanding.set(data.key, this.sectionsOutstanding.get(data.key)! - 1)
           if (this.sectionsOutstanding.get(data.key) === 0) this.sectionsOutstanding.delete(data.key)
@@ -302,6 +311,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
     this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     delete this.finishedChunks[`${x},${z}`]
+    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+      this.setSectionDirty(new Vec3(x, y, z), false)
+    }
+    // remove from highestBlocks
+    const startX = Math.floor(x / 16) * 16
+    const startZ = Math.floor(z / 16) * 16
+    const endX = Math.ceil((x + 1) / 16) * 16
+    const endZ = Math.ceil((z + 1) / 16) * 16
+    for (let x = startX; x < endX; x += 16) {
+      for (let z = startZ; z < endZ; z += 16) {
+        delete this.highestBlocks[`${x},${z}`]
+      }
+    }
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
@@ -320,7 +342,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   queueAwaited = false
   messagesQueue = {} as { [workerIndex: string]: any[] }
 
-  setSectionDirty (pos: Vec3, value = true) {
+  setSectionDirty (pos: Vec3, value = true) { // value false is used for unloading chunks
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.allChunksFinished = false
     const distance = this.getDistance(pos)

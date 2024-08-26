@@ -66,6 +66,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     }
   }
 
+  // debugRecomputedDeletedObjects = 0
   handleWorkerMessage (data: any): void {
     if (data.type !== 'geometry') return
     let object: THREE.Object3D = this.sectionObjects[data.key]
@@ -77,6 +78,10 @@ export class WorldRendererThree extends WorldRendererCommon {
 
     const chunkCoords = data.key.split(',')
     if (!this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] || !data.geometry.positions.length || !this.active) return
+
+    // if (object) {
+    //   this.debugRecomputedDeletedObjects++
+    // }
 
     // if (!this.initialChunksLoad && this.enableChunksLoadDelay) {
     //   const newPromise = new Promise(resolve => {
