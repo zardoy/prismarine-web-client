@@ -99,7 +99,7 @@ const dataTypeBundling = {
     arrKey: 'name'
   },
   entities: {
-    arrKey: 'name'
+    arrKey: 'id'
   },
   materials: {},
   windows: {
