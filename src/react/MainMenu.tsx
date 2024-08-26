@@ -40,7 +40,7 @@ export default ({
 }: Props) => {
   if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  const linksParsed = bottomRightLinks?.split(';').map(l => {
+  const linksParsed = bottomRightLinks?.split(/;|\n/g).map(l => {
     const parts = l.split(':')
     return [parts[0], parts.slice(1).join(':')]
   }) as Array<[string, string]> | undefined

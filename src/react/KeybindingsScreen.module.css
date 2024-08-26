@@ -49,6 +49,7 @@
 .undo-keyboard,
 .undo-gamepad {
     aspect-ratio: 1;
+    min-width: 20px;
 }
 
 .button {
