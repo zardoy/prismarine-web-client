@@ -9,6 +9,8 @@ import nbt from 'prismarine-nbt'
 import { splitEvery, equals } from 'rambda'
 import PItem, { Item } from 'prismarine-item'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
+import { getRenamedData } from 'flying-squid/dist/blockRenames'
 import Generic95 from '../assets/generic_95.png'
 import { appReplacableResources } from './generated/resources'
 import { activeModalStack, hideCurrentModal, hideModal, miscUiState, showModal } from './globalState'
@@ -158,11 +160,12 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): {
   scale?: number,
   slice?: number[]
 } | undefined => {
-  const itemName = slot.name
+  let itemName = slot.name
   const isItem = loadedData.itemsByName[itemName]
 
   let itemTexture
   try {
+    if (versionToNumber(bot.version) < versionToNumber('1.13')) itemName = getRenamedData(isItem ? 'items' : 'blocks', itemName, bot.version, '1.13.1') as string
     itemTexture = itemsRenderer.getItemTexture(itemName) ?? itemsRenderer.getItemTexture('item/missing_texture')!
   } catch (err) {
     itemTexture = itemsRenderer.getItemTexture('block/errored')!
