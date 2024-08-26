@@ -51,10 +51,10 @@ const minifyTestOutput = false
 //   }
 // }
 const dataTypeBundling = {
-  // language: {
-  //   ignoreRemoved: true,
-  //   ignoreChanges: true
-  // },
+  language: {
+    ignoreRemoved: true,
+    ignoreChanges: true
+  },
   blocks: {
     arrKey: 'name',
     // ignoreRemoved: true,
@@ -99,7 +99,7 @@ const dataTypeBundling = {
     arrKey: 'name'
   },
   entities: {
-    arrKey: 'id'
+    arrKey: 'id+type'
   },
   materials: {},
   windows: {
@@ -113,12 +113,12 @@ const dataTypeBundling = {
     arrKey: 'name'
   },
   entityLoot: {
-    arrKey: 'name'
+    arrKey: 'entity'
   },
   blockLoot: {
-    arrKey: 'name'
+    arrKey: 'block'
   },
-  recipes: {}, // todo
+  recipes: {}, // todo we can do better
   blockCollisionShapes: {},
   loginPacket: {},
   protocol: {},

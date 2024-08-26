@@ -49,7 +49,7 @@ export default class JsonOptimizer {
     if (!diffing || typeof diffing !== 'object') throw new Error('diffing data is not object')
     if (Array.isArray(diffing) && !arrKey) throw new Error('arrKey is required for arrays')
     const diffingObj = Array.isArray(diffing) ? Object.fromEntries(diffing.map(x => {
-      const key = x[arrKey!]
+      const key = JsonOptimizer.getByArrKey(x, arrKey!)
       return [key, x]
     })) : diffing
 
@@ -105,7 +105,7 @@ export default class JsonOptimizer {
 
     for (const previousKey of this.previousKeys) {
       const key = this.idToKey[previousKey]
-      if (!diffingObj[key] && !ignoreRemoved) {
+      if (diffingObj[key] === undefined && !ignoreRemoved) {
         removed.push(previousKey)
       }
     }
@@ -181,6 +181,10 @@ export default class JsonOptimizer {
     } else {
       return Object.fromEntries(Object.entries(dataByKeys).map(([key, val]) => [keysById[key], val]))
     }
+  }
+
+  static getByArrKey (item: any, arrKey: string) {
+    return arrKey.split('+').map(x => item[x]).join('+')
   }
 
   static resolveDefaults (arr) {

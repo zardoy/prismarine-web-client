@@ -13,7 +13,7 @@ const validateData = (ver, type) => {
   const originalPath = dataPaths.pc[ver][type]
   const original = require(`minecraft-data/minecraft-data/data/${originalPath}/${type}.json`)
   if (arrKey) {
-    const originalKeys = original.map(a => a[arrKey]) as string[]
+    const originalKeys = original.map(a => JsonOptimizer.getByArrKey(a, arrKey)) as string[]
     for (const [i, item] of originalKeys.entries()) {
       if (originalKeys.indexOf(item) !== i) {
         console.warn(`${type} ${ver} Incorrect source, duplicated arrKey (${arrKey}) ${item}. Ignoring!`) // todo should span instead
@@ -25,10 +25,10 @@ const validateData = (ver, type) => {
     // if (target.length !== originalKeys.length) {
     //   throw new Error(`wrong arr length: ${target.length} !== ${original.length}`)
     // }
-    checkKeys(originalKeys, target.map(a => a[arrKey]))
+    checkKeys(originalKeys, target.map(a => JsonOptimizer.getByArrKey(a, arrKey)))
     for (const item of target as any[]) {
       const keys = Object.entries(item).map(a => a[0])
-      const origItem = original.find(a => a[arrKey] === item[arrKey]);
+      const origItem = original.find(a => JsonOptimizer.getByArrKey(a, arrKey) === JsonOptimizer.getByArrKey(item, arrKey));
       const keysSource = Object.entries(origItem).map(a => a[0])
       checkKeys(keysSource, keys, true, 'prop keys', true)
       checkObj(origItem, item)
@@ -46,7 +46,7 @@ const validateData = (ver, type) => {
 const checkObj = (source, diffing) => {
   for (const [key, val] of Object.entries(source)) {
     if (JSON.stringify(val) !== JSON.stringify(diffing[key])) {
-      throw new Error(`different value: ${val} ${diffing[key]}`)
+      throw new Error(`different value of ${key}: ${val} ${diffing[key]}`)
     }
   }
 }
@@ -79,11 +79,18 @@ const checkKeys = (source, diffing, isUniq = true, msg = '', redunantOk = false)
 
 for (const type of Object.keys(json)) {
   if (!json[type].__IS_OPTIMIZED__) continue
+  if (type === 'language') continue // we have loose data for language for size reasons
   console.log('validating', type)
   const source = json[type]
   let checkedVer = 0
   for (const ver of Object.keys(source.diffs)) {
-    validateData(ver, type)
+    try {
+      validateData(ver, type)
+    } catch (err) {
+      const error = new Error(`Failed to validate ${type} for ${ver}: ${err.message}`);
+      error.stack = err.stack
+      throw error
+    }
     checkedVer++
   }
   console.log('Checked versions:', checkedVer)
