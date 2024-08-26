@@ -233,6 +233,7 @@ export const mountGoogleDriveFolder = async (readonly: boolean, rootId: string) 
   fsState.isReadonly = readonly
   fsState.syncFs = false
   fsState.inMemorySave = false
+  fsState.remoteBackend = true
   return true
 }
 
@@ -313,6 +314,7 @@ export const openWorldDirectory = async (dragndropHandle?: FileSystemDirectoryHa
   fsState.isReadonly = !writeAccess
   fsState.syncFs = false
   fsState.inMemorySave = false
+  fsState.remoteBackend = false
   await loadSave()
 }
 
@@ -352,7 +354,33 @@ export const possiblyCleanHandle = (callback = () => { }) => {
   }
 }
 
-export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: string, throwRootNotExist = true) => {
+const readdirSafe = async (path: string) => {
+  try {
+    return await fs.promises.readdir(path)
+  } catch (err) {
+    return null
+  }
+}
+
+export const collectFilesToCopy = async (basePath: string, safe = false): Promise<string[]> => {
+  const result: string[] = []
+  const countFiles = async (relPath: string) => {
+    const resolvedPath = join(basePath, relPath)
+    const files = relPath === '.' && !safe ? await fs.promises.readdir(resolvedPath) : await readdirSafe(resolvedPath)
+    if (!files) return null
+    await Promise.all(files.map(async file => {
+      const res = await countFiles(join(relPath, file))
+      if (res === null) {
+        // is file
+        result.push(join(relPath, file))
+      }
+    }))
+  }
+  await countFiles('.')
+  return result
+}
+
+export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: string, throwRootNotExist = true, addMsg = '') => {
   const stat = await existsViaStats(pathSrc)
   if (!stat) {
     if (throwRootNotExist) throw new Error(`Cannot copy. Source directory ${pathSrc} does not exist`)
@@ -387,7 +415,7 @@ export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: stri
     let copied = 0
     await copyFilesAsync(pathSrc, pathDest, (name) => {
       copied++
-      setLoadingScreenStatus(`Copying files (${copied}/${filesCount}): ${name}`)
+      setLoadingScreenStatus(`Copying files${addMsg} (${copied}/${filesCount}): ${name}`)
     })
   } finally {
     setLoadingScreenStatus(undefined)
@@ -400,6 +428,19 @@ export const existsViaStats = async (path: string) => {
   } catch (e) {
     return false
   }
+}
+
+export const fileExistsAsyncOptimized = async (path: string) => {
+  try {
+    await fs.promises.readdir(path)
+  } catch (err) {
+    if (err.code === 'ENOTDIR') return true
+    // eslint-disable-next-line sonarjs/prefer-single-boolean-return
+    if (err.code === 'ENOENT') return false
+    // throw err
+    return false
+  }
+  return true
 }
 
 export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopied?: (name) => void) => {
@@ -467,6 +508,7 @@ export const openWorldFromHttpDir = async (fileDescriptorUrl: string/*  | undefi
   fsState.isReadonly = true
   fsState.syncFs = false
   fsState.inMemorySave = false
+  fsState.remoteBackend = true
 
   await loadSave()
 }
@@ -497,6 +539,7 @@ const openWorldZipInner = async (file: File | ArrayBuffer, name = file['name']) 
   fsState.isReadonly = true
   fsState.syncFs = true
   fsState.inMemorySave = false
+  fsState.remoteBackend = false
 
   if (fs.existsSync('/world/level.dat')) {
     await loadSave()

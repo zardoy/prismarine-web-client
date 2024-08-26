@@ -21,6 +21,7 @@ export const fsState = proxy({
   saveLoaded: false,
   openReadOperations: 0,
   openWriteOperations: 0,
+  remoteBackend: false
 })
 
 const PROPOSE_BACKUP = true

@@ -63,7 +63,7 @@ export const hideModal = (modal = activeModalStack.at(-1), data: any = undefined
   }
 
   if (!cancel) {
-    let lastModal = activeModalStack.at(-1)
+    const lastModal = activeModalStack.at(-1)
     for (let i = activeModalStack.length - 1; i >= 0; i--) {
       if (activeModalStack[i].reactType === modal.reactType) {
         activeModalStack.splice(i, 1)
