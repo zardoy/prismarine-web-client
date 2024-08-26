@@ -164,37 +164,38 @@ export default class JsonOptimizer {
     const propertiesById = Object.fromEntries(Object.entries(properties).map(x => [x[1], x[0]]))
     const dataByKeys = {} as Record<string, any>
     for (const [versionKey, { added, changed, removed, removedProps }] of Object.entries(diffs)) {
-      if (versionToNumber(versionKey) >= versionToNumber(targetKey)) {
-        for (const toAdd of added) {
-          dataByKeys[toAdd] = source[toAdd]
-        }
-        for (const toRemove of removed) {
-          delete dataByKeys[toRemove]
-        }
-        for (let i = 0; i < changed.length; i += 2) {
-          const key = changed[i]
-          const change = changed[i + 1]
-          const isOptimizedChange = JsonOptimizer.isOptimizedChangeDiff(change)
-          if (isOptimizedChange) {
-            // apply optimized diff
-            for (let k = 0; k < change.length; k += 2) {
-              const propId = change[k]
-              const newVal = change[k + 1]
-              const prop = propertiesById[propId]
-              // const prop = propId
-              if (prop === undefined) throw new Error(`Property id change is undefined: ${propId}`)
-              dataByKeys[key][prop] = newVal
-            }
-          } else {
-            dataByKeys[key] = change
+      for (const toAdd of added) {
+        dataByKeys[toAdd] = source[toAdd]
+      }
+      for (const toRemove of removed) {
+        delete dataByKeys[toRemove]
+      }
+      for (let i = 0; i < changed.length; i += 2) {
+        const key = changed[i]
+        const change = changed[i + 1]
+        const isOptimizedChange = JsonOptimizer.isOptimizedChangeDiff(change)
+        if (isOptimizedChange) {
+          // apply optimized diff
+          for (let k = 0; k < change.length; k += 2) {
+            const propId = change[k]
+            const newVal = change[k + 1]
+            const prop = propertiesById[propId]
+            // const prop = propId
+            if (prop === undefined) throw new Error(`Property id change is undefined: ${propId}`)
+            dataByKeys[key][prop] = newVal
           }
+        } else {
+          dataByKeys[key] = change
         }
-        for (const [key, removePropsId] of removedProps) {
-          for (const removePropId of removePropsId) {
-            const removeProp = propertiesById[removePropId]
-            delete dataByKeys[key][removeProp]
-          }
+      }
+      for (const [key, removePropsId] of removedProps) {
+        for (const removePropId of removePropsId) {
+          const removeProp = propertiesById[removePropId]
+          delete dataByKeys[key][removeProp]
         }
+      }
+      if (versionToNumber(versionKey) <= versionToNumber(targetKey)) {
+        break
       }
     }
     if (arrKey) {
