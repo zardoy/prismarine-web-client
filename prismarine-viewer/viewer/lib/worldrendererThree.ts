@@ -28,8 +28,17 @@ export class WorldRendererThree extends WorldRendererCommon {
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
     this.starField = new StarField(scene)
-    // this.initCameraGroup()
+    this.initCameraGroup()
     // this.initHandObject()
+  }
+
+  initCameraGroup () {
+    this.cameraGroup = new THREE.Group()
+    this.cameraGroup.onBeforeRender = (renderer, scene, camera) => {
+      this.cameraGroup.position.copy(camera.position.clone().add(new THREE.Vector3(0, 0, 1)))
+      this.cameraGroup.rotation.copy(camera.rotation)
+    }
+    this.scene.add(this.cameraGroup)
   }
 
   timeUpdated (newTime: number): void {
