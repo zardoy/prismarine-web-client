@@ -45,8 +45,7 @@ const versionToNumber = (ver) => {
 // if not included here (even as {}) will not be bundled & accessible!
 const compressedOutput = false
 // const dataTypeBundling = {
-//   biomes: {
-//     arrKey: 'name',
+//   protocol: {
 //     // ignoreRemoved: true,
 //     // ignoreChanges: true
 //   }
@@ -122,7 +121,9 @@ const dataTypeBundling = {
   recipes: {}, // todo we can do better
   blockCollisionShapes: {},
   loginPacket: {},
-  protocol: {},
+  protocol: {
+    raw: true
+  },
   sounds: {
     arrKey: 'name'
   }
@@ -219,11 +220,11 @@ console.log('size', fs.lstatSync(filePath).size / 1000 / 1000, gzipSizeFromFileS
 
 const { defaultVersion } = MCProtocol
 const data = MinecraftData(defaultVersion)
-const defaultVersionObj = {
+const initialMcData = {
   [defaultVersion]: {
     version: data.version,
     protocol: data.protocol,
   }
 }
 
-fs.writeFileSync('./generated/minecraft-initial-data.json', JSON.stringify(defaultVersionObj), 'utf8')
+fs.writeFileSync('./generated/minecraft-initial-data.json', JSON.stringify(initialMcData), 'utf8')

@@ -223,8 +223,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   sendMesherMcData () {
     const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajorVersion(this.version)]
-    const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
-    mcData.version = JSON.parse(JSON.stringify(mcData.version))
+    const mcData = {
+      version: JSON.parse(JSON.stringify(allMcData.version))
+    }
+    for (const key of dynamicMcDataFiles) {
+      mcData[key] = allMcData[key]
+    }
 
     for (const worker of this.workers) {
       worker.postMessage({ type: 'mcData', mcData, config: this.mesherConfig })

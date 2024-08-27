@@ -29,44 +29,52 @@ window._LOAD_MC_DATA = async () => {
 const cacheTtl = 30 * 1000
 const cache = new Map<string, any>()
 const cacheTime = new Map<string, number>()
+const possiblyGetFromCache = (version: string) => {
+  if (minecraftInitialDataJson[version] && !optimizedDataResolver.resolvedData) {
+    return minecraftInitialDataJson[version]
+  }
+  if (cache.has(version)) {
+    return cache.get(version)
+  }
+  const inner = () => {
+    if (!optimizedDataResolver.resolvedData) {
+      throw new Error(`Data for ${version} is not ready yet`)
+    }
+    const dataTypes = Object.keys(optimizedDataResolver.resolvedData)
+    const allRestored = {}
+    for (const dataType of dataTypes) {
+      if (dataType === 'blockCollisionShapes' && versionToNumber(version) >= versionToNumber('1.13')) {
+        const shapes = window.globalGetCollisionShapes?.(version)
+        if (shapes) {
+          allRestored[dataType] = shapes
+          continue
+        }
+      }
+
+      const data = optimizedDataResolver.resolvedData[dataType]
+      if (data.__IS_OPTIMIZED__) {
+        allRestored[dataType] = JsonOptimizer.restoreData(data, version)
+      } else {
+        allRestored[dataType] = data[version] ?? data[toMajorVersion(version)]
+      }
+    }
+    return allRestored
+  }
+  const data = inner()
+  cache.set(version, data)
+  cacheTime.set(version, Date.now())
+  return data
+}
 window.allLoadedMcData = new Proxy({}, {
   get (t, version: string) {
     // special properties like $typeof
     if (version.includes('$')) return
-    if (cache.has(version)) {
-      return cache.get(version)
-    }
-    const inner = () => {
-      if (minecraftInitialDataJson[version] && !optimizedDataResolver.resolvedData) {
-        return minecraftInitialDataJson[version]
-      }
-      if (!optimizedDataResolver.resolvedData) {
-        throw new Error(`Data for ${version} is not ready yet`)
-      }
-      const dataTypes = Object.keys(optimizedDataResolver.resolvedData)
-      const allRestored = {}
-      for (const dataType of dataTypes) {
-        if (dataType === 'blockCollisionShapes' && versionToNumber(version) >= versionToNumber('1.13')) {
-          const shapes = window.globalGetCollisionShapes?.(version)
-          if (shapes) {
-            allRestored[dataType] = shapes
-            continue
-          }
-        }
-
-        const data = optimizedDataResolver.resolvedData[dataType]
-        if (data.__IS_OPTIMIZED__) {
-          allRestored[dataType] = JsonOptimizer.restoreData(data, version)
-        } else {
-          allRestored[dataType] = data[version] ?? data[toMajorVersion(version)]
-        }
-      }
-      return allRestored
-    }
-    const data = inner()
-    cache.set(version, data)
-    cacheTime.set(version, Date.now())
-    return data
+    // todo enumerate all props
+    return new Proxy({}, {
+      get (target, prop) {
+        return possiblyGetFromCache(version)[prop]
+      },
+    })
   }
 })
 
