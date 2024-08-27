@@ -23,7 +23,7 @@ globalThis.getChunkHandleAt = (...args) => {
   console.log('getChunkHandleAt', args)
 }
 
-const wasmURL = new URL('MCLightwasm.wasm', import.meta.url)
+const wasmURL = new URL('MCLight.wasm', import.meta.url)
 
 // Determine the runtime environment we are in. You can customize this by
 // setting the ENVIRONMENT setting at compile time (see settings.js).
@@ -914,7 +914,7 @@ function dbg (...args) {
 // end include: runtime_debug.js
 // === Body ===
 
-function console_log_int (x) { console.log('Printing from C++:', x) }
+function console_log_int (x) {  }
 
 // end include: preamble.js
 
@@ -1502,7 +1502,7 @@ var wasmImports = {
 var wasmExports = createWasm()
 const ___wasm_call_ctors = createExportWrapper('__wasm_call_ctors', 0)
 export const _createChunkHandle = Module['_createChunkHandle'] = createExportWrapper('createChunkHandle', 5)
-const _updateLightAt = Module['_updateLightAt'] = createExportWrapper('updateLightAt', 4)
+export const _updateLightAt = Module['_updateLightAt'] = createExportWrapper('updateLightAt', 4)
 export const _getLightAt = Module['_getLightAt'] = createExportWrapper('getLightAt', 5)
 const _main = Module['_main'] = createExportWrapper('main', 2)
 var _fflush = createExportWrapper('fflush', 1)
