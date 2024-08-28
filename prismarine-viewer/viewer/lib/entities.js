@@ -490,6 +490,7 @@ export class Entities extends EventEmitter {
     if (entityMesh) {
       entityMesh.traverse((child) => {
         if (child instanceof THREE.Mesh) {
+          child.material = child.material.clone()
           const originalColor = child.material.color.clone()
           child.material.color.set(0xff_00_00)
           new TWEEN.Tween(child.material.color)
