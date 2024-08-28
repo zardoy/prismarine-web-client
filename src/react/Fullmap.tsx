@@ -289,7 +289,6 @@ const MapChunk = (
         if (entry.isIntersecting) {
           setIsCanvas(true)
         } else {
-          setIsCanvas(false)
           delete adapter.chunksStore[`${worldX},${worldZ}`]
         }
       }
