@@ -63,7 +63,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         ).catch((err) => { console.warn('failed to get chunk:', chunkX, chunkZ) })
         return emptyColor
       }
-      return this.getHighestBlockColorLocalServer(chunkX, chunkZ, x, z)
+      return this.getHighestBlockColorLocalServer(x, z)
     }
     if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return emptyColor
     const block = viewer.world.highestBlocks[`${x},${z}`]
@@ -124,9 +124,11 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return color
   }
 
-  async getHighestBlockColorLocalServer (chunkX: number, chunkZ: number, x: number, z: number) {
+  async getHighestBlockColorLocalServer (x: number, z: number) {
     const emptyColor = 'rgb(200, 200, 200)'
-    const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
+    const chunkX = Math.floor(x / 16)
+    const chunkZ = Math.floor(z / 16)
+    const chunk = this.chunksStore[`${chunkX * 16},${chunkZ * 16}`]
     if (!chunk) return emptyColor
     const y = this.getHighestBlockY(x, z, chunk)
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
@@ -169,9 +171,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
 
   async getChunkSingleplayer (chunkX: number, chunkZ: number) {
     // absolute coords
-    const region = (localServer!.overworld.storageProvider as any).getRegion(chunkX * 16, chunkZ * 16)
+    const region = (localServer!.overworld.storageProvider as any).getRegion(chunkX, chunkZ)
     if (!region) return null
-    const chunk = await localServer!.players[0]!.world.getColumn(chunkX, chunkZ)
+    const chunk = await localServer!.players[0]!.world.getColumn(chunkX / 16, chunkZ / 16)
     return chunk
   }
 }
