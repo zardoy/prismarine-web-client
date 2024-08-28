@@ -37,6 +37,7 @@ export default (
         if ('requestIdleCallback' in window) {
           requestIdleCallback(() => {
             drawerRef.current?.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
+            adapter.clearChunksStore(position.x, position.z)
           })
         } else {
           drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)

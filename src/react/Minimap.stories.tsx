@@ -56,6 +56,8 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
     }
     this.emit('updateWarps')
   }
+
+  clearChunksStore(x: number, z: number) { }
 }
 
 const adapter = new DrawerAdapterImpl()

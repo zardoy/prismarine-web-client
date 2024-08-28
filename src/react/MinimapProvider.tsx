@@ -48,6 +48,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const chunkZ = Math.floor(z / 16) * 16
     const emptyColor = 'rgb(200, 200, 200)'
     if (localServer) {
+      if (Object.keys(this.chunksStore).length > 500) this.chunksStore = {}
       const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
       if (chunk === undefined) {
         if (this.loadingChunksCount > 19) return emptyColor
@@ -175,6 +176,15 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     if (!region) return null
     const chunk = await localServer!.players[0]!.world.getColumn(chunkX / 16, chunkZ / 16)
     return chunk
+  }
+
+  clearChunksStore (x: number, z: number) {
+    for (const key of Object.keys(this.chunksStore)) {
+      const [chunkX, chunkZ] = key.split(',').map(Number)
+      if (Math.hypot((chunkX - x), (chunkZ - z)) > 300) {
+        delete this.chunksStore[key]
+      }
+    }
   }
 }
 
