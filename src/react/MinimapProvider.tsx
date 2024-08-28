@@ -21,7 +21,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   yaw: number
   warps: WorldWarp[]
   world: string
-  chunksStore: Record<string, Chunk | null> = {}
+  chunksStore: Record<string, Chunk | null | 'unavailable'> = {}
   loadingChunksCount = 0
   loadingChunksQueue = new Set<string>()
   currChunk: PCChunk | undefined
@@ -59,7 +59,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const chunkZ = Math.floor(z / 16) * 16
     const emptyColor = 'rgb(200, 200, 200)'
     if (localServer && full) {
-      if (Object.keys(this.chunksStore).length > 500) this.chunksStore = {}
       const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
       if (chunk === undefined) {
         if (this.loadingChunksCount > 19) {
@@ -139,10 +138,19 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const chunkX = Math.floor(x / 16)
     const chunkZ = Math.floor(z / 16)
     const chunk = this.chunksStore[`${chunkX * 16},${chunkZ * 16}`]
-    if (!chunk) return emptyColor
+    switch (chunk) {
+      case undefined:
+        return emptyColor
+      case null:
+        return emptyColor
+      case 'unavailable':
+        return 'rgba(0, 0, 0, 0)'
+      default:
+        break
+    }
     const y = this.getHighestBlockY(x, z, chunk)
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
-    const color = block ? BlockData.colors[this.isOldVersion ? preflatMap.blocks[`${block.type}:${block.metadata}`].replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    const color = block ? BlockData.colors[this.isOldVersion ? preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
     return color
   }
 
@@ -181,7 +189,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   async getChunkSingleplayer (chunkX: number, chunkZ: number) {
     // absolute coords
     const region = (localServer!.overworld.storageProvider as any).getRegion(chunkX, chunkZ)
-    if (!region) return null
+    if (!region) return 'unavailable'
     const chunk = await localServer!.players[0]!.world.getColumn(chunkX / 16, chunkZ / 16)
     return chunk
   }
