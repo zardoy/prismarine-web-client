@@ -50,11 +50,11 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
   }
 
-  async getHighestBlockColor (x: number, z: number) {
+  async getHighestBlockColor (x: number, z: number, full?: boolean) {
     const chunkX = Math.floor(x / 16) * 16
     const chunkZ = Math.floor(z / 16) * 16
     const emptyColor = 'rgb(200, 200, 200)'
-    if (localServer) {
+    if (localServer && full) {
       if (Object.keys(this.chunksStore).length > 500) this.chunksStore = {}
       const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
       if (chunk === undefined) {

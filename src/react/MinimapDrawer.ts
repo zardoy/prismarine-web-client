@@ -10,7 +10,7 @@ export type MapUpdates = {
 }
 
 export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
-  getHighestBlockColor: (x: number, z: number) => Promise<string>
+  getHighestBlockColor: (x: number, z: number, full?: boolean) => Promise<string>
   getHighestBlockY: (x: number, z: number, chunk?: Chunk) => number
   clearChunksStore: (x: number, z: number) => void
   chunksStore: Record<string, Chunk | null>
@@ -136,7 +136,7 @@ export class MinimapDrawer {
     const roundX = Math.floor(x - this.mapSize / 2 + col)
     const roundZ = Math.floor(z - this.mapSize / 2 + row)
     const key = `${roundX},${roundZ}`
-    const fillColor = this.worldColors[key] ?? await this.adapter.getHighestBlockColor(roundX, roundZ)
+    const fillColor = this.worldColors[key] ?? await this.adapter.getHighestBlockColor(roundX, roundZ, this.full)
     if (fillColor !== 'rgb(200, 200, 200)' && !this.worldColors[key]) this.worldColors[key] = fillColor
     this.ctx.fillStyle = fillColor
     this.ctx.fillRect(
