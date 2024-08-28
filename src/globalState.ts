@@ -15,8 +15,6 @@ type ContextMenuItem = { callback; label }
 
 export const activeModalStack: Modal[] = proxy([])
 
-export const warps: WorldWarp[] = proxy([])
-
 export const insertActiveModalStack = (name: string, newModalStack = activeModalStacks[name]) => {
   hideModal(undefined, undefined, { restorePrevious: false, force: true })
   activeModalStack.splice(0, activeModalStack.length, ...newModalStack)
@@ -153,6 +151,7 @@ export const gameAdditionalState = proxy({
   isFlying: false,
   isSprinting: false,
   isSneaking: false,
+  warps: [] as WorldWarp[]
 })
 
 window.gameAdditionalState = gameAdditionalState

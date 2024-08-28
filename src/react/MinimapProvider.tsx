@@ -9,7 +9,7 @@ import { INVISIBLE_BLOCKS } from 'prismarine-viewer/viewer/lib/mesher/worldConst
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import preflatMap from '../preflatMap.json'
 import { contro } from '../controls'
-import { warps, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
+import { gameAdditionalState, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
 import { options } from '../optionsStorage'
 import Minimap, { DisplayMode } from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
@@ -31,7 +31,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   constructor (pos?: Vec3) {
     super()
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
-    this.warps = warps
+    this.warps = gameAdditionalState.warps
     if (localServer) {
       this.overwriteWarps(localServer.warps)
       this.on('cellReady', (key: string) => {
