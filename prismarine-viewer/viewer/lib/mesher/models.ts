@@ -3,6 +3,7 @@ import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBloc
 import legacyJson from '../../../../src/preflatMap.json'
 import { World, BlockModelPartsResolved, WorldBlock as Block } from './world'
 import { BlockElement, buildRotationMatrix, elemFaces, matmul3, matmulmat3, vecadd3, vecsub3 } from './modelsGeometryCommon'
+import { INVISIBLE_BLOCKS } from './worldConstants'
 
 let blockProvider: WorldBlockProvider
 
@@ -356,8 +357,6 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
 const makeLooseObj = <T extends string> (obj: Record<T, any>) => obj
 
-const invisibleBlocks = new Set(['air', 'cave_air', 'void_air', 'barrier'])
-
 const isBlockWaterlogged = (block: Block) => block.getProperties().waterlogged === true || block.getProperties().waterlogged === 'true'
 
 let unknownBlockModel: BlockModelPartsResolved
@@ -390,7 +389,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
-        if (!invisibleBlocks.has(block.name)) {
+        if (!INVISIBLE_BLOCKS.has(block.name)) {
           const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
           if (!highest || highest.y < cursor.y) {
             attr.highestBlocks[`${cursor.x},${cursor.z}`] = {
@@ -399,7 +398,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             }
           }
         }
-        if (invisibleBlocks.has(block.name)) continue
+        if (INVISIBLE_BLOCKS.has(block.name)) continue
         if (block.name.includes('_sign') || block.name === 'sign') {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
@@ -446,7 +445,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         } else if (block.name === 'lava') {
           renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr)
         }
-        if (block.name !== 'water' && block.name !== 'lava' && !invisibleBlocks.has(block.name)) {
+        if (block.name !== 'water' && block.name !== 'lava' && !INVISIBLE_BLOCKS.has(block.name)) {
           // cache
           let { models } = block
           if (block.models === undefined || preflatRecomputeVariant) {

@@ -4,6 +4,7 @@ import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
 import { Chunk } from 'prismarine-world/types/world'
+import { INVISIBLE_BLOCKS } from 'prismarine-viewer/viewer/lib/mesher/worldConstants'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
 import { warps, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
@@ -43,7 +44,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   async getHighestBlockColor (x: number, z: number) {
-    const airBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
     const chunkX = Math.floor(x / 16) * 16
     const chunkZ = Math.floor(z / 16) * 16
     const emptyColor = 'rgb(200, 200, 200)'
@@ -83,9 +83,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const blockRightUp = viewer.world.highestBlocks[rightUpKey] && viewer.world.highestBlocks[rightUpKey].y > block.y
       ? viewer.world.highestBlocks[rightUpKey]
       : null
-    if ((blockUp && !airBlocks.has(blockUp.name))
-      || (blockRight && !airBlocks.has(blockRight.name))
-      || (blockRightUp && !airBlocks.has(blockRightUp.name))
+    if ((blockUp && !INVISIBLE_BLOCKS.has(blockUp.name))
+      || (blockRight && !INVISIBLE_BLOCKS.has(blockRight.name))
+      || (blockRightUp && !INVISIBLE_BLOCKS.has(blockRightUp.name))
     ) {
       let rgbArray = color.match(/\d+/g).map(Number)
       if (rgbArray.length !== 3) return color
@@ -108,9 +108,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const blockLeftDown = viewer.world.highestBlocks[leftDownKey] && viewer.world.highestBlocks[leftDownKey].y > block.y
       ? viewer.world.highestBlocks[leftDownKey]
       : null
-    if ((blockDown && !airBlocks.has(blockDown.name))
-      || (blockLeft && !airBlocks.has(blockLeft.name))
-      || (blockLeftDown && !airBlocks.has(blockLeftDown.name))
+    if ((blockDown && !INVISIBLE_BLOCKS.has(blockDown.name))
+      || (blockLeft && !INVISIBLE_BLOCKS.has(blockLeft.name))
+      || (blockLeftDown && !INVISIBLE_BLOCKS.has(blockLeftDown.name))
     ) {
       let rgbArray = color.match(/\d+/g).map(Number)
       if (rgbArray.length !== 3) return color
@@ -159,10 +159,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
 
   getHighestBlockY (x: number, z: number, chunk?: Chunk) {
     const { height, minY } = (bot.game as any)
-    const transparentBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
     for (let i = height; i > 0; i -= 1) {
       const block = chunk ? chunk.getBlock(new Vec3(x & 15, minY + i, z & 15)) : bot.world.getBlock(new Vec3(x, minY + i, z))
-      if (block && !transparentBlocks.has(block.name)) {
+      if (block && !INVISIBLE_BLOCKS.has(block.name)) {
         return minY + i
       }
     }
