@@ -3,6 +3,7 @@ import { Vec3 } from 'vec3'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
+import { Chunk } from 'prismarine-world/types/world'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
 import { warps, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
@@ -39,9 +40,12 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   async getHighestBlockColor (x: number, z: number) {
-    const airBlocks = new Set(['air', 'cave_air', 'void_air'])
+    const airBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
     const chunkX = Math.floor(x / 16) * 16
     const chunkZ = Math.floor(z / 16) * 16
+    if (localServer) {
+      return await this.getHighestBlockColorLocalServer(chunkX, chunkZ, x, z)
+    }
     if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return 'rgb(200, 200, 200)'
     const block = viewer.world.highestBlocks[`${x},${z}`]
     const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : 'rgb(200, 200, 200)'
@@ -101,6 +105,16 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return color
   }
 
+  async getHighestBlockColorLocalServer (chunkX: number, chunkZ: number, x: number, z: number) {
+    const emptyColor = 'rgb(200, 200, 200)'
+    const chunk = await this.getChunkSingleplayer(chunkX, chunkZ)
+    if (!chunk) return emptyColor
+    const y = this.getHighestBlockY(chunk, x, z) 
+    const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
+    const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    return color
+  }
+
   setWarp (warp: WorldWarp, remove?: boolean): void {
     this.world = bot.game.dimension
     const index = this.warps.findIndex(w => w.name === warp.name)
@@ -122,24 +136,22 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     this.emit('updateWarps')
   }
 
-  getHighestBlockY (x: number, z: number) {
+  getHighestBlockY (chunk: Chunk, x: number, z: number) {
     const { height, minY } = (bot.game as any)
-    let y = minY + height
     const transparentBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
     for (let i = height; i > 0; i -= 1) {
-      const block = bot.world.getBlock(new Vec3(x, minY + i, z))
+      const block = chunk.getBlock(new Vec3(x & 15, minY + i, z & 15))
       if (block && !transparentBlocks.has(block.name)) {
-        y = block.position.y + 3
-        break
+        return minY + i
       }
     }
-    return y
+    return minY
   }
 
   async getChunkSingleplayer (chunkX: number, chunkZ: number) {
     // absolute coords
     const region = (localServer!.overworld.storageProvider as any).getRegion(chunkX * 16, chunkZ * 16)
-    if (!region) return
+    if (!region) return null
     const chunk = await localServer!.players[0]!.world.getColumn(chunkX, chunkZ)
     return chunk
   }

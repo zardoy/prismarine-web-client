@@ -1,6 +1,7 @@
 import { Vec3 } from 'vec3'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
+import { Chunk } from 'prismarine-world/types/world'
 
 export type MapUpdates = {
   updateBlockColor: (pos: Vec3) => void
@@ -10,7 +11,7 @@ export type MapUpdates = {
 
 export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   getHighestBlockColor: (x: number, z: number) => Promise<string>
-  getHighestBlockY: (x: number, z: number) => number
+  getHighestBlockY: (chunk: Chunk, x: number, z: number) => number
   playerPosition: Vec3
   warps: WorldWarp[]
   world?: string
