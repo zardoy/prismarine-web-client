@@ -6,6 +6,7 @@ import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
 import { Chunk } from 'prismarine-world/types/world'
 import { INVISIBLE_BLOCKS } from 'prismarine-viewer/viewer/lib/mesher/worldConstants'
+import viewer from 'prismarine-viewer/viewer'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import preflatMap from '../preflatMap.json'
 import { contro } from '../controls'
@@ -76,7 +77,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
     if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return emptyColor
     const block = viewer.world.highestBlocks[`${x},${z}`]
-    const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    const blockData = bot.world.getBlock(new Vec3(x, block.y, z))
+    const color = block && blockData ? BlockData.colors[this.isOldVersion ? preflatMap.blocks[`${blockData.type}:${blockData.metadata}`].replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
     if (!block) return color
 
     // shadows
