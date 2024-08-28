@@ -151,6 +151,62 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const y = this.getHighestBlockY(x, z, chunk)
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
     const color = block ? BlockData.colors[this.isOldVersion ? preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    if (!block) return color
+
+    // shadows
+    const xDiff = x - chunkX
+    const zDiff = z - chunkZ
+    const chunkUp = this.chunksStore[`${chunkX},${chunkZ - 16}`]
+    const chunkRight = this.chunksStore[`${chunkX + 16},${chunkZ}`]
+    const chunkRightUp = this.chunksStore[`${chunkX + 16},${chunkZ - 16}`]
+    const blockUp = chunkUp && chunkUp !== 'unavailable' && zDiff === 0
+      ? this.getHighestBlockY(x, z - 1, chunkUp)
+      : this.getHighestBlockY(x, z - 1, chunk)
+    const blockRight = chunkRight && chunkRight !== 'unavailable' && xDiff === 16
+      ? this.getHighestBlockY(x + 1, z, chunkRight)
+      : this.getHighestBlockY(x + 1, z, chunk)
+    const blockRightUp = chunkRightUp && chunkRightUp !== 'unavailable' && xDiff === 16 && zDiff === 0
+      ? this.getHighestBlockY(x + 1, z, chunkRightUp)
+      : this.getHighestBlockY(x + 1, z, chunk)
+    if ((blockUp > y)
+      || (blockRight > y)
+      || (blockRightUp > y)
+    ) {
+      let rgbArray = color.match(/\d+/g).map(Number)
+      if (rgbArray.length !== 3) return color
+      rgbArray = rgbArray.map(element => {
+        let newColor = element - 20
+        if (newColor < 0) newColor = 0
+        return newColor
+      })
+      return `rgb(${rgbArray.join(',')})`
+    }
+    const chunkDown = this.chunksStore[`${chunkX},${chunkZ + 16}`]
+    const chunkLeft = this.chunksStore[`${chunkX - 16},${chunkZ}`]
+    const chunkLeftDown = this.chunksStore[`${chunkX - 16},${chunkZ + 16}`]
+    const blockDown = chunkUp && chunkUp !== 'unavailable' && zDiff === 16
+      ? this.getHighestBlockY(x, z + 1, chunkUp)
+      : this.getHighestBlockY(x, z + 1, chunk)
+    const blockLeft = chunkLeft && chunkLeft !== 'unavailable' && xDiff === 0
+      ? this.getHighestBlockY(x - 1, z, chunkLeft)
+      : this.getHighestBlockY(x - 1, z, chunk)
+    const blockLeftDown = chunkLeftDown && chunkLeftDown !== 'unavailable' && xDiff === 0 && zDiff === 16
+      ? this.getHighestBlockY(x + 1, z, chunkLeftDown)
+      : this.getHighestBlockY(x + 1, z, chunk)
+    if ((blockDown > y)
+      || (blockLeft > y)
+      || (blockLeftDown > y)
+    ) {
+      let rgbArray = color.match(/\d+/g).map(Number)
+      if (rgbArray.length !== 3) return color
+      rgbArray = rgbArray.map(element => {
+        let newColor = element + 20
+        if (newColor > 255) newColor = 255
+        return newColor
+      })
+      return `rgb(${rgbArray.join(',')})`
+    }
+
     return color
   }
 
