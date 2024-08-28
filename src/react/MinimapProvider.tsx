@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Vec3 } from 'vec3'
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
 import { Chunk } from 'prismarine-world/types/world'
 import { INVISIBLE_BLOCKS } from 'prismarine-viewer/viewer/lib/mesher/worldConstants'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
+import preflatMap from '../preflatMap.json'
 import { contro } from '../controls'
 import { warps, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
 import { options } from '../optionsStorage'
@@ -24,6 +26,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   loadingChunksQueue = new Set<string>()
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
+  isOldVersion: boolean
 
   constructor (pos?: Vec3) {
     super()
@@ -41,6 +44,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp ?? ''}`)
       this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
     }
+    this.isOldVersion = versionToNumber(bot.version) < versionToNumber('1.13')
   }
 
   overwriteWarps (newWarps: WorldWarp[]) {
@@ -137,7 +141,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     if (!chunk) return emptyColor
     const y = this.getHighestBlockY(x, z, chunk)
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
-    const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    const color = block ? BlockData.colors[this.isOldVersion ? preflatMap.blocks[`${block.type}:${block.metadata}`].replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
     return color
   }
 
