@@ -485,12 +485,16 @@ export class Entities extends EventEmitter {
       new TWEEN.Tween(e.rotation).to({ y: e.rotation.y + dy }, TWEEN_DURATION).start()
     }
   }
+
   handleDamageEvent(entityId, damageAmount) {
     const entityMesh = this.entities[entityId]?.children.find(c => c.name === 'mesh')
     if (entityMesh) {
       entityMesh.traverse((child) => {
         if (child instanceof THREE.Mesh) {
+          const clonedMaterial = child.material.clone()
+          clonedMaterial.dispose()
           child.material = child.material.clone()
+          child.material.dispose()
           const originalColor = child.material.color.clone()
           child.material.color.set(0xff_00_00)
           new TWEEN.Tween(child.material.color)
