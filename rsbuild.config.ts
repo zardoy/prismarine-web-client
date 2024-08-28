@@ -49,7 +49,7 @@ export default defineConfig({
             'minecraft-protocol$': 'minecraft-protocol/src/index.js',
             'buffer$': 'buffer',
             // avoid bundling, not used on client side
-            'prismarine-auth': './src/shims/empty.ts',
+            'prismarine-auth': './src/shims/prismarineAuthReplacement.ts',
             perf_hooks: './src/shims/perf_hooks_replacement.js',
             crypto: './src/shims/crypto.js',
             dns: './src/shims/dns.js',

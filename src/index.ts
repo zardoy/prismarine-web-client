@@ -472,6 +472,7 @@ async function connect (connectOptions: ConnectOptions) {
       setCacheResult (result) {
         newTokensCacheResult = result
       },
+      connectingServer: server.host
     }) : undefined
 
     bot = mineflayer.createBot({
@@ -494,7 +495,7 @@ async function connect (connectOptions: ConnectOptions) {
         signInMessageState.link = data.verification_uri
         signInMessageState.expiresOn = Date.now() + data.expires_in * 1000
       },
-      sessionServer: authData?.sessionEndpoint,
+      sessionServer: authData?.sessionEndpoint?.toString(),
       auth: connectOptions.authenticatedAccount ? async (client, options) => {
         authData!.setOnMsaCodeCallback(options.onMsaCode)
         //@ts-expect-error
