@@ -54,10 +54,12 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         if (this.loadingChunksCount > 19) return emptyColor
         this.chunksStore[`${chunkX},${chunkZ}`] = null
         this.loadingChunksCount += 1
+        console.log('chunks loading:', this.loadingChunksCount)
         this.getChunkSingleplayer(chunkX, chunkZ).then(
           (res) => {
             this.chunksStore[`${chunkX},${chunkZ}`] = res
             this.loadingChunksCount -= 1
+            console.log('chunks loading:', this.loadingChunksCount)
           }
         ).catch((err) => { console.warn('failed to get chunk:', chunkX, chunkZ) })
         return emptyColor
@@ -158,7 +160,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const { height, minY } = (bot.game as any)
     const transparentBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
     for (let i = height; i > 0; i -= 1) {
-      const block = chunk ? chunk.getBlock(new Vec3(x & 15, minY + i, z & 15)) : viewer.world.getBlock(new Vec3(x, minY + i, z))
+      const block = chunk ? chunk.getBlock(new Vec3(x & 15, minY + i, z & 15)) : bot.world.getBlock(new Vec3(x, minY + i, z))
       if (block && !transparentBlocks.has(block.name)) {
         return minY + i
       }
