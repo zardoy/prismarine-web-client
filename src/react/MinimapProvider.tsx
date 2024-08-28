@@ -13,11 +13,14 @@ import Minimap, { DisplayMode } from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 import { useIsModalActive } from './utilsApp'
 
+
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
   yaw: number
   warps: WorldWarp[]
   world: string
+  chunksStore: Record<string, Chunk | null> = {}
+  loadingChunksCount = 0
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
 
@@ -44,12 +47,26 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const airBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
     const chunkX = Math.floor(x / 16) * 16
     const chunkZ = Math.floor(z / 16) * 16
+    const emptyColor = 'rgb(200, 200, 200)'
     if (localServer) {
+      const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
+      if (chunk === undefined) {
+        if (this.loadingChunksCount > 19) return emptyColor
+        this.chunksStore[`${chunkX},${chunkZ}`] = null
+        this.loadingChunksCount += 1
+        this.getChunkSingleplayer(chunkX, chunkZ).then(
+          (res) => {
+            this.chunksStore[`${chunkX},${chunkZ}`] = res
+            this.loadingChunksCount -= 1
+          }
+        ).catch((err) => { console.warn('failed to get chunk:', chunkX, chunkZ) })
+        return emptyColor
+      }
       return this.getHighestBlockColorLocalServer(chunkX, chunkZ, x, z)
     }
-    if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return 'rgb(200, 200, 200)'
+    if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return emptyColor
     const block = viewer.world.highestBlocks[`${x},${z}`]
-    const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : 'rgb(200, 200, 200)'
+    const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : emptyColor
     if (!block) return color
 
     // shadows
@@ -108,7 +125,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
 
   async getHighestBlockColorLocalServer (chunkX: number, chunkZ: number, x: number, z: number) {
     const emptyColor = 'rgb(200, 200, 200)'
-    const chunk = await this.getChunkSingleplayer(chunkX, chunkZ)
+    const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
     if (!chunk) return emptyColor
     const y = this.getHighestBlockY(x, z, chunk)
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
