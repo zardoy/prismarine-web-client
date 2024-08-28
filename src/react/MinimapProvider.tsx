@@ -20,6 +20,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   world: string
   chunksStore: Record<string, Chunk | null> = {}
   loadingChunksCount = 0
+  loadingChunksQueue: string[]
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
 
@@ -51,7 +52,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       if (Object.keys(this.chunksStore).length > 500) this.chunksStore = {}
       const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
       if (chunk === undefined) {
-        // if (this.loadingChunksCount > 19) return emptyColor
+        if (this.loadingChunksCount > 19) return emptyColor
         this.chunksStore[`${chunkX},${chunkZ}`] = null
         this.loadingChunksCount += 1
         console.log('loading:', chunkX, chunkZ)
