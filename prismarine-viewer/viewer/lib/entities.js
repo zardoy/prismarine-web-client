@@ -504,27 +504,4 @@ export class Entities extends EventEmitter {
       })
     }
   }
-
-  createDamageText(damageAmount) {
-    const canvas = document.createElement('canvas')
-    const context = canvas.getContext('2d')
-
-    if (!context) {
-      throw new Error('Could not get canvas context')
-    }
-
-    const fontSize = 64
-    canvas.width = 256
-    canvas.height = 128
-
-    context.font = `${fontSize}px Arial`
-    context.fillStyle = 'red'
-    context.fillText(damageAmount.toString(), 0, fontSize)
-
-    const texture = new THREE.Texture(canvas)
-    texture.needsUpdate = true
-
-    const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true })
-    return new THREE.Sprite(spriteMaterial)
-  }
 }

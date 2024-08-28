@@ -32,8 +32,8 @@
 ❌ world_border_warning_reach
 ❌ simulation_distance
 ❌ chunk_biomes
-❌ damage_event
 ❌ hurt_animation
+✅ damage_event
 ✅ spawn_entity
 ✅ spawn_entity_experience_orb
 ✅ named_entity_spawn
