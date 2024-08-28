@@ -12,6 +12,8 @@ export type MapUpdates = {
 export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   getHighestBlockColor: (x: number, z: number) => Promise<string>
   getHighestBlockY: (x: number, z: number, chunk?: Chunk) => number
+  clearChunksStore: (x: number, z: number) => void
+  chunksStore: Record<string, Chunk | null>
   playerPosition: Vec3
   warps: WorldWarp[]
   world?: string

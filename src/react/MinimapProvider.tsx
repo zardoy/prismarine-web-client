@@ -21,6 +21,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   world: string
   chunksStore: Record<string, Chunk | null> = {}
   loadingChunksCount = 0
+  loadingChunksQueue = new Set<string>()
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
 
@@ -30,6 +31,12 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     this.warps = warps
     if (localServer) {
       this.overwriteWarps(localServer.warps)
+      this.on('cellReady', (key: string) => {
+        if (this.loadingChunksQueue.size === 0) return
+        const [x, z] = this.loadingChunksQueue.values().next().value.split(',').map(Number)
+        this.loadChunk(x, z)
+        this.loadingChunksQueue.delete(`${x},${z}`)
+      })
     } else {
       const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp ?? ''}`)
       this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
@@ -48,19 +55,17 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const chunkZ = Math.floor(z / 16) * 16
     const emptyColor = 'rgb(200, 200, 200)'
     if (localServer) {
+      if (Object.keys(this.chunksStore).length > 500) this.chunksStore = {}
       const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
       if (chunk === undefined) {
-        if (this.loadingChunksCount > 19) return emptyColor
+        if (this.loadingChunksCount > 19) {
+          this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
+          return emptyColor
+        }
         this.chunksStore[`${chunkX},${chunkZ}`] = null
         this.loadingChunksCount += 1
-        console.log('chunks loading:', this.loadingChunksCount)
-        this.getChunkSingleplayer(chunkX, chunkZ).then(
-          (res) => {
-            this.chunksStore[`${chunkX},${chunkZ}`] = res
-            this.loadingChunksCount -= 1
-            console.log('chunks loading:', this.loadingChunksCount)
-          }
-        ).catch((err) => { console.warn('failed to get chunk:', chunkX, chunkZ) })
+        console.log('loading:', chunkX, chunkZ)
+        this.loadChunk(chunkX, chunkZ)
         return emptyColor
       }
       return this.getHighestBlockColorLocalServer(x, z)
@@ -174,6 +179,26 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     if (!region) return null
     const chunk = await localServer!.players[0]!.world.getColumn(chunkX / 16, chunkZ / 16)
     return chunk
+  }
+
+  loadChunk (chunkX: number, chunkZ: number) {
+    this.getChunkSingleplayer(chunkX, chunkZ).then(
+      (res) => {
+        this.chunksStore[`${chunkX},${chunkZ}`] = res
+        this.emit(`cellReady`, `${chunkX},${chunkZ}`)
+        this.loadingChunksCount -= 1
+        console.log('loaded:', chunkX, chunkZ, res)
+      }
+    ).catch((err) => { console.warn('failed to get chunk:', chunkX, chunkZ) })
+  }
+
+  clearChunksStore (x: number, z: number) {
+    for (const key of Object.keys(this.chunksStore)) {
+      const [chunkX, chunkZ] = key.split(',').map(Number)
+      if (Math.hypot((chunkX - x), (chunkZ - z)) > 300) {
+        delete this.chunksStore[key]
+      }
+    }
   }
 }
 

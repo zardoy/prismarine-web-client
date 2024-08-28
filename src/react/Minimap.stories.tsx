@@ -31,6 +31,7 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
   playerPosition: Vec3
   yaw: number
   warps: WorldWarp[]
+  chunksStore: any = {}
 
   constructor (pos?: Vec3, warps?: WorldWarp[]) {
     super()
@@ -56,6 +57,8 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
     }
     this.emit('updateWarps')
   }
+
+  clearChunksStore (x: number, z: number) { }
 }
 
 const adapter = new DrawerAdapterImpl()
