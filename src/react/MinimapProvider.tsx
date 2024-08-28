@@ -4,6 +4,7 @@ import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
 import { Chunk } from 'prismarine-world/types/world'
+import viewer from 'prismarine-viewer/viewer'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import { contro } from '../controls'
 import { warps, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
@@ -44,7 +45,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const chunkX = Math.floor(x / 16) * 16
     const chunkZ = Math.floor(z / 16) * 16
     if (localServer) {
-      return await this.getHighestBlockColorLocalServer(chunkX, chunkZ, x, z)
+      return this.getHighestBlockColorLocalServer(chunkX, chunkZ, x, z)
     }
     if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return 'rgb(200, 200, 200)'
     const block = viewer.world.highestBlocks[`${x},${z}`]
@@ -109,7 +110,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const emptyColor = 'rgb(200, 200, 200)'
     const chunk = await this.getChunkSingleplayer(chunkX, chunkZ)
     if (!chunk) return emptyColor
-    const y = this.getHighestBlockY(chunk, x, z) 
+    const y = this.getHighestBlockY(x, z, chunk)
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
     const color = block ? BlockData.colors[block.name] ?? 'rgb(211, 211, 211)' : emptyColor
     return color
@@ -136,11 +137,11 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     this.emit('updateWarps')
   }
 
-  getHighestBlockY (chunk: Chunk, x: number, z: number) {
+  getHighestBlockY (x: number, z: number, chunk?: Chunk) {
     const { height, minY } = (bot.game as any)
     const transparentBlocks = new Set(['air', 'void_air', 'cave_air', 'barrier'])
     for (let i = height; i > 0; i -= 1) {
-      const block = chunk.getBlock(new Vec3(x & 15, minY + i, z & 15))
+      const block = chunk ? chunk.getBlock(new Vec3(x & 15, minY + i, z & 15)) : viewer.world.getBlock(new Vec3(x, minY + i, z))
       if (block && !transparentBlocks.has(block.name)) {
         return minY + i
       }
