@@ -47,8 +47,11 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
     setGrid(new Set([...grid, ...newGrid] as string[]))
   }
 
+
   useEffect(() => {
     updateGrid()
+
+
   }, [])
 
   return <div
@@ -238,6 +241,19 @@ const MapChunk = (
     )
   }
 
+  const handleRedraw = (key?: string) => {
+    if (key !== `${worldX},${worldZ}`) return
+    console.log('handle redraw:', key)
+    const timeout = setTimeout(() => {
+      drawerRef.current?.draw(
+        new Vec3(worldX + 8, 0, worldZ + 8),
+        undefined,
+        true
+      )
+      clearTimeout(timeout)
+    }, 100)
+  }
+
   useEffect(() => {
     if (canvasRef.current && isCanvas && !drawerRef.current) {
       drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
@@ -264,13 +280,7 @@ const MapChunk = (
   }, [canvasRef.current, scale])
 
   useEffect(() => {
-    if (drawerRef.current) {
-      drawerRef.current.draw(
-        new Vec3(worldX + 8, 0, worldZ + 8),
-        undefined,
-        true
-      )
-    }
+    handleRedraw()
   }, [drawerRef.current, redraw])
 
   useEffect(() => {
@@ -283,8 +293,11 @@ const MapChunk = (
     })
     intersectionObserver.observe(containerRef.current!)
 
+    adapter.on('cellReady', handleRedraw)
+
     return () => {
       intersectionObserver.disconnect()
+      adapter.off('cellReady', handleRedraw)
     }
   }, [])
 

@@ -51,15 +51,16 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       if (Object.keys(this.chunksStore).length > 500) this.chunksStore = {}
       const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
       if (chunk === undefined) {
-        if (this.loadingChunksCount > 19) return emptyColor
+        // if (this.loadingChunksCount > 19) return emptyColor
         this.chunksStore[`${chunkX},${chunkZ}`] = null
         this.loadingChunksCount += 1
-        console.log('chunks loading:', this.loadingChunksCount)
+        console.log('loading:', chunkX, chunkZ)
         this.getChunkSingleplayer(chunkX, chunkZ).then(
           (res) => {
             this.chunksStore[`${chunkX},${chunkZ}`] = res
+            this.emit(`cellReady`, `${chunkX},${chunkZ}`)
             this.loadingChunksCount -= 1
-            console.log('chunks loading:', this.loadingChunksCount)
+            console.log('loaded:', chunkX, chunkZ, res)
           }
         ).catch((err) => { console.warn('failed to get chunk:', chunkX, chunkZ) })
         return emptyColor
