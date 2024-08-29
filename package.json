@@ -5,7 +5,7 @@
   "scripts": {
     "dev-rsbuild": "rsbuild dev",
     "dev-proxy": "node server.js",
-    "start": "run-p dev-rsbuild dev-proxy",
+    "start": "run-p dev-rsbuild dev-proxy watch-mesher",
     "start-watch-script": "nodemon -w rsbuild.config.ts --watch",
     "build": "rsbuild build",
     "build-analyze": "BUNDLE_ANALYZE=true rsbuild build",
