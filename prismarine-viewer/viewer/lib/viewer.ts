@@ -77,6 +77,12 @@ export class Viewer {
     // this.primitives.clear()
   }
 
+  testPlayerLag () {
+    for (let i = 0; i < 10; i++) {
+      this.entities.update()
+    }
+  }
+
   setVersion (userVersion: string, texturesVersion = userVersion) {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
     void this.world.setVersion(userVersion, texturesVersion).then(async () => {

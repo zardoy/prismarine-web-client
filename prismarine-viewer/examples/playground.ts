@@ -279,10 +279,13 @@ async function main () {
 
   const entityUpdateShared = () => {
     viewer.entities.clear()
+    params.entity = 'allay'
     if (!params.entity) return
-    worldView.emit('entity', {
-      id: 'id', name: params.entity, pos: targetPos.offset(0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
-    })
+    for (let i = 0; i < 75; i++) {
+      worldView.emit('entity', {
+        id: `id${i}`, name: 'player', pos: targetPos.offset(i + 0.5, 1, 0.5), width: 1, height: 1, username: localStorage.testUsername, yaw: Math.PI, pitch: 0
+      })
+    }
     const enableSkeletonDebug = (obj) => {
       const { children, isSkeletonHelper } = obj
       if (!Array.isArray(children)) return
@@ -294,9 +297,11 @@ async function main () {
         if (typeof child === 'object') enableSkeletonDebug(child)
       }
     }
-    enableSkeletonDebug(viewer.entities.entities['id'])
+    // enableSkeletonDebug(viewer.entities.entities['id'])
     setTimeout(() => {
+      console.time('render')
       viewer.render()
+      console.timeEnd('render')
     }, TWEEN_DURATION)
   }
 
@@ -358,10 +363,10 @@ async function main () {
       continuousRender = params.entity === 'player'
       entityUpdateShared()
       if (!params.entity) return
-      if (params.entity === 'player') {
-        viewer.entities.updatePlayerSkin('id', viewer.entities.entities.id.username, true, true)
-        viewer.entities.playAnimation('id', 'running')
-      }
+      // if (params.entity === 'player') {
+      //   viewer.entities.updatePlayerSkin('id', viewer.entities.entities.id.username, true, true)
+      //   viewer.entities.playAnimation('id', 'running')
+      // }
       // let prev = false
       // setInterval(() => {
       //   viewer.entities.playAnimation('id', prev ? 'running' : 'idle')
