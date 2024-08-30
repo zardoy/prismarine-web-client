@@ -16,6 +16,9 @@ import Minimap, { DisplayMode } from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
 import { useIsModalActive } from './utilsApp'
 
+const getBlockKey = (x: number, z: number) => {
+  return `${x},${z}`
+}
 
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
@@ -29,6 +32,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
   isOldVersion: boolean
   blockData: any
+  heightMap: Record<string, number> = {}
 
   constructor (pos?: Vec3) {
     super()
@@ -158,25 +162,15 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         break
     }
     const y = this.getHighestBlockY(x, z, chunk)
+    this.heightMap[getBlockKey(x, z)] = y
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
     const color = block ? this.blockData[this.isOldVersion ? preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
     if (!block) return color
 
     // shadows
-    const xDiff = x - chunkX
-    const zDiff = z - chunkZ
-    const chunkUp = this.chunksStore[`${chunkX},${chunkZ - 16}`]
-    const chunkRight = this.chunksStore[`${chunkX + 16},${chunkZ}`]
-    const chunkRightUp = this.chunksStore[`${chunkX + 16},${chunkZ - 16}`]
-    const blockUp = chunkUp && chunkUp !== 'unavailable' && zDiff === 0
-      ? this.getHighestBlockY(x, z - 1, chunkUp)
-      : this.getHighestBlockY(x, z - 1, chunk)
-    const blockRight = chunkRight && chunkRight !== 'unavailable' && xDiff === 16
-      ? this.getHighestBlockY(x + 1, z, chunkRight)
-      : this.getHighestBlockY(x + 1, z, chunk)
-    const blockRightUp = chunkRightUp && chunkRightUp !== 'unavailable' && xDiff === 16 && zDiff === 0
-      ? this.getHighestBlockY(x + 1, z, chunkRightUp)
-      : this.getHighestBlockY(x + 1, z, chunk)
+    const blockUp = this.heightMap[getBlockKey(x, z - 1)]
+    const blockRight = this.heightMap[getBlockKey(x + 1, z)]
+    const blockRightUp = this.heightMap[getBlockKey(x + 1, z - 1)]
     if ((blockUp > y)
       || (blockRight > y)
       || (blockRightUp > y)
@@ -190,18 +184,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       })
       return `rgb(${rgbArray.join(',')})`
     }
-    const chunkDown = this.chunksStore[`${chunkX},${chunkZ + 16}`]
-    const chunkLeft = this.chunksStore[`${chunkX - 16},${chunkZ}`]
-    const chunkLeftDown = this.chunksStore[`${chunkX - 16},${chunkZ + 16}`]
-    const blockDown = chunkUp && chunkUp !== 'unavailable' && zDiff === 16
-      ? this.getHighestBlockY(x, z + 1, chunkUp)
-      : this.getHighestBlockY(x, z + 1, chunk)
-    const blockLeft = chunkLeft && chunkLeft !== 'unavailable' && xDiff === 0
-      ? this.getHighestBlockY(x - 1, z, chunkLeft)
-      : this.getHighestBlockY(x - 1, z, chunk)
-    const blockLeftDown = chunkLeftDown && chunkLeftDown !== 'unavailable' && xDiff === 0 && zDiff === 16
-      ? this.getHighestBlockY(x + 1, z, chunkLeftDown)
-      : this.getHighestBlockY(x + 1, z, chunk)
+    const blockDown = this.heightMap[getBlockKey(x, z + 1)]
+    const blockLeft = this.heightMap[getBlockKey(x - 1, z)]
+    const blockLeftDown = this.heightMap[getBlockKey(x - 1, z + 1)]
     if ((blockDown > y)
       || (blockLeft > y)
       || (blockLeftDown > y)
@@ -275,6 +260,11 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const [chunkX, chunkZ] = key.split(',').map(Number)
       if (Math.hypot((chunkX - x), (chunkZ - z)) > 300) {
         delete this.chunksStore[key]
+        for (let i = 0; i < 16; i += 1) {
+          for (let j = 0; j < 16; j += 1) {
+            delete this.heightMap[`${chunkX + i},${chunkZ + j}`]
+          }
+        }
       }
     }
   }
