@@ -6,6 +6,7 @@ import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
 import { Chunk } from 'prismarine-world/types/world'
 import { INVISIBLE_BLOCKS } from 'prismarine-viewer/viewer/lib/mesher/worldConstants'
+import { getRenamedData } from 'flying-squid/dist/blockRenames'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import preflatMap from '../preflatMap.json'
 import { contro } from '../controls'
@@ -27,6 +28,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
   isOldVersion: boolean
+  blockData: any
 
   constructor (pos?: Vec3) {
     super()
@@ -45,6 +47,13 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
     }
     this.isOldVersion = versionToNumber(bot.version) < versionToNumber('1.13')
+    this.blockData = {}
+    for (const blockKey of Object.keys(BlockData.colors)) {
+      const renamedKey = getRenamedData('blocks', blockKey, '1.20.2', bot.version)
+      this.blockData[renamedKey as string] = BlockData.colors[blockKey]
+
+    }
+    console.log('block data:', this.blockData)
   }
 
   overwriteWarps (newWarps: WorldWarp[]) {
@@ -76,7 +85,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return emptyColor
     const block = viewer.world.highestBlocks[`${x},${z}`]
     const blockData = bot.world.getBlock(new Vec3(x, block?.y ?? 0, z))
-    const color = block && blockData ? BlockData.colors[this.isOldVersion ? preflatMap.blocks[`${blockData.type}:${blockData.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    const color = block && blockData ? this.blockData[this.isOldVersion ? preflatMap.blocks[`${blockData.type}:${blockData.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
     if (!block) return color
 
     // shadows
@@ -150,7 +159,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
     const y = this.getHighestBlockY(x, z, chunk)
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
-    const color = block ? BlockData.colors[this.isOldVersion ? preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    const color = block ? this.blockData[this.isOldVersion ? preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
     if (!block) return color
 
     // shadows
