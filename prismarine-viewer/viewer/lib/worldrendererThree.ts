@@ -19,7 +19,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   signsCache = new Map<string, any>()
   starField: StarField
   cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
-  cameraGroup = new THREE.Group()
+  cameraGroup = new THREE.Mesh()
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -29,16 +29,52 @@ export class WorldRendererThree extends WorldRendererCommon {
     super(config)
     this.starField = new StarField(scene)
     this.initCameraGroup()
-    // this.initHandObject()
+    this.renderUpdateEmitter.on('textureDownloaded', () => {
+      this.initHandObject()
+    })
   }
 
   initCameraGroup () {
-    this.cameraGroup = new THREE.Group()
-    this.cameraGroup.onBeforeRender = (renderer, scene, camera) => {
-      this.cameraGroup.position.copy(camera.position.clone().add(new THREE.Vector3(0, 0, 1)))
-      this.cameraGroup.rotation.copy(camera.rotation)
-    }
+    this.cameraGroup = new THREE.Mesh()
     this.scene.add(this.cameraGroup)
+  }
+
+  updateCameraGroup () {
+    const { camera } = this
+    this.cameraGroup.position.copy(camera.position)
+    this.cameraGroup.rotation.copy(camera.rotation)
+    // this.cameraGroup.children[0]?.position.set(window.x ?? 0.25, window.y ?? -0.41, window.z ?? -0.5)
+    this.cameraGroup.children[0]?.position.set(0.25, window.y ?? -0.41, window.z ?? -0.45)
+    const scale = window.scale ?? 0.2
+    this.cameraGroup.children[0]?.scale.set(scale, scale, scale)
+    // holding block rotation
+    // this.cameraGroup.children[0]?.rotation.set(-THREE.MathUtils.degToRad(window.X), -THREE.MathUtils.degToRad(rotation), THREE.MathUtils.degToRad(window.Z), 'ZYX')
+    // if (window.rotated) {}
+  }
+
+  startAnim () {
+    const blockRot = this.cameraGroup.children[0]?.rotation
+    new tweenJs.Tween(blockRot).to({
+      z: THREE.MathUtils.degToRad(90),
+      x: THREE.MathUtils.degToRad(-45)
+    }, 400)
+  }
+
+  initHandObject () {
+    const blockProvider = worldBlockProvider(this.blockstatesModels, this.blocksAtlases, 'latest')
+    const models = blockProvider.getAllResolvedModels0_1({
+      name: 'stone',
+      properties: {
+      }
+    }, true)
+    const geometry = renderBlockThree(models, undefined, 'plains', loadedData)
+    const { material } = this
+    // block material
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.name = 'hand'
+    const rotation = 45
+    this.cameraGroup.add(mesh)
+    this.cameraGroup.children[0]?.rotation.set(0, -THREE.MathUtils.degToRad(rotation), 0, 'ZYX')
   }
 
   timeUpdated (newTime: number): void {
@@ -184,6 +220,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     tweenJs.update()
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
+    this.updateCameraGroup()
     this.renderer.render(this.scene, cam)
   }
 
