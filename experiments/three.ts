@@ -3,6 +3,7 @@ import * as tweenJs  from '@tweenjs/tween.js'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import * as THREE from 'three';
 import Jimp from 'jimp';
+
 const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
 camera.position.set(0, 0, 5)
@@ -61,10 +62,11 @@ window.stop = () => {
 }
 
 
-function createGeometryFromImage(imagePath) {
+function createGeometryFromImage() {
     return new Promise<THREE.ShapeGeometry>((resolve, reject) => {
         const img = new Image();
-        img.src = imagePath;
+        img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAABEElEQVQ4jWNkIAPw2Zv9J0cfXPOSvx/+L/n74T+HqsJ/JlI1T9u3i6H91B7ybdY+vgZuO1majV+fppFmPnuz/+ihy2dv9t/49Wm8mlECkV1FHh5FfPZm/1XXTGX4cechA4eKPMNVq1CGH7cfMBJ0rlxX+X8OVYX/xq9P/5frKifoZ0Z0AwS8HRkYGBgYvt+8xyDXUUbQZgwJPnuz/+wq8gw/7zxk+PXsFUFno0h6mon+l5fgZFhwnYmBTUqMgYGBgaAhLMiaHQyFGOZvf8Lw49FXRgYGhv8MDAwwg/7jMoQFFury/C8Y5m9/wnADohnZVryJhoWBARJ9Cw69gtmMAgiFAcuvZ68Yfj17hU8NXgAATdKfkzbQhBEAAAAASUVORK5CYII='
+        console.log('img.complete', img.complete)
         img.onload = () => {
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
@@ -92,7 +94,7 @@ function createGeometryFromImage(imagePath) {
 }
 
 // Usage:
-const shapeGeomtry = createGeometryFromImage('path/to/image.png').then(geometry => {
+const shapeGeomtry = createGeometryFromImage().then(geometry => {
     const material = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);

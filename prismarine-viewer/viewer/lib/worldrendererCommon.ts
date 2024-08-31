@@ -161,6 +161,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   onHandItemSwitch (item: HandItemBlock | undefined): void { }
+  changeHandSwingingState (isAnimationPlaying: boolean): void { }
 
   abstract handleWorkerMessage (data: WorkerReceive): void
 

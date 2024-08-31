@@ -50,6 +50,14 @@ export class WorldRendererThree extends WorldRendererCommon {
     void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
   }
 
+  changeHandSwingingState (isAnimationPlaying: boolean) {
+    if (isAnimationPlaying) {
+      this.holdingBlock.startSwing()
+    } else {
+      void this.holdingBlock.stopSwing()
+    }
+  }
+
   timeUpdated (newTime: number): void {
     const nightTime = 13_500
     const morningStart = 23_000

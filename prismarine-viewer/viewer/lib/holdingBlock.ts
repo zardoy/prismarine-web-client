@@ -35,6 +35,7 @@ export default class HoldingBlock {
   }
 
   startSwing () {
+    this.nextIterStopCallbacks = undefined // forget about cancelling
     if (this.isSwinging) return
     this.swingAnimation = new tweenJs.Group()
     this.isSwinging = true
@@ -79,7 +80,8 @@ export default class HoldingBlock {
 
   async stopSwing () {
     if (!this.isSwinging) return
-    return new Promise<void>((resolve) => {
+    // might never resolve!
+    /* return */void new Promise<void>((resolve) => {
       this.nextIterStopCallbacks ??= []
       this.nextIterStopCallbacks.push(() => {
         resolve()

@@ -20,6 +20,14 @@ export class WorldDataEmitter extends EventEmitter {
   private eventListeners: Record<string, any> = {}
   private readonly emitter: WorldDataEmitter
   keepChunksDistance = 0
+  _handDisplay = false
+  get handDisplay () {
+    return this._handDisplay
+  }
+  set handDisplay (newVal) {
+    this._handDisplay = newVal
+    this.eventListeners.heldItemChanged?.()
+  }
 
   constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
@@ -55,7 +63,7 @@ export class WorldDataEmitter extends EventEmitter {
       })
     }
 
-    this.eventListeners[bot.username] = {
+    this.eventListeners = {
       // 'move': botPosition,
       entitySpawn (e: any) {
         emitEntity(e)
@@ -70,7 +78,7 @@ export class WorldDataEmitter extends EventEmitter {
         this.emitter.emit('entity', { id: e.id, delete: true })
       },
       chunkColumnLoad: (pos: Vec3) => {
-        this.loadChunk(pos)
+        void this.loadChunk(pos)
       },
       blockUpdate: (oldBlock: any, newBlock: any) => {
         const stateId = newBlock.stateId ?? ((newBlock.type << 4) | newBlock.metadata)
@@ -79,12 +87,17 @@ export class WorldDataEmitter extends EventEmitter {
       time: () => {
         this.emitter.emit('time', bot.time.timeOfDay)
       },
-      heldItemChanged (newItem) {
-        // todo
+      heldItemChanged: () => {
+        if (!this.handDisplay) {
+          viewer.world.onHandItemSwitch(undefined)
+          return
+        }
+        // todo properties
+        const newItem = bot.heldItem
         viewer.world.onHandItemSwitch(newItem ? { name: newItem.name, properties: {} } : undefined)
       },
     } satisfies Partial<BotEvents>
-    this.eventListeners[bot.username].heldItemChanged(bot.heldItem)
+    this.eventListeners.heldItemChanged()
 
 
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {
@@ -108,7 +121,7 @@ export class WorldDataEmitter extends EventEmitter {
       this.emitter.emit('listening')
     }
 
-    for (const [evt, listener] of Object.entries(this.eventListeners[bot.username])) {
+    for (const [evt, listener] of Object.entries(this.eventListeners)) {
       bot.on(evt as any, listener)
     }
 
@@ -119,10 +132,9 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   removeListenersFromBot (bot: import('mineflayer').Bot) {
-    for (const [evt, listener] of Object.entries(this.eventListeners[bot.username])) {
+    for (const [evt, listener] of Object.entries(this.eventListeners)) {
       bot.removeListener(evt as any, listener)
     }
-    delete this.eventListeners[bot.username]
   }
 
   async init (pos: Vec3) {
