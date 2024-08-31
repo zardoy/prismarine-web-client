@@ -124,7 +124,7 @@ export default defineConfig({
                     if (fs.existsSync('./prismarine-viewer/public/mesher.js') && dev) {
                         // copy mesher
                         fs.copyFileSync('./prismarine-viewer/public/mesher.js', './dist/mesher.js')
-                    } else {
+                    } else if (!dev) {
                         await execAsync('pnpm run build-mesher')
                     }
                     fs.writeFileSync('./dist/version.txt', buildingVersion, 'utf-8')
