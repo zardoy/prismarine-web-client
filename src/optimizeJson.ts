@@ -160,6 +160,7 @@ export default class JsonOptimizer {
 
   static restoreData ({ keys, properties, source, arrKey, diffs }: SourceData, targetKey: string) {
     // if (!diffs[targetKey]) throw new Error(`The requested data to restore with key ${targetKey} does not exist`)
+    source = structuredClone(source)
     const keysById = Object.fromEntries(Object.entries(keys).map(x => [x[1], x[0]]))
     const propertiesById = Object.fromEntries(Object.entries(properties).map(x => [x[1], x[0]]))
     const dataByKeys = {} as Record<string, any>

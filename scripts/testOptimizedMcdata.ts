@@ -1,8 +1,8 @@
+import assert from 'assert'
 import JsonOptimizer from '../src/optimizeJson';
 import fs from 'fs'
 import minecraftData from 'minecraft-data'
 
-// const data = minecraftData('1.20.4')
 const json = JSON.parse(fs.readFileSync('./generated/minecraft-data-optimized.json', 'utf8'))
 
 const dataPaths = require('minecraft-data/minecraft-data/data/dataPaths.json')
@@ -74,8 +74,10 @@ const checkKeys = (source, diffing, isUniq = true, msg = '', redunantOk = false)
   }
 }
 
-// console.log(JsonOptimizer.restoreData(json['blocks'], '1.16.2').slice(0, 5))
-// console.log(data.blocksByName.melon_stem.drops)
+// const data = minecraftData('1.20.4')
+const oldId = JsonOptimizer.restoreData(json['blocks'], '1.20').find(x => x.name === 'brown_stained_glass').id;
+const newId = JsonOptimizer.restoreData(json['blocks'], '1.20.4').find(x => x.name === 'brown_stained_glass').id;
+assert(oldId !== newId)
 // test all types + all versions
 
 for (const type of Object.keys(json)) {
