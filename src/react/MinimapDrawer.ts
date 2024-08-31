@@ -90,6 +90,7 @@ export class MinimapDrawer {
     void this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z, full)
     if (!full) this.drawPartsOfWorld()
     this.drawWarps(botPos, full)
+    this.drawPlayerPos(botPos.x, botPos.z)
   }
 
   clearRect (full?: boolean) {
@@ -285,6 +286,35 @@ export class MinimapDrawer {
 
     this.ctx.shadowOffsetX = 0
     this.ctx.shadowOffsetY = 0
+  }
+
+  drawPlayerPos (centerX?: number, centerZ?: number) {
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0)
+
+    const x = (this.adapter.playerPosition.x - (centerX ?? this.adapter.playerPosition.x)) * this.mapPixel
+    const z = (this.adapter.playerPosition.z - (centerZ ?? this.adapter.playerPosition.z)) * this.mapPixel
+    const center = this.mapSize / 2 * this.mapPixel + (this.full ? 0 : this.radius * 0.1)
+    this.ctx.translate(center + x, center + z)
+    this.ctx.rotate(-this.adapter.yaw)
+
+    const size = 3
+    const width = size
+    const height = size
+
+    this.ctx.beginPath()
+    this.ctx.moveTo(0, -height)
+    this.ctx.lineTo(-width, height)
+    this.ctx.lineTo(width, height)
+    this.ctx.closePath()
+
+    this.ctx.strokeStyle = '#000000'
+    this.ctx.lineWidth = 1
+    this.ctx.stroke()
+    this.ctx.fillStyle = '#FFFFFF'
+    this.ctx.fill()
+
+    // Reset transformations
+    this.ctx.setTransform(1, 0, 0, 1, 0, 0)
   }
 
   rotateMap (angle: number) {

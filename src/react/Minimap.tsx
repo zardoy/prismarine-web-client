@@ -52,6 +52,7 @@ export default (
         warpsDrawerRef.current.clearRect()
         warpsDrawerRef.current.drawPartsOfWorld()
         warpsDrawerRef.current.drawWarps()
+        warpsDrawerRef.current.drawPlayerPos()
       }
     }
     canvasTick.current += 1
@@ -82,23 +83,23 @@ export default (
     }
   }, [warpsAndPartsCanvasRef.current])
 
-  useEffect(() => {
-    if (playerPosCanvas.current) {
-    const ctx = playerPosCanvas.current.getContext('2d')
-      if (ctx) {
-        const path = new Path2D()
-        const width = (canvasRef.current?.width ?? 80) / 2
-        const height = (canvasRef.current?.height ?? 80) / 2
-        path.moveTo(width, height * 0.9)
-        path.lineTo(width * 0.9, height * 1.1)
-        path.lineTo(width * 1.1, height * 1.1)
-
-        ctx.fillStyle = '#FFFFFF'
-        ctx.strokeStyle = '#000000'
-        ctx.fill(path)
-      }
-    }
-  }, [playerPosCanvas.current])
+  // useEffect(() => {
+  //   if (playerPosCanvas.current) {
+  //   const ctx = playerPosCanvas.current.getContext('2d')
+  //     if (ctx) {
+  //       const path = new Path2D()
+  //       const width = (canvasRef.current?.width ?? 80) / 2
+  //       const height = (canvasRef.current?.height ?? 80) / 2
+  //       path.moveTo(width, height * 0.9)
+  //       path.lineTo(width * 0.9, height * 1.1)
+  //       path.lineTo(width * 1.1, height * 1.1)
+  //
+  //       ctx.fillStyle = '#FFFFFF'
+  //       ctx.strokeStyle = '#000000'
+  //       ctx.fill(path)
+  //     }
+  //   }
+  // }, [playerPosCanvas.current])
 
   useEffect(() => {
     adapter.on('updateMap', updateMap)
@@ -153,15 +154,6 @@ export default (
           width={80}
           height={80}
           ref={warpsAndPartsCanvasRef}
-        />
-        <canvas
-          style={{
-            position: 'absolute',
-            left: '0px'
-          }}
-          width={80}
-          height={80}
-          ref={playerPosCanvas}
         />
         <div
           style={{
