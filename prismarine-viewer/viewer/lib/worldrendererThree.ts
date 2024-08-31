@@ -9,7 +9,7 @@ import { renderSign } from '../sign-renderer'
 import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import { disposeObject } from './threeJsUtils'
-import HoldingBlock from './holdingBlock'
+import HoldingBlock, { HandItemBlock } from './holdingBlock'
 
 export class WorldRendererThree extends WorldRendererCommon {
   outputFormat = 'threeJs' as const
@@ -29,10 +29,25 @@ export class WorldRendererThree extends WorldRendererCommon {
     super(config)
     this.starField = new StarField(scene)
     this.holdingBlock = new HoldingBlock(this.scene)
+    this.onHandItemSwitch({
+      name: 'furnace',
+      properties: {}
+    })
 
     this.renderUpdateEmitter.on('textureDownloaded', () => {
-      this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases)
+      if (this.holdingBlock.toBeRenderedItem) {
+        this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem)
+        this.holdingBlock.toBeRenderedItem = undefined
+      }
     })
+  }
+
+  onHandItemSwitch (item: HandItemBlock | undefined) {
+    if (!this.currentTextureImage) {
+      this.holdingBlock.toBeRenderedItem = item
+      return
+    }
+    void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
   }
 
   timeUpdated (newTime: number): void {

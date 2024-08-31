@@ -16,6 +16,7 @@ import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
 import { defaultMesherConfig } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
+import { HandItemBlock } from './holdingBlock'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -37,6 +38,7 @@ type CustomTexturesData = {
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
   worldConfig = { minY: 0, worldHeight: 256 }
+  // todo need to cleanup
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
   @worldCleanup()
@@ -59,6 +61,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     textureDownloaded (): void
   }>
   customTexturesDataUrl = undefined as string | undefined
+  @worldCleanup()
   currentTextureImage = undefined as any
   workers: any[] = []
   viewerPosition?: Vec3
@@ -156,6 +159,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.workers.push(worker)
     }
   }
+
+  onHandItemSwitch (item: HandItemBlock | undefined): void { }
 
   abstract handleWorkerMessage (data: WorkerReceive): void
 

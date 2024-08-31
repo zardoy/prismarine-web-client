@@ -79,7 +79,13 @@ export class WorldDataEmitter extends EventEmitter {
       time: () => {
         this.emitter.emit('time', bot.time.timeOfDay)
       },
+      heldItemChanged (newItem) {
+        // todo
+        viewer.world.onHandItemSwitch(newItem ? { name: newItem.name, properties: {} } : undefined)
+      },
     } satisfies Partial<BotEvents>
+    this.eventListeners[bot.username].heldItemChanged(bot.heldItem)
+
 
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {
       const chunkPos = new Vec3(chunkX * 16, 0, chunkZ * 16)
