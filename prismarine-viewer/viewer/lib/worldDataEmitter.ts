@@ -72,6 +72,9 @@ export class WorldDataEmitter extends EventEmitter {
       chunkColumnLoad: (pos: Vec3) => {
         this.loadChunk(pos)
       },
+      chunkColumnUnload: (pos: Vec3) => {
+        this.unloadChunk(pos)
+      },
       blockUpdate: (oldBlock: any, newBlock: any) => {
         const stateId = newBlock.stateId ?? ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
