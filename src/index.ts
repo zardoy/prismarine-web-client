@@ -5,7 +5,7 @@ import './globals'
 import './devtools'
 import './entities'
 import './globalDomListeners'
-import initCollisionShapes from './getCollisionShapes'
+import initCollisionShapes from './getCollisionInteractionShapes'
 import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
@@ -380,6 +380,7 @@ async function connect (connectOptions: ConnectOptions) {
   try {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
+    window._LOAD_MC_DATA() // start loading data (if not loaded yet)
     const downloadMcData = async (version: string) => {
       if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
         // todo support it (just need to fix .export crash)
@@ -392,13 +393,13 @@ async function connect (connectOptions: ConnectOptions) {
         // ignore cache hit
         versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
       }
+      setLoadingScreenStatus(`Loading data for ${version}`)
       if (!document.fonts.check('1em mojangles')) {
         // todo instead re-render signs on load
         await document.fonts.load('1em mojangles').catch(() => { })
       }
-      setLoadingScreenStatus(`Downloading data for ${version}`)
+      await window._MC_DATA_RESOLVER.promise // ensure data is loaded
       await downloadSoundsIfNeeded()
-      await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       miscUiState.loadedDataVersion = version
       try {
         await resourcepackReload(version)

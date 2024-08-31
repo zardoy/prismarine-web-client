@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events'
 import { Vec3 } from 'vec3'
 import * as THREE from 'three'
-import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
+import mcDataRaw from 'minecraft-data/data.js' // note: using alias
 import blocksAtlases from 'mc-assets/dist/blocksAtlases.json'
 import blocksAtlasLatest from 'mc-assets/dist/blocksAtlasLatest.png'
 import blocksAtlasLegacy from 'mc-assets/dist/blocksAtlasLegacy.png'
@@ -229,8 +229,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   sendMesherMcData () {
     const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajorVersion(this.version)]
-    const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
-    mcData.version = JSON.parse(JSON.stringify(mcData.version))
+    const mcData = {
+      version: JSON.parse(JSON.stringify(allMcData.version))
+    }
+    for (const key of dynamicMcDataFiles) {
+      mcData[key] = allMcData[key]
+    }
 
     for (const worker of this.workers) {
       worker.postMessage({ type: 'mcData', mcData, config: this.mesherConfig })

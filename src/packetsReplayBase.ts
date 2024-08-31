@@ -20,7 +20,11 @@ export class PacketsLogger {
     }
 
     const diff = `+${Date.now() - this.lastPacketTime}`
-    const str = `${isFromServer ? 'S' : 'C'} ${packet.state}:${packet.name} ${diff} ${JSON.stringify(data)}`
+    // serialize bigint
+    const str = `${isFromServer ? 'S' : 'C'} ${packet.state}:${packet.name} ${diff} ${JSON.stringify(data, (key, value) => {
+      if (typeof value === 'bigint') return value.toString()
+      return value
+    })}`
     this.logStr(str)
     this.lastPacketTime = Date.now()
   }
