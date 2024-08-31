@@ -38,6 +38,7 @@ class WorldInteraction {
   currentDigTime
   prevOnGround
   lastBlockPlaced: number
+  lastSwing = 0
   buttons = [false, false, false]
   lastButtons = [false, false, false]
   breakStartTime: number | undefined = 0
@@ -350,8 +351,9 @@ class WorldInteraction {
         })
         customEvents.emit('digStart')
         this.lastDigged = Date.now()
-      } else {
+      } else if (performance.now() - this.lastSwing > 200) {
         bot.swingArm('right')
+        this.lastSwing = performance.now()
       }
     }
     this.prevOnGround = onGround
