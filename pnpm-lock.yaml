@@ -348,7 +348,7 @@ importers:
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/75e940a4cd50d89e0ba03db3733d5d704917a3c8(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
-        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/326c5a1681b09ee2bb783f20a562c6055788b502(encoding@0.1.13)
+        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/c6755fc3758eeb3bbbb98479efe03b7935486247(encoding@0.1.13)
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -6509,8 +6509,8 @@ packages:
     resolution: {integrity: sha512-QMMNPx4IyZE7ydAzjvGLQLCnQNUOfkk1qVZKxTTS9q3qPTAewz4GhsVUBtbQ8LSbHthe5RcQ1Sgxs4wlIma/Qw==}
     engines: {node: '>=18'}
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/326c5a1681b09ee2bb783f20a562c6055788b502:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/326c5a1681b09ee2bb783f20a562c6055788b502}
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/c6755fc3758eeb3bbbb98479efe03b7935486247:
+    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/c6755fc3758eeb3bbbb98479efe03b7935486247}
     version: 4.20.1
     engines: {node: '>=18'}
 
