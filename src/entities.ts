@@ -95,6 +95,13 @@ customEvents.on('gameLoaded', () => {
     }
   })
 
+  bot._client.on('entity_status', (data) => {
+    const { entityId, entityStatus } = data
+    if (entityStatus === 2 && viewer.entities.entities[entityId]) {
+      viewer.entities.handleDamageEvent(entityId, entityStatus)
+    }
+  })
+
   const loadedSkinEntityIds = new Set<number>()
 
   const playerRenderSkin = (e: Entity) => {
