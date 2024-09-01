@@ -494,7 +494,6 @@ export class Entities extends EventEmitter {
           const clonedMaterial = child.material.clone()
           clonedMaterial.dispose()
           child.material = child.material.clone()
-          child.material.dispose()
           const originalColor = child.material.color.clone()
           child.material.color.set(0xff_00_00)
           new TWEEN.Tween(child.material.color)
