@@ -5,6 +5,7 @@ import { EventEmitter } from 'events'
 import { generateSpiralMatrix, ViewRect } from 'flying-squid/dist/utils'
 import { Vec3 } from 'vec3'
 import { BotEvents } from 'mineflayer'
+import { getItemFromBlock } from '../../../src/botUtils'
 import { chunkPos } from './simpleUtils'
 
 export type ChunkPosKey = string
@@ -95,9 +96,15 @@ export class WorldDataEmitter extends EventEmitter {
           viewer.world.onHandItemSwitch(undefined)
           return
         }
-        // todo properties
         const newItem = bot.heldItem
-        viewer.world.onHandItemSwitch(newItem ? { name: newItem.name, properties: {} } : undefined)
+        if (!newItem) {
+          viewer.world.onHandItemSwitch(undefined)
+          return
+        }
+        const block = loadedData.blocksByName[newItem.name]
+        // todo clean types
+        const blockProperties = block ? new window.PrismarineBlock(block.id, 'void', newItem.metadata).getProperties() : {}
+        viewer.world.onHandItemSwitch({ name: newItem.name, properties: blockProperties })
       },
     } satisfies Partial<BotEvents>
     this.eventListeners.heldItemChanged()
