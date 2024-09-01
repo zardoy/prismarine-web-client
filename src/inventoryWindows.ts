@@ -87,8 +87,13 @@ export const onGameLoad = (onLoad) => {
       return
     }
     const craftingSlots = bot.inventory.slots.slice(1, 5)
-    const resultingItem = getResultingRecipe(craftingSlots, 2)
-    void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
+    try {
+      const resultingItem = getResultingRecipe(craftingSlots, 2)
+      void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
+    } catch (err) {
+      console.error(err)
+      // todo resolve the error! and why would we ever get here on every update?
+    }
   }) as any)
 
   bot.on('windowClose', () => {
