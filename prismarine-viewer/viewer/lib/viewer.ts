@@ -119,6 +119,19 @@ export class Viewer {
     this.scene.add(mesh)
   }
 
+  demoItem () {
+    //@ts-expect-error
+    const pos = cursorBlockRel(0, 1, 0).position
+    const { mesh } = this.entities.getItemMesh({
+      itemId: 541,
+    })!
+    mesh.position.set(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5)
+    // mesh.scale.set(0.5, 0.5, 0.5)
+    const helper = new THREE.BoxHelper(mesh, 0xff_ff_00)
+    mesh.add(helper)
+    this.scene.add(mesh)
+  }
+
   updateEntity (e) {
     this.entities.update(e, this.processEntityOverrides(e, {
       rotation: {

@@ -152,9 +152,10 @@ export default class HoldingBlock {
   async initHandObject (material: THREE.Material, blockstatesModels: any, blocksAtlases: any, block?: HandItemBlock) {
     let animatingCurrent = false
     if (!this.swingAnimation && !this.blockSwapAnimation && this.isDifferentItem(block)) {
-      console.log('play swap')
       animatingCurrent = true
       await this.playBlockSwapAnimation()
+      this.holdingBlock?.removeFromParent()
+      this.holdingBlock = undefined
     }
     this.lastHeldItem = block
     if (!block) {
@@ -167,6 +168,11 @@ export default class HoldingBlock {
     const blockProvider = worldBlockProvider(blockstatesModels, blocksAtlases, 'latest')
     const models = blockProvider.getAllResolvedModels0_1(block, true)
     const blockInner = getThreeBlockModelGroup(material, models, undefined, 'plains', loadedData)
+    // const { mesh: itemMesh } = viewer.entities.getItemMesh({
+    //   itemId: 541,
+    // })!
+    // itemMesh.position.set(0.5, 0.5, 0.5)
+    // const blockInner = itemMesh
     blockInner.name = 'holdingBlock'
     const blockOuterGroup = new THREE.Group()
     blockOuterGroup.add(blockInner)
@@ -185,6 +191,7 @@ export default class HoldingBlock {
 
     this.cameraGroup.add(this.objectOuterGroup)
     const rotation = -45 + -90
+    // const rotation = -45 // should be for item
     this.holdingBlock.rotation.set(0, THREE.MathUtils.degToRad(rotation), 0, 'ZYX')
 
     // const scale = window.scale ?? 0.2
