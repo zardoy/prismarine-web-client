@@ -282,6 +282,46 @@ export class Entities extends EventEmitter {
     }
   }
 
+  getItemMesh(item) {
+    const textureUv = this.getItemUv?.(item.itemId ?? item.blockId)
+    if (textureUv) {
+      // todo use geometry buffer uv instead!
+      const { u, v, size, su, sv, texture } = textureUv
+      const itemsTexture = texture.clone()
+      itemsTexture.flipY = true
+      itemsTexture.offset.set(u, 1 - v - (sv ?? size))
+      itemsTexture.repeat.set(su ?? size, sv ?? size)
+      itemsTexture.needsUpdate = true
+      itemsTexture.magFilter = THREE.NearestFilter
+      itemsTexture.minFilter = THREE.NearestFilter
+      const itemsTextureFlipped = itemsTexture.clone()
+      itemsTextureFlipped.repeat.x *= -1
+      itemsTextureFlipped.needsUpdate = true
+      itemsTextureFlipped.offset.set(u + (su ?? size), 1 - v - (sv ?? size))
+      const material = new THREE.MeshStandardMaterial({
+        map: itemsTexture,
+        transparent: true,
+        alphaTest: 0.1,
+      })
+      const materialFlipped = new THREE.MeshStandardMaterial({
+        map: itemsTextureFlipped,
+        transparent: true,
+        alphaTest: 0.1,
+      })
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 0), [
+        // top left and right bottom are black box materials others are transparent
+        new THREE.MeshBasicMaterial({ color: 0x00_00_00 }), new THREE.MeshBasicMaterial({ color: 0x00_00_00 }),
+        new THREE.MeshBasicMaterial({ color: 0x00_00_00 }), new THREE.MeshBasicMaterial({ color: 0x00_00_00 }),
+        material, materialFlipped,
+      ])
+      return {
+        mesh,
+        itemsTexture,
+        itemsTextureFlipped,
+      }
+    }
+  }
+
   update(/** @type {import('prismarine-entity').Entity & {delete?, pos}} */entity, overrides) {
     let isPlayerModel = entity.name === 'player'
     if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
@@ -296,52 +336,23 @@ export class Entities extends EventEmitter {
         //@ts-expect-error
         const item = entity.metadata?.find(m => typeof m === 'object' && m?.itemCount)
         if (item) {
-          const textureUv = this.getItemUv?.(item.itemId ?? item.blockId)
-          if (textureUv) {
-            // todo use geometry buffer uv instead!
-            const { u, v, size, su, sv, texture } = textureUv
-            const itemsTexture = texture.clone()
-            itemsTexture.flipY = true
-            itemsTexture.offset.set(u, 1 - v - (sv ?? size))
-            itemsTexture.repeat.set(su ?? size, sv ?? size)
-            itemsTexture.needsUpdate = true
-            itemsTexture.magFilter = THREE.NearestFilter
-            itemsTexture.minFilter = THREE.NearestFilter
-            const itemsTextureFlipped = itemsTexture.clone()
-            itemsTextureFlipped.repeat.x *= -1
-            itemsTextureFlipped.needsUpdate = true
-            itemsTextureFlipped.offset.set(u + (su ?? size), 1 - v - (sv ?? size))
-            const material = new THREE.MeshStandardMaterial({
-              map: itemsTexture,
-              transparent: true,
-              alphaTest: 0.1,
-            })
-            const materialFlipped = new THREE.MeshStandardMaterial({
-              map: itemsTextureFlipped,
-              transparent: true,
-              alphaTest: 0.1,
-            })
-            mesh = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 0), [
-              // top left and right bottom are black box materials others are transparent
-              new THREE.MeshBasicMaterial({ color: 0x00_00_00 }), new THREE.MeshBasicMaterial({ color: 0x00_00_00 }),
-              new THREE.MeshBasicMaterial({ color: 0x00_00_00 }), new THREE.MeshBasicMaterial({ color: 0x00_00_00 }),
-              material, materialFlipped,
-            ])
-            mesh.scale.set(0.5, 0.5, 0.5)
-            mesh.position.set(0, 0.2, 0)
+          const object = this.getItemMesh(item)
+          if (object) {
+            object.scale.set(0.5, 0.5, 0.5)
+            object.position.set(0, 0.2, 0)
             // set faces
             // mesh.position.set(targetPos.x + 0.5 + 2, targetPos.y + 0.5, targetPos.z + 0.5)
             // viewer.scene.add(mesh)
             const clock = new THREE.Clock()
-            mesh.onBeforeRender = () => {
+            object.onBeforeRender = () => {
               const delta = clock.getDelta()
-              mesh.rotation.y += delta
+              object.rotation.y += delta
             }
             //@ts-expect-error
             group.additionalCleanup = () => {
               // important: avoid texture memory leak and gpu slowdown
-              itemsTexture.dispose()
-              itemsTextureFlipped.dispose()
+              object.itemsTexture.dispose()
+              object.itemsTextureFlipped.dispose()
             }
           }
         }

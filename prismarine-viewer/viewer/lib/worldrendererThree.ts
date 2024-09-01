@@ -9,7 +9,7 @@ import { renderSign } from '../sign-renderer'
 import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import { disposeObject } from './threeJsUtils'
-import { renderBlockThree } from './mesher/standaloneRenderer'
+import HoldingBlock, { HandItemBlock } from './holdingBlock'
 
 export class WorldRendererThree extends WorldRendererCommon {
   outputFormat = 'threeJs' as const
@@ -19,7 +19,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   signsCache = new Map<string, any>()
   starField: StarField
   cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
-  cameraGroup = new THREE.Group()
+  holdingBlock: HoldingBlock
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -28,8 +28,34 @@ export class WorldRendererThree extends WorldRendererCommon {
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
     this.starField = new StarField(scene)
-    // this.initCameraGroup()
-    // this.initHandObject()
+    this.holdingBlock = new HoldingBlock(this.scene)
+    this.onHandItemSwitch({
+      name: 'furnace',
+      properties: {}
+    })
+
+    this.renderUpdateEmitter.on('textureDownloaded', () => {
+      if (this.holdingBlock.toBeRenderedItem) {
+        this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem)
+        this.holdingBlock.toBeRenderedItem = undefined
+      }
+    })
+  }
+
+  onHandItemSwitch (item: HandItemBlock | undefined) {
+    if (!this.currentTextureImage) {
+      this.holdingBlock.toBeRenderedItem = item
+      return
+    }
+    void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
+  }
+
+  changeHandSwingingState (isAnimationPlaying: boolean) {
+    if (isAnimationPlaying) {
+      this.holdingBlock.startSwing()
+    } else {
+      void this.holdingBlock.stopSwing()
+    }
   }
 
   timeUpdated (newTime: number): void {
@@ -173,6 +199,7 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   render () {
     tweenJs.update()
+    this.holdingBlock.update(this.camera)
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
     this.renderer.render(this.scene, cam)

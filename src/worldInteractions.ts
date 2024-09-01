@@ -294,6 +294,8 @@ class WorldInteraction {
             bot.lookAt = oldLookAt
           }).catch(console.warn)
         }
+        viewer.world.changeHandSwingingState(true)
+        viewer.world.changeHandSwingingState(false)
       } else if (!stop) {
         const offhand = activate ? false : activatableItems(bot.inventory.slots[45]?.name ?? '')
         bot.activateItem(offhand) // todo offhand
@@ -351,10 +353,14 @@ class WorldInteraction {
         })
         customEvents.emit('digStart')
         this.lastDigged = Date.now()
+        viewer.world.changeHandSwingingState(true)
       } else if (performance.now() - this.lastSwing > 200) {
         bot.swingArm('right')
         this.lastSwing = performance.now()
       }
+    }
+    if (!this.buttons[0] && this.lastButtons[0]) {
+      viewer.world.changeHandSwingingState(false)
     }
     this.prevOnGround = onGround
 
