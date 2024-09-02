@@ -17,7 +17,7 @@ For building the project yourself / contributing, see [Development, Debugging & 
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
-- FULL Resource pack support: Custom GUI, all textures & custom models! Server resource packs are also supported.
+- Basic Resource pack support: Custom GUI, all textures. Server resource packs are not supported yet.
 - Builtin JEI with recipes & guides for every item (also replaces creative inventory)
 - even even more!
 
