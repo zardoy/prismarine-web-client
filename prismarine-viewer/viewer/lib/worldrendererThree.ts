@@ -413,6 +413,7 @@ class StarField {
       this.points?.position.copy?.(camera.position)
       material.uniforms.time.value = clock.getElapsedTime() * speed
     }
+    this.points.renderOrder = -1
   }
 
   remove () {
@@ -439,7 +440,7 @@ class StarfieldMaterial extends THREE.ShaderMaterial {
                 void main() {
                 vColor = color;
                 vec4 mvPosition = modelViewMatrix * vec4(position, 0.5);
-                gl_PointSize = size * (30.0 / -mvPosition.z) * (3.0 + sin(time + 100.0));
+                gl_PointSize = 0.7 * size * (30.0 / -mvPosition.z) * (3.0 + sin(time + 100.0));
                 gl_Position = projectionMatrix * mvPosition;
             }`,
       fragmentShader: /* glsl */ `
@@ -448,11 +449,7 @@ class StarfieldMaterial extends THREE.ShaderMaterial {
                 varying vec3 vColor;
                 void main() {
                 float opacity = 1.0;
-                if (fade == 1.0) {
-                    float d = distance(gl_PointCoord, vec2(0.5, 0.5));
-                    opacity = 1.0 / (1.0 + exp(16.0 * (d - 0.25)));
-                }
-                gl_FragColor = vec4(vColor, opacity);
+                gl_FragColor = vec4(vColor, 1.0);
 
                 #include <tonemapping_fragment>
                 #include <${version >= 154 ? 'colorspace_fragment' : 'encodings_fragment'}>
