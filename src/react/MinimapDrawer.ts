@@ -90,7 +90,6 @@ export class MinimapDrawer {
     void this.updateWorldColors(getHighestBlockColor ?? this.adapter.getHighestBlockColor, botPos.x, botPos.z, full)
     if (!full) this.drawPartsOfWorld()
     this.drawWarps(botPos, full)
-    this.drawPlayerPos(botPos.x, botPos.z)
   }
 
   clearRect (full?: boolean) {
@@ -147,6 +146,7 @@ export class MinimapDrawer {
       this.mapPixel
     )
     this.updatingPixels.delete(pixelKey)
+    if (this.full) this.drawPlayerPos(x, z)
   }
 
   async getHighestBlockColorCached (

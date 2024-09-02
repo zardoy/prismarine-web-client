@@ -50,8 +50,6 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
 
   useEffect(() => {
     updateGrid()
-
-
   }, [])
 
   return <div
