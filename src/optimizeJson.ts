@@ -194,7 +194,7 @@ export default class JsonOptimizer {
           const removeProp = propertiesById[removePropId]
           // todo: this is not correct!
           if (Array.isArray(dataByKeys[key])) {
-            dataByKeys[key].splice(removeProp, 1)
+            dataByKeys[key].splice(removeProp as any, 1) // splice accepts strings as well
           } else {
             delete dataByKeys[key][removeProp]
           }
