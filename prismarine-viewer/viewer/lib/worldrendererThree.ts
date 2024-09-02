@@ -62,9 +62,9 @@ export class WorldRendererThree extends WorldRendererCommon {
     const nightTime = 13_500
     const morningStart = 23_000
     const displayStars = newTime > nightTime && newTime < morningStart
-    if (displayStars && !this.starField.points) {
+    if (displayStars) {
       this.starField.addToScene()
-    } else if (!displayStars && this.starField.points) {
+    } else {
       this.starField.remove()
     }
   }
