@@ -118,7 +118,9 @@ const dataTypeBundling = {
   blockLoot: {
     arrKey: 'block'
   },
-  recipes: {}, // todo we can do better
+  recipes: {
+    raw: true
+  }, // todo we can do better
   blockCollisionShapes: {},
   loginPacket: {},
   protocol: {

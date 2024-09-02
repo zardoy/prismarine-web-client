@@ -8,7 +8,7 @@ const json = JSON.parse(fs.readFileSync('./generated/minecraft-data-optimized.js
 const dataPaths = require('minecraft-data/minecraft-data/data/dataPaths.json')
 
 const validateData = (ver, type) => {
-  const target = JsonOptimizer.restoreData(json[type], ver)
+  const target = JsonOptimizer.restoreData(structuredClone(json[type]), ver)
   const arrKey = json[type].arrKey
   const originalPath = dataPaths.pc[ver][type]
   const original = require(`minecraft-data/minecraft-data/data/${originalPath}/${type}.json`)
@@ -43,16 +43,33 @@ const validateData = (ver, type) => {
   }
 }
 
-const checkObj = (source, diffing) => {
-  checkKeys(Object.keys(source), Object.keys(diffing))
-  for (const [key, val] of Object.entries(source)) {
-    if (JSON.stringify(val) !== JSON.stringify(diffing[key])) {
-      throw new Error(`different value of ${key}: ${val} ${diffing[key]}`)
-    }
+const sortObj = (obj) => {
+  const sorted = {}
+  for (const key of Object.keys(obj).sort()) {
+    sorted[key] = obj[key]
   }
+  return sorted
 }
 
-const checkKeys = (source, diffing, isUniq = true, msg = '', redunantOk = false) => {
+const checkObj = (source, diffing) => {
+  if (!Array.isArray(source)) {
+    source = sortObj(source)
+  }
+  if (!Array.isArray(diffing)) {
+    diffing = sortObj(diffing)
+  }
+  if (JSON.stringify(source) !== JSON.stringify(diffing)) {
+    throw new Error(`different value: ${JSON.stringify(source)} ${JSON.stringify(diffing)}`)
+  }
+  // checkKeys(Object.keys(source), Object.keys(diffing))
+  // for (const [key, val] of Object.entries(source)) {
+  //   if (JSON.stringify(val) !== JSON.stringify(diffing[key])) {
+  //     throw new Error(`different value of ${key}: ${val} ${diffing[key]}`)
+  //   }
+  // }
+}
+
+const checkKeys = (source, diffing, isUniq = true, msg = '', redundantIsOk = false) => {
   if (isUniq) {
     for (const [i, item] of diffing.entries()) {
       if (diffing.indexOf(item) !== i) {
@@ -65,7 +82,7 @@ const checkKeys = (source, diffing, isUniq = true, msg = '', redunantOk = false)
       throw new Error(`Diffing does not include "${key}" (${msg})`)
     }
   }
-  if (!redunantOk) {
+  if (!redundantIsOk) {
     for (const key of diffing) {
       if (!source.includes(key)) {
         throw new Error(`Source does not include "${key}" (${msg})`)

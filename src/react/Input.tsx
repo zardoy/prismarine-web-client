@@ -27,8 +27,16 @@ export default ({ autoFocus, rootStyles, inputRef, validateInput, ...inputProps 
 
   return <div id='input-container' className={styles.container} style={rootStyles}>
     <input
-      ref={ref} className={styles.input} autoComplete='off' autoCapitalize='off' autoCorrect='off' autoSave='off' spellCheck='false'
-      style={{ ...validationStyle }} {...inputProps} value={value}
+      ref={ref}
+      className={styles.input}
+      autoComplete='off'
+      autoCapitalize='off'
+      autoCorrect='off'
+      autoSave='off'
+      spellCheck='false'
+      style={{ ...validationStyle }}
+      {...inputProps}
+      value={value}
       onChange={(e) => {
         setValidationStyle(validateInput?.(e.target.value) ?? {})
         setValue(e.target.value)

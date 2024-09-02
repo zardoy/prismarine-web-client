@@ -192,7 +192,12 @@ export default class JsonOptimizer {
       for (const [key, removePropsId] of removedProps) {
         for (const removePropId of removePropsId) {
           const removeProp = propertiesById[removePropId]
-          delete dataByKeys[key][removeProp]
+          // todo: this is not correct!
+          if (Array.isArray(dataByKeys[key])) {
+            dataByKeys[key].splice(removeProp, 1)
+          } else {
+            delete dataByKeys[key][removeProp]
+          }
         }
       }
       if (versionToNumber(versionKey) <= versionToNumber(targetKey)) {
