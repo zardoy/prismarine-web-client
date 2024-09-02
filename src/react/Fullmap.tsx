@@ -444,6 +444,14 @@ const WarpInfo = (
             adapter.setWarp({ ...warp })
             console.log(adapter.warps)
             setIsWarpInfoOpened(false)
+            for (let i = -1; i < 2; i += 1) {
+              for (let j = -1; j < 2; j += 1) {
+                adapter.emit(
+                  'cellReady',
+                  `${(Math.floor(warp.x / 16) + j) * 16},${(Math.floor(warp.z / 16) + i) * 16}`
+                )
+              }
+            }
             afterWarpIsSet?.()
           }}
         >Add</Button>
