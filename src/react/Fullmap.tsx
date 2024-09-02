@@ -37,8 +37,8 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
     const leftBorder = - Math.floor(stateRef.current.positionX / (stateRef.current.scale * cellSize)) * cellSize
     const topBorder = - Math.floor(stateRef.current.positionY / (stateRef.current.scale * cellSize)) * cellSize
     const newGrid = new Set<string>()
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < columns; col += 1) {
+    for (let row = -1; row < rows; row += 1) {
+      for (let col = -1; col < columns; col += 1) {
         const x = leftBorder + col * cellSize
         const y = topBorder + row * cellSize
         newGrid.add(`${x},${y}`)
