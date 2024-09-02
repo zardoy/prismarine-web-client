@@ -298,8 +298,9 @@ export class MinimapDrawer {
     this.ctx.rotate(-this.adapter.yaw)
 
     const size = 3
-    const width = size
-    const height = size
+    const factor = this.full ? 2 : 1
+    const width = size * factor
+    const height = size * factor
 
     this.ctx.beginPath()
     this.ctx.moveTo(0, -height)
@@ -308,7 +309,7 @@ export class MinimapDrawer {
     this.ctx.closePath()
 
     this.ctx.strokeStyle = '#000000'
-    this.ctx.lineWidth = 1
+    this.ctx.lineWidth = this.full ? 2 : 1
     this.ctx.stroke()
     this.ctx.fillStyle = '#FFFFFF'
     this.ctx.fill()
