@@ -26,6 +26,8 @@ export type WorldBlock = Omit<Block, 'position'> & {
   isCube: boolean
   /** cache */
   models?: BlockModelPartsResolved | null
+  _originalProperties?: Record<string, any>
+  _properties?: Record<string, any>
 }
 
 
