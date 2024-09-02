@@ -157,7 +157,8 @@ export default (
         />
         <div
           style={{
-            fontSize: '0.5em'
+            fontSize: '0.5em',
+            textShadow: '0.1em 0 black, 0 0.1em black, -0.1em 0 black, 0 -0.1em black, -0.1em -0.1em black, -0.1em 0.1em black, 0.1em -0.1em black, 0.1em 0.1em black'
           }}
         >
           {position.x.toFixed(2)} {position.z.toFixed(2)}
