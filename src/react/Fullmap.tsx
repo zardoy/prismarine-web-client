@@ -354,6 +354,17 @@ const WarpInfo = (
     gap: '5px'
   }
 
+  const updateRegion = () => {
+    for (let i = -1; i < 2; i += 1) {
+      for (let j = -1; j < 2; j += 1) {
+        adapter.emit(
+          'cellReady',
+          `${(Math.floor(warp.x / 16) + j) * 16},${(Math.floor(warp.z / 16) + i) * 16}`
+        )
+      }
+    }
+  }
+
   return <div
     style={{
       position: 'absolute',
@@ -444,14 +455,7 @@ const WarpInfo = (
             adapter.setWarp({ ...warp })
             console.log(adapter.warps)
             setIsWarpInfoOpened(false)
-            for (let i = -1; i < 2; i += 1) {
-              for (let j = -1; j < 2; j += 1) {
-                adapter.emit(
-                  'cellReady',
-                  `${(Math.floor(warp.x / 16) + j) * 16},${(Math.floor(warp.z / 16) + i) * 16}`
-                )
-              }
-            }
+            updateRegion()
             afterWarpIsSet?.()
           }}
         >Add</Button>
@@ -461,6 +465,7 @@ const WarpInfo = (
             if (index !== -1) {
               adapter.setWarp({ name: warp.name, x: 0, y: 0, z: 0, color: '', disabled: false, world: '' }, true)
               setIsWarpInfoOpened(false)
+              updateRegion()
               afterWarpIsSet?.()
             }
           }}
