@@ -18,7 +18,7 @@ declare const viewer: Viewer
 let allReceived = false
 declare const customEvents
 declare const bot
-if (customEvents !== undefined) {
+if (typeof customEvents !== 'undefined') {
   customEvents.on('gameLoaded', () => {
     const chunksExpected = generateSpiralMatrix(globalThis.options.renderDistance)
     let received = 0

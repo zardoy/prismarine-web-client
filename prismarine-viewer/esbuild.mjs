@@ -15,7 +15,7 @@ const __dirname = path.dirname(fileURLToPath(new URL(import.meta.url)))
 
 const mcDataPath = join(__dirname, '../generated/minecraft-data-optimized.json')
 if (!fs.existsSync(mcDataPath)) {
-  childProcess.execSync('tsx ../scripts/makeOptimizedMcData.mjs', { stdio: 'inherit', cwd: __dirname })
+  childProcess.execSync('tsx ./scripts/makeOptimizedMcData.mjs', { stdio: 'inherit', cwd: path.join(__dirname, '..') })
 }
 
 fs.copyFileSync(join(__dirname, 'playground.html'), join(__dirname, 'public/index.html'))

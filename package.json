@@ -24,7 +24,7 @@
     "watch-mesher": "pnpm build-mesher -w",
     "run-playground": "run-p watch-mesher watch-other-workers playground-server watch-playground",
     "run-all": "run-p start run-playground",
-    "playground-server": "live-server --port=9090 prismarine-viewer/public",
+    "playground-server": "live-server --port=9090 prismarine-viewer/public --no-browser",
     "build-playground": "node prismarine-viewer/esbuild.mjs",
     "watch-playground": "node prismarine-viewer/esbuild.mjs -w"
   },

@@ -38,6 +38,8 @@ export class WebgpuRenderer {
   maxBufferSize: number
   commandEncoder: GPUCommandEncoder
   cubeTexture: GPUTexture
+  secondCameraUiformBindGroup: GPUBindGroup
+  secondUniformBuffer: GPUBuffer
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
@@ -189,8 +191,13 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
+    this.secondUniformBuffer = device.createBuffer({
+      size: uniformBufferSize,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
     // Fetch the image and upload it into a GPUTexture.
-    {
+    
       this.cubeTexture = device.createTexture({
         size: [textureBitmap.width, textureBitmap.height, 1],
         format: 'rgb10a2unorm',
@@ -201,7 +208,7 @@ export class WebgpuRenderer {
         { texture: this.cubeTexture },
         [textureBitmap.width, textureBitmap.height]
       )
-    }
+    
 
     this.renderPassDescriptor = {
       label: 'MainRenderPassDescriptor',
@@ -296,6 +303,34 @@ export class WebgpuRenderer {
           binding: 0,
           resource: {
             buffer: this.UniformBuffer,
+          },
+        },
+        {
+          binding: 1,
+          resource: sampler,
+        },
+        {
+          binding: 2,
+          resource: this.cubeTexture.createView(),
+        },
+        {
+          binding: 3,
+          resource: {
+            buffer: this.visibleCubesBuffer
+          }
+        }
+      ],
+    })
+
+    this.secondCameraUiformBindGroup = device.createBindGroup({
+      label: 'uniformBindGroupsCamera',
+      //layout: vertexBindGroupLayout,
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: this.secondUniformBuffer,
           },
         },
         {
@@ -470,6 +505,19 @@ export class WebgpuRenderer {
 
   lastCall = performance.now()
   logged = false
+  camera2 = (() => {
+    const camera = new THREE.PerspectiveCamera()
+    camera.position.set(150, 500, 150)
+    camera.lookAt(150, 0, 150)
+    camera.fov = 100;
+    //camera.rotation.set(0, 0, 0)
+    camera.updateMatrix()
+    return camera
+  })()
+
+
+
+  
   loop (forceFrame = false) {
     if (!this.rendering) {
       requestAnimationFrame(() => this.loop())
@@ -483,11 +531,11 @@ export class WebgpuRenderer {
 
     const now = Date.now()
     tweenJs.update()
-
+    
     const ViewProjectionMat4 = new THREE.Matrix4()
     this.camera.updateMatrix()
-    const { projectionMatrix } = this.camera
-    ViewProjectionMat4.multiplyMatrices(projectionMatrix, this.camera.matrix.invert())
+    const { projectionMatrix, matrix } = this.camera
+    ViewProjectionMat4.multiplyMatrices(projectionMatrix, matrix.invert())
     const ViewProjection = new Float32Array(ViewProjectionMat4.elements)
     device.queue.writeBuffer(
       uniformBuffer,
@@ -495,7 +543,19 @@ export class WebgpuRenderer {
       ViewProjection
     )
 
-    // const EmptyVisibleCubes = new Float32Array([36, 0, 0, 0]) ;
+    let drawCamera = true;
+
+    if (drawCamera) {
+      const ViewProjectionMat42 = new THREE.Matrix4()
+      const { projectionMatrix: projectionMatrix2, matrix: matrix2 } = this.camera2
+      ViewProjectionMat42.multiplyMatrices(projectionMatrix2, matrix2.invert())
+      const ViewProjection2 = new Float32Array(ViewProjectionMat42.elements)
+      device.queue.writeBuffer(
+        this.secondUniformBuffer,
+        0,
+        ViewProjection2
+      )
+    }
 
     device.queue.writeBuffer(
       this.indirectDrawBuffer, 0, this.indirectDrawParams
@@ -530,6 +590,11 @@ export class WebgpuRenderer {
     // Use indirect drawing
     renderPass.drawIndirect(this.indirectDrawBuffer, 0)
 
+    if (drawCamera) {
+        renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
+        renderPass.setViewport(this.canvas.width /2, 0, this.canvas.width/2, this.canvas.height/2,0,1)
+        renderPass.drawIndirect(this.indirectDrawBuffer, 0)
+    }
     renderPass.end()
     device.queue.submit([this.commandEncoder.finish()])
 
