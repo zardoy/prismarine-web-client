@@ -9,7 +9,7 @@ import { renderSign } from '../sign-renderer'
 import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import { disposeObject } from './threeJsUtils'
-import { renderBlockThree } from './mesher/standaloneRenderer'
+import HoldingBlock, { HandItemBlock } from './holdingBlock'
 
 export class WorldRendererThree extends WorldRendererCommon {
   outputFormat = 'threeJs' as const
@@ -19,7 +19,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   signsCache = new Map<string, any>()
   starField: StarField
   cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
-  cameraGroup = new THREE.Group()
+  holdingBlock: HoldingBlock
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -28,17 +28,43 @@ export class WorldRendererThree extends WorldRendererCommon {
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
     this.starField = new StarField(scene)
-    // this.initCameraGroup()
-    // this.initHandObject()
+    this.holdingBlock = new HoldingBlock(this.scene)
+    this.onHandItemSwitch({
+      name: 'furnace',
+      properties: {}
+    })
+
+    this.renderUpdateEmitter.on('textureDownloaded', () => {
+      if (this.holdingBlock.toBeRenderedItem) {
+        this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem)
+        this.holdingBlock.toBeRenderedItem = undefined
+      }
+    })
+  }
+
+  onHandItemSwitch (item: HandItemBlock | undefined) {
+    if (!this.currentTextureImage) {
+      this.holdingBlock.toBeRenderedItem = item
+      return
+    }
+    void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
+  }
+
+  changeHandSwingingState (isAnimationPlaying: boolean) {
+    if (isAnimationPlaying) {
+      this.holdingBlock.startSwing()
+    } else {
+      void this.holdingBlock.stopSwing()
+    }
   }
 
   timeUpdated (newTime: number): void {
     const nightTime = 13_500
     const morningStart = 23_000
     const displayStars = newTime > nightTime && newTime < morningStart
-    if (displayStars && !this.starField.points) {
+    if (displayStars) {
       this.starField.addToScene()
-    } else if (!displayStars && this.starField.points) {
+    } else {
       this.starField.remove()
     }
   }
@@ -173,6 +199,7 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   render () {
     tweenJs.update()
+    this.holdingBlock.update(this.camera)
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
     this.renderer.render(this.scene, cam)
@@ -386,6 +413,7 @@ class StarField {
       this.points?.position.copy?.(camera.position)
       material.uniforms.time.value = clock.getElapsedTime() * speed
     }
+    this.points.renderOrder = -1
   }
 
   remove () {
@@ -412,7 +440,7 @@ class StarfieldMaterial extends THREE.ShaderMaterial {
                 void main() {
                 vColor = color;
                 vec4 mvPosition = modelViewMatrix * vec4(position, 0.5);
-                gl_PointSize = size * (30.0 / -mvPosition.z) * (3.0 + sin(time + 100.0));
+                gl_PointSize = 0.7 * size * (30.0 / -mvPosition.z) * (3.0 + sin(time + 100.0));
                 gl_Position = projectionMatrix * mvPosition;
             }`,
       fragmentShader: /* glsl */ `
@@ -421,11 +449,7 @@ class StarfieldMaterial extends THREE.ShaderMaterial {
                 varying vec3 vColor;
                 void main() {
                 float opacity = 1.0;
-                if (fade == 1.0) {
-                    float d = distance(gl_PointCoord, vec2(0.5, 0.5));
-                    opacity = 1.0 / (1.0 + exp(16.0 * (d - 0.25)));
-                }
-                gl_FragColor = vec4(vColor, opacity);
+                gl_FragColor = vec4(vColor, 1.0);
 
                 #include <tonemapping_fragment>
                 #include <${version >= 154 ? 'colorspace_fragment' : 'encodings_fragment'}>

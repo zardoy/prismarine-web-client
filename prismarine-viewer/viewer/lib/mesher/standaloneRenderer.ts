@@ -272,3 +272,19 @@ export const renderBlockThree = (...args: Parameters<typeof renderBlockThreeAttr
 
   return geometry
 }
+
+export const getThreeBlockModelGroup = (material: THREE.Material, ...args: Parameters<typeof renderBlockThree>) => {
+  const geometry = renderBlockThree(...args)
+  const mesh = new THREE.Mesh(geometry, material)
+  mesh.position.set(-0.5, -0.5, -0.5)
+  const group = new THREE.Group()
+  group.add(mesh)
+  group.rotation.set(0, -THREE.MathUtils.degToRad(90), 0, 'ZYX')
+  globalThis.mesh = group
+  return group
+  // return new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshPhongMaterial({ color: 0x00_00_ff, transparent: true, opacity: 0.5 }))
+}
+
+export const setBlockPosition = (object: THREE.Object3D, position: { x: number, y: number, z: number }) => {
+  object.position.set(position.x + 0.5, position.y + 0.5, position.z + 0.5)
+}

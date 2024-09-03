@@ -47,6 +47,7 @@ const defaultOptions = {
   enabledResourcepack: null as string | null,
   useVersionsTextures: 'latest',
   serverResourcePacks: 'prompt' as 'prompt' | 'always' | 'never',
+  handDisplay: false,
 
   // antiAliasing: false,
 

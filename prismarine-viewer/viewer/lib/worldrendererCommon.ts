@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events'
 import { Vec3 } from 'vec3'
 import * as THREE from 'three'
-import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
+import mcDataRaw from 'minecraft-data/data.js' // note: using alias
 import blocksAtlases from 'mc-assets/dist/blocksAtlases.json'
 import blocksAtlasLatest from 'mc-assets/dist/blocksAtlasLatest.png'
 import blocksAtlasLegacy from 'mc-assets/dist/blocksAtlasLegacy.png'
@@ -14,8 +14,9 @@ import TypedEmitter from 'typed-emitter'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
-import { defaultMesherConfig } from './mesher/shared'
+import { MesherGeometryOutput, defaultMesherConfig } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
+import { HandItemBlock } from './holdingBlock'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -37,6 +38,7 @@ type CustomTexturesData = {
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
   worldConfig = { minY: 0, worldHeight: 256 }
+  // todo need to cleanup
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
   @worldCleanup()
@@ -59,6 +61,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     textureDownloaded (): void
   }>
   customTexturesDataUrl = undefined as string | undefined
+  @worldCleanup()
   currentTextureImage = undefined as any
   workers: any[] = []
   viewerPosition?: Vec3
@@ -88,8 +91,17 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     items?: CustomTexturesData
     blocks?: CustomTexturesData
   } = {}
+  workersProcessAverageTime = 0
+  workersProcessAverageTimeCount = 0
+  maxWorkersProcessTime = 0
+  edgeChunks = {} as Record<string, boolean>
+  lastAddChunk = null as null | {
+    timeout: any
+    x: number
+    z: number
+  }
 
-  abstract outputFormat: 'threeJs' | 'webgl'
+  abstract outputFormat: 'threeJs' | 'webgpu'
 
   constructor (public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
@@ -111,8 +123,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         if (!this.active) return
         this.handleWorkerMessage(data)
         if (data.type === 'geometry') {
-          for (const key in data.geometry.highestBlocks) {
-            const highest = data.geometry.highestBlocks[key]
+          const geometry = data.geometry as MesherGeometryOutput
+          for (const key in geometry.highestBlocks) {
+            const highest = geometry.highestBlocks[key]
             if (!this.highestBlocks[key] || this.highestBlocks[key].y < highest.y) {
               this.highestBlocks[key] = highest
             }
@@ -142,6 +155,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           }
 
           this.renderUpdateEmitter.emit('update')
+          if (data.processTime) {
+            this.workersProcessAverageTimeCount++
+            this.workersProcessAverageTime = ((this.workersProcessAverageTime * (this.workersProcessAverageTimeCount - 1)) + data.processTime) / this.workersProcessAverageTimeCount
+            this.maxWorkersProcessTime = Math.max(this.maxWorkersProcessTime, data.processTime)
+          }
         }
       }
       worker.onmessage = ({ data }) => {
@@ -156,6 +174,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.workers.push(worker)
     }
   }
+
+  onHandItemSwitch (item: HandItemBlock | undefined): void { }
+  changeHandSwingingState (isAnimationPlaying: boolean): void { }
 
   abstract handleWorkerMessage (data: WorkerReceive): void
 
@@ -223,8 +244,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   sendMesherMcData () {
     const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajorVersion(this.version)]
-    const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
-    mcData.version = JSON.parse(JSON.stringify(mcData.version))
+    const mcData = {
+      version: JSON.parse(JSON.stringify(allMcData.version))
+    }
+    for (const key of dynamicMcDataFiles) {
+      mcData[key] = allMcData[key]
+    }
 
     for (const worker of this.workers) {
       worker.postMessage({ type: 'mcData', mcData, config: this.mesherConfig })
@@ -255,7 +280,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.currentTextureImage = this.material.map.image
     this.mesherConfig.textureSize = this.material.map.image.width
 
-    for (const worker of this.workers) {
+    for (const [i, worker] of this.workers.entries()) {
       const { blockstatesModels } = this
       if (this.customBlockStates) {
         // TODO! remove from other versions as well
@@ -272,6 +297,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       worker.postMessage({
         type: 'mesherData',
+        workerIndex: i,
         blocksAtlas: {
           latest: blocksAtlas
         },

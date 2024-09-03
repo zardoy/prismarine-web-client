@@ -101,9 +101,10 @@ export default defineConfig({
                 const prep = async () => {
                     console.time('total-prep')
                     fs.mkdirSync('./generated', { recursive: true })
-                    if (!fs.existsSync('./generated/minecraft-data-data.js')) {
-                        childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })
+                    if (!fs.existsSync('./generated/minecraft-data-optimized.json') || require('./generated/minecraft-data-optimized.json').versionKey !== require('minecraft-data/package.json').version) {
+                        childProcess.execSync('tsx ./scripts/makeOptimizedMcData.mjs', { stdio: 'inherit' })
                     }
+                    childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })
                     if (!fs.existsSync('./generated/latestBlockCollisionsShapes.json')) {
                         childProcess.execSync('tsx ./scripts/optimizeBlockCollisions.ts', { stdio: 'inherit' })
                     }
@@ -117,14 +118,13 @@ export default defineConfig({
                         configJson.defaultProxy = ':8080'
                     }
                     fs.writeFileSync('./dist/config.json', JSON.stringify(configJson), 'utf8')
-                    childProcess.execSync('node ./scripts/prepareData.mjs', { stdio: 'inherit' })
                     // childProcess.execSync('./scripts/prepareSounds.mjs', { stdio: 'inherit' })
                     // childProcess.execSync('tsx ./scripts/genMcDataTypes.ts', { stdio: 'inherit' })
                     // childProcess.execSync('tsx ./scripts/genPixelartTypes.ts', { stdio: 'inherit' })
                     if (fs.existsSync('./prismarine-viewer/public/mesher.js') && dev) {
                         // copy mesher
                         fs.copyFileSync('./prismarine-viewer/public/mesher.js', './dist/mesher.js')
-                    } else {
+                    } else if (!dev) {
                         await execAsync('pnpm run build-mesher')
                     }
                     fs.writeFileSync('./dist/version.txt', buildingVersion, 'utf-8')
@@ -164,7 +164,7 @@ export default defineConfig({
                     // throw new Error(`${resource.request} was requested by ${resource.contextInfo.issuer}`)
                 }
                 if (absolute.endsWith('/minecraft-data/data.js')) {
-                    resource.request = path.join(__dirname, './generated/minecraft-data-data.js')
+                    resource.request = path.join(__dirname, './src/shims/minecraftData.ts')
                 }
             }))
             addRules([
