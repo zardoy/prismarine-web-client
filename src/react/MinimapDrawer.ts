@@ -111,6 +111,7 @@ export class MinimapDrawer {
     z: number,
     full?: boolean
   ) {
+    if (this.adapter.chunksStore[`${Math.floor(x / 16) * 16},${Math.floor(z / 16) * 16}`] === null) return
     this.full = full
 
     for (let row = 0; row < this.mapSize; row += 1) {
@@ -145,8 +146,11 @@ export class MinimapDrawer {
       this.mapPixel
     )
     this.updatingPixels.delete(pixelKey)
-    if (this.full) this.drawPlayerPos(x, z)
-    this.drawWarps(new Vec3(x, 0, z), this.full)
+    if (this.full) {
+      this.drawPlayerPos(x, z)
+      const lastPixel = this.mapSize - 1
+      if (col === lastPixel && row === lastPixel) this.drawWarps(new Vec3(x, 0, z), this.full)
+    }
   }
 
   async getHighestBlockColorCached (
