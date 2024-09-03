@@ -69,11 +69,12 @@ export const onGameLoad = (onLoad) => {
     }
   })
 
+  // workaround: singleplayer player inventory crafting
   bot.inventory.on('updateSlot', ((_oldSlot, oldItem, newItem) => {
-    const oldSlot = _oldSlot as number
+    const currentSlot = _oldSlot as number
     if (!miscUiState.singleplayer) return
     const { craftingResultSlot } = bot.inventory
-    if (oldSlot === craftingResultSlot && oldItem && !newItem) {
+    if (currentSlot === craftingResultSlot && oldItem && !newItem) {
       for (let i = 1; i < 5; i++) {
         const count = bot.inventory.slots[i]?.count
         if (count && count > 1) {
@@ -86,9 +87,15 @@ export const onGameLoad = (onLoad) => {
       }
       return
     }
+    if (currentSlot > 4) return
     const craftingSlots = bot.inventory.slots.slice(1, 5)
-    const resultingItem = getResultingRecipe(craftingSlots, 2)
-    void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
+    try {
+      const resultingItem = getResultingRecipe(craftingSlots, 2)
+      void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
+    } catch (err) {
+      console.error(err)
+      // todo resolve the error! and why would we ever get here on every update?
+    }
   }) as any)
 
   bot.on('windowClose', () => {

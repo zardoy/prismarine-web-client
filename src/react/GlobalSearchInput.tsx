@@ -1,6 +1,6 @@
 import { useSnapshot } from 'valtio'
-import { miscUiState } from './globalState'
-import Input from './react/Input'
+import { miscUiState } from '../globalState'
+import Input from './Input'
 
 function InnerSearch () {
   const { currentTouch } = useSnapshot(miscUiState)
@@ -19,7 +19,6 @@ function InnerSearch () {
       autoFocus={currentTouch === false}
       width={50}
       placeholder='Search...'
-      defaultValue=""
       onChange={({ target: { value } }) => {
         customEvents.emit('search', value)
       }}
