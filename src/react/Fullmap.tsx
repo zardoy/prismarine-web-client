@@ -237,6 +237,7 @@ const MapChunk = (
     setWarpPreview?.(
       warp ? { name: warp.name, x: warp.x, z: warp.z, clientX: e.clientX, clientY: e.clientY } : undefined
     )
+    console.log('pos:', x, z)
   }
 
   const handleRedraw = (key?: string) => {
@@ -253,13 +254,18 @@ const MapChunk = (
   }
 
   useEffect(() => {
-    if (canvasRef.current && isCanvas && !drawerRef.current) {
+    if (canvasRef.current && !drawerRef.current) {
       drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
       drawerRef.current.draw(new Vec3(worldX + 8, 0, worldZ + 8), undefined, true)
-    } else if (canvasRef.current && isCanvas && drawerRef.current) {
+    } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
+      drawerRef.current.draw(
+        new Vec3(worldX + 8, 0, worldZ + 8),
+        undefined,
+        true
+      )
     }
-  }, [canvasRef.current, isCanvas])
+  }, [canvasRef.current])
 
   useEffect(() => {
     canvasRef.current?.addEventListener('contextmenu', handleClick)
@@ -311,7 +317,7 @@ const MapChunk = (
       left: `${x}px`,
     }}
   >
-    {isCanvas && <canvas
+    <canvas
       ref={canvasRef}
       style={{
         width: '100%',
@@ -320,7 +326,7 @@ const MapChunk = (
       }}
       width={64}
       height={64}
-    />}
+    />
   </div>
 }
 
