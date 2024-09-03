@@ -89,7 +89,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return emptyColor
     const block = viewer.world.highestBlocks[`${x},${z}`]
     const blockData = bot.world.getBlock(new Vec3(x, block?.y ?? 0, z))
-    const color = block && blockData ? this.blockData[this.isOldVersion ? preflatMap.blocks[`${blockData.type}:${blockData.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    const color = block && blockData ? (this.isOldVersion ? BlockData[preflatMap.blocks[`${blockData.type}:${blockData.metadata}`]?.replaceAll(/\[.*?]/g, '')] : this.blockData[block.name]) ?? 'rgb(211, 211, 211)' : emptyColor
     if (!block) return color
 
     // shadows
@@ -164,7 +164,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const y = this.getHighestBlockY(x, z, chunk)
     this.heightMap[getBlockKey(x, z)] = y
     const block = chunk.getBlock(new Vec3(x & 15, y, z & 15))
-    const color = block ? this.blockData[this.isOldVersion ? preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '') : block.name] ?? 'rgb(211, 211, 211)' : emptyColor
+    const color = block ? (this.isOldVersion ? BlockData[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] : this.blockData[block.name]) ?? 'rgb(211, 211, 211)' : emptyColor
     if (!block) return color
 
     // shadows
