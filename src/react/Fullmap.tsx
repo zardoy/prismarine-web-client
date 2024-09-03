@@ -160,6 +160,7 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
         }}
         initWarp={initWarp}
         setInitWarp={setInitWarp}
+        toggleFullMap={toggleFullMap}
       />
     }
   </div>
@@ -331,14 +332,15 @@ const MapChunk = (
 }
 
 const WarpInfo = (
-  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp }:
+  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp, toggleFullMap }:
   {
     adapter: DrawerAdapter,
     warpPos: { x: number, y: number, z: number },
     setIsWarpInfoOpened: Dispatch<SetStateAction<boolean>>,
     afterWarpIsSet?: () => void
     initWarp?: WorldWarp,
-    setInitWarp?: React.Dispatch<React.SetStateAction<WorldWarp | undefined>>
+    setInitWarp?: React.Dispatch<React.SetStateAction<WorldWarp | undefined>>,
+    toggleFullMap?: ({ command }: { command: string }) => void
   }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>(initWarp ?? {
@@ -369,6 +371,12 @@ const WarpInfo = (
         )
       }
     }
+  }
+
+  const quickTp = () => {
+    const y = adapter.getHighestBlockY(warp.x, warp.z)
+    toggleFullMap?.({ command: 'ui.toggleMap' })
+    bot.chat(`/tp ${warp.x} ${y + 10} ${warp.z}`)
   }
 
   return <div
@@ -458,6 +466,12 @@ const WarpInfo = (
           }}
         />
       </div>
+      <Button
+        style={{ alignSelf: 'center' }}
+        onClick={() => {
+          quickTp()
+        }}
+      >Quick TP</Button>
       <div style={fieldCont}>
         <Button
           onClick={() => {
