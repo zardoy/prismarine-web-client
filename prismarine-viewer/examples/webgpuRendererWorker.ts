@@ -41,16 +41,46 @@ let fullReset
 
 const updateCubesWhenAvailable = (pos) => {
     if (webgpuRenderer?.ready) {
+        console.log('updating cubes - main')
         webgpuRenderer.updateSides(pos)
     } else {
         setTimeout(updateCubesWhenAvailable, 100)
     }
 }
 
+let requests = [] as Array<{ resolve: () => void }>
+let requestsNamed = {} as Record<string, () => void>
+const onceRendererAvailable = (request: (renderer: WebgpuRenderer) => any, name?: string) => {
+    if (webgpuRenderer?.ready) {
+        request(webgpuRenderer)
+    } else {
+        requests.push({ resolve: () => request(webgpuRenderer!) })
+        if (name) {
+            requestsNamed[name] = () => request(webgpuRenderer!)
+        }
+    }
+}
+
+const availableUpCheck = setInterval(() => {
+    const { ready } = webgpuRenderer ?? {}
+    if (ready) {
+        clearInterval(availableUpCheck)
+        for (const request of requests) {
+            request.resolve()
+        }
+        requests = []
+        for (const request of Object.values(requestsNamed)) {
+            request()
+        }
+        requestsNamed = {}
+    }
+}, 100)
+
 let started = false
 let newWidth: number | undefined
 let newHeight: number | undefined
 let autoTickUpdate = undefined as number | undefined
+
 export const workerProxyType = createWorkerProxy({
     canvas (canvas, imageBlob, isPlayground, localStorage, NUMBER_OF_CUBES) {
         started = true
@@ -70,7 +100,7 @@ export const workerProxyType = createWorkerProxy({
         newHeight = newHeight
         updateSize(newWidth, newHeight)
     },
-    generateRandom (count: number) {
+    generateRandom (count: number, offset = 0) {
         const square = Math.sqrt(count)
         if (square % 1 !== 0) throw new Error('square must be a whole number')
         const blocks = {}
@@ -80,8 +110,8 @@ export const workerProxyType = createWorkerProxy({
                 textureIndex: Math.floor(Math.random() * 512)
             }
         }
-        for (let x = 0; x < square; x++) {
-            for (let z = 0; z < square; z++) {
+        for (let x = offset; x < square + offset; x++) {
+            for (let z = offset; z < square + offset; z++) {
                 blocks[`${x},${0},${z}`] = {
                     faces: [
                         getFace(0),
@@ -94,7 +124,7 @@ export const workerProxyType = createWorkerProxy({
                 }
             }
         }
-        console.log('data ready')
+        console.log('generated random data: ', count)
         this.addBlocksSection(blocks, `0,0,0`)
     },
     addBlocksSection (tiles: Record<string, BlockType>, key: string, update = true) {
@@ -207,6 +237,11 @@ export const workerProxyType = createWorkerProxy({
             allSides.push([json[i], json[i + 1], json[i + 2], { side: json[i + 3], textureIndex: json[i + 4] }])
         }
         updateCubesWhenAvailable(0)
+    },
+    updateBackground (color) {
+        onceRendererAvailable((renderer) => {
+            renderer.changeBackgroundColor(color)
+        }, 'updateBackground')
     },
 })
 

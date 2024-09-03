@@ -91,6 +91,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   abstract outputFormat: 'threeJs' | 'webgpu'
 
+  abstract changeBackgroundColor (color: [number, number, number]): void
+
   constructor(public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()

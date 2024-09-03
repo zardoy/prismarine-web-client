@@ -36,9 +36,17 @@ export class WebgpuRenderer {
     computeBindGroupLayout: GPUBindGroupLayout;
     indirectDrawParams: Uint32Array;
     maxBufferSize: number
+    commandEncoder: GPUCommandEncoder;
+    cubeTexture: GPUTexture;
 
     constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
+        this.NUMBER_OF_CUBES = 1
         this.init();
+    }
+
+    changeBackgroundColor (color: [number, number, number]) {
+        const colorRgba = [color[0], color[1], color[2], 1]
+        this.renderPassDescriptor.colorAttachments[0].clearValue = colorRgba
     }
 
     async init () {
@@ -182,24 +190,18 @@ export class WebgpuRenderer {
         });
 
         // Fetch the image and upload it into a GPUTexture.
-        let cubeTexture: GPUTexture;
         {
-            cubeTexture = device.createTexture({
+            this.cubeTexture = device.createTexture({
                 size: [textureBitmap.width, textureBitmap.height, 1],
                 format: 'rgb10a2unorm',
                 usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
             });
             device.queue.copyExternalImageToTexture(
                 { source: textureBitmap },
-                { texture: cubeTexture },
+                { texture: this.cubeTexture },
                 [textureBitmap.width, textureBitmap.height]
             );
         }
-
-        const sampler = device.createSampler({
-            magFilter: 'nearest',
-            minFilter: 'nearest',
-        });
 
         this.renderPassDescriptor = {
             label: 'MainRenderPassDescriptor',
@@ -251,19 +253,6 @@ export class WebgpuRenderer {
             },
         });
 
-        // Create buffers for compute shader and indirect drawing
-        this.cubesBuffer = device.createBuffer({
-            label: 'cubesBuffer',
-            size: this.NUMBER_OF_CUBES * 32, // 8 floats per cube - minimum buffer size
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
-        });
-
-        this.visibleCubesBuffer = device.createBuffer({
-            label: 'visibleCubesBuffer',
-            size: this.NUMBER_OF_CUBES * 32,
-            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX,
-        });
-
         this.indirectDrawBuffer = device.createBuffer({
             label: 'indirectDrawBuffer',
             size: 16, // 4 uint32 values
@@ -274,6 +263,8 @@ export class WebgpuRenderer {
         const indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
         device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams);
 
+        this.createNewDataBuffers()
+
         // const vertexBindGroupLayout = device.createBindGroupLayout({
         //     label: 'vertexBindGroupLayout',
         //     entries: [
@@ -282,8 +273,20 @@ export class WebgpuRenderer {
         //     ]
         // });
 
+        this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
 
-        // Create bind group for render pass
+        // always last!
+        this.loop(true); // start rendering
+        this.ready = true;
+        return canvas;
+    }
+
+    private createUniformBindGroup (device: GPUDevice, pipeline: GPURenderPipeline) {
+        const sampler = device.createSampler({
+            magFilter: 'nearest',
+            minFilter: 'nearest',
+        });
+
         this.uniformBindGroup = device.createBindGroup({
             label: 'uniformBindGroups',
             //layout: vertexBindGroupLayout,
@@ -301,14 +304,13 @@ export class WebgpuRenderer {
                 },
                 {
                     binding: 2,
-                    resource: cubeTexture.createView(),
+                    resource: this.cubeTexture.createView(),
                 },
                 {
                     binding: 3,
                     resource: {
                         buffer: this.visibleCubesBuffer
                     }
-
                 }
             ],
         });
@@ -347,7 +349,6 @@ export class WebgpuRenderer {
         //         },
         //     ],
         // });
-
         this.computeBindGroup = device.createBindGroup({
             //layout: this.computeBindGroupLayout,
             layout: this.computePipeline.getBindGroupLayout(0),
@@ -370,47 +371,66 @@ export class WebgpuRenderer {
                     resource: { buffer: this.indirectDrawBuffer },
                 },
             ],
-        })
+        });
+    }
 
-        this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
+    createNewDataBuffers () {
+        const oldCubesBuffer = this.cubesBuffer
+        const oldVisibleCubesBuffer = this.visibleCubesBuffer
 
-        // always last!
-        this.rendering = false;
-        console.log('init finish')
-        this.updateSides()
-        this.loop();
-        this.ready = true;
-        return canvas;
+        // Create buffers for compute shader and indirect drawing
+        this.cubesBuffer = this.device.createBuffer({
+            label: 'cubesBuffer',
+            size: this.NUMBER_OF_CUBES * 32, // 8 floats per cube - minimum buffer size
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+
+        this.visibleCubesBuffer = this.device.createBuffer({
+            label: 'visibleCubesBuffer',
+            size: this.NUMBER_OF_CUBES * 32,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+        });
+
+        // if we have old buffers, copy them to new ones
+        if (oldCubesBuffer) {
+            this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size);
+            this.commandEncoder.copyBufferToBuffer(oldVisibleCubesBuffer, 0, this.visibleCubesBuffer, 0, oldVisibleCubesBuffer.size);
+        }
+
+        this.createUniformBindGroup(this.device, this.pipeline);
     }
 
     removeOne () { }
 
     realNumberOfCubes = 0;
+    waitingNextUpdateSidesOffset = undefined as undefined | number
 
     updateSides (startOffset = 0) {
+        this.waitingNextUpdateSidesOffset = startOffset
+    }
+
+    updateSidesFromLoop () {
+        if (this.waitingNextUpdateSidesOffset === undefined) return
+        const startOffset = this.waitingNextUpdateSidesOffset
         console.time('updateSides')
-        this.rendering = true;
         const positions = [] as number[];
         let textureIndexes = [] as number[];
         let colors = [] as number[];
-        const blocksPerFace = {} as Record<string, BlockFaceType>;
+        const blocksPerFace = {} as Record<string, boolean>;
         for (const side of allSides.slice(startOffset)) {
             if (!side) continue;
             const [x, y, z] = side.slice(0, 3);
             const key = `${x},${y},${z}`;
             if (blocksPerFace[key]) continue;
-            blocksPerFace[key] = side[3];
-        }
-        for (const key in blocksPerFace) {
-            const side = key.split(',').map(Number);
-            positions.push(...[side[0], side[1], side[2]]);
-            const face = blocksPerFace[key];
+            positions.push(x as number, y as number, z as number);
+            const face = side[3];
             textureIndexes.push(face.textureIndex);
             if (face.tint) {
                 colors.push(...face.tint);
             } else {
                 colors.push(1, 1, 1);
             }
+            blocksPerFace[key] = true;
         }
 
         const NUMBER_OF_CUBES_NEEDED = Math.ceil(positions.length / 3);
@@ -418,6 +438,9 @@ export class WebgpuRenderer {
         if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
             console.warn('extending number of cubes', NUMBER_OF_CUBES_NEEDED, this.NUMBER_OF_CUBES)
             this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEEDED + 5000;
+            console.time('recreate buffers')
+            this.createNewDataBuffers()
+            console.timeEnd('recreate buffers')
         }
 
         const BYTES_PER_ELEMENT = 8;
@@ -434,9 +457,7 @@ export class WebgpuRenderer {
             //cubeData[offset + 7] = 0.5; // Sphere radius
         }
 
-        console.time('writeCubes buffer')
         this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeData);
-        console.timeEnd('writeCubes buffer')
 
         // Reset indirect draw parameters
         // this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
@@ -444,15 +465,19 @@ export class WebgpuRenderer {
 
         this.notRenderedAdditions++;
         console.timeEnd('updateSides')
+        this.waitingNextUpdateSidesOffset = undefined
     }
 
     lastCall = performance.now();
     logged = false;
-    loop () {
+    loop (forceFrame = false) {
         if (!this.rendering) {
             requestAnimationFrame(() => this.loop());
-            return;
+            if (!forceFrame) {
+                return;
+            }
         }
+        let start = performance.now()
 
         const { device, UniformBuffer: uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this;
 
@@ -479,22 +504,23 @@ export class WebgpuRenderer {
             .getCurrentTexture()
             .createView();
 
-        let commandEncoder = device.createCommandEncoder();
+        this.commandEncoder = device.createCommandEncoder();
         // Compute pass for occlusion culling
-        commandEncoder.label = "Main Comand Encoder"
-        const computePass = commandEncoder.beginComputePass();
+        this.commandEncoder.label = "Main Comand Encoder"
+        const computePass = this.commandEncoder.beginComputePass();
         computePass.label = "ComputePass"
         computePass.setPipeline(this.computePipeline);
         //computePass.setBindGroup(0, this.uniformBindGroup);
         computePass.setBindGroup(0, this.computeBindGroup);
         computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256));
         computePass.end();
-        device.queue.submit([commandEncoder.finish()]);
-        commandEncoder = device.createCommandEncoder();
+        this.updateSidesFromLoop()
+        device.queue.submit([this.commandEncoder.finish()]);
+        this.commandEncoder = device.createCommandEncoder();
         //device.queue.submit([commandEncoder.finish()]);
         // Render pass
         //console.log(this.indirectDrawBuffer.getMappedRange());
-        const renderPass = commandEncoder.beginRenderPass(this.renderPassDescriptor);
+        const renderPass = this.commandEncoder.beginRenderPass(this.renderPassDescriptor);
         renderPass.label = "RenderPass"
         renderPass.setPipeline(pipeline);
         renderPass.setBindGroup(0, this.uniformBindGroup);
@@ -504,10 +530,14 @@ export class WebgpuRenderer {
         renderPass.drawIndirect(this.indirectDrawBuffer, 0);
 
         renderPass.end();
-        device.queue.submit([commandEncoder.finish()]);
+        device.queue.submit([this.commandEncoder.finish()]);
 
         this.renderedFrames++;
         requestAnimationFrame(() => this.loop());
         this.notRenderedAdditions = 0;
+        const took = performance.now() - start
+        if (took > 100) {
+            console.log('took', took)
+        }
     }
 }

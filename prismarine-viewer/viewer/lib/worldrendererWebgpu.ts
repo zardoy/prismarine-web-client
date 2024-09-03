@@ -76,6 +76,10 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     // todo
   }
 
+  changeBackgroundColor (color: [number, number, number]) {
+    webgpuChannel.updateBackground(color)
+  }
+
 
   removeColumn (x, z) {
     // TODO! disabled for now!

@@ -186,6 +186,7 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async updatePosition (pos: Vec3, force = false) {
+    return
     const [lastX, lastZ] = chunkPos(this.lastPos)
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {

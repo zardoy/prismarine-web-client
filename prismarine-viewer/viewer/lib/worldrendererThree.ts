@@ -26,7 +26,7 @@ export class WorldRendererThree extends WorldRendererCommon {
         return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
     }
 
-    constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
+    constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
         super(config)
         this.starField = new StarField(scene)
     }
@@ -229,6 +229,10 @@ export class WorldRendererThree extends WorldRendererCommon {
         await worldView!.updatePosition(bot.entity.position, true)
     }
 
+    changeBackgroundColor (color: [number, number, number]) {
+        this.scene.background = new THREE.Color(color[0], color[1], color[2])
+    }
+
     rerenderAllChunks () { // todo not clear what to do with loading chunks
         for (const key of Object.keys(this.sectionObjects)) {
             const [x, y, z] = key.split(',').map(Number)
@@ -326,7 +330,7 @@ class StarField {
         }
     }
 
-    constructor (private scene: THREE.Scene) {
+    constructor(private scene: THREE.Scene) {
     }
 
     addToScene () {
@@ -390,7 +394,7 @@ class StarField {
 
 const version = parseInt(THREE.REVISION.replace(/\D+/g, ''))
 class StarfieldMaterial extends THREE.ShaderMaterial {
-    constructor () {
+    constructor() {
         super({
             uniforms: { time: { value: 0.0 }, fade: { value: 1.0 } },
             vertexShader: /* glsl */ `
