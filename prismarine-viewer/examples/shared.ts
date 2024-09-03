@@ -5,8 +5,8 @@ export type BlockFaceType = {
   isTransparent?: boolean
 
   // for testing
-  face: string
-  neighbor: string
+  face?: string
+  neighbor?: string
   light?: number
 }
 

@@ -42,7 +42,7 @@ export const useWorkerProxy = <T extends { __workerProxy: Record<string, (...arg
                 worker.postMessage({
                     type: prop,
                     args,
-                }, transfer)
+                }, transfer as any[])
             }
         }
     })

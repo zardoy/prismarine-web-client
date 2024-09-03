@@ -75,7 +75,7 @@ export const removeBlocksSection = (key) => {
 let playground = false
 export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
     playground = actuallyPlayground
-    await new Promise(resolve => {
+    await new Promise<void>(resolve => {
         // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
         // viewer.world.material.map!.image.onload = () => {
         //   console.log(this.material.map!.image)
