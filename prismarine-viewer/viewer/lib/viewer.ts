@@ -1,13 +1,13 @@
 import EventEmitter from 'events'
 import * as THREE from 'three'
 import { Vec3 } from 'vec3'
-import { WorldRendererWebgpu } from './worldrendererWebgpu'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
+import { sendCameraToWorker } from '../../examples/webgpuRendererMain'
+import { WorldRendererWebgpu } from './worldrendererWebgpu'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { defaultWorldRendererConfig } from './worldrendererCommon'
-import { sendCameraToWorker } from '../../examples/webgpuRendererMain'
 import { WorldRendererThree } from './worldrendererThree'
 import { getThreeBlockModelGroup, renderBlockThree, setBlockPosition } from './mesher/standaloneRenderer'
 
@@ -36,7 +36,7 @@ export class Viewer {
   //   this.world.camera = camera
   // }
 
-  constructor(public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
+  constructor (public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
     THREE.ColorManagement.enabled = false
     renderer.outputColorSpace = THREE.LinearSRGBColorSpace

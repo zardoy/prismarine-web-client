@@ -155,7 +155,7 @@ setInterval(() => {
       const start = performance.now()
       const geometry = getSectionGeometry(x, y, z, world)
       const transferable = [geometry.positions?.buffer, geometry.normals?.buffer, geometry.colors?.buffer, geometry.uvs?.buffer].filter(Boolean)
-      //@ts-ignore
+      //@ts-expect-error
       postMessage({ type: 'geometry', key, geometry }, transferable)
       processTime = performance.now() - start
     } else {

@@ -13,7 +13,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   stopBlockUpdate = false
   lastChunkDistance = 0
 
-  constructor(config) {
+  constructor (config) {
     super(config)
 
     this.renderUpdateEmitter.on('update', () => {
@@ -23,7 +23,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   }
 
   playgroundGetWebglData () {
-    const playgroundChunk = Object.values(this.newChunks).filter((x: any) => Object.keys(x?.blocks ?? {}).length > 0)?.[0] as any
+    const playgroundChunk = Object.values(this.newChunks).find((x: any) => Object.keys(x?.blocks ?? {}).length > 0)
     if (!playgroundChunk) return
     const block = Object.values(playgroundChunk.blocks)?.[0] as any
     if (!block) return

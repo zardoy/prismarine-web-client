@@ -105,7 +105,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   abstract changeBackgroundColor (color: [number, number, number]): void
 
-  constructor(public config: WorldRendererConfig) {
+  constructor (public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
   }
@@ -189,11 +189,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   /**
    * Optionally update data that are depedendent on the viewer position
    */
-  updatePosDataChunk?(key: string): void
+  updatePosDataChunk? (key: string): void
 
-  allChunksLoaded?(): void
+  allChunksLoaded? (): void
 
-  timeUpdated?(newTime: number): void
+  timeUpdated? (newTime: number): void
 
   updateViewerPosition (pos: Vec3) {
     this.viewerPosition = pos

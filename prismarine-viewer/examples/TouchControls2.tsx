@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react'
 import { LeftTouchArea, RightTouchArea, useInterfaceState } from '@dimaka/interface'
 import { css } from '@emotion/css'
-import { Viewer } from '../viewer/lib/viewer'
 import { renderToDom } from '@zardoy/react-util'
 import { Vec3 } from 'vec3'
 import * as THREE from 'three'
+import { Viewer } from '../viewer/lib/viewer'
 
 declare const viewer: Viewer
 const Controls = () => {

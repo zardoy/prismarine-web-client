@@ -8,7 +8,6 @@ import { GUI } from 'lil-gui'
 import JSZip from 'jszip'
 import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 // import * as Mathgl from 'math.gl'
-import { initWebgpuRenderer, loadFixtureSides, setAnimationTick, webgpuChannel } from './webgpuRendererMain'
 import { renderToDom } from '@zardoy/react-util'
 
 //@ts-expect-error
@@ -20,8 +19,9 @@ import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
 import { WorldDataEmitter, Viewer } from '../viewer'
 import '../../src/getCollisionShapes'
 import { toMajorVersion } from '../../src/utils'
-import { renderPlayground } from './TouchControls2'
 import { WorldRendererWebgpu } from '../viewer/lib/worldrendererWebgpu'
+import { renderPlayground } from './TouchControls2'
+import { initWebgpuRenderer, loadFixtureSides, setAnimationTick, webgpuChannel } from './webgpuRendererMain'
 import { TextureAnimation } from './TextureAnimation'
 import { BlockType } from './shared'
 import { addNewStat } from './newStats'
@@ -70,18 +70,18 @@ const setQs = () => {
   window.history.replaceState({}, '', `${window.location.pathname}?${newQs.toString()}`)
 }
 
-let ignoreResize = false
+const ignoreResize = false
 
 const enableControls = new URLSearchParams(window.location.search).get('controls') === 'true'
 
 async function main () {
   let continuousRender = false
 
-  let fixtureUrl = qs.get('fixture')
+  const fixtureUrl = qs.get('fixture')
   let fixture: undefined | Record<string, any>
   if (fixtureUrl) {
     console.log('Loading fixture')
-    fixture = await fetch(fixtureUrl).then(r => r.json())
+    fixture = await fetch(fixtureUrl).then(async r => r.json())
     console.log('Loaded fixture')
   }
   const { version } = params
@@ -147,7 +147,7 @@ async function main () {
     return chunk
   })
 
-  let stopUpdate = false
+  const stopUpdate = false
   // let stopUpdate = true
 
   // await schem.paste(world, new Vec3(0, 60, 0))
@@ -163,10 +163,10 @@ async function main () {
 
   await initWebgpuRenderer(() => { }, !enableControls && !fixture, true)
   const simpleControls = () => {
-    let pressedKeys = new Set<string>()
+    const pressedKeys = new Set<string>()
     const loop = () => {
       // Create a vector that points in the direction the camera is looking
-      let direction = new THREE.Vector3(0, 0, 0)
+      const direction = new THREE.Vector3(0, 0, 0)
       if (pressedKeys.has('KeyW')) {
         direction.z = -0.5
       }
@@ -200,7 +200,7 @@ async function main () {
     }
     setInterval(loop, 1000 / 30)
     const keys = (e) => {
-      const code = e.code
+      const { code } = e
       const pressed = e.type === 'keydown'
       if (pressed) {
         pressedKeys.add(code)
@@ -266,8 +266,8 @@ async function main () {
     viewer.camera.position.set(pos[0], pos[1], pos[2])
   }
 
-  let blocks: Record<string, BlockType> = {}
-  let i = 0
+  const blocks: Record<string, BlockType> = {}
+  const i = 0
   console.log('generating random data')
   webgpuChannel.generateRandom(490_000)
 
@@ -281,7 +281,7 @@ async function main () {
   window['worldView'] = worldView
   window['viewer'] = viewer
 
-  //@ts-ignore
+  //@ts-expect-error
   // const controls = new OrbitControls(viewer.camera, nullRenderer.domElement)
   // controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
@@ -407,7 +407,7 @@ async function main () {
     },
     animationTick () {
       // TODO
-      const webgl = (viewer.world as WorldRendererWebgpu).playgroundGetWebglData() as unknown as { animation: any }
+      const webgl = (viewer.world).playgroundGetWebglData() as unknown as { animation: any }
       if (!webgl?.animation) {
         setAnimationTick(0)
         return
@@ -489,7 +489,7 @@ async function main () {
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
     // const frames = viewer.world.hasWithFrames ? viewer.world.hasWithFrames - 1 : 0;
-    const webgl = (viewer.world as WorldRendererWebgpu).playgroundGetWebglData()
+    const webgl = (viewer.world).playgroundGetWebglData()
     // if (webgl?.animation) {
     //   params.animationTick = -1
     //   animationController.show()

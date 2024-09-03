@@ -267,15 +267,15 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     if (element.rotation && !needTiles) {
       // todo do we support rescale?
       localMatrix = buildRotationMatrix(
-        element.rotation!.axis,
-        element.rotation!.angle
+        element.rotation.axis,
+        element.rotation.angle
       )
 
       localShift = vecsub3(
-        element.rotation!.origin,
+        element.rotation.origin,
         matmul3(
           localMatrix,
-          element.rotation!.origin
+          element.rotation.origin
         )
       )
     }

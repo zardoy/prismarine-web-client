@@ -25,7 +25,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
   }
 
-  constructor(public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
+  constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
     this.starField = new StarField(scene)
   }
@@ -340,7 +340,7 @@ class StarField {
     }
   }
 
-  constructor(private scene: THREE.Scene) {
+  constructor (private readonly scene: THREE.Scene) {
   }
 
   addToScene () {
@@ -405,9 +405,9 @@ class StarField {
 
 const version = parseInt(THREE.REVISION.replaceAll(/\D+/g, ''), 10)
 class StarfieldMaterial extends THREE.ShaderMaterial {
-  constructor() {
+  constructor () {
     super({
-      uniforms: { time: { value: 0.0 }, fade: { value: 1.0 } },
+      uniforms: { time: { value: 0 }, fade: { value: 1 } },
       vertexShader: /* glsl */ `
                 uniform float time;
                 attribute float size;
