@@ -153,17 +153,6 @@ export class MinimapDrawer {
     }
   }
 
-  async getHighestBlockColorCached (
-    getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
-    x: number,
-    z: number
-  ) {
-    return new Promise<string>((resolve) => {
-      const color = getHighestBlockColor(x, z)
-      resolve(color)
-    })
-  }
-
   getDistance (x1: number, z1: number, x2: number, z2: number): number {
     return Math.hypot((x2 - x1), (z2 - z1))
   }

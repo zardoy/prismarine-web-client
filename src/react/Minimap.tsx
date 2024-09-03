@@ -23,7 +23,6 @@ export default (
   const warpsAndPartsCanvasRef = useRef<HTMLCanvasElement>(null)
   const warpsDrawerRef = useRef<MinimapDrawer | null>(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
-  const playerPosCanvas = useRef<HTMLCanvasElement>(null)
   const [position, setPosition] = useState({ x: 0, z: 0 })
 
   const updateMap = () => {
@@ -82,24 +81,6 @@ export default (
       warpsDrawerRef.current.canvas = warpsAndPartsCanvasRef.current
     }
   }, [warpsAndPartsCanvasRef.current])
-
-  // useEffect(() => {
-  //   if (playerPosCanvas.current) {
-  //   const ctx = playerPosCanvas.current.getContext('2d')
-  //     if (ctx) {
-  //       const path = new Path2D()
-  //       const width = (canvasRef.current?.width ?? 80) / 2
-  //       const height = (canvasRef.current?.height ?? 80) / 2
-  //       path.moveTo(width, height * 0.9)
-  //       path.lineTo(width * 0.9, height * 1.1)
-  //       path.lineTo(width * 1.1, height * 1.1)
-  //
-  //       ctx.fillStyle = '#FFFFFF'
-  //       ctx.strokeStyle = '#000000'
-  //       ctx.fill(path)
-  //     }
-  //   }
-  // }, [playerPosCanvas.current])
 
   useEffect(() => {
     adapter.on('updateMap', updateMap)
