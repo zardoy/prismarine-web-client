@@ -374,9 +374,8 @@ const WarpInfo = (
   }
 
   const quickTp = () => {
-    const y = adapter.getHighestBlockY(warp.x, warp.z)
     toggleFullMap?.({ command: 'ui.toggleMap' })
-    bot.chat(`/tp ${warp.x} ${y + 10} ${warp.z}`)
+    adapter.quickTp?.(warp.x, warp.z)
   }
 
   return <div

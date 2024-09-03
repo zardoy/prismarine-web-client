@@ -19,6 +19,7 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   world?: string
   yaw: number
   setWarp: (warp: WorldWarp, remove?: boolean) => void
+  quickTp?: (x: number, z: number) => void
 }
 
 export class MinimapDrawer {
