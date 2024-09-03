@@ -12,7 +12,7 @@ interface Props extends React.ComponentProps<'input'> {
 export default ({ autoFocus, rootStyles, inputRef, validateInput, defaultValue, ...inputProps }: Props) => {
   const ref = useRef<HTMLInputElement>(null!)
   const [validationStyle, setValidationStyle] = useState<CSSProperties>({})
-  const [value, setValue] = useState(defaultValue ?? props.value ?? '')
+  const [value, setValue] = useState(defaultValue ?? inputProps.value ?? '')
 
   useEffect(() => {
     setValue(inputProps.value === '' || inputProps.value ? inputProps.value : value)
