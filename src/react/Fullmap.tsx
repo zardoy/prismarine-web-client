@@ -384,7 +384,7 @@ const WarpInfo = (
       transform: 'scale(2)'
     }}
   >
-    <div
+    <form
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -397,6 +397,7 @@ const WarpInfo = (
         border: '2px solid black'
       }}
     >
+      <h2 style={{ alignSelf: 'center' }}>Point on the map</h2>
       <div style={fieldCont}>
         <div>
           Name:
@@ -407,6 +408,7 @@ const WarpInfo = (
             if (!e.target) return
             setWarp(prev => { return { ...prev, name: e.target.value } })
           }}
+          autoFocus
         />
       </div>
       <div style={fieldCont}>
@@ -436,8 +438,8 @@ const WarpInfo = (
       <div style={fieldCont}>
         <div>Color:</div>
         <Input
-          placeholder="#232323 or rgb(0, 0, 0)"
-          defaultValue={warp.color ?? ''}
+          type='color'
+          defaultValue={warp.color === '' ? '#232323' : warp.color}
           onChange={(e) => {
             if (!e.target) return
             setWarp(prev => { return { ...prev, color: e.target.value } })
@@ -445,8 +447,9 @@ const WarpInfo = (
         />
       </div>
       <div style={fieldCont} >
-        <div>Disabled:</div>
+        <label htmlFor='warp-disabled'>Disabled:</label>
         <input
+          id='warp-disabled'
           type="checkbox"
           checked={warp.disabled ?? false}
           onChange={(e) => {
@@ -458,13 +461,19 @@ const WarpInfo = (
       <div style={fieldCont}>
         <Button
           onClick={() => {
+            setIsWarpInfoOpened(false)
+          }}
+        >Cancel</Button>
+        <Button
+          onClick={() => {
             adapter.setWarp({ ...warp })
             console.log(adapter.warps)
             setIsWarpInfoOpened(false)
             updateRegion()
             afterWarpIsSet?.()
           }}
-        >Add</Button>
+          type='submit'
+        >Add Warp</Button>
         {initWarp && <Button
           onClick={() => {
             const index = adapter.warps.findIndex(thisWarp => thisWarp.name === warp.name)
@@ -476,12 +485,7 @@ const WarpInfo = (
             }
           }}
         >Delete</Button>}
-        <Button
-          onClick={() => {
-            setIsWarpInfoOpened(false)
-          }}
-        >Cancel</Button>
       </div>
-    </div>
+    </form>
   </div>
 }
