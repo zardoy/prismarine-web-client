@@ -29,7 +29,7 @@ export type MesherGeometryOutput = {
   indices: number[],
   tiles: Record<string, BlockType>,
   signs: Record<string, any>,
-  isFull: boolean
+  // isFull: boolean
   highestBlocks: Record<string, { y: number, name: string }>
   hadErrors: boolean
 }

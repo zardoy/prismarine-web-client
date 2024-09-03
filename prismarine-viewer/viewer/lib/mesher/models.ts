@@ -410,7 +410,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     tiles: {},
     // todo this can be removed here
     signs: {},
-    isFull: true,
+    // isFull: true,
     highestBlocks: {},
     hadErrors: false
   }

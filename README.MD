@@ -188,3 +188,4 @@ General:
 ### Alternatives
 
 - [https://github.com/ClassiCube/ClassiCube](ClassiCube - Better C# Rewrite) [DEMO](https://www.classicube.net/server/play/?warned=true)
+- [https://m.eaglercraft.com/](EaglerCraft) - Eaglercraft runnable on mobile (real Minecraft in the browser)
