@@ -39,5 +39,8 @@
   "optionalDependencies": {
     "canvas": "^2.11.2",
     "node-canvas-webgl": "^0.3.0"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
   }
 }

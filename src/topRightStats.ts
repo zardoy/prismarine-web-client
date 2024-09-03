@@ -75,3 +75,14 @@ export const statsEnd = () => {
   stats2.end()
   statsGl.end()
 }
+
+window.statsPerSec = {}
+let statsPerSec = {}
+window.addStatPerSec = (name) => {
+  statsPerSec[name] ??= 0
+  statsPerSec[name]++
+}
+setInterval(() => {
+  window.statsPerSec = statsPerSec
+  statsPerSec = {}
+}, 1000)

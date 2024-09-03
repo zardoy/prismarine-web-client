@@ -11,9 +11,11 @@ export default ({
   if (width !== undefined) styles = { width, height: width, ...styles }
   iconName = iconName.replace('pixelarticons:', '')
 
-  return <div style={{
-    ...styles
-  }} onClick={onClick} className={`${`pixelart-icons-font-${iconName}`} ${className ?? ''}`} />
+  return <div
+    style={{
+      ...styles
+    }} onClick={onClick} className={`${`pixelart-icons-font-${iconName}`} ${className ?? ''}`}
+  />
 }
 
 export const pixelartIcons = new Proxy({} as PixelartIconsGenerated, {

@@ -2,21 +2,22 @@
 
 ![banner](./docs-assets/banner.jpg)
 
-A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using modern web technologies.
-
-If you encounter any bugs or usability issues, please report them! For development, see [development](#development--debugging).
+A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using the best modern web technologies.
 
 You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
+
+For building the project yourself / contributing, see [Development, Debugging & Contributing](#development-debugging--contributing). If you encounter any bugs or usability issues, please report them!
 
 ### Big Features
 
 - Open any zip world file or even folder in read-write mode!
 - Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
 - Singleplayer mode with simple world generations!
+- Google Drive support for reading / saving worlds
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
-- FULL Resource pack support: Custom GUI, all textures & custom models! Server resource packs are also supported.
+- Basic Resource pack support: Custom GUI, all textures. Server resource packs are not supported yet.
 - Builtin JEI with recipes & guides for every item (also replaces creative inventory)
 - even even more!
 
@@ -24,10 +25,10 @@ All components that are in [Storybook](https://mcraft.fun/storybook) are publish
 
 ### Recommended Settings
 
-- Controls -> **Raw Input** -> **On** - This will make the controls more precise
 - Controls -> **Touch Controls Type** -> **Joystick**
 - Controls -> **Auto Full Screen** -> **On** - To avoid ctrl+w issue
-- Interface -> **Chat Select** -> **On** - To select chat messages
+- Controls -> **Raw Input** -> **On** - This will make the controls more precise (UPD: already enabled by default)
+- Interface -> **Chat Select** -> **On** - To select chat messages (UPD: already enabled by default)
 
 ### World Loading
 
@@ -82,13 +83,13 @@ There are many many settings, that are not exposed in the UI yet. You can find o
 
 To open the console, press `F12`, or if you are on mobile, you can type `#dev` in the URL (browser address bar), it wont't reload the page, but you will see a button to open the console. This way you can change advanced settings and see all errors or warnings. Also this way you can access global variables (described below).
 
-### Development & Debugging
+### Development, Debugging & Contributing
 
 It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info. Also you can look at Dockerfile for reference.
 
 There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
 
-However, there are many things that can be done in online version. You can access some global variables in the console and useful examples:
+However, there are many things that can be done in online production version (like debugging actual source code). Also you can access some global variables in the console and there are a few useful examples:
 
 - `localStorage.debug = '*'` - Enables all debug messages! Warning: this will start all packets spam.
 Instead I recommend setting `options.debugLogNotFrequentPackets`. Also you can use `debugTopPackets` (with JSON.stringify) to see what packets were received/sent by name
@@ -140,7 +141,31 @@ Single player specific:
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?version=<version>` - Set the version for the singleplayer world (when used with `?singleplayer=1`)
 - `?noSave=true` - Disable auto save on unload / disconnect / export whenever a world is loaded. Only manual save with `/save` command will work.
-- `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
+- `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be **CORS enabled**.
+- `?mapDir=<index_file_url>` - Load the map from a file descriptor. It's recommended and the fastest way to load world but requires additional setup. The file must be in the following format:
+
+```json
+{
+    "baseUrl": "<url>",
+    "index": {
+        "level.dat": null,
+        "region": {
+            "r.-1.-1.mca": null,
+            "r.-1.0.mca": null,
+            "r.0.-1.mca": null,
+            "r.0.0.mca": null,
+        }
+    }
+}
+```
+
+Note that `mapDir` also accepts base64 encoded JSON like so:
+`?mapDir=data:application/json;base64,...` where `...` is the base64 encoded JSON of the index file.
+In this case you must use `?mapDirBaseUrl` to specify the base URL to fetch the files from index.
+
+- `?mapDirBaseUrl` - See above.
+
+<!-- - `?mapDirGuess=<base_url>` - Load the map from the provided URL and paths will be guessed with a few additional fetch requests. -->
 
 General:
 
@@ -163,3 +188,4 @@ General:
 ### Alternatives
 
 - [https://github.com/ClassiCube/ClassiCube](ClassiCube - Better C# Rewrite) [DEMO](https://www.classicube.net/server/play/?warned=true)
+- [https://m.eaglercraft.com/](EaglerCraft) - Eaglercraft runnable on mobile (real Minecraft in the browser)

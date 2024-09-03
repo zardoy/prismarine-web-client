@@ -20,6 +20,7 @@ interface Props {
   versionStatus?: string
   versionTitle?: string
   onVersionClick?: () => void
+  bottomRightLinks?: string
 }
 
 const httpsRegex = /^https?:\/\//
@@ -34,13 +35,21 @@ export default ({
   openFileAction,
   versionStatus,
   versionTitle,
-  onVersionClick
+  onVersionClick,
+  bottomRightLinks
 }: Props) => {
+  if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+  const linksParsed = bottomRightLinks?.split(/;|\n/g).map(l => {
+    const parts = l.split(':')
+    return [parts[0], parts.slice(1).join(':')]
+  }) as Array<[string, string]> | undefined
+
   return (
     <div className={styles.root}>
       <div className={styles['game-title']}>
         <div className={styles.minecraft}>
-          <div className={styles.edition}></div>
+          <div className={styles.edition} />
           <span className={styles.splash}>Prismarine is a beautiful block</span>
         </div>
       </div>
@@ -108,10 +117,24 @@ export default ({
           Prismarine Web Client {versionStatus}
         </span>
         <span className={styles['product-description']}>
-          <a style={{
-            color: 'lightgray',
-            fontSize: 9,
-          }} href='https://privacy.mcraft.fun'>Privacy Policy</a>
+          <div className={styles['product-link']}>
+            {linksParsed?.map(([name, link], i, arr) => {
+              if (!link.startsWith('http')) link = `https://${link}`
+              return <div style={{
+                color: 'lightgray',
+                fontSize: 8,
+              }}>
+                <a
+                  key={name}
+                  style={{
+                    whiteSpace: 'nowrap',
+                  }} href={link}
+                >{name}
+                </a>
+                {i < arr.length - 1 && <span style={{ marginLeft: 2 }}>·</span>}
+              </div>
+            })}
+          </div>
           <span>A Minecraft client in the browser!</span>
         </span>
       </div>

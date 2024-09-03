@@ -130,7 +130,7 @@ export default () => {
       <p>Prismarine Web Client ({bot.version})</p>
       <p>E: {entitiesCount}</p>
       <p>{dimension}</p>
-      <div className={styles.empty}></div>
+      <div className={styles.empty} />
       <p>XYZ: {pos.x.toFixed(3)} / {pos.y.toFixed(3)} / {pos.z.toFixed(3)}</p>
       <p>Chunk: {Math.floor(pos.x % 16)} ~ {Math.floor(pos.z % 16)} in {Math.floor(pos.x / 16)} ~ {Math.floor(pos.z / 16)}</p>
       <p>Packets: {packetsString}</p>
@@ -140,27 +140,25 @@ export default () => {
 
       <p>Biome: minecraft:{loadedData.biomesArray[biomeId]?.name ?? 'unknown biome'}</p>
       <p>Day: {day}</p>
-      <div className={styles.empty}></div>
+      <div className={styles.empty} />
       {Object.entries(customEntries.current).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
     </div>
 
     <div className={styles['debug-right-side']}>
       <p>Renderer: {rendererDevice} powered by three.js r{THREE.REVISION}</p>
-      <div className={styles.empty}></div>
+      <div className={styles.empty} />
       {cursorBlock ? (<>
         <p>{cursorBlock.name}</p>
         {
-          Object.entries(cursorBlock.getProperties()).map(
-            ([name, value], idx, arr) => {
-              return <p key={name}>
-                {name}: {
-                  typeof value === 'boolean' ? (
-                    <span style={{ color: value ? 'lightgreen' : 'red' }}>{value}</span>
-                  ) : value
-                }
-              </p>
-            }
-          )
+          Object.entries(cursorBlock.getProperties()).map(([name, value], idx, arr) => {
+            return <p key={name}>
+              {name}: {
+                typeof value === 'boolean' ? (
+                  <span style={{ color: value ? 'lightgreen' : 'red' }}>{String(value)}</span>
+                ) : value
+              }
+            </p>
+          })
         }
       </>)
         : ''}

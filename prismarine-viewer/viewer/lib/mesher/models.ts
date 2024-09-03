@@ -1,13 +1,12 @@
 import { Vec3 } from 'vec3'
-import { World, BlockModelPartsResolved } from './world'
-import { WorldBlock as Block } from './world'
-import legacyJson from '../../../../src/preflatMap.json'
 import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
+import legacyJson from '../../../../src/preflatMap.json'
+import { BlockType } from '../../../examples/shared'
+import { World, BlockModelPartsResolved, WorldBlock as Block } from './world'
 import { BlockElement, buildRotationMatrix, elemFaces, matmul3, matmulmat3, vecadd3, vecsub3 } from './modelsGeometryCommon'
+import { MesherGeometryOutput } from './shared'
 
 let blockProvider: WorldBlockProvider
-import { BlockType } from '../../../examples/shared'
-import { MesherGeometryOutput } from './shared'
 
 const tints: any = {}
 let needTiles = false
@@ -16,23 +15,14 @@ let tintsData
 try {
   tintsData = require('esbuild-data').tints
 } catch (err) {
-  tintsData = require("minecraft-data/minecraft-data/data/pc/1.16.2/tints.json")
+  tintsData = require('minecraft-data/minecraft-data/data/pc/1.16.2/tints.json')
 }
 for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
 }
 
-type TestTileData = {
-  block: string
-  faces: {
-    face: string
-    neighbor: string
-    light?: number
-  }[]
-}
-
 type Tiles = {
-  [blockPos: string]: BlockType & TestTileData
+  [blockPos: string]: BlockType
 }
 
 function prepareTints (tints) {
@@ -45,7 +35,7 @@ function prepareTints (tints) {
     }
   }
   return new Proxy(map, {
-    get: (target, key) => {
+    get (target, key) {
       return target.has(key) ? target.get(key) : defaultValue
     }
   })
@@ -93,7 +83,7 @@ export function preflatBlockCalculation (block: Block, world: World, position: V
     }
     case 'door': {
       // upper half matches lower in
-      const half = block.getProperties().half
+      const { half } = block.getProperties()
       if (half === 'upper') {
         // copy other properties
         const lower = world.getBlock(position.offset(0, -1, 0))
@@ -151,6 +141,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     Math.max(Math.max(heights[4], heights[5]), Math.max(heights[7], heights[8]))
   ]
 
+  // eslint-disable-next-line guard-for-in
   for (const face in elemFaces) {
     const { dir, corners } = elemFaces[face]
     const isUp = dir[1] === 1
@@ -180,21 +171,24 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
       tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
         face,
         neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+        side: 0, // todo
+        textureIndex: 0,
         // texture: eFace.texture.name,
       })
     }
 
-    const u = texture.u
-    const v = texture.v
-    const su = texture.su
-    const sv = texture.sv
+    const { u } = texture
+    const { v } = texture
+    const { su } = texture
+    const { sv } = texture
 
     for (const pos of corners) {
       const height = cornerHeights[pos[2] * 2 + pos[0]]
       attr.t_positions.push(
         (pos[0] ? 0.999 : 0.001) + (cursor.x & 15) - 8,
         (pos[1] ? height - 0.001 : 0.001) + (cursor.y & 15) - 8,
-        (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8)
+        (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8
+      )
       attr.t_normals.push(...dir)
       attr.t_uvs.push(pos[3] * su + u, pos[4] * sv * (pos[1] ? 1 : height) + v)
       attr.t_colors.push(tint[0], tint[1], tint[2])
@@ -208,8 +202,9 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
   // if (!globalThis.allowedBlocks.includes(key)) return
-  const cullIfIdentical = block.name.indexOf('glass') >= 0
+  const cullIfIdentical = block.name.includes('glass')
 
+  // eslint-disable-next-line guard-for-in
   for (const face in element.faces) {
     const eFace = element.faces[face]
     const { corners, mask1, mask2, side } = elemFaces[face]
@@ -234,10 +229,10 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     const maxz = element.to[2]
 
     const texture = eFace.texture as any
-    const u = texture.u
-    const v = texture.v
-    const su = texture.su
-    const sv = texture.sv
+    const { u } = texture
+    const { v } = texture
+    const { su } = texture
+    const { sv } = texture
 
     const ndx = Math.floor(attr.positions.length / 3)
 
@@ -259,7 +254,10 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     }
 
     // UV rotation
-    const r = eFace.rotation || 0
+    let r = eFace.rotation || 0
+    if (face === 'down') {
+      r += 180
+    }
     const uvcs = Math.cos(r * Math.PI / 180)
     const uvsn = -Math.sin(r * Math.PI / 180)
 
@@ -323,6 +321,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
         let cornerLightResult = 15
+        // eslint-disable-next-line no-constant-condition, sonarjs/no-gratuitous-expressions
         if (/* world.config.smoothLighting */false) { // todo fix
           const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
           const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
@@ -356,8 +355,9 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         block: block.name,
         faces: [],
       }
-      // TODO! only one face
-      if (tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.length < 1) {
+      const needsOnlyOneFace = true
+      const isTilesEmpty = tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.length < 1
+      if (isTilesEmpty || !needsOnlyOneFace) {
         tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
           face,
           side,
@@ -365,35 +365,34 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
           neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
           light: baseLight,
           tint: lightWithColor,
-          //@ts-ignore debug prop
+          //@ts-expect-error debug prop
           texture: eFace.texture.debugName || block.name,
-        } satisfies BlockType['faces'][number] & TestTileData['faces'][number] as any)
+        } satisfies BlockType['faces'][number])
       }
     }
 
     if (!needTiles) {
       if (doAO && aos[0] + aos[3] >= aos[1] + aos[2]) {
         attr.indices.push(
-          ndx, ndx + 3, ndx + 2,
-          ndx, ndx + 1, ndx + 3
+          ndx, ndx + 3, ndx + 2, ndx, ndx + 1, ndx + 3
         )
       } else {
         attr.indices.push(
-          ndx, ndx + 1, ndx + 2,
-          ndx + 2, ndx + 1, ndx + 3
+          ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3
         )
       }
     }
   }
 }
 
-const invisibleBlocks = ['air', 'cave_air', 'void_air', 'barrier']
+const invisibleBlocks = new Set(['air', 'cave_air', 'void_air', 'barrier'])
 
 const isBlockWaterlogged = (block: Block) => block.getProperties().waterlogged === true || block.getProperties().waterlogged === 'true'
 
 let unknownBlockModel: BlockModelPartsResolved
+let erroredBlockModel: BlockModelPartsResolved
 export function getSectionGeometry (sx, sy, sz, world: World) {
-  let delayedRender = [] as (() => void)[]
+  let delayedRender = [] as Array<() => void>
 
   const attr: MesherGeometryOutput = {
     sx: sx + 8,
@@ -411,7 +410,9 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     tiles: {},
     // todo this can be removed here
     signs: {},
-    isFull: true
+    // isFull: true,
+    highestBlocks: {},
+    hadErrors: false
   }
 
   const cursor = new Vec3(0, 0, 0)
@@ -419,15 +420,24 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
-        if (invisibleBlocks.includes(block.name)) continue
+        if (!invisibleBlocks.has(block.name)) {
+          const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
+          if (!highest || highest.y < cursor.y) {
+            attr.highestBlocks[`${cursor.x},${cursor.z}`] = {
+              y: cursor.y,
+              name: block.name
+            }
+          }
+        }
+        if (invisibleBlocks.has(block.name)) continue
         if (block.name.includes('_sign') || block.name === 'sign') {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
           const facingRotationMap = {
-            "north": 2,
-            "south": 0,
-            "west": 1,
-            "east": 3
+            'north': 2,
+            'south': 0,
+            'west': 1,
+            'east': 3
           }
           const isWall = block.name.endsWith('wall_sign') || block.name.endsWith('wall_hanging_sign')
           const isHanging = block.name.endsWith('hanging_sign')
@@ -457,15 +467,16 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         const isWaterlogged = isBlockWaterlogged(block)
         if (block.name === 'water' || isWaterlogged) {
           const pos = cursor.clone()
+          // eslint-disable-next-line @typescript-eslint/no-loop-func
           delayedRender.push(() => {
             renderLiquid(world, pos, blockProvider.getTextureInfo('water_still'), block.type, biome, true, attr)
           })
         } else if (block.name === 'lava') {
           renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr)
         }
-        if (block.name !== "water" && block.name !== "lava" && !invisibleBlocks.includes(block.name)) {
+        if (block.name !== 'water' && block.name !== 'lava' && !invisibleBlocks.has(block.name)) {
           // cache
-          let models = block.models
+          let { models } = block
           if (block.models === undefined) {
             try {
               models = blockProvider.getAllResolvedModels0_1({
@@ -474,7 +485,9 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
               })!
               if (!models.length) models = null
             } catch (err) {
+              models ??= erroredBlockModel
               console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(block.getProperties())}]: ` + err.message, err.stack)
+              attr.hadErrors = true
             }
           }
           block.models = models ?? null
@@ -495,9 +508,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             let globalMatrix = null as any
             let globalShift = null as any
             for (const axis of ['x', 'y', 'z'] as const) {
-              if (model[axis]) { // not 0
-                if (!globalMatrix) globalMatrix = buildRotationMatrix(axis, -(model[axis] ?? 0))
-                else globalMatrix = matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0)))
+              if (axis in model) {
+                globalMatrix = globalMatrix ?
+                  matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0))) :
+                  buildRotationMatrix(axis, -(model[axis] ?? 0))
               }
             }
             if (globalMatrix) {
@@ -531,11 +545,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   let ndx = attr.positions.length / 3
   for (let i = 0; i < attr.t_positions!.length / 12; i++) {
     attr.indices.push(
-      ndx, ndx + 1, ndx + 2,
-      ndx + 2, ndx + 1, ndx + 3,
+      ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3,
+      // eslint-disable-next-line @stylistic/function-call-argument-newline
       // back face
-      ndx, ndx + 2, ndx + 1,
-      ndx + 2, ndx + 3, ndx + 1
+      ndx, ndx + 2, ndx + 1, ndx + 2, ndx + 3, ndx + 1
     )
     ndx += 4
   }
@@ -570,6 +583,7 @@ export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTil
   globalThis.blockProvider = blockProvider
   if (useUnknownBlockModel) {
     unknownBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'unknown', properties: {} })
+    erroredBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'errored', properties: {} })
   }
 
   needTiles = _needTiles

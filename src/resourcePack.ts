@@ -1,20 +1,17 @@
 import { join, dirname, basename } from 'path'
 import fs from 'fs'
 import JSZip from 'jszip'
-import { proxy, ref } from 'valtio'
-import type { BlockStates } from './inventoryWindows'
-import { copyFilesAsync, copyFilesAsyncWithProgress, mkdirRecursive, removeFileRecursiveAsync } from './browserfs'
+import { proxy, subscribe } from 'valtio'
+import { mkdirRecursive, removeFileRecursiveAsync } from './browserfs'
 import { setLoadingScreenStatus } from './utils'
 import { showNotification } from './react/NotificationProvider'
 import { options } from './optionsStorage'
 import { showOptionsModal } from './react/SelectOption'
 import { appStatusState } from './react/AppStatusProvider'
-import { appReplacableResources } from './generated/resources'
+import { appReplacableResources, resourcesContentOriginal } from './generated/resources'
 
 export const resourcePackState = proxy({
   resourcePackInstalled: false,
-  currentTexturesDataUrl: undefined as string | undefined,
-  currentTexturesBlockStates: undefined as BlockStates | undefined,
 })
 
 const getLoadedImage = async (url: string) => {
@@ -111,9 +108,7 @@ export const completeTexturePackInstall = async (displayName: string, name: stri
   const basePath = texturePackBasePath2 + name
   await fs.promises.writeFile(join(basePath, 'name.txt'), displayName, 'utf8')
 
-  if (viewer?.world.active) {
-    await updateTextures()
-  }
+  await updateTextures()
   setLoadingScreenStatus(undefined)
   showNotification('Texturepack installed & enabled')
   await updateTexturePackInstalledState()
@@ -208,15 +203,13 @@ export const getResourcepackTiles = async (type: 'blocks' | 'items', existingTex
     // todo compare sizes from atlas
     firstTextureSize = await getSizeFromImage(`${firstImageFile}.png`)
   } catch (err) { }
-  const textures = Object.fromEntries(
-    await Promise.all(allInterestedImages.map(async (image) => {
-      const imagePath = `${image}.png`
-      const contents = await fs.promises.readFile(imagePath, 'base64')
-      const img = await getLoadedImage(`data:image/png;base64,${contents}`)
-      const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
-      return [imageRelative, img]
-    }))
-  )
+  const textures = Object.fromEntries(await Promise.all(allInterestedImages.map(async (image) => {
+    const imagePath = `${image}.png`
+    const contents = await fs.promises.readFile(imagePath, 'base64')
+    const img = await getLoadedImage(`data:image/png;base64,${contents}`)
+    const imageRelative = image.replace(`${texturesBasePath}/`, '').replace(`${texturesCommonBasePath}/`, '')
+    return [imageRelative, img]
+  })))
   return {
     firstTextureSize,
     textures
@@ -292,11 +285,15 @@ export const onAppLoad = () => {
       bot.acceptResourcePack()
     })
   })
+
+  subscribe(resourcePackState, () => {
+    if (!resourcePackState.resourcePackInstalled) return
+    void updateAllReplacableTextures()
+  })
 }
 
-const setOtherTexturesCss = async () => {
+const updateAllReplacableTextures = async () => {
   const basePath = await getActiveTexturepackBasePath()
-  // TODO! fallback to default
   const setCustomCss = async (path: string | null, varName: string, repeat = 1) => {
     if (path && await existsAsync(path)) {
       const contents = await fs.promises.readFile(path, 'base64')
@@ -306,10 +303,25 @@ const setOtherTexturesCss = async () => {
       document.body.style.setProperty(varName, '')
     }
   }
-  const vars = Object.values(appReplacableResources).filter(x => x.cssVar)
-  for (const { cssVar, cssVarRepeat, resourcePackPath } of vars) {
-    // eslint-disable-next-line no-await-in-loop
-    await setCustomCss(`${basePath}/assets/${resourcePackPath}`, cssVar!, cssVarRepeat ?? 1)
+  const setCustomPicture = async (key: string, path: string) => {
+    let contents = resourcesContentOriginal[key]
+    if (await existsAsync(path)) {
+      const file = await fs.promises.readFile(path, 'base64')
+      const dataUrl = `data:image/png;base64,${file}`
+      contents = dataUrl
+    }
+    appReplacableResources[key].content = contents
+  }
+  const vars = Object.entries(appReplacableResources).filter(([, x]) => x.cssVar)
+  for (const [key, { cssVar, cssVarRepeat, resourcePackPath }] of vars) {
+    const resPath = `${basePath}/assets/${resourcePackPath}`
+    if (cssVar) {
+      // eslint-disable-next-line no-await-in-loop
+      await setCustomCss(resPath, cssVar, cssVarRepeat ?? 1)
+    } else {
+      // eslint-disable-next-line no-await-in-loop
+      await setCustomPicture(key, resPath)
+    }
   }
 }
 
@@ -320,7 +332,7 @@ const updateTextures = async () => {
   const itemsFiles = Object.keys(viewer.world.itemsAtlases.latest.textures)
   const blocksData = await getResourcepackTiles('blocks', blocksFiles)
   const itemsData = await getResourcepackTiles('items', itemsFiles)
-  await setOtherTexturesCss()
+  await updateAllReplacableTextures()
   await prepareBlockstatesAndModels()
   viewer.world.customTextures = {}
   if (blocksData) {
@@ -340,6 +352,6 @@ const updateTextures = async () => {
   }
 }
 
-export const resourcepackOnWorldLoad = async (version) => {
+export const resourcepackReload = async (version) => {
   await updateTextures()
 }

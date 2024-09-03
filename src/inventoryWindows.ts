@@ -1,60 +1,29 @@
 import { proxy, subscribe } from 'valtio'
 import { showInventory } from 'minecraft-inventory-gui/web/ext.mjs'
-import InventoryGui from 'mc-assets/dist/other-textures/latest/gui/container/inventory.png'
-import ChestLikeGui from 'mc-assets/dist/other-textures/latest/gui/container/shulker_box.png'
-import LargeChestLikeGui from 'mc-assets/dist/other-textures/latest/gui/container/generic_54.png'
-import FurnaceGui from 'mc-assets/dist/other-textures/latest/gui/container/furnace.png'
-import CraftingTableGui from 'mc-assets/dist/other-textures/latest/gui/container/crafting_table.png'
-import DispenserGui from 'mc-assets/dist/other-textures/latest/gui/container/dispenser.png'
-import HopperGui from 'mc-assets/dist/other-textures/latest/gui/container/hopper.png'
-import HorseGui from 'mc-assets/dist/other-textures/latest/gui/container/horse.png'
-import VillagerGui from 'mc-assets/dist/other-textures/latest/gui/container/villager2.png'
-import EnchantingGui from 'mc-assets/dist/other-textures/latest/gui/container/enchanting_table.png'
-import AnvilGui from 'mc-assets/dist/other-textures/latest/gui/container/anvil.png'
-import BeaconGui from 'mc-assets/dist/other-textures/latest/gui/container/beacon.png'
-import WidgetsGui from 'mc-assets/dist/other-textures/latest/gui/widgets.png'
 
 // import Dirt from 'mc-assets/dist/other-textures/latest/blocks/dirt.png'
 import { RecipeItem } from 'minecraft-data'
-import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
-import _itemsAtlases from 'prismarine-viewer/public/textures/items.json'
-import { flat } from '@xmcl/text-component'
+import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import nbt from 'prismarine-nbt'
 import { splitEvery, equals } from 'rambda'
 import PItem, { Item } from 'prismarine-item'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
+import { getRenamedData } from 'flying-squid/dist/blockRenames'
 import Generic95 from '../assets/generic_95.png'
+import { appReplacableResources } from './generated/resources'
 import { activeModalStack, hideCurrentModal, hideModal, miscUiState, showModal } from './globalState'
-import invspriteJson from './invsprite.json'
 import { options } from './optionsStorage'
 import { assertDefined, inGameError } from './utils'
 import { MessageFormatPart } from './botUtils'
 import { currentScaling } from './scaleInterface'
-import { descriptionGenerators, getItemDescription } from './itemsDescriptions'
+import { getItemDescription } from './itemsDescriptions'
 
 const loadedImagesCache = new Map<string, HTMLImageElement>()
 const cleanLoadedImagesCache = () => {
   loadedImagesCache.delete('blocks')
 }
-export type BlockStates = Record<string, null | {
-  variants: Record<string, {
-    model: {
-      elements: [{
-        faces: {
-          [face: string]: {
-            texture: {
-              u
-              v
-              su
-              sv
-            }
-          }
-        }
-      }]
-    }
-  }>
-}>
 
 let lastWindow: ReturnType<typeof showInventory>
 /** bot version */
@@ -72,7 +41,7 @@ export const onGameLoad = (onLoad) => {
 
   const checkIfLoaded = () => {
     if (!viewer.world.itemsAtlasParser) return
-    itemsRenderer = new ItemsRenderer('latest', viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
+    itemsRenderer = new ItemsRenderer(bot.version, viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
     globalThis.itemsRenderer = itemsRenderer
     if (allImagesLoadedState.value) return
     onLoad?.()
@@ -100,11 +69,12 @@ export const onGameLoad = (onLoad) => {
     }
   })
 
+  // workaround: singleplayer player inventory crafting
   bot.inventory.on('updateSlot', ((_oldSlot, oldItem, newItem) => {
-    const oldSlot = _oldSlot as number
+    const currentSlot = _oldSlot as number
     if (!miscUiState.singleplayer) return
     const { craftingResultSlot } = bot.inventory
-    if (oldSlot === craftingResultSlot && oldItem && !newItem) {
+    if (currentSlot === craftingResultSlot && oldItem && !newItem) {
       for (let i = 1; i < 5; i++) {
         const count = bot.inventory.slots[i]?.count
         if (count && count > 1) {
@@ -117,9 +87,15 @@ export const onGameLoad = (onLoad) => {
       }
       return
     }
+    if (currentSlot > 4) return
     const craftingSlots = bot.inventory.slots.slice(1, 5)
-    const resultingItem = getResultingRecipe(craftingSlots, 2)
-    void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
+    try {
+      const resultingItem = getResultingRecipe(craftingSlots, 2)
+      void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
+    } catch (err) {
+      console.error(err)
+      // todo resolve the error! and why would we ever get here on every update?
+    }
   }) as any)
 
   bot.on('windowClose', () => {
@@ -143,22 +119,22 @@ export const onGameLoad = (onLoad) => {
 const getImageSrc = (path): string | HTMLImageElement => {
   assertDefined(viewer)
   switch (path) {
-    case 'gui/container/inventory': return InventoryGui
+    case 'gui/container/inventory': return appReplacableResources.latest_gui_container_inventory.content
     case 'blocks': return viewer.world.blocksAtlasParser!.latestImage
     case 'items': return viewer.world.itemsAtlasParser!.latestImage
-    case 'gui/container/dispenser': return DispenserGui
-    case 'gui/container/furnace': return FurnaceGui
-    case 'gui/container/crafting_table': return CraftingTableGui
-    case 'gui/container/shulker_box': return ChestLikeGui
-    case 'gui/container/generic_54': return LargeChestLikeGui
+    case 'gui/container/dispenser': return appReplacableResources.latest_gui_container_dispenser.content
+    case 'gui/container/furnace': return appReplacableResources.latest_gui_container_furnace.content
+    case 'gui/container/crafting_table': return appReplacableResources.latest_gui_container_crafting_table.content
+    case 'gui/container/shulker_box': return appReplacableResources.latest_gui_container_shulker_box.content
+    case 'gui/container/generic_54': return appReplacableResources.latest_gui_container_generic_54.content
     case 'gui/container/generic_95': return Generic95
-    case 'gui/container/hopper': return HopperGui
-    case 'gui/container/horse': return HorseGui
-    case 'gui/container/villager2': return VillagerGui
-    case 'gui/container/enchanting_table': return EnchantingGui
-    case 'gui/container/anvil': return AnvilGui
-    case 'gui/container/beacon': return BeaconGui
-    case 'gui/widgets': return WidgetsGui
+    case 'gui/container/hopper': return appReplacableResources.latest_gui_container_hopper.content
+    case 'gui/container/horse': return appReplacableResources.latest_gui_container_horse.content
+    case 'gui/container/villager2': return appReplacableResources.latest_gui_container_villager2.content
+    case 'gui/container/enchanting_table': return appReplacableResources.latest_gui_container_enchanting_table.content
+    case 'gui/container/anvil': return appReplacableResources.latest_gui_container_anvil.content
+    case 'gui/container/beacon': return appReplacableResources.latest_gui_container_beacon.content
+    case 'gui/widgets': return appReplacableResources.other_textures_latest_gui_widgets.content
   }
   // empty texture
   return 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
@@ -191,14 +167,21 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): {
   scale?: number,
   slice?: number[]
 } | undefined => {
-  const itemName = slot.name
+  let itemName = slot.name
   const isItem = loadedData.itemsByName[itemName]
 
-  const itemTexture = itemsRenderer.getItemTexture(itemName) ?? itemsRenderer.getItemTexture('item/missing_texture')!
+  let itemTexture
+  try {
+    if (versionToNumber(bot.version) < versionToNumber('1.13')) itemName = getRenamedData(isItem ? 'items' : 'blocks', itemName, bot.version, '1.13.1') as string
+    itemTexture = itemsRenderer.getItemTexture(itemName) ?? itemsRenderer.getItemTexture('item/missing_texture')!
+  } catch (err) {
+    itemTexture = itemsRenderer.getItemTexture('block/errored')!
+    inGameError(`Failed to render item ${itemName} on ${bot.version} (resourcepack: ${options.enabledResourcepack}): ${err.message}`)
+  }
   if ('type' in itemTexture) {
     // is item
     return {
-      texture: 'items',
+      texture: itemTexture.type,
       slice: itemTexture.slice
     }
   } else {
@@ -382,6 +365,8 @@ const openWindow = (type: string | undefined) => {
   })
   cleanLoadedImagesCache()
   const inv = openItemsCanvas(type)
+  inv.canvasManager.children[0].mobileHelpers = miscUiState.currentTouch
+  inv.canvasManager.children[0].customTitleText = bot.currentWindow?.title ? fromFormattedString(bot.currentWindow.title).text : undefined
   // todo
   inv.canvasManager.setScale(currentScaling.scale === 1 ? 1.5 : currentScaling.scale)
   inv.canvas.style.zIndex = '10'
@@ -511,7 +496,7 @@ const getResultingRecipe = (slots: Array<Item | null>, gridRows: number) => {
   return item
 }
 
-const ingredientToItem = (recipeItem) => recipeItem === null ? null : new PrismarineItem(recipeItem, 1)
+const ingredientToItem = (recipeItem) => (recipeItem === null ? null : new PrismarineItem(recipeItem, 1))
 
 const getAllItemRecipes = (itemName: string) => {
   const item = loadedData.itemsByName[itemName]

@@ -1,17 +1,23 @@
-export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult }) => {
-  let onMsaCodeCallback
-  // const authEndpoint = 'http://localhost:3000/'
-  // const sessionEndpoint = 'http://localhost:3000/session'
-  let authEndpoint = ''
-  let sessionEndpoint = ''
+export const getProxyDetails = async (proxyBaseUrl: string) => {
   if (!proxyBaseUrl.startsWith('http')) proxyBaseUrl = `${isPageSecure() ? 'https' : 'http'}://${proxyBaseUrl}`
-  const url = proxyBaseUrl + '/api/vm/net/connect'
+  const url = `${proxyBaseUrl}/api/vm/net/connect`
   let result: Response
   try {
     result = await fetch(url)
   } catch (err) {
     throw new Error(`Selected proxy server ${proxyBaseUrl} most likely is down`)
   }
+  return result
+}
+
+export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult, connectingServer }) => {
+  let onMsaCodeCallback
+  // const authEndpoint = 'http://localhost:3000/'
+  // const sessionEndpoint = 'http://localhost:3000/session'
+  let authEndpoint: URL | undefined
+  let sessionEndpoint: URL | undefined
+  const result = await getProxyDetails(proxyBaseUrl)
+
   try {
     const json = await result.json()
     authEndpoint = urlWithBase(json.capabilities.authEndpoint, proxyBaseUrl)
@@ -23,7 +29,6 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
   }
   const authFlow = {
     async getMinecraftJavaToken () {
-
       setProgressText('Authenticating with Microsoft account')
       let result = null
       await fetch(authEndpoint, {
@@ -31,10 +36,14 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(tokenCaches),
+        body: JSON.stringify({
+          ...tokenCaches,
+          // important to set this param and not fake it as auth server might reject the request otherwise
+          connectingServer
+        }),
       }).then(async response => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}: ${await response.text()}`)
+          throw new Error(`Auth server error (${response.status}): ${await response.text()}`)
         }
 
         const reader = response.body!.getReader()
@@ -152,8 +161,9 @@ function pemToArrayBuffer (pem) {
 }
 
 const urlWithBase = (url: string, base: string) => {
+  if (!base.startsWith('http')) base = `https://${base}`
   const urlObj = new URL(url, base)
   base = base.replace(/^https?:\/\//, '')
   urlObj.host = base.includes(':') ? base : `${base}:${isPageSecure() ? '443' : '80'}`
-  return urlObj.toString()
+  return urlObj
 }

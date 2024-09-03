@@ -35,7 +35,7 @@ jobs:
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - run: pnpm build-storybook
       - name: Copy playground files
-        run: node prismarine-viewer/esbuild.mjs && cp prismarine-viewer/public/index.html .vercel/output/static/playground.html && cp prismarine-viewer/public/playground.js .vercel/output/static/playground.js
+        run: pnpm build-playground && cp prismarine-viewer/public/index.html .vercel/output/static/playground.html && cp prismarine-viewer/public/playground.js .vercel/output/static/playground.js
       - name: Download Generated Sounds map
         run: node scripts/downloadSoundsMap.mjs
       - name: Deploy Project Artifacts to Vercel

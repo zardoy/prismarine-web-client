@@ -5,7 +5,7 @@ import './globals'
 import './devtools'
 import './entities'
 import './globalDomListeners'
-import initCollisionShapes from './getCollisionShapes'
+import initCollisionShapes from './getCollisionInteractionShapes'
 import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
@@ -15,7 +15,6 @@ import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
 
 import './scaleInterface'
-import itemsPng from 'prismarine-viewer/public/textures/items.png'
 import { initWithRenderer } from './topRightStats'
 import PrismarineBlock from 'prismarine-block'
 import PrismarineItem from 'prismarine-item'
@@ -25,7 +24,7 @@ import './reactUi'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
-import { watchOptionsAfterViewerInit } from './watchOptions'
+import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
 import fs from 'fs'
@@ -72,7 +71,7 @@ import { startLocalServer, unsupportedLocalServerFeatures } from './createLocalS
 import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
-import { onAppLoad, resourcepackOnWorldLoad } from './resourcePack'
+import { onAppLoad, resourcepackReload } from './resourcePack'
 import { connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
@@ -83,7 +82,7 @@ import { fsState } from './loadSave'
 import { watchFov } from './rendererUtils'
 import { loadInMemorySave } from './react/SingleplayerProvider'
 
-import { downloadSoundsIfNeeded, earlyCheck as earlySoundsMapCheck } from './soundSystem'
+import { downloadSoundsIfNeeded } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
@@ -102,9 +101,9 @@ import packetsPatcher from './packetsPatcher'
 import { initWebgpuRenderer } from 'prismarine-viewer/examples/webgpuRendererMain'
 import { addNewStat } from 'prismarine-viewer/examples/newStats'
 // import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
-import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
+import './mobileShim'
 
 window.debug = debug
 window.THREE = THREE
@@ -384,6 +383,7 @@ async function connect (connectOptions: ConnectOptions) {
   try {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
+    window._LOAD_MC_DATA() // start loading data (if not loaded yet)
     const downloadMcData = async (version: string) => {
       if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
         // todo support it (just need to fix .export crash)
@@ -396,16 +396,16 @@ async function connect (connectOptions: ConnectOptions) {
         // ignore cache hit
         versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
       }
+      setLoadingScreenStatus(`Loading data for ${version}`)
       if (!document.fonts.check('1em mojangles')) {
         // todo instead re-render signs on load
         await document.fonts.load('1em mojangles').catch(() => { })
       }
-      setLoadingScreenStatus(`Downloading data for ${version}`)
+      await window._MC_DATA_RESOLVER.promise // ensure data is loaded
       await downloadSoundsIfNeeded()
-      await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       miscUiState.loadedDataVersion = version
       try {
-        await resourcepackOnWorldLoad(version)
+        await resourcepackReload(version)
       } catch (err) {
         console.error(err)
         const doContinue = confirm('Failed to apply texture pack. See errors in the console. Continue?')
@@ -413,7 +413,7 @@ async function connect (connectOptions: ConnectOptions) {
           throw err
         }
       }
-      viewer.world.blockstatesModels = blockstatesModels
+      viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
       viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
     }
 
@@ -481,6 +481,7 @@ async function connect (connectOptions: ConnectOptions) {
       setCacheResult (result) {
         newTokensCacheResult = result
       },
+      connectingServer: server.host
     }) : undefined
 
     bot = mineflayer.createBot({
@@ -503,7 +504,7 @@ async function connect (connectOptions: ConnectOptions) {
         signInMessageState.link = data.verification_uri
         signInMessageState.expiresOn = Date.now() + data.expires_in * 1000
       },
-      sessionServer: authData?.sessionEndpoint,
+      sessionServer: authData?.sessionEndpoint?.toString(),
       auth: connectOptions.authenticatedAccount ? async (client, options) => {
         authData!.setOnMsaCodeCallback(options.onMsaCode)
         //@ts-expect-error
@@ -559,7 +560,6 @@ async function connect (connectOptions: ConnectOptions) {
       // "mapDownloader-saveInternal": false, // do not save into memory, todo must be implemeneted as we do really care of ram
     }) as unknown as typeof __type_bot
     window.bot = bot
-    earlySoundsMapCheck()
     customEvents.emit('mineflayerBotCreated')
     if (singleplayer || p2pMultiplayer) {
       // in case of p2pMultiplayer there is still flying-squid on the host side
@@ -699,6 +699,7 @@ async function connect (connectOptions: ConnectOptions) {
     const center = bot.entity.position
 
     const worldView = window.worldView = new WorldDataEmitter(bot.world, renderDistance, center)
+    watchOptionsAfterWorldViewInit()
 
     bot.on('physicsTick', () => updateCursor())
 
@@ -901,6 +902,10 @@ async function connect (connectOptions: ConnectOptions) {
       document.dispatchEvent(new Event('cypress-world-ready'))
     })
   })
+
+  if (singleplayer && connectOptions.serverOverrides.worldFolder) {
+    fsState.saveLoaded = true
+  }
 
   if (!connectOptions.ignoreQs) {
     // todo cleanup

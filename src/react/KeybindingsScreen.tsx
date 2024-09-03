@@ -16,25 +16,21 @@ type HandleClick = (group: string, action: string, index: number, type: string |
 
 type setBinding = (data: any, group: string, command: string, buttonIndex: number) => void
 
-export const Context = createContext(
-  {
-    isPS: false as boolean | undefined,
-    userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
-    setUserConfig (config) { },
-    handleClick: (() => { }) as HandleClick,
-    bindsMap: { keyboard: {} as any, gamepad: {} as any }
-  }
-)
+export const Context = createContext({
+  isPS: false as boolean | undefined,
+  userConfig: controEx?.userConfig ?? {} as UserOverridesConfig | undefined,
+  setUserConfig (config) { },
+  handleClick: (() => { }) as HandleClick,
+  bindsMap: { keyboard: {} as any, gamepad: {} as any }
+})
 
-export default (
-  {
-    contro,
-    isPS,
-  }: {
-    contro: typeof controEx,
-    isPS?: boolean
-  }
-) => {
+export default ({
+  contro,
+  isPS,
+}: {
+  contro: typeof controEx,
+  isPS?: boolean
+}) => {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const bindsMap = useRef({ keyboard: {} as any, gamepad: {} as any })
   const { commands } = contro.inputSchema
@@ -107,9 +103,7 @@ export default (
         setAwaitingInputType(null)
         return
       }
-      const pressedModifiers = [...contro.pressedKeys].filter(
-        key => /^(Meta|Control|Alt|Shift)?$/.test(key)
-      )
+      const pressedModifiers = [...contro.pressedKeys].filter(key => /^(Meta|Control|Alt|Shift)?$/.test(key))
       setBinding(
         { code: pressedModifiers.length ? `${pressedModifiers[0]}+${data.code}` : data.code, state: true },
         groupName,
@@ -184,16 +178,19 @@ export default (
     setUserConfig,
     handleClick,
     bindsMap: bindsMap.current
-  }}>
+  }}
+  >
     <Screen title="Keybindings" backdrop>
       {awaitingInputType && <AwaitingInputOverlay isGamepad={awaitingInputType === 'gamepad'} />}
-      <div className={styles.container}
+      <div
+        className={styles.container}
         ref={containerRef}
       >
         <Button
           onClick={() => { hideModal() }}
           style={{ alignSelf: 'center' }}
-        >Back</Button>
+        >Back
+        </Button>
 
         {Object.entries(commands).map(([group, actions], index) => {
           if (group === 'custom') return null
@@ -204,7 +201,8 @@ export default (
                 color: 'rgba(255, 255, 255, 0.7)',
                 fontSize: '6px',
                 textAlign: 'center'
-              }}>
+              }}
+              >
                 Note: Left, right and middle click keybindings are hardcoded and cannot be changed currently.
               </div>
             ) : null}
@@ -227,7 +225,7 @@ export default (
                   group={group}
                   action={action}
                   index={index}
-                  inputType={'keyboard'}
+                  inputType="keyboard"
                   keys={keys}
                   gamepad={gamepad}
                 />)}
@@ -250,7 +248,7 @@ export default (
                   group={group}
                   action={action}
                   index={0}
-                  inputType={'gamepad'}
+                  inputType="gamepad"
                   keys={keys}
                   gamepad={gamepad}
                 />
@@ -304,19 +302,15 @@ export const ButtonWithMatchesAlert = ({
     >
       <Keybinding type={inputType} val={buttonSign as AllKeyCodes} />
     </Button>
-    {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(
-      key => Object.keys(bindsMap[inputType]).includes(key)
-        && bindsMap[inputType][key].length > 1
-        && bindsMap[inputType][key].some(
-          prop => prop.index === index
-            && prop.group === group
-            && prop.action === action
-        )
-    ) ? (
+    {userConfig?.[group]?.[action]?.[inputType === 'keyboard' ? 'keys' : 'gamepad']?.some(key => Object.keys(bindsMap[inputType]).includes(key)
+    && bindsMap[inputType][key].length > 1
+    && bindsMap[inputType][key].some(prop => prop.index === index
+    && prop.group === group
+    && prop.action === action)) ? (
       //@ts-format-ignore-region
         <div id={`bind-warning-${group}-${action}-${inputType}-${index}`} className={styles['matched-bind-warning']}>
           <PixelartIcon
-            iconName={'alert'}
+            iconName="alert"
             width={5}
             styles={{
               display: 'flex',
@@ -326,13 +320,12 @@ export const ButtonWithMatchesAlert = ({
             }}
           />
           <div>
-          This bind is already in use. <span></span>
+            This bind is already in use. <span />
           </div>
         </div>
       )
       //@ts-format-ignore-endregion
-      : null
-    }
+      : null}
   </div>
 }
 

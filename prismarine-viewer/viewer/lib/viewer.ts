@@ -1,16 +1,15 @@
+import EventEmitter from 'events'
 import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import { WorldRendererWebgpu } from './worldrendererWebgpu'
+import { generateSpiralMatrix } from 'flying-squid/dist/utils'
+import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
-import EventEmitter from 'events'
-import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { defaultWorldRendererConfig } from './worldrendererCommon'
 import { sendCameraToWorker } from '../../examples/webgpuRendererMain'
 import { WorldRendererThree } from './worldrendererThree'
-import { versionToNumber } from '../prepare/utils'
-import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
-import { renderBlockThree } from './mesher/standaloneRenderer'
+import { getThreeBlockModelGroup, renderBlockThree, setBlockPosition } from './mesher/standaloneRenderer'
 
 export class Viewer {
   scene: THREE.Scene
@@ -84,7 +83,7 @@ export class Viewer {
 
   setVersion (userVersion: string, texturesVersion = userVersion) {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
-    this.world.setVersion(userVersion, texturesVersion).then(() => {
+    void this.world.setVersion(userVersion, texturesVersion).then(async () => {
       return new THREE.TextureLoader().loadAsync(this.world.itemsAtlasParser!.latestImage)
     }).then((texture) => {
       this.entities.itemsTexture = texture
@@ -106,19 +105,33 @@ export class Viewer {
   }
 
   demoModel () {
+    //@ts-expect-error
+    const pos = cursorBlockRel(0, 1, 0).position
     const blockProvider = worldBlockProvider(this.world.blockstatesModels, this.world.blocksAtlases, 'latest')
     const models = blockProvider.getAllResolvedModels0_1({
-      name: 'item_frame',
+      name: 'furnace',
       properties: {
-        map: false
+        // map: false
       }
-    })
-    const geometry = renderBlockThree(models, undefined, 'plains', loadedData)
-    const material = this.world.material
-    // block material
-    const mesh = new THREE.Mesh(geometry, material)
-    mesh.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z)
-    const helper = new THREE.BoxHelper(mesh, 0xffff00)
+    }, true)
+    const { material } = this.world
+    const mesh = getThreeBlockModelGroup(material, models, undefined, 'plains', loadedData)
+    // mesh.rotation.y = THREE.MathUtils.degToRad(90)
+    setBlockPosition(mesh, pos)
+    const helper = new THREE.BoxHelper(mesh, 0xff_ff_00)
+    mesh.add(helper)
+    this.scene.add(mesh)
+  }
+
+  demoItem () {
+    //@ts-expect-error
+    const pos = cursorBlockRel(0, 1, 0).position
+    const { mesh } = this.entities.getItemMesh({
+      itemId: 541,
+    })!
+    mesh.position.set(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5)
+    // mesh.scale.set(0.5, 0.5, 0.5)
+    const helper = new THREE.BoxHelper(mesh, 0xff_ff_00)
     mesh.add(helper)
     this.scene.add(mesh)
   }
@@ -156,8 +169,8 @@ export class Viewer {
     const sound = new THREE.PositionalAudio(this.audioListener)
 
     const audioLoader = new THREE.AudioLoader()
-    let start = Date.now()
-    audioLoader.loadAsync(path).then((buffer) => {
+    const start = Date.now()
+    void audioLoader.loadAsync(path).then((buffer) => {
       if (Date.now() - start > 500) return
       // play
       sound.setBuffer(buffer)
@@ -176,6 +189,8 @@ export class Viewer {
     })
   }
 
+  addChunksBatchWaitTime = 200
+
   // todo type
   listen (emitter: EventEmitter) {
     emitter.on('entity', (e) => {
@@ -186,9 +201,26 @@ export class Viewer {
       // this.updatePrimitive(p)
     })
 
+    let currentLoadChunkBatch = null as {
+      timeout
+      data
+    } | null
     emitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
       this.world.worldConfig = worldConfig
-      this.addColumn(x, z, chunk, isLightUpdate)
+      if (!currentLoadChunkBatch) {
+        // add a setting to use debounce instead
+        currentLoadChunkBatch = {
+          data: [],
+          timeout: setTimeout(() => {
+            for (const args of currentLoadChunkBatch!.data) {
+              //@ts-expect-error
+              this.addColumn(...args)
+            }
+            currentLoadChunkBatch = null
+          }, this.addChunksBatchWaitTime)
+        }
+      }
+      currentLoadChunkBatch.data.push([x, z, chunk, isLightUpdate])
     })
     // todo remove and use other architecture instead so data flow is clear
     emitter.on('blockEntities', (blockEntities) => {
@@ -231,14 +263,14 @@ export class Viewer {
       this.world.timeUpdated?.(timeOfDay)
 
       let skyLight = 15
-      if (timeOfDay < 0 || timeOfDay > 24000) {
-        throw new Error("Invalid time of day. It should be between 0 and 24000.")
-      } else if (timeOfDay <= 6000 || timeOfDay >= 18000) {
+      if (timeOfDay < 0 || timeOfDay > 24_000) {
+        throw new Error('Invalid time of day. It should be between 0 and 24000.')
+      } else if (timeOfDay <= 6000 || timeOfDay >= 18_000) {
         skyLight = 15
-      } else if (timeOfDay > 6000 && timeOfDay < 12000) {
+      } else if (timeOfDay > 6000 && timeOfDay < 12_000) {
         skyLight = 15 - ((timeOfDay - 6000) / 6000) * 15
-      } else if (timeOfDay >= 12000 && timeOfDay < 18000) {
-        skyLight = ((timeOfDay - 12000) / 6000) * 15
+      } else if (timeOfDay >= 12_000 && timeOfDay < 18_000) {
+        skyLight = ((timeOfDay - 12_000) / 6000) * 15
       }
 
       skyLight = Math.floor(skyLight) // todo: remove this after optimization

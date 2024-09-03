@@ -7,6 +7,7 @@ export const disposeObject = (obj: THREE.Object3D) => {
     obj.material?.dispose?.()
   }
   if (obj.children) {
+    // eslint-disable-next-line unicorn/no-array-for-each
     obj.children.forEach(disposeObject)
   }
 }

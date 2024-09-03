@@ -1,29 +1,32 @@
 import _ from 'lodash'
-import { WorldDataEmitter, Viewer } from '../viewer'
 import { Vec3 } from 'vec3'
 import BlockLoader from 'prismarine-block'
 import ChunkLoader from 'prismarine-chunk'
 import WorldLoader from 'prismarine-world'
 import * as THREE from 'three'
 import { GUI } from 'lil-gui'
-import { loadScript } from '../viewer/lib/utils'
 import JSZip from 'jszip'
-import { TWEEN_DURATION } from '../viewer/lib/entities'
-import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
 import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 // import * as Mathgl from 'math.gl'
 import { initWebgpuRenderer, loadFixtureSides, setAnimationTick, webgpuChannel } from './webgpuRendererMain'
 import { renderToDom } from '@zardoy/react-util'
 
-globalThis.THREE = THREE
-//@ts-ignore
+//@ts-expect-error
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { IndexedData } from 'minecraft-data'
+import { loadScript } from '../viewer/lib/utils'
+import { TWEEN_DURATION } from '../viewer/lib/entities'
+import { EntityMesh } from '../viewer/lib/entity/EntityMesh'
+import { WorldDataEmitter, Viewer } from '../viewer'
+import '../../src/getCollisionShapes'
 import { toMajorVersion } from '../../src/utils'
 import { renderPlayground } from './TouchControls2'
 import { WorldRendererWebgpu } from '../viewer/lib/worldrendererWebgpu'
 import { TextureAnimation } from './TextureAnimation'
 import { BlockType } from './shared'
 import { addNewStat } from './newStats'
+
+window.THREE = THREE
 
 const gui = new GUI()
 const { updateText: updateTextEvent } = addNewStat('events', 90, 0, 40)
@@ -54,18 +57,17 @@ const params = {
 }
 
 const qs = new URLSearchParams(window.location.search)
-qs.forEach((value, key) => {
-  const parsed = value.match(/^-?\d+$/) ? parseInt(value) : value === 'true' ? true : value === 'false' ? false : value
+for (const [key, value] of qs.entries()) {
+  const parsed = /^-?\d+$/.test(value) ? Number(value) : value === 'true' ? true : value === 'false' ? false : value
   params[key] = parsed
-})
+}
 const setQs = () => {
   const newQs = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
     if (!value || typeof value === 'function' || params.skipQs.includes(key)) continue
-    //@ts-ignore
     newQs.set(key, value)
   }
-  window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
+  window.history.replaceState({}, '', `${window.location.pathname}?${newQs.toString()}`)
 }
 
 let ignoreResize = false
@@ -75,7 +77,6 @@ const enableControls = new URLSearchParams(window.location.search).get('controls
 async function main () {
   let continuousRender = false
 
-  // const { version } = params
   let fixtureUrl = qs.get('fixture')
   let fixture: undefined | Record<string, any>
   if (fixtureUrl) {
@@ -83,24 +84,24 @@ async function main () {
     fixture = await fetch(fixtureUrl).then(r => r.json())
     console.log('Loaded fixture')
   }
-  const version = fixture?.version ?? '1.20.2'
+  const { version } = params
+  await window._LOAD_MC_DATA()
   // temporary solution until web worker is here, cache data for faster reloads
-  const globalMcData = window['mcData']
-  if (!globalMcData['version']) {
-    const major = toMajorVersion(version)
-    const sessionKey = `mcData-${major}`
-    if (sessionStorage[sessionKey]) {
-      Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))
-    } else {
-      if (sessionStorage.length > 1) sessionStorage.clear()
-      await loadScript(`./mc-data/${major}.js`)
-      try {
-        sessionStorage[sessionKey] = JSON.stringify(Object.fromEntries(Object.entries(globalMcData).filter(([ver]) => ver.startsWith(major))))
-      } catch { }
-    }
-  }
+  // const globalMcData = window['mcData']
+  // if (!globalMcData['version']) {
+  //   const major = toMajorVersion(version)
+  //   const sessionKey = `mcData-${major}`
+  //   if (sessionStorage[sessionKey]) {
+  //     Object.assign(globalMcData, JSON.parse(sessionStorage[sessionKey]))
+  //   } else {
+  //     if (sessionStorage.length > 1) sessionStorage.clear()
+  //     try {
+  //       sessionStorage[sessionKey] = JSON.stringify(Object.fromEntries(Object.entries(globalMcData).filter(([ver]) => ver.startsWith(major))))
+  //     } catch { }
+  //   }
+  // }
 
-  const mcData = require('minecraft-data')(version)
+  const mcData: IndexedData = require('minecraft-data')(version)
   window['loadedData'] = mcData
 
   gui.add(params, 'version', globalThis.includedVersions)
@@ -131,17 +132,17 @@ async function main () {
 
   // const diamondSquare = require('diamond-square')({ version, seed: Math.floor(Math.random() * Math.pow(2, 31)) })
 
-  //@ts-ignore
+  //@ts-expect-error
   const chunk1 = new Chunk()
-  //@ts-ignore
+  //@ts-expect-error
   const chunk2 = new Chunk()
   chunk1.setBlockStateId(targetPos, 34)
   chunk2.setBlockStateId(targetPos.offset(1, 0, 0), 34)
-  //@ts-ignore
+  //@ts-expect-error
   const world = new World((chunkX, chunkZ) => {
     // if (chunkX === 0 && chunkZ === 0) return chunk1
     // if (chunkX === 1 && chunkZ === 0) return chunk2
-    //@ts-ignore
+    //@ts-expect-error
     const chunk = new Chunk()
     return chunk
   })
@@ -158,7 +159,7 @@ async function main () {
   viewer.entities.setDebugMode('basic')
   viewer.world.stopBlockUpdate = stopUpdate
   viewer.setVersion(version)
-  globalThis.viewer = viewer
+  window.viewer = viewer
 
   await initWebgpuRenderer(() => { }, !enableControls && !fixture, true)
   const simpleControls = () => {
@@ -269,7 +270,7 @@ async function main () {
   let i = 0
   console.log('generating random data')
   webgpuChannel.generateRandom(490_000)
-  
+
   return
 
   // Create viewer
@@ -293,7 +294,7 @@ async function main () {
   // controls.update()
 
   let blockProps = {}
-  let entityOverrides = {}
+  const entityOverrides = {}
   const getBlock = () => {
     return mcData.blocksByName[params.block || 'air']
   }
@@ -326,7 +327,7 @@ async function main () {
   let textureAnimation: TextureAnimation | undefined
   const onUpdate = {
     version (initialUpdate) {
-      if (initialUpdate) return
+      // if (initialUpdate) return
       // viewer.world.texturesVersion = params.version
       // viewer.world.updateTexturesData()
       // todo warning
@@ -338,7 +339,7 @@ async function main () {
       if (!block) return
       console.log('block', block.name)
       const props = new Block(block.id, 0, 0).getProperties()
-      //@ts-ignore
+      //@ts-expect-error
       const { states } = mcData.blocksByStateId[getBlock()?.minStateId] ?? {}
       metadataFolder = gui.addFolder('metadata')
       if (states) {
@@ -440,7 +441,6 @@ async function main () {
       }
     } else {
       try {
-        //@ts-ignore
         block = Block.fromProperties(blockId ?? -1, blockProps, 0)
       } catch (err) {
         console.error(err)
@@ -448,7 +448,7 @@ async function main () {
       }
     }
 
-    //@ts-ignore
+    //@ts-expect-error
     viewer.setBlockStateId(targetPos, block.stateId)
     console.log('up stateId', block.stateId)
     params.metadata = block.metadata
@@ -468,7 +468,7 @@ async function main () {
       applyChanges()
     }
   })
-  viewer.waitForChunksToRender().then(async () => {
+  void viewer.waitForChunksToRender().then(async () => {
     // TODO!
     await new Promise(resolve => {
       setTimeout(resolve, 50)

@@ -1,13 +1,8 @@
-import * as THREE from 'three'
-import { Vec3 } from 'vec3'
-import { loadJSON } from './utils'
-import { loadTexture } from './utils.web'
+/* eslint-disable guard-for-in */
 import { EventEmitter } from 'events'
-import mcDataRaw from 'minecraft-data/data.js' // handled correctly in esbuild plugin
-import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
-import { chunkPos } from './simpleUtils'
-import { defaultMesherConfig } from './mesher/shared'
-import { buildCleanupDecorator } from './cleanupDecorator'
+import { Vec3 } from 'vec3'
+import * as THREE from 'three'
+import mcDataRaw from 'minecraft-data/data.js' // note: using alias
 import blocksAtlases from 'mc-assets/dist/blocksAtlases.json'
 import blocksAtlasLatest from 'mc-assets/dist/blocksAtlasLatest.png'
 import blocksAtlasLegacy from 'mc-assets/dist/blocksAtlasLegacy.png'
@@ -15,8 +10,13 @@ import itemsAtlases from 'mc-assets/dist/itemsAtlases.json'
 import itemsAtlasLatest from 'mc-assets/dist/itemsAtlasLatest.png'
 import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
 import { AtlasParser } from 'mc-assets'
-import { getResourcepackTiles } from '../../../src/resourcePack'
+import TypedEmitter from 'typed-emitter'
+import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
+import { buildCleanupDecorator } from './cleanupDecorator'
+import { MesherGeometryOutput, defaultMesherConfig } from './mesher/shared'
+import { chunkPos } from './simpleUtils'
+import { HandItemBlock } from './holdingBlock'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -38,20 +38,30 @@ type CustomTexturesData = {
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
   worldConfig = { minY: 0, worldHeight: 256 }
+  // todo need to cleanup
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
 
   @worldCleanup()
   active = false
+
   version = undefined as string | undefined
   @worldCleanup()
   loadedChunks = {} as Record<string, boolean>
+
   @worldCleanup()
   finishedChunks = {} as Record<string, boolean>
+
   @worldCleanup()
   sectionsOutstanding = new Map<string, number>()
+
   @worldCleanup()
-  renderUpdateEmitter = new EventEmitter()
+  renderUpdateEmitter = new EventEmitter() as unknown as TypedEmitter<{
+    dirty (pos: Vec3, value: boolean): void
+    update (/* pos: Vec3, value: boolean */): void
+    textureDownloaded (): void
+  }>
   customTexturesDataUrl = undefined as string | undefined
+  @worldCleanup()
   currentTextureImage = undefined as any
   workers: any[] = []
   viewerPosition?: Vec3
@@ -64,9 +74,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   chunksLength = 0
   @worldCleanup()
   allChunksFinished = false
+
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
+  highestBlocks: Record<string, { y: number, name: string }> = {}
   blockstatesModels: any
   customBlockStates: Record<string, any> | undefined
   customModels: Record<string, any> | undefined
@@ -105,16 +117,23 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (let i = 0; i < numWorkers; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
       const workerName = 'mesher.js'
+      // eslint-disable-next-line node/no-path-concat
       const src = typeof window === 'undefined' ? `${__dirname}/${workerName}` : workerName
 
       const worker: any = new Worker(src)
       const handleMessage = (data) => {
         if (!this.active) return
         this.handleWorkerMessage(data)
-        new Promise(resolve => {
-          setTimeout(resolve, 0)
-        })
-        if (data.type === 'sectionFinished') {
+        if (data.type === 'geometry') {
+          const geometry = data.geometry as MesherGeometryOutput
+          for (const key in geometry.highestBlocks) {
+            const highest = geometry.highestBlocks[key]
+            if (!this.highestBlocks[key] || this.highestBlocks[key].y < highest.y) {
+              this.highestBlocks[key] = highest
+            }
+          }
+        }
+        if (data.type === 'sectionFinished') { // on after load & unload section
           if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
           this.sectionsOutstanding.set(data.key, this.sectionsOutstanding.get(data.key)! - 1)
           if (this.sectionsOutstanding.get(data.key) === 0) this.sectionsOutstanding.delete(data.key)
@@ -147,6 +166,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       worker.onmessage = ({ data }) => {
         if (Array.isArray(data)) {
+          // eslint-disable-next-line unicorn/no-array-for-each
           data.forEach(handleMessage)
           return
         }
@@ -156,6 +176,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.workers.push(worker)
     }
   }
+
+  onHandItemSwitch (item: HandItemBlock | undefined): void { }
+  changeHandSwingingState (isAnimationPlaying: boolean): void { }
 
   abstract handleWorkerMessage (data: WorkerReceive): void
 
@@ -223,8 +246,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   sendMesherMcData () {
     const allMcData = mcDataRaw.pc[this.version] ?? mcDataRaw.pc[toMajorVersion(this.version)]
-    const mcData = Object.fromEntries(Object.entries(allMcData).filter(([key]) => dynamicMcDataFiles.includes(key)))
-    mcData.version = JSON.parse(JSON.stringify(mcData.version))
+    const mcData = {
+      version: JSON.parse(JSON.stringify(allMcData.version))
+    }
+    for (const key of dynamicMcDataFiles) {
+      mcData[key] = allMcData[key]
+    }
 
     for (const worker of this.workers) {
       worker.postMessage({ type: 'mcData', mcData, config: this.mesherConfig })
@@ -252,11 +279,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     texture.minFilter = THREE.NearestFilter
     texture.flipY = false
     this.material.map = texture
-    this.currentTextureImage = this.material.map!.image
-    this.mesherConfig.textureSize = this.material.map!.image.width
+    this.currentTextureImage = this.material.map.image
+    this.mesherConfig.textureSize = this.material.map.image.width
 
     for (const [i, worker] of this.workers.entries()) {
-      const blockstatesModels = this.blockstatesModels
+      const { blockstatesModels } = this
       if (this.customBlockStates) {
         // TODO! remove from other versions as well
         blockstatesModels.blockstates.latest = {
@@ -321,6 +348,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
     this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     delete this.finishedChunks[`${x},${z}`]
+    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+      this.setSectionDirty(new Vec3(x, y, z), false)
+    }
+    // remove from highestBlocks
+    const startX = Math.floor(x / 16) * 16
+    const startZ = Math.floor(z / 16) * 16
+    const endX = Math.ceil((x + 1) / 16) * 16
+    const endZ = Math.ceil((z + 1) / 16) * 16
+    for (let x = startX; x < endX; x += 16) {
+      for (let z = startZ; z < endZ; z += 16) {
+        delete this.highestBlocks[`${x},${z}`]
+      }
+    }
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
@@ -339,7 +379,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   queueAwaited = false
   messagesQueue = {} as { [workerIndex: string]: any[] }
 
-  setSectionDirty (pos: Vec3, value = true) {
+  setSectionDirty (pos: Vec3, value = true) { // value false is used for unloading chunks
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.allChunksFinished = false
     const distance = this.getDistance(pos)

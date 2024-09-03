@@ -1,0 +1,20 @@
+.container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  font-size: 10px;
+  width: 200px;
+  height: 20px;
+  background: black;
+  border: 1px solid grey;
+  box-sizing: content-box;
+}
+
+.input {
+  border: none;
+  background: none;
+  height: 100%;
+  font-family: minecraft, mojangles, monospace;
+  color: white;
+  text-shadow: 1px 1px #222;
+}

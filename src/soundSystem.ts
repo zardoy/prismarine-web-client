@@ -235,19 +235,6 @@ subscribeKey(miscUiState, 'gameLoaded', async () => {
 //   }
 // }
 
-export const earlyCheck = () => {
-  const { allSoundsMap } = globalObject
-  if (!allSoundsMap) return
-
-  // todo also use major versioned hardcoded sounds
-  const soundsMap = allSoundsMap[bot.version]
-
-  if (!soundsMap) {
-    console.warn('No sounds map for version', bot.version, 'supported versions are', Object.keys(allSoundsMap).join(', '))
-    showNotification('Warning', 'No sounds map for version ' + bot.version)
-  }
-}
-
 const getVersionedSound = (version: string, item: string, itemsMapSortedEntries: Array<[string, string[]]>) => {
   const verNumber = versionToNumber(version)
   for (const [itemsVer, items] of itemsMapSortedEntries) {

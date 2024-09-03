@@ -32,29 +32,32 @@ export default ({ type = 'message', message, subMessage = '', open, icon = '', a
     {state => {
       const addStyles = { ...basicStyle, ...stateStyles[state] }
 
-      return <div className={`app-notification ${isError ? 'error-notification' : ''}`} onClick={action} style={{
-        position: 'fixed',
-        top: 0,
-        right: 0,
-        width: '180px',
-        whiteSpace: 'nowrap',
-        fontSize: '9px',
-        display: 'flex',
-        gap: 4,
-        alignItems: 'center',
-        padding: '3px 5px',
-        background: isError ? 'rgba(255, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.7)',
-        borderRadius: '0 0 0 5px',
-        pointerEvents: action ? '' : 'none',
-        zIndex: 1200, // even above stats
-        ...addStyles
-      }}>
+      return <div
+        className={`app-notification ${isError ? 'error-notification' : ''}`} onClick={action} style={{
+          position: 'fixed',
+          top: 0,
+          right: 0,
+          width: '180px',
+          whiteSpace: 'nowrap',
+          fontSize: '9px',
+          display: 'flex',
+          gap: 4,
+          alignItems: 'center',
+          padding: '3px 5px',
+          background: isError ? 'rgba(255, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.7)',
+          borderRadius: '0 0 0 5px',
+          pointerEvents: action ? '' : 'none',
+          zIndex: 1200, // even above stats
+          ...addStyles
+        }}
+      >
         <PixelartIcon iconName={icon} styles={{ fontSize: 12 }} />
         <div style={{
           display: 'flex',
           flexDirection: 'column',
           gap: 2,
-        }}>
+        }}
+        >
           <div>
             {message}
           </div>
@@ -62,7 +65,9 @@ export default ({ type = 'message', message, subMessage = '', open, icon = '', a
             fontSize: '7px',
             whiteSpace: 'nowrap',
             color: 'lightgray',
-          }}>{subMessage}</div>
+          }}
+          >{subMessage}
+          </div>
         </div>
       </div>
     }}

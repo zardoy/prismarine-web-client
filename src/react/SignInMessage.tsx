@@ -33,10 +33,11 @@ export default ({
       background: 'white',
       padding: '20px 18px',
       width: 300,
-      height: 213,
+      maxHeight: 240,
       color: 'black',
       // borderRadius: 8,
-    }}>
+    }}
+    >
       <div style={{
         // fontFamily: 'monospace',
         fontSize: 18,
@@ -46,18 +47,22 @@ export default ({
         textAlign: 'center',
         marginTop: -5,
         userSelect: 'all',
-      }}>{code}</div>
+      }}
+      >{code}
+      </div>
       <div style={{
         display: 'flex',
         justifyContent: 'center',
         fontSize: 12,
-      }}>
+      }}
+      >
         Waiting... <PixelartIcon iconName='clock' /> {timeLeft}
       </div>
       <div style={{
         fontSize: 12,
         marginTop: 10,
-      }}>
+      }}
+      >
         To join a Minecraft server {connectingServer} using your Microsoft account, you need to visit{' '}
         <a
           href={directLink}
@@ -67,7 +72,8 @@ export default ({
             fontWeight: 600,
           }}
           target='_blank'
-        >Direct Link</a>
+        >Direct Link
+        </a>
         {' '} or {' '}
         <a
           href={loginLink}
@@ -77,7 +83,8 @@ export default ({
             fontWeight: 600,
           }}
           target='_blank'
-        >{loginLink}</a>
+        >{loginLink}
+        </a>
         {' '}
         and enter the code above.
       </div>
@@ -85,7 +92,8 @@ export default ({
         fontSize: 12,
         marginTop: 5,
         color: 'gray'
-      }}>
+      }}
+      >
         <PixelartIcon iconName='alert' /> Join only <b>vanilla servers</b>! This client is detectable and may result in a ban by anti-cheat plugins.
       </div>}
       {setSaveToken && <label style={{
@@ -94,7 +102,8 @@ export default ({
         alignItems: 'center',
         gap: 5,
         marginTop: 4,
-      }}>
+      }}
+      >
         <input type='checkbox' defaultChecked={defaultSaveToken} onChange={e => setSaveToken(e.target.checked)} />{' '}
         Save account token in this browser
       </label>}
@@ -104,6 +113,7 @@ export default ({
         marginTop: -5,
       }}
       onClick={onCancel}
-    >Cancel</Button>
+    >Cancel
+    </Button>
   </Screen>
 }

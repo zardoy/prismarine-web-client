@@ -49,11 +49,12 @@ export default defineConfig({
             'minecraft-protocol$': 'minecraft-protocol/src/index.js',
             'buffer$': 'buffer',
             // avoid bundling, not used on client side
-            'prismarine-auth': './src/shims/empty.ts',
+            'prismarine-auth': './src/shims/prismarineAuthReplacement.ts',
             perf_hooks: './src/shims/perf_hooks_replacement.js',
             crypto: './src/shims/crypto.js',
             dns: './src/shims/dns.js',
             yggdrasil: './src/shims/yggdrasilReplacement.ts',
+            'three$': 'three/src/Three.js'
         },
         entry: {
             index: './src/index.ts',
@@ -63,6 +64,7 @@ export default defineConfig({
         // ],
         define: {
             'process.env.BUILD_VERSION': JSON.stringify(!dev ? buildingVersion : 'undefined'),
+            'process.env.MAIN_MENU_LINKS': JSON.stringify(process.env.MAIN_MENU_LINKS),
             'process.platform': '"browser"',
             'process.env.GITHUB_URL':
                 JSON.stringify(`https://github.com/${process.env.GITHUB_REPOSITORY || `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`}`),
@@ -98,8 +100,13 @@ export default defineConfig({
             setup (build: RsbuildPluginAPI) {
                 const prep = async () => {
                     console.time('total-prep')
-                    if (!fs.existsSync('./generated/minecraft-data-data.js')) {
-                        childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })
+                    fs.mkdirSync('./generated', { recursive: true })
+                    if (!fs.existsSync('./generated/minecraft-data-optimized.json') || require('./generated/minecraft-data-optimized.json').versionKey !== require('minecraft-data/package.json').version) {
+                        childProcess.execSync('tsx ./scripts/makeOptimizedMcData.mjs', { stdio: 'inherit' })
+                    }
+                    childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })
+                    if (!fs.existsSync('./generated/latestBlockCollisionsShapes.json')) {
+                        childProcess.execSync('tsx ./scripts/optimizeBlockCollisions.ts', { stdio: 'inherit' })
                     }
                     fsExtra.copySync('./node_modules/mc-assets/dist/other-textures/latest/entity', './dist/textures/entity')
                     fsExtra.copySync('./assets/background', './dist/background')
@@ -111,14 +118,13 @@ export default defineConfig({
                         configJson.defaultProxy = ':8080'
                     }
                     fs.writeFileSync('./dist/config.json', JSON.stringify(configJson), 'utf8')
-                    childProcess.execSync('node ./scripts/prepareData.mjs', { stdio: 'inherit' })
                     // childProcess.execSync('./scripts/prepareSounds.mjs', { stdio: 'inherit' })
                     // childProcess.execSync('tsx ./scripts/genMcDataTypes.ts', { stdio: 'inherit' })
                     // childProcess.execSync('tsx ./scripts/genPixelartTypes.ts', { stdio: 'inherit' })
-                    if (fs.existsSync('./prismarine-viewer/public/mesher.js')) {
+                    if (fs.existsSync('./prismarine-viewer/public/mesher.js') && dev) {
                         // copy mesher
                         fs.copyFileSync('./prismarine-viewer/public/mesher.js', './dist/mesher.js')
-                    } else {
+                    } else if (!dev) {
                         await execAsync('pnpm run build-mesher')
                     }
                     if (fs.existsSync('./prismarine-viewer/public/webgpuRendererWorker.js')) {
@@ -132,7 +138,7 @@ export default defineConfig({
                 }
                 if (!dev) {
                     build.onBeforeBuild(async () => {
-                        await prep()
+                        prep()
                     })
                     build.onAfterBuild(async () => {
                         const { count, size, warnings } = await generateSW({
@@ -146,7 +152,7 @@ export default defineConfig({
                         })
                     })
                 }
-                build.onBeforeStartDevServer(prep)
+                build.onBeforeStartDevServer(() => prep())
             },
         },
     ],
@@ -164,7 +170,7 @@ export default defineConfig({
                     // throw new Error(`${resource.request} was requested by ${resource.contextInfo.issuer}`)
                 }
                 if (absolute.endsWith('/minecraft-data/data.js')) {
-                    resource.request = path.join(__dirname, './generated/minecraft-data-data.js')
+                    resource.request = path.join(__dirname, './src/shims/minecraftData.ts')
                 }
             }))
             addRules([
@@ -187,9 +193,10 @@ export default defineConfig({
             ]
         }
     },
-    performance: {
-        // bundleAnalyze: {
-        //     analyzerMode: 'json',
-        // },
-    },
+    // performance: {
+    //     bundleAnalyze: {
+    //         analyzerMode: 'json',
+    //         reportFilename: 'report.json',
+    //     },
+    // },
 })

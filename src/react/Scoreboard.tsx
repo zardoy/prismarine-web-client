@@ -3,7 +3,7 @@ import MessageFormattedString from './MessageFormattedString'
 import { reactKeyForMessage } from './utils'
 
 
-export type ScoreboardItems = Array<{name: string, value: number, displayName?: any}>
+export type ScoreboardItems = Array<{ name: string, value: number, displayName?: any }>
 
 type ScoreboardProps = {
   title: string,

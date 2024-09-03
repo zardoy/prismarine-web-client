@@ -15,17 +15,15 @@ export type CustomCommand = {
 
 export type CustomCommandsMap = Record<string, CustomCommand>
 
-export default (
-  {
-    customCommands,
-    updateCurrBind,
-    resetBinding,
-  }: {
-    customCommands: CustomCommandsMap,
-    updateCurrBind: (group: string, action: string) => void,
-    resetBinding: (group: string, action: string, inputType: string) => void,
-  }
-) => {
+export default ({
+  customCommands,
+  updateCurrBind,
+  resetBinding,
+}: {
+  customCommands: CustomCommandsMap,
+  updateCurrBind: (group: string, action: string) => void,
+  resetBinding: (group: string, action: string, inputType: string) => void,
+}) => {
   const { userConfig, setUserConfig } = useContext(Context)
   const [customConfig, setCustomConfig] = useState<any>({ ...customCommands })
 
@@ -66,7 +64,7 @@ export default (
           })}
           <Button
             onClick={() => addNewCommand(group)}
-            icon={'pixelarticons:add-box'}
+            icon="pixelarticons:add-box"
             style={{
               alignSelf: 'center'
             }}
@@ -77,16 +75,14 @@ export default (
   </>
 }
 
-const CustomCommandContainer = (
-  {
-    indexOption,
-    commandData,
-    updateCurrBind,
-    setCustomConfig,
-    resetBinding,
-    groupData
-  }
-) => {
+const CustomCommandContainer = ({
+  indexOption,
+  commandData,
+  updateCurrBind,
+  setCustomConfig,
+  resetBinding,
+  groupData
+}) => {
   const { userConfig } = useContext(Context)
 
   const [commandKey, { keys, gamepad, inputs }] = commandData
@@ -107,9 +103,12 @@ const CustomCommandContainer = (
       if (!config) return null
 
       return config.type === 'select'
-        ? <select key={indexInput} onChange={(e) => {
-          setInputValue(commandKey, indexInput, e.target.value)
-        }}>{config.options.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+        ? <select
+          key={indexInput} onChange={(e) => {
+            setInputValue(commandKey, indexInput, e.target.value)
+          }}
+        >{config.options.map((option) => <option key={option} value={option}>{option}</option>)}
+        </select>
         : <Input key={indexInput} rootStyles={{ width: '99%' }} placeholder={config.placeholder} value={inputs[indexInput] ?? ''} onChange={(e) => setInputValue(commandKey, indexInput, e.target.value)} />
     })}
     <div className={styles.actionBinds}>
@@ -120,22 +119,22 @@ const CustomCommandContainer = (
             resetBinding('custom', commandKey, 'keyboard')
           }}
           className={styles['undo-keyboard']}
-          icon={'pixelarticons:undo'}
+          icon="pixelarticons:undo"
         />
-          : null}
+          : null
+      }
 
       {[0, 1].map((key, index) => <ButtonWithMatchesAlert
         key={`custom-keyboard-${group}-${commandKey}-${index}`}
-        group={'custom'}
+        group="custom"
         action={commandKey}
         index={index}
-        inputType={'keyboard'}
+        inputType="keyboard"
         keys={keys}
         gamepad={gamepad}
-      />
-      )}
+      />)}
 
-      <div style={{ marginRight: 'auto' }} ></div>
+      <div style={{ marginRight: 'auto' }} />
 
       {
         userConfig?.['custom']?.[commandKey]?.gamepad ? <Button
@@ -144,14 +143,15 @@ const CustomCommandContainer = (
             resetBinding('custom', commandKey, 'gamepad')
           }}
           className={styles['undo-keyboard']}
-          icon={'pixelarticons:undo'}
+          icon="pixelarticons:undo"
         />
-          : null}
+          : null
+      }
       <ButtonWithMatchesAlert
-        group={'custom'}
+        group="custom"
         action={commandKey}
         index={0}
-        inputType={'gamepad'}
+        inputType="gamepad"
         keys={keys}
         gamepad={gamepad}
       />
@@ -162,9 +162,8 @@ const CustomCommandContainer = (
             return newConfig
           })
         }}
-
         style={{ color: 'red' }}
-        icon={'pixelarticons:delete'}
+        icon="pixelarticons:delete"
       />
     </div>
   </div>

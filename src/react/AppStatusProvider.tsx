@@ -1,17 +1,18 @@
 import { proxy, useSnapshot } from 'valtio'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
 import { resetLocalStorageWorld } from '../browserfs'
 import { fsState } from '../loadSave'
 import { guessProblem } from '../errorLoadingScreenHelpers'
 import { ConnectOptions } from '../connect'
 import { downloadPacketsReplay, packetsReplaceSessionState } from '../packetsReplay'
+import { getProxyDetails } from '../microsoftAuthflow'
 import AppStatus from './AppStatus'
 import DiveTransition from './DiveTransition'
 import { useDidUpdateEffect } from './utils'
 import { useIsModalActive } from './utilsApp'
 import Button from './Button'
-import { AuthenticatedAccount, updateAuthenticatedAccountData } from './ServersListProvider'
+import { AuthenticatedAccount, updateAuthenticatedAccountData, updateLoadedServerData } from './ServersListProvider'
 import { showOptionsModal } from './SelectOption'
 
 const initialState = {
@@ -70,6 +71,7 @@ export default () => {
   }, [])
 
   const displayAuthButton = status.includes('This server appears to be an online server and you are providing no authentication.')
+  const displayVpnButton = status.includes('VPN') || status.includes('Proxy')
   const authReconnectAction = async () => {
     let accounts = [] as AuthenticatedAccount[]
     updateAuthenticatedAccountData(oldAccounts => {
@@ -107,9 +109,39 @@ export default () => {
       actionsSlot={
         <>
           {displayAuthButton && <Button label='Authenticate' onClick={authReconnectAction} />}
+          {displayVpnButton && <PossiblyVpnBypassProxyButton reconnect={reconnect} />}
           {replayActive && <Button label='Download Packets Replay' onClick={downloadPacketsReplay} />}
         </>
       }
     />
   </DiveTransition>
+}
+
+const PossiblyVpnBypassProxyButton = ({ reconnect }: { reconnect: () => void }) => {
+  const [vpnBypassProxy, setVpnBypassProxy] = useState('')
+
+  const useVpnBypassProxyAction = () => {
+    updateLoadedServerData((data) => {
+      data.proxyOverride = vpnBypassProxy
+      return data
+    }, lastConnectOptions.value?.serverIndex)
+    lastConnectOptions.value!.proxy = vpnBypassProxy
+    reconnect()
+  }
+
+  useEffect(() => {
+    const proxy = lastConnectOptions.value?.proxy
+    if (!proxy) return
+    getProxyDetails(proxy)
+      .then(async (r) => r.json())
+      .then(({ capabilities }) => {
+        const { vpnBypassProxy } = capabilities
+        if (!vpnBypassProxy) return
+        setVpnBypassProxy(vpnBypassProxy)
+      })
+      .catch(() => { })
+  }, [])
+
+  if (!vpnBypassProxy) return
+  return <Button label='Use VPN bypass proxy' onClick={useVpnBypassProxyAction} />
 }

@@ -5,21 +5,73 @@ After forking the repository, run the following commands to get started:
 0. Ensure you have [Node.js](https://nodejs.org) and `pnpm` installed. To install pnpm run `npm i -g pnpm@9.0.4`.
 1. Install dependencies: `pnpm i`
 2. Start the project in development mode: `pnpm start`
+3. Read the [Tasks Categories](#tasks-categories) and [Workflow](#workflow) sections below
+4. Let us know if you are working on something and be sure to open a PR if you got any changes. Happy coding!
 
 ## Project Structure
 
+There are 3 main parts of the project:
+
+### Core (`src`)
+
+This is the main app source code which reuses all the other parts of the project.
+
+> The first version used Webpack, then was migrated to Esbuild and now is using Rsbuild!
+
+- Scripts:
+  - Start: `pnpm start`, `pnpm dev-rsbuild` (if you don't need proxy server also running)
+  - Build: `pnpm build` (note that `build` script builds only the core app, not the whole project!)
+
+Paths:
+
 - `src` - main app source code
 - `src/react` - React components - almost all UI is in this folder. Almost every component has its base (reused in app and storybook) and `Provider` - which is a component that provides context to its children. Consider looking at DeathScreen component to see how it's used.
-- `src/menus` - Old Lit Element GUI. In the process of migration to React.
 
-- `prismarine-viewer` - Improved version of <https://github.com/prismarineJS/prismarine-viewer>. Here is everything related to rendering the game world itself (no ui at all). Two most important parts here are:
+### Renderer: Playground & Mesher (`prismarine-viewer`)
+
+- Playground Scripts:
+  - Start: `pnpm run-playground` (playground, mesher + server) or `pnpm watch-playground`
+  - Build: `pnpm build-playground` or `node prismarine-viewer/esbuild.mjs`
+
+- Mesher Scripts:
+  - Start: `pnpm watch-mesher`
+  - Build: `pnpm build-mesher`
+
+Paths:
+
+- `prismarine-viewer` - Improved and refactored version of <https://github.com/prismarineJS/prismarine-viewer>. Here is everything related to rendering the game world itself (no ui at all). Two most important parts here are:
 - `prismarine-viewer/viewer/lib/worldrenderer.ts` - adding new objects to three.js happens here (sections)
 - `prismarine-viewer/viewer/lib/models.ts` - preparing data for rendering (blocks) - happens in worker: out file - `worker.js`, building - `prismarine-viewer/buildWorker.mjs`
-- `prismarine-viewer/examples/playground.ts` - Playground (source of <mcraft.fun/playground.html>) Use this for testing render changes. You can also modify playground code.
+- `prismarine-viewer/examples/playground.ts` - Playground (source of <mcraft.fun/playground.html>) Use this for testing any rendering changes. You can also modify the playground code.
+
+### Storybook (`.storybook`)
+
+Storybook is a tool for easier developing and testing React components.
+Path of all Storybook stories is `src/react/**/*.stories.tsx`.
+
+- Scripts:
+  - Start: `pnpm storybook`
+  - Build: `pnpm build-storybook`
+
+## Core-related
 
 How different modules are used:
 
 - `mineflayer` - provider `bot` variable and as mineflayer states it is a wrapper for the `node-minecraft-protocol` module and is used to connect and interact with real Java Minecraft servers. However not all events & properties are exposed and sometimes you have to use `bot._client.on('packet_name', data => ...)` to handle packets that are not handled via mineflayer API. Also you can use almost any mineflayer plugin.
+
+## Running Main App + Playground
+
+To start the main web app and playground, run `pnpm run-all`. Note is doesn't start storybook and tests.
+
+## Cypress Tests (E2E)
+
+Cypress tests are located in `cypress` folder. To run them, run `pnpm test-mc-server` and then `pnpm test:cypress` when the `pnpm prod-start` is running (or change the port to 3000 to test with the dev server). Usually you don't need to run these until you get issues on the CI.
+
+## Unit Tests
+
+There are not many unit tests for now (which we are trying to improve).
+Location of unit tests: `**/*.test.ts` files in `src` folder and `prismarine-viewer` folder.
+Start them with `pnpm test-unit`.
 
 ## Making protocol-related changes
 
@@ -38,6 +90,84 @@ Also there are [src/generatedClientPackets.ts](src/generatedClientPackets.ts) an
 - The same folder `dist` is used for both development and production builds, so be careful when deploying the project.
 - Use `start-prod` script to start the project in production mode after running the `build` script to build the project.
 - If CI is failing on the next branch for some reason, feel free to use the latest commit for release branch. We will update the base branch asap. Please, always make sure to allow maintainers do changes when opening PRs.
+
+## Tasks Categories
+
+(most important for now are on top).
+
+## 1. Client-side Logic (most important right now)
+
+Everything related to the client side packets. Investigate issues when something goes wrong with some server. It's much easier to work on these types of tasks when you have experience in Java with Minecraft, a deep understanding of the original client, and know how to debug it (which is not hard actually). Right now the client is easily detectable by anti-cheat plugins, and the main goal is to fix it (mostly because of wrong physics implementation).
+
+Priority tasks:
+
+- Rewrite or fix the physics logic (Botcraft or Grim can be used as a reference as well)
+- Implement basic minecart / boat / horse riding
+- Fix auto jump module (false triggers, performance issues)
+- Investigate connection issues to some servers
+- Setup a platform for automatic cron testing against the latest version of the anti-cheat plugins
+- ...
+
+Goals:
+
+- Make more servers playable. Right now on hypixel-like servers (servers with minigames), only tnt run (and probably ) is fully playable.
+
+Notes:
+
+- You can see the incoming/outgoing packets in the console (F12 in Chrome) by enabling `options.debugLogNotFrequentPackets = true`. However, if you need a FULL log of all packets, you can start recording the packets by going into `Settings` > `Advanced` > `Enable Packets Replay` and then you can download the file and use it to replay the packets.
+- You can use mcraft-e2e studio to send the same packets over and over again (which is useful for testing) or use the packets replayer (which is useful for debugging).
+
+## 2. Three.js Renderer
+
+Example tasks:
+
+- Improve / fix entity rendering
+- Better update entities on specific packets
+- Investigate performance issues under different conditions (instructions provided)
+- Work on the playground code
+
+Goals:
+
+- Fix a lot of entity rendering issues (including position updates)
+- Implement switching camera mode (first person, third person, etc)
+- Animated blocks
+- Armor rendering
+- ...
+
+Note:
+
+- It's useful to know how to use helpers & additional cameras (e.g. setScissor)
+
+## 3. Server-side Logic
+
+Flying squid fork (space-squid).
+Example tasks:
+
+- Add missing commands (e.g. /scoreboard)
+- Basic physics (player fall damage, falling blocks & entities)
+- Basic entities AI (spawning, attacking)
+- Pvp
+- Emit more packets on some specific events (e.g. when a player uses an item)
+- Make more maps playable (e.g. fix when something is not implemented in both server and client and blocking map interaction)
+- ...
+
+Long Term Goals:
+
+- Make most adventure maps playable
+- Make a way to complete the game from the scratch (crafting, different dimensions, terrain generation, etc)
+- Make bedwars playable!
+Most of the tasks are straightforward to implement, just be sure to use a debugger ;). If you feel you are stuck, ask for help on Discord. Absolutely any tests / refactor suggestions are welcome!
+
+## 4. Frontend
+
+New React components, improve UI (including mobile support).
+
+## Workflow
+
+1. Locate the problem on the public test server & make an easily reproducible environment (you can also use local packets replay server or your custom server setup). Dm me for details on public test server / replay server
+2. Debug the code, find an issue in the code, isolate the problem
+3. Develop, try to fix and test. Finally we should find a way to fix it. It's ideal to have an automatic test but it's not necessary for now
+3. Repeat step 1 to make sure the task is done and the problem is fixed (or the feature is implemented)
 
 ### Would be useful to have
 

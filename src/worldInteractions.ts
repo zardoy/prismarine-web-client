@@ -38,6 +38,7 @@ class WorldInteraction {
   currentDigTime
   prevOnGround
   lastBlockPlaced: number
+  lastSwing = 0
   buttons = [false, false, false]
   lastButtons = [false, false, false]
   breakStartTime: number | undefined = 0
@@ -221,7 +222,12 @@ class WorldInteraction {
   // todo this shouldnt be done in the render loop, migrate the code to dom events to avoid delays on lags
   update () {
     const inSpectator = bot.game.gameMode === 'spectator'
-    const cursorBlock = inSpectator && !options.showCursorBlockInSpectator ? null : bot.blockAtCursor(5)
+    const entity = getEntityCursor()
+    let cursorBlock = inSpectator && !options.showCursorBlockInSpectator ? null : bot.blockAtCursor(5)
+    if (entity) {
+      cursorBlock = null
+    }
+
     let cursorBlockDiggable = cursorBlock
     if (cursorBlock && !bot.canDigBlock(cursorBlock) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
 
@@ -288,6 +294,8 @@ class WorldInteraction {
             bot.lookAt = oldLookAt
           }).catch(console.warn)
         }
+        viewer.world.changeHandSwingingState(true)
+        viewer.world.changeHandSwingingState(false)
       } else if (!stop) {
         const offhand = activate ? false : activatableItems(bot.inventory.slots[45]?.name ?? '')
         bot.activateItem(offhand) // todo offhand
@@ -345,9 +353,14 @@ class WorldInteraction {
         })
         customEvents.emit('digStart')
         this.lastDigged = Date.now()
-      } else {
+        viewer.world.changeHandSwingingState(true)
+      } else if (performance.now() - this.lastSwing > 200) {
         bot.swingArm('right')
+        this.lastSwing = performance.now()
       }
+    }
+    if (!this.buttons[0] && this.lastButtons[0]) {
+      viewer.world.changeHandSwingingState(false)
     }
     this.prevOnGround = onGround
 

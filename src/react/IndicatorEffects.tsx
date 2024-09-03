@@ -87,24 +87,24 @@ export default ({ indicators, effects }: { indicators: typeof defaultIndicatorsS
   return <div className='effectsScreen-container'>
     <div className='indicators-container'>
       {
-        indicatorsMapped.map((indicator) => <div key={indicator.icon} style={{
-          opacity: indicator.state ? 1 : 0,
-          transition: 'opacity 0.1s',
-        }}>
+        indicatorsMapped.map((indicator) => <div
+          key={indicator.icon} style={{
+            opacity: indicator.state ? 1 : 0,
+            transition: 'opacity 0.1s',
+          }}
+        >
           <PixelartIcon iconName={indicator.icon} />
         </div>)
       }
     </div>
     <div className='effects-container'>
       {
-        effects.map(
-          (effect) => <EffectBox
-            key={`effectBox-${effect.image}`}
-            image={effect.image}
-            time={effect.time}
-            level={effect.level}
-          />
-        )
+        effects.map((effect) => <EffectBox
+          key={`effectBox-${effect.image}`}
+          image={effect.image}
+          time={effect.time}
+          level={effect.level}
+        />)
       }
     </div>
   </div>

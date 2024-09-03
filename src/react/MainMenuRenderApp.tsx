@@ -62,13 +62,16 @@ export default () => {
           return
         }
         const upStatus = () => {
-          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}) ${mainMenuState.serviceWorkerLoaded ? '(Available Offline)' : ''}`)
+          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}${mainMenuState.serviceWorkerLoaded ? ' - Available Offline' : ''})`)
         }
         subscribe(mainMenuState, upStatus)
         setVersionTitle(`Loaded: ${process.env.BUILD_VERSION}. Remote: ${contents}`)
       }, () => { })
     }
   }, [])
+
+  let mapsProviderUrl = appConfig?.mapsProvider
+  if (mapsProviderUrl && location.origin !== 'https://mcraft.fun') mapsProviderUrl = mapsProviderUrl + '?to=' + encodeURIComponent(location.href)
 
   // todo clean, use custom csstransition
   return <Transition in={!noDisplay} timeout={disableAnimation ? 0 : 100} mountOnEnter unmountOnExit>
@@ -99,6 +102,7 @@ export default () => {
         githubAction={() => openGithub()}
         optionsAction={() => openOptionsMenu('main')}
         linksButton={<DiscordButton />}
+        bottomRightLinks={process.env.MAIN_MENU_LINKS}
         openFileAction={e => {
           if (!!window.showDirectoryPicker && !e.shiftKey) {
             void openWorldDirectory()
@@ -106,7 +110,7 @@ export default () => {
             openFilePicker()
           }
         }}
-        mapsProvider={appConfig?.mapsProvider}
+        mapsProvider={mapsProviderUrl}
         versionStatus={versionStatus}
         versionTitle={versionTitle}
         onVersionClick={async () => {

@@ -1,7 +1,8 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import Screen from './Screen'
 import Input from './Input'
 import Button from './Button'
+import SelectGameVersion from './SelectGameVersion'
 import { useIsSmallWidth } from './simpleHooks'
 
 export interface BaseServerInfo {
@@ -24,11 +25,12 @@ interface Props {
   defaults?: Pick<BaseServerInfo, 'proxyOverride' | 'usernameOverride'>
   accounts?: string[]
   authenticatedAccounts?: number
+  versions?: string[]
 }
 
 const ELEMENTS_WIDTH = 190
 
-export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, defaults, accounts, authenticatedAccounts }: Props) => {
+export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, defaults, accounts, versions, authenticatedAccounts }: Props) => {
   const qsParams = parseQs ? new URLSearchParams(window.location.search) : undefined
   const qsParamName = qsParams?.get('name')
   const qsParamIp = qsParams?.get('ip')
@@ -83,7 +85,8 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         display: 'grid',
         gap: 3,
         gridTemplateColumns: smallWidth ? '1fr' : '1fr 1fr'
-      }}>
+      }}
+      >
         {!lockConnect && <>
           <div style={{ gridColumn: smallWidth ? '' : 'span 2', display: 'flex', justifyContent: 'center' }}>
             <InputWithLabel label="Server Name" value={serverName} onChange={({ target: { value } }) => setServerName(value)} placeholder='Defaults to IP' />
@@ -92,13 +95,29 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
         <InputWithLabel required label="Server IP" value={serverIp} disabled={lockConnect && qsIpParts?.[0] !== null} onChange={({ target: { value } }) => setServerIp(value)} />
         <InputWithLabel label="Server Port" value={serverPort} disabled={lockConnect && qsIpParts?.[1] !== null} onChange={({ target: { value } }) => setServerPort(value)} placeholder='25565' />
         <div style={{ gridColumn: smallWidth ? '' : 'span 2' }}>Overrides:</div>
-        <InputWithLabel label="Version Override" value={versionOverride} disabled={lockConnect && qsParamVersion !== null} onChange={({ target: { value } }) => setVersionOverride(value)} placeholder='Optional, but recommended to specify' />
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+        }}>
+          <label style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Version Override</label>
+          <SelectGameVersion
+            selected={{ value: versionOverride, label: versionOverride }}
+            versions={versions?.map(v => { return { value: v, label: v } }) ?? []}
+            onChange={(value) => {
+              setVersionOverride(value)
+            }}
+            placeholder="Optional, but recommended to specify"
+            disabled={lockConnect && qsParamVersion !== null}
+          />
+        </div>
+
         <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && qsParamProxy !== null} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={defaults?.proxyOverride} />
         <InputWithLabel label="Username Override" value={usernameOverride} disabled={!noAccountSelected || lockConnect && qsParamUsername !== null} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={defaults?.usernameOverride} />
         <label style={{
           display: 'flex',
           flexDirection: 'column',
-        }}>
+        }}
+        >
           <span style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>Account Override</span>
           <select
             onChange={({ target: { value } }) => setAccountIndex(Number(value))}
@@ -141,15 +160,16 @@ const ButtonWrapper = ({ ...props }: React.ComponentProps<typeof Button>) => {
   return <Button {...props} />
 }
 
-const InputWithLabel = ({ label, span, ...props }: React.ComponentProps<typeof Input> & { label, span?}) => {
+const InputWithLabel = ({ label, span, ...props }: React.ComponentProps<typeof Input> & { label, span? }) => {
   return <div style={{
     display: 'flex',
     flexDirection: 'column',
     gridRow: span ? 'span 2 / span 2' : undefined,
-  }}>
+  }}
+  >
     <label style={{ fontSize: 12, marginBottom: 1, color: 'lightgray' }}>{label}</label>
     <Input rootStyles={{ width: ELEMENTS_WIDTH }} {...props} />
   </div>
 }
 
-const fallbackIfNotFound = (index: number) => index === -1 ? undefined : index
+const fallbackIfNotFound = (index: number) => (index === -1 ? undefined : index)

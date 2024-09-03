@@ -4,6 +4,7 @@ import { filesize } from 'filesize'
 import Input from './Input'
 import Screen from './Screen'
 import Button from './Button'
+import SelectGameVersion from './SelectGameVersion'
 import styles from './createWorld.module.css'
 
 // const worldTypes = ['default', 'flat', 'largeBiomes', 'amplified', 'customized', 'buffet', 'debug_all_block_states']
@@ -29,10 +30,12 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
   }, [])
 
   return <Screen title="Create world" backdrop="dirt">
-    <form style={{ display: 'flex' }} onSubmit={(e) => {
-      e.preventDefault()
-      createClick()
-    }}>
+    <form
+      style={{ display: 'flex' }} onSubmit={(e) => {
+        e.preventDefault()
+        createClick()
+      }}
+    >
       <Input
         autoFocus
         value={title}
@@ -41,29 +44,30 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
         }}
         placeholder='World name'
       />
-      <select value={version} style={{
-        background: 'gray',
-        color: 'white'
-      }} onChange={({ target: { value } }) => {
-        creatingWorldState.version = value
-      }}>
-        {versions.map(({ version, label }) => {
-          return <option key={version} value={version}>{label}</option>
-        })}
-      </select>
+      <SelectGameVersion
+        versions={versions.map((obj) => { return { value: obj.version, label: obj.version } })}
+        selected={{ value: defaultVersion, label: defaultVersion }}
+        onChange={(value) => {
+          creatingWorldState.version = value ?? defaultVersion
+        }}
+        containerStyle={{ width: '100px' }}
+      />
     </form>
     <div style={{ display: 'flex' }}>
       <Button onClick={() => {
         const index = worldTypes.indexOf(type)
         creatingWorldState.type = worldTypes[index === worldTypes.length - 1 ? 0 : index + 1]
-      }}>World Type: {type}</Button>
+      }}
+      >World Type: {type}
+      </Button>
       {/* <Button onClick={() => customizeClick()} disabled>
         Customize
       </Button> */}
       <Button onClick={() => {
         const index = gameModes.indexOf(gameMode)
         creatingWorldState.gameMode = gameModes[index === gameModes.length - 1 ? 0 : index + 1]
-      }}>
+      }}
+      >
         Gamemode: {gameMode}
       </Button>
     </div>
@@ -72,10 +76,12 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
     <div style={{ display: 'flex' }}>
       <Button onClick={() => {
         cancelClick()
-      }}>Cancel</Button>
+      }}
+      >Cancel
+      </Button>
       <Button disabled={!title} onClick={createClick}>Create</Button>
     </div>
-    <div className='muted' style={{ fontSize: 9 }}>Note: store important saves in folders on the drive!</div>
+    <div className='muted' style={{ fontSize: 9 }}>Note: save important worlds in folders on your hard drive!</div>
     <div className='muted' style={{ fontSize: 9 }}>{quota}</div>
   </Screen>
 }
@@ -85,9 +91,7 @@ export const WorldCustomize = ({ backClick }) => {
 
   return <Screen title='Customize world' backdrop='dirt'>
     <div className={styles.world_layers_container}>
-      <div className="world_layer">
-
-      </div>
+      <div className="world_layer" />
     </div>
     <Button onClick={backClick}>Back</Button>
   </Screen>
