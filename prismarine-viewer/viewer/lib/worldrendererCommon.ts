@@ -14,7 +14,7 @@ import TypedEmitter from 'typed-emitter'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
-import { defaultMesherConfig } from './mesher/shared'
+import { MesherGeometryOutput, defaultMesherConfig } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
 
@@ -123,8 +123,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         if (!this.active) return
         this.handleWorkerMessage(data)
         if (data.type === 'geometry') {
-          for (const key in data.geometry.highestBlocks) {
-            const highest = data.geometry.highestBlocks[key]
+          const geometry = data.geometry as MesherGeometryOutput
+          for (const key in geometry.highestBlocks) {
+            const highest = geometry.highestBlocks[key]
             if (!this.highestBlocks[key] || this.highestBlocks[key].y < highest.y) {
               this.highestBlocks[key] = highest
             }

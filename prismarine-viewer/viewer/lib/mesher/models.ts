@@ -21,17 +21,8 @@ for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
 }
 
-type TestTileData = {
-  block: string
-  faces: Array<{
-    face: string
-    neighbor: string
-    light?: number
-  }>
-}
-
 type Tiles = {
-  [blockPos: string]: BlockType & TestTileData
+  [blockPos: string]: BlockType
 }
 
 function prepareTints (tints) {
@@ -180,6 +171,8 @@ function renderLiquid (world: World, cursor: Vec3, texture: any | undefined, typ
       tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
         face,
         neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+        side: 0, // todo
+        textureIndex: 0,
         // texture: eFace.texture.name,
       })
     }
@@ -374,7 +367,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
           tint: lightWithColor,
           //@ts-expect-error debug prop
           texture: eFace.texture.debugName || block.name,
-        } satisfies BlockType['faces'][number] & TestTileData['faces'][number] as any)
+        } satisfies BlockType['faces'][number])
       }
     }
 
