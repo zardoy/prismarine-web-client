@@ -124,7 +124,7 @@ export const saveToBrowserMemory = async () => {
 
     appStatusState.loadingChunksData = Object.fromEntries(regionFiles.map(x => [x.split('/').at(-1)!, 'loading']))
     appStatusState.loadingChunksDataPlayerChunk = { x: playerPosRegion.x, z: playerPosRegion.z }
-    await copyFiles(splitByCopySize(filesWithSpiral))
+    await copyFiles(splitByCopySize(filesWithSpiral, 10))
 
     return saveRootPath
   } catch (err) {
@@ -135,9 +135,7 @@ export const saveToBrowserMemory = async () => {
   }
 }
 
-const splitByCopySize = (files: string[]) => {
-  const copySize = 15
-
+const splitByCopySize = (files: string[], copySize = 15) => {
   return files.reduce<string[][]>((acc, cur, i) => {
     if (i % copySize === 0) {
       acc.push([])
