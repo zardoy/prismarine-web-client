@@ -28,6 +28,7 @@ html {
   height: 100vh;
   overflow: hidden;
   color: white;
+  prefers-color-scheme: dark;
 }
 
 html.disable-assets {
