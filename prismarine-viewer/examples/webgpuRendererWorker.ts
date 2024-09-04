@@ -2,8 +2,6 @@
 import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BlockFaceType, BlockType } from './shared'
-//@ts-expect-error
-//@ts-expect-error
 import { createWorkerProxy } from './workerProxy'
 import { WebgpuRenderer } from './webgpuRenderer'
 

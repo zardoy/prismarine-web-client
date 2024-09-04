@@ -9,6 +9,7 @@ import { useWorkerProxy } from './workerProxy'
 
 let worker: Worker
 
+// eslint-disable-next-line import/no-mutable-exports
 export let webgpuChannel: typeof workerProxyType['__workerProxy'] = new Proxy({}, {
   get: () => () => { }
 }) as any // placeholder to avoid crashes
@@ -37,7 +38,7 @@ let isWaitingToUpload = false
 globalThis.tiles = {}
 export const addBlocksSection = (key, data: MesherGeometryOutput) => {
   if (globalThis.tiles[key]) return
-  globalThis.tiles[key] = data.tiles
+  // globalThis.tiles[key] = data.tiles
   webgpuChannel.addBlocksSection(data.tiles, key, false)
   if (playground && !isWaitingToUpload) {
     isWaitingToUpload = true
@@ -117,7 +118,6 @@ export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeI
   })
   const mainLoop = () => {
     requestAnimationFrame(mainLoop)
-    //@ts-expect-error
     if (!focused || window.stopRender) return
 
     if (oldWidth !== window.innerWidth || oldHeight !== window.innerHeight) {
@@ -156,21 +156,21 @@ export const exportLoadedTiles = () => {
     // })
     try {
       const a = document.createElement('a')
-            type Vec3 = [number, number, number]
-            type PlayTimeline = [pos: Vec3, rot: Vec3, time: number]
-            const vec3ToArr = (vec3: { x, y, z }) => [vec3.x, vec3.y, vec3.z] as Vec3
-            // const dataObj = {
-            //     ...receivedData,
-            //     version: viewer.version,
-            //     camera: [vec3ToArr(viewer.camera.position), vec3ToArr(viewer.camera.rotation)],
-            //     playTimeline: [] as PlayTimeline[]
-            // }
-            // split into two chunks
-            const objectURL = URL.createObjectURL(new Blob([receivedData.sides.buffer], { type: 'application/octet-stream' }))
-            a.href = objectURL
-            a.download = 'dumped-chunks-tiles.bin'
-            a.click()
-            URL.revokeObjectURL(objectURL)
+      type Vec3 = [number, number, number]
+      type PlayTimeline = [pos: Vec3, rot: Vec3, time: number]
+      const vec3ToArr = (vec3: { x, y, z }) => [vec3.x, vec3.y, vec3.z] as Vec3
+      // const dataObj = {
+      //     ...receivedData,
+      //     version: viewer.version,
+      //     camera: [vec3ToArr(viewer.camera.position), vec3ToArr(viewer.camera.rotation)],
+      //     playTimeline: [] as PlayTimeline[]
+      // }
+      // split into two chunks
+      const objectURL = URL.createObjectURL(new Blob([receivedData.sides.buffer], { type: 'application/octet-stream' }))
+      a.href = objectURL
+      a.download = 'dumped-chunks-tiles.bin'
+      a.click()
+      URL.revokeObjectURL(objectURL)
     } finally {
       controller.abort()
     }

@@ -41,7 +41,7 @@ export class WebgpuRenderer {
   secondCameraUiformBindGroup: GPUBindGroup
   secondUniformBuffer: GPUBuffer
 
-  constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
+  constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
     this.init()
   }
@@ -197,18 +197,18 @@ export class WebgpuRenderer {
     })
 
     // Fetch the image and upload it into a GPUTexture.
-    
-      this.cubeTexture = device.createTexture({
-        size: [textureBitmap.width, textureBitmap.height, 1],
-        format: 'rgb10a2unorm',
-        usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
-      })
-      device.queue.copyExternalImageToTexture(
-        { source: textureBitmap },
-        { texture: this.cubeTexture },
-        [textureBitmap.width, textureBitmap.height]
-      )
-    
+
+    this.cubeTexture = device.createTexture({
+      size: [textureBitmap.width, textureBitmap.height, 1],
+      format: 'rgb10a2unorm',
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+    })
+    device.queue.copyExternalImageToTexture(
+      { source: textureBitmap },
+      { texture: this.cubeTexture },
+      [textureBitmap.width, textureBitmap.height]
+    )
+
 
     this.renderPassDescriptor = {
       label: 'MainRenderPassDescriptor',
@@ -509,7 +509,7 @@ export class WebgpuRenderer {
     const camera = new THREE.PerspectiveCamera()
     camera.position.set(150, 500, 150)
     camera.lookAt(150, 0, 150)
-    camera.fov = 100;
+    camera.fov = 100
     //camera.rotation.set(0, 0, 0)
     camera.updateMatrix()
     return camera
@@ -517,7 +517,7 @@ export class WebgpuRenderer {
 
 
 
-  
+
   loop (forceFrame = false) {
     if (!this.rendering) {
       requestAnimationFrame(() => this.loop())
@@ -531,7 +531,7 @@ export class WebgpuRenderer {
 
     const now = Date.now()
     tweenJs.update()
-    
+
     const ViewProjectionMat4 = new THREE.Matrix4()
     this.camera.updateMatrix()
     const { projectionMatrix, matrix } = this.camera
@@ -543,7 +543,7 @@ export class WebgpuRenderer {
       ViewProjection
     )
 
-    let drawCamera = true;
+    const drawCamera = true
 
     if (drawCamera) {
       const ViewProjectionMat42 = new THREE.Matrix4()
@@ -591,9 +591,9 @@ export class WebgpuRenderer {
     renderPass.drawIndirect(this.indirectDrawBuffer, 0)
 
     if (drawCamera) {
-        renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
-        renderPass.setViewport(this.canvas.width /2, 0, this.canvas.width/2, this.canvas.height/2,0,1)
-        renderPass.drawIndirect(this.indirectDrawBuffer, 0)
+      renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
+      renderPass.setViewport(this.canvas.width / 2, 0, this.canvas.width / 2, this.canvas.height / 2, 0, 1)
+      renderPass.drawIndirect(this.indirectDrawBuffer, 0)
     }
     renderPass.end()
     device.queue.submit([this.commandEncoder.finish()])

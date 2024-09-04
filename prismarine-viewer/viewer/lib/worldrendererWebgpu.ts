@@ -54,7 +54,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
 
       // todo
-      this.newChunks[data.key] = data.geometry
+      // this.newChunks[data.key] = data.geometry
     }
   }
 
