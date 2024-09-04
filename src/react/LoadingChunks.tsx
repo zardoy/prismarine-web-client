@@ -50,7 +50,7 @@ const Chunk = ({ x, z, state, displayText, currentPlayer }) => {
     {/* green dot */}
     {currentPlayer && <div style={{
       position: 'absolute',
-      background: 'reed',
+      background: 'red',
       borderRadius: '50%',
       width: '5px',
       height: '5px',
