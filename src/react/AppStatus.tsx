@@ -2,8 +2,18 @@ import { useEffect, useState } from 'react'
 import styles from './appStatus.module.css'
 import Button from './Button'
 import Screen from './Screen'
+import LoadingChunks from './LoadingChunks'
 
-export default ({ status, isError, hideDots = false, lastStatus = '', backAction = undefined as undefined | (() => void), description = '', actionsSlot = null as React.ReactNode | null }) => {
+export default ({
+  status,
+  isError,
+  hideDots = false,
+  lastStatus = '',
+  backAction = undefined as undefined | (() => void),
+  description = '',
+  actionsSlot = null as React.ReactNode | null,
+  children
+}) => {
   const [loadingDots, setLoadingDots] = useState('')
 
   useEffect(() => {
@@ -52,6 +62,7 @@ export default ({ status, isError, hideDots = false, lastStatus = '', backAction
           <Button onClick={() => window.location.reload()} label="Reset App (recommended)" />
         </>
       )}
+      {children}
     </Screen>
   )
 }
