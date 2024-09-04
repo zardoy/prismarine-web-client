@@ -271,6 +271,11 @@ async function main () {
   console.log('generating random data')
   webgpuChannel.generateRandom(490_000)
 
+  // webgpuChannel.generateRandom(100)
+  // setTimeout(() => {
+  //   webgpuChannel.generateRandom(100, 15)
+  // }, 3000)
+
   return
 
   // Create viewer

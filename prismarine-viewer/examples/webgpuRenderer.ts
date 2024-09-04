@@ -41,7 +41,7 @@ export class WebgpuRenderer {
   secondCameraUiformBindGroup: GPUBindGroup
   secondUniformBuffer: GPUBuffer
 
-  constructor(public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
+  constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
     this.init()
   }
@@ -441,10 +441,12 @@ export class WebgpuRenderer {
   waitingNextUpdateSidesOffset = undefined as undefined | number
 
   updateSides (startOffset = 0) {
+    if (this.waitingNextUpdateSidesOffset && this.waitingNextUpdateSidesOffset <= startOffset) return
+    console.log('updating', startOffset, !!this.waitingNextUpdateSidesOffset)
     this.waitingNextUpdateSidesOffset = startOffset
   }
 
-  updateSidesFromLoop () {
+  updateCubesBuffersDataFromLoop () {
     if (this.waitingNextUpdateSidesOffset === undefined) return
     const startOffset = this.waitingNextUpdateSidesOffset
     console.time('updateSides')
@@ -575,7 +577,7 @@ export class WebgpuRenderer {
     computePass.setBindGroup(0, this.computeBindGroup)
     computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
     computePass.end()
-    this.updateSidesFromLoop()
+    this.updateCubesBuffersDataFromLoop()
     device.queue.submit([this.commandEncoder.finish()])
     this.commandEncoder = device.createCommandEncoder()
     //device.queue.submit([commandEncoder.finish()]);

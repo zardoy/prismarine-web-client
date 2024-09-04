@@ -38,12 +38,9 @@ export const updateSize = (width, height) => {
 let fullReset
 
 const updateCubesWhenAvailable = (pos) => {
-  if (webgpuRenderer?.ready) {
-    console.log('updating cubes - main')
-    webgpuRenderer.updateSides(pos)
-  } else {
-    setTimeout(updateCubesWhenAvailable, 100)
-  }
+  onceRendererAvailable((renderer) => {
+    renderer.updateSides(pos)
+  })
 }
 
 let requests = [] as Array<{ resolve: () => void }>
@@ -161,6 +158,8 @@ export const workerProxyType = createWorkerProxy({
     // if (webglRendererWorker && webglRendererWorker.notRenderedAdditions < 5) {
     if (update) {
       updateCubesWhenAvailable(currentLength)
+      lastNotUpdatedIndex = undefined
+      lastNotUpdatedArrSize = undefined
     }
   },
   addBlocksSectionDone () {
