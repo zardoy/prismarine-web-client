@@ -12,15 +12,15 @@ export default ({ regionFiles = [] as string[], stateMap = {} as Record<string, 
   const zChunks = maxZ - minZ + 1
 
   return <div style={{
-    maxWidth: '80%',
-    maxHeight: '80%',
-    aspectRatio: '1',
+    // maxWidth: '80%',
+    // maxHeight: '80%',
+    // aspectRatio: '1',
     display: 'grid',
     gridTemplateColumns: `repeat(${xChunks}, 1fr)`,
     gridTemplateRows: `repeat(${zChunks}, 1fr)`,
     gap: 1,
-    width: '100%',
-    height: '100%',
+    width: '110px',
+    height: '110px',
   }}>
     {Array.from({ length: xChunks * zChunks }).map((_, i) => {
       const x = minX + i % xChunks

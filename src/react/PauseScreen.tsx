@@ -104,6 +104,7 @@ export const saveToBrowserMemory = async () => {
 
     // region files
     isRegionFiles = true
+    copied = 0
     const regionFiles = allFilesToCopy.filter(x => !pathsSplitBasic.includes(x))
     const regionFilesNumbers = regionFiles.map(x => x.split('/').at(-1)!.split('.').slice(1, 3).map(Number))
     const xMin = Math.min(...regionFilesNumbers.flatMap(x => x[0]))
