@@ -1,5 +1,5 @@
 struct Cube {
-  cube : array<f32, 8>
+  cube : array<u32, 2>
 }
 
 struct Uniforms {
@@ -29,11 +29,18 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   // textureIndex: f32,
   // colorBlend: vec3f,
   let cube = cubes[index];
-  
 
-  let position = vec4<f32>(cube.cube[0], cube.cube[1], cube.cube[2], 1);
-  let textureIndex = cube.cube[3];
-  let colorBlend = vec4<f32>(cube.cube[4], cube.cube[5], cube.cube[6], 1);
+
+  let positionX : f32 = f32(cube.cube[0] & 1023);
+  let positionY : f32 = f32((cube.cube[0] >> 10) & 1023);
+  let positionZ : f32 = f32((cube.cube[0] >> 20) & 1023);
+  let position = vec4f(positionX, positionY, positionZ, 1.0);
+  // let textureIndex : f32 = f32((cube.cube[0] >> 24) & 8);
+  // let colorBlendR : f32 = f32(cube.cube[1] & 8);
+  // let colorBlendG : f32 = f32((cube.cube[1] >> 8) & 8);
+  // let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 8);
+  // let colorBlend = vec3f(colorBlendR, colorBlendG, colorBlendB);
+  //last 8 bits reserved for animations
 
   // Transform cube position to clip space
   let clipPos = uniforms.ViewProjectionMatrix * (position+ vec4<f32>(0.5, 0.5, 0.5, 0.0));

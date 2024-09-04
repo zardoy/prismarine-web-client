@@ -416,13 +416,13 @@ export class WebgpuRenderer {
     // Create buffers for compute shader and indirect drawing
     this.cubesBuffer = this.device.createBuffer({
       label: 'cubesBuffer',
-      size: this.NUMBER_OF_CUBES * 32, // 8 floats per cube - minimum buffer size
+      size: this.NUMBER_OF_CUBES * 8, // 8 floats per cube - minimum buffer size
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
-      size: this.NUMBER_OF_CUBES * 32,
+      size: this.NUMBER_OF_CUBES * 8,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
@@ -480,17 +480,21 @@ export class WebgpuRenderer {
       console.timeEnd('recreate buffers')
     }
 
-    const BYTES_PER_ELEMENT = 8
-    const cubeData = new Float32Array(this.NUMBER_OF_CUBES * BYTES_PER_ELEMENT)
+    const BYTES_PER_ELEMENT = 2
+    const cubeData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
     for (let i = 0; i < this.NUMBER_OF_CUBES; i++) {
-      const offset = i * BYTES_PER_ELEMENT
-      cubeData[offset] = positions[i * 3]
-      cubeData[offset + 1] = positions[i * 3 + 1]
-      cubeData[offset + 2] = positions[i * 3 + 2]
-      cubeData[offset + 3] = textureIndexes[i]
-      cubeData[offset + 4] = colors[i * 3]
-      cubeData[offset + 5] = colors[i * 3 + 1]
-      cubeData[offset + 6] = colors[i * 3 + 2]
+      const offset = i * 2;
+      let first = ((((textureIndexes[i] & 3) << 2) | positions[i * 3 + 2]) << 10 | positions[i * 3 + 1]) << 10 | positions[i * 3];
+      cubeData[offset] = first;
+      let second = ((((textureIndexes[i] >> 2) << 8) | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3];
+      cubeData[offset + 1] = second;
+      // cubeData[offset] = positions[i * 3] 
+      // cubeData[offset + 1] = positions[i * 3 + 1]
+      // cubeData[offset + 2] = positions[i * 3 + 2]
+      // cubeData[offset + 3] = textureIndexes[i]
+      // cubeData[offset + 4] = colors[i * 3]
+      // cubeData[offset + 5] = colors[i * 3 + 1]
+      // cubeData[offset + 6] = colors[i * 3 + 2]
       //cubeData[offset + 7] = 0.5; // Sphere radius
     }
 
@@ -545,7 +549,7 @@ export class WebgpuRenderer {
       ViewProjection
     )
 
-    const drawCamera = true
+    let drawCamera = false;
 
     if (drawCamera) {
       const ViewProjectionMat42 = new THREE.Matrix4()
