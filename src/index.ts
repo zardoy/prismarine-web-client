@@ -185,7 +185,7 @@ viewer.entities.getItemUv = (idOrName: number | string) => {
       u: 0,
       v: 0,
       size: 16 / viewer.world.material.map!.image.width,
-      texture: viewer.world.material.map
+      texture: viewer.world.material.map!
     }
   }
 }
