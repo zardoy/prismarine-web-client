@@ -47,10 +47,10 @@ customEvents.on('gameLoaded', () => {
     window.debugEntityMetadata ??= {}
     window.debugEntityMetadata[e.username] = e
     // todo entity spawn timing issue, check perf
-    if (viewer.entities.entities[e.id]?.playerObject) {
+    const playerObject = viewer.entities.entities[e.id]?.playerObject
+    if (playerObject) {
       // todo throttle!
       bot.tracker.trackEntity(e)
-      const { playerObject } = viewer.entities.entities[e.id]
       playerObject.backEquipment = e.equipment.some((item) => item?.name === 'elytra') ? 'elytra' : 'cape'
       if (playerObject.cape.map === null) {
         playerObject.cape.visible = false
