@@ -29,10 +29,6 @@ export class WorldRendererThree extends WorldRendererCommon {
     super(config)
     this.starField = new StarField(scene)
     this.holdingBlock = new HoldingBlock(this.scene)
-    this.onHandItemSwitch({
-      name: 'furnace',
-      properties: {}
-    })
 
     this.renderUpdateEmitter.on('textureDownloaded', () => {
       if (this.holdingBlock.toBeRenderedItem) {

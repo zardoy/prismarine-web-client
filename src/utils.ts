@@ -1,6 +1,6 @@
-import { hideModal, isGameActive, miscUiState, showModal } from './globalState'
+import { activeModalStack, hideModal, isGameActive, miscUiState, showModal } from './globalState'
 import { options } from './optionsStorage'
-import { appStatusState } from './react/AppStatusProvider'
+import { appStatusState, resetAppStatusState } from './react/AppStatusProvider'
 import { notificationProxy, showNotification } from './react/NotificationProvider'
 
 export const goFullscreen = async (doToggle = false) => {
@@ -139,7 +139,10 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
     return
   }
 
-  // todo update in component instead
+  if (!activeModalStack.some(x => x.reactType === 'app-status')) {
+    // just showing app status
+    resetAppStatusState()
+  }
   showModal({ reactType: 'app-status' })
   if (appStatusState.isError) {
     miscUiState.gameLoaded = false

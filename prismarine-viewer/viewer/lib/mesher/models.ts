@@ -282,6 +282,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
+    // 10%
     const baseLight = world.getLight(neighborPos, undefined, undefined, block.name) / 15
     for (const pos of corners) {
       let vertex = [
@@ -290,7 +291,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         (pos[2] ? maxz : minz)
       ]
 
-      if (!needTiles) {
+      if (!needTiles) { // 10%
         vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
         vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
         vertex = vertex.map(v => v / 16)
@@ -411,7 +412,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     // todo this can be removed here
     signs: {},
     // isFull: true,
-    highestBlocks: {},
+    highestBlocks: {}, // todo migrate to map for 2% boost perf
     hadErrors: false
   }
 
@@ -449,7 +450,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         }
         const biome = block.biome.name
 
-        if (world.preflat) {
+        if (world.preflat) { // 10% perf
           const patchProperties = preflatBlockCalculation(block, world, cursor)
           if (patchProperties) {
             block._originalProperties ??= block._properties
@@ -505,6 +506,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             const model = modelVars[useVariant] ?? modelVars[0]
             if (!model) continue
 
+            // #region 10%
             let globalMatrix = null as any
             let globalShift = null as any
             for (const axis of ['x', 'y', 'z'] as const) {
@@ -518,6 +520,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
               globalShift = [8, 8, 8]
               globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
             }
+            // #endregion
 
             for (const element of model.elements ?? []) {
               const ao = model.ao ?? true
@@ -527,6 +530,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
                   renderElement(world, pos, element, ao, attr, globalMatrix, globalShift, block, biome)
                 })
               } else {
+                // 60%
                 renderElement(world, cursor, element, ao, attr, globalMatrix, globalShift, block, biome)
               }
             }

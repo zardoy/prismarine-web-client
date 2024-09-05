@@ -1,6 +1,6 @@
 import { proxy, useSnapshot } from 'valtio'
-import { useEffect, useState } from 'react'
-import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState } from '../globalState'
+import { useEffect, useRef, useState } from 'react'
+import { activeModalStack, activeModalStacks, hideModal, insertActiveModalStack, miscUiState, showModal } from '../globalState'
 import { resetLocalStorageWorld } from '../browserfs'
 import { fsState } from '../loadSave'
 import { guessProblem } from '../errorLoadingScreenHelpers'
@@ -14,6 +14,7 @@ import { useIsModalActive } from './utilsApp'
 import Button from './Button'
 import { AuthenticatedAccount, updateAuthenticatedAccountData, updateLoadedServerData } from './ServersListProvider'
 import { showOptionsModal } from './SelectOption'
+import LoadingChunks from './LoadingChunks'
 
 const initialState = {
   status: '',
@@ -22,9 +23,12 @@ const initialState = {
   descriptionHint: '',
   isError: false,
   hideDots: false,
+  loadingChunksData: null as null | Record<string, string>,
+  loadingChunksDataPlayerChunk: null as null | { x: number, z: number },
+  isDisplaying: false
 }
 export const appStatusState = proxy(initialState)
-const resetState = () => {
+export const resetAppStatusState = () => {
   Object.assign(appStatusState, initialState)
 }
 
@@ -33,7 +37,7 @@ export const lastConnectOptions = {
 }
 
 export default () => {
-  const { isError, lastStatus, maybeRecoverable, status, hideDots, descriptionHint } = useSnapshot(appStatusState)
+  const { isError, lastStatus, maybeRecoverable, status, hideDots, descriptionHint, loadingChunksData, loadingChunksDataPlayerChunk } = useSnapshot(appStatusState)
   const { active: replayActive } = useSnapshot(packetsReplaceSessionState)
 
   const isOpen = useIsModalActive('app-status')
@@ -52,7 +56,7 @@ export default () => {
   }, [isOpen])
 
   const reconnect = () => {
-    resetState()
+    resetAppStatusState()
     window.dispatchEvent(new window.CustomEvent('connect', {
       detail: lastConnectOptions.value
     }))
@@ -93,7 +97,7 @@ export default () => {
       lastStatus={lastStatus}
       description={displayAuthButton ? '' : (isError ? guessProblem(status) : '') || descriptionHint}
       backAction={maybeRecoverable ? () => {
-        resetState()
+        resetAppStatusState()
         miscUiState.gameLoaded = false
         miscUiState.loadedDataVersion = null
         window.loadedData = undefined
@@ -113,8 +117,23 @@ export default () => {
           {replayActive && <Button label='Download Packets Replay' onClick={downloadPacketsReplay} />}
         </>
       }
-    />
+    >
+      {loadingChunksData && <LoadingChunks regionFiles={Object.keys(loadingChunksData)} stateMap={loadingChunksData} playerChunk={loadingChunksDataPlayerChunk} />}
+      {isOpen && <DisplayingIndicator />}
+    </AppStatus>
   </DiveTransition>
+}
+
+const DisplayingIndicator = () => {
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        appStatusState.isDisplaying = true
+      })
+    })
+  }, [])
+
+  return <div />
 }
 
 const PossiblyVpnBypassProxyButton = ({ reconnect }: { reconnect: () => void }) => {
