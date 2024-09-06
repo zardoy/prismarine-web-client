@@ -68,7 +68,7 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
     "filesize": "^10.0.12",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.38",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.40",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "jszip": "^3.10.1",
