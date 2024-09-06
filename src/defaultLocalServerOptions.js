@@ -28,7 +28,7 @@ module.exports = {
   'view-distance': 2,
   'player-list-text': {
     'header': 'Flying squid',
-    'footer': 'Test server'
+    'footer': 'Integrated server'
   },
   keepAlive: false,
   'everybody-op': true,
