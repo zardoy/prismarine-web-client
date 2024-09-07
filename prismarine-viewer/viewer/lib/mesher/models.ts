@@ -497,7 +497,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
               models = blockProvider.getAllResolvedModels0_1({
                 name: block.name,
                 properties: props,
-              })!
+              }, world.preflat)! // fixme! this is a hack (also need a setting for all versions)
               if (!models.length) {
                 console.debug('[mesher] block to render not found', block.name, props)
                 models = null
