@@ -26,6 +26,7 @@ module.exports.resolveSrv = function (hostname, callback) {
     const willreturn = []
     for (const object of response.Answer) {
       const data = object.data.split(' ')
+      if (data[3] === undefined || data[2] === undefined) continue
       willreturn.push({
         priority: data[0],
         weight: data[1],

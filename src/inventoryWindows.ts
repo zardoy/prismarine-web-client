@@ -54,7 +54,6 @@ export const onGameLoad = (onLoad) => {
 
   bot.on('windowOpen', (win) => {
     if (implementedContainersGuiMap[win.type]) {
-      // todo also render title!
       openWindow(implementedContainersGuiMap[win.type])
     } else if (options.unimplementedContainers) {
       openWindow('ChestWin')
@@ -385,6 +384,11 @@ const openWindow = (type: string | undefined) => {
 
   lastWindow = inv
   const upWindowItems = () => {
+    if (!lastWindow && bot.currentWindow) {
+      // edge case: might happen due to high ping, inventory should be closed soon!
+      // openWindow(implementedContainersGuiMap[bot.currentWindow.type])
+      return
+    }
     void Promise.resolve().then(() => upInventoryItems(type === undefined))
   }
   upWindowItems()
