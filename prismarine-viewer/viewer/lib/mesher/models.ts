@@ -479,15 +479,32 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           // cache
           let { models } = block
           if (block.models === undefined) {
+            const props = block.getProperties()
             try {
+              // fixme
+              if (world.preflat) {
+                if (block.name === 'cobblestone_wall') {
+                  props.up = 'true'
+                  for (const key of ['north', 'south', 'east', 'west']) {
+                    const val = props[key]
+                    if (val === 'false' || val === 'true') {
+                      props[key] = val === 'true' ? 'low' : 'none'
+                    }
+                  }
+                }
+              }
+
               models = blockProvider.getAllResolvedModels0_1({
                 name: block.name,
-                properties: block.getProperties(),
+                properties: props,
               })!
-              if (!models.length) models = null
+              if (!models.length) {
+                console.debug('[mesher] block to render not found', block.name, props)
+                models = null
+              }
             } catch (err) {
               models ??= erroredBlockModel
-              console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(block.getProperties())}]: ` + err.message, err.stack)
+              console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(props)}]: ` + err.message, err.stack)
               attr.hadErrors = true
             }
           }
