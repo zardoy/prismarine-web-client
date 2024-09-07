@@ -104,7 +104,7 @@ const InGameUi = () => {
   const { disabledUiParts, displayBossBars } = useSnapshot(options)
   const hasModals = useSnapshot(activeModalStack).length > 0
   const showUI = showUIRaw || hasModals
-  if (!gameLoaded || !bot) return
+  if (!gameLoaded || !bot || disabledUiParts.includes('*')) return
 
   return <>
     <RobustPortal to={document.querySelector('#ui-root')}>

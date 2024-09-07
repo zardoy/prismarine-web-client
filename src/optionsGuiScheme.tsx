@@ -91,6 +91,7 @@ export const guiOptionsScheme: {
         tooltip: 'Additional distance to keep the chunks loading before unloading them by marking them as too far',
       },
       handDisplay: {},
+      neighborChunkUpdates: {},
     },
   ],
   main: [
@@ -429,15 +430,15 @@ const Category = ({ children }) => <div style={{
 const UiToggleButton = ({ name, addUiText = false, label = noCase(name) }) => {
   const { disabledUiParts } = useSnapshot(options)
 
-  const currentlyEnabled = disabledUiParts.includes(name)
+  const currentlyDisabled = disabledUiParts.includes(name)
   if (addUiText) label = `${label} UI`
   return <Button
     inScreen
     onClick={() => {
-      const newDisabledUiParts = currentlyEnabled ? disabledUiParts.filter(x => x !== name) : [...disabledUiParts, name]
+      const newDisabledUiParts = currentlyDisabled ? disabledUiParts.filter(x => x !== name) : [...disabledUiParts, name]
       options.disabledUiParts = newDisabledUiParts
     }}
-  >{currentlyEnabled ? 'Disable' : 'Enable'} {label}</Button>
+  >{currentlyDisabled ? 'Enable' : 'Disable'} {label}</Button>
 }
 
 export const tryFindOptionConfig = (option: keyof AppOptions) => {

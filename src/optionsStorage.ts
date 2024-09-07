@@ -84,6 +84,7 @@ const defaultOptions = {
   wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
   displayBossBars: false, // boss bar overlay was removed for some reason, enable safely
   disabledUiParts: [] as string[],
+  neighborChunkUpdates: true
 }
 
 function getDefaultTouchControlsPositions () {
