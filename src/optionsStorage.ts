@@ -84,6 +84,9 @@ const defaultOptions = {
   wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
   showMinimap: 'always' as 'always' | 'singleplayer' | 'never',
   showFullmap: 'always' as 'always' | 'singleplayer' | 'never',
+  displayBossBars: false, // boss bar overlay was removed for some reason, enable safely
+  disabledUiParts: [] as string[],
+  neighborChunkUpdates: true
 }
 
 function getDefaultTouchControlsPositions () {

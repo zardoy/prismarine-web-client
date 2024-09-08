@@ -93,8 +93,8 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
   }
 }
 
-function isPageSecure () {
-  return window.location.protocol === 'https:'
+function isPageSecure (url = window.location.href) {
+  return !url.startsWith('http:')
 }
 
 // restore dates from strings
@@ -161,9 +161,10 @@ function pemToArrayBuffer (pem) {
 }
 
 const urlWithBase = (url: string, base: string) => {
-  if (!base.startsWith('http')) base = `https://${base}`
+  const defaultBase = isPageSecure() ? 'https' : 'http'
+  if (!base.startsWith('http')) base = `${defaultBase}://${base}`
   const urlObj = new URL(url, base)
   base = base.replace(/^https?:\/\//, '')
-  urlObj.host = base.includes(':') ? base : `${base}:${isPageSecure() ? '443' : '80'}`
+  urlObj.host = base.includes(':') ? base : `${base}:${isPageSecure(base) ? '443' : '80'}`
   return urlObj
 }

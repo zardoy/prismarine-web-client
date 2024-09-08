@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
+import { noCase } from 'change-case'
+import { titleCase } from 'title-case'
 import { loadedGameState, miscUiState, openOptionsMenu, showModal } from './globalState'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
@@ -89,6 +91,7 @@ export const guiOptionsScheme: {
         tooltip: 'Additional distance to keep the chunks loading before unloading them by marking them as too far',
       },
       handDisplay: {},
+      neighborChunkUpdates: {},
     },
   ],
   main: [
@@ -250,7 +253,39 @@ export const guiOptionsScheme: {
         ],
       },
     },
-
+    {
+      custom() {
+        return <Category>Experimental</Category>
+      },
+      displayBossBars: {
+        text: 'Boss Bars',
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='title' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='chat' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='scoreboard' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='effects-indicators' />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='hotbar' />
+      },
+    },
   ],
   controls: [
     {
@@ -412,6 +447,20 @@ const Category = ({ children }) => <div style={{
   textAlign: 'center',
   gridColumn: 'span 2'
 }}>{children}</div>
+
+const UiToggleButton = ({ name, addUiText = false, label = noCase(name) }) => {
+  const { disabledUiParts } = useSnapshot(options)
+
+  const currentlyDisabled = disabledUiParts.includes(name)
+  if (addUiText) label = `${label} UI`
+  return <Button
+    inScreen
+    onClick={() => {
+      const newDisabledUiParts = currentlyDisabled ? disabledUiParts.filter(x => x !== name) : [...disabledUiParts, name]
+      options.disabledUiParts = newDisabledUiParts
+    }}
+  >{currentlyDisabled ? 'Enable' : 'Disable'} {label}</Button>
+}
 
 export const tryFindOptionConfig = (option: keyof AppOptions) => {
   for (const group of Object.values(guiOptionsScheme)) {

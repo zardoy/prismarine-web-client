@@ -62,6 +62,10 @@ export const watchOptionsAfterViewerInit = () => {
     if (!(viewer.world instanceof WorldRendererThree)) return
     viewer.world.starField.enabled = o.starfieldRendering
   })
+
+  watchValue(options, o => {
+    viewer.world.neighborChunkUpdates = o.neighborChunkUpdates
+  })
 }
 
 let viewWatched = false
