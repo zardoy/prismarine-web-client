@@ -37,8 +37,8 @@ jobs:
           name: cypress-images
           path: cypress/integration/__image_snapshots__/
       - name: print current ref
-        run: echo ${{ github.ref }}
+        run: echo ${{ github.event.pull_request.base.ref }}
       - run: node scripts/outdatedGitPackages.mjs
-        if: ${{ github.ref == 'refs/heads/next' }}
+        if: ${{ github.event.pull_request.base.ref == 'next' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
