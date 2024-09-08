@@ -18,6 +18,8 @@ jobs:
           fetch-depth: 0 # Fetch all history so we can merge branches
       - name: Fetch All Branches
         run: git fetch --all
+      - name: Checkout PR
+        run: git checkout ${{ refs/pull/${{ github.event.issue.number }}/head }}
       - name: Merge From Next
         run: git merge origin/next --strategy-option=theirs
       - name: Push Changes
