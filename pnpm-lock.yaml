@@ -160,7 +160,7 @@ importers:
         version: 6.1.1
       prismarine-provider-anvil:
         specifier: github:zardoy/prismarine-provider-anvil#everything
-        version: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4(minecraft-data@3.65.0)
+        version: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699(minecraft-data@3.65.0)
       prosemirror-example-setup:
         specifier: ^1.2.2
         version: 1.2.2
@@ -7514,8 +7514,8 @@ packages:
   prismarine-physics@1.8.0:
     resolution: {integrity: sha512-gbM+S+bmVtOKVv+Z0WGaHMeEeBHISIDsRDRlv8sr0dex3ZJRhuq8djA02CBreguXtI18ZKh6q3TSj2qDr45NHA==}
 
-  prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4}
+  prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699}
     version: 2.8.0
 
   prismarine-realms@1.3.2:
@@ -13385,7 +13385,7 @@ snapshots:
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.5.0
-      prismarine-provider-anvil: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4(minecraft-data@3.65.0)
+      prismarine-provider-anvil: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699(minecraft-data@3.65.0)
       prismarine-windows: 2.9.0
       prismarine-world: https://codeload.github.com/zardoy/prismarine-world/tar.gz/187a87f6d71cba12881a7bbaa510ed9085bf6da7
       rambda: 9.2.0
@@ -18623,7 +18623,7 @@ snapshots:
       prismarine-nbt: 2.5.0
       vec3: 0.1.8
 
-  prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4(minecraft-data@3.65.0):
+  prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699(minecraft-data@3.65.0):
     dependencies:
       prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/a69b66ab1e4be6b67f25a5a6db15e0ad39e11819
       prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cea0b6c792d7dcbb69dfd20fa48be5fd60ce83ef(minecraft-data@3.65.0)
