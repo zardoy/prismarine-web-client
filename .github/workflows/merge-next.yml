@@ -1,0 +1,24 @@
+name: Update Base Branch Command
+on:
+  issue_comment:
+    types: [created]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.issue.pull_request != '' &&
+      (
+        contains(github.event.comment.body, '/update')
+      )
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: refs/pull/${{ github.event.issue.number }}/head
+      - name: Merge From Next
+        run: git merge next --strategy-option=theirs
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
