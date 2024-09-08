@@ -36,6 +36,8 @@ jobs:
         with:
           name: cypress-images
           path: cypress/integration/__image_snapshots__/
+      - name: print current ref
+        run: echo ${{ github.ref }}
       - run: node scripts/outdatedGitPackages.mjs
         if: ${{ github.ref == 'refs/heads/next' }}
         env:

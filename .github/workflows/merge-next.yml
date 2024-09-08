@@ -15,9 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
         with:
-          ref: refs/pull/${{ github.event.issue.number }}/head
+          fetch-depth: 0 # Fetch all history so we can merge branches
+      - name: Fetch All Branches
+        run: git fetch --all
       - name: Merge From Next
-        run: git merge next --strategy-option=theirs
+        run: git merge origin/next --strategy-option=theirs
       - name: Push Changes
         uses: ad-m/github-push-action@master
         with:
