@@ -19,7 +19,7 @@ jobs:
       - name: Fetch All Branches
         run: git fetch --all
       - name: Checkout PR
-        run: git checkout ${{ refs/pull/${{ github.event.issue.number }}/head }}
+        run: git checkout ${{ github.event.issue.pull_request.head.ref }}
       - name: Merge From Next
         run: git merge origin/next --strategy-option=theirs
       - name: Push Changes
