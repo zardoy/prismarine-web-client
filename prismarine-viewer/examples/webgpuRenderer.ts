@@ -40,6 +40,8 @@ export class WebgpuRenderer {
   cubeTexture: GPUTexture
   secondCameraUiformBindGroup: GPUBindGroup
   secondUniformBuffer: GPUBuffer
+  
+  multisampleTexture: GPUTexture | undefined
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
@@ -133,7 +135,9 @@ export class WebgpuRenderer {
           },
         ],
       },
-
+      multisample: {
+        count: 4,
+      },
       primitive: {
         topology: 'triangle-list',
         cullMode: 'front',
@@ -150,6 +154,7 @@ export class WebgpuRenderer {
       size: [canvas.width, canvas.height],
       format: 'depth24plus',
       usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      sampleCount: 4,
     })
 
     const uniformBufferSize = 4 * (4 * 4) // 4x4 matrix
@@ -157,7 +162,7 @@ export class WebgpuRenderer {
       size: uniformBufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
-
+    
     this.secondUniformBuffer = device.createBuffer({
       size: uniformBufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -169,6 +174,7 @@ export class WebgpuRenderer {
       size: [textureBitmap.width, textureBitmap.height, 1],
       format: 'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+      //sampleCount: 4
     })
     device.queue.copyExternalImageToTexture(
       { source: textureBitmap },
@@ -448,8 +454,7 @@ export class WebgpuRenderer {
     return camera
   })()
 
-
-
+  
 
   loop (forceFrame = false) {
     if (!this.rendering) {
@@ -461,7 +466,7 @@ export class WebgpuRenderer {
     const start = performance.now()
 
     const { device, UniformBuffer: uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
-
+    
     const now = Date.now()
     tweenJs.update()
 
@@ -475,6 +480,29 @@ export class WebgpuRenderer {
       0,
       ViewProjection
     )
+
+    const canvasTexture = ctx.getCurrentTexture();
+    let { multisampleTexture } = this;
+    // If the multisample texture doesn't exist or
+    // is the wrong size then make a new one.
+    if (multisampleTexture === undefined ||
+        multisampleTexture.width !== canvasTexture.width ||
+        multisampleTexture.height !== canvasTexture.height) {
+ 
+      // If we have an existing multisample texture destroy it.
+      if (multisampleTexture) {
+        multisampleTexture.destroy();
+      }
+ 
+      // Create a new multisample texture that matches our
+      // canvas's size
+      multisampleTexture = device.createTexture({
+        format: canvasTexture.format,
+        usage: GPUTextureUsage.RENDER_ATTACHMENT,
+        size: [canvasTexture.width, canvasTexture.height],
+        sampleCount: 4,
+      });
+    }
 
     let drawCamera = false;
 
@@ -494,9 +522,16 @@ export class WebgpuRenderer {
       this.indirectDrawBuffer, 0, this.indirectDrawParams
     )
 
-    renderPassDescriptor.colorAttachments[0].view = ctx
-      .getCurrentTexture()
-      .createView()
+    // renderPassDescriptor.colorAttachments[0].view = ctx
+    //   .getCurrentTexture()
+    //   .createView()
+
+    renderPassDescriptor.colorAttachments[0].view =
+    multisampleTexture.createView();
+// Set the canvas texture as the texture to "resolve"
+// the multisample texture to.
+    renderPassDescriptor.colorAttachments[0].resolveTarget =
+    canvasTexture.createView();
 
     this.commandEncoder = device.createCommandEncoder()
     // Compute pass for occlusion culling
