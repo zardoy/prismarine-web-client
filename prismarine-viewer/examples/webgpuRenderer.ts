@@ -200,7 +200,7 @@ export class WebgpuRenderer {
 
     this.cubeTexture = device.createTexture({
       size: [textureBitmap.width, textureBitmap.height, 1],
-      format: 'rgb10a2unorm',
+      format: 'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
     })
     device.queue.copyExternalImageToTexture(
