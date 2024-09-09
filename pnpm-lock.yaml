@@ -45,8 +45,8 @@ importers:
         specifier: 5.0.0-beta.40
         version: 5.0.0-beta.40(@types/react@18.2.20)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@nxg-org/mineflayer-auto-jump':
-        specifier: ^0.7.7
-        version: 0.7.7
+        specifier: ^0.7.8
+        version: 0.7.8
       '@nxg-org/mineflayer-tracker':
         specifier: ^1.2.1
         version: 1.2.1
@@ -2110,8 +2110,8 @@ packages:
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
     deprecated: This functionality has been moved to @npmcli/fs
 
-  '@nxg-org/mineflayer-auto-jump@0.7.7':
-    resolution: {integrity: sha512-50FYsz5rxBuLzOh7wqmg9iN9zdVGD+QjuaPcw/mD7q8Bq6Bq+o1/DfXfpoNGIHaDag80q6FJSpc73MI3Scid8g==}
+  '@nxg-org/mineflayer-auto-jump@0.7.8':
+    resolution: {integrity: sha512-o3XVruz2siApRvJKMe9EjQYTMANTMhStM3mRUKpZ1ar/2QqJ6sgyqEZTD9sE/zNA7bcjr49sZfuB8bX4t07Hww==}
 
   '@nxg-org/mineflayer-physics-util@1.5.8':
     resolution: {integrity: sha512-KmCkAqpUo8BbuRdIBs6+V2hWHehz++PRz3lRwIsb47CuG0u4sgLYh37RY3ifAznC6uWvmPK+q3B4ZXwJzPy1MQ==}
@@ -11514,7 +11514,7 @@ snapshots:
       rimraf: 3.0.2
     optional: true
 
-  '@nxg-org/mineflayer-auto-jump@0.7.7':
+  '@nxg-org/mineflayer-auto-jump@0.7.8':
     dependencies:
       '@nxg-org/mineflayer-physics-util': 1.5.8
       strict-event-emitter-types: 2.0.0
