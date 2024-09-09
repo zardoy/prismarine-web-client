@@ -3,10 +3,7 @@ struct Uniforms {
 }
 
 struct Cube {
-  position: vec3f,
-  textureIndex: f32,
-  colorBlend: vec3f,
-  //tt: f32
+  cube : array<u32, 2>
 }
 
 struct VertexOutput {
@@ -26,11 +23,22 @@ fn main(
   @location(1) uv: vec2<f32>
 ) -> VertexOutput {
   let cube = visibleCubes[instanceIndex];
+  let positionX : f32 = f32(cube.cube[0] & 1023);
+  let positionY : f32 = f32((cube.cube[0] >> 10) & 1023);
+  let positionZ : f32 = f32((cube.cube[0] >> 20) & 1023);
+  let textureIndex : f32 = f32((((cube.cube[1] >> 24) & 255) << 2) | ((cube.cube[0] >> 30) & 3) ); 
+  //textureIndex = 1.0;
+  let cube_position = vec4f(positionX, positionY, positionZ, 0.0);
+  let colorBlendR : f32 = f32(cube.cube[1] & 255);
+  let colorBlendG : f32 = f32((cube.cube[1] >> 8) & 255);
+  let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 255);
+  let colorBlend = vec3f(colorBlendR, colorBlendG, colorBlendB);
+  //last 8 bits reserved for animations
   //cube.position.x = instance_index * 2;
   var output: VertexOutput;
-  output.Position = uniforms.ViewProjectionMatrix * (position + vec4<f32>(cube.position, 0.0) + vec4<f32>(0.5, 0.0, 0.5, 0.0));
+  output.Position = uniforms.ViewProjectionMatrix * (position + cube_position + vec4<f32>(0.5, 0.0, 0.5, 0.0));
   output.fragUV = uv;
-  output.TextureIndex = cube.textureIndex;
-  output.ColorBlend = cube.colorBlend;
+  output.TextureIndex = textureIndex;
+  output.ColorBlend = colorBlend;
   return output;
 }
