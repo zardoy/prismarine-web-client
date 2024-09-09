@@ -27,8 +27,9 @@ fn main(
   let positionY : f32 = f32((cube.cube[0] >> 10) & 1023);
   let positionZ : f32 = f32((cube.cube[0] >> 20) & 1023);
   let textureIndex : f32 = f32((((cube.cube[1] >> 24) & 255) << 2) | ((cube.cube[0] >> 30) & 3) ); 
+  //textureIndex = 1.0;
   let cube_position = vec4f(positionX, positionY, positionZ, 0.0);
-  let colorBlendR : f32 = f32(cube.cube[1] & 255);j
+  let colorBlendR : f32 = f32(cube.cube[1] & 255);
   let colorBlendG : f32 = f32((cube.cube[1] >> 8) & 255);
   let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 255);
   let colorBlend = vec3f(colorBlendR, colorBlendG, colorBlendB);

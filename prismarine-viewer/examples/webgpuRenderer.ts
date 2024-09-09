@@ -109,39 +109,6 @@ export class WebgpuRenderer {
               },
             ],
           },
-          // {
-          //     arrayStride: 3 * 4,
-          //     attributes: [
-          //         {
-          //             shaderLocation: 2,
-          //             offset: 0,
-          //             format: 'float32x3',
-          //         },
-          //     ],
-          //     stepMode: 'instance',
-          // },
-          // {
-          //     arrayStride: 1 * 4,
-          //     attributes: [
-          //         {
-          //             shaderLocation: 3,
-          //             offset: 0,
-          //             format: 'float32',
-          //         },
-          //     ],
-          //     stepMode: 'instance',
-          // },
-          // {
-          //     arrayStride: 3 * 4,
-          //     attributes: [
-          //         {
-          //             shaderLocation: 4,
-          //             offset: 0,
-          //             format: 'float32x3',
-          //         },
-          //     ],
-          //     stepMode: 'instance',
-          // },
         ],
       },
       fragment: {
@@ -200,7 +167,7 @@ export class WebgpuRenderer {
 
     this.cubeTexture = device.createTexture({
       size: [textureBitmap.width, textureBitmap.height, 1],
-      format: 'rgb10a2unorm',
+      format: 'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
     })
     device.queue.copyExternalImageToTexture(
@@ -296,7 +263,6 @@ export class WebgpuRenderer {
 
     this.uniformBindGroup = device.createBindGroup({
       label: 'uniformBindGroups',
-      //layout: vertexBindGroupLayout,
       layout: pipeline.getBindGroupLayout(0),
       entries: [
         {
@@ -324,7 +290,6 @@ export class WebgpuRenderer {
 
     this.secondCameraUiformBindGroup = device.createBindGroup({
       label: 'uniformBindGroupsCamera',
-      //layout: vertexBindGroupLayout,
       layout: pipeline.getBindGroupLayout(0),
       entries: [
         {
@@ -350,42 +315,8 @@ export class WebgpuRenderer {
       ],
     })
 
-    // // Create bind group for compute shader
-    // this.computeBindGroupLayout = device.createBindGroupLayout({
-    //     label: 'computeBindGroupLayout',
-    //     entries: [
-    //         {
-    //             binding: 0,
-    //             visibility: GPUShaderStage.COMPUTE,
-    //             buffer: {
-    //                 type: 'uniform',
-    //             },
-    //         },
-    //         {
-    //             binding: 1,
-    //             visibility: GPUShaderStage.COMPUTE,
-    //             buffer: {
-    //                 type: 'storage',
-    //             },
-    //         },
-    //         {
-    //             binding: 2,
-    //             visibility: GPUShaderStage.COMPUTE,
-    //             buffer: {
-    //                 type: '',
-    //             },
-    //         },
-    //         {
-    //             binding: 3,
-    //             visibility: GPUShaderStage.COMPUTE,
-    //             buffer: {
-    //                 type: 'storage',
-    //             },
-    //         },
-    //     ],
-    // });
+
     this.computeBindGroup = device.createBindGroup({
-      //layout: this.computeBindGroupLayout,
       layout: this.computePipeline.getBindGroupLayout(0),
       label: 'computeBindGroup',
       entries: [
@@ -484,7 +415,7 @@ export class WebgpuRenderer {
     const cubeData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
     for (let i = 0; i < this.NUMBER_OF_CUBES; i++) {
       const offset = i * 2;
-      let first = ((((textureIndexes[i] & 3) << 2) | positions[i * 3 + 2]) << 10 | positions[i * 3 + 1]) << 10 | positions[i * 3];
+      let first = ((((textureIndexes[i] & 3) << 12) | positions[i * 3 + 2]) << 10 | positions[i * 3 + 1]) << 10 | positions[i * 3];
       cubeData[offset] = first;
       let second = ((((textureIndexes[i] >> 2) << 8) | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3];
       cubeData[offset + 1] = second;
@@ -495,14 +426,10 @@ export class WebgpuRenderer {
       // cubeData[offset + 4] = colors[i * 3]
       // cubeData[offset + 5] = colors[i * 3 + 1]
       // cubeData[offset + 6] = colors[i * 3 + 2]
-      //cubeData[offset + 7] = 0.5; // Sphere radius
     }
 
     this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeData)
 
-    // Reset indirect draw parameters
-    // this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0]);
-    //this.device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams);
 
     this.notRenderedAdditions++
     console.timeEnd('updateSides')
