@@ -33,6 +33,7 @@ const result = await (watch ? context : build)({
             setup (build) {
                 build.onEnd(({ outputFiles }) => {
                     fs.mkdirSync('prismarine-viewer/public', { recursive: true })
+                    fs.mkdirSync('dist', { recursive: true })
                     for (const file of outputFiles) {
                         for (const dir of ['prismarine-viewer/public', 'dist']) {
                             const baseName = path.basename(file.path)
