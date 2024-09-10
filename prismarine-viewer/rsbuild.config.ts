@@ -17,10 +17,13 @@ export default mergeRsbuildConfig(
     appAndRendererSharedConfig(),
     defineConfig({
         html: {
-            template: './playground.html',
+            template: join(__dirname, './playground.html'),
         },
         output: {
             cleanDistPath: false,
+            distPath: {
+                root: join(__dirname, './dist'),
+            },
         },
         server: {
             port: 9090,

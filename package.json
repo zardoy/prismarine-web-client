@@ -24,7 +24,7 @@
     "watch-mesher": "pnpm build-mesher -w",
     "run-playground": "run-p watch-mesher watch-other-workers watch-playground",
     "run-all": "run-p start run-playground",
-    "build-playground": "rsbuild build --root ./prismarine-viewer",
+    "build-playground": "rsbuild build --config prismarine-viewer/rsbuild.config.ts",
     "watch-playground": "rsbuild dev --root ./prismarine-viewer"
   },
   "keywords": [
