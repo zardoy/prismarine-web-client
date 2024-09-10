@@ -9,7 +9,7 @@ const result = await (watch ? context : build)({
     bundle: true,
     platform: 'browser',
     entryPoints: ['prismarine-viewer/examples/webgpuRendererWorker.ts'],
-    outdir: 'prismarine-viewer/public/',
+    outdir: 'prismarine-viewer/dist/',
     sourcemap: watch ? 'inline' : 'external',
     minify: !watch,
     treeShaking: true,
@@ -33,8 +33,9 @@ const result = await (watch ? context : build)({
             setup (build) {
                 build.onEnd(({ outputFiles }) => {
                     for (const file of outputFiles) {
-                        for (const dir of ['prismarine-viewer/public', 'dist']) {
+                        for (const dir of ['prismarine-viewer/dist', 'dist']) {
                             const baseName = path.basename(file.path)
+                            fs.mkdirSync(dir, { recursive: true })
                             fs.writeFileSync(path.join(dir, baseName), file.contents)
                         }
                     }
