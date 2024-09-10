@@ -528,8 +528,6 @@ export class WebgpuRenderer {
     //   this.multisampleTexture = multisampleTexture
     // }
 
-    let drawCamera = true;
-
     device.queue.writeBuffer(
       this.indirectDrawBuffer, 0, this.indirectDrawParams
     )
@@ -571,7 +569,7 @@ export class WebgpuRenderer {
     // Use indirect drawing
     renderPass.drawIndirect(this.indirectDrawBuffer, 0)
 
-    if (drawCamera) {
+    if (this.rendererParams.secondCamera) {
       renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
       renderPass.setViewport(this.canvas.width / 2, 0, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
       renderPass.drawIndirect(this.indirectDrawBuffer, 0)
