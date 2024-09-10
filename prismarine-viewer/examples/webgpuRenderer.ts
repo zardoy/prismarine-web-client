@@ -16,6 +16,7 @@ export class WebgpuRenderer {
   device: GPUDevice
   renderPassDescriptor: GPURenderPassDescriptor
   uniformBindGroup: GPUBindGroup
+  vertexCubeBindGroup: GPUBindGroup
   UniformBuffer: GPUBuffer
   ViewUniformBuffer: GPUBuffer
   ProjectionUniformBuffer: GPUBuffer
@@ -135,9 +136,9 @@ export class WebgpuRenderer {
           },
         ],
       },
-      multisample: {
-        count: 4,
-      },
+      // multisample: {
+      //   count: 4,
+      // },
       primitive: {
         topology: 'triangle-list',
         cullMode: 'front',
@@ -154,7 +155,7 @@ export class WebgpuRenderer {
       size: [canvas.width, canvas.height],
       format: 'depth24plus',
       usage: GPUTextureUsage.RENDER_ATTACHMENT,
-      sampleCount: 4,
+      //sampleCount: 4,
     })
 
     const uniformBufferSize = 4 * (4 * 4) // 4x4 matrix
@@ -285,12 +286,27 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.cubeTexture.createView(),
         },
+        // {
+        //   binding: 3,
+        //   resource: {
+        //     buffer: this.visibleCubesBuffer
+        //   }
+        // }
+      ],
+    })
+
+    this.vertexCubeBindGroup = device.createBindGroup({
+      label: 'vertexCubeBindGroup',
+      layout: pipeline.getBindGroupLayout(1),
+      entries: [
         {
-          binding: 3,
-          resource: {
-            buffer: this.visibleCubesBuffer
-          }
-        }
+          binding: 0,
+          resource: { buffer: this.cubesBuffer },
+        },
+        {
+          binding: 1,
+          resource: { buffer: this.visibleCubesBuffer },
+        },
       ],
     })
 
@@ -312,12 +328,12 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.cubeTexture.createView(),
         },
-        {
-          binding: 3,
-          resource: {
-            buffer: this.visibleCubesBuffer
-          }
-        }
+        // {
+        //   binding: 3,
+        //   resource: {
+        //     buffer: this.visibleCubesBuffer
+        //   }
+        // }
       ],
     })
 
@@ -354,13 +370,13 @@ export class WebgpuRenderer {
     this.cubesBuffer = this.device.createBuffer({
       label: 'cubesBuffer',
       size: this.NUMBER_OF_CUBES * 8, // 8 floats per cube - minimum buffer size
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
     })
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
-      size: this.NUMBER_OF_CUBES * 8,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+      size: this.NUMBER_OF_CUBES * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX
     })
 
     // if we have old buffers, copy them to new ones
@@ -482,28 +498,28 @@ export class WebgpuRenderer {
     )
 
     const canvasTexture = ctx.getCurrentTexture();
-    let { multisampleTexture } = this;
-    // If the multisample texture doesn't exist or
-    // is the wrong size then make a new one.
-    if (multisampleTexture === undefined ||
-        multisampleTexture.width !== canvasTexture.width ||
-        multisampleTexture.height !== canvasTexture.height) {
+    // let { multisampleTexture } = this;
+    // // If the multisample texture doesn't exist or
+    // // is the wrong size then make a new one.
+    // if (multisampleTexture === undefined ||
+    //     multisampleTexture.width !== canvasTexture.width ||
+    //     multisampleTexture.height !== canvasTexture.height) {
  
-      // If we have an existing multisample texture destroy it.
-      if (multisampleTexture) {
-        multisampleTexture.destroy()
-      }
+    //   // If we have an existing multisample texture destroy it.
+    //   if (multisampleTexture) {
+    //     multisampleTexture.destroy()
+    //   }
  
-      // Create a new multisample texture that matches our
-      // canvas's size
-      multisampleTexture = device.createTexture({
-        format: canvasTexture.format,
-        usage: GPUTextureUsage.RENDER_ATTACHMENT,
-        size: [canvasTexture.width, canvasTexture.height],
-        sampleCount: 4,
-      })
-      this.multisampleTexture = multisampleTexture
-    }
+    //   // Create a new multisample texture that matches our
+    //   // canvas's size
+    //   multisampleTexture = device.createTexture({
+    //     format: canvasTexture.format,
+    //     usage: GPUTextureUsage.RENDER_ATTACHMENT,
+    //     size: [canvasTexture.width, canvasTexture.height],
+    //     sampleCount: 4,
+    //   })
+    //   this.multisampleTexture = multisampleTexture
+    // }
 
     let drawCamera = false;
 
@@ -523,16 +539,16 @@ export class WebgpuRenderer {
       this.indirectDrawBuffer, 0, this.indirectDrawParams
     )
 
-    // renderPassDescriptor.colorAttachments[0].view = ctx
-    //   .getCurrentTexture()
-    //   .createView()
+    renderPassDescriptor.colorAttachments[0].view = ctx
+      .getCurrentTexture()
+      .createView()
 
-    renderPassDescriptor.colorAttachments[0].view =
-    multisampleTexture.createView();
-// Set the canvas texture as the texture to "resolve"
-// the multisample texture to.
-    renderPassDescriptor.colorAttachments[0].resolveTarget =
-    canvasTexture.createView();
+//     renderPassDescriptor.colorAttachments[0].view =
+//     multisampleTexture.createView();
+// // Set the canvas texture as the texture to "resolve"
+// // the multisample texture to.
+//     renderPassDescriptor.colorAttachments[0].resolveTarget =
+//     canvasTexture.createView();
 
     this.commandEncoder = device.createCommandEncoder()
     // Compute pass for occlusion culling
@@ -555,6 +571,7 @@ export class WebgpuRenderer {
     renderPass.setPipeline(pipeline)
     renderPass.setBindGroup(0, this.uniformBindGroup)
     renderPass.setVertexBuffer(0, verticesBuffer)
+    renderPass.setBindGroup(1, this.vertexCubeBindGroup)
 
     // Use indirect drawing
     renderPass.drawIndirect(this.indirectDrawBuffer, 0)
