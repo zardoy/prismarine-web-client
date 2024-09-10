@@ -29,6 +29,7 @@ import { addNewStat } from './newStats'
 window.THREE = THREE
 
 const gui = new GUI()
+const gui2 = new GUI()
 const { updateText: updateTextEvent } = addNewStat('events', 90, 0, 40)
 
 // initial values
@@ -54,6 +55,10 @@ const params = {
   blockIsomorphicRenderBundle () { },
   modelVariant: 0,
   animationTick: 0
+}
+
+const rendererParams = {
+  secondCamera: false,
 }
 
 const qs = new URLSearchParams(window.location.search)
@@ -117,6 +122,13 @@ async function main () {
   gui.add(params, 'blockIsomorphicRenderBundle')
   const animationController = gui.add(params, 'animationTick', -1, 20, 1).listen()
   gui.open(false)
+
+  gui2.add(rendererParams, 'secondCamera')
+  gui2.open(false)
+  webgpuChannel.updateConfig(rendererParams)
+    gui2.onChange(() => {
+    webgpuChannel.updateConfig(rendererParams)
+  })
   let metadataFolder = gui.addFolder('metadata')
   // let entityRotationFolder = gui.addFolder('entity metadata')
 
@@ -273,7 +285,7 @@ async function main () {
   const blocks: Record<string, BlockType> = {}
   const i = 0
   console.log('generating random data')
-  webgpuChannel.generateRandom(490_000)
+  webgpuChannel.generateRandom(Math.sqrt(160_000))
 
   // webgpuChannel.generateRandom(100)
   // setTimeout(() => {

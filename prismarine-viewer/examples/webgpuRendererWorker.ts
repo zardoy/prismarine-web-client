@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BlockFaceType, BlockType } from './shared'
 import { createWorkerProxy } from './workerProxy'
-import { WebgpuRenderer } from './webgpuRenderer'
+import { RendererParams, WebgpuRenderer } from './webgpuRenderer'
 
 export const allSides = [] as Array<[number, number, number, BlockFaceType] | undefined>
 globalThis.allSides = allSides
@@ -94,6 +94,12 @@ export const workerProxyType = createWorkerProxy({
     newWidth = newWidth
     newHeight = newHeight
     updateSize(newWidth, newHeight)
+  },
+  updateConfig (params: RendererParams) {
+    // when available
+    onceRendererAvailable(() => {
+      webgpuRenderer?.updateConfig(params)
+    })
   },
   generateRandom (count: number, offset = 0) {
     const square = Math.sqrt(count)

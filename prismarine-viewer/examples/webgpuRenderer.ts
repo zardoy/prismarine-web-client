@@ -7,9 +7,15 @@ import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
 import { updateSize, allSides } from './webgpuRendererWorker'
 
+const defaultRendererParamsDontUse = {
+  secondCamera: false,
+}
+export type RendererParams = typeof defaultRendererParamsDontUse
+
 export class WebgpuRenderer {
   rendering = true
   renderedFrames = 0
+  rendererParams = {...defaultRendererParamsDontUse, }
 
   ready = false
 
@@ -41,7 +47,7 @@ export class WebgpuRenderer {
   AtlasTexture: GPUTexture
   secondCameraUiformBindGroup: GPUBindGroup
   secondCameraUniform: GPUBuffer
-  
+
   multisampleTexture: GPUTexture | undefined
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
@@ -52,6 +58,10 @@ export class WebgpuRenderer {
   changeBackgroundColor (color: [number, number, number]) {
     const colorRgba = [color[0], color[1], color[2], 1]
     this.renderPassDescriptor.colorAttachments[0].clearValue = colorRgba
+  }
+
+  updateConfig (newParams: RendererParams) {
+    this.rendererParams = { ...this.rendererParams, ...newParams }
   }
 
   async init () {
@@ -163,7 +173,7 @@ export class WebgpuRenderer {
       size: uniformBufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
-    
+
     this.secondCameraUniform = device.createBuffer({
       size: uniformBufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -438,7 +448,7 @@ export class WebgpuRenderer {
       cubeData[offset] = first;
       let second = ((((textureIndexes[i] >> 2) << 8) | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3];
       cubeData[offset + 1] = second;
-      // cubeData[offset] = positions[i * 3] 
+      // cubeData[offset] = positions[i * 3]
       // cubeData[offset + 1] = positions[i * 3 + 1]
       // cubeData[offset + 2] = positions[i * 3 + 2]
       // cubeData[offset + 3] = textureIndexes[i]
@@ -467,7 +477,7 @@ export class WebgpuRenderer {
     return camera
   })()
 
-  
+
 
   loop (forceFrame = false) {
     if (!this.rendering) {
@@ -479,7 +489,7 @@ export class WebgpuRenderer {
     const start = performance.now()
 
     const { device, cameraUniform: uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
-    
+
     const now = Date.now()
     tweenJs.update()
 
@@ -501,12 +511,12 @@ export class WebgpuRenderer {
     // if (multisampleTexture === undefined ||
     //     multisampleTexture.width !== canvasTexture.width ||
     //     multisampleTexture.height !== canvasTexture.height) {
- 
+
     //   // If we have an existing multisample texture destroy it.
     //   if (multisampleTexture) {
     //     multisampleTexture.destroy()
     //   }
- 
+
     //   // Create a new multisample texture that matches our
     //   // canvas's size
     //   multisampleTexture = device.createTexture({
