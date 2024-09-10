@@ -131,6 +131,6 @@ const appConfig = defineConfig({
 })
 
 export default mergeRsbuildConfig(
-    appAndRendererSharedConfig('.'),
+    appAndRendererSharedConfig(),
     appConfig
 )

@@ -14,7 +14,7 @@ if (!fs.existsSync(mcDataPath)) {
 }
 
 export default mergeRsbuildConfig(
-    appAndRendererSharedConfig('..'),
+    appAndRendererSharedConfig(),
     defineConfig({
         html: {
             template: './playground.html',

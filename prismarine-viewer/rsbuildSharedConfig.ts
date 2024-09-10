@@ -6,7 +6,13 @@ import path from 'path'
 export const appAndRendererSharedConfig = () => defineConfig({
     dev: {
         progressBar: true,
-        writeToDisk: true
+        writeToDisk: true,
+        watchFiles: {
+            paths: [
+                path.join(__dirname, './dist/webgpuRendererWorker.js'),
+                path.join(__dirname, './dist/mesher.js'),
+            ]
+        },
     },
     output: {
         polyfill: 'usage',
