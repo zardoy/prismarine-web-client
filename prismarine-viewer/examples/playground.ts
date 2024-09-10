@@ -153,9 +153,12 @@ async function main () {
   // await schem.paste(world, new Vec3(0, 60, 0))
 
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
-  const nullRenderer = new THREE.WebGLRenderer({ antialias: false })
- 
-  const viewer = new Viewer(nullRenderer, { numWorkers: 1, showChunkBorders: false })
+
+  const viewer = new Viewer({
+    render () { },
+    getSize () { return { width: window.innerWidth, height: window.innerHeight } },
+    getPixelRatio () { return window.devicePixelRatio },
+  } as any, { numWorkers: 1, showChunkBorders: false })
   viewer.world.blockstatesModels = blockstatesModels
   viewer.entities.setDebugMode('basic')
   viewer.world.stopBlockUpdate = stopUpdate
@@ -288,7 +291,7 @@ async function main () {
   window['viewer'] = viewer
 
   //@ts-expect-error
-   //const controls = new OrbitControls(viewer.camera, nullRenderer.domElement)
+  //const controls = new OrbitControls(viewer.camera, nullRenderer.domElement)
   // controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
   const cameraPos = targetPos.offset(2, 2, 2)
@@ -324,7 +327,7 @@ async function main () {
     }
     enableSkeletonDebug(viewer.entities.entities['id'])
     setTimeout(() => {
-     // viewer.render()
+      // viewer.render()
     }, TWEEN_DURATION)
   }
 
@@ -490,7 +493,7 @@ async function main () {
   const animate2 = () => {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
-   // viewer.render()
+    // viewer.render()
     window.requestAnimationFrame(animate2)
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
@@ -543,7 +546,6 @@ async function main () {
     const { camera } = viewer
     viewer.camera.aspect = window.innerWidth / window.innerHeight
     viewer.camera.updateProjectionMatrix()
-   nullRenderer.setSize(window.innerWidth, window.innerHeight)
 
     animate()
   }
