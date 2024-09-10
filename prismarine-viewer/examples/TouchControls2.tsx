@@ -12,20 +12,38 @@ const Controls = () => {
   const usingTouch = navigator.maxTouchPoints > 0
 
   useEffect(() => {
-    let vec3 = new Vec3(0, 0, 0)
+    window.addEventListener('touchstart', (e) => {
+      e.preventDefault()
+    })
 
-    setInterval(() => {
-      viewer.camera.position.add(new THREE.Vector3(vec3.x, vec3.y, vec3.z))
-    }, 1000 / 30)
-
+    const pressedKeys = new Set<string>()
     useInterfaceState.setState({
       isFlying: false,
       uiCustomization: {
         touchButtonSize: 40,
       },
       updateCoord ([coord, state]) {
-        vec3 = new Vec3(0, 0, 0)
+        const vec3 = new Vec3(0, 0, 0)
         vec3[coord] = state
+        let key: string | undefined
+        if (vec3.z < 0) key = 'KeyW'
+        if (vec3.z > 0) key = 'KeyS'
+        if (vec3.y > 0) key = 'Space'
+        if (vec3.y < 0) key = 'ShiftLeft'
+        if (vec3.x < 0) key = 'KeyA'
+        if (vec3.x > 0) key = 'KeyD'
+        if (key) {
+          if (!pressedKeys.has(key)) {
+            pressedKeys.add(key)
+            window.dispatchEvent(new KeyboardEvent('keydown', { code: key }))
+          }
+        }
+        for (const k of pressedKeys) {
+          if (k !== key) {
+            window.dispatchEvent(new KeyboardEvent('keyup', { code: k }))
+            pressedKeys.delete(k)
+          }
+        }
       }
     })
   }, [])
