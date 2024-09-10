@@ -465,8 +465,8 @@ export class WebgpuRenderer {
   logged = false
   camera2 = (() => {
     const camera = new THREE.PerspectiveCamera()
+    camera.lookAt(0, -1, 0)
     camera.position.set(150, 500, 150)
-    camera.lookAt(150, 0, 150)
     camera.fov = 100
     //camera.rotation.set(0, 0, 0)
     camera.updateMatrix()
