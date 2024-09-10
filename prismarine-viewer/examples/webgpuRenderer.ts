@@ -482,7 +482,7 @@ export class WebgpuRenderer {
     )
 
     const canvasTexture = ctx.getCurrentTexture();
-    let { multisampleTexture } = this;
+    const { multisampleTexture } = this;
     // If the multisample texture doesn't exist or
     // is the wrong size then make a new one.
     if (multisampleTexture === undefined ||
@@ -491,12 +491,12 @@ export class WebgpuRenderer {
  
       // If we have an existing multisample texture destroy it.
       if (multisampleTexture) {
-        multisampleTexture.destroy();
+        multisampleTexture.destroy()
       }
  
       // Create a new multisample texture that matches our
       // canvas's size
-      multisampleTexture = device.createTexture({
+      this.multisampleTexture = device.createTexture({
         format: canvasTexture.format,
         usage: GPUTextureUsage.RENDER_ATTACHMENT,
         size: [canvasTexture.width, canvasTexture.height],
