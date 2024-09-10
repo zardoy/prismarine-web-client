@@ -25,6 +25,7 @@ import { initWebgpuRenderer, loadFixtureSides, setAnimationTick, webgpuChannel }
 import { TextureAnimation } from './TextureAnimation'
 import { BlockType } from './shared'
 import { addNewStat } from './newStats'
+import { defaultWebgpuRendererParams } from './webgpuRendererShared'
 
 window.THREE = THREE
 
@@ -57,9 +58,7 @@ const params = {
   animationTick: 0
 }
 
-const rendererParams = {
-  secondCamera: false,
-}
+const rendererParams = { ...defaultWebgpuRendererParams }
 
 const qs = new URLSearchParams(window.location.search)
 for (const [key, value] of qs.entries()) {

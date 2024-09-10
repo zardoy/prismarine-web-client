@@ -6,16 +6,12 @@ import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
 import { updateSize, allSides } from './webgpuRendererWorker'
-
-const defaultRendererParamsDontUse = {
-  secondCamera: false,
-}
-export type RendererParams = typeof defaultRendererParamsDontUse
+import { defaultWebgpuRendererParams } from './webgpuRendererShared'
 
 export class WebgpuRenderer {
   rendering = true
   renderedFrames = 0
-  rendererParams = {...defaultRendererParamsDontUse, }
+  rendererParams = { ...defaultWebgpuRendererParams }
 
   ready = false
 
