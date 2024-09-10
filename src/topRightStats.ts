@@ -75,3 +75,16 @@ export const statsEnd = () => {
   stats2.end()
   statsGl.end()
 }
+
+// for advanced debugging, use with watch expression
+
+window.statsPerSec = {}
+let statsPerSec = {}
+window.addStatPerSec = (name) => {
+  statsPerSec[name] ??= 0
+  statsPerSec[name]++
+}
+setInterval(() => {
+  window.statsPerSec = statsPerSec
+  statsPerSec = {}
+}, 1000)

@@ -1,24 +1,7 @@
 import fs from 'fs'
-import MinecraftData from 'minecraft-data'
-import MCProtocol from 'minecraft-protocol'
 import { appReplacableResources } from '../src/resourcesSource'
 
-const { supportedVersions, defaultVersion } = MCProtocol
-
-// gen generated/minecraft-data-data.js
-
-const data = MinecraftData(defaultVersion)
-const defaultVersionObj = {
-  [defaultVersion]: {
-    version: data.version,
-    protocol: data.protocol,
-  }
-}
-
-const mcDataContents = `window.mcData ??= ${JSON.stringify(defaultVersionObj)};module.exports = { pc: window.mcData }`
-
 fs.mkdirSync('./generated', { recursive: true })
-fs.writeFileSync('./generated/minecraft-data-data.js', mcDataContents, 'utf8')
 
 // app resources
 

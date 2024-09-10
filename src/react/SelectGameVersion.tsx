@@ -1,19 +1,16 @@
 import React, { CSSProperties } from 'react'
 import Select from './Select'
-import Input from './Input'
 
 type Version = { value: string, label: string }
 
 export default (
   { versions, selected, onChange, updateOptions, containerStyle }:
-  {
-    versions: Version[],
-    selected?: Version,
-    inputProps?: React.ComponentProps<typeof Input>,
-    onChange?: (newValue: string) => void,
-    updateOptions?: (newSel: string) => void,
-    containerStyle?: CSSProperties
-  }
+    {
+      versions: Version[],
+      selected?: Version,
+      onChange?: (newValue: string) => void,
+      updateOptions?: (newSel: string) => void,
+    } & Pick<React.ComponentProps<typeof Select>, 'containerStyle' | 'placeholder' | 'disabled'>
 ) => {
   return <Select
     initialOptions={versions}
@@ -23,7 +20,7 @@ export default (
     }}
     onValueChange={onChange}
     containerStyle={containerStyle ?? { width: '190px' }}
-    processInput={(value) => {
+    getCssOnInput={(value) => {
       if (!versions || !value) return {}
       const parsedsupportedVersions = versions.map(x => x.value.split('.').map(Number))
       const parsedValue = value.split('.').map(Number)

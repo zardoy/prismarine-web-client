@@ -7,6 +7,7 @@ import { omitObj } from '@zardoy/utils'
 
 const defaultOptions = {
   renderDistance: 3,
+  keepChunksDistance: 1,
   multiplayerRenderDistance: 3,
   closeConfirmation: true,
   autoFullScreen: false,
@@ -46,6 +47,7 @@ const defaultOptions = {
   enabledResourcepack: null as string | null,
   useVersionsTextures: 'latest',
   serverResourcePacks: 'prompt' as 'prompt' | 'always' | 'never',
+  handDisplay: false,
 
   // antiAliasing: false,
 
@@ -80,6 +82,9 @@ const defaultOptions = {
   /** Wether to popup sign editor on server action */
   autoSignEditor: true,
   wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
+  displayBossBars: false, // boss bar overlay was removed for some reason, enable safely
+  disabledUiParts: [] as string[],
+  neighborChunkUpdates: true
 }
 
 function getDefaultTouchControlsPositions () {

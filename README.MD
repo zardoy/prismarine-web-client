@@ -17,7 +17,7 @@ For building the project yourself / contributing, see [Development, Debugging & 
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
-- FULL Resource pack support: Custom GUI, all textures & custom models! Server resource packs are also supported.
+- Basic Resource pack support: Custom GUI, all textures. Server resource packs are not supported yet.
 - Builtin JEI with recipes & guides for every item (also replaces creative inventory)
 - even even more!
 
@@ -101,6 +101,7 @@ Instead I recommend setting `options.debugLogNotFrequentPackets`. Also you can u
 - `debugChangedOptions` - See what options are changed. Don't change options here.
 - `localServer`/`server` - Only for singleplayer mode/host. Flying Squid server instance, see it's documentation for more.
 - `localServer.overworld.storageProvider.regions` - See ALL LOADED region files with all raw data.
+- `localServer.levelData.LevelName = 'test'; localServer.writeLevelDat()` - Change name of the world
 
 - `nbt.simplify(someNbt)` - Simplifies nbt data, so it's easier to read.
 
@@ -141,7 +142,32 @@ Single player specific:
 - `?singleplayer=1` - Create empty world on load. Nothing will be saved
 - `?version=<version>` - Set the version for the singleplayer world (when used with `?singleplayer=1`)
 - `?noSave=true` - Disable auto save on unload / disconnect / export whenever a world is loaded. Only manual save with `/save` command will work.
-- `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be CORS enabled.
+- `?serverSetting=<key>:<value>` - Set local server [options](https://github.com/zardoy/space-squid/tree/everything/src/modules.ts#L51). For example `?serverSetting=noInitialChunksSend:true` will disable initial chunks loading on the loading screen.
+- `?map=<map_url>` - Load the map from ZIP. You can use any url, but it must be **CORS enabled**.
+- `?mapDir=<index_file_url>` - Load the map from a file descriptor. It's recommended and the fastest way to load world but requires additional setup. The file must be in the following format:
+
+```json
+{
+    "baseUrl": "<url>",
+    "index": {
+        "level.dat": null,
+        "region": {
+            "r.-1.-1.mca": null,
+            "r.-1.0.mca": null,
+            "r.0.-1.mca": null,
+            "r.0.0.mca": null,
+        }
+    }
+}
+```
+
+Note that `mapDir` also accepts base64 encoded JSON like so:
+`?mapDir=data:application/json;base64,...` where `...` is the base64 encoded JSON of the index file.
+In this case you must use `?mapDirBaseUrl` to specify the base URL to fetch the files from index.
+
+- `?mapDirBaseUrl` - See above.
+
+<!-- - `?mapDirGuess=<base_url>` - Load the map from the provided URL and paths will be guessed with a few additional fetch requests. -->
 
 General:
 
@@ -164,3 +190,4 @@ General:
 ### Alternatives
 
 - [https://github.com/ClassiCube/ClassiCube](ClassiCube - Better C# Rewrite) [DEMO](https://www.classicube.net/server/play/?warned=true)
+- [https://m.eaglercraft.com/](EaglerCraft) - Eaglercraft runnable on mobile (real Minecraft in the browser)

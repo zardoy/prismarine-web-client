@@ -107,6 +107,7 @@ const commands: Array<{
     command: ['/save'],
     async invoke () {
       await saveServer(false)
+      writeText('Saved to browser memory')
     }
   }
 ]

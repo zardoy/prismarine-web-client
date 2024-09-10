@@ -5,7 +5,7 @@ import './globals'
 import './devtools'
 import './entities'
 import './globalDomListeners'
-import initCollisionShapes from './getCollisionShapes'
+import initCollisionShapes from './getCollisionInteractionShapes'
 import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
@@ -24,7 +24,7 @@ import './reactUi'
 import { contro, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
-import { watchOptionsAfterViewerInit } from './watchOptions'
+import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
 import fs from 'fs'
@@ -98,7 +98,6 @@ import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
-import blockstatesModels from 'mc-assets/dist/blockStatesModels.json'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
@@ -186,7 +185,7 @@ viewer.entities.getItemUv = (idOrName: number | string) => {
       u: 0,
       v: 0,
       size: 16 / viewer.world.material.map!.image.width,
-      texture: viewer.world.material.map
+      texture: viewer.world.material.map!
     }
   }
 }
@@ -233,7 +232,12 @@ function hideCurrentScreens () {
 }
 
 const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
-  void connect({ singleplayer: true, username: options.localUsername, serverOverrides, serverOverridesFlat: flattenedServerOverrides })
+  const serverSettingsQsRaw = new URLSearchParams(window.location.search).getAll('serverSetting')
+  const serverSettingsQs = serverSettingsQsRaw.map(x => x.split(':')).reduce<Record<string, string>>((acc, [key, value]) => {
+    acc[key] = JSON.parse(value)
+    return acc
+  }, {})
+  void connect({ singleplayer: true, username: options.localUsername, serverOverrides, serverOverridesFlat: { ...flattenedServerOverrides, ...serverSettingsQs } })
 }
 function listenGlobalEvents () {
   window.addEventListener('connect', e => {
@@ -381,6 +385,7 @@ async function connect (connectOptions: ConnectOptions) {
   try {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
+    window._LOAD_MC_DATA() // start loading data (if not loaded yet)
     const downloadMcData = async (version: string) => {
       if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
         // todo support it (just need to fix .export crash)
@@ -393,13 +398,13 @@ async function connect (connectOptions: ConnectOptions) {
         // ignore cache hit
         versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
       }
+      setLoadingScreenStatus(`Loading data for ${version}`)
       if (!document.fonts.check('1em mojangles')) {
         // todo instead re-render signs on load
         await document.fonts.load('1em mojangles').catch(() => { })
       }
-      setLoadingScreenStatus(`Downloading data for ${version}`)
+      await window._MC_DATA_RESOLVER.promise // ensure data is loaded
       await downloadSoundsIfNeeded()
-      await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       miscUiState.loadedDataVersion = version
       try {
         await resourcepackReload(version)
@@ -410,7 +415,7 @@ async function connect (connectOptions: ConnectOptions) {
           throw err
         }
       }
-      viewer.world.blockstatesModels = blockstatesModels
+      viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
       viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
     }
 
@@ -473,6 +478,7 @@ async function connect (connectOptions: ConnectOptions) {
       setCacheResult (result) {
         newTokensCacheResult = result
       },
+      connectingServer: server.host
     }) : undefined
 
     bot = mineflayer.createBot({
@@ -495,7 +501,7 @@ async function connect (connectOptions: ConnectOptions) {
         signInMessageState.link = data.verification_uri
         signInMessageState.expiresOn = Date.now() + data.expires_in * 1000
       },
-      sessionServer: authData?.sessionEndpoint,
+      sessionServer: authData?.sessionEndpoint?.toString(),
       auth: connectOptions.authenticatedAccount ? async (client, options) => {
         authData!.setOnMsaCodeCallback(options.onMsaCode)
         //@ts-expect-error
@@ -690,6 +696,7 @@ async function connect (connectOptions: ConnectOptions) {
     const center = bot.entity.position
 
     const worldView = window.worldView = new WorldDataEmitter(bot.world, renderDistance, center)
+    watchOptionsAfterWorldViewInit()
 
     bot.on('physicsTick', () => updateCursor())
 

@@ -62,4 +62,19 @@ export const watchOptionsAfterViewerInit = () => {
     if (!(viewer.world instanceof WorldRendererThree)) return
     viewer.world.starField.enabled = o.starfieldRendering
   })
+
+  watchValue(options, o => {
+    viewer.world.neighborChunkUpdates = o.neighborChunkUpdates
+  })
+}
+
+let viewWatched = false
+export const watchOptionsAfterWorldViewInit = () => {
+  if (viewWatched) return
+  viewWatched = true
+  watchValue(options, o => {
+    if (!worldView) return
+    worldView.keepChunksDistance = o.keepChunksDistance
+    worldView.handDisplay = o.handDisplay
+  })
 }
