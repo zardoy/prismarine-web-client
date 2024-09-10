@@ -122,10 +122,12 @@ async function main () {
   const animationController = gui.add(params, 'animationTick', -1, 20, 1).listen()
   gui.open(false)
 
-  gui2.add(rendererParams, 'secondCamera')
+  for (const key of Object.keys(defaultWebgpuRendererParams)) {
+    gui2.add(rendererParams, key)
+  }
   gui2.open(false)
   webgpuChannel.updateConfig(rendererParams)
-    gui2.onChange(() => {
+  gui2.onChange(() => {
     webgpuChannel.updateConfig(rendererParams)
   })
   let metadataFolder = gui.addFolder('metadata')
