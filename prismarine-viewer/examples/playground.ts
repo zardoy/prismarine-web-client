@@ -286,7 +286,7 @@ async function main () {
   const blocks: Record<string, BlockType> = {}
   const i = 0
   console.log('generating random data')
-  webgpuChannel.generateRandom(Math.sqrt(160_000))
+  webgpuChannel.generateRandom(490_000)
 
   // webgpuChannel.generateRandom(100)
   // setTimeout(() => {

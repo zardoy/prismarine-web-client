@@ -73,6 +73,14 @@ const buildOptions = {
           if (e.errors.length) return
           fs.writeFileSync(join(__dirname, './public/metafile.json'), JSON.stringify(e.metafile), 'utf8')
         })
+        build.onLoad({ filter: /.*.json$/ }, (args) => {
+          // always minify json
+          const contents = JSON.stringify(JSON.parse(fs.readFileSync(args.path, 'utf8')))
+          return {
+            contents,
+            loader: 'json',
+          }
+        })
       }
     },
     polyfillNode({
