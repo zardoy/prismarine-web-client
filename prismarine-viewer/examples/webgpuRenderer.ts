@@ -17,7 +17,7 @@ export class WebgpuRenderer {
   renderPassDescriptor: GPURenderPassDescriptor
   uniformBindGroup: GPUBindGroup
   vertexCubeBindGroup: GPUBindGroup
-  UniformBuffer: GPUBuffer
+  cameraUniform: GPUBuffer
   ViewUniformBuffer: GPUBuffer
   ProjectionUniformBuffer: GPUBuffer
   ctx: GPUCanvasContext
@@ -38,9 +38,9 @@ export class WebgpuRenderer {
   indirectDrawParams: Uint32Array
   maxBufferSize: number
   commandEncoder: GPUCommandEncoder
-  cubeTexture: GPUTexture
+  AtlasTexture: GPUTexture
   secondCameraUiformBindGroup: GPUBindGroup
-  secondUniformBuffer: GPUBuffer
+  secondCameraUniform: GPUBuffer
   
   multisampleTexture: GPUTexture | undefined
 
@@ -159,19 +159,29 @@ export class WebgpuRenderer {
     })
 
     const uniformBufferSize = 4 * (4 * 4) // 4x4 matrix
-    this.UniformBuffer = device.createBuffer({
+    this.cameraUniform = device.createBuffer({
       size: uniformBufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
     
-    this.secondUniformBuffer = device.createBuffer({
+    this.secondCameraUniform = device.createBuffer({
       size: uniformBufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
+    const ViewProjectionMat42 = new THREE.Matrix4()
+    const { projectionMatrix: projectionMatrix2, matrix: matrix2 } = this.camera2
+    ViewProjectionMat42.multiplyMatrices(projectionMatrix2, matrix2.invert())
+    const ViewProjection2 = new Float32Array(ViewProjectionMat42.elements)
+    device.queue.writeBuffer(
+      this.secondCameraUniform,
+      0,
+      ViewProjection2
+    )
+
     // Fetch the image and upload it into a GPUTexture.
 
-    this.cubeTexture = device.createTexture({
+    this.AtlasTexture = device.createTexture({
       size: [textureBitmap.width, textureBitmap.height, 1],
       format: 'rgba8unorm',
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
@@ -179,7 +189,7 @@ export class WebgpuRenderer {
     })
     device.queue.copyExternalImageToTexture(
       { source: textureBitmap },
-      { texture: this.cubeTexture },
+      { texture: this.AtlasTexture },
       [textureBitmap.width, textureBitmap.height]
     )
 
@@ -246,13 +256,6 @@ export class WebgpuRenderer {
 
     this.createNewDataBuffers()
 
-    // const vertexBindGroupLayout = device.createBindGroupLayout({
-    //     label: 'vertexBindGroupLayout',
-    //     entries: [
-    //         { binding: 0, visibility: GPUShaderStage.VERTEX, buffer: { type: 'uniform' } },
-    //         { binding: 2, visibility: GPUShaderStage.VERTEX, buffer: { type: 'read-only-storage' } }  // Read-only storage
-    //     ]
-    // });
 
     this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0])
 
@@ -275,7 +278,7 @@ export class WebgpuRenderer {
         {
           binding: 0,
           resource: {
-            buffer: this.UniformBuffer,
+            buffer: this.cameraUniform,
           },
         },
         {
@@ -284,7 +287,7 @@ export class WebgpuRenderer {
         },
         {
           binding: 2,
-          resource: this.cubeTexture.createView(),
+          resource: this.AtlasTexture.createView(),
         },
         // {
         //   binding: 3,
@@ -317,7 +320,7 @@ export class WebgpuRenderer {
         {
           binding: 0,
           resource: {
-            buffer: this.secondUniformBuffer,
+            buffer: this.secondCameraUniform,
           },
         },
         {
@@ -326,14 +329,8 @@ export class WebgpuRenderer {
         },
         {
           binding: 2,
-          resource: this.cubeTexture.createView(),
+          resource: this.AtlasTexture.createView(),
         },
-        // {
-        //   binding: 3,
-        //   resource: {
-        //     buffer: this.visibleCubesBuffer
-        //   }
-        // }
       ],
     })
 
@@ -344,7 +341,7 @@ export class WebgpuRenderer {
       entries: [
         {
           binding: 0,
-          resource: { buffer: this.UniformBuffer },
+          resource: { buffer: this.cameraUniform },
         },
         {
           binding: 1,
@@ -370,13 +367,13 @@ export class WebgpuRenderer {
     this.cubesBuffer = this.device.createBuffer({
       label: 'cubesBuffer',
       size: this.NUMBER_OF_CUBES * 8, // 8 floats per cube - minimum buffer size
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
       size: this.NUMBER_OF_CUBES * 4,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
     // if we have old buffers, copy them to new ones
@@ -481,7 +478,7 @@ export class WebgpuRenderer {
     }
     const start = performance.now()
 
-    const { device, UniformBuffer: uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
+    const { device, cameraUniform: uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
     
     const now = Date.now()
     tweenJs.update()
@@ -521,19 +518,7 @@ export class WebgpuRenderer {
     //   this.multisampleTexture = multisampleTexture
     // }
 
-    let drawCamera = false;
-
-    if (drawCamera) {
-      const ViewProjectionMat42 = new THREE.Matrix4()
-      const { projectionMatrix: projectionMatrix2, matrix: matrix2 } = this.camera2
-      ViewProjectionMat42.multiplyMatrices(projectionMatrix2, matrix2.invert())
-      const ViewProjection2 = new Float32Array(ViewProjectionMat42.elements)
-      device.queue.writeBuffer(
-        this.secondUniformBuffer,
-        0,
-        ViewProjection2
-      )
-    }
+    let drawCamera = true;
 
     device.queue.writeBuffer(
       this.indirectDrawBuffer, 0, this.indirectDrawParams
@@ -578,7 +563,7 @@ export class WebgpuRenderer {
 
     if (drawCamera) {
       renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
-      renderPass.setViewport(this.canvas.width / 2, 0, this.canvas.width / 2, this.canvas.height / 2, 0, 1)
+      renderPass.setViewport(this.canvas.width / 2, 0, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
       renderPass.drawIndirect(this.indirectDrawBuffer, 0)
     }
     renderPass.end()
