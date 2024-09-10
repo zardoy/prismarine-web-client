@@ -567,7 +567,7 @@ export class WebgpuRenderer {
 
     if (this.rendererParams.secondCamera) {
       renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
-      renderPass.setViewport(this.canvas.width / 2, 0, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
+      renderPass.setViewport(this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
       renderPass.drawIndirect(this.indirectDrawBuffer, 0)
     }
     renderPass.end()

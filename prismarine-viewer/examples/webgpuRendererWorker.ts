@@ -3,7 +3,8 @@ import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BlockFaceType, BlockType } from './shared'
 import { createWorkerProxy } from './workerProxy'
-import { RendererParams, WebgpuRenderer } from './webgpuRenderer'
+import { WebgpuRenderer } from './webgpuRenderer'
+import { RendererParams } from './webgpuRendererShared'
 
 export const allSides = [] as Array<[number, number, number, BlockFaceType] | undefined>
 globalThis.allSides = allSides
