@@ -87,7 +87,7 @@ To open the console, press `F12`, or if you are on mobile, you can type `#dev` i
 
 It should be easy to build/start the project locally. See [CONTRIBUTING.MD](./CONTRIBUTING.md) for more info. Also you can look at Dockerfile for reference.
 
-There is world renderer playground ([link](https://mcon.vercel.app/playground.html)).
+There is world renderer playground ([link](https://mcon.vercel.app/playground)).
 
 However, there are many things that can be done in online production version (like debugging actual source code). Also you can access some global variables in the console and there are a few useful examples:
 

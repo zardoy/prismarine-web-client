@@ -24,6 +24,7 @@ export default mergeRsbuildConfig(
             distPath: {
                 root: join(__dirname, './dist'),
             },
+            assetPrefix: './',
         },
         server: {
             port: 9090,
