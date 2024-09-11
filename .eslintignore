@@ -4,3 +4,4 @@ rsbuild.config.ts
 *.generated.ts
 generated
 public
+**/*/rsbuildSharedConfig.ts
