@@ -45,11 +45,11 @@ importers:
         specifier: 5.0.0-beta.40
         version: 5.0.0-beta.40(@types/react@18.2.20)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@nxg-org/mineflayer-auto-jump':
-        specifier: ^0.7.7
-        version: 0.7.7
+        specifier: ^0.7.12
+        version: 0.7.12
       '@nxg-org/mineflayer-tracker':
-        specifier: ^1.2.1
-        version: 1.2.1
+        specifier: ^1.2.3
+        version: 1.2.3
       '@react-oauth/google':
         specifier: ^0.12.1
         version: 0.12.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -160,7 +160,7 @@ importers:
         version: 6.1.1
       prismarine-provider-anvil:
         specifier: github:zardoy/prismarine-provider-anvil#everything
-        version: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4(minecraft-data@3.65.0)
+        version: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699(minecraft-data@3.65.0)
       prosemirror-example-setup:
         specifier: ^1.2.2
         version: 1.2.2
@@ -2113,14 +2113,14 @@ packages:
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
     deprecated: This functionality has been moved to @npmcli/fs
 
-  '@nxg-org/mineflayer-auto-jump@0.7.7':
-    resolution: {integrity: sha512-50FYsz5rxBuLzOh7wqmg9iN9zdVGD+QjuaPcw/mD7q8Bq6Bq+o1/DfXfpoNGIHaDag80q6FJSpc73MI3Scid8g==}
+  '@nxg-org/mineflayer-auto-jump@0.7.12':
+    resolution: {integrity: sha512-F5vX/lerlWx/5HVlkDNbvrtQ19PL6iG8i4ItPTIRtjGiFzusDefP7DI226zSFR8Wlaw45qHv0jn814p/4/qVdQ==}
 
   '@nxg-org/mineflayer-physics-util@1.5.8':
     resolution: {integrity: sha512-KmCkAqpUo8BbuRdIBs6+V2hWHehz++PRz3lRwIsb47CuG0u4sgLYh37RY3ifAznC6uWvmPK+q3B4ZXwJzPy1MQ==}
 
-  '@nxg-org/mineflayer-tracker@1.2.1':
-    resolution: {integrity: sha512-SI1ffF8zvg3/ZNE021Ja2W0FZPN+WbQDZf8yFqOcXtPRXAtM9W6HvoACdzXep8BZid7WYgYLIgjKpB+9RqvCNQ==}
+  '@nxg-org/mineflayer-tracker@1.2.3':
+    resolution: {integrity: sha512-E7Ik/scU117Rr6kQUHHMBk8qOGh63YlTCGN33jMfeP7L8xmLeSHN3JtV/fbog8Y+R+HgO99yfZiRAaV7z1T6gQ==}
 
   '@nxg-org/mineflayer-trajectories@1.1.1':
     resolution: {integrity: sha512-X103KXlX8+L3uMeK4jQxMUdTizv01sQRSfBizAF/iOAdfQZehRLXr3CYKeJzfwPYGLN0X0JCl++cMEcZVn4vbg==}
@@ -7517,8 +7517,8 @@ packages:
   prismarine-physics@1.8.0:
     resolution: {integrity: sha512-gbM+S+bmVtOKVv+Z0WGaHMeEeBHISIDsRDRlv8sr0dex3ZJRhuq8djA02CBreguXtI18ZKh6q3TSj2qDr45NHA==}
 
-  prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4}
+  prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699}
     version: 2.8.0
 
   prismarine-realms@1.3.2:
@@ -11524,7 +11524,7 @@ snapshots:
       rimraf: 3.0.2
     optional: true
 
-  '@nxg-org/mineflayer-auto-jump@0.7.7':
+  '@nxg-org/mineflayer-auto-jump@0.7.12':
     dependencies:
       '@nxg-org/mineflayer-physics-util': 1.5.8
       strict-event-emitter-types: 2.0.0
@@ -11533,7 +11533,7 @@ snapshots:
     dependencies:
       '@nxg-org/mineflayer-util-plugin': 1.8.3
 
-  '@nxg-org/mineflayer-tracker@1.2.1':
+  '@nxg-org/mineflayer-tracker@1.2.3':
     dependencies:
       '@nxg-org/mineflayer-trajectories': 1.1.1
       '@nxg-org/mineflayer-util-plugin': 1.8.3
@@ -13395,7 +13395,7 @@ snapshots:
       prismarine-entity: 2.3.1
       prismarine-item: 1.14.0
       prismarine-nbt: 2.5.0
-      prismarine-provider-anvil: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4(minecraft-data@3.65.0)
+      prismarine-provider-anvil: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699(minecraft-data@3.65.0)
       prismarine-windows: 2.9.0
       prismarine-world: https://codeload.github.com/zardoy/prismarine-world/tar.gz/187a87f6d71cba12881a7bbaa510ed9085bf6da7
       rambda: 9.2.0
@@ -18633,7 +18633,7 @@ snapshots:
       prismarine-nbt: 2.5.0
       vec3: 0.1.8
 
-  prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/0228b5252f48a0d6ad7f36d7189851c427fbe8c4(minecraft-data@3.65.0):
+  prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699(minecraft-data@3.65.0):
     dependencies:
       prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/a69b66ab1e4be6b67f25a5a6db15e0ad39e11819
       prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cea0b6c792d7dcbb69dfd20fa48be5fd60ce83ef(minecraft-data@3.65.0)

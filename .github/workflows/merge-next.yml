@@ -12,13 +12,17 @@ jobs:
       )
     permissions:
       pull-requests: write
+      contents: write
     steps:
       - uses: actions/checkout@v2
         with:
+          fetch-depth: 0 # Fetch all history so we can merge branches
           ref: refs/pull/${{ github.event.issue.number }}/head
+      - name: Fetch All Branches
+        run: git fetch --all
+      # - name: Checkout PR
+      #   run: git checkout ${{ github.event.issue.pull_request.head.ref }}
       - name: Merge From Next
-        run: git merge next --strategy-option=theirs
+        run: git merge origin/next --strategy-option=theirs
       - name: Push Changes
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        run: git push

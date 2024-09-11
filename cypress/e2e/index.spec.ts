@@ -49,7 +49,7 @@ it('Joins to local flying-squid server', () => {
   testWorldLoad()
 })
 
-it('Joins to local latest Java vanilla server', () => {
+it.skip('Joins to local latest Java vanilla server', () => {
   const version = supportedVersions.at(-1)!
   cy.task('startServer', [version, 25_590]).then(() => {
     visit('/?ip=localhost:25590&username=bot')

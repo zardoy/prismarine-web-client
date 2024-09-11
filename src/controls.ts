@@ -292,6 +292,27 @@ const alwaysPressedHandledCommand = (command: Command) => {
       hideCurrentModal()
     }
   }
+  if (command === 'advanced.lockUrl') {
+    lockUrl()
+  }
+}
+
+function lockUrl () {
+  let newQs = ''
+  if (fsState.saveLoaded) {
+    const save = localServer!.options.worldFolder.split('/').at(-1)
+    newQs = `loadSave=${save}`
+  } else if (process.env.NODE_ENV === 'development') {
+    newQs = `reconnect=1`
+  } else {
+    const qs = new URLSearchParams()
+    const { server, version } = localStorage
+    qs.set('server', server)
+    if (version) qs.set('version', version)
+    newQs = String(qs.toString())
+  }
+
+  window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
 }
 
 function cycleHotbarSlot (dir: 1 | -1) {
@@ -391,24 +412,6 @@ contro.on('trigger', ({ command }) => {
         break
     }
   }
-  if (command === 'advanced.lockUrl') {
-    let newQs = ''
-    if (fsState.saveLoaded) {
-      const save = localServer!.options.worldFolder.split('/').at(-1)
-      newQs = `loadSave=${save}`
-    } else if (process.env.NODE_ENV === 'development') {
-      newQs = `reconnect=1`
-    } else {
-      const qs = new URLSearchParams()
-      const { server, version } = localStorage
-      qs.set('server', server)
-      if (version) qs.set('version', version)
-      newQs = String(qs.toString())
-    }
-
-    window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
-    // return
-  }
 
   if (command === 'ui.pauseMenu') {
     showModal({ reactType: 'pause-screen' })
@@ -473,7 +476,36 @@ export const f3Keybinds = [
         await completeTexturePackInstall('default', 'default')
       }
     },
-    mobileTitle: 'Open Widget'
+    mobileTitle: 'Reload Textures'
+  },
+  {
+    key: 'F4',
+    async action () {
+      switch (bot.game.gameMode) {
+        case 'creative': {
+          bot.chat('/gamemode survival')
+
+          break
+        }
+        case 'survival': {
+          bot.chat('/gamemode adventure')
+
+          break
+        }
+        case 'adventure': {
+          bot.chat('/gamemode spectator')
+
+          break
+        }
+        case 'spectator': {
+          bot.chat('/gamemode creative')
+
+          break
+        }
+      // No default
+      }
+    },
+    mobileTitle: 'Cycle Game Mode'
   }
 ]
 

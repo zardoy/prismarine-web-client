@@ -3,5 +3,6 @@ rsbuild.config.ts
 *.module.css.d.ts
 *.generated.ts
 generated
+dist
 public
 **/*/rsbuildSharedConfig.ts
