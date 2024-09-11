@@ -23,6 +23,14 @@ globalThis.camera = camera
 
 let webgpuRenderer: WebgpuRenderer | undefined
 
+const postMessage = (data, ...args) => {
+  if (globalThis.webgpuRendererChannel) {
+    globalThis.webgpuRendererChannel.port2.postMessage(data, ...args)
+  } else {
+    globalThis.postMessage(data, ...args)
+  }
+}
+
 setInterval(() => {
   if (!webgpuRenderer) return
   // console.log('FPS:', renderedFrames)
@@ -73,12 +81,21 @@ const availableUpCheck = setInterval(() => {
 }, 100)
 
 let started = false
-let newWidth: number | undefined
-let newHeight: number | undefined
 let autoTickUpdate = undefined as number | undefined
 
 export const workerProxyType = createWorkerProxy({
   canvas (canvas, imageBlob, isPlayground, localStorage, NUMBER_OF_CUBES) {
+    if (globalThis.webgpuRendererChannel) {
+      // HACK! IOS safari bug: no support for transferControlToOffscreen in the same context! so we create a new canvas here!
+      const newCanvas = document.createElement('canvas')
+      newCanvas.width = canvas.width
+      newCanvas.height = canvas.height
+      canvas = newCanvas
+      // remove existing canvas
+      document.querySelector('#viewer-canvas')!.remove()
+      canvas.id = 'viewer-canvas'
+      document.body.appendChild(canvas)
+    }
     started = true
     webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, NUMBER_OF_CUBES)
     globalThis.webgpuRenderer = webgpuRenderer
@@ -247,7 +264,7 @@ export const workerProxyType = createWorkerProxy({
       renderer.changeBackgroundColor(color)
     }, 'updateBackground')
   },
-})
+}, globalThis.webgpuRendererChannel?.port2)
 
 globalThis.testDuplicates = () => {
   const duplicates = allSides.filter((value, index, self) => self.indexOf(value) !== index)

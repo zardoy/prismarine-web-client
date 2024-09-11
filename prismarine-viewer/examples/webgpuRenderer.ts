@@ -6,7 +6,7 @@ import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
 import { updateSize, allSides } from './webgpuRendererWorker'
-import { defaultWebgpuRendererParams } from './webgpuRendererShared'
+import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
 
 export class WebgpuRenderer {
   rendering = true
