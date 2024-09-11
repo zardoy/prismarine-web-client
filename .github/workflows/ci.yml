@@ -39,6 +39,6 @@ jobs:
       - name: print current ref
         run: echo ${{ github.event.pull_request.base.ref }}
       - run: node scripts/outdatedGitPackages.mjs
-        if: ${{ github.event.pull_request.base.ref == 'next' }}
+        if: ${{ github.event.pull_request.base.ref == 'release' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
