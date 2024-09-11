@@ -1,12 +1,11 @@
-import React, { useEffect, useState, useRef, CSSProperties } from 'react'
+import React, { useEffect, useState } from 'react'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
-import { useFloating, arrow, FloatingArrow, offset as offsetMiddleware, Placement } from '@floating-ui/react'
 import { haveDirectoryPicker } from '../utils'
 import { activeModalStack } from '../globalState'
 import styles from './mainMenu.module.css'
 import Button from './Button'
 import ButtonWithTooltip from './ButtonWithTooltip'
-import PixelartIcon, { pixelartIcons } from './PixelartIcon'
+import { pixelartIcons } from './PixelartIcon'
 
 type Action = (e: React.MouseEvent<HTMLButtonElement>) => void
 
@@ -149,56 +148,4 @@ export default ({
         />}
     </div>
   )
-}
-
-
-export type DropdownButtonItem = {
-  text: string,
-  clickHandler: () => void
-}
-
-export const DropdownButton = ({ text, links }: { text: string, links: DropdownButtonItem[] }) => {
-  const [isOpen, setIsOpen] = useState(false)
-  const { refs, floatingStyles } = useFloating({
-    open: isOpen,
-    onOpenChange: setIsOpen
-  })
-
-  const styles: CSSProperties = {
-    ...floatingStyles,
-    background: 'rgba(0, 0, 0, 0.3)',
-    fontSize: 8,
-    userSelect: 'text',
-    padding: '2px 4px',
-    opacity: 1,
-    transition: 'opacity 0.3s ease-in-out',
-    textShadow: '1px 1px 2px BLACK',
-    display: 'flex',
-    flexDirection: 'column',
-    zIndex: 11
-  }
-
-  return <>
-    <Button
-      style={{ position: 'relative', width: '98px' }}
-      rootRef={refs.setReference}
-      onClick={() => {
-        setIsOpen(!isOpen)
-      }}
-    >{text}<PixelartIcon
-        styles={{ position: 'absolute', top: '5px', right: '5px' }}
-        iconName={isOpen ? 'chevron-up' : 'chevron-down'}
-      />
-    </Button>
-    {
-      isOpen && <div ref={refs.setFloating} style={styles}>
-        {links.map(el => {
-          return <Button
-            style={{ width: '98px' }}
-            onClick={el.clickHandler}
-          >{el.text}</Button>
-        })}
-      </div>
-    }
-  </>
 }
