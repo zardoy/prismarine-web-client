@@ -254,7 +254,7 @@ export const guiOptionsScheme: {
       },
     },
     {
-      custom() {
+      custom () {
         return <Category>Experimental</Category>
       },
       displayBossBars: {
