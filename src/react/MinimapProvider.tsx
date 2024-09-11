@@ -7,10 +7,11 @@ import { PCChunk } from 'prismarine-chunk'
 import { Chunk } from 'prismarine-world/types/world'
 import { INVISIBLE_BLOCKS } from 'prismarine-viewer/viewer/lib/mesher/worldConstants'
 import { getRenamedData } from 'flying-squid/dist/blockRenames'
+import { useSnapshot } from 'valtio'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import preflatMap from '../preflatMap.json'
 import { contro } from '../controls'
-import { gameAdditionalState, showModal, hideModal, miscUiState, loadedGameState } from '../globalState'
+import { gameAdditionalState, showModal, hideModal, miscUiState, loadedGameState, activeModalStack } from '../globalState'
 import { options } from '../optionsStorage'
 import Minimap, { DisplayMode } from './Minimap'
 import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
@@ -51,14 +52,12 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
     }
     this.isOldVersion = versionToNumber(bot.version) < versionToNumber('1.13')
-    console.log('version is old:', this.isOldVersion)
     this.blockData = {}
     for (const blockKey of Object.keys(BlockData.colors)) {
       const renamedKey = getRenamedData('blocks', blockKey, '1.20.2', bot.version)
       this.blockData[renamedKey as string] = BlockData.colors[blockKey]
 
     }
-    console.log('block data:', this.blockData)
   }
 
   overwriteWarps (newWarps: WorldWarp[]) {
@@ -81,7 +80,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         }
         this.chunksStore[`${chunkX},${chunkZ}`] = null
         this.loadingChunksCount += 1
-        console.log('loading:', chunkX, chunkZ)
+        console.log('[minimap] loading:', chunkX, chunkZ)
         this.loadChunk(chunkX, chunkZ)
         return emptyColor
       }
@@ -251,9 +250,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         this.chunksStore[`${chunkX},${chunkZ}`] = res
         this.emit(`cellReady`, `${chunkX},${chunkZ}`)
         this.loadingChunksCount -= 1
-        console.log('loaded:', chunkX, chunkZ, res)
+        console.log('[minimap] loaded:', chunkX, chunkZ, res)
       }
-    ).catch((err) => { console.warn('failed to get chunk:', chunkX, chunkZ) })
+    ).catch((err) => { console.warn('[minimap] failed to get chunk:', chunkX, chunkZ) })
   }
 
   clearChunksStore (x: number, z: number) {
@@ -281,9 +280,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 }
 
-export default ({ displayMode }: { displayMode?: DisplayMode }) => {
+const Inner = ({ displayMode }: { displayMode?: DisplayMode }) => {
   const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position))
-  const fullMapOpened = useIsModalActive('full-map')
 
   const updateWarps = (newWarps: WorldWarp[] | Error) => {
     if (newWarps instanceof Error) {
@@ -301,40 +299,59 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
     adapter.emit('updateMap')
   }
 
-  const toggleFullMap = ({ command }: { command?: string }) => {
-    if (!adapter) return
-    if (command === 'ui.toggleMap') {
-      if (fullMapOpened) {
-        hideModal({ reactType: 'full-map' })
-      } else {
-        showModal({ reactType: 'full-map' })
-      }
-    }
-  }
-
   useEffect(() => {
     bot.on('move', updateMap)
-    contro.on('trigger', toggleFullMap)
     localServer?.on('warpsUpdated' as keyof ServerEvents, updateWarps)
 
     return () => {
       bot?.off('move', updateMap)
-      contro?.off('trigger', toggleFullMap)
       localServer?.off('warpsUpdated' as keyof ServerEvents, updateWarps)
     }
   }, [])
-
-  if (options.showMinimap === 'never' && options.showFullmap === 'never') return null
 
   return <div>
     <Minimap
       adapter={adapter}
       showMinimap={options.showMinimap}
-      showFullmap={options.showFullmap}
+      showFullmap='always'
       singleplayer={miscUiState.singleplayer}
-      fullMap={fullMapOpened}
-      toggleFullMap={toggleFullMap}
+      fullMap={displayMode === 'fullmapOnly'}
+      toggleFullMap={() => {
+        hideModal()
+      }}
       displayMode={displayMode}
     />
   </div>
+}
+
+export default ({ displayMode }: { displayMode?: DisplayMode }) => {
+  const { showMinimap } = useSnapshot(options)
+  const fullMapOpened = useIsModalActive('full-map')
+
+  useEffect(() => {
+    if (displayMode !== 'fullmapOnly') return
+    const toggleFullMap = ({ command }: { command?: string }) => {
+      if (command === 'ui.toggleMap') {
+        if (activeModalStack.at(-1)?.reactType === 'full-map') {
+          hideModal({ reactType: 'full-map' })
+        } else {
+          showModal({ reactType: 'full-map' })
+        }
+      }
+    }
+    contro?.on('trigger', toggleFullMap)
+    return () => {
+      contro?.off('trigger', toggleFullMap)
+    }
+  }, [])
+
+  if (
+    displayMode === 'minimapOnly'
+      ? showMinimap === 'never' || (showMinimap === 'singleplayer' && !miscUiState.singleplayer)
+      : !fullMapOpened
+  ) {
+    return null
+  }
+
+  return <Inner displayMode={displayMode} />
 }

@@ -237,15 +237,7 @@ export const guiOptionsScheme: {
         return <Category>Map</Category>
       },
       showMinimap: {
-        text: 'Show minimap',
-        values: [
-          'always',
-          'singleplayer',
-          'never'
-        ],
-      },
-      showFullmap: {
-        text: 'Show fullmap',
+        text: 'Enable Minimap',
         values: [
           'always',
           'singleplayer',
