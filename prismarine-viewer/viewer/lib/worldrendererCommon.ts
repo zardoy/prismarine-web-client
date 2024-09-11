@@ -150,7 +150,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
             }
           }
           if (this.sectionsOutstanding.size === 0) {
-            const allFinished = Object.keys(this.finishedChunks).length >= this.chunksLength
+            const allFinished = Object.keys(this.finishedChunks).length === this.chunksLength
             if (allFinished) {
               this.allChunksLoaded?.()
               this.allChunksFinished = true
