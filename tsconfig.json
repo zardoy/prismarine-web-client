@@ -30,5 +30,6 @@
     ],
     "exclude": [
         "node_modules",
+        "<tsconfigRootDir>/prismarine-viewer/rsbuildSharedConfig.ts"
     ]
 }
