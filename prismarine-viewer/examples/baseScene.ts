@@ -15,6 +15,8 @@ import _ from 'lodash'
 import { toMajorVersion } from '../../src/utils'
 import { WorldDataEmitter } from '../viewer'
 import { Viewer } from '../viewer/lib/viewer'
+import { BlockNames } from '../../src/mcDataTypes'
+import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
 
 window.THREE = THREE
 
@@ -38,30 +40,39 @@ export class BasePlaygroundScene {
   gui = new GUI()
   onParamUpdate = {} as Record<string, () => void>
   alwaysIgnoreQs = [] as string[]
+  skipUpdateQs = false
+  controls: any
 
-  constructor (public availableScenes: string[]) {
+  constructor () {
     void this.initData()
+    this.addKeyboardShortcuts()
   }
 
   onParamsUpdate (paramName: string, object: any) {}
   updateQs () {
+    if (this.skipUpdateQs) return
+    const oldQs = new URLSearchParams(window.location.search)
     const newQs = new URLSearchParams()
+    if (oldQs.get('scene')) {
+      newQs.set('scene', oldQs.get('scene')!)
+    }
     for (const [key, value] of Object.entries(this.params)) {
-      if (!value || typeof value === 'function' || this.params.skipQs.includes(key) || this.alwaysIgnoreQs.includes(key)) continue
+      if (!value || typeof value === 'function' || this.params.skipQs?.includes(key) || this.alwaysIgnoreQs.includes(key)) continue
       newQs.set(key, value)
     }
     window.history.replaceState({}, '', `${window.location.pathname}?${newQs.toString()}`)
-
   }
 
-  async initialSetup () {}
+  // async initialSetup () {}
   renderFinish () {
     this.render()
   }
 
   initGui () {
     const qs = new URLSearchParams(window.location.search)
-    for (const [key, value] of qs.entries()) {
+    for (const key of Object.keys(this.params)) {
+      const value = qs.get(key)
+      if (!value) continue
       const parsed = /^-?\d+$/.test(value) ? Number(value) : value === 'true' ? true : value === 'false' ? false : value
       this.params[key] = parsed
     }
@@ -80,9 +91,22 @@ export class BasePlaygroundScene {
       } else {
         this.onParamsUpdate(property, object)
       }
+      this.updateQs()
     })
+  }
 
-    this.onParamsUpdate('', {})
+  mainChunk: import('prismarine-chunk/types/index').PCChunk
+
+  setupWorld () { }
+
+  // eslint-disable-next-line max-params
+  addWorldBlock (xOffset: number, yOffset: number, zOffset: number, blockName: BlockNames, properties?: Record<string, any>) {
+    if (xOffset > 16 || yOffset > 16 || zOffset > 16) throw new Error('Offset too big')
+    const block =
+      properties ?
+        this.Block.fromProperties(loadedData.blocksByName[blockName].id, properties ?? {}, 0) :
+        this.Block.fromStateId(loadedData.blocksByName[blockName].defaultState!, 0)
+    this.mainChunk.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
   }
 
   async initData () {
@@ -93,21 +117,29 @@ export class BasePlaygroundScene {
     this.Chunk = (ChunkLoader as any)(this.version)
     this.Block = (BlockLoader as any)(this.version)
 
+    this.mainChunk = new this.Chunk(undefined as any)
     const World = (WorldLoader as any)(this.version)
     const world = new World((chunkX, chunkZ) => {
+      if (chunkX === 0 && chunkZ === 0) return this.mainChunk
       return new this.Chunk(undefined as any)
     })
 
+    this.initGui()
+
     const worldView = new WorldDataEmitter(world, this.viewDistance, this.targetPos)
+    window.worldView = worldView
+    this.setupWorld()
 
     // Create three.js context, add to page
     const renderer = new THREE.WebGLRenderer({ alpha: true, ...localStorage['renderer'] })
     renderer.setPixelRatio(window.devicePixelRatio || 1)
     renderer.setSize(window.innerWidth, window.innerHeight)
+    initWithRenderer(renderer.domElement)
     document.body.appendChild(renderer.domElement)
 
     // Create viewer
     const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false, })
+    window.viewer = viewer
     viewer.addChunksBatchWaitTime = 0
     viewer.world.blockstatesModels = blockstatesModels
     viewer.entities.setDebugMode('basic')
@@ -120,12 +152,11 @@ export class BasePlaygroundScene {
     viewer.connect(worldView)
 
     await worldView.init(this.targetPos)
-    window.worldView = worldView
-    window.viewer = viewer
 
     if (this.enableCameraOrbitControl) {
       const { targetPos } = this
       const controls = new OrbitControls(viewer.camera, renderer.domElement)
+      this.controls = controls
       controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
       const cameraPos = targetPos.offset(2, 2, 2)
@@ -163,7 +194,7 @@ export class BasePlaygroundScene {
       // #endregion
     }
 
-    await this.initialSetup()
+    // await this.initialSetup()
     this.onResize()
     window.addEventListener('resize', () => this.onResize())
     void viewer.waitForChunksToRender().then(async () => {
@@ -174,7 +205,6 @@ export class BasePlaygroundScene {
       this.render()
     })
 
-    this.initGui()
     this.loop()
   }
 
@@ -186,7 +216,23 @@ export class BasePlaygroundScene {
   }
 
   render () {
+    statsStart()
     viewer.render()
+    statsEnd()
+  }
+
+  addKeyboardShortcuts () {
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'KeyR') {
+        // reset camera
+        viewer.camera.position.set(0, 0, 0)
+        viewer.camera.rotation.set(0, 0, 0)
+        viewer.camera.updateProjectionMatrix()
+        this.controls.target.set(this.targetPos.x + 0.5, this.targetPos.y + 0.5, this.targetPos.z + 0.5)
+        this.controls.update()
+        this.render()
+      }
+    })
   }
 
   onResize () {

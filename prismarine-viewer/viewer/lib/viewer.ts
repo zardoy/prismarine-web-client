@@ -8,6 +8,7 @@ import { Primitives } from './primitives'
 import { WorldRendererThree } from './worldrendererThree'
 import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
 import { getThreeBlockModelGroup, renderBlockThree, setBlockPosition } from './mesher/standaloneRenderer'
+import { addNewStat } from './ui/newStats'
 
 export class Viewer {
   scene: THREE.Scene

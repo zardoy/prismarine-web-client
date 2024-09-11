@@ -276,7 +276,6 @@ class MainScene extends BasePlaygroundScene {
   // applyChanges (metadataUpdate = false, skipQs = false) {
   override onParamsUpdate (paramName: string, object: any) {
     const metadataUpdate = paramName === 'metadata'
-    const skipQs = false // todo
 
     const blockId = this.getBlock()?.id
     let block: import('prismarine-block').Block
@@ -300,9 +299,6 @@ class MainScene extends BasePlaygroundScene {
     console.log('up stateId', block.stateId)
     this.params.metadata = block.metadata
     this.metadataGui.updateDisplay()
-    if (!skipQs) {
-      this.updateQs()
-    }
   }
 
   override renderFinish () {
