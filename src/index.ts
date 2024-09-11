@@ -188,7 +188,7 @@ viewer.entities.getItemUv = (idOrName: number | string) => {
       u: 0,
       v: 0,
       size: 16 / viewer.world.material.map!.image.width,
-      texture: viewer.world.material.map
+      texture: viewer.world.material.map!
     }
   }
 }
@@ -235,7 +235,12 @@ function hideCurrentScreens () {
 }
 
 const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
-  void connect({ singleplayer: true, username: options.localUsername, serverOverrides, serverOverridesFlat: flattenedServerOverrides })
+  const serverSettingsQsRaw = new URLSearchParams(window.location.search).getAll('serverSetting')
+  const serverSettingsQs = serverSettingsQsRaw.map(x => x.split(':')).reduce<Record<string, string>>((acc, [key, value]) => {
+    acc[key] = JSON.parse(value)
+    return acc
+  }, {})
+  void connect({ singleplayer: true, username: options.localUsername, serverOverrides, serverOverridesFlat: { ...flattenedServerOverrides, ...serverSettingsQs } })
 }
 function listenGlobalEvents () {
   window.addEventListener('connect', e => {

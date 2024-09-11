@@ -2,10 +2,6 @@ struct Cube {
   cube : array<u32, 2>
 }
 
-struct Uniforms {
-  ViewProjectionMatrix: mat4x4<f32>,
-}
-
 struct IndirectDrawParams {
   vertexCount: u32,
   instanceCount: atomic<u32>,
@@ -13,9 +9,9 @@ struct IndirectDrawParams {
   firstInstance: u32,
 }
 
-@group(0) @binding(0) var<uniform> uniforms: Uniforms;
+@group(0) @binding(0) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
 @group(0) @binding(1) var<storage, read> cubes: array<Cube>;
-@group(0) @binding(2) var<storage, read_write> visibleCubes: array<Cube>; 
+@group(0) @binding(2) var<storage, read_write> visibleCubes: array<u32>; 
 @group(0) @binding(3) var<storage, read_write> drawParams: IndirectDrawParams;
              
 @compute @workgroup_size(256)
@@ -43,7 +39,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   //last 8 bits reserved for animations
 
   // Transform cube position to clip space
-  let clipPos = uniforms.ViewProjectionMatrix * (position+ vec4<f32>(0.5, 0.5, 0.5, 0.0));
+  let clipPos = ViewProjectionMatrix * (position+ vec4<f32>(0.5, 0.5, 0.5, 0.0));
   let clipDepth = clipPos.z / clipPos.w; // Obtain depth in clip space
   let clipX = clipPos.x / clipPos.w;
   let clipY = clipPos.y / clipPos.w;
@@ -55,6 +51,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
       clipX >= -1.0 * Oversize && clipX <= 1.0 * Oversize &&
       clipY >= -1.0 * Oversize && clipY <= 1.0 * Oversize) { //Small Oversize because binding size
     let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
-    visibleCubes[visibleIndex] = cube;
+    visibleCubes[visibleIndex] = index;
   }
 }

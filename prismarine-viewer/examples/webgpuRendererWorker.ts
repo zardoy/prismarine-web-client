@@ -4,6 +4,7 @@ import * as tweenJs from '@tweenjs/tween.js'
 import { BlockFaceType, BlockType } from './shared'
 import { createWorkerProxy } from './workerProxy'
 import { WebgpuRenderer } from './webgpuRenderer'
+import { RendererParams } from './webgpuRendererShared'
 
 export const allSides = [] as Array<[number, number, number, BlockFaceType] | undefined>
 globalThis.allSides = allSides
@@ -21,6 +22,14 @@ const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 10_000)
 globalThis.camera = camera
 
 let webgpuRenderer: WebgpuRenderer | undefined
+
+const postMessage = (data, ...args) => {
+  if (globalThis.webgpuRendererChannel) {
+    globalThis.webgpuRendererChannel.port2.postMessage(data, ...args)
+  } else {
+    globalThis.postMessage(data, ...args)
+  }
+}
 
 setInterval(() => {
   if (!webgpuRenderer) return
@@ -72,12 +81,21 @@ const availableUpCheck = setInterval(() => {
 }, 100)
 
 let started = false
-let newWidth: number | undefined
-let newHeight: number | undefined
 let autoTickUpdate = undefined as number | undefined
 
 export const workerProxyType = createWorkerProxy({
   canvas (canvas, imageBlob, isPlayground, localStorage, NUMBER_OF_CUBES) {
+    if (globalThis.webgpuRendererChannel) {
+      // HACK! IOS safari bug: no support for transferControlToOffscreen in the same context! so we create a new canvas here!
+      const newCanvas = document.createElement('canvas')
+      newCanvas.width = canvas.width
+      newCanvas.height = canvas.height
+      canvas = newCanvas
+      // remove existing canvas
+      document.querySelector('#viewer-canvas')!.remove()
+      canvas.id = 'viewer-canvas'
+      document.body.appendChild(canvas)
+    }
     started = true
     webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, NUMBER_OF_CUBES)
     globalThis.webgpuRenderer = webgpuRenderer
@@ -94,6 +112,12 @@ export const workerProxyType = createWorkerProxy({
     newWidth = newWidth
     newHeight = newHeight
     updateSize(newWidth, newHeight)
+  },
+  updateConfig (params: RendererParams) {
+    // when available
+    onceRendererAvailable(() => {
+      webgpuRenderer?.updateConfig(params)
+    })
   },
   generateRandom (count: number, offset = 0) {
     const square = Math.sqrt(count)
@@ -240,7 +264,7 @@ export const workerProxyType = createWorkerProxy({
       renderer.changeBackgroundColor(color)
     }, 'updateBackground')
   },
-})
+}, globalThis.webgpuRendererChannel?.port2)
 
 globalThis.testDuplicates = () => {
   const duplicates = allSides.filter((value, index, self) => self.indexOf(value) !== index)

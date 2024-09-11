@@ -6,8 +6,9 @@ import { isMobile } from '../viewer/lib/simpleUtils'
 import { addNewStat } from './newStats'
 import type { workerProxyType } from './webgpuRendererWorker'
 import { useWorkerProxy } from './workerProxy'
+import { MessageChannelReplacement } from './messageChannel'
 
-let worker: Worker
+let worker: Worker | MessagePort
 
 // eslint-disable-next-line import/no-mutable-exports
 export let webgpuChannel: typeof workerProxyType['__workerProxy'] = new Proxy({}, {
@@ -74,6 +75,9 @@ export const removeBlocksSection = (key) => {
   webgpuChannel.removeBlocksSection(key)
 }
 
+// do not use worker in safari, it is slow
+const USE_WORKER = !navigator.userAgent.includes('Safari')
+
 let playground = false
 export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
   playground = actuallyPlayground
@@ -94,13 +98,27 @@ export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeI
   canvas.id = 'viewer-canvas'
   console.log('starting offscreen')
 
-  const offscreen = canvas.transferControlToOffscreen()
 
   // replacable by initWebglRenderer
-  worker = new Worker('./webgpuRendererWorker.js')
+  if (USE_WORKER) {
+    worker = new Worker('./webgpuRendererWorker.js')
+  } else {
+    const messageChannel = new MessageChannel()
+    globalThis.webgpuRendererChannel = messageChannel
+    worker = messageChannel.port1
+    messageChannel.port1.start()
+    messageChannel.port2.start()
+    await import('./webgpuRendererWorker')
+  }
   addFpsCounters()
   webgpuChannel = useWorkerProxy<typeof workerProxyType>(worker, true)
-  webgpuChannel.canvas(offscreen, imageBlob, playgroundModeInWorker, pickObj(localStorage, 'vertShader', 'fragShader', 'computeShader'), isMobile() || playground ? 490_000 : 2_000_000)
+  webgpuChannel.canvas(
+    canvas.transferControlToOffscreen(),
+    imageBlob,
+    playgroundModeInWorker,
+    pickObj(localStorage, 'vertShader', 'fragShader', 'computeShader'),
+    isMobile() || playground ? 490_000 : 2_000_000
+  )
 
   let oldWidth = window.innerWidth
   let oldHeight = window.innerHeight
@@ -149,7 +167,7 @@ export const setAnimationTick = (tick: number, frames?: number) => {
 export const exportLoadedTiles = () => {
   webgpuChannel.exportData()
   const controller = new AbortController()
-  worker.addEventListener('message', async (e) => {
+  worker.addEventListener('message', async (e: any) => {
     const receivedData = e.data.data
     console.log('received fixture')
     // await new Promise(resolve => {
@@ -182,7 +200,7 @@ export const exportLoadedTiles = () => {
 const addFpsCounters = () => {
   const { updateText } = addNewStat('fps')
   let prevTimeout
-  worker.addEventListener('message', (e) => {
+  worker.addEventListener('message', (e: any) => {
     if (e.data.type === 'fps') {
       updateText(`FPS: ${e.data.fps}`)
       if (prevTimeout) clearTimeout(prevTimeout)

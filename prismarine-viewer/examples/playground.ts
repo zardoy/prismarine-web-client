@@ -25,10 +25,12 @@ import { initWebgpuRenderer, loadFixtureSides, setAnimationTick, webgpuChannel }
 import { TextureAnimation } from './TextureAnimation'
 import { BlockType } from './shared'
 import { addNewStat } from './newStats'
+import { defaultWebgpuRendererParams } from './webgpuRendererShared'
 
 window.THREE = THREE
 
 const gui = new GUI()
+const gui2 = new GUI()
 const { updateText: updateTextEvent } = addNewStat('events', 90, 0, 40)
 
 // initial values
@@ -55,6 +57,8 @@ const params = {
   modelVariant: 0,
   animationTick: 0
 }
+
+const rendererParams = { ...defaultWebgpuRendererParams }
 
 const qs = new URLSearchParams(window.location.search)
 for (const [key, value] of qs.entries()) {
@@ -117,6 +121,15 @@ async function main () {
   gui.add(params, 'blockIsomorphicRenderBundle')
   const animationController = gui.add(params, 'animationTick', -1, 20, 1).listen()
   gui.open(false)
+
+  for (const key of Object.keys(defaultWebgpuRendererParams)) {
+    gui2.add(rendererParams, key)
+  }
+  gui2.open(false)
+  webgpuChannel.updateConfig(rendererParams)
+  gui2.onChange(() => {
+    webgpuChannel.updateConfig(rendererParams)
+  })
   let metadataFolder = gui.addFolder('metadata')
   // let entityRotationFolder = gui.addFolder('entity metadata')
 
@@ -153,8 +166,12 @@ async function main () {
   // await schem.paste(world, new Vec3(0, 60, 0))
 
   const worldView = new WorldDataEmitter(world, viewDistance, targetPos)
-  const nullRenderer = new THREE.WebGLRenderer({ antialias: true })
-  const viewer = new Viewer(nullRenderer, { numWorkers: 1, showChunkBorders: false })
+
+  const viewer = new Viewer({
+    render () { },
+    getSize () { return { width: window.innerWidth, height: window.innerHeight } },
+    getPixelRatio () { return window.devicePixelRatio },
+  } as any, { numWorkers: 1, showChunkBorders: false })
   viewer.world.blockstatesModels = blockstatesModels
   viewer.entities.setDebugMode('basic')
   viewer.world.stopBlockUpdate = stopUpdate
@@ -269,7 +286,7 @@ async function main () {
   const blocks: Record<string, BlockType> = {}
   const i = 0
   console.log('generating random data')
-  webgpuChannel.generateRandom(490_000)
+  webgpuChannel.generateRandom(1024 * 1024)
 
   // webgpuChannel.generateRandom(100)
   // setTimeout(() => {
@@ -287,7 +304,7 @@ async function main () {
   window['viewer'] = viewer
 
   //@ts-expect-error
-  // const controls = new OrbitControls(viewer.camera, nullRenderer.domElement)
+  //const controls = new OrbitControls(viewer.camera, nullRenderer.domElement)
   // controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
   const cameraPos = targetPos.offset(2, 2, 2)
@@ -323,7 +340,7 @@ async function main () {
     }
     enableSkeletonDebug(viewer.entities.entities['id'])
     setTimeout(() => {
-      viewer.render()
+      // viewer.render()
     }, TWEEN_DURATION)
   }
 
@@ -489,7 +506,7 @@ async function main () {
   const animate2 = () => {
     // if (controls) controls.update()
     // worldView.updatePosition(controls.target)
-    viewer.render()
+    // viewer.render()
     window.requestAnimationFrame(animate2)
   }
   viewer.world.renderUpdateEmitter.addListener('update', () => {
@@ -542,7 +559,6 @@ async function main () {
     const { camera } = viewer
     viewer.camera.aspect = window.innerWidth / window.innerHeight
     viewer.camera.updateProjectionMatrix()
-    nullRenderer.setSize(window.innerWidth, window.innerHeight)
 
     animate()
   }
