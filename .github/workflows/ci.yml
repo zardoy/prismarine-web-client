@@ -35,7 +35,7 @@ jobs:
         if: failure()
         with:
           name: cypress-images
-          path: cypress/integration/__image_snapshots__/
+          path: cypress/screenshots/
       - name: print current ref
         run: echo ${{ github.event.pull_request.base.ref }}
       - run: node scripts/outdatedGitPackages.mjs
