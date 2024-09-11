@@ -373,6 +373,10 @@ const WarpInfo = (
     }
   }
 
+  const tpNow = () => {
+    adapter.off('cellReady', tpNow)
+  }
+
   const quickTp = () => {
     toggleFullMap?.({ command: 'ui.toggleMap' })
     adapter.quickTp?.(warp.x, warp.z)

@@ -273,6 +273,11 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   quickTp (x: number, z: number) {
     const y = this.getHighestBlockY(x, z)
     bot.chat(`/tp ${x} ${y + 20} ${z}`)
+    const timeout = setTimeout(() => {
+      const y = this.getHighestBlockY(x, z)
+      bot.chat(`/tp ${x} ${y + 20} ${z}`)
+      clearTimeout(timeout)
+    }, 500)
   }
 }
 
