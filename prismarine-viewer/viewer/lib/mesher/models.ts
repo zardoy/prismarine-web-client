@@ -282,6 +282,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
     const aos: number[] = []
     const neighborPos = position.plus(new Vec3(...dir))
+    // 10%
     const baseLight = world.getLight(neighborPos, undefined, undefined, block.name) / 15
     for (const pos of corners) {
       let vertex = [
@@ -290,7 +291,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         (pos[2] ? maxz : minz)
       ]
 
-      if (!needTiles) {
+      if (!needTiles) { // 10%
         vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
         vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
         vertex = vertex.map(v => v / 16)
@@ -411,7 +412,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     // todo this can be removed here
     signs: {},
     // isFull: true,
-    highestBlocks: {},
+    highestBlocks: {}, // todo migrate to map for 2% boost perf
     hadErrors: false
   }
 
@@ -449,7 +450,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         }
         const biome = block.biome.name
 
-        if (world.preflat) {
+        if (world.preflat) { // 10% perf
           const patchProperties = preflatBlockCalculation(block, world, cursor)
           if (patchProperties) {
             block._originalProperties ??= block._properties
@@ -478,15 +479,32 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           // cache
           let { models } = block
           if (block.models === undefined) {
+            const props = block.getProperties()
             try {
+              // fixme
+              if (world.preflat) {
+                if (block.name === 'cobblestone_wall') {
+                  props.up = 'true'
+                  for (const key of ['north', 'south', 'east', 'west']) {
+                    const val = props[key]
+                    if (val === 'false' || val === 'true') {
+                      props[key] = val === 'true' ? 'low' : 'none'
+                    }
+                  }
+                }
+              }
+
               models = blockProvider.getAllResolvedModels0_1({
                 name: block.name,
-                properties: block.getProperties(),
-              })!
-              if (!models.length) models = null
+                properties: props,
+              }, world.preflat)! // fixme! this is a hack (also need a setting for all versions)
+              if (!models.length) {
+                console.debug('[mesher] block to render not found', block.name, props)
+                models = null
+              }
             } catch (err) {
               models ??= erroredBlockModel
-              console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(block.getProperties())}]: ` + err.message, err.stack)
+              console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(props)}]: ` + err.message, err.stack)
               attr.hadErrors = true
             }
           }
@@ -505,6 +523,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             const model = modelVars[useVariant] ?? modelVars[0]
             if (!model) continue
 
+            // #region 10%
             let globalMatrix = null as any
             let globalShift = null as any
             for (const axis of ['x', 'y', 'z'] as const) {
@@ -518,6 +537,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
               globalShift = [8, 8, 8]
               globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
             }
+            // #endregion
 
             for (const element of model.elements ?? []) {
               const ao = model.ao ?? true
@@ -527,6 +547,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
                   renderElement(world, pos, element, ao, attr, globalMatrix, globalShift, block, biome)
                 })
               } else {
+                // 60%
                 renderElement(world, cursor, element, ao, attr, globalMatrix, globalShift, block, biome)
               }
             }

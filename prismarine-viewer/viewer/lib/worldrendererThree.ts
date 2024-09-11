@@ -28,6 +28,14 @@ export class WorldRendererThree extends WorldRendererCommon {
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
     this.starField = new StarField(scene)
+    this.holdingBlock = new HoldingBlock(this.scene)
+
+    this.renderUpdateEmitter.on('textureDownloaded', () => {
+      if (this.holdingBlock.toBeRenderedItem) {
+        this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem)
+        this.holdingBlock.toBeRenderedItem = undefined
+      }
+    })
   }
 
   changeBackgroundColor (color: [number, number, number]): void {

@@ -14,10 +14,17 @@ export default () => {
     received: {} as { [key: string]: number },
     sent: {} as { [key: string]: number }
   })
+  window.packetsCountByNamePerSec = packetsCountByNamePerSec
+  const packetsCountByNamePer10Sec = useRef({
+    received: {} as { [key: string]: number },
+    sent: {} as { [key: string]: number }
+  })
+  window.packetsCountByNamePer10Sec = packetsCountByNamePer10Sec
   const packetsCountByName = useRef({
     received: {} as { [key: string]: number },
     sent: {} as { [key: string]: number }
   })
+  window.packetsCountByName = packetsCountByName
   const ignoredPackets = useRef(new Set([] as any[]))
   const [packetsString, setPacketsString] = useState('')
   const [showDebug, setShowDebug] = useState(false)
@@ -62,9 +69,11 @@ export default () => {
   const managePackets = (type, name, data) => {
     packetsCountByName.current[type][name] ??= 0
     packetsCountByName.current[type][name]++
+    packetsCountByNamePerSec.current[type][name] ??= 0
+    packetsCountByNamePerSec.current[type][name]++
+    packetsCountByNamePer10Sec.current[type][name] ??= 0
+    packetsCountByNamePer10Sec.current[type][name]++
     if (options.debugLogNotFrequentPackets && !ignoredPackets.current.has(name) && !hardcodedListOfDebugPacketsToIgnore[type].includes(name)) {
-      packetsCountByNamePerSec.current[type][name] ??= 0
-      packetsCountByNamePerSec.current[type][name]++
       if (packetsCountByNamePerSec.current[type][name] > 5 || packetsCountByName.current[type][name] > 100) { // todo think of tracking the count within 10s
         console.info(`[packet ${name} was ${type} too frequent] Ignoring...`)
         ignoredPackets.current.add(name)
@@ -76,12 +85,17 @@ export default () => {
 
   useEffect(() => {
     document.addEventListener('keydown', handleF3)
+    let update = 0
     const packetsUpdateInterval = setInterval(() => {
       setPacketsString(`↓ ${received.current.count} (${(received.current.size / 1024).toFixed(2)} KB/s, ${getFixedFilesize(receivedTotal.current)}) ↑ ${sent.current.count}`)
       received.current = { ...defaultPacketsCount }
       sent.current = { ...defaultPacketsCount }
       packetsCountByNamePerSec.current.received = {}
       packetsCountByNamePerSec.current.sent = {}
+      if (update++ % 10 === 0) {
+        packetsCountByNamePer10Sec.current.received = {}
+        packetsCountByNamePer10Sec.current.sent = {}
+      }
     }, 1000)
 
     const freqUpdateInterval = setInterval(() => {

@@ -1,9 +1,8 @@
 // global variables useful for debugging
 
+import fs from 'fs'
 import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
 import { getEntityCursor } from './worldInteractions'
-
-// Object.defineProperty(window, 'cursorBlock', )
 
 window.cursorBlockRel = (x = 0, y = 0, z = 0) => {
   const newPos = bot.blockAtCursor(5)?.position.offset(x, y, z)
@@ -45,14 +44,14 @@ window.inspectPacket = (packetName, full = false) => {
   return returnobj
 }
 
-// for advanced debugging, use with watch expression
-
-let stats_ = {}
-window.addStatHit = (key) => {
-  stats_[key] ??= 0
-  stats_[key]++
+window.downloadFile = async (path: string) => {
+  if (!path.startsWith('/') && localServer) path = `${localServer.options.worldFolder}/${path}`
+  const data = await fs.promises.readFile(path)
+  const blob = new Blob([data], { type: 'application/octet-stream' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = path.split('/').at(-1)!
+  a.click()
+  URL.revokeObjectURL(url)
 }
-setInterval(() => {
-  window.stats = stats_
-  stats_ = {}
-}, 1000)

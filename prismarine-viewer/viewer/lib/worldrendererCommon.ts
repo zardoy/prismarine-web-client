@@ -100,6 +100,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     x: number
     z: number
   }
+  neighborChunkUpdates = true
 
   abstract outputFormat: 'threeJs' | 'webgpu'
 
@@ -323,21 +324,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
       const loc = new Vec3(x, y, z)
       this.setSectionDirty(loc)
-      if (!isLightUpdate || this.mesherConfig.smoothLighting) {
-        // const updateIfEdge = (x, z) => {
-        //   if (this.edgeChunks[`${x},${z}`]) return
-        //   this.setSectionDirty(loc.offset(x, 0, z))
-        // }
-        // updateIfEdge(-16, 0)
-        // updateIfEdge(16, 0)
-        // updateIfEdge(0, -16)
-        // updateIfEdge(0, 16)
+      if (this.neighborChunkUpdates && (!isLightUpdate || this.mesherConfig.smoothLighting)) {
+        this.setSectionDirty(loc.offset(-16, 0, 0))
+        this.setSectionDirty(loc.offset(16, 0, 0))
+        this.setSectionDirty(loc.offset(0, 0, -16))
+        this.setSectionDirty(loc.offset(0, 0, 16))
       }
-    }
-    this.lastAddChunk = {
-      timeout: null as any,
-      x,
-      z,
     }
   }
 
@@ -368,12 +360,14 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       worker.postMessage({ type: 'blockUpdate', pos, stateId })
     }
     this.setSectionDirty(pos)
-    if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0))
-    if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0))
-    if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0))
-    if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0))
-    if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16))
-    if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16))
+    if (this.neighborChunkUpdates) {
+      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0))
+      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0))
+      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0))
+      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0))
+      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16))
+      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16))
+    }
   }
 
   queueAwaited = false

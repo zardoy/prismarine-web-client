@@ -28,7 +28,7 @@ export const saveServer = async (autoSave = true) => {
   if (!localServer || fsState.isReadonly) return
   // todo
   const worlds = [(localServer as any).overworld] as Array<import('prismarine-world').world.World>
-  await Promise.all([savePlayers(autoSave), ...worlds.map(async world => world.saveNow())])
+  await Promise.all([localServer.writeLevelDat(), savePlayers(autoSave), ...worlds.map(async world => world.saveNow())])
 }
 export const disconnect = async () => {
   if (localServer) {
