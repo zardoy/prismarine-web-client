@@ -14,6 +14,7 @@ import * as Entity from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
 import externalTexturesJson from './entity/externalTextures.json'
 import { disposeObject } from './threeJsUtils'
+import worldBlockProvider from 'mc-assets/dist/worldBlockProvider';
 
 export const TWEEN_DURATION = 120
 
@@ -91,6 +92,25 @@ function getEntityMesh (entity, scene, options, overrides) {
     }, options, cube)
   }
   return cube
+}
+
+function getFrameMesh (entity, scene, options, overrides) {
+  //@ts-expect-error
+  const pos = cursorBlockRel(0, 1, 0).position
+  const blockProvider = worldBlockProvider(this.world.blockstatesModels, this.world.blocksAtlases, 'latest')
+  const models = blockProvider.getAllResolvedModels0_1({
+    name: 'item_frame',
+    properties: {
+      // map: false
+    }
+  }, true)
+  const { material } = this.world
+  const mesh = getThreeBlockModelGroup(material, models, undefined, 'plains', loadedData)
+  // mesh.rotation.y = THREE.MathUtils.degToRad(90)
+  setBlockPosition(mesh, pos)
+  const helper = new THREE.BoxHelper(mesh, 0xff_ff_00)
+  mesh.add(helper)
+  this.scene.add(mesh)
 }
 
 export type SceneEntity = THREE.Object3D & {
@@ -402,6 +422,8 @@ export class Entities extends EventEmitter {
         playerObject.animation = new WalkingGeneralSwing()
         //@ts-expect-error
         playerObject.animation.isMoving = false
+      } else if (entity.name === 'item_frame' || entity.name === 'glow_item_frame') {
+        mesh = getFrameMesh(entity, this.scene, this.entitiesOptions, overrides)
       } else {
         mesh = getEntityMesh(entity, this.scene, this.entitiesOptions, overrides)
       }
@@ -452,28 +474,32 @@ export class Entities extends EventEmitter {
 
     // todo handle map, map_chunks events
     // if (entity.name === 'item_frame' || entity.name === 'glow_item_frame') {
+      
+
+    //   console.log(entity)
     //   const example = {
     //     "present": true,
     //     "itemId": 847,
     //     "itemCount": 1,
     //     "nbtData": {
-    //         "type": "compound",
-    //         "name": "",
-    //         "value": {
-    //             "map": {
-    //                 "type": "int",
-    //                 "value": 2146483444
-    //             },
-    //             "interactiveboard": {
-    //                 "type": "byte",
-    //                 "value": 1
-    //             }
+    //       "type": "compound",
+    //       "name": "",
+    //       "value": {
+    //         "map": {
+    //           "type": "int",
+    //           "value": 2146483444
+    //         },
+    //         "interactiveboard": {
+    //           "type": "byte",
+    //           "value": 1
     //         }
+    //       }
     //     }
-    // }
-    //   const item = entity.metadata?.[8]
-    //   if (item.nbtData) {
-    //     const nbt = nbt.simplify(item.nbtData)
+    //   }
+
+    //   const item = entity.metadata?.[8];
+    //   if (item?.nbtData) {
+    //     const nbT = nbt.simplify(item.nbtData)
     //   }
     // }
 
