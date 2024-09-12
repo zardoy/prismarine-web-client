@@ -1,9 +1,15 @@
 //@ts-check
 import * as THREE from 'three'
 import { OBJLoader } from 'three-stdlib'
+import huskPng from 'mc-assets/dist/other-textures/latest/entity/zombie/husk.png'
 import entities from './entities.json'
 import { externalModels } from './objModels'
 import externalTexturesJson from './externalTextures.json'
+<<<<<<< Updated upstream
+=======
+import { WalkingGeneralSwing } from './animations'
+
+>>>>>>> Stashed changes
 // import { loadTexture } from globalThis.isElectron ? '../utils.electron.js' : '../utils';
 const { loadTexture } = globalThis.isElectron ? require('../utils.electron.js') : require('../utils')
 
@@ -303,6 +309,9 @@ export class EntityMesh {
       if (originalType === 'zombie_horse') {
         texturePath = `textures/${version}/entity/horse/horse_zombie.png`
       }
+      if (originalType === 'husk') {
+        texturePath = huskPng
+      }
       if (originalType === 'skeleton_horse') {
         texturePath = `textures/${version}/entity/horse/horse_skeleton.png`
       }
@@ -324,7 +333,13 @@ export class EntityMesh {
         transparent: true,
         alphaTest: 0.1
       })
+      const scaleEntity = {
+        zombie: 1.9,
+        husk: 1.9
+      }
       const obj = objLoader.parse(externalModels[type])
+      const scale = scaleEntity[originalType]
+      if (scale) obj.scale.set(scale, scale, scale)
       if (type === 'boat') obj.position.y = -1 // todo, should not be hardcoded
       obj.traverse((child) => {
         if (child instanceof THREE.Mesh) {
