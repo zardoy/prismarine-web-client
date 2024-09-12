@@ -1,4 +1,8 @@
+import fs from 'fs'
 import { useEffect, useState } from 'react'
+import { versions } from 'minecraft-data'
+import { simplify } from 'prismarine-nbt'
+import RegionFile from 'prismarine-provider-anvil/src/region'
 import { Vec3 } from 'vec3'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
@@ -34,6 +38,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   isOldVersion: boolean
   blockData: any
   heightMap: Record<string, number> = {}
+  regions: Record<string, RegionFile> = {}
+  chunksHeightmaps: Record<string, any> = {}
 
   constructor (pos?: Vec3) {
     super()
@@ -204,6 +210,23 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return color
   }
 
+  async getChunkHeightMapFromRegion (chunkX: number, chunkZ: number, cb?: (hm: number[]) => void) {
+    const regionX = Math.floor(chunkX / 32)
+    const regionZ = Math.floor(chunkZ / 32)
+    const { worldFolder } = localServer!.options
+    const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
+    if (!this.regions[`${regionX},${regionZ}`]) {
+      const region = new RegionFile(path)
+      await region.initialize()
+      this.regions[`${regionX},${regionZ}`] = region
+    }
+    const rawChunk = await this.regions[`${regionX},${regionZ}`].read(chunkX - regionX * 32, chunkZ - regionZ * 32)
+    const chunk = simplify(rawChunk as any)
+    console.log(`heightmaps ${chunkX}, ${chunkZ}:`, chunk.HeightMap)
+    this.chunksHeightmaps[`${chunkX / 16},${chunkZ / 16}`] = chunk.HeightMap
+    cb?.(chunk.HeigtMap)
+  }
+
   setWarp (warp: WorldWarp, remove?: boolean): void {
     this.world = bot.game.dimension
     const index = this.warps.findIndex(w => w.name === warp.name)
@@ -226,9 +249,15 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   getHighestBlockY (x: number, z: number, chunk?: Chunk) {
+    const chunkX = Math.floor(x / 16) * 16
+    const chunkZ = Math.floor(z / 16) * 16
+    if (this.chunksHeightmaps[`${chunkX},${chunkZ}`]) {
+      return this.chunksHeightmaps[`${chunkX},${chunkZ}`][x + z - chunkX - chunkZ]
+    }
+    const source = chunk ?? bot.world
     const { height, minY } = (bot.game as any)
     for (let i = height; i > 0; i -= 1) {
-      const block = chunk ? chunk.getBlock(new Vec3(x & 15, minY + i, z & 15)) : bot.world.getBlock(new Vec3(x, minY + i, z))
+      const block = source.getBlock(new Vec3(x & 15, minY + i, z & 15))
       if (block && !INVISIBLE_BLOCKS.has(block.name)) {
         return minY + i
       }
@@ -245,6 +274,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   loadChunk (chunkX: number, chunkZ: number) {
+    void this.getChunkHeightMapFromRegion(chunkX / 16, chunkZ / 16)
     this.getChunkSingleplayer(chunkX, chunkZ).then(
       (res) => {
         this.chunksStore[`${chunkX},${chunkZ}`] = res
@@ -327,6 +357,46 @@ const Inner = ({ displayMode }: { displayMode?: DisplayMode }) => {
 export default ({ displayMode }: { displayMode?: DisplayMode }) => {
   const { showMinimap } = useSnapshot(options)
   const fullMapOpened = useIsModalActive('full-map')
+
+  const readChunksHeightMaps = async () => {
+    const { worldFolder } = localServer!.options
+    const path = `${worldFolder}/region/r.0.0.mca`
+    const region = new RegionFile(path)
+    await region.initialize()
+    const chunks: Record<string, any> = {}
+    console.log('Reading chunks...')
+    console.log(chunks)
+    let versionDetected = false
+    for (const [i, _] of Array.from({ length: 32 }).entries()) {
+      for (const [k, _] of Array.from({ length: 32 }).entries()) {
+        // todo, may use faster reading, but features is not commonly used
+        // eslint-disable-next-line no-await-in-loop
+        const nbt = await region.read(i, k)
+        chunks[`${i},${k}`] = nbt
+        if (nbt && !versionDetected) {
+          const simplified = simplify(nbt)
+          const version = versions.pc.find(x => x['dataVersion'] === simplified.DataVersion)?.minecraftVersion
+          console.log('Detected version', version ?? 'unknown')
+          versionDetected = true
+        }
+      }
+    }
+    Object.defineProperty(chunks, 'simplified', {
+      get () {
+        const mapped = {}
+        for (const [i, _] of Array.from({ length: 32 }).entries()) {
+          for (const [k, _] of Array.from({ length: 32 }).entries()) {
+            const key = `${i},${k}`
+            const chunk = chunks[key]
+            if (!chunk) continue
+            mapped[key] = simplify(chunk)
+          }
+        }
+        return mapped
+      },
+    })
+    console.log('Done!', chunks)
+  }
 
   useEffect(() => {
     if (displayMode !== 'fullmapOnly') return
