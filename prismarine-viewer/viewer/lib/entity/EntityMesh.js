@@ -5,11 +5,6 @@ import huskPng from 'mc-assets/dist/other-textures/latest/entity/zombie/husk.png
 import entities from './entities.json'
 import { externalModels } from './objModels'
 import externalTexturesJson from './externalTextures.json'
-<<<<<<< Updated upstream
-=======
-import { WalkingGeneralSwing } from './animations'
-
->>>>>>> Stashed changes
 // import { loadTexture } from globalThis.isElectron ? '../utils.electron.js' : '../utils';
 const { loadTexture } = globalThis.isElectron ? require('../utils.electron.js') : require('../utils')
 
@@ -296,6 +291,10 @@ const getEntity = (name) => {
 //   zombie_villager: 'zombie_villager/zombie_villager'
 // }
 
+const scaleEntity = {
+  zombie: 1.9,
+  husk: 1.9
+}
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EntityMesh {
   constructor(version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
@@ -333,10 +332,6 @@ export class EntityMesh {
         transparent: true,
         alphaTest: 0.1
       })
-      const scaleEntity = {
-        zombie: 1.9,
-        husk: 1.9
-      }
       const obj = objLoader.parse(externalModels[type])
       const scale = scaleEntity[originalType]
       if (scale) obj.scale.set(scale, scale, scale)
