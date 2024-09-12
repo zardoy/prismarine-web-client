@@ -223,7 +223,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const rawChunk = await this.regions[`${regionX},${regionZ}`].read(chunkX - regionX * 32, chunkZ - regionZ * 32)
     const chunk = simplify(rawChunk as any)
     console.log(`heightmaps ${chunkX}, ${chunkZ}:`, chunk.HeightMap)
-    this.chunksHeightmaps[`${chunkX / 16},${chunkZ / 16}`] = chunk.HeightMap
+    this.chunksHeightmaps[`${chunkX * 16},${chunkZ * 16}`] = chunk.HeightMap
     cb?.(chunk.HeigtMap)
   }
 
@@ -290,6 +290,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const [chunkX, chunkZ] = key.split(',').map(Number)
       if (Math.hypot((chunkX - x), (chunkZ - z)) > 300) {
         delete this.chunksStore[key]
+        delete this.chunksHeightmaps[key]
         for (let i = 0; i < 16; i += 1) {
           for (let j = 0; j < 16; j += 1) {
             delete this.heightMap[`${chunkX + i},${chunkZ + j}`]
