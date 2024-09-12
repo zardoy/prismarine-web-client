@@ -1,6 +1,7 @@
 //@ts-check
 import * as THREE from 'three'
 import { OBJLoader } from 'three-stdlib'
+import huskPng from 'mc-assets/dist/other-textures/latest/entity/zombie/husk.png'
 import entities from './entities.json'
 import { externalModels } from './objModels'
 import externalTexturesJson from './externalTextures.json'
@@ -290,6 +291,10 @@ const getEntity = (name) => {
 //   zombie_villager: 'zombie_villager/zombie_villager'
 // }
 
+const scaleEntity = {
+  zombie: 1.9,
+  husk: 1.9
+}
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EntityMesh {
   constructor(version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
@@ -302,6 +307,9 @@ export class EntityMesh {
       let texturePath = externalTexturesJson[type]
       if (originalType === 'zombie_horse') {
         texturePath = `textures/${version}/entity/horse/horse_zombie.png`
+      }
+      if (originalType === 'husk') {
+        texturePath = huskPng
       }
       if (originalType === 'skeleton_horse') {
         texturePath = `textures/${version}/entity/horse/horse_skeleton.png`
@@ -325,6 +333,8 @@ export class EntityMesh {
         alphaTest: 0.1
       })
       const obj = objLoader.parse(externalModels[type])
+      const scale = scaleEntity[originalType]
+      if (scale) obj.scale.set(scale, scale, scale)
       if (type === 'boat') obj.position.y = -1 // todo, should not be hardcoded
       obj.traverse((child) => {
         if (child instanceof THREE.Mesh) {
