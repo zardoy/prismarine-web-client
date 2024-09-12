@@ -42,6 +42,7 @@ export class BasePlaygroundScene {
   alwaysIgnoreQs = [] as string[]
   skipUpdateQs = false
   controls: any
+  windowHidden = false
 
   constructor () {
     void this.initData()
@@ -128,7 +129,6 @@ export class BasePlaygroundScene {
 
     const worldView = new WorldDataEmitter(world, this.viewDistance, this.targetPos)
     window.worldView = worldView
-    this.setupWorld()
 
     // Create three.js context, add to page
     const renderer = new THREE.WebGLRenderer({ alpha: true, ...localStorage['renderer'] })
@@ -148,6 +148,7 @@ export class BasePlaygroundScene {
       viewer.render()
     }
     viewer.world.mesherConfig.enableLighting = false
+    this.setupWorld()
 
     viewer.connect(worldView)
 
@@ -209,7 +210,7 @@ export class BasePlaygroundScene {
   }
 
   loop () {
-    if (this.continuousRender) {
+    if (this.continuousRender && !this.windowHidden) {
       this.render()
       requestAnimationFrame(() => this.loop())
     }
@@ -223,7 +224,7 @@ export class BasePlaygroundScene {
 
   addKeyboardShortcuts () {
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyR') {
+      if (e.code === 'KeyR' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
         // reset camera
         viewer.camera.position.set(0, 0, 0)
         viewer.camera.rotation.set(0, 0, 0)
@@ -232,6 +233,15 @@ export class BasePlaygroundScene {
         this.controls.update()
         this.render()
       }
+    })
+    document.addEventListener('visibilitychange', () => {
+      this.windowHidden = document.visibilityState === 'hidden'
+    })
+    document.addEventListener('blur', () => {
+      this.windowHidden = true
+    })
+    document.addEventListener('focus', () => {
+      this.windowHidden = false
     })
   }
 

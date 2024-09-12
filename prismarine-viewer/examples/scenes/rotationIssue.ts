@@ -1,9 +1,7 @@
-import { Vec3 } from 'vec3'
-import { SceneSetupFunction } from './type'
+import { BasePlaygroundScene } from '../baseScene'
 
-const setup: SceneSetupFunction = (world, mcData, mesherConfig, setupParam) => {
-  mesherConfig.debugModelVariant = [3]
-  void world.setBlockStateId(new Vec3(0, 0, 0), mcData.blocksByName.sand.defaultState!)
+export default class RotationIssueScene extends BasePlaygroundScene {
+  setupWorld () {
+    // todo
+  }
 }
-
-export default setup
