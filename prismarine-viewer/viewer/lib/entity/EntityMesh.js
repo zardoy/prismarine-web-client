@@ -294,7 +294,8 @@ const getEntity = (name) => {
 
 const scaleEntity = {
   zombie: 1.85,
-  husk: 1.85
+  husk: 1.85,
+  sheep: 2
 }
 const offsetEntity = {
   zombie: new Vec3(0, 1, 0),
