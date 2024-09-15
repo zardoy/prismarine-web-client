@@ -6,6 +6,7 @@ import { Vec3 } from 'vec3'
 import entities from './entities.json'
 import { externalModels } from './objModels'
 import externalTexturesJson from './externalTextures.json'
+import { sheep, sheepCoat } from './exportedModels.js'
 // import { loadTexture } from globalThis.isElectron ? '../utils.electron.js' : '../utils';
 const { loadTexture } = globalThis.isElectron ? require('../utils.electron.js') : require('../utils')
 
@@ -313,6 +314,39 @@ export class EntityMesh {
     if (externalModels[type]) {
       const objLoader = new OBJLoader()
       let texturePath = externalTexturesJson[type]
+      if (type === 'sheep') {
+        //texturePath = `textures/${version}/entity/sheep/sheep.png`
+        this.mesh = new THREE.Object3D()
+        const sheepObj = objLoader.parse(sheep)
+        const sheepMaterial = new THREE.MeshLambertMaterial({ color: 0xff_ff_ff })
+        sheepObj.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.material = sheepMaterial
+          }
+        })
+        const sheepCoatObj = objLoader.parse(sheepCoat)
+        const sheepCoatMaterial = new THREE.MeshLambertMaterial({ color: 0xff_d7_00 })
+        sheepCoatObj.traverse((child) => {
+          if (child instanceof THREE.Mesh) {
+            child.material = sheepCoatMaterial
+          }
+        })
+        sheepCoatObj.visible = true
+        sheepObj.visible = true
+        const scale = scaleEntity[originalType]
+        if (scale) {
+          sheepObj.scale.set(scale, scale, scale)
+          sheepCoatObj.scale.set(scale, scale, scale)
+        }
+        const offset = offsetEntity[originalType]
+        if (offset) {
+          sheepObj.position.set(offset.x, offset.y, offset.z)
+          sheepCoatObj.position.set(offset.x, offset.y, offset.z)
+        }
+        this.mesh.add(sheepObj)
+        this.mesh.add(sheepCoatObj)
+        return
+      }
       if (originalType === 'zombie_horse') {
         texturePath = `textures/${version}/entity/horse/horse_zombie.png`
       }
