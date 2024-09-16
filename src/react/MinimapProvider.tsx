@@ -222,9 +222,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
     const rawChunk = await this.regions[`${regionX},${regionZ}`].read(chunkX - regionX * 32, chunkZ - regionZ * 32)
     const chunk = simplify(rawChunk as any)
-    console.log(`heightmaps ${chunkX}, ${chunkZ}:`, chunk.HeightMap)
-    this.chunksHeightmaps[`${chunkX * 16},${chunkZ * 16}`] = chunk.HeightMap
-    cb?.(chunk.HeigtMap)
+    console.log(`chunk ${chunkX}, ${chunkZ}:`, chunk)
+    console.log(`heightmap ${chunkX}, ${chunkZ}:`, chunk.Heightmaps)
+    this.chunksHeightmaps[`${chunkX * 16},${chunkZ * 16}`] = chunk.Heightmaps
+    cb?.(chunk.Heightmaps)
   }
 
   setWarp (warp: WorldWarp, remove?: boolean): void {
