@@ -23,10 +23,10 @@ export default (
   const warpsAndPartsCanvasRef = useRef<HTMLCanvasElement>(null)
   const warpsDrawerRef = useRef<MinimapDrawer | null>(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
-  const [position, setPosition] = useState({ x: 0, z: 0 })
+  const [position, setPosition] = useState({ x: 0, y: 0, z: 0 })
 
   const updateMap = () => {
-    setPosition({ x: adapter.playerPosition.x, z: adapter.playerPosition.z })
+    setPosition({ x: adapter.playerPosition.x, y: adapter.playerPosition.y, z: adapter.playerPosition.z })
     if (drawerRef.current) {
       if (!full.current && canvasTick.current % 3 === 0) {
         rotateMap()
@@ -142,7 +142,7 @@ export default (
             textShadow: '0.1em 0 black, 0 0.1em black, -0.1em 0 black, 0 -0.1em black, -0.1em -0.1em black, -0.1em 0.1em black, 0.1em -0.1em black, 0.1em 0.1em black'
           }}
         >
-          {position.x.toFixed(2)} {position.z.toFixed(2)}
+          {position.x.toFixed(2)} {position.y.toFixed(2)} {position.z.toFixed(2)}
         </div>
       </div> : null
 }
