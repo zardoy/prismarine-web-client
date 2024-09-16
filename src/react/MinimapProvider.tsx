@@ -270,7 +270,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const chunkX = Math.floor(x / 16) * 16
     const chunkZ = Math.floor(z / 16) * 16
     if (this.chunksHeightmaps[`${chunkX},${chunkZ}`]) {
-      return this.chunksHeightmaps[`${chunkX},${chunkZ}`][x + z - chunkX - chunkZ]
+      return this.chunksHeightmaps[`${chunkX},${chunkZ}`][x - chunkX + (z - chunkZ) * 16]
     }
     const source = chunk ?? bot.world
     const { height, minY } = (bot.game as any)
