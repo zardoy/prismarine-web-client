@@ -25,6 +25,22 @@ const getBlockKey = (x: number, z: number) => {
   return `${x},${z}`
 }
 
+const findHeightMap = (obj: any): any => {
+  function search (obj: any): any | undefined {
+    for (const key in obj) {
+      if (typeof obj[key] === 'object' && obj[key] !== null) {
+        const result = search(obj[key])
+        if (result !== undefined) {
+          return result
+        }
+      } else if (['heightmap', 'heightmaps'].includes(key.toLowerCase())) {
+        return obj[key]
+      }
+    }
+  }
+  return search(obj)
+}
+
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
   yaw: number
@@ -223,9 +239,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const rawChunk = await this.regions[`${regionX},${regionZ}`].read(chunkX - regionX * 32, chunkZ - regionZ * 32)
     const chunk = simplify(rawChunk as any)
     console.log(`chunk ${chunkX}, ${chunkZ}:`, chunk)
-    console.log(`heightmap ${chunkX}, ${chunkZ}:`, chunk.Heightmaps)
-    this.chunksHeightmaps[`${chunkX * 16},${chunkZ * 16}`] = chunk.Heightmaps
-    cb?.(chunk.Heightmaps)
+    const heightmap = findHeightMap(chunk)
+    console.log(`heightmap ${chunkX}, ${chunkZ}:`, heightmap)
+    this.chunksHeightmaps[`${chunkX * 16},${chunkZ * 16}`] = heightmap
+    cb?.(heightmap)
   }
 
   setWarp (warp: WorldWarp, remove?: boolean): void {
