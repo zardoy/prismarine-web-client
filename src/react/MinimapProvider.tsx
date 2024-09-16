@@ -329,7 +329,13 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 }
 
-const Inner = ({ displayMode }: { displayMode?: DisplayMode }) => {
+const Inner = (
+  { displayMode, toggleFullMap }:
+  {
+    displayMode?: DisplayMode,
+    toggleFullMap?: ({ command }: { command?: string }) => void
+  }
+) => {
   const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position))
 
   const updateWarps = (newWarps: WorldWarp[] | Error) => {
@@ -365,9 +371,7 @@ const Inner = ({ displayMode }: { displayMode?: DisplayMode }) => {
       showFullmap='always'
       singleplayer={miscUiState.singleplayer}
       fullMap={displayMode === 'fullmapOnly'}
-      toggleFullMap={() => {
-        hideModal()
-      }}
+      toggleFullMap={toggleFullMap}
       displayMode={displayMode}
     />
   </div>
@@ -417,17 +421,18 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
     console.log('Done!', chunks)
   }
 
-  useEffect(() => {
-    if (displayMode !== 'fullmapOnly') return
-    const toggleFullMap = ({ command }: { command?: string }) => {
-      if (command === 'ui.toggleMap') {
-        if (activeModalStack.at(-1)?.reactType === 'full-map') {
-          hideModal({ reactType: 'full-map' })
-        } else {
-          showModal({ reactType: 'full-map' })
-        }
+  const toggleFullMap = ({ command }: { command?: string }) => {
+    if (command === 'ui.toggleMap') {
+      if (activeModalStack.at(-1)?.reactType === 'full-map') {
+        hideModal({ reactType: 'full-map' })
+      } else {
+        showModal({ reactType: 'full-map' })
       }
     }
+  }
+
+  useEffect(() => {
+    if (displayMode !== 'fullmapOnly') return
     contro?.on('trigger', toggleFullMap)
     return () => {
       contro?.off('trigger', toggleFullMap)
@@ -442,5 +447,5 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
     return null
   }
 
-  return <Inner displayMode={displayMode} />
+  return <Inner displayMode={displayMode} toggleFullMap={toggleFullMap} />
 }
