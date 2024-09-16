@@ -28,13 +28,13 @@ const getBlockKey = (x: number, z: number) => {
 const findHeightMap = (obj: any): any => {
   function search (obj: any): any | undefined {
     for (const key in obj) {
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
+      if (['heightmap', 'heightmaps'].includes(key.toLowerCase())) {
+        return obj[key]
+      } else if (typeof obj[key] === 'object' && obj[key] !== null) {
         const result = search(obj[key])
         if (result !== undefined) {
           return result
         }
-      } else if (['heightmap', 'heightmaps'].includes(key.toLowerCase())) {
-        return obj[key]
       }
     }
   }
