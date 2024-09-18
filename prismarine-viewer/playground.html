@@ -29,8 +29,14 @@
           src: url(../../../assets/mojangles.ttf);
       }
     </style>
+    <script>
+      if (window.location.pathname.endsWith('playground')) {
+        // add trailing slash
+        window.location.href = `${window.location.origin}${window.location.pathname}/${window.location.search}`
+      }
+    </script>
   </head>
   <body>
-    <script type="text/javascript" src="playground.js"></script>
+    <div id="root"></div>
   </body>
 </html>
