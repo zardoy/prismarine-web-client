@@ -30,7 +30,7 @@ export default (
   const updateMap = () => {
     setPosition({ x: adapter.playerPosition.x, y: adapter.playerPosition.y, z: adapter.playerPosition.z })
     if (drawerRef.current) {
-      if (!full.current && canvasTick.current % 3 === 0) {
+      if (!full.current) {
         rotateMap()
         drawerRef.current.clearRect()
         void drawerRef.current.updateWorldColors(adapter.getHighestBlockColor, adapter.playerPosition.x, adapter.playerPosition.z, false)
@@ -48,7 +48,7 @@ export default (
       }
     }
     if (warpsDrawerRef.current) {
-      if (!full.current && canvasTick.current % 3 === 0) {
+      if (!full.current) {
         rotateMap()
         warpsDrawerRef.current.clearRect()
         warpsDrawerRef.current.drawPartsOfWorld()
@@ -56,6 +56,7 @@ export default (
       }
     }
     if (playerPosDrawerRef.current && !full.current) {
+      playerPosDrawerRef.current.clearRect()
       playerPosDrawerRef.current.drawPlayerPos(null as any, null as any, true)
     }
     canvasTick.current += 1
@@ -92,7 +93,6 @@ export default (
     } else if (playerPosCanvasRef.current && playerPosDrawerRef.current) {
       playerPosDrawerRef.current.canvas = playerPosCanvasRef.current
     }
-
   }, [playerPosCanvasRef.current])
 
   useEffect(() => {
