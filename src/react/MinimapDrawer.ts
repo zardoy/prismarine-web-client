@@ -283,14 +283,14 @@ export class MinimapDrawer {
     this.ctx.shadowOffsetY = 0
   }
 
-  drawPlayerPos (centerX?: number, centerZ?: number) {
+  drawPlayerPos (centerX?: number, centerZ?: number, disableTurn?: boolean) {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 
     const x = (this.adapter.playerPosition.x - (centerX ?? this.adapter.playerPosition.x)) * this.mapPixel
     const z = (this.adapter.playerPosition.z - (centerZ ?? this.adapter.playerPosition.z)) * this.mapPixel
     const center = this.mapSize / 2 * this.mapPixel + (this.full ? 0 : this.radius * 0.1)
     this.ctx.translate(center + x, center + z)
-    this.ctx.rotate(-this.adapter.yaw)
+    if (!disableTurn) this.ctx.rotate(-this.adapter.yaw)
 
     const size = 3
     const factor = this.full ? 2 : 1

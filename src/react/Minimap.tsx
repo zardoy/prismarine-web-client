@@ -21,8 +21,10 @@ export default (
   const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const warpsAndPartsCanvasRef = useRef<HTMLCanvasElement>(null)
+  const playerPosCanvasRef = useRef<HTMLCanvasElement>(null)
   const warpsDrawerRef = useRef<MinimapDrawer | null>(null)
   const drawerRef = useRef<MinimapDrawer | null>(null)
+  const playerPosDrawerRef = useRef<MinimapDrawer | null>(null)
   const [position, setPosition] = useState({ x: 0, y: 0, z: 0 })
 
   const updateMap = () => {
@@ -51,8 +53,10 @@ export default (
         warpsDrawerRef.current.clearRect()
         warpsDrawerRef.current.drawPartsOfWorld()
         warpsDrawerRef.current.drawWarps()
-        warpsDrawerRef.current.drawPlayerPos()
       }
+    }
+    if (playerPosDrawerRef.current && !full.current) {
+      playerPosDrawerRef.current.drawPlayerPos(null as any, null as any, true)
     }
     canvasTick.current += 1
   }
@@ -81,6 +85,15 @@ export default (
       warpsDrawerRef.current.canvas = warpsAndPartsCanvasRef.current
     }
   }, [warpsAndPartsCanvasRef.current])
+
+  useEffect(() => {
+    if (playerPosCanvasRef.current && !playerPosDrawerRef.current) {
+      playerPosDrawerRef.current = new MinimapDrawer(playerPosCanvasRef.current, adapter)
+    } else if (playerPosCanvasRef.current && playerPosDrawerRef.current) {
+      playerPosDrawerRef.current.canvas = playerPosCanvasRef.current
+    }
+
+  }, [playerPosCanvasRef.current])
 
   useEffect(() => {
     adapter.on('updateMap', updateMap)
@@ -135,6 +148,17 @@ export default (
           width={80}
           height={80}
           ref={warpsAndPartsCanvasRef}
+        />
+        <canvas
+          style={{
+            transition: '0.5s',
+            transitionTimingFunction: 'ease-out',
+            position: 'absolute',
+            left: '0px'
+          }}
+          width={80}
+          height={80}
+          ref={playerPosCanvasRef}
         />
         <div
           style={{
