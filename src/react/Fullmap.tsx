@@ -455,9 +455,7 @@ const WarpInfo = (
             if (!e.target) return
             setWarp(prev => { return { ...prev, color: e.target.value } })
           }}
-          rootStyles={{
-            width: /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream ? '20px' : '200px',
-          }}
+          rootStyles={{ width: '20px', }}
         />
       </div>
       <div style={fieldCont} >
