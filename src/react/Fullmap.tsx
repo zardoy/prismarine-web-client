@@ -455,7 +455,8 @@ const WarpInfo = (
             if (!e.target) return
             setWarp(prev => { return { ...prev, color: e.target.value } })
           }}
-          rootStyles={{ width: '20px', }}
+          rootStyles={{ width: '30px', }}
+          style={{ left: '0px' }}
         />
       </div>
       <div style={fieldCont} >
