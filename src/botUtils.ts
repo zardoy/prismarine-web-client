@@ -2,6 +2,7 @@
 
 import { fromFormattedString, TextComponent } from '@xmcl/text-component'
 import type { IndexedData } from 'minecraft-data'
+import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 
 export type MessageFormatPart = Pick<TextComponent, 'hoverEvent' | 'clickEvent'> & {
   text: string
@@ -119,4 +120,23 @@ const blockToItemRemaps = {
 export const getItemFromBlock = (block: import('prismarine-block').Block) => {
   const item = global.loadedData.itemsByName[blockToItemRemaps[block.name] ?? block.name]
   return item
+}
+
+export const displayClientChat = (text: string) => {
+  const message = {
+    text
+  }
+  if (versionToNumber(bot.version) >= versionToNumber('1.19')) {
+    bot._client.emit('systemChat', {
+      formattedMessage: JSON.stringify(message),
+      position: 0,
+      sender: 'minecraft:chat'
+    })
+    return
+  }
+  bot._client.write('chat', {
+    message: JSON.stringify(message),
+    position: 0,
+    sender: 'minecraft:chat'
+  })
 }
