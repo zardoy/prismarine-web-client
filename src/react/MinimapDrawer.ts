@@ -23,7 +23,7 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   loadChunk: (chunkX: number, chunkZ: number) => Promise<void>
 }
 
-type ChunkInfo = {
+export type ChunkInfo = {
   heightmap: Uint8Array,
   colors: string[],
 }
@@ -36,13 +36,13 @@ export class MinimapDrawer {
   ctx: CanvasRenderingContext2D
   _canvas: HTMLCanvasElement
   worldColors: { [key: string]: string } = {}
-  chunksStore: { [key: string]: undefined | null | 'requested' | ChunkInfo }
-  chunksInView: Set<string>
+  chunksStore: { [key: string]: undefined | null | 'requested' | ChunkInfo } = {}
+  chunksInView: Set<string> = new Set()
   lastBotPos: Vec3
   lastWarpPos: Vec3
   mapPixel: number
   updatingPixels: Set<string>
-  _full: boolean = false
+  _full = false
 
   constructor (
     canvas: HTMLCanvasElement,
@@ -89,20 +89,13 @@ export class MinimapDrawer {
     this.draw(this.lastBotPos)
   }
 
-  draw (
-    botPos: Vec3,
-  ) {
-    // this.ctx.clearRect(
-    //   this.canvasWidthCenterX - this.canvas.width,
-    //   this.canvasWidthCenterY - this.canvas.height,
-    //   this.canvas.width,
-    //   this.canvas.height
-    // )
+  draw ( botPos: Vec3,) {
+    this.ctx.clearRect( 0, 0, this.canvas.width, this.canvas.height)
 
     this.lastBotPos = botPos
     this.updateChunksInView()
     for (const key of this.chunksInView) {
-      const [chunkX, chunkZ] = key.split(',').map(x => Number(x))
+      const [chunkX, chunkZ] = key.split(',').map(Number)
       if (this.chunksStore[key] === undefined) {
         this.adapter.loadChunk(chunkX, chunkZ)
         this.chunksStore[key] = 'requested'
@@ -122,17 +115,19 @@ export class MinimapDrawer {
     const bottomViewBorder = Math.floor((worldCenterZ + this.mapSize) / 16)
 
     this.chunksInView.clear()
-    for (let i=topViewBorder; i <= bottomViewBorder; i+=1) {
-      for (let j=leftViewBorder; j<=rightViewBorder; j+=1) {
+    for (let i = topViewBorder; i <= bottomViewBorder; i += 1) {
+      for (let j = leftViewBorder; j <= rightViewBorder; j += 1) {
         this.chunksInView.add(`${i},${j}`)
       }
     }
   }
 
   drawChunk (key: string) {
-    const [chunkX, chunkZ] = key.split(',').map(x => Number(x))
-    const chunkCanvasX = (chunkX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX
-    const chunkCanvasY = (chunkZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY
+    const [chunkX, chunkZ] = key.split(',').map(Number)
+    const chunkWorldX = chunkX * 16
+    const chunkWorldZ = chunkZ * 16
+    const chunkCanvasX = (chunkWorldX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX
+    const chunkCanvasY = (chunkWorldZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY
     if (typeof this.chunksStore[key] !== 'object') {
       const chunkSize = this.mapPixel * 16
       this.ctx.fillStyle = this.chunksStore[key] === 'requested' ? 'rgb(200, 200, 200)' : 'rgba(0, 0, 0, 0.5)'
@@ -142,7 +137,7 @@ export class MinimapDrawer {
     for (let row = 0; row < 16; row += 1) {
       for (let col = 0; col < 16; col += 1) {
         const index = row * 16 + col
-        const color = `rgb(${this.chunksStore[key]!.colors[index]}, ${this.chunksStore[key]!.colors[index + 1]}, ${this.chunksStore[key]!.colors[index + 2]})`
+        const color = this.chunksStore[key]?.colors[index] ?? 'rgb(255, 0, 0)'
         const pixelX = chunkCanvasX + this.mapPixel * col
         const pixelY = chunkCanvasY + this.mapPixel * row
         this.drawPixel(pixelX, pixelY, color)

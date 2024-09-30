@@ -412,7 +412,7 @@ export function getSectionGeometry(sx, sy, sz, world: World) {
     // todo this can be removed here
     signs: {},
     // isFull: true,
-    highestBlocks: {}, // todo migrate to map for 2% boost perf
+    highestBlocks: new Map<string, { pos: Vec3 } & Block>([]), 
     hadErrors: false
   }
 
@@ -422,9 +422,9 @@ export function getSectionGeometry(sx, sy, sz, world: World) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         const block = world.getBlock(cursor)!
         if (!INVISIBLE_BLOCKS.has(block.name)) {
-          const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
+          const highest = attr.highestBlocks.get(`${cursor.x},${cursor.z}`)
           if (!highest || highest.pos.y < cursor.y) {
-            attr.highestBlocks[`${cursor.x},${cursor.z}`] = { pos: cursor.clone(), ...block }
+            attr.highestBlocks.set(`${cursor.x},${cursor.z}`, { pos: cursor.clone(), ...block })
           }
         }
         if (INVISIBLE_BLOCKS.has(block.name)) continue

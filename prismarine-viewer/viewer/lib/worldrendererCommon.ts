@@ -60,7 +60,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     dirty (pos: Vec3, value: boolean): void
     update (/* pos: Vec3, value: boolean */): void
     textureDownloaded (): void
-    chunkFinished (chunkX: number, chunkZ: number)
+    chunkFinished (key: string): void
   }>
   customTexturesDataUrl = undefined as string | undefined
   @worldCleanup()
@@ -127,8 +127,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         this.handleWorkerMessage(data)
         if (data.type === 'geometry') {
           const geometry = data.geometry as MesherGeometryOutput
-          for (const key in geometry.highestBlocks) {
-            const highest = geometry.highestBlocks[key]
+          for (const [key, highest] of geometry.highestBlocks.entries()) {
             if (!this.highestBlocks[key] || this.highestBlocks[key].pos.y < highest.pos.y) {
               this.highestBlocks[key] = highest
             }
@@ -147,7 +146,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
               return x === chunkCoords[0] && z === chunkCoords[2]
             })) {
               this.finishedChunks[`${chunkCoords[0]},${chunkCoords[2]}`] = true
-              this.renderUpdateEmitter.emit('chunkFinished', chunkCoords[0] / 16, chunkCoords[2] / 16)
+              this.renderUpdateEmitter.emit(`chunkFinished`, `${chunkCoords[0] / 16},${chunkCoords[2] / 16}`)
             }
           }
           if (this.sectionsOutstanding.size === 0) {

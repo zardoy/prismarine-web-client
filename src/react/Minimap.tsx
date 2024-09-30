@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
-import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
+import { MinimapDrawer, DrawerAdapter, ChunkInfo } from './MinimapDrawer'
 import Fullmap from './Fullmap'
 
 
@@ -32,8 +32,7 @@ export default (
     if (drawerRef.current) {
       if (!full.current) {
         rotateMap()
-        drawerRef.current.clearRect()
-        void drawerRef.current.updateWorldColors(adapter.getHighestBlockColor, adapter.playerPosition.x, adapter.playerPosition.z, false)
+        drawerRef.current.draw(adapter.playerPosition)
       }
       if (canvasTick.current % 300 === 0) {
         if ('requestIdleCallback' in window) {
@@ -71,12 +70,19 @@ export default (
     warpsDrawerRef.current.canvas.style.transform = `rotate(${adapter.yaw}rad)`
   }
 
+  const updateChunkOnMap = (key: string, chunk: ChunkInfo) => {
+    console.log('updateChunkOnMap', key, chunk)
+    drawerRef.current!.chunksStore[key] = chunk
+  }
+
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
       drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
+      drawerRef.current.adapter.on('chunkReady', updateChunkOnMap)
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
     }
+
   }, [canvasRef.current])
 
   useEffect(() => {
@@ -104,6 +110,12 @@ export default (
       adapter.off('updateWaprs', updateWarps)
     }
   }, [adapter])
+
+  useEffect(() => {
+    return () => {
+      if (drawerRef.current) drawerRef.current.adapter.off('chunkReady', updateChunkOnMap)
+    }
+  }, [])
 
   return fullMap && displayMode !== 'minimapOnly' && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
     ? <Fullmap

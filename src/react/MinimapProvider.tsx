@@ -60,24 +60,33 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     super()
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = gameAdditionalState.warps
-    if (localServer) {
-      this.overwriteWarps(localServer.warps)
-      this.on('cellReady', (key: string) => {
-        if (this.loadingChunksQueue.size === 0) return
-        const [x, z] = this.loadingChunksQueue.values().next().value.split(',').map(Number)
-        this.loadChunk(x, z)
-        this.loadingChunksQueue.delete(`${x},${z}`)
-      })
-    } else {
-      const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp ?? ''}`)
-      this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
-    }
+    // if (localServer) {
+    //   this.overwriteWarps(localServer.warps)
+    //   this.on('cellReady', (key: string) => {
+    //     if (this.loadingChunksQueue.size === 0) return
+    //     const [x, z] = this.loadingChunksQueue.values().next().value.split(',').map(Number)
+    //     this.loadChunk(x, z)
+    //     this.loadingChunksQueue.delete(`${x},${z}`)
+    //   })
+    // } else {
+    //   const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp ?? ''}`)
+    //   this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
+    // }
     this.isOldVersion = versionToNumber(bot.version) < versionToNumber('1.13')
     this.blockData = {}
     for (const blockKey of Object.keys(BlockData.colors)) {
       const renamedKey = getRenamedData('blocks', blockKey, '1.20.2', bot.version)
       this.blockData[renamedKey as string] = BlockData.colors[blockKey]
     }
+
+    viewer.world?.renderUpdateEmitter.on('chunkFinished', (key) => {
+      console.log('[chunkFinished] finished', key)
+      if (!this.loadingChunksQueue.has(key)) return
+      const [chunkX, chunkZ] = key.split(',').map(Number)
+      void this.loadChunk(chunkX, chunkZ)
+      console.log('[chunkFinished] loading chunk', key)
+      this.loadingChunksQueue.delete(key)
+    })
   }
 
   overwriteWarps (newWarps: WorldWarp[]) {
@@ -88,82 +97,83 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   async getHighestBlockColor (x: number, z: number, full?: boolean) {
-    const chunkX = Math.floor(x / 16) * 16
-    const chunkZ = Math.floor(z / 16) * 16
-    const emptyColor = 'rgb(200, 200, 200)'
-    if (localServer && full) {
-      const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
-      if (chunk === undefined) {
-        if (this.loadingChunksCount > 19) {
-          this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
-          return emptyColor
-        }
-        this.chunksStore[`${chunkX},${chunkZ}`] = null
-        this.loadingChunksCount += 1
-        console.log('[minimap] loading:', chunkX, chunkZ)
-        this.loadChunk(chunkX, chunkZ)
-        return emptyColor
-      }
-      return this.getHighestBlockColorLocalServer(x, z)
-    }
-    if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return emptyColor
-    const block = viewer.world.highestBlocks[`${x},${z}`]
-    const blockData = bot.world.getBlock(new Vec3(x, block?.y ?? 0, z))
-    const color = block && blockData ? (this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${blockData.type}:${blockData.metadata}`]?.replaceAll(/\[.*?]/g, '')] : this.blockData[block.name]) ?? 'rgb(211, 211, 211)' : emptyColor
-    if (!block) return color
-
-    // shadows
-    const upKey = `${x},${z - 1}`
-    const blockUp = viewer.world.highestBlocks[upKey] && viewer.world.highestBlocks[upKey].y > block.y
-      ? viewer.world.highestBlocks[upKey]
-      : null
-    const rightKey = `${x + 1},${z}`
-    const blockRight = viewer.world.highestBlocks[rightKey] && viewer.world.highestBlocks[rightKey].y > block.y
-      ? viewer.world.highestBlocks[rightKey]
-      : null
-    const rightUpKey = `${x + 1},${z - 1}`
-    const blockRightUp = viewer.world.highestBlocks[rightUpKey] && viewer.world.highestBlocks[rightUpKey].y > block.y
-      ? viewer.world.highestBlocks[rightUpKey]
-      : null
-    if ((blockUp && !INVISIBLE_BLOCKS.has(blockUp.name))
-      || (blockRight && !INVISIBLE_BLOCKS.has(blockRight.name))
-      || (blockRightUp && !INVISIBLE_BLOCKS.has(blockRightUp.name))
-    ) {
-      let rgbArray = color.match(/\d+/g).map(Number)
-      if (rgbArray.length !== 3) return color
-      rgbArray = rgbArray.map(element => {
-        let newColor = element - 20
-        if (newColor < 0) newColor = 0
-        return newColor
-      })
-      return `rgb(${rgbArray.join(',')})`
-    }
-    const downKey = `${x},${z + 1}`
-    const blockDown = viewer.world.highestBlocks[downKey] && viewer.world.highestBlocks[downKey].y > block.y
-      ? viewer.world.highestBlocks[downKey]
-      : null
-    const leftKey = `${x - 1},${z}`
-    const blockLeft = viewer.world.highestBlocks[leftKey] && viewer.world.highestBlocks[leftKey].y > block.y
-      ? viewer.world.highestBlocks[leftKey]
-      : null
-    const leftDownKey = `${x - 1},${z + 1}`
-    const blockLeftDown = viewer.world.highestBlocks[leftDownKey] && viewer.world.highestBlocks[leftDownKey].y > block.y
-      ? viewer.world.highestBlocks[leftDownKey]
-      : null
-    if ((blockDown && !INVISIBLE_BLOCKS.has(blockDown.name))
-      || (blockLeft && !INVISIBLE_BLOCKS.has(blockLeft.name))
-      || (blockLeftDown && !INVISIBLE_BLOCKS.has(blockLeftDown.name))
-    ) {
-      let rgbArray = color.match(/\d+/g).map(Number)
-      if (rgbArray.length !== 3) return color
-      rgbArray = rgbArray.map(element => {
-        let newColor = element + 20
-        if (newColor > 255) newColor = 255
-        return newColor
-      })
-      return `rgb(${rgbArray.join(',')})`
-    }
-    return color
+    // const chunkX = Math.floor(x / 16) * 16
+    // const chunkZ = Math.floor(z / 16) * 16
+    // const emptyColor = 'rgb(200, 200, 200)'
+    // if (localServer && full) {
+    //   const chunk = this.chunksStore[`${chunkX},${chunkZ}`]
+    //   if (chunk === undefined) {
+    //     if (this.loadingChunksCount > 19) {
+    //       this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
+    //       return emptyColor
+    //     }
+    //     this.chunksStore[`${chunkX},${chunkZ}`] = null
+    //     this.loadingChunksCount += 1
+    //     console.log('[minimap] loading:', chunkX, chunkZ)
+    //     this.loadChunk(chunkX, chunkZ)
+    //     return emptyColor
+    //   }
+    //   return this.getHighestBlockColorLocalServer(x, z)
+    // }
+    // if (!viewer.world.finishedChunks[`${chunkX},${chunkZ}`]) return emptyColor
+    // const block = viewer.world.highestBlocks[`${x},${z}`]
+    // const blockData = bot.world.getBlock(new Vec3(x, block?.y ?? 0, z))
+    // const color = block && blockData ? (this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${blockData.type}:${blockData.metadata}`]?.replaceAll(/\[.*?]/g, '')] : this.blockData[block.name]) ?? 'rgb(211, 211, 211)' : emptyColor
+    // if (!block) return color
+    //
+    // // shadows
+    // const upKey = `${x},${z - 1}`
+    // const blockUp = viewer.world.highestBlocks[upKey] && viewer.world.highestBlocks[upKey].y > block.y
+    //   ? viewer.world.highestBlocks[upKey]
+    //   : null
+    // const rightKey = `${x + 1},${z}`
+    // const blockRight = viewer.world.highestBlocks[rightKey] && viewer.world.highestBlocks[rightKey].y > block.y
+    //   ? viewer.world.highestBlocks[rightKey]
+    //   : null
+    // const rightUpKey = `${x + 1},${z - 1}`
+    // const blockRightUp = viewer.world.highestBlocks[rightUpKey] && viewer.world.highestBlocks[rightUpKey].y > block.y
+    //   ? viewer.world.highestBlocks[rightUpKey]
+    //   : null
+    // if ((blockUp && !INVISIBLE_BLOCKS.has(blockUp.name))
+    //   || (blockRight && !INVISIBLE_BLOCKS.has(blockRight.name))
+    //   || (blockRightUp && !INVISIBLE_BLOCKS.has(blockRightUp.name))
+    // ) {
+    //   let rgbArray = color.match(/\d+/g).map(Number)
+    //   if (rgbArray.length !== 3) return color
+    //   rgbArray = rgbArray.map(element => {
+    //     let newColor = element - 20
+    //     if (newColor < 0) newColor = 0
+    //     return newColor
+    //   })
+    //   return `rgb(${rgbArray.join(',')})`
+    // }
+    // const downKey = `${x},${z + 1}`
+    // const blockDown = viewer.world.highestBlocks[downKey] && viewer.world.highestBlocks[downKey].y > block.y
+    //   ? viewer.world.highestBlocks[downKey]
+    //   : null
+    // const leftKey = `${x - 1},${z}`
+    // const blockLeft = viewer.world.highestBlocks[leftKey] && viewer.world.highestBlocks[leftKey].y > block.y
+    //   ? viewer.world.highestBlocks[leftKey]
+    //   : null
+    // const leftDownKey = `${x - 1},${z + 1}`
+    // const blockLeftDown = viewer.world.highestBlocks[leftDownKey] && viewer.world.highestBlocks[leftDownKey].y > block.y
+    //   ? viewer.world.highestBlocks[leftDownKey]
+    //   : null
+    // if ((blockDown && !INVISIBLE_BLOCKS.has(blockDown.name))
+    //   || (blockLeft && !INVISIBLE_BLOCKS.has(blockLeft.name))
+    //   || (blockLeftDown && !INVISIBLE_BLOCKS.has(blockLeftDown.name))
+    // ) {
+    //   let rgbArray = color.match(/\d+/g).map(Number)
+    //   if (rgbArray.length !== 3) return color
+    //   rgbArray = rgbArray.map(element => {
+    //     let newColor = element + 20
+    //     if (newColor > 255) newColor = 255
+    //     return newColor
+    //   })
+    //   return `rgb(${rgbArray.join(',')})`
+    // }
+    // return color
+    return ''
   }
 
   async getHighestBlockColorLocalServer (x: number, z: number) {
@@ -289,34 +299,42 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return chunk
   }
 
-  async loadChunk (chunkX: number, chunkZ: number) {
+  async loadChunk (chunkX: number, chunkZ: number, full?: boolean) {
     // void this.getChunkHeightMapFromRegion(chunkX / 16, chunkZ / 16)
     const chunkWorldX = chunkX * 16
     const chunkWorldZ = chunkZ * 16
-    if (localServer) {
+    if (!full) {
       if (viewer.world.finishedChunks[`${chunkWorldX},${chunkWorldZ}`]) {
         const heightmap = new Uint8Array(256)
-        const colors = [] as string[]
-        for (let z=0; z<16; z+=1) {
-          for (let x=0; x<16 ; x+=1) {
+        const colors = Array.from({ length: 256 }).fill('') as string[]
+        for (let z = 0; z < 16; z += 1) {
+          for (let x = 0; x < 16; x += 1) {
             const block = viewer.world.highestBlocks[`${chunkWorldX + x},${chunkWorldZ + z}`]
+            if (!block) {
+              console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
+              return
+            }
             const index = z * 16 + x
             heightmap[index] = block.pos.y
-            const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 255, 0)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)' 
-            colors.push(color)
+            const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
+            colors[index] = color
           }
         }
-        const chunk = {  }
+        const chunk = { heightmap, colors }
+        this.emit(`chunkReady`, `${chunkX},${chunkZ}`, chunk)
+      } else {
+        console.log('[loadChunk] chunk qeued', chunkX, chunkZ)
+        this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
       }
     }
-    this.getChunkSingleplayer(chunkX, chunkZ).then(
-      (res) => {
-        this.chunksStore[`${chunkX},${chunkZ}`] = res
-        this.emit(`cellReady`, `${chunkX},${chunkZ}`)
-        this.loadingChunksCount -= 1
-        console.log('[minimap] loaded:', chunkX, chunkZ, res)
-      }
-    ).catch((err) => { console.warn('[minimap] failed to get chunk:', chunkX, chunkZ) })
+    // this.getChunkSingleplayer(chunkX, chunkZ).then(
+    //   (res) => {
+    //     this.chunksStore[`${chunkX},${chunkZ}`] = res
+    //     this.emit(`cellReady`, `${chunkX},${chunkZ}`)
+    //     this.loadingChunksCount -= 1
+    //     console.log('[minimap] loaded:', chunkX, chunkZ, res)
+    //   }
+    // ).catch((err) => { console.warn('[minimap] failed to get chunk:', chunkX, chunkZ) })
   }
 
   clearChunksStore (x: number, z: number) {
