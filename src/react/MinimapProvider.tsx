@@ -1,4 +1,3 @@
-import fs from 'fs'
 import { useEffect, useState } from 'react'
 import { versions } from 'minecraft-data'
 import { simplify } from 'prismarine-nbt'
@@ -78,7 +77,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     for (const blockKey of Object.keys(BlockData.colors)) {
       const renamedKey = getRenamedData('blocks', blockKey, '1.20.2', bot.version)
       this.blockData[renamedKey as string] = BlockData.colors[blockKey]
-
     }
   }
 
@@ -291,8 +289,27 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return chunk
   }
 
-  loadChunk (chunkX: number, chunkZ: number) {
-    void this.getChunkHeightMapFromRegion(chunkX / 16, chunkZ / 16)
+  async loadChunk (chunkX: number, chunkZ: number) {
+    // void this.getChunkHeightMapFromRegion(chunkX / 16, chunkZ / 16)
+    const chunkWorldX = chunkX * 16
+    const chunkWorldZ = chunkZ * 16
+    if (localServer) {
+      if (viewer.world.finishedChunks[`${chunkWorldX},${chunkWorldZ}`]) {
+        const heightmap = new Uint8Array(256)
+        const colors = [] as string[]
+        for (let z=0; z<16; z+=1) {
+          for (let x=0; x<16 ; x+=1) {
+            const block = viewer.world.highestBlocks[`${chunkWorldX + x},${chunkWorldZ + z}`]
+            const index = z * 16 + x
+            heightmap[index] = block.y
+            const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 255, 0)' : this.blockData[block.name]) ?? 'rgb(0, 255, 0)' 
+            colors.push(color)
+          }
+
+        }
+        const chunk = {  }
+      }
+    }
     this.getChunkSingleplayer(chunkX, chunkZ).then(
       (res) => {
         this.chunksStore[`${chunkX},${chunkZ}`] = res
