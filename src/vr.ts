@@ -12,8 +12,27 @@ export async function initVR () {
   if (!isSupported) return
 
   // VR
-  document.body.appendChild(VRButton.createButton(renderer))
-  renderer.xr.enabled = true
+  const vrButton = VRButton.createButton(renderer)
+  document.body.appendChild(vrButton)
+
+  const closeButton = document.createElement('button')
+  closeButton.textContent = 'X'
+  closeButton.style.position = 'absolute'
+  closeButton.style.bottom = '20px'
+  closeButton.style.left = 'calc(50% + 60px)'
+  closeButton.style.padding = '4px 8px'
+  closeButton.style.background = 'rgba(255, 0, 0, 0.7)'
+  closeButton.style.color = 'white'
+  closeButton.style.border = 'none'
+  closeButton.style.borderRadius = '4px'
+  closeButton.style.cursor = 'pointer'
+  closeButton.style.zIndex = '1000'
+
+  closeButton.addEventListener('click', () => {
+    vrButton.remove()
+    closeButton.remove()
+  })
+  document.body.appendChild(closeButton)
 
   // hack for vr camera
   const user = new THREE.Group()
