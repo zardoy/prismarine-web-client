@@ -3,6 +3,8 @@
   "defaultHost": "<from-proxy>",
   "defaultProxy": "proxy.mcraft.fun",
   "mapsProvider": "https://maps.mcraft.fun/",
+  "peerJsServer": "",
+  "peerJsServerFallback": "https://p2p.mcraft.fun",
   "promoteServers": [
     {
       "ip": "kaboom.pw",
