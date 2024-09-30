@@ -1,4 +1,6 @@
 import { BlockType } from '../../../examples/shared'
+import { World, WorldBlock } from './world'
+import { Vec3 } from 'vec3'
 
 export const defaultMesherConfig = {
   version: '',
@@ -30,6 +32,6 @@ export type MesherGeometryOutput = {
   tiles: Record<string, BlockType>,
   signs: Record<string, any>,
   // isFull: boolean
-  highestBlocks: Record<string, { y: number, name: string }>
+  highestBlocks: Record<string, { pos: Vec3 } & WorldBlock>
   hadErrors: boolean
 }

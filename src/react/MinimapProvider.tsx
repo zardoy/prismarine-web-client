@@ -301,11 +301,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
           for (let x=0; x<16 ; x+=1) {
             const block = viewer.world.highestBlocks[`${chunkWorldX + x},${chunkWorldZ + z}`]
             const index = z * 16 + x
-            heightmap[index] = block.y
-            const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 255, 0)' : this.blockData[block.name]) ?? 'rgb(0, 255, 0)' 
+            heightmap[index] = block.pos.y
+            const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 255, 0)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)' 
             colors.push(color)
           }
-
         }
         const chunk = {  }
       }

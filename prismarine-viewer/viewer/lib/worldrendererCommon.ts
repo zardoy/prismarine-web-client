@@ -17,6 +17,7 @@ import { buildCleanupDecorator } from './cleanupDecorator'
 import { MesherGeometryOutput, defaultMesherConfig } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
+import { WorldBlock } from './mesher/world'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -79,7 +80,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
-  highestBlocks: Record<string, { y: number, name: string }> = {}
+  highestBlocks: Record<string, { pos: Vec3 } & WorldBlock> = {}
   blockstatesModels: any
   customBlockStates: Record<string, any> | undefined
   customModels: Record<string, any> | undefined
@@ -128,7 +129,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           const geometry = data.geometry as MesherGeometryOutput
           for (const key in geometry.highestBlocks) {
             const highest = geometry.highestBlocks[key]
-            if (!this.highestBlocks[key] || this.highestBlocks[key].y < highest.y) {
+            if (!this.highestBlocks[key] || this.highestBlocks[key].pos.y < highest.pos.y) {
               this.highestBlocks[key] = highest
             }
           }
