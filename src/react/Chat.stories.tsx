@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { useEffect, useState } from 'react'
-import { formatMessage } from '../botUtils'
+import { formatMessage } from '../chatUtils'
 import Chat, { fadeMessage, chatInputValueGlobal } from './Chat'
 import Button from './Button'
 

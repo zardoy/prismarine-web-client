@@ -5,7 +5,7 @@ import { EventEmitter } from 'events'
 import { generateSpiralMatrix, ViewRect } from 'flying-squid/dist/utils'
 import { Vec3 } from 'vec3'
 import { BotEvents } from 'mineflayer'
-import { getItemFromBlock } from '../../../src/botUtils'
+import { getItemFromBlock } from '../../../src/chatUtils'
 import { chunkPos } from './simpleUtils'
 
 export type ChunkPosKey = string
