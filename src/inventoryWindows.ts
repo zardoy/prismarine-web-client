@@ -11,12 +11,13 @@ import PItem, { Item } from 'prismarine-item'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import { getRenamedData } from 'flying-squid/dist/blockRenames'
+import PrismarineChatLoader from 'prismarine-chat'
 import Generic95 from '../assets/generic_95.png'
 import { appReplacableResources } from './generated/resources'
 import { activeModalStack, hideCurrentModal, hideModal, miscUiState, showModal } from './globalState'
 import { options } from './optionsStorage'
 import { assertDefined, inGameError } from './utils'
-import { MessageFormatPart } from './botUtils'
+import { displayClientChat, MessageFormatPart } from './botUtils'
 import { currentScaling } from './scaleInterface'
 import { getItemDescription } from './itemsDescriptions'
 
@@ -59,11 +60,7 @@ export const onGameLoad = (onLoad) => {
       openWindow('ChestWin')
     } else {
       // todo format
-      bot._client.emit('chat', {
-        message: JSON.stringify({
-          text: `[client error] cannot open unimplemented window ${win.id} (${win.type}). Slots: ${win.slots.map(item => getItemName(item)).filter(Boolean).join(', ')}`
-        })
-      })
+      displayClientChat(`[client error] cannot open unimplemented window ${win.id} (${win.type}). Slots: ${win.slots.map(item => getItemName(item)).filter(Boolean).join(', ')}`)
       bot.currentWindow?.['close']()
     }
   })
@@ -288,6 +285,7 @@ const implementedContainersGuiMap = {
   'minecraft:furnace': 'FurnaceWin',
   'minecraft:smoker': 'FurnaceWin',
   'minecraft:crafting': 'CraftingWin',
+  'minecraft:crafting3x3': 'CraftingWin', // todo different result slot
   'minecraft:anvil': 'AnvilWin',
   // enchant
   'minecraft:enchanting_table': 'EnchantingWin',
@@ -365,7 +363,18 @@ const openWindow = (type: string | undefined) => {
   cleanLoadedImagesCache()
   const inv = openItemsCanvas(type)
   inv.canvasManager.children[0].mobileHelpers = miscUiState.currentTouch
-  inv.canvasManager.children[0].customTitleText = bot.currentWindow?.title ? fromFormattedString(bot.currentWindow.title).text : undefined
+  const title = bot.currentWindow?.title
+  const PrismarineChat = PrismarineChatLoader(bot.version)
+  try {
+    inv.canvasManager.children[0].customTitleText = title ?
+      typeof title === 'string' ?
+        fromFormattedString(title).text :
+        new PrismarineChat(title).toString() :
+      undefined
+  } catch (err) {
+    reportError?.(err)
+    inv.canvasManager.children[0].customTitleText = undefined
+  }
   // todo
   inv.canvasManager.setScale(currentScaling.scale === 1 ? 1.5 : currentScaling.scale)
   inv.canvas.style.zIndex = '10'

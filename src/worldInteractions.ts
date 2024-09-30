@@ -22,6 +22,7 @@ import { assertDefined } from './utils'
 import { options } from './optionsStorage'
 import { itemBeingUsed } from './react/Crosshair'
 import { isCypress } from './standaloneUtils'
+import { displayClientChat } from './botUtils'
 
 function getViewDirection (pitch, yaw) {
   const csPitch = Math.cos(pitch)
@@ -48,7 +49,7 @@ class WorldInteraction {
   breakTextures: THREE.Texture[]
   lastDigged: number
   lineMaterial: LineMaterial
-  debugStatus: string
+  debugDigStatus: string
 
   oneTimeInit () {
     const loader = new THREE.TextureLoader()
@@ -129,11 +130,11 @@ class WorldInteraction {
       // TODO: If the tool and enchantments immediately exceed the hardness times 30, the block breaks with no delay; SO WE NEED TO CHECK THAT
       // TODO: Any blocks with a breaking time of 0.05
       this.lastDigged = Date.now()
-      this.debugStatus = 'done'
+      this.debugDigStatus = 'done'
     })
     bot.on('diggingAborted', (block) => {
       if (!this.cursorBlock?.position.equals(block.position)) return
-      this.debugStatus = 'aborted'
+      this.debugDigStatus = 'aborted'
       // if (this.lastDugBlock)
       this.breakStartTime = undefined
       if (this.buttons[0]) {
@@ -263,11 +264,7 @@ class WorldInteraction {
               hideCurrentModal()
             }
             // if (e.message === 'bot is not sleeping') return
-            bot._client.emit('chat', {
-              message: JSON.stringify({
-                text: e.message,
-              })
-            })
+            displayClientChat(e.message)
           })
           setTimeout(() => {
             cancelSleep = false
@@ -326,7 +323,8 @@ class WorldInteraction {
     // We stopped breaking
     if ((!this.buttons[0] && this.lastButtons[0])) {
       this.lastDugBlock = null
-      this.debugStatus = 'cancelled'
+      this.breakStartTime = undefined
+      this.debugDigStatus = 'cancelled'
     }
 
     const onGround = bot.entity.onGround || bot.game.gameMode === 'creative'
@@ -340,7 +338,7 @@ class WorldInteraction {
         && (!this.lastButtons[0] || ((cursorChanged || (this.lastDugBlock && !this.lastDugBlock.equals(cursorBlock!.position))) && Date.now() - (this.lastDigged ?? 0) > 300) || onGround !== this.prevOnGround)
         && onGround) {
         this.lastDugBlock = null
-        this.debugStatus = 'breaking'
+        this.debugDigStatus = 'breaking'
         this.currentDigTime = bot.digTime(cursorBlockDiggable)
         this.breakStartTime = performance.now()
         const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]

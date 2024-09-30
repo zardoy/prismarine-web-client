@@ -25,8 +25,8 @@
     "watch-mesher": "pnpm build-mesher -w",
     "run-playground": "run-p watch-mesher watch-other-workers watch-playground",
     "run-all": "run-p start run-playground",
-    "build-playground": "rsbuild build --root ./prismarine-viewer",
-    "watch-playground": "rsbuild dev --root ./prismarine-viewer"
+    "build-playground": "rsbuild build --config prismarine-viewer/rsbuild.config.ts",
+    "watch-playground": "rsbuild dev --config prismarine-viewer/rsbuild.config.ts"
   },
   "keywords": [
     "prismarine",
@@ -45,7 +45,7 @@
     "@floating-ui/react": "^0.26.1",
     "@mui/base": "5.0.0-beta.40",
     "@nxg-org/mineflayer-auto-jump": "^0.7.12",
-    "@nxg-org/mineflayer-tracker": "^1.2.3",
+    "@nxg-org/mineflayer-tracker": "1.2.1",
     "@react-oauth/google": "^0.12.1",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/gapi": "^0.0.47",

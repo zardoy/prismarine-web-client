@@ -86,6 +86,7 @@ const appConfig = defineConfig({
                     fsExtra.copySync('./node_modules/mc-assets/dist/other-textures/latest/entity', './dist/textures/entity')
                     fsExtra.copySync('./assets/background', './dist/background')
                     fs.copyFileSync('./assets/favicon.png', './dist/favicon.png')
+                    fs.copyFileSync('./assets/playground.html', './dist/playground.html')
                     fs.copyFileSync('./assets/manifest.json', './dist/manifest.json')
                     fs.copyFileSync('./assets/loading-bg.jpg', './dist/loading-bg.jpg')
                     const configJson = JSON.parse(fs.readFileSync('./config.json', 'utf8'))
