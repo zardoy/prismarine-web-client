@@ -37,7 +37,7 @@ export class MinimapDrawer {
   _canvas: HTMLCanvasElement
   worldColors: { [key: string]: string } = {}
   chunksStore: { [key: string]: undefined | null | 'requested' | ChunkInfo } = {}
-  chunksInView: Set<string> = new Set()
+  chunksInView = new Set<string>()
   lastBotPos: Vec3
   lastWarpPos: Vec3
   mapPixel: number
@@ -89,15 +89,15 @@ export class MinimapDrawer {
     this.draw(this.lastBotPos)
   }
 
-  draw ( botPos: Vec3,) {
-    this.ctx.clearRect( 0, 0, this.canvas.width, this.canvas.height)
+  draw (botPos: Vec3,) {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
 
     this.lastBotPos = botPos
     this.updateChunksInView()
     for (const key of this.chunksInView) {
-      const [chunkX, chunkZ] = key.split(',').map(Number)
       if (this.chunksStore[key] === undefined) {
-        this.adapter.loadChunk(chunkX, chunkZ)
+        const [chunkX, chunkZ] = key.split(',').map(Number)
+        void this.adapter.loadChunk(chunkX, chunkZ)
         this.chunksStore[key] = 'requested'
       }
       this.drawChunk(key)
@@ -109,15 +109,16 @@ export class MinimapDrawer {
     const worldCenterX = viewX ?? this.lastBotPos.x
     const worldCenterZ = viewZ ?? this.lastBotPos.z
 
-    const leftViewBorder = Math.floor((worldCenterX - this.mapSize) / 16)
-    const rightViewBorder = Math.floor((worldCenterX + this.mapSize) / 16)
-    const topViewBorder = Math.floor((worldCenterZ - this.mapSize) / 16)
-    const bottomViewBorder = Math.floor((worldCenterZ + this.mapSize) / 16)
+    const radius = this.mapSize / 2
+    const leftViewBorder = Math.floor((worldCenterX - radius) / 16)
+    const rightViewBorder = Math.ceil((worldCenterX + radius) / 16)
+    const topViewBorder = Math.floor((worldCenterZ - radius) / 16)
+    const bottomViewBorder = Math.ceil((worldCenterZ + radius) / 16)
 
     this.chunksInView.clear()
     for (let i = topViewBorder; i <= bottomViewBorder; i += 1) {
       for (let j = leftViewBorder; j <= rightViewBorder; j += 1) {
-        this.chunksInView.add(`${i},${j}`)
+        this.chunksInView.add(`${j},${i}`)
       }
     }
   }
@@ -126,8 +127,8 @@ export class MinimapDrawer {
     const [chunkX, chunkZ] = key.split(',').map(Number)
     const chunkWorldX = chunkX * 16
     const chunkWorldZ = chunkZ * 16
-    const chunkCanvasX = (chunkWorldX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX
-    const chunkCanvasY = (chunkWorldZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY
+    const chunkCanvasX = Math.floor((chunkWorldX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX)
+    const chunkCanvasY = Math.floor((chunkWorldZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY)
     if (typeof this.chunksStore[key] !== 'object') {
       const chunkSize = this.mapPixel * 16
       this.ctx.fillStyle = this.chunksStore[key] === 'requested' ? 'rgb(200, 200, 200)' : 'rgba(0, 0, 0, 0.5)'
@@ -175,10 +176,10 @@ export class MinimapDrawer {
   }
 
   drawPixel (pixelX: number, pixelY: number, color: string) {
-    if (!this.full && Math.hypot(pixelX - this.canvasWidthCenterX, pixelY - this.canvasWidthCenterY) > this.radius) {
-      this.ctx.clearRect(pixelX, pixelY, this.mapPixel, this.mapPixel)
-      return
-    }
+    // if (!this.full && Math.hypot(pixelX - this.canvasWidthCenterX, pixelY - this.canvasWidthCenterY) > this.radius) {
+    //   this.ctx.clearRect(pixelX, pixelY, this.mapPixel, this.mapPixel)
+    //   return
+    // }
     this.ctx.fillStyle = color
     this.ctx.fillRect(
       pixelX,
