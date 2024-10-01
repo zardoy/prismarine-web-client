@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { noCase } from 'change-case'
 import { titleCase } from 'title-case'
+import * as THREE from 'three'
+import { VRButton } from 'three/examples/jsm/webxr/VRButton'
 import { loadedGameState, miscUiState, openOptionsMenu, showModal } from './globalState'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
@@ -14,6 +16,8 @@ import { completeTexturePackInstall, getResourcePackNames, resourcePackState, un
 import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay'
 import { showOptionsModal } from './react/SelectOption'
 
+export const renderer = new THREE.WebGLRenderer()
+document.body.appendChild(renderer.domElement)
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
@@ -368,15 +372,79 @@ export const guiOptionsScheme: {
     }
     // { ignoreSilentSwitch: {} },
   ],
+
   VR: [
     {
       custom () {
-        return <>
-          <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>VR currently has basic support</span>
-          <div />
-        </>
+        return (
+          <>
+            <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              VR currently has basic support
+            </span>
+            <div />
+          </>
+        )
       },
-    }
+    },
+    {
+      custom () {
+        const [vrEnabled, setVrEnabled] = useState(false)
+        const vrButtonRef = useRef<HTMLButtonElement | null>(null)
+        const closeButtonRef = useRef<HTMLButtonElement | null>(null)
+
+        return (
+          <Button
+            label={vrEnabled ? 'Disable VR' : 'Enable VR'}
+            onClick={() => {
+              setVrEnabled((prevVrEnabled) => {
+                const newVrEnabled = !prevVrEnabled
+                const renderer = viewer?.renderer
+                if (renderer && newVrEnabled) {
+                  const vrButton = VRButton.createButton(renderer) as HTMLButtonElement
+                  document.body.appendChild(vrButton)
+                  vrButtonRef.current = vrButton
+                  const closeButton = document.createElement('button')
+                  closeButton.textContent = 'X'
+                  closeButton.style.position = 'absolute'
+                  closeButton.style.bottom = '20px'
+                  closeButton.style.left = 'calc(50% + 60px)'
+                  closeButton.style.padding = '4px 8px'
+                  closeButton.style.background = 'rgba(255, 0, 0, 0.7)'
+                  closeButton.style.color = 'white'
+                  closeButton.style.border = 'none'
+                  closeButton.style.borderRadius = '4px'
+                  closeButton.style.cursor = 'pointer'
+                  closeButton.style.zIndex = '1000'
+                  closeButton.addEventListener('click', () => {
+                    if (vrButtonRef.current) {
+                      vrButtonRef.current.remove()
+                      vrButtonRef.current = null
+                    }
+                    if (closeButtonRef.current) {
+                      closeButtonRef.current.remove()
+                      closeButtonRef.current = null
+                    }
+                    setVrEnabled(false)
+                  })
+                  document.body.appendChild(closeButton)
+                  closeButtonRef.current = closeButton
+                } else {
+                  if (vrButtonRef.current) {
+                    vrButtonRef.current.remove()
+                    vrButtonRef.current = null
+                  }
+                  if (closeButtonRef.current) {
+                    closeButtonRef.current.remove()
+                    closeButtonRef.current = null
+                  }
+                }
+                return newVrEnabled
+              })
+            }}
+          />
+        )
+      },
+    },
   ],
   advanced: [
     {
