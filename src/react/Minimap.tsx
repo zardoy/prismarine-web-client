@@ -33,6 +33,8 @@ export default (
       if (!full.current) {
         rotateMap()
         drawerRef.current.draw(adapter.playerPosition)
+        drawerRef.current.drawPlayerPos(null as any, null as any, true)
+        drawerRef.current.drawWarps()
       }
       if (canvasTick.current % 300 === 0) {
         if ('requestIdleCallback' in window) {
@@ -45,18 +47,6 @@ export default (
         }
         canvasTick.current = 0
       }
-    }
-    if (warpsDrawerRef.current) {
-      if (!full.current) {
-        rotateMap()
-        warpsDrawerRef.current.clearRect()
-        warpsDrawerRef.current.drawPartsOfWorld()
-        warpsDrawerRef.current.drawWarps()
-      }
-    }
-    if (playerPosDrawerRef.current && !full.current) {
-      playerPosDrawerRef.current.clearRect()
-      playerPosDrawerRef.current.drawPlayerPos(null as any, null as any, true)
     }
     canvasTick.current += 1
   }
@@ -72,7 +62,7 @@ export default (
 
   const updateChunkOnMap = (key: string, chunk: ChunkInfo) => {
     console.log('updateChunkOnMap', key, chunk)
-    drawerRef.current!.chunksStore[key] = chunk
+    drawerRef.current!.chunksStore.set(key, chunk)
   }
 
   useEffect(() => {

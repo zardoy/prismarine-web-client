@@ -36,7 +36,7 @@ export class MinimapDrawer {
   ctx: CanvasRenderingContext2D
   _canvas: HTMLCanvasElement
   worldColors: { [key: string]: string } = {}
-  chunksStore: { [key: string]: undefined | null | 'requested' | ChunkInfo } = {}
+  chunksStore = new Map<string, undefined | null | 'requested' | ChunkInfo >()
   chunksInView = new Set<string>()
   lastBotPos: Vec3
   lastWarpPos: Vec3
@@ -95,10 +95,10 @@ export class MinimapDrawer {
     this.lastBotPos = botPos
     this.updateChunksInView()
     for (const key of this.chunksInView) {
-      if (this.chunksStore[key] === undefined) {
+      if (!this.chunksStore.has(key)) {
         const [chunkX, chunkZ] = key.split(',').map(Number)
         void this.adapter.loadChunk(chunkX, chunkZ)
-        this.chunksStore[key] = 'requested'
+        this.chunksStore.set(key, 'requested')
       }
       this.drawChunk(key)
     }
@@ -110,9 +110,9 @@ export class MinimapDrawer {
     const worldCenterZ = viewZ ?? this.lastBotPos.z
 
     const radius = this.mapSize / 2
-    const leftViewBorder = Math.floor((worldCenterX - radius) / 16)
+    const leftViewBorder = Math.floor((worldCenterX - radius) / 16) - 1
     const rightViewBorder = Math.ceil((worldCenterX + radius) / 16)
-    const topViewBorder = Math.floor((worldCenterZ - radius) / 16)
+    const topViewBorder = Math.floor((worldCenterZ - radius) / 16) - 1
     const bottomViewBorder = Math.ceil((worldCenterZ + radius) / 16)
 
     this.chunksInView.clear()
@@ -129,16 +129,17 @@ export class MinimapDrawer {
     const chunkWorldZ = chunkZ * 16
     const chunkCanvasX = Math.floor((chunkWorldX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX)
     const chunkCanvasY = Math.floor((chunkWorldZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY)
-    if (typeof this.chunksStore[key] !== 'object') {
+    const chunk = this.chunksStore.get(key)
+    if (typeof chunk !== 'object') {
       const chunkSize = this.mapPixel * 16
-      this.ctx.fillStyle = this.chunksStore[key] === 'requested' ? 'rgb(200, 200, 200)' : 'rgba(0, 0, 0, 0.5)'
+      this.ctx.fillStyle = chunk === 'requested' ? 'rgb(200, 200, 200)' : 'rgba(0, 0, 0, 0.5)'
       this.ctx.fillRect(chunkCanvasX, chunkCanvasY, chunkSize, chunkSize)
       return
     }
     for (let row = 0; row < 16; row += 1) {
       for (let col = 0; col < 16; col += 1) {
         const index = row * 16 + col
-        const color = this.chunksStore[key]?.colors[index] ?? 'rgb(255, 0, 0)'
+        const color = chunk?.colors[index] ?? 'rgb(255, 0, 0)'
         const pixelX = chunkCanvasX + this.mapPixel * col
         const pixelY = chunkCanvasY + this.mapPixel * row
         this.drawPixel(pixelX, pixelY, color)
