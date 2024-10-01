@@ -17,7 +17,7 @@ import { contro } from '../controls'
 import { gameAdditionalState, showModal, hideModal, miscUiState, loadedGameState, activeModalStack } from '../globalState'
 import { options } from '../optionsStorage'
 import Minimap, { DisplayMode } from './Minimap'
-import { DrawerAdapter, MapUpdates } from './MinimapDrawer'
+import { ChunkInfo, DrawerAdapter, MapUpdates } from './MinimapDrawer'
 import { useIsModalActive } from './utilsApp'
 
 const getBlockKey = (x: number, z: number) => {
@@ -321,6 +321,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
           }
         }
         const chunk = { heightmap, colors }
+        this.applyShadows(chunk)
         this.emit(`chunkReady`, `${chunkX},${chunkZ}`, chunk)
       } else {
         console.log('[loadChunk] chunk qeued', chunkX, chunkZ)
@@ -335,6 +336,85 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     //     console.log('[minimap] loaded:', chunkX, chunkZ, res)
     //   }
     // ).catch((err) => { console.warn('[minimap] failed to get chunk:', chunkX, chunkZ) })
+  }
+
+  applyShadows (chunk: ChunkInfo) {
+    for (let j = 0; j < 16; j += 1) {
+      for (let i = 0; i < 16; i += 1) {
+        const index = j * 16 + i
+        const color = chunk.colors[index]
+        // if (i === 0 || j === 0 || i === 15 || j === 16) {
+        //   const r = Math.floor(Math.random() * 2)
+        //   chunk.colors[index] = r===0 ? this.makeDarker(color) : this.makeLighter(color)
+        //   continue
+        // }
+
+        const h = chunk.heightmap[index]
+        let isLighterOrDarker = 0
+
+        const r = chunk.heightmap[index + 1] ?? 0
+        const u = chunk.heightmap[index - 16] ?? 0
+        const ur = chunk.heightmap[index - 15] ?? 0
+        if (r > h || u > h || ur > h) {
+          chunk.colors[index] = this.makeDarker(color)
+          isLighterOrDarker -= 1
+        }
+
+        const l = chunk.heightmap[index - 1] ?? 0
+        const d = chunk.heightmap[index + 16] ?? 0
+        const dl = chunk.heightmap[index + 15] ?? 0
+        if (l > h || d > h || dl > h) {
+          chunk.colors[index] = this.makeLighter(color)
+          isLighterOrDarker += 1
+        }
+
+        let linkedIndex: number | undefined
+        if (i === 1) {
+          linkedIndex = index - 1
+        } else if (i === 14) {
+          linkedIndex = index + 1
+        } else if (j === 1) {
+          linkedIndex = index - 16
+        } else if (j === 14) {
+          linkedIndex = index + 16
+        }
+        if (linkedIndex !== undefined) {
+          const linkedColor = chunk.colors[linkedIndex]
+          switch (isLighterOrDarker) {
+            case 1:
+              chunk.colors[linkedIndex] = this.makeLighter(linkedColor)
+              break
+            case -1:
+              chunk.colors[linkedIndex] = this.makeDarker(linkedColor)
+              break
+            default:
+              break
+          }
+        }
+      }
+    }
+  }
+
+  makeDarker (color: string) {
+    let rgbArray = color.match(/\d+/g)?.map(Number) ?? []
+    if (rgbArray.length !== 3) return color
+    rgbArray = rgbArray.map(element => {
+      let newColor = element - 20
+      if (newColor < 0) newColor = 0
+      return newColor
+    })
+    return `rgb(${rgbArray.join(',')})`
+  }
+
+  makeLighter (color: string) {
+    let rgbArray = color.match(/\d+/g)?.map(Number) ?? []
+    if (rgbArray.length !== 3) return color
+    rgbArray = rgbArray.map(element => {
+      let newColor = element + 20
+      if (newColor > 255) newColor = 255
+      return newColor
+    })
+    return `rgb(${rgbArray.join(',')})`
   }
 
   clearChunksStore (x: number, z: number) {
