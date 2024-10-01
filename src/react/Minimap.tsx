@@ -33,17 +33,16 @@ export default (
       if (!full.current) {
         rotateMap()
         drawerRef.current.draw(adapter.playerPosition)
-        drawerRef.current.drawPlayerPos(null as any, null as any, true)
+        drawerRef.current.drawPlayerPos()
         drawerRef.current.drawWarps()
       }
       if (canvasTick.current % 300 === 0) {
         if ('requestIdleCallback' in window) {
           requestIdleCallback(() => {
-            drawerRef.current?.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
-            adapter.clearChunksStore(position.x, position.z)
+            drawerRef.current?.clearChunksStore()
           })
         } else {
-          drawerRef.current.deleteOldWorldColors(adapter.playerPosition.x, adapter.playerPosition.z)
+          drawerRef.current.clearChunksStore()
         }
         canvasTick.current = 0
       }

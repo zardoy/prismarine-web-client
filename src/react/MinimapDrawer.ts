@@ -209,6 +209,15 @@ export class MinimapDrawer {
     }
   }
 
+  clearChunksStore () {
+    for (const key of this.chunksStore.keys()) {
+      const [x, z] = key.split(',').map(x => Number(x) * 16)
+      if (Math.hypot((this.lastBotPos.x - x), (this.lastBotPos.z - z)) > this.radius * 5) {
+        this.chunksStore.delete(key)
+      }
+    }
+  }
+
   setWarpPosOnClick (mousePos: Vec3) {
     this.lastWarpPos = new Vec3(mousePos.x, mousePos.y, mousePos.z)
   }
