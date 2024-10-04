@@ -53,15 +53,24 @@ export class MinimapDrawer {
     this.updatingPixels = new Set([] as string[])
   }
 
+  setMapPixel () {
+    if (this.full) {
+      this.radius = Math.floor(Math.min(this.canvas.width, this.canvas.height) / 2)
+      this._mapSize = 16
+    } else {
+      this.radius = Math.floor(Math.min(this.canvas.width, this.canvas.height) / 2.2)
+      this._mapSize = this.radius * 2
+    }
+    this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
+  }
+
   get full () {
     return this._full
   }
 
   set full (full: boolean) {
     this._full = full
-    this.radius = Math.floor(Math.min(this.canvas.width, this.canvas.height) / 2)
-    this._mapSize = 16
-    this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
+    this.setMapPixel()
   }
 
   get canvas () {
@@ -71,12 +80,10 @@ export class MinimapDrawer {
   set canvas (canvas: HTMLCanvasElement) {
     this.ctx = canvas.getContext('2d', { willReadFrequently: true })!
     this.ctx.imageSmoothingEnabled = false
-    this.radius = Math.floor(Math.min(canvas.width, canvas.height) / 2.2)
-    this._mapSize = this.radius * 2
-    this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
     this.canvasWidthCenterX = canvas.width / 2
     this.canvasWidthCenterY = canvas.height / 2
     this._canvas = canvas
+    this.setMapPixel()
   }
 
   get mapSize () {
@@ -188,11 +195,6 @@ export class MinimapDrawer {
       this.mapPixel,
       this.mapPixel
     )
-    if (this.full) {
-      // this.drawPlayerPos(x, z)
-      // const lastPixel = this.mapSize - 1
-      // if (col === lastPixel && row === lastPixel) this.drawWarps(new Vec3(x, 0, z), this.full)
-    }
   }
 
   getDistance (x1: number, z1: number, x2: number, z2: number): number {
@@ -224,16 +226,16 @@ export class MinimapDrawer {
 
   drawWarps (centerPos?: Vec3, full?: boolean) {
     for (const warp of this.adapter.warps) {
-      if (!full) {
-        const distance = this.getDistance(
-          centerPos?.x ?? this.adapter.playerPosition.x,
-          centerPos?.z ?? this.adapter.playerPosition.z,
-          warp.x,
-          warp.z
-        )
-        if (distance > this.mapSize) continue
-      }
-      const offset = full ? 0 : this.radius * 0.2
+      // if (!full) {
+      //   const distance = this.getDistance(
+      //     centerPos?.x ?? this.adapter.playerPosition.x,
+      //     centerPos?.z ?? this.adapter.playerPosition.z,
+      //     warp.x,
+      //     warp.z
+      //   )
+      //   if (distance > this.mapSize) continue
+      // }
+      const offset = this.full ? 0 : this.radius * 0.1
       const z = Math.floor(
         (this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z) * this.mapPixel
       ) + offset
@@ -245,19 +247,19 @@ export class MinimapDrawer {
       const circleDist = Math.hypot(dx, dz)
 
       const angle = Math.atan2(dz, dx)
-      const circleZ = circleDist > this.mapSize / 2 && !full ?
+      const circleZ = circleDist > this.mapSize / 2 && !this.full ?
         this.canvasWidthCenterX + this.mapSize / 2 * Math.sin(angle)
         : z
-      const circleX = circleDist > this.mapSize / 2 && !full ?
+      const circleX = circleDist > this.mapSize / 2 && !this.full ?
         this.canvasWidthCenterY + this.mapSize / 2 * Math.cos(angle)
         : x
       this.ctx.beginPath()
       this.ctx.arc(
         circleX,
         circleZ,
-        circleDist > this.mapSize / 2 && !full
+        circleDist > this.mapSize / 2 && !this.full
           ? this.mapPixel * 1.5
-          : full ? this.mapPixel : this.mapPixel * 2,
+          : this.full ? this.mapPixel : this.mapPixel * 2,
         0,
         Math.PI * 2,
         false
@@ -332,11 +334,11 @@ export class MinimapDrawer {
     this.ctx.shadowOffsetY = 0
   }
 
-  drawPlayerPos (canvasWidthCenterX?: number, centerZ?: number, disableTurn?: boolean) {
+  drawPlayerPos (canvasWorldCenterX?: number, canvasWorldCenterZ?: number, disableTurn?: boolean) {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-    const x = (this.adapter.playerPosition.x - (canvasWidthCenterX ?? this.adapter.playerPosition.x)) * this.mapPixel
-    const z = (this.adapter.playerPosition.z - (centerZ ?? this.adapter.playerPosition.z)) * this.mapPixel
+    const x = (this.adapter.playerPosition.x - (canvasWorldCenterX ?? this.adapter.playerPosition.x)) * this.mapPixel
+    const z = (this.adapter.playerPosition.z - (canvasWorldCenterZ ?? this.adapter.playerPosition.z)) * this.mapPixel
     const center = this.mapSize / 2 * this.mapPixel + (this.full ? 0 : this.radius * 0.1)
     this.ctx.translate(center + x, center + z)
     if (!disableTurn) this.ctx.rotate(-this.adapter.yaw)

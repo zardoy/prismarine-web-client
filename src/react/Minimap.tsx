@@ -60,7 +60,6 @@ export default (
   }
 
   const updateChunkOnMap = (key: string, chunk: ChunkInfo) => {
-    console.log('updateChunkOnMap', key, chunk)
     drawerRef.current!.chunksStore.set(key, chunk)
   }
 

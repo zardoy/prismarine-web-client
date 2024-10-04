@@ -80,11 +80,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
 
     viewer.world?.renderUpdateEmitter.on('chunkFinished', (key) => {
-      console.log('[chunkFinished] finished', key)
       if (!this.loadingChunksQueue.has(key)) return
       const [chunkX, chunkZ] = key.split(',').map(Number)
       void this.loadChunk(chunkX, chunkZ)
-      console.log('[chunkFinished] loading chunk', key)
       this.loadingChunksQueue.delete(key)
     })
   }
@@ -324,7 +322,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         this.applyShadows(chunk)
         this.emit(`chunkReady`, `${chunkX},${chunkZ}`, chunk)
       } else {
-        console.log('[loadChunk] chunk qeued', chunkX, chunkZ)
         this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
       }
     }

@@ -2,7 +2,7 @@ import { Vec3 } from 'vec3'
 import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
-import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
+import { MinimapDrawer, DrawerAdapter, ChunkInfo } from './MinimapDrawer'
 import Button from './Button'
 import Input from './Input'
 import './Fullmap.css'
@@ -46,7 +46,6 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
     }
     setGrid(newGrid)
   }
-
 
   useEffect(() => {
     updateGrid()
@@ -201,7 +200,7 @@ const MapChunk = (
   }
 
   const handleClick = (e: MouseEvent | TouchEvent) => {
-    console.log('click:', e)
+    // console.log('click:', e)
     if (!drawerRef.current) return
     let clientX: number
     let clientY: number
@@ -238,18 +237,19 @@ const MapChunk = (
     setWarpPreview?.(
       warp ? { name: warp.name, x: warp.x, z: warp.z, clientX: e.clientX, clientY: e.clientY } : undefined
     )
-    console.log('pos:', x, z)
   }
 
-  const handleRedraw = (key?: string) => {
-    if (key !== `${worldX},${worldZ}`) return
+  const handleRedraw = (key?: string, chunk?: ChunkInfo) => {
+    if (key !== `${worldX / 16},${worldZ / 16}`) return
     console.log('handle redraw:', key)
+    if (chunk) {
+      drawerRef.current?.chunksStore.set(key, chunk)
+    }
     const timeout = setTimeout(() => {
-      drawerRef.current?.draw(
-        new Vec3(worldX + 8, 0, worldZ + 8),
-        undefined,
-        true
-      )
+      const center = new Vec3(worldX + 8, 0, worldZ + 8)
+      drawerRef.current?.draw(center)
+      drawerRef.current?.drawWarps(center)
+      drawerRef.current?.drawPlayerPos(center.x, center.z)
       clearTimeout(timeout)
     }, 100)
   }
@@ -257,15 +257,11 @@ const MapChunk = (
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
       drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
-      drawerRef.current.draw(new Vec3(worldX + 8, 0, worldZ + 8), undefined, true)
+      drawerRef.current.full = true
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
-      drawerRef.current.draw(
-        new Vec3(worldX + 8, 0, worldZ + 8),
-        undefined,
-        true
-      )
     }
+    handleRedraw(`${worldX / 16},${worldZ / 16}`)
   }, [canvasRef.current])
 
   useEffect(() => {
@@ -293,18 +289,16 @@ const MapChunk = (
       for (const entry of entries) {
         if (entry.isIntersecting) {
           setIsCanvas(true)
-        } else {
-          delete adapter.chunksStore[`${worldX},${worldZ}`]
         }
       }
     })
     intersectionObserver.observe(containerRef.current!)
 
-    adapter.on('cellReady', handleRedraw)
+    adapter.on('chunkReady', handleRedraw)
 
     return () => {
       intersectionObserver.disconnect()
-      adapter.off('cellReady', handleRedraw)
+      adapter.off('chunkReady', handleRedraw)
     }
   }, [])
 
@@ -362,19 +356,19 @@ const WarpInfo = (
     gap: '5px'
   }
 
-  const updateRegion = () => {
+  const updateChunk = () => {
     for (let i = -1; i < 2; i += 1) {
       for (let j = -1; j < 2; j += 1) {
         adapter.emit(
-          'cellReady',
-          `${(Math.floor(warp.x / 16) + j) * 16},${(Math.floor(warp.z / 16) + i) * 16}`
+          'chunkReady',
+          `${Math.floor(warp.x / 16) + j},${Math.floor(warp.z / 16) + i}`
         )
       }
     }
   }
 
   const tpNow = () => {
-    adapter.off('cellReady', tpNow)
+    adapter.off('updateChunk', tpNow)
   }
 
   const quickTp = () => {
@@ -488,7 +482,7 @@ const WarpInfo = (
             adapter.setWarp({ ...warp })
             console.log(adapter.warps)
             setIsWarpInfoOpened(false)
-            updateRegion()
+            updateChunk()
             afterWarpIsSet?.()
           }}
           type='submit'
@@ -499,7 +493,7 @@ const WarpInfo = (
             if (index !== -1) {
               adapter.setWarp({ name: warp.name, x: 0, y: 0, z: 0, color: '', disabled: false, world: '' }, true)
               setIsWarpInfoOpened(false)
-              updateRegion()
+              updateChunk()
               afterWarpIsSet?.()
             }
           }}

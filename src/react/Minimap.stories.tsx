@@ -59,6 +59,8 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
   }
 
   clearChunksStore (x: number, z: number) { }
+
+  async loadChunk (chunkX: number, chunkZ: number) {}
 }
 
 const adapter = new DrawerAdapterImpl()
