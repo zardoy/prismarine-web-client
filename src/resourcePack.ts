@@ -264,7 +264,8 @@ const prepareBlockstatesAndModels = async () => {
 
 const downloadAndUseResourcePack = async (url: string): Promise<void> => {
   console.log('downloadAndUseResourcePack', url)
-  const resourcePackData = await fetch(url).then(response => response.arrayBuffer())
+  const response = await fetch(url)
+  const resourcePackData = await response.arrayBuffer()
   installTexturePack(resourcePackData)
 }
 
