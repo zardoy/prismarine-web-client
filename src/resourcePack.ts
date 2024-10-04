@@ -262,14 +262,16 @@ const prepareBlockstatesAndModels = async () => {
   }
 }
 
-const downloadAndUseResourcePack = async (url) => {
+const downloadAndUseResourcePack = async (url : string) => {
   console.log('downloadAndUseResourcePack', url)
+  
+  installTexturePack(await fetch(url).then(response => response.arrayBuffer()))
 }
 
 export const onAppLoad = () => {
   customEvents.on('gameLoaded', () => {
     // todo also handle resourcePack
-    bot._client.on('resource_pack_send', async (packet) => {
+    bot._client.on('add_resource_pack' as any, async (packet) => {
       if (options.serverResourcePacks === 'never') return
       const promptMessage = 'promptMessage' in packet ? JSON.stringify(packet.promptMessage) : 'Do you want to use server resource pack?'
       // TODO!
