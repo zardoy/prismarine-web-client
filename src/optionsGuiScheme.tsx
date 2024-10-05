@@ -2,9 +2,6 @@ import { useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { noCase } from 'change-case'
-import { titleCase } from 'title-case'
-import * as THREE from 'three'
-import { VRButton } from 'three/examples/jsm/webxr/VRButton'
 import { loadedGameState, miscUiState, openOptionsMenu, showModal } from './globalState'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
@@ -15,9 +12,7 @@ import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
 import { completeTexturePackInstall, getResourcePackNames, resourcePackState, uninstallTexturePack } from './resourcePack'
 import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay'
 import { showOptionsModal } from './react/SelectOption'
-
-export const renderer = new THREE.WebGLRenderer()
-document.body.appendChild(renderer.domElement)
+import { disableVR, initVR } from './vr'
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
@@ -391,52 +386,19 @@ export const guiOptionsScheme: {
         const [vrEnabled, setVrEnabled] = useState(false)
         const vrButtonRef = useRef<HTMLButtonElement | null>(null)
         const closeButtonRef = useRef<HTMLButtonElement | null>(null)
-
         return (
           <Button
             label={vrEnabled ? 'Disable VR' : 'Enable VR'}
             onClick={() => {
               setVrEnabled((prevVrEnabled) => {
                 const newVrEnabled = !prevVrEnabled
-                const renderer = viewer?.renderer
-                if (renderer && newVrEnabled) {
-                  const vrButton = VRButton.createButton(renderer) as HTMLButtonElement
-                  document.body.appendChild(vrButton)
-                  vrButtonRef.current = vrButton
-                  const closeButton = document.createElement('button')
-                  closeButton.textContent = 'X'
-                  closeButton.style.position = 'absolute'
-                  closeButton.style.bottom = '20px'
-                  closeButton.style.left = 'calc(50% + 60px)'
-                  closeButton.style.padding = '4px 8px'
-                  closeButton.style.background = 'rgba(255, 0, 0, 0.7)'
-                  closeButton.style.color = 'white'
-                  closeButton.style.border = 'none'
-                  closeButton.style.borderRadius = '4px'
-                  closeButton.style.cursor = 'pointer'
-                  closeButton.style.zIndex = '1000'
-                  closeButton.addEventListener('click', () => {
-                    if (vrButtonRef.current) {
-                      vrButtonRef.current.remove()
-                      vrButtonRef.current = null
-                    }
-                    if (closeButtonRef.current) {
-                      closeButtonRef.current.remove()
-                      closeButtonRef.current = null
-                    }
-                    setVrEnabled(false)
+                if (newVrEnabled) {
+                  void initVR(viewer, setVrEnabled).then((refs) => {
+                    vrButtonRef.current = refs?.vrButton || null
+                    closeButtonRef.current = refs?.closeButton || null
                   })
-                  document.body.appendChild(closeButton)
-                  closeButtonRef.current = closeButton
                 } else {
-                  if (vrButtonRef.current) {
-                    vrButtonRef.current.remove()
-                    vrButtonRef.current = null
-                  }
-                  if (closeButtonRef.current) {
-                    closeButtonRef.current.remove()
-                    closeButtonRef.current = null
-                  }
+                  disableVR(vrButtonRef.current, closeButtonRef.current)
                 }
                 return newVrEnabled
               })
