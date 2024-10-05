@@ -101,6 +101,7 @@ import packetsPatcher from './packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
+import { useState } from 'react'
 
 window.debug = debug
 window.THREE = THREE
@@ -700,8 +701,8 @@ async function connect (connectOptions: ConnectOptions) {
 
     bot.on('physicsTick', () => updateCursor())
 
-
-    void initVR()
+    const [vrEnabled, setVrEnabled] = useState(false)
+    void initVR(viewer, setVrEnabled)
 
     renderWrapper.postRender = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
