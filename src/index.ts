@@ -701,8 +701,12 @@ async function connect (connectOptions: ConnectOptions) {
 
     bot.on('physicsTick', () => updateCursor())
 
-    const [vrEnabled, setVrEnabled] = useState(false)
-    void initVR(viewer, setVrEnabled)
+    //ghost func
+    const toggleVrEnabled = (isEnabled: boolean) => {
+      console.log(`VR mode is now ${isEnabled ? 'enabled' : 'disabled'}`)
+    }
+
+    void initVR(viewer, toggleVrEnabled)
 
     renderWrapper.postRender = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)

@@ -5,14 +5,15 @@ import { buttonMap as standardButtonsMap } from 'contro-max/build/gamepad'
 import * as THREE from 'three'
 import { activeModalStack, hideModal } from './globalState'
 
-export async function initVR (viewer: any, setVrEnabled: React.Dispatch<React.SetStateAction<boolean>>) {
+export async function initVR (viewer: any, toggleVrEnabled: (enabled: boolean) => void) {
   const { renderer } = viewer
   if (!('xr' in navigator)) return
-  const isSupported = await navigator.xr?.isSessionSupported('immersive-vr') && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState  if (!isSupported) return
+
+  const isSupported = await navigator.xr?.isSessionSupported('immersive-vr') && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState  if (!isSupported) return  if (!isSupported) return
 
   // VR Button
   const vrButton = VRButton.createButton(renderer) as HTMLButtonElement
-  const closeButton = createCloseButton(vrButton, setVrEnabled)
+  const closeButton = createCloseButton(vrButton, toggleVrEnabled)
 
   document.body.appendChild(vrButton)
   document.body.appendChild(closeButton)
@@ -21,19 +22,18 @@ export async function initVR (viewer: any, setVrEnabled: React.Dispatch<React.Se
 
   renderer.xr.addEventListener('sessionstart', () => {
     viewer.cameraObjectOverride = viewer.user
-    for (const _modal of activeModalStack) {
-      hideModal(undefined, {}, { force: true })
-    }
+    toggleVrEnabled(true)
   })
 
   renderer.xr.addEventListener('sessionend', () => {
     viewer.cameraObjectOverride = undefined
+    toggleVrEnabled(false)
   })
 
   return { vrButton, closeButton }
 }
 
-function createCloseButton (vrButton: HTMLButtonElement, setVrEnabled: React.Dispatch<React.SetStateAction<boolean>>): HTMLButtonElement {
+function createCloseButton (vrButton: HTMLButtonElement, toggleVrEnabled: (enabled: boolean) => void): HTMLButtonElement {
   const closeButton = document.createElement('button')
   closeButton.textContent = 'X'
   closeButton.style.position = 'absolute'
@@ -50,8 +50,9 @@ function createCloseButton (vrButton: HTMLButtonElement, setVrEnabled: React.Dis
   closeButton.addEventListener('click', () => {
     vrButton.remove()
     closeButton.remove()
-    setVrEnabled(false)
+    toggleVrEnabled(false)
   })
+
   return closeButton
 }
 
