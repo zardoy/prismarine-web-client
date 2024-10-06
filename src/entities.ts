@@ -75,10 +75,9 @@ customEvents.on('gameLoaded', () => {
       const isWalking = Math.abs(speed.x) > WALKING_SPEED || Math.abs(speed.z) > WALKING_SPEED
       const isSprinting = Math.abs(speed.x) > SPRINTING_SPEED || Math.abs(speed.z) > SPRINTING_SPEED
       const newAnimation = isWalking ? (isSprinting ? 'running' : 'walking') : 'idle'
-      const username = e.username!
-      if (newAnimation !== playerPerAnimation[username]) {
+      if (newAnimation !== playerPerAnimation[id]) {
         viewer.entities.playAnimation(e.id, newAnimation)
-        playerPerAnimation[username] = newAnimation
+        playerPerAnimation[id] = newAnimation
       }
     }
   })
@@ -122,7 +121,7 @@ customEvents.on('gameLoaded', () => {
   }
   viewer.entities.addListener('remove', (e) => {
     loadedSkinEntityIds.delete(e.id)
-    playerPerAnimation[e.username] = ''
+    playerPerAnimation[e.id] = ''
     bot.tracker.stopTrackingEntity(e, true)
   })
 

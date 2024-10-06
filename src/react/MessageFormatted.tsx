@@ -3,7 +3,7 @@ import { render } from '@xmcl/text-component'
 import { noCase } from 'change-case'
 import mojangson from 'mojangson'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
-import { MessageFormatPart } from '../botUtils'
+import { MessageFormatPart } from '../chatUtils'
 import { chatInputValueGlobal } from './Chat'
 import './MessageFormatted.css'
 

@@ -22,6 +22,7 @@ import { assertDefined } from './utils'
 import { options } from './optionsStorage'
 import { itemBeingUsed } from './react/Crosshair'
 import { isCypress } from './standaloneUtils'
+import { displayClientChat } from './botUtils'
 
 function getViewDirection (pitch, yaw) {
   const csPitch = Math.cos(pitch)
@@ -263,11 +264,7 @@ class WorldInteraction {
               hideCurrentModal()
             }
             // if (e.message === 'bot is not sleeping') return
-            bot._client.emit('chat', {
-              message: JSON.stringify({
-                text: e.message,
-              })
-            })
+            displayClientChat(e.message)
           })
           setTimeout(() => {
             cancelSleep = false

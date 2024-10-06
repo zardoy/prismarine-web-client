@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
-import { formatMessage } from '../botUtils'
+import { formatMessage } from '../chatUtils'
 import { getBuiltinCommandsList, tryHandleBuiltinCommand } from '../builtinCommands'
 import { hideCurrentModal, loadedGameState, miscUiState } from '../globalState'
 import { options } from '../optionsStorage'

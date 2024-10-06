@@ -151,7 +151,7 @@ export default () => {
   const isModalActive = useIsModalActive('pause-screen')
   const fsStateSnap = useSnapshot(fsState)
   const activeModalStackSnap = useSnapshot(activeModalStack)
-  const { singleplayer, wanOpened } = useSnapshot(miscUiState)
+  const { singleplayer, wanOpened, wanOpening } = useSnapshot(miscUiState)
 
   const handlePointerLockChange = () => {
     if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
@@ -188,7 +188,10 @@ export default () => {
       return
     }
     if (!wanOpened || !qr) {
-      await openToWanAndCopyJoinLink(() => { }, !qr)
+      await openToWanAndCopyJoinLink((err) => {
+        if (!miscUiState.wanOpening) return
+        alert(`Something went wrong: ${err}`)
+      }, !qr)
     }
     if (qr) {
       const joinLink = getJoinLink()
@@ -230,7 +233,7 @@ export default () => {
       {singleplayer ? (
         <div className={styles.row}>
           <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton()}>
-            {wanOpened ? 'Close Wan' : 'Copy Join Link'}
+            {wanOpening ? 'Opening, wait...' : wanOpened ? 'Close Wan' : 'Copy Join Link'}
           </Button>
           {(navigator.share as typeof navigator.share | undefined) ? (
             <Button
