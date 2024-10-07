@@ -55,9 +55,12 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   heightMap: Record<string, number> = {}
   regions: Record<string, RegionFile> = {}
   chunksHeightmaps: Record<string, any> = {}
+  loadChunk: (chunkX: number, chunkZ: number) => Promise<void>
+  _full: boolean
 
   constructor (pos?: Vec3) {
     super()
+    this.full = false
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = gameAdditionalState.warps
     // if (localServer) {
@@ -85,6 +88,20 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       void this.loadChunk(chunkX, chunkZ)
       this.loadingChunksQueue.delete(key)
     })
+  }
+
+  get full () {
+    return this._full
+  }
+
+  set full (full: boolean) {
+    if (full) {
+      this.loadChunk = this.loadChunkFullmap
+    } else {
+      console.log('this is minimap')
+      this.loadChunk = this.loadChunkMinimap
+    }
+    this._full = full
   }
 
   overwriteWarps (newWarps: WorldWarp[]) {
@@ -297,33 +314,31 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return chunk
   }
 
-  async loadChunk (chunkX: number, chunkZ: number, full?: boolean) {
+  async loadChunkMinimap (chunkX: number, chunkZ: number) {
     // void this.getChunkHeightMapFromRegion(chunkX / 16, chunkZ / 16)
     const chunkWorldX = chunkX * 16
     const chunkWorldZ = chunkZ * 16
-    if (!full) {
-      if (viewer.world.finishedChunks[`${chunkWorldX},${chunkWorldZ}`]) {
-        const heightmap = new Uint8Array(256)
-        const colors = Array.from({ length: 256 }).fill('') as string[]
-        for (let z = 0; z < 16; z += 1) {
-          for (let x = 0; x < 16; x += 1) {
-            const block = viewer.world.highestBlocks[`${chunkWorldX + x},${chunkWorldZ + z}`]
-            if (!block) {
-              console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
-              return
-            }
-            const index = z * 16 + x
-            heightmap[index] = block.pos.y
-            const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
-            colors[index] = color
+    if (viewer.world.finishedChunks[`${chunkWorldX},${chunkWorldZ}`]) {
+      const heightmap = new Uint8Array(256)
+      const colors = Array.from({ length: 256 }).fill('') as string[]
+      for (let z = 0; z < 16; z += 1) {
+        for (let x = 0; x < 16; x += 1) {
+          const block = viewer.world.highestBlocks[`${chunkWorldX + x},${chunkWorldZ + z}`]
+          if (!block) {
+            console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
+            return
           }
+          const index = z * 16 + x
+          heightmap[index] = block.pos.y
+          const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
+          colors[index] = color
         }
-        const chunk = { heightmap, colors }
-        this.applyShadows(chunk)
-        this.emit(`chunkReady`, `${chunkX},${chunkZ}`, chunk)
-      } else {
-        this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
       }
+      const chunk = { heightmap, colors }
+      this.applyShadows(chunk)
+      this.emit(`chunkReady`, `${chunkX},${chunkZ}`, chunk)
+    } else {
+      this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
     }
     // this.getChunkSingleplayer(chunkX, chunkZ).then(
     //   (res) => {
@@ -333,6 +348,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     //     console.log('[minimap] loaded:', chunkX, chunkZ, res)
     //   }
     // ).catch((err) => { console.warn('[minimap] failed to get chunk:', chunkX, chunkZ) })
+  }
+
+  async loadChunkFullmap (chunkX: number, chunkZ: number) {
+    console.log('this is fullmap')
   }
 
   applyShadows (chunk: ChunkInfo) {

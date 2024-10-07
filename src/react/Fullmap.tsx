@@ -48,6 +48,8 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
   }
 
   useEffect(() => {
+    adapter.full = true
+    console.log('[fullmap] set full property to true')
     updateGrid()
   }, [])
 
@@ -241,7 +243,7 @@ const MapChunk = (
 
   const handleRedraw = (key?: string, chunk?: ChunkInfo) => {
     if (key !== `${worldX / 16},${worldZ / 16}`) return
-    console.log('handle redraw:', key)
+    // console.log('handle redraw:', key)
     if (chunk) {
       drawerRef.current?.chunksStore.set(key, chunk)
     }

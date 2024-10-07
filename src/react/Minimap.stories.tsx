@@ -32,6 +32,7 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
   yaw: number
   warps: WorldWarp[]
   chunksStore: any = {}
+  full: boolean
 
   constructor (pos?: Vec3, warps?: WorldWarp[]) {
     super()

@@ -18,6 +18,7 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   warps: WorldWarp[]
   world?: string
   yaw: number
+  full: boolean
   setWarp: (warp: WorldWarp, remove?: boolean) => void
   quickTp?: (x: number, z: number) => void
   loadChunk: (chunkX: number, chunkZ: number) => Promise<void>
