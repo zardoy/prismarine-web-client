@@ -272,7 +272,7 @@ const downloadAndUseResourcePack = async (url: string): Promise<void> => {
 export const onAppLoad = () => {
   customEvents.on('gameLoaded', () => {
     // todo also handle resourcePack
-    bot._client.on('add_resource_pack' as any, async (packet) => {
+    const handleResourcePackRequest = async (packet) => {
       if (options.serverResourcePacks === 'never') return
       const promptMessage = 'promptMessage' in packet ? JSON.stringify(packet.promptMessage) : 'Do you want to use server resource pack?'
       // TODO!
@@ -286,7 +286,9 @@ export const onAppLoad = () => {
       if (!choice) return
       await downloadAndUseResourcePack(packet.url)
       bot.acceptResourcePack()
-    })
+    }
+    bot._client.on('resource_pack_send', handleResourcePackRequest)
+    bot._client.on('add_resource_pack' as any, handleResourcePackRequest)
   })
 
   subscribe(resourcePackState, () => {
