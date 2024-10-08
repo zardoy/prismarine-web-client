@@ -36,7 +36,7 @@ export default (
         drawerRef.current.drawPlayerPos()
         drawerRef.current.drawWarps()
       }
-      if (canvasTick.current % 300 === 0) {
+      if (canvasTick.current % 300 === 0 && !fullMap) {
         if ('requestIdleCallback' in window) {
           requestIdleCallback(() => {
             drawerRef.current?.clearChunksStore()
@@ -60,13 +60,13 @@ export default (
   }
 
   const updateChunkOnMap = (key: string, chunk: ChunkInfo) => {
-    drawerRef.current!.chunksStore.set(key, chunk)
+    drawerRef.current!.adapter.chunksStore.set(key, chunk)
   }
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
       drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
-      drawerRef.current.adapter.on('chunkReady', updateChunkOnMap)
+      // drawerRef.current.adapter.on('chunkReady', updateChunkOnMap)
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
     }
@@ -101,7 +101,7 @@ export default (
 
   useEffect(() => {
     return () => {
-      if (drawerRef.current) drawerRef.current.adapter.off('chunkReady', updateChunkOnMap)
+      // if (drawerRef.current) drawerRef.current.adapter.off('chunkReady', updateChunkOnMap)
     }
   }, [])
 

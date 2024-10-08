@@ -45,7 +45,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   yaw: number
   warps: WorldWarp[]
   world: string
-  chunksStore: Record<string, Chunk | null | 'unavailable'> = {}
+  chunksStore = new Map<string, undefined | null | 'requested' | ChunkInfo >() 
   loadingChunksCount = 0
   loadingChunksQueue = new Set<string>()
   currChunk: PCChunk | undefined
@@ -55,7 +55,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   heightMap: Record<string, number> = {}
   regions: Record<string, RegionFile> = {}
   chunksHeightmaps: Record<string, any> = {}
-  loadChunk: (chunkX: number, chunkZ: number) => Promise<void>
+  loadChunk: (key: string) => Promise<void>
   _full: boolean
 
   constructor (pos?: Vec3) {
@@ -84,8 +84,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
 
     viewer.world?.renderUpdateEmitter.on('chunkFinished', (key) => {
       if (!this.loadingChunksQueue.has(key)) return
-      const [chunkX, chunkZ] = key.split(',').map(Number)
-      void this.loadChunk(chunkX, chunkZ)
+      void this.loadChunk(key)
       this.loadingChunksQueue.delete(key)
     })
   }
@@ -308,14 +307,15 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
 
   async getChunkSingleplayer (chunkX: number, chunkZ: number) {
     // absolute coords
-    const region = (localServer!.overworld.storageProvider as any).getRegion(chunkX, chunkZ)
+    const region = (localServer!.overworld.storageProvider as any).getRegion(chunkX * 16, chunkZ * 16)
     if (!region) return 'unavailable'
-    const chunk = await localServer!.players[0]!.world.getColumn(chunkX / 16, chunkZ / 16)
+    const chunk = await localServer!.players[0]!.world.getColumn(chunkX, chunkZ)
     return chunk
   }
 
-  async loadChunkMinimap (chunkX: number, chunkZ: number) {
+  async loadChunkMinimap (key: string) {
     // void this.getChunkHeightMapFromRegion(chunkX / 16, chunkZ / 16)
+    const [chunkX, chunkZ] = key.split(',').map(Number)
     const chunkWorldX = chunkX * 16
     const chunkWorldZ = chunkZ * 16
     if (viewer.world.finishedChunks[`${chunkWorldX},${chunkWorldZ}`]) {
@@ -336,22 +336,48 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       }
       const chunk = { heightmap, colors }
       this.applyShadows(chunk)
-      this.emit(`chunkReady`, `${chunkX},${chunkZ}`, chunk)
+      this.chunksStore.set(key, chunk)
+      this.emit(`chunkReady`, `${chunkX},${chunkZ}`)
     } else {
       this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
+      this.chunksStore.set(key, 'requested')
     }
-    // this.getChunkSingleplayer(chunkX, chunkZ).then(
-    //   (res) => {
-    //     this.chunksStore[`${chunkX},${chunkZ}`] = res
-    //     this.emit(`cellReady`, `${chunkX},${chunkZ}`)
-    //     this.loadingChunksCount -= 1
-    //     console.log('[minimap] loaded:', chunkX, chunkZ, res)
-    //   }
-    // ).catch((err) => { console.warn('[minimap] failed to get chunk:', chunkX, chunkZ) })
   }
 
-  async loadChunkFullmap (chunkX: number, chunkZ: number) {
-    console.log('this is fullmap')
+  async loadChunkFullmap (key: string) {
+    // this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
+    this.chunksStore.set(key, 'requested')
+    const [chunkX, chunkZ] = key.split(',').map(Number)
+    const chunkWorldX = chunkX * 16
+    const chunkWorldZ = chunkZ * 16
+    const chunkInfo = await this.getChunkSingleplayer(chunkX, chunkZ)
+    if (chunkInfo === 'unavailable') {
+      this.chunksStore.set(key, null)
+      this.emit(`chunkReady`, key)
+      return
+    }
+    const heightmap = new Uint8Array(256)
+    const colors = Array.from({ length: 256 }).fill('') as string[]
+    for (let z = 0; z < 16; z += 1) {
+      for (let x = 0; x < 16; x += 1) {
+        const blockX = chunkWorldX + x
+        const blockZ = chunkWorldZ + z
+        const blockY = this.getHighestBlockY(blockX, blockZ, chunkInfo)
+        const block = chunkInfo.getBlock(new Vec3(blockX & 15, blockY, blockZ & 15))
+        if (!block) {
+          console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
+          return
+        }
+        const index = z * 16 + x
+        heightmap[index] = blockY
+        const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
+        colors[index] = color
+      }
+    }
+    const chunk = { heightmap, colors }
+    this.applyShadows(chunk)
+    this.chunksStore.set(key, chunk)
+    this.emit(`chunkReady`, key)
   }
 
   applyShadows (chunk: ChunkInfo) {

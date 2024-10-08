@@ -244,12 +244,17 @@ const MapChunk = (
   const handleRedraw = (key?: string, chunk?: ChunkInfo) => {
     if (key !== `${worldX / 16},${worldZ / 16}`) return
     // console.log('handle redraw:', key)
-    if (chunk) {
-      drawerRef.current?.chunksStore.set(key, chunk)
+    // if (chunk) {
+    //   drawerRef.current?.chunksStore.set(key, chunk)
+    // }
+    if (!adapter.chunksStore.has(key)) {
+      adapter.loadChunk(key)
+      return
     }
     const timeout = setTimeout(() => {
       const center = new Vec3(worldX + 8, 0, worldZ + 8)
-      drawerRef.current?.draw(center)
+      drawerRef.current!.lastBotPos = center
+      drawerRef.current?.drawChunk(key)
       drawerRef.current?.drawWarps(center)
       drawerRef.current?.drawPlayerPos(center.x, center.z)
       clearTimeout(timeout)

@@ -13,15 +13,16 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   getHighestBlockColor: (x: number, z: number, full?: boolean) => Promise<string>
   getHighestBlockY: (x: number, z: number, chunk?: Chunk) => number
   clearChunksStore: (x: number, z: number) => void
-  chunksStore: Record<string, Chunk | null | 'unavailable'>
+  chunksStore: Map<string, undefined | null | 'requested' | ChunkInfo >
   playerPosition: Vec3
   warps: WorldWarp[]
+  loadingChunksQueue: Set<string>
   world?: string
   yaw: number
   full: boolean
   setWarp: (warp: WorldWarp, remove?: boolean) => void
   quickTp?: (x: number, z: number) => void
-  loadChunk: (chunkX: number, chunkZ: number) => Promise<void>
+  loadChunk: (key: string) => Promise<void>
 }
 
 export type ChunkInfo = {
@@ -37,7 +38,6 @@ export class MinimapDrawer {
   ctx: CanvasRenderingContext2D
   _canvas: HTMLCanvasElement
   worldColors: { [key: string]: string } = {}
-  chunksStore = new Map<string, undefined | null | 'requested' | ChunkInfo >()
   chunksInView = new Set<string>()
   lastBotPos: Vec3
   lastWarpPos: Vec3
@@ -103,10 +103,8 @@ export class MinimapDrawer {
     this.lastBotPos = botPos
     this.updateChunksInView()
     for (const key of this.chunksInView) {
-      if (!this.chunksStore.has(key)) {
-        const [chunkX, chunkZ] = key.split(',').map(Number)
-        void this.adapter.loadChunk(chunkX, chunkZ)
-        this.chunksStore.set(key, 'requested')
+      if (!this.adapter.chunksStore.has(key) && !this.adapter.loadingChunksQueue.has(key)) {
+        void this.adapter.loadChunk(key)
       }
       this.drawChunk(key)
     }
@@ -137,7 +135,7 @@ export class MinimapDrawer {
     const chunkWorldZ = chunkZ * 16
     const chunkCanvasX = Math.floor((chunkWorldX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX)
     const chunkCanvasY = Math.floor((chunkWorldZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY)
-    const chunk = this.chunksStore.get(key)
+    const chunk = this.adapter.chunksStore.get(key)
     if (typeof chunk !== 'object') {
       const chunkSize = this.mapPixel * 16
       this.ctx.fillStyle = chunk === 'requested' ? 'rgb(200, 200, 200)' : 'rgba(0, 0, 0, 0.5)'
@@ -213,10 +211,10 @@ export class MinimapDrawer {
   }
 
   clearChunksStore () {
-    for (const key of this.chunksStore.keys()) {
+    for (const key of this.adapter.chunksStore.keys()) {
       const [x, z] = key.split(',').map(x => Number(x) * 16)
       if (Math.hypot((this.lastBotPos.x - x), (this.lastBotPos.z - z)) > this.radius * 5) {
-        this.chunksStore.delete(key)
+        this.adapter.chunksStore.delete(key)
       }
     }
   }
