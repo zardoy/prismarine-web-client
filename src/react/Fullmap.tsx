@@ -248,7 +248,7 @@ const MapChunk = (
     //   drawerRef.current?.chunksStore.set(key, chunk)
     // }
     if (!adapter.chunksStore.has(key)) {
-      adapter.loadChunk(key)
+      void adapter.loadChunk(key)
       return
     }
     const timeout = setTimeout(() => {

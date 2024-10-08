@@ -10,16 +10,15 @@ export type MapUpdates = {
 }
 
 export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
-  getHighestBlockColor: (x: number, z: number, full?: boolean) => Promise<string>
   getHighestBlockY: (x: number, z: number, chunk?: Chunk) => number
   clearChunksStore: (x: number, z: number) => void
   chunksStore: Map<string, undefined | null | 'requested' | ChunkInfo >
   playerPosition: Vec3
   warps: WorldWarp[]
   loadingChunksQueue: Set<string>
-  world?: string
   yaw: number
   full: boolean
+  world: string
   setWarp: (warp: WorldWarp, remove?: boolean) => void
   quickTp?: (x: number, z: number) => void
   loadChunk: (key: string) => Promise<void>
@@ -37,12 +36,10 @@ export class MinimapDrawer {
   radius: number
   ctx: CanvasRenderingContext2D
   _canvas: HTMLCanvasElement
-  worldColors: { [key: string]: string } = {}
   chunksInView = new Set<string>()
   lastBotPos: Vec3
   lastWarpPos: Vec3
   mapPixel: number
-  updatingPixels: Set<string>
   _full = false
 
   constructor (
@@ -51,7 +48,6 @@ export class MinimapDrawer {
   ) {
     this.canvas = canvas
     this.adapter = adapter
-    this.updatingPixels = new Set([] as string[])
   }
 
   setMapPixel () {
@@ -153,35 +149,6 @@ export class MinimapDrawer {
     }
   }
 
-  clearRect (full?: boolean) {
-    if (full) {
-      this.radius = Math.floor(Math.min(this.canvas.width, this.canvas.height) / 2)
-      this._mapSize = this.radius * 2
-      this.mapPixel = Math.floor(this.radius * 2 / this.mapSize)
-    }
-    this.ctx.clearRect(
-      this.canvasWidthCenterX - this.canvas.width,
-      this.canvasWidthCenterY - this.canvas.height,
-      this.canvas.width * 2,
-      this.canvas.height * 2
-    )
-  }
-
-  async updateWorldColors (
-    getHighestBlockColor: DrawerAdapter['getHighestBlockColor'],
-    x: number,
-    z: number,
-    full?: boolean
-  ) {
-    if (this.adapter.chunksStore[`${Math.floor(x / 16) * 16},${Math.floor(z / 16) * 16}`] === null) return
-
-    for (let row = 0; row < this.mapSize; row += 1) {
-      for (let col = 0; col < this.mapSize; col += 1) {
-        // void this.drawPixel(x, z, col, row)
-      }
-    }
-  }
-
   drawPixel (pixelX: number, pixelY: number, color: string) {
     // if (!this.full && Math.hypot(pixelX - this.canvasWidthCenterX, pixelY - this.canvasWidthCenterY) > this.radius) {
     //   this.ctx.clearRect(pixelX, pixelY, this.mapPixel, this.mapPixel)
@@ -194,20 +161,6 @@ export class MinimapDrawer {
       this.mapPixel,
       this.mapPixel
     )
-  }
-
-  getDistance (x1: number, z1: number, x2: number, z2: number): number {
-    return Math.hypot((x2 - x1), (z2 - z1))
-  }
-
-  deleteOldWorldColors (currX: number, currZ: number) {
-    for (const key of Object.keys(this.worldColors)) {
-      const [x, z] = key.split(',').map(Number)
-      if (this.getDistance(x, z, currX, currZ) > this.radius * 5) {
-
-        delete this.worldColors[`${x},${z}`]
-      }
-    }
   }
 
   clearChunksStore () {
@@ -223,7 +176,7 @@ export class MinimapDrawer {
     this.lastWarpPos = new Vec3(mousePos.x, mousePos.y, mousePos.z)
   }
 
-  drawWarps (centerPos?: Vec3, full?: boolean) {
+  drawWarps (centerPos?: Vec3) {
     for (const warp of this.adapter.warps) {
       // if (!full) {
       //   const distance = this.getDistance(
