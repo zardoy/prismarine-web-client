@@ -16,6 +16,7 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   playerPosition: Vec3
   warps: WorldWarp[]
   loadingChunksQueue: Set<string>
+  mapDrawer: MinimapDrawer
   yaw: number
   full: boolean
   world: string
@@ -40,15 +41,12 @@ export class MinimapDrawer {
   lastBotPos: Vec3
   lastWarpPos: Vec3
   mapPixel: number
+  yaw: number
+  chunksStore = new Map<string, undefined | null | 'requested' | ChunkInfo >()
+  loadingChunksQueue: undefined | Set<string>
+  warps: WorldWarp[]
+  loadChunk: undefined | ((key: string) => Promise<void>)
   _full = false
-
-  constructor (
-    canvas: HTMLCanvasElement,
-    public adapter: DrawerAdapter
-  ) {
-    this.canvas = canvas
-    this.adapter = adapter
-  }
 
   setMapPixel () {
     if (this.full) {
@@ -99,8 +97,8 @@ export class MinimapDrawer {
     this.lastBotPos = botPos
     this.updateChunksInView()
     for (const key of this.chunksInView) {
-      if (!this.adapter.chunksStore.has(key) && !this.adapter.loadingChunksQueue.has(key)) {
-        void this.adapter.loadChunk(key)
+      if (!this.chunksStore.has(key) && !this.loadingChunksQueue?.has(key)) {
+        void this.loadChunk?.(key)
       }
       this.drawChunk(key)
     }
@@ -131,7 +129,7 @@ export class MinimapDrawer {
     const chunkWorldZ = chunkZ * 16
     const chunkCanvasX = Math.floor((chunkWorldX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX)
     const chunkCanvasY = Math.floor((chunkWorldZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY)
-    const chunk = this.adapter.chunksStore.get(key)
+    const chunk = this.chunksStore.get(key)
     if (typeof chunk !== 'object') {
       const chunkSize = this.mapPixel * 16
       this.ctx.fillStyle = chunk === 'requested' ? 'rgb(200, 200, 200)' : 'rgba(0, 0, 0, 0.5)'
@@ -164,10 +162,10 @@ export class MinimapDrawer {
   }
 
   clearChunksStore () {
-    for (const key of this.adapter.chunksStore.keys()) {
+    for (const key of this.chunksStore.keys()) {
       const [x, z] = key.split(',').map(x => Number(x) * 16)
       if (Math.hypot((this.lastBotPos.x - x), (this.lastBotPos.z - z)) > this.radius * 5) {
-        this.adapter.chunksStore.delete(key)
+        this.chunksStore.delete(key)
       }
     }
   }
@@ -177,7 +175,7 @@ export class MinimapDrawer {
   }
 
   drawWarps (centerPos?: Vec3) {
-    for (const warp of this.adapter.warps) {
+    for (const warp of this.warps) {
       // if (!full) {
       //   const distance = this.getDistance(
       //     centerPos?.x ?? this.adapter.playerPosition.x,
@@ -189,10 +187,10 @@ export class MinimapDrawer {
       // }
       const offset = this.full ? 0 : this.radius * 0.1
       const z = Math.floor(
-        (this.mapSize / 2 - (centerPos?.z ?? this.adapter.playerPosition.z) + warp.z) * this.mapPixel
+        (this.mapSize / 2 - (centerPos?.z ?? this.lastBotPos.z) + warp.z) * this.mapPixel
       ) + offset
       const x = Math.floor(
-        (this.mapSize / 2 - (centerPos?.x ?? this.adapter.playerPosition.x) + warp.x) * this.mapPixel
+        (this.mapSize / 2 - (centerPos?.x ?? this.lastBotPos.x) + warp.x) * this.mapPixel
       ) + offset
       const dz = z - this.canvasWidthCenterX
       const dx = x - this.canvasWidthCenterY
@@ -289,11 +287,11 @@ export class MinimapDrawer {
   drawPlayerPos (canvasWorldCenterX?: number, canvasWorldCenterZ?: number, disableTurn?: boolean) {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-    const x = (this.adapter.playerPosition.x - (canvasWorldCenterX ?? this.adapter.playerPosition.x)) * this.mapPixel
-    const z = (this.adapter.playerPosition.z - (canvasWorldCenterZ ?? this.adapter.playerPosition.z)) * this.mapPixel
+    const x = (this.lastBotPos.x - (canvasWorldCenterX ?? this.lastBotPos.x)) * this.mapPixel
+    const z = (this.lastBotPos.z - (canvasWorldCenterZ ?? this.lastBotPos.z)) * this.mapPixel
     const center = this.mapSize / 2 * this.mapPixel + (this.full ? 0 : this.radius * 0.1)
     this.ctx.translate(center + x, center + z)
-    if (!disableTurn) this.ctx.rotate(-this.adapter.yaw)
+    if (!disableTurn) this.ctx.rotate(-this.yaw)
 
     const size = 3
     const factor = this.full ? 2 : 1

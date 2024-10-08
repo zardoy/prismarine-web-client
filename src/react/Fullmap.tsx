@@ -263,7 +263,7 @@ const MapChunk = (
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
-      drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
+      drawerRef.current = adapter.mapDrawer
       drawerRef.current.full = true
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current

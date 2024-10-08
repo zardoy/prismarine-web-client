@@ -60,12 +60,13 @@ export default (
   }
 
   const updateChunkOnMap = (key: string, chunk: ChunkInfo) => {
-    drawerRef.current!.adapter.chunksStore.set(key, chunk)
+    adapter.chunksStore.set(key, chunk)
   }
 
   useEffect(() => {
     if (canvasRef.current && !drawerRef.current) {
-      drawerRef.current = new MinimapDrawer(canvasRef.current, adapter)
+      drawerRef.current = adapter.mapDrawer
+      drawerRef.current.canvas = canvasRef.current
       // drawerRef.current.adapter.on('chunkReady', updateChunkOnMap)
     } else if (canvasRef.current && drawerRef.current) {
       drawerRef.current.canvas = canvasRef.current
@@ -73,21 +74,21 @@ export default (
 
   }, [canvasRef.current])
 
-  useEffect(() => {
-    if (warpsAndPartsCanvasRef.current && !warpsDrawerRef.current) {
-      warpsDrawerRef.current = new MinimapDrawer(warpsAndPartsCanvasRef.current, adapter)
-    } else if (warpsAndPartsCanvasRef.current && warpsDrawerRef.current) {
-      warpsDrawerRef.current.canvas = warpsAndPartsCanvasRef.current
-    }
-  }, [warpsAndPartsCanvasRef.current])
+  // useEffect(() => {
+  //   if (warpsAndPartsCanvasRef.current && !warpsDrawerRef.current) {
+  //     warpsDrawerRef.current = new MinimapDrawer(warpsAndPartsCanvasRef.current, adapter)
+  //   } else if (warpsAndPartsCanvasRef.current && warpsDrawerRef.current) {
+  //     warpsDrawerRef.current.canvas = warpsAndPartsCanvasRef.current
+  //   }
+  // }, [warpsAndPartsCanvasRef.current])
 
-  useEffect(() => {
-    if (playerPosCanvasRef.current && !playerPosDrawerRef.current) {
-      playerPosDrawerRef.current = new MinimapDrawer(playerPosCanvasRef.current, adapter)
-    } else if (playerPosCanvasRef.current && playerPosDrawerRef.current) {
-      playerPosDrawerRef.current.canvas = playerPosCanvasRef.current
-    }
-  }, [playerPosCanvasRef.current])
+  // useEffect(() => {
+  //   if (playerPosCanvasRef.current && !playerPosDrawerRef.current) {
+  //     playerPosDrawerRef.current = new MinimapDrawer(playerPosCanvasRef.current, adapter)
+  //   } else if (playerPosCanvasRef.current && playerPosDrawerRef.current) {
+  //     playerPosDrawerRef.current.canvas = playerPosCanvasRef.current
+  //   }
+  // }, [playerPosCanvasRef.current])
 
   useEffect(() => {
     adapter.on('updateMap', updateMap)

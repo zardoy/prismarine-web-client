@@ -17,7 +17,7 @@ import { contro } from '../controls'
 import { gameAdditionalState, showModal, hideModal, miscUiState, loadedGameState, activeModalStack } from '../globalState'
 import { options } from '../optionsStorage'
 import Minimap, { DisplayMode } from './Minimap'
-import { ChunkInfo, DrawerAdapter, MapUpdates } from './MinimapDrawer'
+import { ChunkInfo, DrawerAdapter, MapUpdates, MinimapDrawer } from './MinimapDrawer'
 import { useIsModalActive } from './utilsApp'
 
 const getBlockKey = (x: number, z: number) => {
@@ -43,6 +43,7 @@ const findHeightMap = (obj: any): any => {
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
   yaw: number
+  mapDrawer = new MinimapDrawer()
   warps: WorldWarp[]
   world: string
   chunksStore = new Map<string, undefined | null | 'requested' | ChunkInfo >()
@@ -62,6 +63,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     this.full = false
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
     this.warps = gameAdditionalState.warps
+    this.mapDrawer.warps = this.warps
+    this.mapDrawer.loadChunk = this.loadChunk
+    this.mapDrawer.loadingChunksQueue = this.loadingChunksQueue
+    this.mapDrawer.chunksStore = this.chunksStore
     // if (localServer) {
     //   this.overwriteWarps(localServer.warps)
     //   this.on('cellReady', (key: string) => {
@@ -99,6 +104,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       console.log('this is minimap')
       this.loadChunk = this.loadChunkMinimap
     }
+    this.mapDrawer.loadChunk = this.loadChunk
     this._full = full
   }
 
