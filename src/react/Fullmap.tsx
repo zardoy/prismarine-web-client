@@ -243,11 +243,14 @@ const MapChunk = (
 
   const handleRedraw = (key?: string, chunk?: ChunkInfo) => {
     if (key !== `${worldX / 16},${worldZ / 16}`) return
+    adapter.mapDrawer.canvas = canvasRef.current!
+    adapter.mapDrawer.full = true
     // console.log('handle redraw:', key)
     // if (chunk) {
     //   drawerRef.current?.chunksStore.set(key, chunk)
     // }
     if (!adapter.chunksStore.has(key)) {
+      adapter.chunksStore.set(key, 'requested')
       void adapter.loadChunk(key)
       return
     }
@@ -255,20 +258,18 @@ const MapChunk = (
       const center = new Vec3(worldX + 8, 0, worldZ + 8)
       drawerRef.current!.lastBotPos = center
       drawerRef.current?.drawChunk(key)
-      drawerRef.current?.drawWarps(center)
-      drawerRef.current?.drawPlayerPos(center.x, center.z)
+      // drawerRef.current?.drawWarps(center)
+      // drawerRef.current?.drawPlayerPos(center.x, center.z)
       clearTimeout(timeout)
     }, 100)
   }
 
   useEffect(() => {
-    if (canvasRef.current && !drawerRef.current) {
-      drawerRef.current = adapter.mapDrawer
-      drawerRef.current.full = true
-    } else if (canvasRef.current && drawerRef.current) {
-      drawerRef.current.canvas = canvasRef.current
-    }
-    handleRedraw(`${worldX / 16},${worldZ / 16}`)
+    // if (canvasRef.current && !drawerRef.current) {
+    //   drawerRef.current = adapter.mapDrawer
+    // } else if (canvasRef.current && drawerRef.current) {
+    // }
+    if (canvasRef.current) void adapter.drawChunkOnCanvas(`${worldX / 16},${worldZ / 16}`, canvasRef.current)
   }, [canvasRef.current])
 
   useEffect(() => {
@@ -288,7 +289,7 @@ const MapChunk = (
   }, [canvasRef.current, scale])
 
   useEffect(() => {
-    handleRedraw()
+    // handleRedraw()
   }, [drawerRef.current, redraw])
 
   useEffect(() => {
@@ -301,11 +302,11 @@ const MapChunk = (
     })
     intersectionObserver.observe(containerRef.current!)
 
-    adapter.on('chunkReady', handleRedraw)
+    // adapter.on('chunkReady', handleRedraw)
 
     return () => {
       intersectionObserver.disconnect()
-      adapter.off('chunkReady', handleRedraw)
+      // adapter.off('chunkReady', handleRedraw)
     }
   }, [])
 

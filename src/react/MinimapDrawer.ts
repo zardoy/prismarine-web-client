@@ -23,6 +23,7 @@ export interface DrawerAdapter extends TypedEventEmitter<MapUpdates> {
   setWarp: (warp: WorldWarp, remove?: boolean) => void
   quickTp?: (x: number, z: number) => void
   loadChunk: (key: string) => Promise<void>
+  drawChunkOnCanvas: (key: string, canvas: HTMLCanvasElement) => Promise<void>
 }
 
 export type ChunkInfo = {
@@ -123,13 +124,13 @@ export class MinimapDrawer {
     }
   }
 
-  drawChunk (key: string) {
+  drawChunk (key: string, chunkInfo?: ChunkInfo) {
     const [chunkX, chunkZ] = key.split(',').map(Number)
     const chunkWorldX = chunkX * 16
     const chunkWorldZ = chunkZ * 16
     const chunkCanvasX = Math.floor((chunkWorldX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX)
     const chunkCanvasY = Math.floor((chunkWorldZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY)
-    const chunk = this.chunksStore.get(key)
+    const chunk = chunkInfo ?? this.chunksStore.get(key)
     if (typeof chunk !== 'object') {
       const chunkSize = this.mapPixel * 16
       this.ctx.fillStyle = chunk === 'requested' ? 'rgb(200, 200, 200)' : 'rgba(0, 0, 0, 0.5)'

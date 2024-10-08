@@ -98,12 +98,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   set full (full: boolean) {
-    if (full) {
-      this.loadChunk = this.loadChunkFullmap
-    } else {
-      console.log('this is minimap')
-      this.loadChunk = this.loadChunkMinimap
-    }
+    console.log('this is minimap')
+    this.loadChunk = this.loadChunkMinimap
     this.mapDrawer.loadChunk = this.loadChunk
     this._full = full
   }
@@ -213,7 +209,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
 
   async loadChunkFullmap (key: string) {
     // this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
-    this.chunksStore.set(key, 'requested')
     const [chunkX, chunkZ] = key.split(',').map(Number)
     const chunkWorldX = chunkX * 16
     const chunkWorldZ = chunkZ * 16
@@ -243,8 +238,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
     const chunk = { heightmap, colors }
     this.applyShadows(chunk)
-    this.chunksStore.set(key, chunk)
-    this.emit(`chunkReady`, key)
+    return chunk
   }
 
   applyShadows (chunk: ChunkInfo) {
@@ -349,6 +343,17 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       bot.chat(`/tp ${x} ${y + 20} ${z}`)
       clearTimeout(timeout)
     }, 500)
+  }
+
+  async drawChunkOnCanvas (key: string, canvas: HTMLCanvasElement) {
+    console.log('chunk', key, 'on canvas')
+    const chunk = await this.loadChunkFullmap(key)
+    const [worldX, worldZ] = key.split(',').map(x => Number(x) * 16)
+    const center = new Vec3(worldX + 8, 0, worldZ + 8)
+    this.mapDrawer.lastBotPos = center
+    this.mapDrawer.canvas = canvas
+    this.mapDrawer.full = true
+    this.mapDrawer.drawChunk(key, chunk)
   }
 }
 
