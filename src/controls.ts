@@ -17,10 +17,11 @@ import { customCommandsConfig } from './customCommands'
 import type { CustomCommand } from './react/KeybindingsCustom'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
-import { getItemFromBlock } from './botUtils'
+import { getItemFromBlock } from './chatUtils'
 import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
 import { completeTexturePackInstall, resourcePackState } from './resourcePack'
 import { showNotification } from './react/NotificationProvider'
+import { lastConnectOptions } from './react/AppStatusProvider'
 
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
@@ -304,15 +305,17 @@ function lockUrl () {
     newQs = `loadSave=${save}`
   } else if (process.env.NODE_ENV === 'development') {
     newQs = `reconnect=1`
-  } else {
+  } else if (lastConnectOptions.value?.server) {
     const qs = new URLSearchParams()
-    const { server, version } = localStorage
+    const { server, botVersion } = lastConnectOptions.value
     qs.set('server', server)
-    if (version) qs.set('version', version)
+    if (botVersion) qs.set('version', botVersion)
     newQs = String(qs.toString())
   }
 
-  window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
+  if (newQs) {
+    window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
+  }
 }
 
 function cycleHotbarSlot (dir: 1 | -1) {

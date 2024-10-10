@@ -44,7 +44,7 @@
     "@floating-ui/react": "^0.26.1",
     "@mui/base": "5.0.0-beta.40",
     "@nxg-org/mineflayer-auto-jump": "^0.7.12",
-    "@nxg-org/mineflayer-tracker": "^1.2.3",
+    "@nxg-org/mineflayer-tracker": "1.2.1",
     "@react-oauth/google": "^0.12.1",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/gapi": "^0.0.47",
