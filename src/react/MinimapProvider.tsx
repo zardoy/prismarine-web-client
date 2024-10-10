@@ -8,6 +8,7 @@ import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TypedEventEmitter } from 'contro-max/build/typedEventEmitter'
 import { PCChunk } from 'prismarine-chunk'
 import { Chunk } from 'prismarine-world/types/world'
+import { Block } from 'prismarine-block'
 import { INVISIBLE_BLOCKS } from 'prismarine-viewer/viewer/lib/mesher/worldConstants'
 import { getRenamedData } from 'flying-squid/dist/blockRenames'
 import { useSnapshot } from 'valtio'
@@ -141,7 +142,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
   }
 
-
   setWarp (warp: WorldWarp, remove?: boolean): void {
     this.world = bot.game.dimension
     const index = this.warps.findIndex(w => w.name === warp.name)
@@ -197,15 +197,19 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const colors = Array.from({ length: 256 }).fill('') as string[]
       for (let z = 0; z < 16; z += 1) {
         for (let x = 0; x < 16; x += 1) {
-          const block = viewer.world.highestBlocks[`${chunkWorldX + x},${chunkWorldZ + z}`]
+          const blockX = chunkWorldX + x
+          const blockZ = chunkWorldZ + z
+          const hBlock = viewer.world.highestBlocks.get(`${blockX},${blockZ}`)
+          const block = bot.world.getBlock(new Vec3(blockX, hBlock?.y ?? 0, blockZ))
+          // const block = Block.fromStateId(hBlock?.stateId ?? -1, hBlock?.biomeId ?? -1)
           const index = z * 16 + x
-          if (!block) {
+          if (!block || !hBlock) {
             console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
             heightmap[index] = 0
             colors[index] = 'rgba(0, 0, 0, 0.5)'
             continue
           }
-          heightmap[index] = block.pos.y
+          heightmap[index] = hBlock.y
           const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
           colors[index] = color
         }
@@ -311,15 +315,19 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const colors = Array.from({ length: 256 }).fill('') as string[]
       for (let z = 0; z < 16; z += 1) {
         for (let x = 0; x < 16; x += 1) {
-          const block = viewer.world.highestBlocks[`${chunkWorldX + x},${chunkWorldZ + z}`]
+          const blockX = chunkWorldX + x
+          const blockZ = chunkWorldZ + z
+          const hBlock = viewer.world.highestBlocks.get(`${blockX},${blockZ}`)
+          const block = bot.world.getBlock(new Vec3(blockX, hBlock?.y ?? 0, blockZ))
+          // const block = Block.fromStateId(hBlock?.stateId ?? -1, hBlock?.biomeId ?? -1)
           const index = z * 16 + x
-          if (!block) {
+          if (!block || !hBlock) {
             console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
             heightmap[index] = 0
             colors[index] = 'rgba(0, 0, 0, 0.5)'
             continue
           }
-          heightmap[index] = block.pos.y
+          heightmap[index] = hBlock.y
           const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
           colors[index] = color
         }
@@ -501,6 +509,7 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
 
   const { showMinimap } = useSnapshot(options)
   const fullMapOpened = useIsModalActive('full-map')
+
 
   const readChunksHeightMaps = async () => {
     const { worldFolder } = localServer!.options

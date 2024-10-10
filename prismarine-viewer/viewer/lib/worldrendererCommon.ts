@@ -14,10 +14,10 @@ import TypedEmitter from 'typed-emitter'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
-import { MesherGeometryOutput, defaultMesherConfig } from './mesher/shared'
+import { defaultMesherConfig } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
-import { WorldBlock } from './mesher/world'
+import { HighestBlockInfo, MesherGeometryOutput} from './mesher/shared'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -80,7 +80,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
-  highestBlocks: Record<string, { pos: Vec3 } & WorldBlock> = {}
+  highestBlocks = new Map<string, HighestBlockInfo>()
   blockstatesModels: any
   customBlockStates: Record<string, any> | undefined
   customModels: Record<string, any> | undefined
@@ -128,8 +128,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         if (data.type === 'geometry') {
           const geometry = data.geometry as MesherGeometryOutput
           for (const [key, highest] of geometry.highestBlocks.entries()) {
-            if (!this.highestBlocks[key] || this.highestBlocks[key].pos.y < highest.pos.y) {
-              this.highestBlocks[key] = highest
+            const currHighest = this.highestBlocks.get(key)
+            if (!currHighest || currHighest.y < highest.y) {
+              this.highestBlocks.set(key, highest)
             }
           }
         }
@@ -350,7 +351,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     const endZ = Math.ceil((z + 1) / 16) * 16
     for (let x = startX; x < endX; x += 16) {
       for (let z = startZ; z < endZ; z += 16) {
-        delete this.highestBlocks[`${x},${z}`]
+        this.highestBlocks.delete(`${x},${z}`)
       }
     }
   }

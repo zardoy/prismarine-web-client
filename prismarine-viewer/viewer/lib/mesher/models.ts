@@ -5,7 +5,7 @@ import { BlockType } from '../../../examples/shared'
 import { World, BlockModelPartsResolved, WorldBlock as Block } from './world'
 import { BlockElement, buildRotationMatrix, elemFaces, matmul3, matmulmat3, vecadd3, vecsub3 } from './modelsGeometryCommon'
 import { INVISIBLE_BLOCKS } from './worldConstants'
-import { MesherGeometryOutput } from './shared'
+import { MesherGeometryOutput, HighestBlockInfo } from './shared'
 
 
 let blockProvider: WorldBlockProvider
@@ -412,7 +412,7 @@ export function getSectionGeometry(sx, sy, sz, world: World) {
     // todo this can be removed here
     signs: {},
     // isFull: true,
-    highestBlocks: new Map<string, { pos: Vec3 } & Block>([]), 
+    highestBlocks: new Map<string, HighestBlockInfo>([]), 
     hadErrors: false
   }
 
@@ -423,8 +423,8 @@ export function getSectionGeometry(sx, sy, sz, world: World) {
         const block = world.getBlock(cursor)!
         if (!INVISIBLE_BLOCKS.has(block.name)) {
           const highest = attr.highestBlocks.get(`${cursor.x},${cursor.z}`)
-          if (!highest || highest.pos.y < cursor.y) {
-            attr.highestBlocks.set(`${cursor.x},${cursor.z}`, { pos: cursor.clone(), ...block })
+          if (!highest || highest.y < cursor.y) {
+            attr.highestBlocks.set(`${cursor.x},${cursor.z}`, { y: cursor.y, stateId: block.stateId, biomeId: block.biome.id })
           }
         }
         if (INVISIBLE_BLOCKS.has(block.name)) continue
