@@ -27,7 +27,7 @@ export default meta
 type Story = StoryObj<typeof Minimap>
 
 
-class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
+class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> {
   playerPosition: Vec3
   yaw: number
   warps: WorldWarp[]
@@ -61,10 +61,10 @@ class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerA
 
   clearChunksStore (x: number, z: number) { }
 
-  async loadChunk (chunkX: number, chunkZ: number) {}
+  async loadChunk (key: string) {}
 }
 
-const adapter = new DrawerAdapterImpl()
+const adapter = new DrawerAdapterImpl() as any
 
 export const Primary: Story = {
   args: {
