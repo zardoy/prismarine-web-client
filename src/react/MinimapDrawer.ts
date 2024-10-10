@@ -124,7 +124,7 @@ export class MinimapDrawer {
     }
   }
 
-  drawChunk (key: string, chunkInfo?: ChunkInfo) {
+  drawChunk (key: string, chunkInfo?: ChunkInfo | null) {
     const [chunkX, chunkZ] = key.split(',').map(Number)
     const chunkWorldX = chunkX * 16
     const chunkWorldZ = chunkZ * 16

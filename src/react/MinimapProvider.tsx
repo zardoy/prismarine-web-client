@@ -54,7 +54,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   regions = new Map<string, RegionFile>()
   chunksHeightmaps: Record<string, any> = {}
   loadChunk: (key: string) => Promise<void>
-  loadChunkFullmap: (key: string) => Promise<ChunkInfo | undefined>
+  loadChunkFullmap: (key: string) => Promise<ChunkInfo | null | undefined>
   _full: boolean
   isBuiltinHeightmapAvailable = false
 
@@ -93,6 +93,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
           this.loadChunkFullmap = this.loadChunkNoRegion
         }
       })
+    } else {
+      this.isBuiltinHeightmapAvailable = false
+      this.loadChunkFullmap = this.loadChunkFromViewer
     }
     // if (localServer) {
     //   this.overwriteWarps(localServer.warps)
@@ -287,11 +290,13 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       for (let z = 0; z < 16; z += 1) {
         for (let x = 0; x < 16; x += 1) {
           const block = viewer.world.highestBlocks[`${chunkWorldX + x},${chunkWorldZ + z}`]
+          const index = z * 16 + x
           if (!block) {
             console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
-            return
+            heightmap[index] = 0
+            colors[index] = 'rgba(0, 0, 0, 0.5)'
+            continue
           }
-          const index = z * 16 + x
           heightmap[index] = block.pos.y
           const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
           colors[index] = color
@@ -299,11 +304,9 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       }
       const chunk = { heightmap, colors }
       this.applyShadows(chunk)
-      this.chunksStore.set(key, chunk)
       return chunk
     } else {
-      this.loadingChunksQueue.add(`${chunkX},${chunkZ}`)
-      this.chunksStore.set(key, 'requested')
+      return null
     }
   }
 
