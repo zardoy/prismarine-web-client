@@ -295,7 +295,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       this.regions.set(regionKey, region)
     }
     const rawChunk = await this.regions.get(regionKey)! .read(
-      chunkX - (regionX > 0 ? 1 : -1) * regionX * 32, chunkZ - (regionZ > 0 ? 1 : -1) * regionZ * 32
+      chunkX + (regionX > 0 ? 1 : -1) * regionX * 32, chunkZ + (regionZ > 0 ? 1 : -1) * regionZ * 32
     )
     const chunk = simplify(rawChunk as any)
     console.log(`chunk ${chunkX}, ${chunkZ}:`, chunk)
