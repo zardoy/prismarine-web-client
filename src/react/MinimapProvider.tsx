@@ -141,28 +141,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
   }
 
-  async getChunkHeightMapFromRegion (chunkX: number, chunkZ: number, cb?: (hm: number[]) => void) {
-    const regionX = Math.floor(chunkX / 32)
-    const regionZ = Math.floor(chunkZ / 32)
-    const regionKey = `${regionX},${regionZ}`
-    if (!this.regions.has(regionKey)) {
-      const { worldFolder } = localServer!.options
-      const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
-      const region = new RegionFile(path)
-      await region.initialize()
-      this.regions.set(regionKey, region)
-    }
-    const rawChunk = await this.regions.get(regionKey)! .read(
-      chunkX - (regionX > 0 ? 1 : -1) * regionX * 32, chunkZ - (regionZ > 0 ? 1 : -1) * regionZ * 32
-    )
-    const chunk = simplify(rawChunk as any)
-    console.log(`chunk ${chunkX}, ${chunkZ}:`, chunk)
-    const heightmap = findHeightMap(chunk)
-    console.log(`heightmap ${chunkX}, ${chunkZ}:`, heightmap)
-    cb?.(heightmap!)
-    return heightmap
-    // this.chunksHeightmaps[`${chunkX},${chunkZ}`] = heightmap
-  }
 
   setWarp (warp: WorldWarp, remove?: boolean): void {
     this.world = bot.game.dimension
@@ -247,11 +225,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     const chunkWorldX = chunkX * 16
     const chunkWorldZ = chunkZ * 16
     const chunkInfo = await this.getChunkSingleplayer(chunkX, chunkZ)
-    if (chunkInfo === 'unavailable') {
-      this.chunksStore.set(key, null)
-      this.emit(`chunkReady`, key)
-      return
-    }
+    if (chunkInfo === 'unavailable') return null
     const heightmap = new Uint8Array(256)
     const colors = Array.from({ length: 256 }).fill('') as string[]
     for (let z = 0; z < 16; z += 1) {
@@ -275,9 +249,57 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return chunk
   }
 
-  async loadChunkFromRegion (key: string): Promise<ChunkInfo | undefined> {
+  async loadChunkFromRegion (key: string): Promise<ChunkInfo | null | undefined> {
+    const [chunkX, chunkZ] = key.split(',').map(Number)
+    const chunkWorldX = chunkX * 16
+    const chunkWorldZ = chunkZ * 16
+    const heightmap = await this.getChunkHeightMapFromRegion(chunkX, chunkZ) as unknown as Uint8Array
+    if (!heightmap) return null
+    const chunkInfo = await this.getChunkSingleplayer(chunkX, chunkZ)
+    if (chunkInfo === 'unavailable') return null
+    const colors = Array.from({ length: 256 }).fill('') as string[]
+    for (let z = 0; z < 16; z += 1) {
+      for (let x = 0; x < 16; x += 1) {
+        const blockX = chunkWorldX + x
+        const blockZ = chunkWorldZ + z
+        const index = z * 16 + x
+        const blockY = heightmap[index]
+        const block = chunkInfo.getBlock(new Vec3(blockX & 15, blockY, blockZ & 15))
+        if (!block) {
+          console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
+          return
+        }
+        heightmap[index] = blockY
+        const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
+        colors[index] = color
+      }
+    }
+    const chunk: ChunkInfo = { heightmap, colors }
+    this.applyShadows(chunk)
+    return chunk
+  }
 
-    return undefined
+  async getChunkHeightMapFromRegion (chunkX: number, chunkZ: number, cb?: (hm: number[]) => void) {
+    const regionX = Math.floor(chunkX / 32)
+    const regionZ = Math.floor(chunkZ / 32)
+    const regionKey = `${regionX},${regionZ}`
+    if (!this.regions.has(regionKey)) {
+      const { worldFolder } = localServer!.options
+      const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
+      const region = new RegionFile(path)
+      await region.initialize()
+      this.regions.set(regionKey, region)
+    }
+    const rawChunk = await this.regions.get(regionKey)! .read(
+      chunkX - (regionX > 0 ? 1 : -1) * regionX * 32, chunkZ - (regionZ > 0 ? 1 : -1) * regionZ * 32
+    )
+    const chunk = simplify(rawChunk as any)
+    console.log(`chunk ${chunkX}, ${chunkZ}:`, chunk)
+    const heightmap = findHeightMap(chunk)
+    console.log(`heightmap ${chunkX}, ${chunkZ}:`, heightmap)
+    cb?.(heightmap!)
+    return heightmap
+    // this.chunksHeightmaps[`${chunkX},${chunkZ}`] = heightmap
   }
 
   async loadChunkFromViewer (key: string) {
