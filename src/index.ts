@@ -101,7 +101,6 @@ import packetsPatcher from './packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
-import { useState } from 'react'
 
 window.debug = debug
 window.THREE = THREE
@@ -701,12 +700,8 @@ async function connect (connectOptions: ConnectOptions) {
 
     bot.on('physicsTick', () => updateCursor())
 
-    //ghost func
-    const toggleVrEnabled = (isEnabled: boolean) => {
-      console.log(`VR mode is now ${isEnabled ? 'enabled' : 'disabled'}`)
-    }
 
-    void initVR(viewer, toggleVrEnabled)
+    void initVR()
 
     renderWrapper.postRender = () => {
       viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)

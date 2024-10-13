@@ -12,7 +12,6 @@ import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
 import { completeTexturePackInstall, getResourcePackNames, resourcePackState, uninstallTexturePack } from './resourcePack'
 import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay'
 import { showOptionsModal } from './react/SelectOption'
-import { disableVR, initVR } from './vr'
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
@@ -380,32 +379,7 @@ export const guiOptionsScheme: {
           </>
         )
       },
-    },
-    {
-      custom () {
-        const [vrEnabled, setVrEnabled] = useState(false)
-        const vrButtonRef = useRef<HTMLButtonElement | null>(null)
-        const closeButtonRef = useRef<HTMLButtonElement | null>(null)
-        return (
-          <Button
-            label={vrEnabled ? 'Disable VR' : 'Enable VR'}
-            onClick={() => {
-              setVrEnabled((prevVrEnabled) => {
-                const newVrEnabled = !prevVrEnabled
-                if (newVrEnabled) {
-                  void initVR(viewer, setVrEnabled).then((refs) => {
-                    vrButtonRef.current = refs?.vrButton || null
-                    closeButtonRef.current = refs?.closeButton || null
-                  })
-                } else {
-                  disableVR(vrButtonRef.current, closeButtonRef.current)
-                }
-                return newVrEnabled
-              })
-            }}
-          />
-        )
-      },
+      vrSupport: {}
     },
   ],
   advanced: [

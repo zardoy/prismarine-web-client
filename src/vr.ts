@@ -3,108 +3,93 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js'
 import { buttonMap as standardButtonsMap } from 'contro-max/build/gamepad'
 import * as THREE from 'three'
+import { subscribeKey } from 'valtio/utils'
 import { activeModalStack, hideModal } from './globalState'
+import { watchUnloadForCleanup } from './gameUnload'
+import { options } from './optionsStorage'
 
-export async function initVR (viewer: any, toggleVrEnabled: (enabled: boolean) => void) {
+export async function initVR () {
   const { renderer } = viewer
   if (!('xr' in navigator)) return
-
-  const isSupported = await navigator.xr?.isSessionSupported('immersive-vr') && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState  if (!isSupported) return  if (!isSupported) return
+  let isSupported = false
+  try {
+    isSupported = !!(await navigator.xr?.isSessionSupported('immersive-vr')) && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState
+  } catch (err) {
+    console.error('Error checking if VR is supported')
+    console.error(err)
+  }
+  if (!isSupported) return
 
   // VR Button
-  const vrButton = VRButton.createButton(renderer) as HTMLButtonElement
-  const closeButton = createCloseButton(vrButton, toggleVrEnabled)
-
+  const vrButton = VRButton.createButton(renderer)
   document.body.appendChild(vrButton)
-  document.body.appendChild(closeButton)
+  renderer.xr.enabled = true
 
-  setupCameraAndControllers(renderer, viewer)
-
-  renderer.xr.addEventListener('sessionstart', () => {
-    viewer.cameraObjectOverride = viewer.user
-    toggleVrEnabled(true)
+  const unsubWatchSetting = subscribeKey(options, 'vrSupport', () => {
+    const o = options
+    if (o.vrSupport) {
+      vrButton.hidden = false
+    } else {
+      disableVr()
+    }
   })
 
-  renderer.xr.addEventListener('sessionend', () => {
-    viewer.cameraObjectOverride = undefined
-    toggleVrEnabled(false)
-  })
-
-  return { vrButton, closeButton }
-}
-
-function createCloseButton (vrButton: HTMLButtonElement, toggleVrEnabled: (enabled: boolean) => void): HTMLButtonElement {
-  const closeButton = document.createElement('button')
-  closeButton.textContent = 'X'
-  closeButton.style.position = 'absolute'
-  closeButton.style.bottom = '60px'
-  closeButton.style.left = 'calc(50% + 50px)'
-  closeButton.style.padding = '12px 12px'
-  closeButton.style.background = 'rgba(255, 0, 0, 0.7)'
-  closeButton.style.color = 'white'
-  closeButton.style.border = 'none'
-  closeButton.style.borderRadius = '2px'
-  closeButton.style.cursor = 'pointer'
-  closeButton.style.zIndex = '1000'
-
-  closeButton.addEventListener('click', () => {
-    vrButton.remove()
-    closeButton.remove()
-    toggleVrEnabled(false)
-  })
-
-  return closeButton
-}
-
-function setupCameraAndControllers (renderer: THREE.WebGLRenderer, viewer: any) {
+  // hack for vr camera
   const user = new THREE.Group()
   user.add(viewer.camera)
   viewer.scene.add(user)
-
   const controllerModelFactory = new XRControllerModelFactory(new GLTFLoader())
   const controller1 = renderer.xr.getControllerGrip(0)
   const controller2 = renderer.xr.getControllerGrip(1)
 
+  const disableVr = () => {
+    vrButton.remove()
+    renderer.xr.enabled = false
+    viewer.cameraObjectOverride = undefined
+    viewer.scene.remove(user)
+    unsubWatchSetting()
+  }
+
+  // todo the logic written here can be hard to understand as it was designed to work in gamepad api emulation mode, will be refactored once there is a contro-max rewrite is done
   const virtualGamepadIndex = 4
   let connectedVirtualGamepad
-
-  const manageXrInputSource = ({ gamepad, handedness = 'left' }, removeAction = false) => {
+  //@ts-expect-error
+  const manageXrInputSource = ({ gamepad, handedness = defaultHandedness }, defaultHandedness, removeAction = false) => {
     if (handedness === 'right') {
-      const event: any = new Event(removeAction ? 'gamepaddisconnected' : 'gamepadconnected')
+      const event: any = new Event(removeAction ? 'gamepaddisconnected' : 'gamepadconnected') // todo need to expose and use external gamepads api in contro-max instead
       event.gamepad = removeAction ? connectedVirtualGamepad : { ...gamepad, mapping: 'standard', index: virtualGamepadIndex }
       connectedVirtualGamepad = event.gamepad
       window.dispatchEvent(event)
     }
   }
-
   let hand1: any = controllerModelFactory.createControllerModel(controller1)
   controller1.addEventListener('connected', (event) => {
     hand1.xrInputSource = event.data
-    manageXrInputSource(event.data, false)
+    manageXrInputSource(event.data, 'left')
     user.add(controller1)
   })
   controller1.add(hand1)
-
   let hand2: any = controllerModelFactory.createControllerModel(controller2)
   controller2.addEventListener('connected', (event) => {
     hand2.xrInputSource = event.data
-    manageXrInputSource(event.data, false)
+    manageXrInputSource(event.data, 'right')
     user.add(controller2)
   })
   controller2.add(hand2)
 
   controller1.addEventListener('disconnected', () => {
-    manageXrInputSource(hand1.xrInputSource, true)
+    // don't handle removal of gamepads for now as is don't affect contro-max
+    manageXrInputSource(hand1.xrInputSource, 'left', true)
     hand1.xrInputSource = undefined
   })
-
   controller2.addEventListener('disconnected', () => {
-    manageXrInputSource(hand2.xrInputSource, true)
+    manageXrInputSource(hand1.xrInputSource, 'right', true)
     hand2.xrInputSource = undefined
   })
 
   const originalGetGamepads = navigator.getGamepads.bind(navigator)
-
+  // is it okay to patch this?
+  //@ts-expect-error
   navigator.getGamepads = () => {
     const originalGamepads = originalGetGamepads()
     if (!hand1.xrInputSource || !hand2.xrInputSource) return originalGamepads
@@ -117,12 +102,9 @@ function setupCameraAndControllers (renderer: THREE.WebGLRenderer, viewer: any) 
         mapping: 'standard',
         id: '',
         index: virtualGamepadIndex
-      } as unknown as Gamepad
+      }
     ]
   }
-
-  setupControllerEvents(controller1, hand1, viewer, 'left')
-  setupControllerEvents(controller2, hand2, viewer, 'right')
 
   let rotSnapReset = true
   let yawOffset = 0
@@ -133,18 +115,25 @@ function setupCameraAndControllers (renderer: THREE.WebGLRenderer, viewer: any) 
       hand1.yAxis = hand1.xrInputSource.gamepad.axes[3]
       hand2.xAxis = hand2.xrInputSource.gamepad.axes[2]
       hand2.yAxis = hand2.xrInputSource.gamepad.axes[3]
-
+      // hand2 should be right
       if (hand1.xrInputSource.handedness === 'right') {
-        [hand1, hand2] = [hand2, hand1]
+        const tmp = hand2
+        hand2 = hand1
+        hand1 = tmp
       }
     }
 
-    if (rotSnapReset && Math.abs(hand1.xAxis) > 0.8) {
-      yawOffset -= Math.PI / 4 * Math.sign(hand1.xAxis)
-      rotSnapReset = false
+    if (rotSnapReset) {
+      if (Math.abs(hand1.xAxis) > 0.8) {
+        yawOffset -= Math.PI / 4 * Math.sign(hand1.xAxis)
+        rotSnapReset = false
+      }
     } else if (Math.abs(hand1.xAxis) < 0.1) {
       rotSnapReset = true
     }
+
+    // viewer.setFirstPersonCamera(null, yawOffset, 0)
+    viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
 
     // todo restore this logic (need to preserve ability to move camera)
     // const xrCamera = renderer.xr.getCamera()
@@ -155,40 +144,40 @@ function setupCameraAndControllers (renderer: THREE.WebGLRenderer, viewer: any) 
     // todo ?
     // bot.physics.stepHeight = 1
 
-    // viewer.setFirstPersonCamera(null, yawOffset, 0)
-    viewer.setFirstPersonCamera(null, yawOffset, 0)
     viewer.render()
   })
-}
+  renderer.xr.addEventListener('sessionstart', () => {
+    viewer.cameraObjectOverride = user
+    // close all modals to be in game
+    for (const _modal of activeModalStack) {
+      hideModal(undefined, {}, { force: true })
+    }
+  })
+  renderer.xr.addEventListener('sessionend', () => {
+    viewer.cameraObjectOverride = undefined
+  })
 
-function setupControllerEvents (controller: any, hand: any, viewer: any, handedness: string) {
-  controller.addEventListener('connected', (event: any) => {
-    hand.xrInputSource = event.data
-    viewer.user.add(controller)
-  })
-  controller.addEventListener('disconnected', () => {
-    hand.xrInputSource = undefined
-  })
-  controller.add(hand)
+  watchUnloadForCleanup(disableVr)
 }
 
 const xrStandardRightButtonsMap = [
-  [0, 'Right Trigger'],
-  [1, 'Right Bumper'],
-  [3, 'Right Stick'],
-  [4, 'A'],
-  [5, 'B']
+  [0 /* trigger */, 'Right Trigger'],
+  [1 /* squeeze */, 'Right Bumper'],
+  // need to think of a way to support touchpad input
+  [3 /* Thumbstick Press */, 'Right Stick'],
+  [4 /* A */, 'A'],
+  [5 /* B */, 'B'],
 ]
-
 const xrStandardLeftButtonsMap = [
-  [0, 'Left Trigger'],
-  [1, 'Left Bumper'],
-  [3, 'Left Stick'],
-  [4, 'X'],
-  [5, 'Y']
+  [0 /* trigger */, 'Left Trigger'],
+  [1 /* squeeze */, 'Left Bumper'],
+  // need to think of a way to support touchpad input
+  [3 /* Thumbstick Press */, 'Left Stick'],
+  [4 /* A */, 'X'],
+  [5 /* B */, 'Y'],
 ]
-
 const remapButtons = (rightButtons: any[], leftButtons: any[]) => {
+  // return remapped buttons
   const remapped = [] as string[]
   const remapWithMap = (buttons, map) => {
     for (const [index, standardName] of map) {
@@ -200,21 +189,12 @@ const remapButtons = (rightButtons: any[], leftButtons: any[]) => {
   remapWithMap(leftButtons, xrStandardLeftButtonsMap)
   return remapped
 }
-
-const remapAxes = (axesRight: any[], axesLeft: any[]) => {
+const remapAxes = (axesRight, axesLeft) => {
+  // 0, 1 are reserved for touch
   return [
     axesLeft[2],
     axesLeft[3],
     axesRight[2],
     axesRight[3]
   ]
-}
-
-export function disableVR (vrButton: HTMLButtonElement | null, closeButton: HTMLButtonElement | null) {
-  if (vrButton) {
-    vrButton.remove()
-  }
-  if (closeButton) {
-    closeButton.remove()
-  }
 }
