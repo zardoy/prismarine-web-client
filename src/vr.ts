@@ -35,20 +35,20 @@ export async function initVR () {
         vrButton = createVrButton()
       }
       vrButton.hidden = false
-    } else {
-      disableVr()
+    } else if (vrButton) {
+      vrButton.hidden = true
     }
   }
 
   const unsubWatchSetting = subscribeKey(options, 'vrSupport', handleVrToggle)
 
   const disableVr = () => {
-    if (vrButton.parentNode) {
-      vrButton.remove()
-    }
     renderer.xr.enabled = false
     viewer.cameraObjectOverride = undefined
     viewer.scene.remove(user)
+    if (vrButton) {
+      vrButton.hidden = true
+    }
   }
 
   // hack for vr camera
