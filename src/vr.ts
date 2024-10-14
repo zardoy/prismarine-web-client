@@ -9,45 +9,95 @@ import { watchUnloadForCleanup } from './gameUnload'
 import { options } from './optionsStorage'
 
 export async function initVR () {
+  options.vrSupport = true
   const { renderer } = viewer
   if (!('xr' in navigator)) return
-  let isSupported = false
-  try {
-    isSupported = !!(await navigator.xr?.isSessionSupported('immersive-vr')) && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState
-  } catch (err) {
-    console.error('Error checking if VR is supported', err)
-  }
+
+  const isSupported = await checkVRSupport()
   if (!isSupported) return
-  renderer.xr.enabled = true
 
-  const createVrButton = () => {
-    const vrButton = VRButton.createButton(renderer)
-    document.body.appendChild(vrButton)
-    return vrButton
-  }
+  enableVr(renderer)
 
-  // VR Button
-  let vrButton = createVrButton()
-
+  const vrButtonContainer = createVrButtonContainer(renderer)
   const handleVrToggle = () => {
-    if (options.vrSupport) {
-      if (!vrButton.parentNode) {
-        vrButton = createVrButton()
-      }
-      vrButton.hidden = false
-    } else if (vrButton) {
-      vrButton.hidden = true
-    }
+    vrButtonContainer.hidden = !options.vrSupport
   }
 
   const unsubWatchSetting = subscribeKey(options, 'vrSupport', handleVrToggle)
 
-  const disableVr = () => {
+  function enableVr (renderer) {
+    renderer.xr.enabled = true
+  }
+
+  function disableVr () {
     renderer.xr.enabled = false
     viewer.cameraObjectOverride = undefined
     viewer.scene.remove(user)
-    if (vrButton) {
-      vrButton.hidden = true
+    vrButtonContainer.hidden = true
+    unsubWatchSetting()
+  }
+
+  function createVrButtonContainer (renderer) {
+    const container = document.createElement('div')
+    const vrButton = VRButton.createButton(renderer)
+    styleContainer(container)
+
+    const closeButton = createCloseButton(container)
+
+    container.appendChild(vrButton)
+    container.appendChild(closeButton)
+    document.body.appendChild(container)
+
+    return container
+  }
+
+  function styleContainer (container) {
+    Object.assign(container.style, {
+      position: 'absolute',
+      bottom: '90px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      display: 'flex',
+      alignItems: 'center',
+      padding: '12px 6px',
+      borderRadius: '4px',
+      zIndex: '999',
+    })
+  }
+
+  function createCloseButton (container) {
+    const closeButton = document.createElement('button')
+    closeButton.textContent = 'X'
+    Object.assign(closeButton.style, {
+      marginBottom: '25px',
+      width: '100px',
+      height: '20px',
+      backgroundColor: 'red',
+      color: 'white',
+      border: 'none',
+      borderRadius: '10%',
+      fontSize: '12px',
+      lineHeight: '20px',
+      cursor: 'pointer',
+      textAlign: 'center',
+    })
+
+    closeButton.addEventListener('click', () => {
+      container.hidden = true
+      options.vrSupport = false
+    })
+
+    return closeButton
+  }
+
+
+  async function checkVRSupport () {
+    try {
+      const supported = await navigator.xr?.isSessionSupported('immersive-vr')
+      return supported && !!XRSession.prototype.updateRenderState
+    } catch (err) {
+      console.error('Error checking if VR is supported', err)
+      return false
     }
   }
 
