@@ -15,24 +15,41 @@ export async function initVR () {
   try {
     isSupported = !!(await navigator.xr?.isSessionSupported('immersive-vr')) && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState
   } catch (err) {
-    console.error('Error checking if VR is supported')
-    console.error(err)
+    console.error('Error checking if VR is supported', err)
   }
   if (!isSupported) return
-
-  // VR Button
-  const vrButton = VRButton.createButton(renderer)
-  document.body.appendChild(vrButton)
   renderer.xr.enabled = true
 
-  const unsubWatchSetting = subscribeKey(options, 'vrSupport', () => {
-    const o = options
-    if (o.vrSupport) {
+  const createVrButton = () => {
+    const vrButton = VRButton.createButton(renderer)
+    document.body.appendChild(vrButton)
+    return vrButton
+  }
+
+  // VR Button
+  let vrButton = createVrButton()
+
+  const handleVrToggle = () => {
+    if (options.vrSupport) {
+      if (!vrButton.parentNode) {
+        vrButton = createVrButton()
+      }
       vrButton.hidden = false
     } else {
       disableVr()
     }
-  })
+  }
+
+  const unsubWatchSetting = subscribeKey(options, 'vrSupport', handleVrToggle)
+
+  const disableVr = () => {
+    if (vrButton.parentNode) {
+      vrButton.remove()
+    }
+    renderer.xr.enabled = false
+    viewer.cameraObjectOverride = undefined
+    viewer.scene.remove(user)
+  }
 
   // hack for vr camera
   const user = new THREE.Group()
@@ -41,14 +58,6 @@ export async function initVR () {
   const controllerModelFactory = new XRControllerModelFactory(new GLTFLoader())
   const controller1 = renderer.xr.getControllerGrip(0)
   const controller2 = renderer.xr.getControllerGrip(1)
-
-  const disableVr = () => {
-    vrButton.remove()
-    renderer.xr.enabled = false
-    viewer.cameraObjectOverride = undefined
-    viewer.scene.remove(user)
-    unsubWatchSetting()
-  }
 
   // todo the logic written here can be hard to understand as it was designed to work in gamepad api emulation mode, will be refactored once there is a contro-max rewrite is done
   const virtualGamepadIndex = 4
