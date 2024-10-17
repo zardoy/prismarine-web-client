@@ -6,7 +6,12 @@ import { createWorkerProxy } from './workerProxy'
 import { WebgpuRenderer } from './webgpuRenderer'
 import { RendererParams } from './webgpuRendererShared'
 
-export const allSides = [] as Array<[number, number, number, BlockFaceType] | undefined>
+type BlockTile = [number, number, number, BlockFaceType]
+
+/** @deprecated */
+export const allSides = [] as Array<BlockTile | undefined>
+export const chunkSides = new Map<string, BlockTile[]>()
+
 globalThis.allSides = allSides
 const allSidesAdded = 0
 const needsSidesUpdate = false
@@ -109,8 +114,6 @@ export const workerProxyType = createWorkerProxy({
     webgpuRenderer.rendering = false
   },
   resize (newWidth, newHeight) {
-    newWidth = newWidth
-    newHeight = newHeight
     updateSize(newWidth, newHeight)
   },
   updateConfig (params: RendererParams) {
@@ -147,32 +150,41 @@ export const workerProxyType = createWorkerProxy({
     this.addBlocksSection(blocks, `0,0,0`)
   },
   addBlocksSection (tiles: Record<string, BlockType>, key: string, update = true) {
-    const currentLength = allSides.length
-    // in: object - name, out: [x, y, z, name]
     const newData = Object.entries(tiles).flatMap(([key, value]) => {
       const [x, y, z] = key.split(',').map(Number)
       const block = value
       return block.faces.map((side) => {
-        return [x, y, z, side] as [number, number, number, BlockFaceType]
+        const xRel = x % 16
+        const zRel = z % 16
+        return [xRel, y, zRel, side] as [number, number, number, BlockFaceType]
       })
     })
-    // find freeIndexes if possible
-    const freeArea = freeArrayIndexes.find(([startIndex, endIndex]) => endIndex - startIndex >= newData.length)
-    if (freeArea) {
-      const [startIndex, endIndex] = freeArea
-      allSides.splice(startIndex, newData.length, ...newData)
-      lastNotUpdatedIndex ??= startIndex
-      const freeAreaIndex = freeArrayIndexes.indexOf(freeArea)
-      freeArrayIndexes[freeAreaIndex] = [startIndex + newData.length, endIndex]
-      if (freeArrayIndexes[freeAreaIndex][0] >= freeArrayIndexes[freeAreaIndex][1]) {
-        freeArrayIndexes.splice(freeAreaIndex, 1)
-        // todo merge
-      }
-      lastNotUpdatedArrSize = newData.length
-      console.log('using free area', freeArea)
+
+    if (chunkSides.has(key)) {
+      throw new Error(`Chunk ${key} already exists TODO updates`)
     }
 
-    chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
+    chunkSides.set(key, newData)
+
+    const currentLength = allSides.length
+    // // in: object - name, out: [x, y, z, name]
+    // // find freeIndexes if possible
+    // const freeArea = freeArrayIndexes.find(([startIndex, endIndex]) => endIndex - startIndex >= newData.length)
+    // if (freeArea) {
+    //   const [startIndex, endIndex] = freeArea
+    //   allSides.splice(startIndex, newData.length, ...newData)
+    //   lastNotUpdatedIndex ??= startIndex
+    //   const freeAreaIndex = freeArrayIndexes.indexOf(freeArea)
+    //   freeArrayIndexes[freeAreaIndex] = [startIndex + newData.length, endIndex]
+    //   if (freeArrayIndexes[freeAreaIndex][0] >= freeArrayIndexes[freeAreaIndex][1]) {
+    //     freeArrayIndexes.splice(freeAreaIndex, 1)
+    //     // todo merge
+    //   }
+    //   lastNotUpdatedArrSize = newData.length
+    //   console.log('using free area', freeArea)
+    // }
+
+    // chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
     let i = 0
     while (i < newData.length) {
       allSides.splice(currentLength + i, 0, ...newData.slice(i, i + 1024))

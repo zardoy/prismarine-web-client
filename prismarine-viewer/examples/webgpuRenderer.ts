@@ -5,7 +5,7 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
-import { updateSize, allSides } from './webgpuRendererWorker'
+import { updateSize, allSides, chunkSides } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
 
 export class WebgpuRenderer {
@@ -412,7 +412,7 @@ export class WebgpuRenderer {
     const blocksPerFace = {} as Record<string, boolean>
     for (const side of allSides.slice(startOffset)) {
       if (!side) continue
-      const [x, y, z] = side.slice(0, 3)
+      const [x, y, z] = side
       const key = `${x},${y},${z}`
       if (blocksPerFace[key]) continue
       positions.push(x as number, y as number, z as number)
@@ -437,13 +437,13 @@ export class WebgpuRenderer {
     }
 
     const BYTES_PER_ELEMENT = 2
-    const cubeData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
+    const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
     for (let i = 0; i < this.NUMBER_OF_CUBES; i++) {
-      const offset = i * 2;
-      let first = ((((textureIndexes[i] & 3) << 12) | positions[i * 3 + 2]) << 10 | positions[i * 3 + 1]) << 10 | positions[i * 3];
-      cubeData[offset] = first;
-      let second = ((((textureIndexes[i] >> 2) << 8) | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3];
-      cubeData[offset + 1] = second;
+      const offset = i * 2
+      const first = ((((textureIndexes[i] & 3) << 12) | positions[i * 3 + 2]) << 10 | positions[i * 3 + 1]) << 10 | positions[i * 3]
+      cubeFlatData[offset] = first
+      const second = ((((textureIndexes[i] >> 2) << 8) | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
+      cubeFlatData[offset + 1] = second
       // cubeData[offset] = positions[i * 3]
       // cubeData[offset + 1] = positions[i * 3 + 1]
       // cubeData[offset + 2] = positions[i * 3 + 2]
@@ -452,8 +452,20 @@ export class WebgpuRenderer {
       // cubeData[offset + 5] = colors[i * 3 + 1]
       // cubeData[offset + 6] = colors[i * 3 + 2]
     }
+    const chunksCount = chunkSides.size
+    const chunksKeys = [...chunkSides.keys()]
+    const chunksBuffer = new Uint32Array(chunksCount * 3)
+    for (let i = 0; i < chunksCount; i++) {
+      const offset = i * 3
+      const chunkKey = chunksKeys[i]
+      const [x, z] = chunkKey.split(',').map(Number)
+      chunksBuffer[offset] = x
+      chunksBuffer[offset + 1] = z
+      chunksBuffer[offset + 2] = chunkSides.get(chunkKey)!.length
+    }
 
-    this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeData)
+    this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeFlatData)
+    // this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
 
     this.notRenderedAdditions++
