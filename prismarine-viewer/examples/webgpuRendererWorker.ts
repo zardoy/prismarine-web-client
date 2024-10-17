@@ -122,7 +122,7 @@ export const workerProxyType = createWorkerProxy({
       webgpuRenderer?.updateConfig(params)
     })
   },
-  generateRandom (count: number, offset = 0) {
+  generateRandom (count: number, offsetX = 0, offsetZ = 0) {
     const square = Math.sqrt(count)
     if (square % 1 !== 0) throw new Error('square must be a whole number')
     const blocks = {}
@@ -132,8 +132,8 @@ export const workerProxyType = createWorkerProxy({
         textureIndex: Math.floor(Math.random() * 512)
       }
     }
-    for (let x = offset; x < square + offset; x++) {
-      for (let z = offset; z < square + offset; z++) {
+    for (let x = offsetX; x < square + offsetX; x++) {
+      for (let z = offsetZ; z < square + offsetZ; z++) {
         blocks[`${x},${0},${z}`] = {
           faces: [
             getFace(0),
@@ -147,13 +147,14 @@ export const workerProxyType = createWorkerProxy({
       }
     }
     console.log('generated random data:', count)
-    this.addBlocksSection(blocks, `0,0,0`)
+    this.addBlocksSection(blocks, `${offsetX},0,${offsetZ}`)
   },
   addBlocksSection (tiles: Record<string, BlockType>, key: string, update = true) {
     const newData = Object.entries(tiles).flatMap(([key, value]) => {
       const [x, y, z] = key.split(',').map(Number)
       const block = value
-      return block.faces.map((side) => {
+      return block.faces.slice(0, 1).map((side) => {
+      // return block.faces.map((side) => {
         const xRel = x % 16
         const zRel = z % 16
         return [xRel, y, zRel, side] as [number, number, number, BlockFaceType]
@@ -164,7 +165,9 @@ export const workerProxyType = createWorkerProxy({
       throw new Error(`Chunk ${key} already exists TODO updates`)
     }
 
-    chunkSides.set(key, newData)
+    const [xSection, ySection, zSection] = key.split(',').map(Number)
+    const chunkKey = `${xSection / 16},${ySection / 16},${zSection / 16}`
+    chunkSides.set(chunkKey, newData)
 
     const currentLength = allSides.length
     // // in: object - name, out: [x, y, z, name]

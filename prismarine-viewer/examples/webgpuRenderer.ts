@@ -45,6 +45,8 @@ export class WebgpuRenderer {
   secondCameraUniform: GPUBuffer
 
   multisampleTexture: GPUTexture | undefined
+  chunksBuffer: GPUBuffer
+  chunkBindGroup: GPUBindGroup
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
@@ -228,15 +230,23 @@ export class WebgpuRenderer {
       label: 'computeBindGroupLayout',
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
-        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
       ],
     })
 
+    const computeChunksLayout = device.createBindGroupLayout({
+      label: 'computeChunksLayout',
+      entries: [
+        { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+      ],
+    })
+
+
     const computePipelineLayout = device.createPipelineLayout({
       label: 'computePipelineLayout',
-      bindGroupLayouts: [computeBindGroupLayout],
+      bindGroupLayouts: [computeBindGroupLayout, computeChunksLayout]
 
     })
 
@@ -316,6 +326,10 @@ export class WebgpuRenderer {
           binding: 1,
           resource: { buffer: this.visibleCubesBuffer },
         },
+        {
+          binding: 2,
+          resource: { buffer: this.chunksBuffer },
+        }
       ],
     })
 
@@ -363,7 +377,20 @@ export class WebgpuRenderer {
         },
       ],
     })
+
+    this.chunkBindGroup = device.createBindGroup({
+      layout: this.computePipeline.getBindGroupLayout(1),
+      label: 'computeBindGroup',
+      entries: [
+        {
+          binding: 0,
+          resource: { buffer: this.chunksBuffer },
+        },
+      ],
+    })
   }
+
+  
 
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
@@ -375,6 +402,14 @@ export class WebgpuRenderer {
       size: this.NUMBER_OF_CUBES * 8, // 8 floats per cube - minimum buffer size
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
+
+    this.chunksBuffer = this.device.createBuffer({
+      label: 'chunksBuffer',
+      size: 1024 * 12, // 8 floats per cube - minimum buffer size
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+    })
+
+
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
@@ -397,7 +432,7 @@ export class WebgpuRenderer {
   waitingNextUpdateSidesOffset = undefined as undefined | number
 
   updateSides (startOffset = 0) {
-    if (this.waitingNextUpdateSidesOffset && this.waitingNextUpdateSidesOffset <= startOffset) return
+    if (this.waitingNextUpdateSidesOffset !== undefined && startOffset >= this.waitingNextUpdateSidesOffset) return
     console.log('updating', startOffset, !!this.waitingNextUpdateSidesOffset)
     this.waitingNextUpdateSidesOffset = startOffset
   }
@@ -409,12 +444,9 @@ export class WebgpuRenderer {
     const positions = [] as number[]
     const textureIndexes = [] as number[]
     const colors = [] as number[]
-    const blocksPerFace = {} as Record<string, boolean>
     for (const side of allSides.slice(startOffset)) {
       if (!side) continue
       const [x, y, z] = side
-      const key = `${x},${y},${z}`
-      if (blocksPerFace[key]) continue
       positions.push(x as number, y as number, z as number)
       const face = side[3]
       textureIndexes.push(face.textureIndex)
@@ -423,14 +455,14 @@ export class WebgpuRenderer {
       } else {
         colors.push(1, 1, 1)
       }
-      blocksPerFace[key] = true
     }
 
     const NUMBER_OF_CUBES_NEEDED = Math.ceil(positions.length / 3)
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
       console.warn('extending number of cubes', NUMBER_OF_CUBES_NEEDED, this.NUMBER_OF_CUBES)
-      this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEEDED + 5000
+      this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEEDED
+      
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
@@ -439,10 +471,12 @@ export class WebgpuRenderer {
     const BYTES_PER_ELEMENT = 2
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
     for (let i = 0; i < this.NUMBER_OF_CUBES; i++) {
+      
+      
       const offset = i * 2
-      const first = ((((textureIndexes[i] & 3) << 12) | positions[i * 3 + 2]) << 10 | positions[i * 3 + 1]) << 10 | positions[i * 3]
+      const first = (((textureIndexes[i] << 10) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3] 
+      const second = ((colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
       cubeFlatData[offset] = first
-      const second = ((((textureIndexes[i] >> 2) << 8) | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
       cubeFlatData[offset + 1] = second
       // cubeData[offset] = positions[i * 3]
       // cubeData[offset + 1] = positions[i * 3 + 1]
@@ -454,18 +488,18 @@ export class WebgpuRenderer {
     }
     const chunksCount = chunkSides.size
     const chunksKeys = [...chunkSides.keys()]
-    const chunksBuffer = new Uint32Array(chunksCount * 3)
+    const chunksBuffer = new Int32Array(chunksCount * 3)
     for (let i = 0; i < chunksCount; i++) {
       const offset = i * 3
       const chunkKey = chunksKeys[i]
-      const [x, z] = chunkKey.split(',').map(Number)
+      const [x, y, z] = chunkKey.split(',').map(Number)
       chunksBuffer[offset] = x
       chunksBuffer[offset + 1] = z
       chunksBuffer[offset + 2] = chunkSides.get(chunkKey)!.length
     }
 
     this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeFlatData)
-    // this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
+    this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
 
     this.notRenderedAdditions++
@@ -559,6 +593,7 @@ export class WebgpuRenderer {
     computePass.setPipeline(this.computePipeline)
     //computePass.setBindGroup(0, this.uniformBindGroup);
     computePass.setBindGroup(0, this.computeBindGroup)
+    computePass.setBindGroup(1, this.chunkBindGroup)
     computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
     computePass.end()
     this.updateCubesBuffersDataFromLoop()

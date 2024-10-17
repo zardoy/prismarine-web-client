@@ -3,6 +3,13 @@ struct Cube {
   cube : array<u32, 2>
 }
 
+struct Chunk{
+  x : i32,
+  z : i32,
+  cubesCount : u32
+}
+
+
 struct VertexOutput {
   @builtin(position) Position: vec4f,
   @location(0) fragUV: vec2f,
@@ -12,6 +19,7 @@ struct VertexOutput {
 @group(1) @binding(0) var<storage, read> cubes: array<Cube>;
 @group(0) @binding(0) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
 @group(1) @binding(1) var<storage, read> visibleCubes: array<u32>;
+@group(1) @binding(2) var<storage, read> chunks : array<Chunk>;
 
 @vertex
 fn main(
@@ -20,12 +28,16 @@ fn main(
   @location(1) uv: vec2<f32>
 ) -> VertexOutput {
   let cube = cubes[visibleCubes[instanceIndex]];
-  let positionX : f32 = f32(cube.cube[0] & 1023);
-  let positionY : f32 = f32((cube.cube[0] >> 10) & 1023);
-  let positionZ : f32 = f32((cube.cube[0] >> 20) & 1023);
-  let textureIndex : f32 = f32((((cube.cube[1] >> 24) & 255) << 2) | ((cube.cube[0] >> 30) & 3) ); 
+  let chunkIndex = cube.cube[1] >> 24;
+  let chunk = chunks[chunkIndex];
+
+  let positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
+  let positionY : f32 = f32((cube.cube[0] >> 4) & 511); //9 bytes
+  let positionZ : f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16); // 4 bytes
+  let textureIndex : f32 = f32((cube.cube[0] >> 17) & 1023); 
   //textureIndex = 1.0;
   let cube_position = vec4f(positionX, positionY, positionZ, 0.0);
+
   let colorBlendR : f32 = f32(cube.cube[1] & 255);
   let colorBlendG : f32 = f32((cube.cube[1] >> 8) & 255);
   let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 255);
