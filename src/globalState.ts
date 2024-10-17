@@ -109,6 +109,8 @@ export type AppConfig = {
   defaultProxy?: string
   // defaultProxySave?: string
   // defaultVersion?: string
+  peerJsServer?: string
+  peerJsServerFallback?: string
   promoteServers?: Array<{ ip, description, version? }>
   mapsProvider?: string
 }
@@ -120,6 +122,7 @@ export const miscUiState = proxy({
   singleplayer: false,
   flyingSquid: false,
   wanOpened: false,
+  wanOpening: false,
   /** wether game hud is shown (in playing state) */
   gameLoaded: false,
   showUI: true,

@@ -1,5 +1,5 @@
 import './deathScreen.css'
-import type { MessageFormatPart } from '../botUtils'
+import type { MessageFormatPart } from '../chatUtils'
 import MessageFormatted from './MessageFormatted'
 import Button from './Button'
 

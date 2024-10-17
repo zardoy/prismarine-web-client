@@ -17,7 +17,8 @@ export const appAndRendererSharedConfig = () => defineConfig({
     output: {
         polyfill: 'usage',
         // 50kb limit for data uri
-        dataUriLimit: 50 * 1024
+        dataUriLimit: 50 * 1024,
+        assetPrefix: './',
     },
     source: {
         alias: {

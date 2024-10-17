@@ -6,6 +6,7 @@ import { closeWan, openToWanAndCopyJoinLink } from './localServerMultiplayer'
 import { copyFilesAsync, uniqueFileNameFromWorldName } from './browserfs'
 import { saveServer } from './flyingSquidUtils'
 import { setLoadingScreenStatus } from './utils'
+import { displayClientChat } from './botUtils'
 
 const notImplemented = () => {
   return 'Not implemented yet'
@@ -75,9 +76,7 @@ const exportLoadedWorld = async () => {
 window.exportWorld = exportLoadedWorld
 
 const writeText = (text) => {
-  bot._client.emit('chat', {
-    message: JSON.stringify({ text })
-  })
+  displayClientChat(text)
 }
 
 const commands: Array<{

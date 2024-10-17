@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useUtilsEffect } from '@zardoy/react-util'
 import { ConnectOptions } from '../connect'
 import { hideCurrentModal, miscUiState, showModal } from '../globalState'
 import supportedVersions from '../supportedVersions.mjs'
@@ -169,13 +170,16 @@ const Inner = () => {
     return serversList.map((server, index) => ({ ...server, index })).sort((a, b) => (b.lastJoined ?? 0) - (a.lastJoined ?? 0))
   }, [serversList])
 
-  useEffect(() => {
+  useUtilsEffect(({ signal }) => {
     const update = async () => {
       for (const server of serversListSorted) {
         const isInLocalNetwork = server.ip.startsWith('192.168.') || server.ip.startsWith('10.') || server.ip.startsWith('172.') || server.ip.startsWith('127.') || server.ip.startsWith('localhost')
-        if (isInLocalNetwork) continue
+        if (isInLocalNetwork || signal.aborted) continue
         // eslint-disable-next-line no-await-in-loop
-        await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`).then(async r => r.json()).then((data: ServerResponse) => {
+        await fetch(`https://api.mcstatus.io/v2/status/java/${server.ip}`, {
+          // TODO: bounty for this who fix it
+          // signal
+        }).then(async r => r.json()).then((data: ServerResponse) => {
           const versionClean = data.version?.name_raw.replace(/^[^\d.]+/, '')
           if (!versionClean) return
           setAdditionalData(old => {

@@ -1,6 +1,6 @@
 import { proxy, subscribe } from 'valtio'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { MessageFormatPart } from '../botUtils'
+import { MessageFormatPart } from '../chatUtils'
 import { MessagePart } from './MessageFormatted'
 import './Chat.css'
 import { isIos, reactKeyForMessage } from './utils'
