@@ -69,6 +69,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
       clipY >= - Oversize && clipY <= Oversize) { //Small Oversize because binding size
     let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
     visibleCubes[visibleIndex] = index;
-    cubes[visibleIndex].cube[1] |= visibleIndex << 24;
+    cubes[index].cube[1] = ((i << 24) | (cubes[index].cube[1] & 16777215));
   }
 }
