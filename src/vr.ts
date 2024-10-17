@@ -4,6 +4,7 @@ import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerM
 import { buttonMap as standardButtonsMap } from 'contro-max/build/gamepad'
 import * as THREE from 'three'
 import { subscribeKey } from 'valtio/utils'
+import { subscribe } from 'valtio'
 import { activeModalStack, hideModal } from './globalState'
 import { watchUnloadForCleanup } from './gameUnload'
 import { options } from './optionsStorage'
@@ -19,11 +20,12 @@ export async function initVR () {
   enableVr(renderer)
 
   const vrButtonContainer = createVrButtonContainer(renderer)
-  const handleVrToggle = () => {
-    vrButtonContainer.hidden = !options.vrSupport
+  const updateVrButtons = () => {
+    vrButtonContainer.hidden = !options.vrSupport || activeModalStack.length !== 0
   }
 
-  const unsubWatchSetting = subscribeKey(options, 'vrSupport', handleVrToggle)
+  const unsubWatchSetting = subscribeKey(options, 'vrSupport', updateVrButtons)
+  const unsubWatchModals = subscribe(activeModalStack, updateVrButtons)
 
   function enableVr (renderer) {
     renderer.xr.enabled = true
@@ -35,6 +37,7 @@ export async function initVR () {
     viewer.scene.remove(user)
     vrButtonContainer.hidden = true
     unsubWatchSetting()
+    unsubWatchModals()
   }
 
   function createVrButtonContainer (renderer) {
@@ -51,35 +54,32 @@ export async function initVR () {
     return container
   }
 
-  function styleContainer (container) {
-    Object.assign(container.style, {
+  function styleContainer (container: HTMLElement) {
+    typedAssign(container.style, {
       position: 'absolute',
-      bottom: '90px',
-      left: '50%',
-      transform: 'translateX(-50%)',
+      bottom: '80px',
+      left: '0',
+      right: '0',
       display: 'flex',
-      alignItems: 'center',
-      padding: '12px 6px',
-      borderRadius: '4px',
-      zIndex: '999',
+      justifyContent: 'center',
+      zIndex: '8',
+      gap: '8px',
     })
   }
 
-  function createCloseButton (container) {
+  function createCloseButton (container: HTMLElement) {
     const closeButton = document.createElement('button')
     closeButton.textContent = 'X'
-    Object.assign(closeButton.style, {
-      marginBottom: '25px',
-      width: '100px',
-      height: '20px',
-      backgroundColor: 'red',
+    typedAssign(closeButton.style, {
+      padding: '0 12px',
       color: 'white',
-      border: 'none',
-      borderRadius: '10%',
-      fontSize: '12px',
+      fontSize: '14px',
       lineHeight: '20px',
       cursor: 'pointer',
-      textAlign: 'center',
+      background: 'transparent',
+      border: '1px solid rgb(255, 255, 255)',
+      borderRadius: '4px',
+      opacity: '0.7',
     })
 
     closeButton.addEventListener('click', () => {
@@ -256,4 +256,8 @@ const remapAxes = (axesRight, axesLeft) => {
     axesRight[2],
     axesRight[3]
   ]
+}
+
+function typedAssign<T extends Record<string, any>> (target: T, source: Partial<T>) {
+  Object.assign(target, source)
 }
