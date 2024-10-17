@@ -4,7 +4,7 @@ import * as scenes from './scenes'
 
 const qsScene = new URLSearchParams(window.location.search).get('scene')
 const Scene: typeof BasePlaygroundScene = qsScene ? scenes[qsScene] : scenes.main
-playgroundGlobalUiState.scenes = ['main', 'railsCobweb', 'floorRandom', 'lightingStarfield', 'transparencyIssue', 'entities']
+playgroundGlobalUiState.scenes = ['main', 'railsCobweb', 'floorRandom', 'lightingStarfield', 'transparencyIssue', 'entities', 'frequentUpdates']
 playgroundGlobalUiState.selected = qsScene ?? 'main'
 
 const scene = new Scene()

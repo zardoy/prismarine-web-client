@@ -45,8 +45,9 @@ export class BasePlaygroundScene {
   windowHidden = false
 
   constructor () {
-    void this.initData()
-    this.addKeyboardShortcuts()
+    void this.initData().then(() => {
+      this.addKeyboardShortcuts()
+    })
   }
 
   onParamsUpdate (paramName: string, object: any) {}
@@ -110,6 +111,19 @@ export class BasePlaygroundScene {
     this.mainChunk.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
   }
 
+  resetCamera () {
+    const { targetPos } = this
+    this.controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+
+    const cameraPos = targetPos.offset(2, 2, 2)
+    const pitch = THREE.MathUtils.degToRad(-45)
+    const yaw = THREE.MathUtils.degToRad(45)
+    viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+    viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+    viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
+    this.controls.update()
+  }
+
   async initData () {
     await window._LOAD_MC_DATA()
     const mcData: IndexedData = require('minecraft-data')(this.version)
@@ -158,15 +172,8 @@ export class BasePlaygroundScene {
       const { targetPos } = this
       const controls = new OrbitControls(viewer.camera, renderer.domElement)
       this.controls = controls
-      controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
-      const cameraPos = targetPos.offset(2, 2, 2)
-      const pitch = THREE.MathUtils.degToRad(-45)
-      const yaw = THREE.MathUtils.degToRad(45)
-      viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-      viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
-      viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
-      controls.update()
+      this.resetCamera()
 
       // #region camera rotation param
       const cameraSet = this.params.camera || localStorage.camera
@@ -225,13 +232,8 @@ export class BasePlaygroundScene {
   addKeyboardShortcuts () {
     document.addEventListener('keydown', (e) => {
       if (e.code === 'KeyR' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        // reset camera
-        viewer.camera.position.set(0, 0, 0)
-        viewer.camera.rotation.set(0, 0, 0)
-        viewer.camera.updateProjectionMatrix()
-        this.controls.target.set(this.targetPos.x + 0.5, this.targetPos.y + 0.5, this.targetPos.z + 0.5)
-        this.controls.update()
-        this.render()
+        this.controls.reset()
+        this.resetCamera()
       }
     })
     document.addEventListener('visibilitychange', () => {
@@ -242,6 +244,64 @@ export class BasePlaygroundScene {
     })
     document.addEventListener('focus', () => {
       this.windowHidden = false
+    })
+
+    const updateKeys = () => {
+      // if (typeof viewer === 'undefined') return
+      // Create a vector that points in the direction the camera is looking
+      const direction = new THREE.Vector3(0, 0, 0)
+      if (pressedKeys.has('KeyW')) {
+        direction.z = -0.5
+      }
+      if (pressedKeys.has('KeyS')) {
+        direction.z += 0.5
+      }
+      if (pressedKeys.has('KeyA')) {
+        direction.x -= 0.5
+      }
+      if (pressedKeys.has('KeyD')) {
+        direction.x += 0.5
+      }
+
+
+      if (pressedKeys.has('ShiftLeft')) {
+        viewer.camera.position.y -= 0.5
+      }
+      if (pressedKeys.has('Space')) {
+        viewer.camera.position.y += 0.5
+      }
+      direction.applyQuaternion(viewer.camera.quaternion)
+      direction.y = 0
+
+      if (pressedKeys.has('ShiftLeft')) {
+        direction.y *= 2
+        direction.x *= 2
+        direction.z *= 2
+      }
+      // Add the vector to the camera's position to move the camera
+      viewer.camera.position.add(direction)
+      this.controls.update()
+      this.render()
+    }
+    setInterval(updateKeys, 1000 / 30)
+
+    const pressedKeys = new Set<string>()
+    const keys = (e) => {
+      const { code } = e
+      const pressed = e.type === 'keydown'
+      if (pressed) {
+        pressedKeys.add(code)
+      } else {
+        pressedKeys.delete(code)
+      }
+    }
+
+    window.addEventListener('keydown', keys)
+    window.addEventListener('keyup', keys)
+    window.addEventListener('blur', (e) => {
+      for (const key of pressedKeys) {
+        keys(new KeyboardEvent('keyup', { code: key }))
+      }
     })
   }
 
