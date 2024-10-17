@@ -709,7 +709,7 @@ async function connect (connectOptions: ConnectOptions) {
 
 
     // Link WorldDataEmitter and Viewer
-    viewer.listen(worldView)
+    viewer.connect(worldView)
     worldView.listenToBot(bot)
     void worldView.init(bot.entity.position)
 
