@@ -267,13 +267,14 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         const blockX = chunkWorldX + x
         const blockZ = chunkWorldZ + z
         const index = z * 16 + x
+        heightmap[index] -= 1
+        if (heightmap[index] < 0) heightmap[index] = 0
         const blockY = heightmap[index]
         const block = chunkInfo.getBlock(new Vec3(blockX & 15, blockY, blockZ & 15))
         if (!block) {
           console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
           return
         }
-        heightmap[index] = blockY
         const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
         colors[index] = color
       }
