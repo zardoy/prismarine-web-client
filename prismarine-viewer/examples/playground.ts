@@ -286,7 +286,7 @@ async function main () {
   const blocks: Record<string, BlockType> = {}
   const i = 0
   console.log('generating random data')
-  const chunkSize = 16
+  const chunkSize = Number(new URLSearchParams(window.location.search).get('chunkSize') || 16)
   for (let x = -chunkSize; x < chunkSize; x++) {
     for (let z = -chunkSize; z < chunkSize; z++) {
       webgpuChannel.generateRandom(16 ** 2, x * 16, z * 16) 
