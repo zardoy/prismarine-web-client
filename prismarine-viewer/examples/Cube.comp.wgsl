@@ -15,10 +15,14 @@ struct IndirectDrawParams {
   firstInstance: u32,
 }
 
+struct CubePointer {
+  ptr: array<u32, 2>
+}
+
 @group(0) @binding(0) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
 @group(1) @binding(0) var<storage, read> chunks : array<Chunk>;
 @group(0) @binding(1) var<storage, read_write> cubes: array<Cube>;
-@group(0) @binding(2) var<storage, read_write> visibleCubes: array<u32>; 
+@group(0) @binding(2) var<storage, read_write> visibleCubes: array<CubePointer>;
 @group(0) @binding(3) var<storage, read_write> drawParams: IndirectDrawParams;
              
 @compute @workgroup_size(256)
@@ -68,8 +72,9 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
       clipX >= -Oversize && clipX <= Oversize &&
       clipY >= - Oversize && clipY <= Oversize) { //Small Oversize because binding size
     let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
-    visibleCubes[visibleIndex] = index;
-    cubes[index].cube[1] = ((i << 24) | (cubes[index].cube[1] & 16777215));
-    cubes[index].cube[0] = (((i>>8) << 27) | (cubes[index].cube[0] & 134217727));
+    visibleCubes[visibleIndex].ptr[0] = index;
+    visibleCubes[visibleIndex].ptr[1] = i;
+   // cubes[index].cube[1] = ((i << 24) | (cubes[index].cube[1] & 16777215));
+   // cubes[index].cube[0] = (((i>>8) << 27) | (cubes[index].cube[0] & 134217727));
   }
 }
