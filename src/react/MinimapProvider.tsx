@@ -81,17 +81,19 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const region = new RegionFile(path)
       void region.initialize()
       this.regions.set(regionKey, region)
-      const readX = chunkX + (regionX > 0 ? 1 : -1) * regionX * 32
-      const readZ = chunkZ + (regionZ > 0 ? 1 : -1) * regionZ * 32
+      const readX = chunkX % 32
+      const readZ = chunkZ % 32
       void this.regions.get(regionKey)!.read(readX, readZ).then((rawChunk) => {
         const chunk = simplify(rawChunk as any)
         const heightmap = findHeightMap(chunk)
         if (heightmap) {
           this.isBuiltinHeightmapAvailable = true
           this.loadChunkFullmap = this.loadChunkFromRegion
+          console.log('using heightmap')
         } else {
           this.isBuiltinHeightmapAvailable = false
           this.loadChunkFullmap = this.loadChunkNoRegion
+          console.log('dont use heightmap')
         }
       })
     } else {
@@ -210,7 +212,13 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
             continue
           }
           heightmap[index] = hBlock.y
-          const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
+          let color: string
+          if (this.isOldVersion) {
+            color = BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] 
+              ?? 'rgb(0, 0, 255)' 
+          } else {
+            color = this.blockData[block.name] ?? 'rgb(0, 255, 0)'
+          }
           colors[index] = color
         }
       }
@@ -239,8 +247,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         const blockY = this.getHighestBlockY(blockX, blockZ, chunkInfo)
         const block = chunkInfo.getBlock(new Vec3(blockX & 15, blockY, blockZ & 15))
         if (!block) {
-          console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
-          return
+          console.warn(`[cannot get the block] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
+          return null
         }
         const index = z * 16 + x
         heightmap[index] = blockY
@@ -272,8 +280,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         const blockY = heightmap[index]
         const block = chunkInfo.getBlock(new Vec3(blockX & 15, blockY, blockZ & 15))
         if (!block) {
-          console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
-          return
+          console.warn(`[cannot get the block] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
+          return null
         }
         const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
         colors[index] = color
@@ -295,9 +303,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       await region.initialize()
       this.regions.set(regionKey, region)
     }
-    const rawChunk = await this.regions.get(regionKey)! .read(
-      chunkX + (regionX > 0 ? 1 : -1) * regionX * 32, chunkZ + (regionZ > 0 ? 1 : -1) * regionZ * 32
-    )
+    const rawChunk = await this.regions.get(regionKey)!.read(chunkX % 32, chunkZ % 32)
     const chunk = simplify(rawChunk as any)
     console.log(`chunk ${chunkX}, ${chunkZ}:`, chunk)
     const heightmap = findHeightMap(chunk)
