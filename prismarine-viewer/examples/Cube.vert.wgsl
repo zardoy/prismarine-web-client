@@ -28,7 +28,7 @@ fn main(
   @location(1) uv: vec2<f32>
 ) -> VertexOutput {
   let cube = cubes[visibleCubes[instanceIndex]];
-  let chunkIndex = cube.cube[1] >> 24;
+  let chunkIndex = (cube.cube[1] >> 24)  + ((cube.cube[0] >> 27) << 8);
   let chunk = chunks[chunkIndex];
 
   let positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes

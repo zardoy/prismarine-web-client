@@ -208,9 +208,9 @@ async function main () {
       direction.y = 0
 
       if (pressedKeys.has('ShiftLeft')) {
-        direction.y *= 200
-        direction.x *= 200
-        direction.z *= 200
+        direction.y *= 8
+        direction.x *= 8
+        direction.z *= 8
       }
       // Add the vector to the camera's position to move the camera
       viewer.camera.position.add(direction)
@@ -286,10 +286,10 @@ async function main () {
   const blocks: Record<string, BlockType> = {}
   const i = 0
   console.log('generating random data')
-  const chunkSize = 32
-  for (let x = 0; x < chunkSize; x++) {
-    for (let z = 0; z < chunkSize; z++) {
-      webgpuChannel.generateRandom(16 ** 2, z ** 2 * 16, x * 16) 
+  const chunkSize = 16
+  for (let x = -chunkSize; x < chunkSize; x++) {
+    for (let z = -chunkSize; z < chunkSize; z++) {
+      webgpuChannel.generateRandom(16 ** 2, x * 16, z * 16) 
     }
   }
 

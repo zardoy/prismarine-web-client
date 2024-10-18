@@ -70,5 +70,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
     visibleCubes[visibleIndex] = index;
     cubes[index].cube[1] = ((i << 24) | (cubes[index].cube[1] & 16777215));
+    cubes[index].cube[0] = (((i>>8) << 27) | (cubes[index].cube[0] & 134217727));
   }
 }
