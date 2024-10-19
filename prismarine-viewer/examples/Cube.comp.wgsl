@@ -41,9 +41,18 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   var i : u32 = 0;
   while (counter + chunks[i].cubesCount < index)
   {
+      if (i >= arrayLength(&chunks)) {
+    return;
+    }
+
       counter += chunks[i].cubesCount;
       i++;
   }
+
+
+  // if (i >= arrayLength(&chunks)) {
+  //   return;
+  // }
 
   let chunk = chunks[i];
 
@@ -70,7 +79,8 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   if (
       clipDepth > 0 && clipDepth <=  1 &&
       clipX >= -Oversize && clipX <= Oversize &&
-      clipY >= - Oversize && clipY <= Oversize) { //Small Oversize because binding size
+      clipY >= - Oversize && clipY <= Oversize) 
+  { //Small Oversize because binding size
     let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
     visibleCubes[visibleIndex].ptr[0] = index;
     visibleCubes[visibleIndex].ptr[1] = i;
