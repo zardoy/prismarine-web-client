@@ -413,7 +413,7 @@ export class WebgpuRenderer {
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
-      size: this.NUMBER_OF_CUBES * 4,
+      size: this.NUMBER_OF_CUBES * 8,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
