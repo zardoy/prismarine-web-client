@@ -474,17 +474,10 @@ export class WebgpuRenderer {
 
 
       const offset = i * 2
-      const first = (((textureIndexes[i] << 10) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
+      const first = (((textureIndexes[i] << 4) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
       const second = ((colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
       cubeFlatData[offset] = first
-      cubeFlatData[offset + 1] = second
-      // cubeData[offset] = positions[i * 3]
-      // cubeData[offset + 1] = positions[i * 3 + 1]
-      // cubeData[offset + 2] = positions[i * 3 + 2]
-      // cubeData[offset + 3] = textureIndexes[i]
-      // cubeData[offset + 4] = colors[i * 3]
-      // cubeData[offset + 5] = colors[i * 3 + 1]
-      // cubeData[offset + 6] = colors[i * 3 + 2]
+      cubeFlatData[offset + 1] = second 
     }
     const chunksCount = chunkSides.size
     const chunksKeys = [...chunkSides.keys()]
