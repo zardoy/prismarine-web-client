@@ -5,7 +5,7 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
-import { updateSize, allSides, chunkSides } from './webgpuRendererWorker'
+import { chunksStorage, updateSize } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
 
 export class WebgpuRenderer {
@@ -444,7 +444,8 @@ export class WebgpuRenderer {
     const positions = [] as number[]
     const textureIndexes = [] as number[]
     const colors = [] as number[]
-    for (const side of allSides.slice(startOffset)) {
+    const { allSides, chunkSides } = chunksStorage.getDataForBuffers()
+    for (const side of allSides) {
       if (!side) continue
       const [x, y, z] = side
       positions.push(x, y, z)
@@ -457,7 +458,8 @@ export class WebgpuRenderer {
       }
     }
 
-    const NUMBER_OF_CUBES_NEEDED = Math.ceil(positions.length / 3)
+    const actualCount = Math.ceil(positions.length / 3)
+    const NUMBER_OF_CUBES_NEEDED = actualCount
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
       console.warn('extending number of cubes', NUMBER_OF_CUBES_NEEDED, this.NUMBER_OF_CUBES)
@@ -470,30 +472,60 @@ export class WebgpuRenderer {
 
     const BYTES_PER_ELEMENT = 2
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
-    for (let i = 0; i < this.NUMBER_OF_CUBES; i++) {
-
-
+    for (let i = 0; i < actualCount; i++) {
       const offset = i * 2
       const first = (((textureIndexes[i] << 4) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
       const second = ((colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
       cubeFlatData[offset] = first
-      cubeFlatData[offset + 1] = second 
+      cubeFlatData[offset + 1] = second
     }
     const chunksCount = chunkSides.size
     const chunksKeys = [...chunkSides.keys()]
     const chunksBuffer = new Int32Array(chunksCount * 3)
+    let totalFromChunks = 0
     for (let i = 0; i < chunksCount; i++) {
       const offset = i * 3
       const chunkKey = chunksKeys[i]
       const [x, y, z] = chunkKey.split(',').map(Number)
       chunksBuffer[offset] = x
       chunksBuffer[offset + 1] = z
-      chunksBuffer[offset + 2] = chunkSides.get(chunkKey)!.length
+      const cubesCount = chunkSides.get(chunkKey)!.length
+      chunksBuffer[offset + 2] = cubesCount
+      totalFromChunks += cubesCount
+    }
+    if (totalFromChunks !== actualCount) {
+      reportError?.(new Error(`Buffers length mismatch: chunks: ${totalFromChunks}, flat data: ${actualCount}`))
     }
 
     this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeFlatData)
     this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
+    Object.defineProperty(window, 'getBufferBlocksPositions', {
+      get () {
+        let minX = 0
+        let minZ = 0
+        let maxX = 0
+        let maxZ = 0
+        for (let i = 0; i < positions.length; i += 3) {
+          const x = positions[i]
+          const z = positions[i + 2]
+          minX = Math.min(minX, x)
+          minZ = Math.min(minZ, z)
+          maxX = Math.max(maxX, x)
+          maxZ = Math.max(maxZ, z)
+        }
+        console.log({ minX, minZ, maxX, maxZ })
+        let str = ''
+        for (let x = -minX; x <= maxX; x++) {
+          for (let z = -minZ; z <= maxZ; z++) {
+            const hasBlock = allSides.some(side => side && side[0] === x && side[2] === z)
+            str += hasBlock ? 'X' : ' '
+          }
+          str += '\n'
+        }
+        return str
+      },
+    })
 
     this.notRenderedAdditions++
     console.timeEnd('updateSides')
@@ -512,6 +544,7 @@ export class WebgpuRenderer {
     return camera
   })()
 
+  // debugBlockPositions() {}
 
 
   loop (forceFrame = false) {

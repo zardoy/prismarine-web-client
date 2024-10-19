@@ -10,7 +10,7 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
 
   override initGui (): void {
     this.params = {
-      chunksDistance: 5,
+      chunksDistance: 2,
       orbit: false,
       ...defaultWebgpuRendererParams
     }
@@ -32,7 +32,7 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
     this.enableCameraOrbitControl = this.params.orbit
   }
 
-  setupWorld () {
+  async setupWorld () {
     // const chunkDistance = this.params.chunksDistance
     // for (let x = -chunkDistance; x < chunkDistance; x++) {
     //   for (let z = -chunkDistance; z < chunkDistance; z++) {
@@ -40,7 +40,7 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
     //   }
     // }
 
-    const squareSize = this.params.chunksDistance
+    const squareSize = this.params.chunksDistance * 16
     const maxSquareSize = this.viewDistance * 16 * 2
     if (squareSize > maxSquareSize) throw new Error(`Square size too big, max is ${maxSquareSize}`)
     // const fullBlocks = loadedData.blocksArray.map(x => x.name)
@@ -53,8 +53,8 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
 
     for (let x = -squareSize; x <= squareSize; x++) {
       for (let z = -squareSize; z <= squareSize; z++) {
-        const i = Math.abs(x + z) * squareSize
-        worldView!.world.setBlock(this.targetPos.offset(x, 0, z), this.Block.fromStateId(1, 0))
+        const isEven = x === z
+        worldView!.world.setBlockStateId(this.targetPos.offset(x, 0, z), isEven ? 1 : 2) 
       }
     }
 

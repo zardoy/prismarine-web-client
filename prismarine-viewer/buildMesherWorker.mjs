@@ -22,7 +22,7 @@ const buildOptions = {
   },
   platform: 'browser',
   entryPoints: [path.join(__dirname, './viewer/lib/mesher/mesher.ts')],
-  minify: true,
+  minify: !watch,
   logLevel: 'info',
   drop: !watch ? [
     'debugger'

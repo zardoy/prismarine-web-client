@@ -44,18 +44,24 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     webgpuChannel.addBlocksSectionDone()
   }
 
+  fullfiled = new Set()
   handleWorkerMessage (data: { geometry: MesherGeometryOutput, type, key }): void {
     if (data.type === 'geometry' && Object.keys(data.geometry.tiles).length) {
-
-      const chunkCoords = data.key.split(',').map(Number) as [number, number, number]
-      if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
-
-      addBlocksSection(data.key, data.geometry)
-      this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
-
-      // todo
-      // this.newChunks[data.key] = data.geometry
+      this.addChunksToScene(data.key, data.geometry)
     }
+  }
+
+  addChunksToScene (key: string, geometry: MesherGeometryOutput) {
+    // if (this.fullfiled.has(key)) throw new Error(`updated ${key}`)
+    this.fullfiled.add(key)
+    const chunkCoords = key.split(',').map(Number) as [number, number, number]
+    if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
+
+    addBlocksSection(key, geometry)
+    this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
+
+    // todo
+    // this.newChunks[data.key] = data.geometry
   }
 
   updateCamera (pos: Vec3 | null, yaw: number, pitch: number): void { }

@@ -1,26 +1,16 @@
 /// <reference types="@webgpu/types" />
 import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
-import { BlockFaceType, BlockType } from './shared'
+import { BlockFaceType, BlockType, makeError } from './shared'
 import { createWorkerProxy } from './workerProxy'
 import { WebgpuRenderer } from './webgpuRenderer'
 import { RendererParams } from './webgpuRendererShared'
+import { ChunksStorage } from './chunksStorage'
 
-type BlockTile = [number, number, number, BlockFaceType]
+export const chunksStorage = new ChunksStorage()
 
-/** @deprecated */
-export const allSides = [] as Array<BlockTile | undefined>
-export const chunkSides = new Map<string, BlockTile[]>()
+globalThis.allSides = chunksStorage.allSides
 
-globalThis.allSides = allSides
-const allSidesAdded = 0
-const needsSidesUpdate = false
-
-const chunksArrIndexes = {}
-const freeArrayIndexes = [] as Array<[number, number]>
-let sidePositions
-let lastNotUpdatedIndex
-let lastNotUpdatedArrSize
 let animationTick = 0
 
 const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 10_000)
@@ -127,7 +117,7 @@ export const workerProxyType = createWorkerProxy({
     if (square % 1 !== 0) throw new Error('square must be a whole number')
     const blocks = {}
     const getFace = (face: number) => {
-      // if (offsetZ / 16) debugger 
+      // if (offsetZ / 16) debugger
       return {
         side: face,
         textureIndex: Math.floor(Math.random() * 512)
@@ -151,72 +141,28 @@ export const workerProxyType = createWorkerProxy({
     console.log('generated random data:', count)
     this.addBlocksSection(blocks, `${offsetX},0,${offsetZ}`)
   },
-  addBlocksSection (tiles: Record<string, BlockType>, key: string, update = true) {
-    const newData = Object.entries(tiles).flatMap(([key, value]) => {
-      const [x, y, z] = key.split(',').map(Number)
-      const block = value
-      return block.faces.slice(0, 1).map((side) => {
-      // return block.faces.map((side) => {
-        const xRel = Math.abs(x % 16)
-        const zRel = Math.abs(z % 16)
-        return [xRel, y, zRel, side] as [number, number, number, BlockFaceType]
-      })
-    })
-
-    if (chunkSides.has(key)) {
-      throw new Error(`Chunk ${key} already exists TODO updates`)
-    }
-
-    const [xSection, ySection, zSection] = key.split(',').map(Number)
-    const chunkKey = `${xSection / 16},${ySection / 16},${zSection / 16}`
-    chunkSides.set(chunkKey, newData)
-
-    const currentLength = allSides.length
-    // // in: object - name, out: [x, y, z, name]
-    // // find freeIndexes if possible
-    // const freeArea = freeArrayIndexes.find(([startIndex, endIndex]) => endIndex - startIndex >= newData.length)
-    // if (freeArea) {
-    //   const [startIndex, endIndex] = freeArea
-    //   allSides.splice(startIndex, newData.length, ...newData)
-    //   lastNotUpdatedIndex ??= startIndex
-    //   const freeAreaIndex = freeArrayIndexes.indexOf(freeArea)
-    //   freeArrayIndexes[freeAreaIndex] = [startIndex + newData.length, endIndex]
-    //   if (freeArrayIndexes[freeAreaIndex][0] >= freeArrayIndexes[freeAreaIndex][1]) {
-    //     freeArrayIndexes.splice(freeAreaIndex, 1)
-    //     // todo merge
-    //   }
-    //   lastNotUpdatedArrSize = newData.length
-    //   console.log('using free area', freeArea)
-    // }
-
-    // chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
-    let i = 0
-    while (i < newData.length) {
-      allSides.splice(currentLength + i, 0, ...newData.slice(i, i + 1024))
-      i += 1024
-    }
-    lastNotUpdatedIndex ??= currentLength
-    // if (webglRendererWorker && webglRendererWorker.notRenderedAdditions < 5) {
-    if (update) {
-      updateCubesWhenAvailable(currentLength)
-      lastNotUpdatedIndex = undefined
-      lastNotUpdatedArrSize = undefined
+  addBlocksSection (tiles: Record<string, BlockType>, key: string, updateData = true) {
+    chunksStorage.addData(tiles, key)
+    if (updateData) {
+      updateCubesWhenAvailable(chunksStorage.allSides.length)
+      chunksStorage.lastNotUpdatedIndex = undefined
+      chunksStorage.lastNotUpdatedArrSize = undefined
     }
   },
   addBlocksSectionDone () {
-    updateCubesWhenAvailable(lastNotUpdatedIndex)
-    lastNotUpdatedIndex = undefined
-    lastNotUpdatedArrSize = undefined
+    updateCubesWhenAvailable(chunksStorage.allSides.length)
+    chunksStorage.lastNotUpdatedIndex = undefined
+    chunksStorage.lastNotUpdatedArrSize = undefined
   },
   removeBlocksSection (key) {
-    return
+    // return
     // fill data with 0
-    const [startIndex, endIndex] = chunksArrIndexes[key]
-    for (let i = startIndex; i < endIndex; i++) {
-      allSides[i] = undefined
-    }
-    lastNotUpdatedArrSize = endIndex - startIndex
-    updateCubesWhenAvailable(startIndex)
+    // const [startIndex, endIndex] = chunksArrIndexes[key]
+    // for (let i = startIndex; i < endIndex; i++) {
+    //   allSides[i] = undefined
+    // }
+    // lastNotUpdatedArrSize = endIndex - startIndex
+    // updateCubesWhenAvailable(startIndex)
 
     // freeArrayIndexes.push([startIndex, endIndex])
 
@@ -272,7 +218,7 @@ export const workerProxyType = createWorkerProxy({
     // })
     const dataSize = json.length / 5
     for (let i = 0; i < json.length; i += 5) {
-      allSides.push([json[i], json[i + 1], json[i + 2], { side: json[i + 3], textureIndex: json[i + 4] }])
+      chunksStorage.allSides.push([json[i], json[i + 1], json[i + 2], { side: json[i + 3], textureIndex: json[i + 4] }])
     }
     updateCubesWhenAvailable(0)
   },
@@ -284,19 +230,19 @@ export const workerProxyType = createWorkerProxy({
 }, globalThis.webgpuRendererChannel?.port2)
 
 globalThis.testDuplicates = () => {
-  const duplicates = allSides.filter((value, index, self) => self.indexOf(value) !== index)
+  const duplicates = chunksStorage.allSides.filter((value, index, self) => self.indexOf(value) !== index)
   console.log('duplicates', duplicates)
 }
 
 const exportData = () => {
   // Calculate the total length of the final array
-  const totalLength = allSides.length * 5
+  const totalLength = chunksStorage.allSides.length * 5
 
   // Create a new Int16Array with the total length
   const flatData = new Int16Array(totalLength)
 
   // Fill the flatData array
-  for (const [i, sideData] of allSides.entries()) {
+  for (const [i, sideData] of chunksStorage.allSides.entries()) {
     if (!sideData) continue
     const [x, y, z, side] = sideData
     flatData.set([x, y, z, side.side, side.textureIndex], i * 5)

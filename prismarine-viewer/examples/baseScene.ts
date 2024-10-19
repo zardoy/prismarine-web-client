@@ -18,6 +18,7 @@ import { Viewer } from '../viewer/lib/viewer'
 import { BlockNames } from '../../src/mcDataTypes'
 import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
 import { initWebgpuRenderer } from './webgpuRendererMain'
+import { getSyncWorld } from './shared'
 
 window.THREE = THREE
 
@@ -46,6 +47,7 @@ export class BasePlaygroundScene {
   skipUpdateQs = false
   controls: any
   windowHidden = false
+  world: ReturnType<typeof getSyncWorld>
 
   constructor () {
     void this.initData().then(() => {
@@ -106,7 +108,7 @@ export class BasePlaygroundScene {
     })
   }
 
-  mainChunk: import('prismarine-chunk/types/index').PCChunk
+  // mainChunk: import('prismarine-chunk/types/index').PCChunk
 
   setupWorld () { }
 
@@ -117,7 +119,7 @@ export class BasePlaygroundScene {
       properties ?
         this.Block.fromProperties(loadedData.blocksByName[blockName].id, properties ?? {}, 0) :
         this.Block.fromStateId(loadedData.blocksByName[blockName].defaultState!, 0)
-    this.mainChunk.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
+    this.world.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
   }
 
   resetCamera () {
@@ -141,12 +143,8 @@ export class BasePlaygroundScene {
     this.Chunk = (ChunkLoader as any)(this.version)
     this.Block = (BlockLoader as any)(this.version)
 
-    this.mainChunk = new this.Chunk(undefined as any)
-    const World = (WorldLoader as any)(this.version)
-    const world = new World((chunkX, chunkZ) => {
-      if (chunkX === 0 && chunkZ === 0) return this.mainChunk
-      return new this.Chunk(undefined as any)
-    })
+    const world = getSyncWorld(this.version)
+    this.world = world
 
     this.initGui()
 

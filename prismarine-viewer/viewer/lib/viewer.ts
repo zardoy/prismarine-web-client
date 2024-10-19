@@ -251,6 +251,11 @@ export class Viewer {
       this.world.allChunksFinished = Object.keys(this.world.finishedChunks).length === this.world.chunksLength
     })
 
+    worldEmitter.on('markAsLoaded', ({ x, z }) => {
+      this.world.finishedChunks[`${x},${z}`] = true
+      this.world.checkAllFinished()
+    })
+
     worldEmitter.on('updateLight', ({ pos }) => {
       if (this.world instanceof WorldRendererThree) this.world.updateLight(pos.x, pos.z)
     })
