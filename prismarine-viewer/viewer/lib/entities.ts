@@ -340,9 +340,9 @@ export class Entities extends EventEmitter {
   }
 
   update (entity: import('prismarine-entity').Entity & { delete?; pos }, overrides) {
-    let isPlayerModel = entity.name === 'player'
+    console.log('entity', entity)
+    const isPlayerModel = entity.name === 'player'
     if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
-      isPlayerModel = true
       overrides.texture = `textures/1.16.4/entity/${entity.name === 'zombie_villager' ? 'zombie_villager/zombie_villager.png' : `zombie/${entity.name}.png`}`
     }
     if (!this.entities[entity.id] && !entity.delete) {
@@ -378,6 +378,12 @@ export class Entities extends EventEmitter {
         const playerObject = new PlayerObject() as PlayerObjectType
         playerObject.position.set(0, 16, 0)
 
+        // fix issues with starfield
+        playerObject.traverse((obj) => {
+          if (obj instanceof THREE.Mesh && obj.material instanceof THREE.MeshStandardMaterial) {
+            obj.material.transparent = true
+          }
+        })
         //@ts-expect-error
         wrapper.add(playerObject)
         const scale = 1 / 16

@@ -413,7 +413,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     signs: {},
     // isFull: true,
     highestBlocks: {}, // todo migrate to map for 2% boost perf
-    hadErrors: false
+    hadErrors: false,
+    blocksCount: 0
   }
 
   const cursor = new Vec3(0, 0, 0)
@@ -472,8 +473,10 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           delayedRender.push(() => {
             renderLiquid(world, pos, blockProvider.getTextureInfo('water_still'), block.type, biome, true, attr)
           })
+          attr.blocksCount++
         } else if (block.name === 'lava') {
           renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr)
+          attr.blocksCount++
         }
         if (block.name !== 'water' && block.name !== 'lava' && !invisibleBlocks.has(block.name)) {
           // cache
@@ -552,7 +555,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
               }
             }
           }
-
+          if (part > 0) attr.blocksCount++
         }
       }
     }

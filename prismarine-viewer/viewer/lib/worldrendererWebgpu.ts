@@ -40,8 +40,8 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   isWaitingForChunksToRender = false
 
   allChunksLoaded (): void {
-    console.log('allChunksLoaded')
-    webgpuChannel.addBlocksSectionDone()
+    // console.log('allChunksLoaded')
+    // webgpuChannel.addBlocksSectionDone()
   }
 
   handleWorkerMessage (data: { geometry: MesherGeometryOutput, type, key }): void {

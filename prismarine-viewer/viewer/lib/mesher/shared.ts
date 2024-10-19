@@ -32,4 +32,5 @@ export type MesherGeometryOutput = {
   // isFull: boolean
   highestBlocks: Record<string, { y: number, name: string }>
   hadErrors: boolean
+  blocksCount: number
 }

@@ -5,3 +5,4 @@ rsbuild.config.ts
 generated
 dist
 public
+**/*/rsbuildSharedConfig.ts

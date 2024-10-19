@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest'
 import mcData from 'minecraft-data'
-import { formatMessage } from './botUtils'
+import { formatMessage } from './chatUtils'
 
 //@ts-expect-error
 globalThis.loadedData ??= mcData('1.20.1')
