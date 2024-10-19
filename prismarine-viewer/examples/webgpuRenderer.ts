@@ -390,7 +390,7 @@ export class WebgpuRenderer {
     })
   }
 
-  
+
 
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
@@ -405,7 +405,7 @@ export class WebgpuRenderer {
 
     this.chunksBuffer = this.device.createBuffer({
       label: 'chunksBuffer',
-      size: 65535 * 12, // 8 floats per cube - minimum buffer size
+      size: 65_535 * 12, // 8 floats per cube - minimum buffer size
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
@@ -447,7 +447,7 @@ export class WebgpuRenderer {
     for (const side of allSides.slice(startOffset)) {
       if (!side) continue
       const [x, y, z] = side
-      positions.push(x as number, y as number, z as number)
+      positions.push(x, y, z)
       const face = side[3]
       textureIndexes.push(face.textureIndex)
       if (face.tint) {
@@ -462,7 +462,7 @@ export class WebgpuRenderer {
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
       console.warn('extending number of cubes', NUMBER_OF_CUBES_NEEDED, this.NUMBER_OF_CUBES)
       this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEEDED
-      
+
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
@@ -471,10 +471,10 @@ export class WebgpuRenderer {
     const BYTES_PER_ELEMENT = 2
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
     for (let i = 0; i < this.NUMBER_OF_CUBES; i++) {
-      
-      
+
+
       const offset = i * 2
-      const first = (((textureIndexes[i] << 10) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3] 
+      const first = (((textureIndexes[i] << 10) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
       const second = ((colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
       cubeFlatData[offset] = first
       cubeFlatData[offset + 1] = second
@@ -546,7 +546,7 @@ export class WebgpuRenderer {
       ViewProjection
     )
 
-    const canvasTexture = ctx.getCurrentTexture();
+    const canvasTexture = ctx.getCurrentTexture()
     // let { multisampleTexture } = this;
     // // If the multisample texture doesn't exist or
     // // is the wrong size then make a new one.
@@ -578,12 +578,12 @@ export class WebgpuRenderer {
       .getCurrentTexture()
       .createView()
 
-//     renderPassDescriptor.colorAttachments[0].view =
-//     multisampleTexture.createView();
-// // Set the canvas texture as the texture to "resolve"
-// // the multisample texture to.
-//     renderPassDescriptor.colorAttachments[0].resolveTarget =
-//     canvasTexture.createView();
+    //     renderPassDescriptor.colorAttachments[0].view =
+    //     multisampleTexture.createView();
+    // // Set the canvas texture as the texture to "resolve"
+    // // the multisample texture to.
+    //     renderPassDescriptor.colorAttachments[0].resolveTarget =
+    //     canvasTexture.createView();
 
     this.commandEncoder = device.createCommandEncoder()
     // Compute pass for occlusion culling

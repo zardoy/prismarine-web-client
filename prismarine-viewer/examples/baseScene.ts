@@ -32,11 +32,13 @@ export class BasePlaygroundScene {
     options?: string[]
     min?: number
     max?: number
+    reloadOnChange?: boolean
   }>>
   version = new URLSearchParams(window.location.search).get('version') || globalThis.includedVersions.at(-1)
   Chunk: typeof import('prismarine-chunk/types/index').PCChunk
   Block: typeof import('prismarine-block').Block
   ignoreResize = false
+  enableCameraControls = true // not finished
   enableCameraOrbitControl = true
   gui = new GUI()
   onParamUpdate = {} as Record<string, () => void>
@@ -91,6 +93,12 @@ export class BasePlaygroundScene {
       if (object === this.params) {
         this.onParamUpdate[property]?.()
         this.onParamsUpdate(property, object)
+        const value = this.params[property]
+        if (this.paramOptions[property]?.reloadOnChange && (typeof value === 'boolean' || this.paramOptions[property].options)) {
+          setTimeout(() => {
+            window.location.reload()
+          })
+        }
       } else {
         this.onParamsUpdate(property, object)
       }
@@ -176,10 +184,11 @@ export class BasePlaygroundScene {
 
     await worldView.init(this.targetPos)
 
-    if (this.enableCameraOrbitControl) {
+    if (this.enableCameraControls) {
       const { targetPos } = this
-      // const controls = new OrbitControls(viewer.camera, renderer.domElement)
-      // this.controls = controls
+      const canvas = document.querySelector('#viewer-canvas')
+      const controls = this.enableCameraOrbitControl ? new OrbitControls(viewer.camera, canvas) : undefined
+      this.controls = controls
 
       this.resetCamera()
 
@@ -208,8 +217,39 @@ export class BasePlaygroundScene {
           throttledCamQsUpdate()
           this.render()
         })
+      } else {
+        setInterval(() => {
+          throttledCamQsUpdate()
+        }, 200)
       }
       // #endregion
+    }
+
+    if (!this.enableCameraOrbitControl) {
+      // mouse
+      let mouseMoveCounter = 0
+      const mouseMove = (e: PointerEvent) => {
+        if ((e.target as HTMLElement).closest('.lil-gui')) return
+        if (e.buttons === 1 || e.pointerType === 'touch') {
+          mouseMoveCounter++
+          viewer.camera.rotation.x -= e.movementY / 100
+          //viewer.camera.
+          viewer.camera.rotation.y -= e.movementX / 100
+          if (viewer.camera.rotation.x < -Math.PI / 2) viewer.camera.rotation.x = -Math.PI / 2
+          if (viewer.camera.rotation.x > Math.PI / 2) viewer.camera.rotation.x = Math.PI / 2
+
+          // yaw += e.movementY / 20;
+          // pitch += e.movementX / 20;
+        }
+        if (e.buttons === 2) {
+          viewer.camera.position.set(0, 0, 0)
+        }
+      }
+      setInterval(() => {
+        // updateTextEvent(`Mouse Events: ${mouseMoveCounter}`)
+        mouseMoveCounter = 0
+      }, 1000)
+      window.addEventListener('pointermove', mouseMove)
     }
 
     // await this.initialSetup()
