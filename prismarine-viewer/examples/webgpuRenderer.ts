@@ -405,7 +405,7 @@ export class WebgpuRenderer {
 
     this.chunksBuffer = this.device.createBuffer({
       label: 'chunksBuffer',
-      size: 1024 * 12, // 8 floats per cube - minimum buffer size
+      size: 65535 * 12, // 8 floats per cube - minimum buffer size
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
@@ -413,7 +413,7 @@ export class WebgpuRenderer {
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
-      size: this.NUMBER_OF_CUBES * 4,
+      size: this.NUMBER_OF_CUBES * 8,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 

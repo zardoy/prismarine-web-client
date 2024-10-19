@@ -127,9 +127,11 @@ export const workerProxyType = createWorkerProxy({
     if (square % 1 !== 0) throw new Error('square must be a whole number')
     const blocks = {}
     const getFace = (face: number) => {
+      // if (offsetZ / 16) debugger 
       return {
         side: face,
         textureIndex: Math.floor(Math.random() * 512)
+        // textureIndex: offsetZ / 16 === 31 ? 2 : 1
       }
     }
     for (let x = offsetX; x < square + offsetX; x++) {
@@ -155,8 +157,8 @@ export const workerProxyType = createWorkerProxy({
       const block = value
       return block.faces.slice(0, 1).map((side) => {
       // return block.faces.map((side) => {
-        const xRel = x % 16
-        const zRel = z % 16
+        const xRel = Math.abs(x % 16)
+        const zRel = Math.abs(z % 16)
         return [xRel, y, zRel, side] as [number, number, number, BlockFaceType]
       })
     })

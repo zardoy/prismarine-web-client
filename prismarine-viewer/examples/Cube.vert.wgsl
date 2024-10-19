@@ -10,6 +10,10 @@ struct Chunk{
 }
 
 
+struct CubePointer {
+  ptr: array<u32, 2>
+}
+
 struct VertexOutput {
   @builtin(position) Position: vec4f,
   @location(0) fragUV: vec2f,
@@ -18,7 +22,7 @@ struct VertexOutput {
 }
 @group(1) @binding(0) var<storage, read> cubes: array<Cube>;
 @group(0) @binding(0) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
-@group(1) @binding(1) var<storage, read> visibleCubes: array<u32>;
+@group(1) @binding(1) var<storage, read> visibleCubes: array<CubePointer>;
 @group(1) @binding(2) var<storage, read> chunks : array<Chunk>;
 
 @vertex
@@ -27,9 +31,9 @@ fn main(
   @location(0) position: vec4<f32>,
   @location(1) uv: vec2<f32>
 ) -> VertexOutput {
-  let cube = cubes[visibleCubes[instanceIndex]];
-  let chunkIndex = cube.cube[1] >> 24;
-  let chunk = chunks[chunkIndex];
+  let cube = cubes[visibleCubes[instanceIndex].ptr[0]];
+  //let chunkIndex = (cube.cube[1] >> 24)  + ((cube.cube[0] >> 27) << 8);
+  let chunk = chunks[visibleCubes[instanceIndex].ptr[1]];
 
   let positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
   let positionY : f32 = f32((cube.cube[0] >> 4) & 511); //9 bytes
