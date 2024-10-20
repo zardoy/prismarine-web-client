@@ -71,7 +71,7 @@ const appConfig = defineConfig({
                         childProcess.execSync('tsx ./scripts/makeOptimizedMcData.mjs', { stdio: 'inherit' })
                     }
                     childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })
-                    if (!fs.existsSync('./generated/latestBlockCollisionsShapes.json')) {
+                    if (!fs.existsSync('./generated/latestBlockCollisionsShapes.json') || require('./generated/latestBlockCollisionsShapes.json').versionKey !== require('minecraft-data/package.json').version) {
                         childProcess.execSync('tsx ./scripts/optimizeBlockCollisions.ts', { stdio: 'inherit' })
                     }
                     fsExtra.copySync('./node_modules/mc-assets/dist/other-textures/latest/entity', './dist/textures/entity')
