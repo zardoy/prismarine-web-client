@@ -107,7 +107,7 @@ export class BasePlaygroundScene {
     const block =
       properties ?
         this.Block.fromProperties(loadedData.blocksByName[blockName].id, properties ?? {}, 0) :
-        this.Block.fromStateId(loadedData.blocksByName[blockName].defaultState!, 0)
+        this.Block.fromStateId(loadedData.blocksByName[blockName].defaultState, 0)
     this.mainChunk.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
   }
 
