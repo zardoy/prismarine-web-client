@@ -32,6 +32,7 @@ export type MesherGeometryOutput = {
   // isFull: boolean
   highestBlocks: Map<string, HighestBlockInfo>
   hadErrors: boolean
+  blocksCount: number
 }
 
 export type HighestBlockInfo = { y: number, stateId: number | undefined, biomeId: number | undefined }

@@ -18,6 +18,7 @@ import { defaultMesherConfig } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
 import { HighestBlockInfo, MesherGeometryOutput} from './mesher/shared'
+import { updateStatText } from './ui/newStats'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -103,12 +104,18 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     z: number
   }
   neighborChunkUpdates = true
+  lastChunkDistance = 0
 
   abstract outputFormat: 'threeJs' | 'webgpu'
 
   constructor (public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
+
+    this.renderUpdateEmitter.on('update', () => {
+      const loadedChunks = Object.keys(this.finishedChunks).length
+      updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance})`)
+    })
   }
 
   snapshotInitialValues () { }
@@ -133,6 +140,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
               this.highestBlocks.set(key, highest)
             }
           }
+          const chunkCoords = data.key.split(',').map(Number)
+          this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
         }
         if (data.type === 'sectionFinished') { // on after load & unload section
           if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
