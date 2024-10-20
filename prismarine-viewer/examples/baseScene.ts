@@ -149,6 +149,7 @@ export class BasePlaygroundScene {
     this.initGui()
 
     const worldView = new WorldDataEmitter(world, this.viewDistance, this.targetPos)
+    worldView.addWaitTime = 0
     window.worldView = worldView
 
     // Create three.js context, add to page
@@ -157,7 +158,7 @@ export class BasePlaygroundScene {
     renderer.setSize(window.innerWidth, window.innerHeight)
 
     // Create viewer
-    const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false, })
+    const viewer = new Viewer(renderer, { numWorkers: 6, showChunkBorders: false, })
     window.viewer = viewer
     const isWebgpu = true
     const promises = [] as Array<Promise<void>>

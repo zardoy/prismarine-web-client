@@ -3,8 +3,8 @@ import { BasePlaygroundScene } from '../baseScene'
 import { webgpuChannel } from '../webgpuRendererMain'
 import { defaultWebgpuRendererParams } from '../webgpuRendererShared'
 
-export default class RailsCobwebScene extends BasePlaygroundScene {
-  viewDistance = 5
+export default class Scene extends BasePlaygroundScene {
+  viewDistance = 16
   continuousRender = true
   targetPos = new Vec3(0, 0, 0)
 
@@ -54,7 +54,7 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
     for (let x = -squareSize; x <= squareSize; x++) {
       for (let z = -squareSize; z <= squareSize; z++) {
         const isEven = x === z
-        worldView!.world.setBlockStateId(this.targetPos.offset(x, 0, z), isEven ? 1 : 2) 
+        worldView!.world.setBlockStateId(this.targetPos.offset(x, 0, z), isEven ? 1 : 2)
       }
     }
 

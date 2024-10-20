@@ -65,3 +65,16 @@ function getAllMethods (obj) {
 
   return [...methods] as string[]
 }
+
+export const delayedIterator = async <T> (arr: T[], delay: number, exec: (item: T, index: number) => void, chunkSize = 1) => {
+  // if delay is 0 then don't use setTimeout
+  for (let i = 0; i < arr.length; i += chunkSize) {
+    if (delay) {
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => {
+        setTimeout(resolve, delay)
+      })
+    }
+    exec(arr[i], i)
+  }
+}

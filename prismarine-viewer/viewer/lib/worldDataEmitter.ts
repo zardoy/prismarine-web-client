@@ -7,6 +7,7 @@ import { Vec3 } from 'vec3'
 import { BotEvents } from 'mineflayer'
 import { getItemFromBlock } from '../../../src/chatUtils'
 import { chunkPos } from './simpleUtils'
+import { delayedIterator } from '../../examples/shared'
 
 export type ChunkPosKey = string
 type ChunkPos = { x: number, z: number }
@@ -160,19 +161,11 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async _loadChunks (positions: Vec3[], sliceSize = 5) {
-    let i = 0
     const promises = [] as Array<Promise<void>>
-    return new Promise<void>(resolve => {
-      const interval = setInterval(() => {
-        if (i >= positions.length) {
-          clearInterval(interval)
-          void Promise.all(promises).then(() => resolve())
-          return
-        }
-        promises.push(this.loadChunk(positions[i]))
-        i++
-      }, this.addWaitTime)
+    await delayedIterator(positions, this.addWaitTime, (pos) => {
+      promises.push(this.loadChunk(pos))
     })
+    await Promise.all(promises)
   }
 
   readdDebug () {
