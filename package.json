@@ -67,7 +67,7 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
     "filesize": "^10.0.12",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.43",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.44",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "jszip": "^3.10.1",
@@ -176,7 +176,8 @@
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
       "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
       "react": "^18.2.0",
-      "prismarine-chunk": "github:zardoy/prismarine-chunk"
+      "prismarine-chunk": "github:zardoy/prismarine-chunk",
+      "prismarine-item": "latest"
     },
     "updateConfig": {
       "ignoreDependencies": []
