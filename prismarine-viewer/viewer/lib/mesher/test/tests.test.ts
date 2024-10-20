@@ -51,7 +51,6 @@ test('Known blocks are not rendered', () => {
       "end_gateway": true,
       "end_portal": true,
       "structure_void": true,
-      "trial_spawner": true,
     }
   `)
   expect(erroredBlocks).toMatchInlineSnapshot('{}')

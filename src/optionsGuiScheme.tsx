@@ -90,6 +90,13 @@ export const guiOptionsScheme: {
       },
       handDisplay: {},
       neighborChunkUpdates: {},
+      renderDebug: {
+        values: [
+          'advanced',
+          'basic',
+          'none'
+        ],
+      },
     },
   ],
   main: [

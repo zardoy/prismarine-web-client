@@ -39,6 +39,8 @@ type CustomTexturesData = {
 }
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
+  isPlayground = false
+  displayStats = true
   worldConfig = { minY: 0, worldHeight: 256 }
   // todo need to cleanup
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })

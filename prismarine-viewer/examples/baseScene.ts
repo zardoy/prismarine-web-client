@@ -154,6 +154,7 @@ export class BasePlaygroundScene {
     // Create viewer
     const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false, })
     window.viewer = viewer
+    viewer.world.isPlayground = true
     viewer.addChunksBatchWaitTime = 0
     viewer.world.blockstatesModels = blockstatesModels
     viewer.entities.setDebugMode('basic')
