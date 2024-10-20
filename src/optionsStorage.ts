@@ -5,6 +5,7 @@ import { proxy, subscribe } from 'valtio/vanilla'
 import { subscribeKey } from 'valtio/utils'
 import { omitObj } from '@zardoy/utils'
 
+const isDev = process.env.NODE_ENV === 'development'
 const defaultOptions = {
   renderDistance: 3,
   keepChunksDistance: 1,
@@ -75,6 +76,7 @@ const defaultOptions = {
   autoJump: 'auto' as 'auto' | 'always' | 'never',
   autoParkour: false,
   vrSupport: true, // doesn't directly affect the VR mode, should only disable the button which is annoying to android users
+  renderDebug: (isDev ? 'basic' : 'advanced') as 'none' | 'advanced' | 'basic',
 
   // advanced bot options
   autoRespawn: false,
