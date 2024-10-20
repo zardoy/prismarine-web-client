@@ -27,7 +27,7 @@ test('Known blocks are not rendered', () => {
     if (ignoreAsExpected.has(block.name)) continue
     // if (block.maxStateId! - block.minStateId! > 100) continue
     // for (let i = block.minStateId!; i <= block.maxStateId!; i++) {
-    for (let i = block.defaultState!; i <= block.defaultState!; i++) {
+    for (let i = block.defaultState; i <= block.defaultState; i++) {
       // if (block.transparent) continue
       mesherWorld.setBlockStateId(pos, i)
       const start = performance.now()
