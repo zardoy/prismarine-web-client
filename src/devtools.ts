@@ -25,6 +25,24 @@ Object.defineProperty(window, 'debugSceneChunks', {
 
 window.len = (obj) => Object.keys(obj).length
 
+customEvents.on('gameLoaded', () => {
+  bot._client.on('packet', (data, { name }) => {
+    if (sessionStorage.ignorePackets?.includes(name)) {
+      console.log('ignoring packet', name)
+      const oldEmit = bot._client.emit
+      let i = 0
+      // ignore next 3 emits
+      //@ts-expect-error
+      bot._client.emit = (...args) => {
+        if (i++ === 3) {
+          oldEmit.apply(bot._client, args)
+          bot._client.emit = oldEmit
+        }
+      }
+    }
+  })
+})
+
 window.inspectPacket = (packetName, full = false) => {
   const listener = (...args) => console.log('packet', packetName, full ? args : args[0])
   const attach = () => {

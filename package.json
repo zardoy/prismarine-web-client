@@ -67,12 +67,12 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
     "filesize": "^10.0.12",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.41",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.44",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "jszip": "^3.10.1",
     "lodash-es": "^4.17.21",
-    "minecraft-data": "3.65.0",
+    "minecraft-data": "3.76.0",
     "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
     "mineflayer-item-map-downloader": "github:zardoy/mineflayer-item-map-downloader",
     "mojangson": "^2.0.4",
@@ -172,20 +172,21 @@
       "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
       "prismarine-world": "github:zardoy/prismarine-world#next-era",
-      "minecraft-data": "3.65.0",
+      "minecraft-data": "3.76.0",
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
       "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
       "react": "^18.2.0",
-      "prismarine-chunk": "github:zardoy/prismarine-chunk"
+      "prismarine-chunk": "github:zardoy/prismarine-chunk",
+      "prismarine-item": "latest"
     },
     "updateConfig": {
       "ignoreDependencies": []
     },
     "patchedDependencies": {
-      "minecraft-protocol@1.47.0": "patches/minecraft-protocol@1.47.0.patch",
       "three@0.154.0": "patches/three@0.154.0.patch",
       "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch",
-      "mineflayer-item-map-downloader@1.2.0": "patches/mineflayer-item-map-downloader@1.2.0.patch"
+      "mineflayer-item-map-downloader@1.2.0": "patches/mineflayer-item-map-downloader@1.2.0.patch",
+      "minecraft-protocol@1.49.0": "patches/minecraft-protocol@1.49.0.patch"
     }
   },
   "packageManager": "pnpm@9.0.4"
