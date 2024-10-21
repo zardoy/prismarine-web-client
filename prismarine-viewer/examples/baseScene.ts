@@ -328,7 +328,7 @@ export class BasePlaygroundScene {
         direction.z *= 2
       }
       // Add the vector to the camera's position to move the camera
-      viewer.camera.position.add(direction)
+      viewer.camera.position.add(direction.normalize())
       this.controls?.update()
       this.render()
     }
