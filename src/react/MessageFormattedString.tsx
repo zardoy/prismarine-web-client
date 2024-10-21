@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { fromFormattedString } from '@xmcl/text-component'
-import { formatMessage } from '../botUtils'
+import { formatMessage } from '../chatUtils'
 import MessageFormatted from './MessageFormatted'
 
 /** like MessageFormatted, but receives raw string or json instead, uses window.loadedData */

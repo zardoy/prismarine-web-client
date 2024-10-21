@@ -17,9 +17,10 @@ import { appReplacableResources } from './generated/resources'
 import { activeModalStack, hideCurrentModal, hideModal, miscUiState, showModal } from './globalState'
 import { options } from './optionsStorage'
 import { assertDefined, inGameError } from './utils'
-import { displayClientChat, MessageFormatPart } from './botUtils'
+import { displayClientChat } from './botUtils'
 import { currentScaling } from './scaleInterface'
 import { getItemDescription } from './itemsDescriptions'
+import { MessageFormatPart } from './chatUtils'
 
 const loadedImagesCache = new Map<string, HTMLImageElement>()
 const cleanLoadedImagesCache = () => {
@@ -66,9 +67,10 @@ export const onGameLoad = (onLoad) => {
   })
 
   // workaround: singleplayer player inventory crafting
+  let skipUpdate = false
   bot.inventory.on('updateSlot', ((_oldSlot, oldItem, newItem) => {
     const currentSlot = _oldSlot as number
-    if (!miscUiState.singleplayer) return
+    if (!miscUiState.singleplayer || oldItem === newItem || skipUpdate) return
     const { craftingResultSlot } = bot.inventory
     if (currentSlot === craftingResultSlot && oldItem && !newItem) {
       for (let i = 1; i < 5; i++) {
@@ -87,7 +89,10 @@ export const onGameLoad = (onLoad) => {
     const craftingSlots = bot.inventory.slots.slice(1, 5)
     try {
       const resultingItem = getResultingRecipe(craftingSlots, 2)
-      void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
+      skipUpdate = true
+      void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null).then(() => {
+        skipUpdate = false
+      })
     } catch (err) {
       console.error(err)
       // todo resolve the error! and why would we ever get here on every update?

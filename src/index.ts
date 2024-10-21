@@ -72,7 +72,7 @@ import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
 import { onAppLoad, resourcepackReload } from './resourcePack'
-import { connectToPeer } from './localServerMultiplayer'
+import { ConnectPeerOptions, connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
@@ -486,7 +486,7 @@ async function connect (connectOptions: ConnectOptions) {
       port: server.port ? +server.port : undefined,
       version: connectOptions.botVersion || false,
       ...p2pMultiplayer ? {
-        stream: await connectToPeer(connectOptions.peerId!),
+        stream: await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions),
       } : {},
       ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
@@ -709,7 +709,7 @@ async function connect (connectOptions: ConnectOptions) {
 
 
     // Link WorldDataEmitter and Viewer
-    viewer.listen(worldView)
+    viewer.connect(worldView)
     worldView.listenToBot(bot)
     void worldView.init(bot.entity.position)
 
@@ -1022,6 +1022,10 @@ downloadAndOpenFile().then((downloadAction) => {
   void Promise.resolve().then(() => {
     // try to connect to peer
     const peerId = qs.get('connectPeer')
+    const peerOptions = {} as ConnectPeerOptions
+    if (qs.get('server')) {
+      peerOptions.server = qs.get('server')!
+    }
     const version = qs.get('peerVersion')
     if (peerId) {
       let username: string | null = options.guestUsername
@@ -1031,7 +1035,8 @@ downloadAndOpenFile().then((downloadAction) => {
       void connect({
         username,
         botVersion: version || undefined,
-        peerId
+        peerId,
+        peerOptions
       })
     }
   })

@@ -15,4 +15,5 @@ export type ConnectOptions = {
   serverIndex?: string
   /** If true, will show a UI to authenticate with a new account */
   authenticatedAccount?: AuthenticatedAccount | true
+  peerOptions?: any
 }
