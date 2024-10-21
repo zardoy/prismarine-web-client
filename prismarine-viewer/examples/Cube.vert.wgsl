@@ -35,10 +35,13 @@ fn main(
   //let chunkIndex = (cube.cube[1] >> 24)  + ((cube.cube[0] >> 27) << 8);
   let chunk = chunks[visibleCubes[instanceIndex].ptr[1]];
 
-  let positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
+  var positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
   let positionY : f32 = f32((cube.cube[0] >> 4) & 511); //9 bytes
-  let positionZ : f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16); // 4 bytes
+  var positionZ : f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16); // 4 bytes
   let textureIndex : f32 = f32((cube.cube[0] >> 17) & 1023); 
+
+  //positionX += 0.5;
+  //positionZ += 0.5;
   //textureIndex = 1.0;
   let cube_position = vec4f(positionX, positionY, positionZ, 0.0);
 
@@ -49,7 +52,7 @@ fn main(
   //last 8 bits reserved for animations
   //cube.position.x = instance_index * 2;
   var output: VertexOutput;
-  output.Position = ViewProjectionMatrix * (position + cube_position + vec4<f32>(0.5, 0.0, 0.5, 0.0));
+  output.Position = ViewProjectionMatrix * (position + cube_position);
   output.fragUV = uv;
   output.TextureIndex = textureIndex;
   output.ColorBlend = colorBlend;

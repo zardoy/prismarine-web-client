@@ -475,6 +475,7 @@ export class WebgpuRenderer {
     for (let i = 0; i < actualCount; i++) {
       const offset = i * 2
       const first = (((textureIndexes[i] << 4) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
+      //const first = (textureIndexes[i] << 17) | (positions[i * 3 + 2] << 13) | (positions[i * 3 + 1] << 4) | positions[i * 3]
       const second = ((colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
       cubeFlatData[offset] = first
       cubeFlatData[offset + 1] = second

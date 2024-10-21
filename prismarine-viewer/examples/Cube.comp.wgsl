@@ -39,27 +39,36 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
   var counter : u32 = 0;
   var i : u32 = 0;
-  while (counter + chunks[i].cubesCount < index)
+  while (counter < index)
   {
-      if (i >= arrayLength(&chunks)) {
-    return;
-    }
+
 
       counter += chunks[i].cubesCount;
+      if (index < counter) {
+        //i--;
+        break;
+      }
+
+
       i++;
+      
+
+      // if (counter >= index){
+      //   i--;
+      // break;
+      // }
+
+
   }
 
 
-  // if (i >= arrayLength(&chunks)) {
-  //   return;
-  // }
 
   let chunk = chunks[i];
 
 
-  let positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
+  var positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
   let positionY : f32 = f32((cube.cube[0] >> 4) & 511); //9 bytes
-  let positionZ : f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16); // 4 bytes
+  var positionZ : f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16); // 4 bytes
   let position = vec4f(positionX, positionY, positionZ, 1.0);
   // let textureIndex : f32 = f32((cube.cube[0] >> 24) & 8);
   // let colorBlendR : f32 = f32(cube.cube[1] & 8);
@@ -67,9 +76,10 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   // let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 8);
   // let colorBlend = vec3f(colorBlendR, colorBlendG, colorBlendB);
   //last 8 bits reserved for animations
-
+  //positionX += 1.0;
+  //positionZ += 1.0;
   // Transform cube position to clip space
-  let clipPos = ViewProjectionMatrix * (position + vec4<f32>(0.5, 0.0, 0.5, 0.0));
+  let clipPos = ViewProjectionMatrix * position;
   let clipDepth = clipPos.z / clipPos.w; // Obtain depth in clip space
   let clipX = clipPos.x / clipPos.w;
   let clipY = clipPos.y / clipPos.w;
