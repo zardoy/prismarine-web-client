@@ -2,7 +2,7 @@ name: CI
 on:
   pull_request:
 jobs:
-  build-and-deploy:
+  qualilty-checks:
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
@@ -40,3 +40,57 @@ jobs:
       #   if: ${{ github.event.pull_request.base.ref == 'release' }}
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  vercel-auto-deploy:
+    runs-on: ubuntu-latest
+    if: >-
+      env.AUTO_DEPLOY_PRS contains $'\n' + toString(github.event.pull_request.number) + $'\n' ||
+      startsWith(env.AUTO_DEPLOY_PRS, toString(github.event.pull_request.number) + $'\n') ||
+      endsWith(env.AUTO_DEPLOY_PRS, $'\n' + toString(github.event.pull_request.number)) ||
+      env.AUTO_DEPLOY_PRS == toString(github.event.pull_request.number)
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - run: npm i -g pnpm@9.0.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: "pnpm"
+      - name: Install Global Dependencies
+        run: npm install --global vercel
+      - name: Pull Vercel Environment Information
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build Project Artifacts
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+      - run: pnpm build-storybook
+      - name: Copy playground files
+        run: |
+          mkdir -p .vercel/output/static/playground
+          pnpm build-playground
+          cp -r prismarine-viewer/dist/* .vercel/output/static/playground/
+      - name: Download Generated Sounds map
+        run: node scripts/downloadSoundsMap.mjs
+      - name: Deploy Project Artifacts to Vercel
+        uses: mathiasvr/command-output@v2.0.0
+        with:
+          run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+        id: deploy
+      - uses: mshick/add-pr-comment@v2
+        with:
+          allow-repeats: true
+          message: |
+            Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
+            [Playground](${{ steps.deploy.outputs.stdout }}/playground/)
+            [Storybook](${{ steps.deploy.outputs.stdout }}/storybook/)
+      # - run: git checkout next scripts/githubActions.mjs
+      - name: Get deployment alias
+        run: node scripts/githubActions.mjs getAlias
+        id: alias
+        env:
+          ALIASES: ${{ env.ALIASES }}
+          PULL_URL: ${{ github.event.issue.pull_request.url }}
+      - name: Set deployment alias
+        if: ${{ steps.alias.outputs.alias != '' && steps.alias.outputs.alias != 'mcraft.fun' && steps.alias.outputs.alias != 's.mcraft.fun' }}
+        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ steps.alias.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
