@@ -25,7 +25,7 @@ jobs:
           github.event.issue.pull_request != null
         ) ||
         (
-          github.event_name == 'pull_request' &&
+          github.event_name == 'pull_request_target' &&
           contains(fromJson(vars.AUTO_DEPLOY_PRS), github.event.pull_request.number)
         )
       )
@@ -39,7 +39,7 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/head
       - name: Checkout PR (pull_request)
         uses: actions/checkout@v2
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         with:
           ref: refs/pull/${{ github.event.pull_request.number }}/head
 
