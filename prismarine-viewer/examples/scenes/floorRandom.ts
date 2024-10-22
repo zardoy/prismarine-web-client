@@ -12,6 +12,7 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
     this.params = {
       chunksDistance: 16,
       orbit: false,
+      worker: false,
       ...defaultWebgpuRendererParams
     }
 
@@ -23,6 +24,9 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
 
     this.paramOptions = {
       orbit: {
+        reloadOnChange: true,
+      },
+      worker: {
         reloadOnChange: true,
       }
     }

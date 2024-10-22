@@ -76,7 +76,9 @@ export const removeBlocksSection = (key) => {
 }
 
 // do not use worker in safari, it is slow
-const USE_WORKER = !navigator.userAgent.includes('Safari')
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
+// const USE_WORKER = !isSafari
+const USE_WORKER = new URLSearchParams(window.location.search).get('worker') === 'true'
 
 let playground = false
 export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
@@ -119,6 +121,13 @@ export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeI
     pickObj(localStorage, 'vertShader', 'fragShader', 'computeShader'),
     isMobile() || playground ? 490_000 : 2_000_000
   )
+
+  if (!USE_WORKER) {
+    // wait for the .canvas() message to be processed (it's async since we still use message channel)
+    await new Promise(resolve => {
+      setTimeout(resolve, 0)
+    })
+  }
 
   let oldWidth = window.innerWidth
   let oldHeight = window.innerHeight

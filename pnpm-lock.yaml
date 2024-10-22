@@ -135,9 +135,6 @@ importers:
       lodash-es:
         specifier: ^4.17.21
         version: 4.17.21
-      math.gl:
-        specifier: ^4.0.0
-        version: 4.1.0
       minecraft-data:
         specifier: 3.76.0
         version: 3.76.0
@@ -2044,12 +2041,6 @@ packages:
   '@mapbox/node-pre-gyp@1.0.11':
     resolution: {integrity: sha512-Yhlar6v9WQgUp/He7BdgzOz8lqMQ8sU+jkCq7Wx8Myc5YFJLbEe7lgui/V7G1qB1DJykHSGwreceSaD60Y0PUQ==}
     hasBin: true
-
-  '@math.gl/core@4.1.0':
-    resolution: {integrity: sha512-FrdHBCVG3QdrworwrUSzXIaK+/9OCRLscxI2OUy6sLOHyHgBMyfnEGs99/m3KNvs+95BsnQLWklVfpKfQzfwKA==}
-
-  '@math.gl/types@4.1.0':
-    resolution: {integrity: sha512-clYZdHcmRvMzVK5fjeDkQlHUzXQSNdZ7s4xOqC3nJPgz4C/TZkUecTo9YS4PruZqtDda/ag4erndP0MIn40dGA==}
 
   '@mdx-js/react@2.3.0':
     resolution: {integrity: sha512-zQH//gdOmuu7nt2oJR29vFhDv88oGPmVw6BggmrHeMI+xgEkp1B2dX9/bMBSYtK0dyLX/aOmesKS09g222K1/g==}
@@ -6588,9 +6579,6 @@ packages:
     engines: {node: '>= 10'}
     peerDependencies:
       react: ^18.2.0
-
-  math.gl@4.1.0:
-    resolution: {integrity: sha512-FtvCJuuAlvn4358e2SkepTv2gnV7VTvu0y/hwkkjS/urDk+nY9x/4Tsn19LmaJl1wqKaqn+QFZhbnjAsuMOkWA==}
 
   mc-assets@0.2.12:
     resolution: {integrity: sha512-ZbiodI0vgcwGT0M3AGc+0N2h7JsnrfjzhlA5AzpSQfkGbNp3wp/VeFmI4/lGm0JPJi9+LgXGDUuspRQzQwhobg==}
@@ -11500,12 +11488,6 @@ snapshots:
       - encoding
       - supports-color
     optional: true
-
-  '@math.gl/core@4.1.0':
-    dependencies:
-      '@math.gl/types': 4.1.0
-
-  '@math.gl/types@4.1.0': {}
 
   '@mdx-js/react@2.3.0(react@18.2.0)':
     dependencies:
@@ -17464,10 +17446,6 @@ snapshots:
   markdown-to-jsx@7.3.2(react@18.2.0):
     dependencies:
       react: 18.2.0
-
-  math.gl@4.1.0:
-    dependencies:
-      '@math.gl/core': 4.1.0
 
   mc-assets@0.2.12: {}
 

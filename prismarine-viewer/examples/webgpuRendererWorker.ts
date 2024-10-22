@@ -92,6 +92,7 @@ export const workerProxyType = createWorkerProxy({
     started = true
     webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, NUMBER_OF_CUBES)
     globalThis.webgpuRenderer = webgpuRenderer
+    postMessage({ type: 'webgpuRendererReady' })
   },
   startRender () {
     if (!webgpuRenderer) return
