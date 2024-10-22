@@ -176,6 +176,7 @@ export class BasePlaygroundScene {
       viewer.render()
     }
     viewer.world.mesherConfig.enableLighting = false
+    viewer.world.allowUpdates = true
     await Promise.all(promises)
     this.setupWorld()
 

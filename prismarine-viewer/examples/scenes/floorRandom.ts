@@ -4,7 +4,7 @@ import { webgpuChannel } from '../webgpuRendererMain'
 import { defaultWebgpuRendererParams } from '../webgpuRendererShared'
 
 export default class RailsCobwebScene extends BasePlaygroundScene {
-  viewDistance = 5
+  viewDistance = 0
   continuousRender = true
   targetPos = new Vec3(0, 0, 0)
 
@@ -33,6 +33,7 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
   }
 
   setupWorld () {
+    viewer.world.allowUpdates = true
     const chunkDistance = this.params.chunksDistance
     for (let x = -chunkDistance; x < chunkDistance; x++) {
       for (let z = -chunkDistance; z < chunkDistance; z++) {
