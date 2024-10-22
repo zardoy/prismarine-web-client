@@ -7,6 +7,7 @@ const chunksArrIndexes = {}
 export class ChunksStorage {
   allSides = [] as Array<BlockTile | undefined>
   chunkSides = new Map<string, BlockTile[]>()
+  // flatBuffer = new Uint32Array()
   lastNotUpdatedIndex
   lastNotUpdatedArrSize
 
@@ -17,7 +18,10 @@ export class ChunksStorage {
     }
   }
 
-  addData (tiles: Record<string, BlockType>, key: string) {
+  addData (tiles: Record<string, BlockType>, rawPosKey: string) {
+    const [xSection, ySection, zSection] = rawPosKey.split(',').map(Number)
+    const chunkPosKey = `${xSection / 16},${ySection / 16},${zSection / 16}`
+
     const newData = Object.entries(tiles).flatMap(([key, value]) => {
       const [x, y, z] = key.split(',').map(Number)
       const block = value
@@ -29,13 +33,7 @@ export class ChunksStorage {
       })
     })
 
-    if (this.chunkSides.has(key)) {
-      throw new Error(`Chunk ${key} already exists TODO updates`)
-    }
-
-    const [xSection, ySection, zSection] = key.split(',').map(Number)
-    const chunkKey = `${xSection / 16},${ySection / 16},${zSection / 16}`
-    this.chunkSides.set(chunkKey, newData)
+    this.chunkSides.set(chunkPosKey, newData)
 
     const currentLength = this.allSides.length
     // // in: object - name, out: [x, y, z, name]

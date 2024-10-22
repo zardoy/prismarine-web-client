@@ -144,6 +144,7 @@ export class BasePlaygroundScene {
     this.Block = (BlockLoader as any)(this.version)
 
     const world = getSyncWorld(this.version)
+    world.setBlockStateId(this.targetPos, 0)
     this.world = world
 
     this.initGui()
@@ -166,6 +167,7 @@ export class BasePlaygroundScene {
       promises.push(initWebgpuRenderer(() => { }, true, true)) // todo
     } else {
       initWithRenderer(renderer.domElement)
+      renderer.domElement.id = 'viewer-canvas'
       document.body.appendChild(renderer.domElement)
     }
     viewer.addChunksBatchWaitTime = 0
@@ -176,6 +178,7 @@ export class BasePlaygroundScene {
       viewer.render()
     }
     viewer.world.mesherConfig.enableLighting = false
+    viewer.world.allowUpdates = true
     await Promise.all(promises)
     this.setupWorld()
 

@@ -138,7 +138,7 @@ export const workerProxyType = createWorkerProxy({
         }
       }
     }
-    console.log('generated random data:', count)
+    // console.log('generated random data:', count)
     this.addBlocksSection(blocks, `${offsetX},0,${offsetZ}`)
   },
   addBlocksSection (tiles: Record<string, BlockType>, key: string, updateData = true) {

@@ -1,5 +1,4 @@
-import { world } from 'prismarine-world'
-import WorldLoader from 'prismarine-world'
+import WorldLoader, { world } from 'prismarine-world'
 import ChunkLoader from 'prismarine-chunk'
 
 export type BlockFaceType = {

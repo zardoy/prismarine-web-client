@@ -12,6 +12,8 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   // webglData: WebglData
   stopBlockUpdate = false
   lastChunkDistance = 0
+  loaded = new Set()
+  allowUpdates = true
 
   constructor (config) {
     super(config)
@@ -44,7 +46,6 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     webgpuChannel.addBlocksSectionDone()
   }
 
-  fullfiled = new Set()
   handleWorkerMessage (data: { geometry: MesherGeometryOutput, type, key }): void {
     if (data.type === 'geometry' && Object.keys(data.geometry.tiles).length) {
       this.addChunksToScene(data.key, data.geometry)
@@ -52,8 +53,8 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   }
 
   addChunksToScene (key: string, geometry: MesherGeometryOutput) {
-    // if (this.fullfiled.has(key)) throw new Error(`updated ${key}`)
-    this.fullfiled.add(key)
+    if (this.loaded.has(key) && !this.allowUpdates) throw new Error(`updated ${key}`)
+    this.loaded.add(key)
     const chunkCoords = key.split(',').map(Number) as [number, number, number]
     if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 

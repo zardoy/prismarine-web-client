@@ -47,6 +47,7 @@ export class WebgpuRenderer {
   multisampleTexture: GPUTexture | undefined
   chunksBuffer: GPUBuffer
   chunkBindGroup: GPUBindGroup
+  debugBuffer: GPUBuffer
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
@@ -264,6 +265,12 @@ export class WebgpuRenderer {
       label: 'indirectDrawBuffer',
       size: 16, // 4 uint32 values
       usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+    })
+
+    this.debugBuffer = device.createBuffer({
+      label: 'debugBuffer',
+      size: 16, // 4 uint32 values
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
     })
 
     // Initialize indirect draw parameters
@@ -501,32 +508,32 @@ export class WebgpuRenderer {
     this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeFlatData)
     this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
-    Object.defineProperty(window, 'getBufferBlocksPositions', {
-      get () {
-        let minX = 0
-        let minZ = 0
-        let maxX = 0
-        let maxZ = 0
-        for (let i = 0; i < positions.length; i += 3) {
-          const x = positions[i]
-          const z = positions[i + 2]
-          minX = Math.min(minX, x)
-          minZ = Math.min(minZ, z)
-          maxX = Math.max(maxX, x)
-          maxZ = Math.max(maxZ, z)
-        }
-        console.log({ minX, minZ, maxX, maxZ })
-        let str = ''
-        for (let x = -minX; x <= maxX; x++) {
-          for (let z = -minZ; z <= maxZ; z++) {
-            const hasBlock = allSides.some(side => side && side[0] === x && side[2] === z)
-            str += hasBlock ? 'X' : ' '
-          }
-          str += '\n'
-        }
-        return str
-      },
-    })
+    // Object.defineProperty(window, 'getBufferBlocksPositions', {
+    //   get () {
+    //     let minX = 0
+    //     let minZ = 0
+    //     let maxX = 0
+    //     let maxZ = 0
+    //     for (let i = 0; i < positions.length; i += 3) {
+    //       const x = positions[i]
+    //       const z = positions[i + 2]
+    //       minX = Math.min(minX, x)
+    //       minZ = Math.min(minZ, z)
+    //       maxX = Math.max(maxX, x)
+    //       maxZ = Math.max(maxZ, z)
+    //     }
+    //     console.log({ minX, minZ, maxX, maxZ })
+    //     let str = ''
+    //     for (let x = -minX; x <= maxX; x++) {
+    //       for (let z = -minZ; z <= maxZ; z++) {
+    //         const hasBlock = allSides.some(side => side && side[0] === x && side[2] === z)
+    //         str += hasBlock ? 'X' : ' '
+    //       }
+    //       str += '\n'
+    //     }
+    //     return str
+    //   },
+    // })
 
     this.notRenderedAdditions++
     console.timeEnd('updateSides')

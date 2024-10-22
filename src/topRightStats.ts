@@ -40,10 +40,20 @@ if (hasRamPanel) {
 }
 
 const hideStats = localStorage.hideStats || isCypress() || true
+export const toggleStatsVisibility = (visible: boolean) => {
+  if (visible) {
+    stats.dom.style.display = 'block'
+    stats2.dom.style.display = 'block'
+    statsGl.container.style.display = 'block'
+  } else {
+    stats.dom.style.display = 'none'
+    stats2.dom.style.display = 'none'
+    statsGl.container.style.display = 'none'
+  }
+}
+
 if (hideStats) {
-  stats.dom.style.display = 'none'
-  stats2.dom.style.display = 'none'
-  statsGl.container.style.display = 'none'
+  toggleStatsVisibility(false)
 }
 
 export const initWithRenderer = (canvas) => {
