@@ -12,7 +12,7 @@ jobs:
   check-trigger:
     runs-on: ubuntu-latest
     steps:
-      - run: echo ${{ vars.ALIASES }}
+      - run: echo $ALIASES
       - run: echo ${{ toJson(contains(fromJSON(vars.AUTO_DEPLOY_PRS), github.event.pull_request.number)) }}
   deploy:
     runs-on: ubuntu-latest
