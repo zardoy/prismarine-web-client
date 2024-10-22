@@ -44,10 +44,12 @@ jobs:
   vercel-auto-deploy:
     runs-on: ubuntu-latest
     if: >-
-      env.AUTO_DEPLOY_PRS contains $'\n' + toString(github.event.pull_request.number) + $'\n' ||
-      startsWith(env.AUTO_DEPLOY_PRS, toString(github.event.pull_request.number) + $'\n') ||
-      endsWith(env.AUTO_DEPLOY_PRS, $'\n' + toString(github.event.pull_request.number)) ||
-      env.AUTO_DEPLOY_PRS == toString(github.event.pull_request.number)
+      (
+        env.AUTO_DEPLOY_PRS contains $'\n' + toString(github.event.pull_request.number) + $'\n' ||
+        startsWith(env.AUTO_DEPLOY_PRS, toString(github.event.pull_request.number) + $'\n') ||
+        endsWith(env.AUTO_DEPLOY_PRS, $'\n' + toString(github.event.pull_request.number)) ||
+        env.AUTO_DEPLOY_PRS == toString(github.event.pull_request.number)
+      }
     permissions:
       pull-requests: write
     steps:
