@@ -452,16 +452,15 @@ export class WebgpuRenderer {
     const textureIndexes = [] as number[]
     const colors = [] as number[]
     const { allSides, chunkSides } = chunksStorage.getDataForBuffers()
-    for (const side of allSides) {
-      if (!side) continue
-      const [x, y, z] = side
-      positions.push(x, y, z)
-      const face = side[3]
-      textureIndexes.push(face.textureIndex)
-      if (face.tint) {
-        colors.push(...face.tint)
-      } else {
-        colors.push(1, 1, 1)
+    for (const sides of allSides) {
+      for (const side of sides) {
+        if (!side) continue
+        const [x, y, z] = side
+        positions.push(x, y, z)
+        const face = side[3]
+        textureIndexes.push(face.textureIndex)
+        const tint = face.tint ?? [1, 1, 1]
+        colors.push(...tint.map(x => x * 255))
       }
     }
 

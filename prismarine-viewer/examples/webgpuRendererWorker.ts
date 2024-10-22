@@ -9,8 +9,6 @@ import { ChunksStorage } from './chunksStorage'
 
 export const chunksStorage = new ChunksStorage()
 
-globalThis.allSides = chunksStorage.allSides
-
 let animationTick = 0
 
 const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 10_000)
@@ -41,9 +39,9 @@ export const updateSize = (width, height) => {
 
 let fullReset
 
-const updateCubesWhenAvailable = (pos) => {
+const updateCubesWhenAvailable = () => {
   onceRendererAvailable((renderer) => {
-    renderer.updateSides(pos)
+    renderer.updateSides()
   })
 }
 
@@ -144,13 +142,13 @@ export const workerProxyType = createWorkerProxy({
   addBlocksSection (tiles: Record<string, BlockType>, key: string, updateData = true) {
     chunksStorage.addData(tiles, key)
     if (updateData) {
-      updateCubesWhenAvailable(chunksStorage.allSides.length)
+      updateCubesWhenAvailable()
       chunksStorage.lastNotUpdatedIndex = undefined
       chunksStorage.lastNotUpdatedArrSize = undefined
     }
   },
   addBlocksSectionDone () {
-    updateCubesWhenAvailable(chunksStorage.allSides.length)
+    updateCubesWhenAvailable()
     chunksStorage.lastNotUpdatedIndex = undefined
     chunksStorage.lastNotUpdatedArrSize = undefined
   },
@@ -216,11 +214,11 @@ export const workerProxyType = createWorkerProxy({
     // allSides = json.map(([x, y, z, face, textureIndex]) => {
     //     return [x, y, z, { face, textureIndex }] as [number, number, number, BlockFaceType]
     // })
-    const dataSize = json.length / 5
-    for (let i = 0; i < json.length; i += 5) {
-      chunksStorage.allSides.push([json[i], json[i + 1], json[i + 2], { side: json[i + 3], textureIndex: json[i + 4] }])
-    }
-    updateCubesWhenAvailable(0)
+    // const dataSize = json.length / 5
+    // for (let i = 0; i < json.length; i += 5) {
+    //   chunksStorage.allSides.push([json[i], json[i + 1], json[i + 2], { side: json[i + 3], textureIndex: json[i + 4] }])
+    // }
+    // updateCubesWhenAvailable(0)
   },
   updateBackground (color) {
     onceRendererAvailable((renderer) => {
@@ -229,20 +227,22 @@ export const workerProxyType = createWorkerProxy({
   },
 }, globalThis.webgpuRendererChannel?.port2)
 
-globalThis.testDuplicates = () => {
-  const duplicates = chunksStorage.allSides.filter((value, index, self) => self.indexOf(value) !== index)
-  console.log('duplicates', duplicates)
-}
+// globalThis.testDuplicates = () => {
+//   const duplicates = [...chunksStorage.getDataForBuffers().allSides].flat().filter((value, index, self) => self.indexOf(value) !== index)
+//   console.log('duplicates', duplicates)
+// }
 
 const exportData = () => {
+  const allSides = [...chunksStorage.getDataForBuffers().allSides].flat()
+
   // Calculate the total length of the final array
-  const totalLength = chunksStorage.allSides.length * 5
+  const totalLength = allSides.length * 5
 
   // Create a new Int16Array with the total length
   const flatData = new Int16Array(totalLength)
 
   // Fill the flatData array
-  for (const [i, sideData] of chunksStorage.allSides.entries()) {
+  for (const [i, sideData] of allSides.entries()) {
     if (!sideData) continue
     const [x, y, z, side] = sideData
     flatData.set([x, y, z, side.side, side.textureIndex], i * 5)

@@ -5,7 +5,7 @@ export type BlockTile = [number, number, number, BlockFaceType]
 const chunksArrIndexes = {}
 // const freeArrayIndexes = [] as Array<[number, number]>
 export class ChunksStorage {
-  allSides = [] as Array<BlockTile | undefined>
+  // allSides = [] as Array<BlockTile | undefined>
   chunkSides = new Map<string, BlockTile[]>()
   // flatBuffer = new Uint32Array()
   lastNotUpdatedIndex
@@ -13,7 +13,7 @@ export class ChunksStorage {
 
   getDataForBuffers () {
     return {
-      allSides: this.allSides,
+      allSides: this.chunkSides.values(),
       chunkSides: this.chunkSides
     }
   }
@@ -35,7 +35,8 @@ export class ChunksStorage {
 
     this.chunkSides.set(chunkPosKey, newData)
 
-    const currentLength = this.allSides.length
+    // const currentLength = this.allSides.length
+
     // // in: object - name, out: [x, y, z, name]
     // // find freeIndexes if possible
     // const freeArea = freeArrayIndexes.find(([startIndex, endIndex]) => endIndex - startIndex >= newData.length)
@@ -54,16 +55,18 @@ export class ChunksStorage {
     // }
 
     // chunksArrIndexes[key] = [currentLength, currentLength + newData.length]
-    let i = 0
-    while (i < newData.length) {
-      this.allSides.splice(currentLength + i, 0, ...newData.slice(i, i + 1024))
-      i += 1024
-    }
-    const totalChunksLength = [...this.chunkSides.values()].reduce((a, x) => a + x.length, 0)
-    if (totalChunksLength !== this.allSides.length) {
-      makeError(`totalChunksLength ${totalChunksLength} !== allSides.length ${this.allSides.length}`)
-    }
-    this.lastNotUpdatedIndex ??= currentLength
+
+    // let i = 0
+    // while (i < newData.length) {
+    //   this.allSides.splice(currentLength + i, 0, ...newData.slice(i, i + 1024))
+    //   i += 1024
+    // }
+    // const totalChunksLength = [...this.chunkSides.values()].reduce((a, x) => a + x.length, 0)
+    // if (totalChunksLength !== this.allSides.length) {
+    //   makeError(`totalChunksLength ${totalChunksLength} !== allSides.length ${this.allSides.length}`)
+    // }
+    // this.lastNotUpdatedIndex ??= currentLength
+    this.lastNotUpdatedIndex = 0
     // if (webglRendererWorker && webglRendererWorker.notRenderedAdditions < 5) {
   }
 }

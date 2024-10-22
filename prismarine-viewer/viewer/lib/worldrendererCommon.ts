@@ -49,13 +49,17 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   version = undefined as string | undefined
   @worldCleanup()
-  loadedChunks = {} as Record<string, boolean>
+  loadedChunks = {} as Record<string, boolean> // data is added for these chunks and they might be still processing
 
   @worldCleanup()
-  finishedChunks = {} as Record<string, boolean>
+  finishedChunks = {} as Record<string, boolean> // these chunks are fully loaded into the world (scene)
 
   @worldCleanup()
-  sectionsOutstanding = new Map<string, number>()
+  // loading sections (chunks)
+  sectionsWaiting = new Map<string, number>()
+
+  @worldCleanup()
+  queuedChunks = new Set<string>()
 
   @worldCleanup()
   renderUpdateEmitter = new EventEmitter() as unknown as TypedEmitter<{
@@ -146,13 +150,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
         }
         if (data.type === 'sectionFinished') { // on after load & unload section
-          if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
-          this.sectionsOutstanding.set(data.key, this.sectionsOutstanding.get(data.key)! - 1)
-          if (this.sectionsOutstanding.get(data.key) === 0) this.sectionsOutstanding.delete(data.key)
+          if (!this.sectionsWaiting.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
+          this.sectionsWaiting.set(data.key, this.sectionsWaiting.get(data.key)! - 1)
+          if (this.sectionsWaiting.get(data.key) === 0) this.sectionsWaiting.delete(data.key)
 
           const chunkCoords = data.key.split(',').map(Number)
           if (this.loadedChunks[`${chunkCoords[0]},${chunkCoords[2]}`]) { // ensure chunk data was added, not a neighbor chunk update
-            const loadingKeys = [...this.sectionsOutstanding.keys()]
+            const loadingKeys = [...this.sectionsWaiting.keys()]
             if (!loadingKeys.some(key => {
               const [x, y, z] = key.split(',').map(Number)
               return x === chunkCoords[0] && z === chunkCoords[2]
@@ -184,7 +188,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   checkAllFinished () {
-    if (this.sectionsOutstanding.size === 0) {
+    if (this.sectionsWaiting.size === 0) {
       const allFinished = Object.keys(this.finishedChunks).length === this.chunksLength
       if (allFinished) {
         this.allChunksLoaded?.()
@@ -400,7 +404,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // This guarantees uniformity accross workers and that a given section
     // is always dispatched to the same worker
     const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
-    this.sectionsOutstanding.set(key, (this.sectionsOutstanding.get(key) ?? 0) + 1)
+    this.sectionsWaiting.set(key, (this.sectionsWaiting.get(key) ?? 0) + 1)
     this.messagesQueue[hash] ??= []
     this.messagesQueue[hash].push({
       // this.workers[hash].postMessage({
@@ -432,13 +436,30 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   // of sections not rendered are 0
   async waitForChunksToRender () {
     return new Promise<void>((resolve, reject) => {
-      if ([...this.sectionsOutstanding].length === 0) {
+      if ([...this.sectionsWaiting].length === 0) {
         resolve()
         return
       }
 
       const updateHandler = () => {
-        if (this.sectionsOutstanding.size === 0) {
+        if (this.sectionsWaiting.size === 0) {
+          this.renderUpdateEmitter.removeListener('update', updateHandler)
+          resolve()
+        }
+      }
+      this.renderUpdateEmitter.on('update', updateHandler)
+    })
+  }
+
+  async waitForChunkToLoad (pos: Vec3) {
+    return new Promise<void>((resolve, reject) => {
+      const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.z / 16) * 16}`
+      if (this.loadedChunks[key]) {
+        resolve()
+        return
+      }
+      const updateHandler = () => {
+        if (this.loadedChunks[key]) {
           this.renderUpdateEmitter.removeListener('update', updateHandler)
           resolve()
         }

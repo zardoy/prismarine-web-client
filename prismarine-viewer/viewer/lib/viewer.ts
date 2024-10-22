@@ -102,10 +102,18 @@ export class Viewer {
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
-    if (!this.world.loadedChunks[`${Math.floor(pos.x / 16)},${Math.floor(pos.z / 16)}`]) {
-      console.warn('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
+    const set = async () => {
+      const sectionX = Math.floor(pos.x / 16) * 16
+      const sectionZ = Math.floor(pos.z / 16) * 16
+      if (this.world.queuedChunks.has(`${sectionX},${sectionZ}`)) {
+        await this.world.waitForChunkToLoad(pos)
+      }
+      if (!this.world.loadedChunks[`${sectionX},${sectionZ}`]) {
+        console.warn('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
+      }
+      this.world.setBlockStateId(pos, stateId)
     }
-    this.world.setBlockStateId(pos, stateId)
+    void set()
   }
 
   demoModel () {
@@ -210,6 +218,7 @@ export class Viewer {
     } | null
     worldEmitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
       this.world.worldConfig = worldConfig
+      this.world.queuedChunks.add(`${x},${z}`)
       const args = [x, z, chunk, isLightUpdate]
       if (!currentLoadChunkBatch) {
         // add a setting to use debounce instead
@@ -217,6 +226,7 @@ export class Viewer {
           data: [],
           timeout: setTimeout(() => {
             for (const args of currentLoadChunkBatch!.data) {
+              this.world.queuedChunks.delete(`${args[0]},${args[1]}`)
               this.addColumn(...args as Parameters<typeof this.addColumn>)
             }
             currentLoadChunkBatch = null
