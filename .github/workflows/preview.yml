@@ -3,6 +3,8 @@ env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
   ALIASES: ${{ vars.ALIASES }}
+  COMMENT_TRIGGER_OK: github.event_name == 'issue_comment' && contains(github.event.comment.body, '/deploy') && github.event.issue.pull_request != null
+  PULL_TRIGGER_OK: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
 on:
   issue_comment:
     types: [created]
@@ -11,16 +13,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     # todo skip already created deploys on that commit
-    if: >-
-      (
-        github.event.issue.pull_request != '' &&
-        (
-          contains(github.event.comment.body, '/deploy')
-        )
-      ) ||
-      (
-        github.event_name == 'pull_request' && fromJSON(vars.AUTO_DEPLOY_PRS).includes(github.event.pull_request.number)
-      )
+    if: vars.COMMENT_TRIGGER_OK || vars.PULL_TRIGGER_OK
     permissions:
       pull-requests: write
     steps:
