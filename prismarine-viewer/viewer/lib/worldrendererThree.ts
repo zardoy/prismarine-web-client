@@ -67,7 +67,10 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.debugOverlayAdded = true
     const pane = addNewStat('debug-overlay')
     setInterval(() => {
-      pane.updateText(`C: ${this.renderer.info.render.calls} TR: ${this.renderer.info.render.triangles} TE: ${this.renderer.info.memory.textures} F: ${this.tilesRendered} B: ${this.blocksRendered}`)
+      pane.setVisibility(this.displayStats)
+      if (this.displayStats) {
+        pane.updateText(`C: ${this.renderer.info.render.calls} TR: ${this.renderer.info.render.triangles} TE: ${this.renderer.info.memory.textures} F: ${this.tilesRendered} B: ${this.blocksRendered}`)
+      }
     }, 100)
   }
 

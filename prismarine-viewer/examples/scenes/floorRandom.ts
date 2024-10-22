@@ -40,12 +40,13 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
         webgpuChannel.generateRandom(16 ** 2, x * 16, z * 16)
       }
     }
+
     // const squareSize = this.params.squareSize ?? 30
     // const maxSquareSize = this.viewDistance * 16 * 2
     // if (squareSize > maxSquareSize) throw new Error(`Square size too big, max is ${maxSquareSize}`)
     // // const fullBlocks = loadedData.blocksArray.map(x => x.name)
     // const fullBlocks = loadedData.blocksArray.filter(block => {
-    //   const b = this.Block.fromStateId(block.defaultState!, 0)
+    //   const b = this.Block.fromStateId(block.defaultState, 0)
     //   if (b.shapes?.length !== 1) return false
     //   const shape = b.shapes[0]
     //   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
@@ -53,7 +54,7 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
     // for (let x = -squareSize; x <= squareSize; x++) {
     //   for (let z = -squareSize; z <= squareSize; z++) {
     //     const i = Math.abs(x + z) * squareSize
-    //     worldView!.world.setBlock(this.targetPos.offset(x, 0, z), this.Block.fromStateId(fullBlocks[i % fullBlocks.length].defaultState!, 0))
+    //     worldView!.world.setBlock(this.targetPos.offset(x, 0, z), this.Block.fromStateId(fullBlocks[i % fullBlocks.length].defaultState, 0))
     //   }
     // }
   }

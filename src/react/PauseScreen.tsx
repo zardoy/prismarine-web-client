@@ -244,6 +244,7 @@ export default () => {
           </Button>
           {(navigator.share as typeof navigator.share | undefined) ? (
             <Button
+              title="Share Join Link"
               className="button"
               icon="pixelarticons:arrow-up"
               style={{ width: '20px' }}
@@ -251,6 +252,7 @@ export default () => {
             />
           ) : null}
           <Button
+            title='Display QR for the Join Link'
             className="button"
             icon="pixelarticons:dice"
             style={{ width: '20px' }}

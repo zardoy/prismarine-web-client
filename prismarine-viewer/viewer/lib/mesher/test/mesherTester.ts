@@ -14,7 +14,7 @@ export const setup = (version, initialBlocks: Array<[number[], string]>) => {
 
   const pos = new Vec3(2, 5, 2)
   for (const [addPos, name] of initialBlocks) {
-    chunk1.setBlockStateId(pos.offset(addPos[0], addPos[1], addPos[2]), mcData.blocksByName[name].defaultState!)
+    chunk1.setBlockStateId(pos.offset(addPos[0], addPos[1], addPos[2]), mcData.blocksByName[name].defaultState)
   }
 
   const getGeometry = () => {

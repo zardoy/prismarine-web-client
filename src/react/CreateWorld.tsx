@@ -52,6 +52,7 @@ export default ({ cancelClick, createClick, customizeClick, versions, defaultVer
         }}
         containerStyle={{ width: '100px' }}
       />
+      <button type='submit' style={{ visibility: 'hidden' }} />
     </form>
     <div style={{ display: 'flex' }}>
       <Button onClick={() => {
