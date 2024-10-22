@@ -77,8 +77,8 @@ export const removeBlocksSection = (key) => {
 
 // do not use worker in safari, it is slow
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-// const USE_WORKER = !isSafari
-const USE_WORKER = new URLSearchParams(window.location.search).get('worker') === 'true'
+const workerParam = new URLSearchParams(window.location.search).get('webgpuWorker')
+const USE_WORKER = workerParam ? workerParam === 'true' : !isSafari
 
 let playground = false
 export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
