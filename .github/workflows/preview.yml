@@ -9,6 +9,11 @@ on:
   pull_request:
   push:
 jobs:
+  check-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ${{ github.event_name }}
+      - run: echo ${{ toJson(contains(fromJSON(vars.AUTO_DEPLOY_PRS), github.event.pull_request.number)) }}
   deploy:
     runs-on: ubuntu-latest
     if: >-
