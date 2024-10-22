@@ -20,7 +20,7 @@ jobs:
       ) ||
       (
         github.event_name == 'pull_request' && (
-          env.AUTO_DEPLOY_PRS contains $'\n' + toString(github.event.pull_request.number) + $'\n' ||
+          contains(env.AUTO_DEPLOY_PRS, $'\n' + toString(github.event.pull_request.number)) + $'\n' ||
           startsWith(env.AUTO_DEPLOY_PRS, toString(github.event.pull_request.number) + $'\n') ||
           endsWith(env.AUTO_DEPLOY_PRS, $'\n' + toString(github.event.pull_request.number)) ||
           env.AUTO_DEPLOY_PRS == toString(github.event.pull_request.number)
