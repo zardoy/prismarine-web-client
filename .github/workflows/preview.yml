@@ -8,13 +8,6 @@ on:
     types: [created]
   pull_request_target:
 jobs:
-  check-trigger:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ${{ vars.AUTO_DEPLOY_PRS }}
-      - run: echo ${{ fromJson(vars.AUTO_DEPLOY_PRS) }}
-      - run: echo ${{ toJson(contains(fromJson(vars.AUTO_DEPLOY_PRS), github.event.pull_request.number)) }}
-      - run: echo ${{ toJson(contains(fromJson(vars.AUTO_DEPLOY_PRS), 120)) }}
   deploy:
     runs-on: ubuntu-latest
     if: >-
@@ -32,6 +25,16 @@ jobs:
     permissions:
       pull-requests: write
     steps:
+      - name: Checkout Base To Temp
+        uses: actions/checkout@v2
+        with:
+          path: temp-base-repo
+      - name: Get deployment alias
+        run: node temp-base-repo/scripts/githubActions.mjs getAlias
+        id: alias
+        env:
+          ALIASES: ${{ env.ALIASES }}
+          PULL_URL: ${{ github.event.issue.pull_request.url || github.event.pull_request.url }}
       - name: Checkout PR (comment)
         uses: actions/checkout@v2
         if: github.event_name == 'issue_comment'
@@ -68,6 +71,7 @@ jobs:
           run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         id: deploy
       - uses: mshick/add-pr-comment@v2
+        # if: github.event_name == 'issue_comment'
         with:
           allow-repeats: true
           message: |
@@ -75,12 +79,6 @@ jobs:
             [Playground](${{ steps.deploy.outputs.stdout }}/playground/)
             [Storybook](${{ steps.deploy.outputs.stdout }}/storybook/)
       # - run: git checkout next scripts/githubActions.mjs
-      - name: Get deployment alias
-        run: node scripts/githubActions.mjs getAlias
-        id: alias
-        env:
-          ALIASES: ${{ env.ALIASES }}
-          PULL_URL: ${{ github.event.issue.pull_request.url || github.event.pull_request.url }}
       - name: Set deployment alias
         if: ${{ steps.alias.outputs.alias != '' && steps.alias.outputs.alias != 'mcraft.fun' && steps.alias.outputs.alias != 's.mcraft.fun' }}
         run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ steps.alias.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
