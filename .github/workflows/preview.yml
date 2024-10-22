@@ -19,7 +19,7 @@ jobs:
         )
       ) ||
       (
-        github.event_name == 'pull_request' && fromJSON(env.AUTO_DEPLOY_PRS).includes(github.event.pull_request.number)
+        github.event_name == 'pull_request' && fromJSON(vars.AUTO_DEPLOY_PRS).includes(github.event.pull_request.number)
       )
     permissions:
       pull-requests: write
