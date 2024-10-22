@@ -11,5 +11,5 @@ fn main(
   let tileSize: vec2<f32> = vec2<f32>(16.0f,16.0f);
   let tilesPerTexture: vec2<f32> = vec2<f32>(textureSize)/tileSize;
   let pixelColor = textureSample(myTexture, mySampler, fragUV/tilesPerTexture + vec2f(trunc(TextureIndex%tilesPerTexture.y),trunc(TextureIndex/tilesPerTexture.x) )/tilesPerTexture);
-  return vec4f(pixelColor.xyz, 1.0) * vec4f(ColorBlend,1.0);
+  return vec4f(pixelColor.xyz, 1.0) * vec4f(ColorBlend/255,1.0);
 }
