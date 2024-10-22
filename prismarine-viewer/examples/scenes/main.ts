@@ -295,7 +295,7 @@ class MainScene extends BasePlaygroundScene {
       }
     }
 
-    viewer.setBlockStateId(this.targetPos, block.stateId!)
+    worldView!.setBlockStateId(this.targetPos, block.stateId!)
     console.log('up stateId', block.stateId)
     this.params.metadata = block.metadata
     this.metadataGui.updateDisplay()
