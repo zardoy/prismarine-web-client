@@ -40,8 +40,8 @@ fn main(
   var positionZ : f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16); // 4 bytes
   let textureIndex : f32 = f32((cube.cube[0] >> 17) & 1023); 
 
-  //positionX += 0.5;
-  //positionZ += 0.5;
+  positionX += 0.5;
+  positionZ += 0.5;
   //textureIndex = 1.0;
   let cube_position = vec4f(positionX, positionY, positionZ, 0.0);
 

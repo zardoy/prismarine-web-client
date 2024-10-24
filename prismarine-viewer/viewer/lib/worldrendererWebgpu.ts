@@ -13,7 +13,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   stopBlockUpdate = false
   lastChunkDistance = 0
   loaded = new Set()
-  allowUpdates = true
+  allowUpdates = false
 
   constructor (config) {
     super(config)

@@ -77,8 +77,8 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   // let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 8);
   // let colorBlend = vec3f(colorBlendR, colorBlendG, colorBlendB);
   //last 8 bits reserved for animations
-  //positionX += 1.0;
-  //positionZ += 1.0;
+  positionX += 0.5;
+  positionZ += 0.5;
   // Transform cube position to clip space
   let clipPos = ViewProjectionMatrix * position;
   let clipDepth = clipPos.z / clipPos.w; // Obtain depth in clip space
