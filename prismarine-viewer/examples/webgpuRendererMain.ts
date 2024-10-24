@@ -71,10 +71,6 @@ export const sendCameraToWorker = () => {
   })
 }
 
-export const removeBlocksSection = (key) => {
-  webgpuChannel.removeBlocksSection(key)
-}
-
 // do not use worker in safari, it is slow
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 const workerParam = new URLSearchParams(window.location.search).get('webgpuWorker')

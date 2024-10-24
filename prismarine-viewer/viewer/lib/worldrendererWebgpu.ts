@@ -1,6 +1,6 @@
 import { Vec3 } from 'vec3'
 import { updateStatText } from '../../examples/newStats'
-import { addBlocksSection, removeBlocksSection, webgpuChannel } from '../../examples/webgpuRendererMain'
+import { addBlocksSection, webgpuChannel } from '../../examples/webgpuRendererMain'
 import type { WebglData } from '../prepare/webglData'
 import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
@@ -17,6 +17,11 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
 
   constructor (config) {
     super(config)
+
+    // TODO!
+    if (localServer) {
+      localServer.players[0].stopChunkUpdates = true
+    }
 
     this.renderUpdateEmitter.on('update', () => {
       const loadedChunks = Object.keys(this.finishedChunks).length
