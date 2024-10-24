@@ -53,7 +53,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   }
 
   addChunksToScene (key: string, geometry: MesherGeometryOutput) {
-    if (this.loaded.has(key) && !this.allowUpdates) throw new Error(`updated ${key}`)
+    if (this.loaded.has(key) && !this.allowUpdates) return
     this.loaded.add(key)
     const chunkCoords = key.split(',').map(Number) as [number, number, number]
     if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
