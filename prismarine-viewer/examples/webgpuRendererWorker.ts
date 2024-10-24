@@ -111,7 +111,7 @@ export const workerProxyType = createWorkerProxy({
       webgpuRenderer?.updateConfig(params)
     })
   },
-  generateRandom (count: number, offsetX = 0, offsetZ = 0) {
+  generateRandom (count: number, offsetX = 0, offsetZ = 0, yOffset = 0) {
     const square = Math.sqrt(count)
     if (square % 1 !== 0) throw new Error('square must be a whole number')
     const blocks = {}
@@ -125,7 +125,7 @@ export const workerProxyType = createWorkerProxy({
     }
     for (let x = offsetX; x < square + offsetX; x++) {
       for (let z = offsetZ; z < square + offsetZ; z++) {
-        blocks[`${x},${0},${z}`] = {
+        blocks[`${x},${yOffset},${z}`] = {
           faces: [
             getFace(0),
             getFace(1),
@@ -138,7 +138,7 @@ export const workerProxyType = createWorkerProxy({
       }
     }
     // console.log('generated random data:', count)
-    this.addBlocksSection(blocks, `${offsetX},0,${offsetZ}`)
+    this.addBlocksSection(blocks, `${offsetX},${yOffset},${offsetZ}`)
   },
   addBlocksSection (tiles: Record<string, BlockType>, key: string, updateData = true) {
     chunksStorage.addData(tiles, key)

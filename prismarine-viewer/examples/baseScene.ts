@@ -325,13 +325,9 @@ export class BasePlaygroundScene {
       direction.applyQuaternion(viewer.camera.quaternion)
       direction.y = 0
 
-      if (pressedKeys.has('ShiftLeft')) {
-        direction.y *= 2
-        direction.x *= 2
-        direction.z *= 2
-      }
+      const scalar = pressedKeys.has('AltLeft') ? 4 : 1
       // Add the vector to the camera's position to move the camera
-      viewer.camera.position.add(direction.normalize())
+      viewer.camera.position.add(direction.normalize().multiplyScalar(scalar))
       this.controls?.update()
       this.render()
     }

@@ -49,8 +49,6 @@ export class WebgpuRenderer {
   chunkBindGroup: GPUBindGroup
   debugBuffer: GPUBuffer
 
-  actualBufferSize = 0
-
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
     this.init()
@@ -450,7 +448,7 @@ export class WebgpuRenderer {
     })
 
     if (oldCubesBuffer) {
-      this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, this.actualBufferSize)
+      this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, this.realNumberOfCubes * 8)
     }
 
     this.createUniformBindGroup(this.device, this.pipeline)
@@ -489,7 +487,6 @@ export class WebgpuRenderer {
 
     const actualCount = Math.ceil(positions.length / 3)
     const NUMBER_OF_CUBES_NEEDED = actualCount
-    this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
       console.warn('extending number of cubes', NUMBER_OF_CUBES_NEEDED, this.NUMBER_OF_CUBES)
       this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEEDED
@@ -498,6 +495,7 @@ export class WebgpuRenderer {
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
     }
+    this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
     const BYTES_PER_ELEMENT = 2
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
@@ -560,6 +558,7 @@ export class WebgpuRenderer {
     this.notRenderedAdditions++
     console.timeEnd('updateSides')
     this.waitingNextUpdateSidesOffset = undefined
+    this.realNumberOfCubes = this.NUMBER_OF_CUBES
   }
 
   lastCall = performance.now()
@@ -645,35 +644,38 @@ export class WebgpuRenderer {
     // Compute pass for occlusion culling
     this.commandEncoder.label = 'Main Comand Encoder'
     this.updateCubesBuffersDataFromLoop()
-    const computePass = this.commandEncoder.beginComputePass()
-    computePass.label = 'ComputePass'
-    computePass.setPipeline(this.computePipeline)
-    //computePass.setBindGroup(0, this.uniformBindGroup);
-    computePass.setBindGroup(0, this.computeBindGroup)
-    computePass.setBindGroup(1, this.chunkBindGroup)
-    computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
-    computePass.end()
-    device.queue.submit([this.commandEncoder.finish()])
-    this.commandEncoder = device.createCommandEncoder()
-    //device.queue.submit([commandEncoder.finish()]);
-    // Render pass
-    //console.log(this.indirectDrawBuffer.getMappedRange());
-    const renderPass = this.commandEncoder.beginRenderPass(this.renderPassDescriptor)
-    renderPass.label = 'RenderPass'
-    renderPass.setPipeline(pipeline)
-    renderPass.setBindGroup(0, this.uniformBindGroup)
-    renderPass.setVertexBuffer(0, verticesBuffer)
-    renderPass.setBindGroup(1, this.vertexCubeBindGroup)
+    if (this.realNumberOfCubes) {
+      const computePass = this.commandEncoder.beginComputePass()
+      computePass.label = 'ComputePass'
+      computePass.setPipeline(this.computePipeline)
+      //computePass.setBindGroup(0, this.uniformBindGroup);
+      computePass.setBindGroup(0, this.computeBindGroup)
+      computePass.setBindGroup(1, this.chunkBindGroup)
+      computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
+      computePass.end()
+      device.queue.submit([this.commandEncoder.finish()])
+      this.commandEncoder = device.createCommandEncoder()
+      //device.queue.submit([commandEncoder.finish()]);
+      // Render pass
+      //console.log(this.indirectDrawBuffer.getMappedRange());
+      const renderPass = this.commandEncoder.beginRenderPass(this.renderPassDescriptor)
+      renderPass.label = 'RenderPass'
+      renderPass.setPipeline(pipeline)
+      renderPass.setBindGroup(0, this.uniformBindGroup)
+      renderPass.setVertexBuffer(0, verticesBuffer)
+      renderPass.setBindGroup(1, this.vertexCubeBindGroup)
 
-    // Use indirect drawing
-    renderPass.drawIndirect(this.indirectDrawBuffer, 0)
-
-    if (this.rendererParams.secondCamera) {
-      renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
-      renderPass.setViewport(this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
+      // Use indirect drawing
       renderPass.drawIndirect(this.indirectDrawBuffer, 0)
+
+      if (this.rendererParams.secondCamera) {
+        renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
+        renderPass.setViewport(this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
+        renderPass.drawIndirect(this.indirectDrawBuffer, 0)
+      }
+      renderPass.end()
     }
-    renderPass.end()
+
     device.queue.submit([this.commandEncoder.finish()])
 
     this.renderedFrames++
