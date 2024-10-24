@@ -18,6 +18,10 @@ export class ChunksStorage {
     }
   }
 
+  clearData () {
+    this.chunkSides.clear()
+  }
+
   addData (tiles: Record<string, BlockType>, rawPosKey: string) {
     const [xSection, ySection, zSection] = rawPosKey.split(',').map(Number)
     const chunkPosKey = `${xSection / 16},${ySection / 16},${zSection / 16}`

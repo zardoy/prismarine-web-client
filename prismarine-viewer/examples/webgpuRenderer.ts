@@ -234,6 +234,7 @@ export class WebgpuRenderer {
         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+        { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
       ],
     })
 
@@ -269,8 +270,8 @@ export class WebgpuRenderer {
 
     this.debugBuffer = device.createBuffer({
       label: 'debugBuffer',
-      size: 16, // 4 uint32 values
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      size: 4 * 8192,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     })
 
     // Initialize indirect draw parameters
@@ -382,6 +383,10 @@ export class WebgpuRenderer {
           binding: 3,
           resource: { buffer: this.indirectDrawBuffer },
         },
+        {
+          binding: 4,
+          resource: { buffer: this.debugBuffer },
+        }
       ],
     })
 
@@ -395,6 +400,24 @@ export class WebgpuRenderer {
         },
       ],
     })
+  }
+
+  async readDebugBuffer () {
+    const readBuffer = this.device.createBuffer({
+      size: this.debugBuffer.size,
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+    })
+
+    const commandEncoder = this.device.createCommandEncoder()
+    commandEncoder.copyBufferToBuffer(this.debugBuffer, 0, readBuffer, 0, this.debugBuffer.size)
+    this.device.queue.submit([commandEncoder.finish()])
+
+    await readBuffer.mapAsync(GPUMapMode.READ)
+    const arrayBuffer = readBuffer.getMappedRange()
+    const debugData = new Uint32Array(arrayBuffer.slice(0, this.debugBuffer.size))
+    readBuffer.unmap()
+    readBuffer.destroy()
+    return debugData
   }
 
 

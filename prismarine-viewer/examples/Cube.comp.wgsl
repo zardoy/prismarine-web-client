@@ -24,6 +24,7 @@ struct CubePointer {
 @group(0) @binding(1) var<storage, read_write> cubes: array<Cube>;
 @group(0) @binding(2) var<storage, read_write> visibleCubes: array<CubePointer>;
 @group(0) @binding(3) var<storage, read_write> drawParams: IndirectDrawParams;
+@group(0) @binding(4) var<storage, read_write> debug: array<u32>;
              
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
