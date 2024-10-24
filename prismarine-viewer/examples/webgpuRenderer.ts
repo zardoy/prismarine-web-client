@@ -49,6 +49,8 @@ export class WebgpuRenderer {
   chunkBindGroup: GPUBindGroup
   debugBuffer: GPUBuffer
 
+  actualBufferSize = 0
+
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
     this.init()
@@ -447,10 +449,8 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
-    // if we have old buffers, copy them to new ones
     if (oldCubesBuffer) {
-      this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
-      this.commandEncoder.copyBufferToBuffer(oldVisibleCubesBuffer, 0, this.visibleCubesBuffer, 0, oldVisibleCubesBuffer.size)
+      this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, this.actualBufferSize)
     }
 
     this.createUniformBindGroup(this.device, this.pipeline)
@@ -644,6 +644,7 @@ export class WebgpuRenderer {
     this.commandEncoder = device.createCommandEncoder()
     // Compute pass for occlusion culling
     this.commandEncoder.label = 'Main Comand Encoder'
+    this.updateCubesBuffersDataFromLoop()
     const computePass = this.commandEncoder.beginComputePass()
     computePass.label = 'ComputePass'
     computePass.setPipeline(this.computePipeline)
@@ -652,7 +653,6 @@ export class WebgpuRenderer {
     computePass.setBindGroup(1, this.chunkBindGroup)
     computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
     computePass.end()
-    this.updateCubesBuffersDataFromLoop()
     device.queue.submit([this.commandEncoder.finish()])
     this.commandEncoder = device.createCommandEncoder()
     //device.queue.submit([commandEncoder.finish()]);
