@@ -111,10 +111,8 @@ export const workerProxyType = createWorkerProxy({
       webgpuRenderer?.updateConfig(params)
     })
   },
-  generateRandom (count: number, offsetX = 0, offsetZ = 0, yOffset = 0) {
-    const square = Math.sqrt(count)
-    if (square % 1 !== 0) throw new Error('square must be a whole number')
-    const blocks = {}
+  getFaces () {
+    const faces = [] as any[]
     const getFace = (face: number) => {
       // if (offsetZ / 16) debugger
       return {
@@ -123,22 +121,43 @@ export const workerProxyType = createWorkerProxy({
         // textureIndex: offsetZ / 16 === 31 ? 2 : 1
       }
     }
+    for (let i = 0; i < 6; i++) {
+      faces.push(getFace(i))
+    }
+    return faces
+  },
+  generateRandom (count: number, offsetX = 0, offsetZ = 0, yOffset = 0) {
+    const square = Math.sqrt(count)
+    if (square % 1 !== 0) throw new Error('square must be a whole number')
+    const blocks = {}
     for (let x = offsetX; x < square + offsetX; x++) {
       for (let z = offsetZ; z < square + offsetZ; z++) {
         blocks[`${x},${yOffset},${z}`] = {
-          faces: [
-            getFace(0),
-            getFace(1),
-            getFace(2),
-            getFace(3),
-            getFace(4),
-            getFace(5)
-          ],
+          faces: this.getFaces()
         }
       }
     }
     // console.log('generated random data:', count)
     this.addBlocksSection(blocks, `${offsetX},${yOffset},${offsetZ}`)
+  },
+  addAddBlocksFlat (positions: number[]) {
+    const chunks = new Map<string, any>()
+    for (let i = 0; i < positions.length; i += 3) {
+      const x = positions[i]
+      const y = positions[i + 1]
+      const z = positions[i + 2]
+
+      const xChunk = Math.floor(x / 16) * 16
+      const zChunk = Math.floor(z / 16) * 16
+      const key = `${xChunk},${0},${zChunk}`
+      if (!chunks.has(key)) chunks.set(key, {})
+      chunks.get(key)![`${x},${y},${z}`] = {
+        faces: this.getFaces()
+      }
+    }
+    for (const [key, value] of chunks) {
+      this.addBlocksSection(value, key)
+    }
   },
   addBlocksSection (tiles: Record<string, BlockType>, key: string, updateData = true) {
     chunksStorage.addData(tiles, key)

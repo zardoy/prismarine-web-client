@@ -19,7 +19,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     super(config)
 
     // TODO!
-    if (localServer) {
+    if (typeof localServer !== 'undefined') {
       localServer.players[0].stopChunkUpdates = true
     }
 
