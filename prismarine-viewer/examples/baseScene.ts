@@ -17,6 +17,7 @@ import { WorldDataEmitter } from '../viewer'
 import { Viewer } from '../viewer/lib/viewer'
 import { BlockNames } from '../../src/mcDataTypes'
 import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
+import { getSyncWorld } from './shared'
 
 window.THREE = THREE
 
@@ -31,11 +32,13 @@ export class BasePlaygroundScene {
     options?: string[]
     min?: number
     max?: number
+    reloadOnChange?: boolean
   }>>
   version = new URLSearchParams(window.location.search).get('version') || globalThis.includedVersions.at(-1)
   Chunk: typeof import('prismarine-chunk/types/index').PCChunk
   Block: typeof import('prismarine-block').Block
   ignoreResize = false
+  enableCameraControls = true // not finished
   enableCameraOrbitControl = true
   gui = new GUI()
   onParamUpdate = {} as Record<string, () => void>
@@ -43,6 +46,7 @@ export class BasePlaygroundScene {
   skipUpdateQs = false
   controls: any
   windowHidden = false
+  world: ReturnType<typeof getSyncWorld>
 
   constructor () {
     void this.initData().then(() => {
@@ -90,6 +94,12 @@ export class BasePlaygroundScene {
       if (object === this.params) {
         this.onParamUpdate[property]?.()
         this.onParamsUpdate(property, object)
+        const value = this.params[property]
+        if (this.paramOptions[property]?.reloadOnChange && (typeof value === 'boolean' || this.paramOptions[property].options)) {
+          setTimeout(() => {
+            window.location.reload()
+          })
+        }
       } else {
         this.onParamsUpdate(property, object)
       }
@@ -97,7 +107,7 @@ export class BasePlaygroundScene {
     })
   }
 
-  mainChunk: import('prismarine-chunk/types/index').PCChunk
+  // mainChunk: import('prismarine-chunk/types/index').PCChunk
 
   setupWorld () { }
 
@@ -108,12 +118,12 @@ export class BasePlaygroundScene {
       properties ?
         this.Block.fromProperties(loadedData.blocksByName[blockName].id, properties ?? {}, 0) :
         this.Block.fromStateId(loadedData.blocksByName[blockName].defaultState, 0)
-    this.mainChunk.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
+    this.world.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
   }
 
   resetCamera () {
     const { targetPos } = this
-    this.controls.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
+    this.controls?.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
     const cameraPos = targetPos.offset(2, 2, 2)
     const pitch = THREE.MathUtils.degToRad(-45)
@@ -121,7 +131,7 @@ export class BasePlaygroundScene {
     viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
     viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
     viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
-    this.controls.update()
+    this.controls?.update()
   }
 
   async initData () {
@@ -132,29 +142,33 @@ export class BasePlaygroundScene {
     this.Chunk = (ChunkLoader as any)(this.version)
     this.Block = (BlockLoader as any)(this.version)
 
-    this.mainChunk = new this.Chunk(undefined as any)
-    const World = (WorldLoader as any)(this.version)
-    const world = new World((chunkX, chunkZ) => {
-      if (chunkX === 0 && chunkZ === 0) return this.mainChunk
-      return new this.Chunk(undefined as any)
-    })
+    const world = getSyncWorld(this.version)
+    world.setBlockStateId(this.targetPos, 0)
+    this.world = world
 
     this.initGui()
 
     const worldView = new WorldDataEmitter(world, this.viewDistance, this.targetPos)
+    worldView.addWaitTime = 0
     window.worldView = worldView
 
     // Create three.js context, add to page
     const renderer = new THREE.WebGLRenderer({ alpha: true, ...localStorage['renderer'] })
     renderer.setPixelRatio(window.devicePixelRatio || 1)
     renderer.setSize(window.innerWidth, window.innerHeight)
-    initWithRenderer(renderer.domElement)
-    document.body.appendChild(renderer.domElement)
 
     // Create viewer
-    const viewer = new Viewer(renderer, { numWorkers: 1, showChunkBorders: false, })
+    const viewer = new Viewer(renderer, { numWorkers: 6, showChunkBorders: false, })
     window.viewer = viewer
-    viewer.world.isPlayground = true
+    const isWebgpu = false
+    const promises = [] as Array<Promise<void>>
+    if (isWebgpu) {
+      // promises.push(initWebgpuRenderer(() => { }, true, true)) // todo
+    } else {
+      initWithRenderer(renderer.domElement)
+      renderer.domElement.id = 'viewer-canvas'
+      document.body.appendChild(renderer.domElement)
+    }
     viewer.addChunksBatchWaitTime = 0
     viewer.world.blockstatesModels = blockstatesModels
     viewer.entities.setDebugMode('basic')
@@ -163,15 +177,17 @@ export class BasePlaygroundScene {
       viewer.render()
     }
     viewer.world.mesherConfig.enableLighting = false
+    await Promise.all(promises)
     this.setupWorld()
 
     viewer.connect(worldView)
 
     await worldView.init(this.targetPos)
 
-    if (this.enableCameraOrbitControl) {
+    if (this.enableCameraControls) {
       const { targetPos } = this
-      const controls = new OrbitControls(viewer.camera, renderer.domElement)
+      const canvas = document.querySelector('#viewer-canvas')
+      const controls = this.enableCameraOrbitControl ? new OrbitControls(viewer.camera, canvas) : undefined
       this.controls = controls
 
       this.resetCamera()
@@ -182,7 +198,7 @@ export class BasePlaygroundScene {
         const [x, y, z, rx, ry] = cameraSet.split(',').map(Number)
         viewer.camera.position.set(x, y, z)
         viewer.camera.rotation.set(rx, ry, 0, 'ZYX')
-        controls.update()
+        this.controls?.update()
       }
       const throttledCamQsUpdate = _.throttle(() => {
         const { camera } = viewer
@@ -196,11 +212,44 @@ export class BasePlaygroundScene {
           camera.rotation.y.toFixed(2),
         ].join(',')
       }, 200)
-      controls.addEventListener('change', () => {
-        throttledCamQsUpdate()
-        this.render()
-      })
+      if (this.controls) {
+        this.controls.addEventListener('change', () => {
+          throttledCamQsUpdate()
+          this.render()
+        })
+      } else {
+        setInterval(() => {
+          throttledCamQsUpdate()
+        }, 200)
+      }
       // #endregion
+    }
+
+    if (!this.enableCameraOrbitControl) {
+      // mouse
+      let mouseMoveCounter = 0
+      const mouseMove = (e: PointerEvent) => {
+        if ((e.target as HTMLElement).closest('.lil-gui')) return
+        if (e.buttons === 1 || e.pointerType === 'touch') {
+          mouseMoveCounter++
+          viewer.camera.rotation.x -= e.movementY / 100
+          //viewer.camera.
+          viewer.camera.rotation.y -= e.movementX / 100
+          if (viewer.camera.rotation.x < -Math.PI / 2) viewer.camera.rotation.x = -Math.PI / 2
+          if (viewer.camera.rotation.x > Math.PI / 2) viewer.camera.rotation.x = Math.PI / 2
+
+          // yaw += e.movementY / 20;
+          // pitch += e.movementX / 20;
+        }
+        if (e.buttons === 2) {
+          viewer.camera.position.set(0, 0, 0)
+        }
+      }
+      setInterval(() => {
+        // updateTextEvent(`Mouse Events: ${mouseMoveCounter}`)
+        mouseMoveCounter = 0
+      }, 1000)
+      window.addEventListener('pointermove', mouseMove)
     }
 
     // await this.initialSetup()
@@ -233,7 +282,7 @@ export class BasePlaygroundScene {
   addKeyboardShortcuts () {
     document.addEventListener('keydown', (e) => {
       if (e.code === 'KeyR' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        this.controls.reset()
+        this.controls?.reset()
         this.resetCamera()
       }
     })
@@ -280,8 +329,8 @@ export class BasePlaygroundScene {
         direction.z *= 2
       }
       // Add the vector to the camera's position to move the camera
-      viewer.camera.position.add(direction)
-      this.controls.update()
+      viewer.camera.position.add(direction.normalize())
+      this.controls?.update()
       this.render()
     }
     setInterval(updateKeys, 1000 / 30)

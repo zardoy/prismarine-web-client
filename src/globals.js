@@ -1,5 +1,6 @@
 import EventEmitter from 'events'
 
+window.reportError = window.reportError ?? console.error
 window.bot = undefined
 window.THREE = undefined
 window.localServer = undefined
