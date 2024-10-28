@@ -604,6 +604,7 @@ const patchedSetControlState = (action, state) => {
 }
 
 const startFlying = (sendAbilities = true) => {
+  bot.entity['creativeFly'] = true
   if (sendAbilities) {
     bot._client.write('abilities', {
       flags: 2,
@@ -617,6 +618,7 @@ const startFlying = (sendAbilities = true) => {
 }
 
 const endFlying = (sendAbilities = true) => {
+  bot.entity['creativeFly'] = false
   if (bot.physics.gravity !== 0) return
   if (sendAbilities) {
     bot._client.write('abilities', {

@@ -13,6 +13,7 @@ overrides:
   prismarine-world: github:zardoy/prismarine-world#next-era
   minecraft-data: 3.76.0
   prismarine-provider-anvil: github:zardoy/prismarine-provider-anvil#everything
+  prismarine-physics: github:zardoy/prismarine-physics
   minecraft-protocol: github:PrismarineJS/node-minecraft-protocol#master
   react: ^18.2.0
   prismarine-chunk: github:zardoy/prismarine-chunk
@@ -7548,8 +7549,9 @@ packages:
   prismarine-nbt@2.5.0:
     resolution: {integrity: sha512-F0/8UAa9SDDnAGrBYqZc4nG8h2zj5cE2eAJU5xlDR/IsQQ3moVxkOjE3h3nMv6SbvZrvAcgX7waA/nd9LLHYdA==}
 
-  prismarine-physics@1.8.0:
-    resolution: {integrity: sha512-gbM+S+bmVtOKVv+Z0WGaHMeEeBHISIDsRDRlv8sr0dex3ZJRhuq8djA02CBreguXtI18ZKh6q3TSj2qDr45NHA==}
+  prismarine-physics@https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b}
+    version: 1.9.0
 
   prismarine-provider-anvil@https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699:
     resolution: {tarball: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/a3f462dc81ded5b46e88e3442f99aadf35f7f699}
@@ -9861,7 +9863,7 @@ snapshots:
       '@babel/core': 7.22.11
       '@babel/helper-compilation-targets': 7.22.10
       '@babel/helper-plugin-utils': 7.22.5
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
       lodash.debounce: 4.0.8
       resolve: 1.22.4
     transitivePeerDependencies:
@@ -13160,7 +13162,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 6.1.0
       '@typescript-eslint/visitor-keys': 6.1.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.6.0
@@ -13188,7 +13190,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.0.0
       '@typescript-eslint/visitor-keys': 8.0.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -13532,7 +13534,7 @@ snapshots:
 
   agent-base@7.1.0:
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
     transitivePeerDependencies:
       - supports-color
 
@@ -14913,7 +14915,7 @@ snapshots:
   detect-port@1.5.1:
     dependencies:
       address: 1.2.2
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
     transitivePeerDependencies:
       - supports-color
 
@@ -16568,7 +16570,7 @@ snapshots:
   https-proxy-agent@4.0.0:
     dependencies:
       agent-base: 5.1.1
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
     transitivePeerDependencies:
       - supports-color
 
@@ -16583,7 +16585,7 @@ snapshots:
   https-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
     transitivePeerDependencies:
       - supports-color
 
@@ -17657,7 +17659,7 @@ snapshots:
   micromark@4.0.0:
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
       decode-named-character-reference: 1.0.2
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.0
@@ -17802,7 +17804,7 @@ snapshots:
       prismarine-entity: 2.3.1
       prismarine-item: 1.15.0
       prismarine-nbt: 2.2.1
-      prismarine-physics: 1.8.0
+      prismarine-physics: https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b
       vec3: 0.1.8
 
   mineflayer@4.22.0(encoding@0.1.13):
@@ -17816,7 +17818,7 @@ snapshots:
       prismarine-entity: 2.3.1
       prismarine-item: 1.15.0
       prismarine-nbt: 2.5.0
-      prismarine-physics: 1.8.0
+      prismarine-physics: https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b
       prismarine-recipe: 1.3.1(prismarine-registry@1.9.0)
       prismarine-registry: 1.9.0
       prismarine-windows: 2.9.0
@@ -17839,7 +17841,7 @@ snapshots:
       prismarine-entity: 2.3.1
       prismarine-item: 1.15.0
       prismarine-nbt: 2.5.0
-      prismarine-physics: 1.8.0
+      prismarine-physics: https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b
       prismarine-recipe: 1.3.1(prismarine-registry@1.9.0)
       prismarine-registry: 1.9.0
       prismarine-windows: 2.9.0
@@ -18715,7 +18717,7 @@ snapshots:
     dependencies:
       protodef: 1.17.0
 
-  prismarine-physics@1.8.0:
+  prismarine-physics@https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b:
     dependencies:
       minecraft-data: 3.76.0
       prismarine-nbt: 2.5.0
