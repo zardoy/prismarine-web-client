@@ -164,7 +164,7 @@ export const guiOptionsScheme: {
               }
               if (choice === 'Enable') {
                 options.enabledResourcepack = name
-                await completeTexturePackInstall(name, name)
+                await completeTexturePackInstall(name, name, false)
                 return
               }
               if (choice === 'Uninstall') {

@@ -475,7 +475,7 @@ export const f3Keybinds = [
       // TODO!
       if (resourcePackState.resourcePackInstalled || loadedGameState.usingServerResourcePack) {
         showNotification('Reloading textures...')
-        await completeTexturePackInstall('default', 'default')
+        await completeTexturePackInstall('default', 'default', loadedGameState.usingServerResourcePack)
       }
     },
     mobileTitle: 'Reload Textures'

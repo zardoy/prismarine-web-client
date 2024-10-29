@@ -104,7 +104,7 @@ export const installTexturePack = async (file: File | ArrayBuffer, displayName =
       await Promise.all(copyTasks)
       copyTasks.length = 0
     }
-    const promise = fs.promises.writeFile(writePath, Buffer.from(await file.async('arraybuffer')))
+    const promise = fs.promises.writeFile(writePath, Buffer.from(await file.async('arraybuffer')) as any)
     copyTasks.push(promise)
     await promise
     done++
