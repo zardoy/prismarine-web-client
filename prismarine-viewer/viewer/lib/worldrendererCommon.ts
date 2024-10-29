@@ -17,6 +17,7 @@ import { buildCleanupDecorator } from './cleanupDecorator'
 import { MesherGeometryOutput, defaultMesherConfig } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
+import { updateStatText } from './ui/newStats'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -37,6 +38,8 @@ type CustomTexturesData = {
 }
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
+  isPlayground = false
+  displayStats = true
   worldConfig = { minY: 0, worldHeight: 256 }
   // todo need to cleanup
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
@@ -101,12 +104,18 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     z: number
   }
   neighborChunkUpdates = true
+  lastChunkDistance = 0
 
   abstract outputFormat: 'threeJs' | 'webgpu'
 
   constructor (public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
+
+    this.renderUpdateEmitter.on('update', () => {
+      const loadedChunks = Object.keys(this.finishedChunks).length
+      updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance})`)
+    })
   }
 
   snapshotInitialValues () { }
@@ -131,6 +140,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
               this.highestBlocks[key] = highest
             }
           }
+          const chunkCoords = data.key.split(',').map(Number)
+          this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
         }
         if (data.type === 'sectionFinished') { // on after load & unload section
           if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)

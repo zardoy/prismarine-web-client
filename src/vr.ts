@@ -3,17 +3,103 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory.js'
 import { buttonMap as standardButtonsMap } from 'contro-max/build/gamepad'
 import * as THREE from 'three'
+import { subscribeKey } from 'valtio/utils'
+import { subscribe } from 'valtio'
 import { activeModalStack, hideModal } from './globalState'
+import { watchUnloadForCleanup } from './gameUnload'
+import { options } from './optionsStorage'
 
 export async function initVR () {
+  options.vrSupport = true
   const { renderer } = viewer
   if (!('xr' in navigator)) return
-  const isSupported = await navigator.xr?.isSessionSupported('immersive-vr') && !!XRSession.prototype.updateRenderState // e.g. android webview doesn't support updateRenderState
+
+  const isSupported = await checkVRSupport()
   if (!isSupported) return
 
-  // VR
-  document.body.appendChild(VRButton.createButton(renderer))
-  renderer.xr.enabled = true
+  enableVr(renderer)
+
+  const vrButtonContainer = createVrButtonContainer(renderer)
+  const updateVrButtons = () => {
+    vrButtonContainer.hidden = !options.vrSupport || activeModalStack.length !== 0
+  }
+
+  const unsubWatchSetting = subscribeKey(options, 'vrSupport', updateVrButtons)
+  const unsubWatchModals = subscribe(activeModalStack, updateVrButtons)
+
+  function enableVr (renderer) {
+    renderer.xr.enabled = true
+  }
+
+  function disableVr () {
+    renderer.xr.enabled = false
+    viewer.cameraObjectOverride = undefined
+    viewer.scene.remove(user)
+    vrButtonContainer.hidden = true
+    unsubWatchSetting()
+    unsubWatchModals()
+  }
+
+  function createVrButtonContainer (renderer) {
+    const container = document.createElement('div')
+    const vrButton = VRButton.createButton(renderer)
+    styleContainer(container)
+
+    const closeButton = createCloseButton(container)
+
+    container.appendChild(vrButton)
+    container.appendChild(closeButton)
+    document.body.appendChild(container)
+
+    return container
+  }
+
+  function styleContainer (container: HTMLElement) {
+    typedAssign(container.style, {
+      position: 'absolute',
+      bottom: '80px',
+      left: '0',
+      right: '0',
+      display: 'flex',
+      justifyContent: 'center',
+      zIndex: '8',
+      gap: '8px',
+    })
+  }
+
+  function createCloseButton (container: HTMLElement) {
+    const closeButton = document.createElement('button')
+    closeButton.textContent = 'X'
+    typedAssign(closeButton.style, {
+      padding: '0 12px',
+      color: 'white',
+      fontSize: '14px',
+      lineHeight: '20px',
+      cursor: 'pointer',
+      background: 'transparent',
+      border: '1px solid rgb(255, 255, 255)',
+      borderRadius: '4px',
+      opacity: '0.7',
+    })
+
+    closeButton.addEventListener('click', () => {
+      container.hidden = true
+      options.vrSupport = false
+    })
+
+    return closeButton
+  }
+
+
+  async function checkVRSupport () {
+    try {
+      const supported = await navigator.xr?.isSessionSupported('immersive-vr')
+      return supported && !!XRSession.prototype.updateRenderState
+    } catch (err) {
+      console.error('Error checking if VR is supported', err)
+      return false
+    }
+  }
 
   // hack for vr camera
   const user = new THREE.Group()
@@ -129,6 +215,8 @@ export async function initVR () {
   renderer.xr.addEventListener('sessionend', () => {
     viewer.cameraObjectOverride = undefined
   })
+
+  watchUnloadForCleanup(disableVr)
 }
 
 const xrStandardRightButtonsMap = [
@@ -168,4 +256,8 @@ const remapAxes = (axesRight, axesLeft) => {
     axesRight[2],
     axesRight[3]
   ]
+}
+
+function typedAssign<T extends Record<string, any>> (target: T, source: Partial<T>) {
+  Object.assign(target, source)
 }

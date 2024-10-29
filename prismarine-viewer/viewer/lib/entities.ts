@@ -377,6 +377,12 @@ export class Entities extends EventEmitter {
         const playerObject = new PlayerObject() as PlayerObjectType
         playerObject.position.set(0, 16, 0)
 
+        // fix issues with starfield
+        playerObject.traverse((obj) => {
+          if (obj instanceof THREE.Mesh && obj.material instanceof THREE.MeshStandardMaterial) {
+            obj.material.transparent = true
+          }
+        })
         //@ts-expect-error
         wrapper.add(playerObject)
         const scale = 1 / 16

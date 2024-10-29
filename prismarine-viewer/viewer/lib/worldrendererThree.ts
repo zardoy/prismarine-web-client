@@ -10,6 +10,8 @@ import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import { disposeObject } from './threeJsUtils'
 import HoldingBlock, { HandItemBlock } from './holdingBlock'
+import { addNewStat } from './ui/newStats'
+import { MesherGeometryOutput } from './mesher/shared'
 
 export class WorldRendererThree extends WorldRendererCommon {
   outputFormat = 'threeJs' as const
@@ -25,6 +27,10 @@ export class WorldRendererThree extends WorldRendererCommon {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
   }
 
+  get blocksRendered () {
+    return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).blocksCount, 0)
+  }
+
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
     this.starField = new StarField(scene)
@@ -36,6 +42,8 @@ export class WorldRendererThree extends WorldRendererCommon {
         this.holdingBlock.toBeRenderedItem = undefined
       }
     })
+
+    this.addDebugOverlay()
   }
 
   onHandItemSwitch (item: HandItemBlock | undefined) {
@@ -65,9 +73,22 @@ export class WorldRendererThree extends WorldRendererCommon {
     }
   }
 
+  debugOverlayAdded = false
+  addDebugOverlay () {
+    if (this.debugOverlayAdded) return
+    this.debugOverlayAdded = true
+    const pane = addNewStat('debug-overlay')
+    setInterval(() => {
+      pane.setVisibility(this.displayStats)
+      if (this.displayStats) {
+        pane.updateText(`C: ${this.renderer.info.render.calls} TR: ${this.renderer.info.render.triangles} TE: ${this.renderer.info.memory.textures} F: ${this.tilesRendered} B: ${this.blocksRendered}`)
+      }
+    }, 100)
+  }
+
   /**
-       * Optionally update data that are depedendent on the viewer position
-       */
+   * Optionally update data that are depedendent on the viewer position
+   */
   updatePosDataChunk (key: string) {
     const [x, y, z] = key.split(',').map(x => Math.floor(+x / 16))
     // sum of distances: x + y + z
@@ -89,7 +110,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   }
 
   // debugRecomputedDeletedObjects = 0
-  handleWorkerMessage (data: any): void {
+  handleWorkerMessage (data: { geometry: MesherGeometryOutput, key, type }): void {
     if (data.type !== 'geometry') return
     let object: THREE.Object3D = this.sectionObjects[data.key]
     if (object) {
@@ -137,9 +158,9 @@ export class WorldRendererThree extends WorldRendererCommon {
     const boxHelper = new THREE.BoxHelper(staticChunkMesh, 0xff_ff_00)
     boxHelper.name = 'helper'
     object.add(boxHelper)
-    object.name = 'chunk'
-    //@ts-expect-error
-    object.tilesCount = data.geometry.positions.length / 3 / 4
+    object.name = 'chunk';
+    (object as any).tilesCount = data.geometry.positions.length / 3 / 4;
+    (object as any).blocksCount = data.geometry.blocksCount
     if (!this.config.showChunkBorders) {
       boxHelper.visible = false
     }

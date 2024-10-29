@@ -21,6 +21,7 @@ export class WorldDataEmitter extends EventEmitter {
   private eventListeners: Record<string, any> = {}
   private readonly emitter: WorldDataEmitter
   keepChunksDistance = 0
+  addWaitTime = 1
   _handDisplay = false
   get handDisplay () {
     return this._handDisplay
@@ -44,6 +45,19 @@ export class WorldDataEmitter extends EventEmitter {
       if (!block) return
       this.emit('blockClicked', block, block.face, click.button)
     })
+  }
+
+  setBlockStateId (position: Vec3, stateId: number) {
+    const val = this.world.setBlockStateId(position, stateId) as Promise<void> | void
+    if (val) throw new Error('setBlockStateId returned promise (not supported)')
+    const chunkX = Math.floor(position.x / 16)
+    const chunkZ = Math.floor(position.z / 16)
+    if (!this.loadedChunks[`${chunkX},${chunkZ}`]) {
+      void this.loadChunk({ x: chunkX, z: chunkZ })
+      return
+    }
+
+    this.emit('blockUpdate', { pos: position, stateId })
   }
 
   updateViewDistance (viewDistance: number) {
@@ -155,19 +169,23 @@ export class WorldDataEmitter extends EventEmitter {
     const positions = generateSpiralMatrix(this.viewDistance).map(([x, z]) => new Vec3((botX + x) * 16, 0, (botZ + z) * 16))
 
     this.lastPos.update(pos)
-    this._loadChunks(positions)
+    await this._loadChunks(positions)
   }
 
-  _loadChunks (positions: Vec3[], sliceSize = 5, waitTime = 0) {
+  async _loadChunks (positions: Vec3[], sliceSize = 5) {
     let i = 0
-    const interval = setInterval(() => {
-      if (i >= positions.length) {
-        clearInterval(interval)
-        return
-      }
-      void this.loadChunk(positions[i])
-      i++
-    }, 1)
+    const promises = [] as Array<Promise<void>>
+    return new Promise<void>(resolve => {
+      const interval = setInterval(() => {
+        if (i >= positions.length) {
+          clearInterval(interval)
+          void Promise.all(promises).then(() => resolve())
+          return
+        }
+        promises.push(this.loadChunk(positions[i]))
+        i++
+      }, this.addWaitTime)
+    })
   }
 
   readdDebug () {
@@ -247,7 +265,7 @@ export class WorldDataEmitter extends EventEmitter {
         return undefined!
       }).filter(a => !!a)
       this.lastPos.update(pos)
-      this._loadChunks(positions)
+      void this._loadChunks(positions)
     } else {
       this.emitter.emit('chunkPosUpdate', { pos }) // todo-low
       this.lastPos.update(pos)
