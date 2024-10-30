@@ -59,7 +59,7 @@ export const customCommandsConfig = {
       }
     ],
     handler ([setting, action, value]) {
-      if (action === 'toggle') {
+      if (action === 'toggle' || action === undefined) {
         const value = options[setting]
         const config = tryFindOptionConfig(setting)
         if (config && 'values' in config && config.values) {

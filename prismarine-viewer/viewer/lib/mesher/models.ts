@@ -352,6 +352,8 @@ function renderElement(world: World, cursor: Vec3, element: BlockElement, doAO: 
       }
 
       let light = 1
+      const { smoothLighting } = world.config
+      // const smoothLighting = true
       if (doAO) {
         const dx = pos[0] * 2 - 1
         const dy = pos[1] * 2 - 1
@@ -363,14 +365,25 @@ function renderElement(world: World, cursor: Vec3, element: BlockElement, doAO: 
         const side2 = world.getBlock(cursor.offset(...side2Dir))
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
-        let cornerLightResult = 15
-        // eslint-disable-next-line no-constant-condition, sonarjs/no-gratuitous-expressions
-        if (/* world.config.smoothLighting */false) { // todo fix
-          const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
-          const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
-          const cornerLight = world.getLight(cursor.plus(new Vec3(...cornerDir)), true)
+        let cornerLightResult = baseLight * 15
+
+        if (smoothLighting) {
+          const dirVec = new Vec3(...dir)
+          const getVec = (v: Vec3) => {
+            for (const coord of ['x', 'y', 'z']) {
+              if (Math.abs(dirVec[coord]) > 0) v[coord] = 0
+            }
+            return v.plus(dirVec)
+          }
+          const side1LightDir = getVec(new Vec3(...side1Dir))
+          const side1Light = world.getLight(cursor.plus(side1LightDir))
+          const side2DirLight = getVec(new Vec3(...side2Dir))
+          const side2Light = world.getLight(cursor.plus(side2DirLight))
+          const cornerLightDir = getVec(new Vec3(...cornerDir))
+          const cornerLight = world.getLight(cursor.plus(cornerLightDir))
           // interpolate
-          cornerLightResult = (side1Light + side2Light + cornerLight) / 3
+          const lights = [side1Light, side2Light, cornerLight, baseLight * 15]
+          cornerLightResult = lights.reduce((acc, cur) => acc + cur, 0) / lights.length
         }
 
         const side1Block = world.shouldMakeAo(side1) ? 1 : 0
@@ -386,7 +399,7 @@ function renderElement(world: World, cursor: Vec3, element: BlockElement, doAO: 
       }
 
       if (!needTiles) {
-        attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
+        attr.colors.push(tint[0] * light, tint[1] * light, tint[2] * light)
       }
     }
 
