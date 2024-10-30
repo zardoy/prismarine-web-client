@@ -19,8 +19,10 @@ interface Props {
   mapsProvider?: string
   versionStatus?: string
   versionTitle?: string
-  onVersionClick?: () => void
+  onVersionStatusClick?: () => void
   bottomRightLinks?: string
+  versionText?: string
+  onVersionTextClick?: () => void
 }
 
 const httpsRegex = /^https?:\/\//
@@ -33,9 +35,11 @@ export default ({
   githubAction,
   linksButton,
   openFileAction,
+  versionText,
+  onVersionTextClick,
   versionStatus,
   versionTitle,
-  onVersionClick,
+  onVersionStatusClick,
   bottomRightLinks
 }: Props) => {
   if (!bottomRightLinks?.trim()) bottomRightLinks = undefined
@@ -109,13 +113,16 @@ export default ({
       </div>
 
       <div className={styles['bottom-info']}>
-        <span
-          title={`${versionTitle} (click to reload)`}
-          onClick={onVersionClick}
-          className={styles['product-info']}
-        >
-          Prismarine Web Client {versionStatus}
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <span style={{ fontSize: 10, color: 'gray' }} onClick={onVersionTextClick}>{versionText}</span>
+          <span
+            title={`${versionTitle} (click to reload)`}
+            onClick={onVersionStatusClick}
+            className={styles['product-info']}
+          >
+            Prismarine Web Client {versionStatus}
+          </span>
+        </div>
         <span className={styles['product-description']}>
           <div className={styles['product-link']}>
             {linksParsed?.map(([name, link], i, arr) => {
