@@ -47,6 +47,8 @@ export class World {
   }
 
   getLight (pos: Vec3, isNeighbor = false, skipMoreChecks = false, curBlockName = '') {
+    // for easier testing
+    if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const { enableLighting, skyLight } = this.config
     if (!enableLighting) return 15
     // const key = `${pos.x},${pos.y},${pos.z}`
@@ -70,8 +72,10 @@ export class World {
         this.getLight(pos.offset(1, 0, 0), undefined, true),
         this.getLight(pos.offset(-1, 0, 0), undefined, true)
       ].filter(x => x !== 2)
-      const min = Math.min(...lights)
-      result = min
+      if (lights.length) {
+        const min = Math.min(...lights)
+        result = min
+      }
     }
     if (isNeighbor && result === 2) result = 15 // TODO
     return result

@@ -65,6 +65,7 @@ function setSectionDirty (pos, value = true) {
 const softCleanup = () => {
   // clean block cache and loaded chunks
   world = new World(world.config.version)
+  globalThis.world = world
 }
 
 const handleMessage = data => {
