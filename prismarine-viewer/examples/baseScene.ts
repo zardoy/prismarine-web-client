@@ -302,6 +302,9 @@ export class BasePlaygroundScene {
     })
 
     const updateKeys = () => {
+      if (pressedKeys.has('ControlLeft') || pressedKeys.has('MetaLeft')) {
+        return
+      }
       // if (typeof viewer === 'undefined') return
       // Create a vector that points in the direction the camera is looking
       const direction = new THREE.Vector3(0, 0, 0)

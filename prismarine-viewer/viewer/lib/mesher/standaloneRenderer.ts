@@ -119,33 +119,11 @@ function renderElement (element: BlockElement, doAO: boolean, attr, globalMatrix
 
       let light = 1
       if (doAO) {
-        const dx = pos[0] * 2 - 1
-        const dy = pos[1] * 2 - 1
-        const dz = pos[2] * 2 - 1
-        const cornerDir = matmul3(globalMatrix, [dx, dy, dz])
-        const side1Dir = matmul3(globalMatrix, [dx * mask1[0], dy * mask1[1], dz * mask1[2]])
-        const side2Dir = matmul3(globalMatrix, [dx * mask2[0], dy * mask2[1], dz * mask2[2]])
-        // const side1 = world.getBlock(cursor.offset(...side1Dir))
-        // const side2 = world.getBlock(cursor.offset(...side2Dir))
-        // const corner = world.getBlock(cursor.offset(...cornerDir))
-
         const cornerLightResult = 15
-        // if (/* world.config.smoothLighting */false) { // todo fix
-        //   const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
-        //   const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
-        //   const cornerLight = world.getLight(cursor.plus(new Vec3(...cornerDir)), true)
-        //   // interpolate
-        //   cornerLightResult = (side1Light + side2Light + cornerLight) / 3
-        // }
 
-        // const side1Block = world.shouldMakeAo(side1) ? 1 : 0
-        // const side2Block = world.shouldMakeAo(side2) ? 1 : 0
-        // const cornerBlock = world.shouldMakeAo(corner) ? 1 : 0
         const side1Block = 0
         const side2Block = 0
         const cornerBlock = 0
-
-        // TODO: correctly interpolate ao light based on pos (evaluate once for each corner of the block)
 
         const ao = (side1Block && side2Block) ? 0 : (3 - (side1Block + side2Block + cornerBlock))
         // todo light should go upper on lower blocks
