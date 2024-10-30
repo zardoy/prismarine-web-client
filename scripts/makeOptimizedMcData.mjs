@@ -42,8 +42,8 @@ const versionToNumber = (ver) => {
   return +`${x.padStart(2, '0')}${y.padStart(2, '0')}${z.padStart(2, '0')}`
 }
 
-// if not included here (even as {}) will not be bundled & accessible!
 const compressedOutput = false
+// if not included here (even as {}) will not be bundled & accessible!
 // const dataTypeBundling = {
 //   protocol: {
 //     // ignoreRemoved: true,
@@ -57,6 +57,18 @@ const dataTypeBundling = {
   },
   blocks: {
     arrKey: 'name',
+    processData (current, prev) {
+      for (const block of current) {
+        if (block.transparent) {
+          const forceOpaque = block.name.includes('shulker_box') || block.name.match(/^double_.+_slab\d?$/)
+
+          const prevBlock = prev?.find(x => x.name === block.name);
+          if (forceOpaque || (prevBlock && !prevBlock.transparent)) {
+            block.transparent = false
+          }
+        }
+      }
+    }
     // ignoreRemoved: true,
     // genChanges (source, diff) {
     //   const diffs = {}
@@ -164,6 +176,7 @@ for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
         diffSources[dataType] = new JsonOptimizer(config.arrKey, config.ignoreChanges, config.ignoreRemoved)
       }
       try {
+        config.processData?.(dataRaw, previousData[dataType])
         diffSources[dataType].recordDiff(version, dataRaw)
         injectCode = `restoreDiff(sources, ${JSON.stringify(dataType)}, ${JSON.stringify(version)})`
       } catch (err) {
