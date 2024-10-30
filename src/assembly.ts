@@ -13,6 +13,10 @@ window.wasm = {
   _updateLightAt
 }
 
+window.getChunkAt = (x, z) => {
+  return 0
+}
+
 window.testWasm = () => {
   const handle = 0
   const X = 0
