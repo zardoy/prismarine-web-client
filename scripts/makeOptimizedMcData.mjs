@@ -60,7 +60,7 @@ const dataTypeBundling = {
     processData (current, prev) {
       for (const block of current) {
         if (block.transparent) {
-          const forceOpaque = block.name.includes('shulker_box') || block.name.match(/^double_.+_slab\d?$/)
+          const forceOpaque = block.name.includes('shulker_box') || block.name.match(/^double_.+_slab\d?$/) || ['melon_block', 'lit_pumpkin', 'lit_redstone_ore', 'lit_furnace'].includes(block.name)
 
           const prevBlock = prev?.find(x => x.name === block.name);
           if (forceOpaque || (prevBlock && !prevBlock.transparent)) {
