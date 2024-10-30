@@ -301,15 +301,17 @@ export const onAppLoad = () => {
       const forced = 'forced' in packet ? packet.forced : false
       const choice = options.serverResourcePacks === 'always'
         ? true
-        : await showOptionsModal(promptMessage, ['Download & Install'], {
+        : await showOptionsModal(promptMessage, ['Download & Install (recommended)', 'Pretend Installed (not recommended)'], {
           cancel: !forced
         })
       if (!choice) return
       bot.acceptResourcePack()
-      await downloadAndUseResourcePack(packet.url).catch((err) => {
-        console.error(err)
-        showNotification('Failed to download resource pack: ' + err.message)
-      })
+      if (choice === 'Download & Install (recommended)') {
+        await downloadAndUseResourcePack(packet.url).catch((err) => {
+          console.error(err)
+          showNotification('Failed to download resource pack: ' + err.message)
+        })
+      }
     }
     bot._client.on('resource_pack_send', handleResourcePackRequest)
     bot._client.on('add_resource_pack' as any, handleResourcePackRequest)

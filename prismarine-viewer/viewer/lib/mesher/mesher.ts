@@ -76,8 +76,10 @@ const handleMessage = data => {
   }
 
   if (data.config) {
-    if (data.type === 'mesherData' && allDataReady) {
-      world = undefined as any // reset models
+    if (data.type === 'mesherData' && world) {
+      // reset models
+      world.blockCache = {}
+      world.erroredBlockModel = undefined
     }
 
     world ??= new World(data.config.version)
