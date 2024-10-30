@@ -98,7 +98,7 @@ export class Viewer {
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
-    if (!this.world.loadedChunks[`${Math.floor(pos.x / 16)},${Math.floor(pos.z / 16)}`]) {
+    if (!this.world.loadedChunks[`${Math.floor(pos.x / 16) * 16},${Math.floor(pos.z / 16) * 16}`]) {
       console.warn('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
     }
     this.world.setBlockStateId(pos, stateId)

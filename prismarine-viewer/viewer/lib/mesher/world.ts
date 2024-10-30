@@ -38,7 +38,7 @@ export class World {
   blockCache = {}
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
-  erroredBlockModel: BlockModelPartsResolved
+  erroredBlockModel?: BlockModelPartsResolved
 
   constructor (version) {
     this.Chunk = Chunks(version) as any
