@@ -70,6 +70,9 @@ export default () => {
     }
   }, [])
 
+  let mapsProviderUrl = appConfig?.mapsProvider
+  if (mapsProviderUrl && location.origin !== 'https://mcraft.fun') mapsProviderUrl = mapsProviderUrl + '?to=' + encodeURIComponent(location.href)
+
   // todo clean, use custom csstransition
   return <Transition in={!noDisplay} timeout={disableAnimation ? 0 : 100} mountOnEnter unmountOnExit>
     {(state) => <div style={{ transition: state === 'exiting' || disableAnimation ? '' : '100ms opacity ease-in', ...state === 'entered' ? { opacity: 1 } : { opacity: 0 } }}>
@@ -107,7 +110,7 @@ export default () => {
             openFilePicker()
           }
         }}
-        mapsProvider={appConfig?.mapsProvider}
+        mapsProvider={mapsProviderUrl}
         versionStatus={versionStatus}
         versionTitle={versionTitle}
         onVersionClick={async () => {

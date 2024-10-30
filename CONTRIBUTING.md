@@ -169,6 +169,16 @@ New React components, improve UI (including mobile support).
 3. Develop, try to fix and test. Finally we should find a way to fix it. It's ideal to have an automatic test but it's not necessary for now
 3. Repeat step 1 to make sure the task is done and the problem is fixed (or the feature is implemented)
 
+## Updating Dependencies
+
+1. Ensure mineflayer fork is up to date with the latest version of mineflayer original repo
+2. Update PrismarineJS dependencies to the latest version: `minecraft-data` (be sure to replace the version twice in the package.json), `mineflayer`, `minecraft-protocol`, `prismarine-block`, `prismarine-chunk`, `prismarine-item`, ...
+3. If `minecraft-protocol` patch fails, do this:
+     1. Remove the patch from `patchedDependencies` in `package.json`
+     2. Run `pnpm patch minecraft-protocol`, open patch directory
+     3. Apply the patch manually in this directory: `patch -p1 < minecraft-protocol@<version>.patch`
+     4. Run the suggested command from `pnpm patch ...` (previous step) to update the patch
+
 ### Would be useful to have
 
 - cleanup folder & modules structure, cleanup playground code

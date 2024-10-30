@@ -6,6 +6,7 @@ import { closeWan, openToWanAndCopyJoinLink } from './localServerMultiplayer'
 import { copyFilesAsync, uniqueFileNameFromWorldName } from './browserfs'
 import { saveServer } from './flyingSquidUtils'
 import { setLoadingScreenStatus } from './utils'
+import { displayClientChat } from './botUtils'
 
 const notImplemented = () => {
   return 'Not implemented yet'
@@ -75,14 +76,12 @@ const exportLoadedWorld = async () => {
 window.exportWorld = exportLoadedWorld
 
 const writeText = (text) => {
-  bot._client.emit('chat', {
-    message: JSON.stringify({ text })
-  })
+  displayClientChat(text)
 }
 
 const commands: Array<{
   command: string[],
-  invoke (): Promise<void> | void
+  invoke (args: string[]): Promise<void> | void
   //@ts-format-ignore-region
 }> = [
   {
@@ -107,6 +106,21 @@ const commands: Array<{
     command: ['/save'],
     async invoke () {
       await saveServer(false)
+      writeText('Saved to browser memory')
+    }
+  },
+  {
+    command: ['/pos'],
+    async invoke ([type]) {
+      let pos: string | undefined
+      if (type === 'block') {
+        pos = window.cursorBlockRel()?.position?.toString().slice(1, -1)
+      } else {
+        pos = bot.entity.position.toString().slice(1, -1)
+      }
+      if (!pos) return
+      await navigator.clipboard.writeText(pos)
+      writeText(`Copied position to clipboard: ${pos}`)
     }
   }
 ]
@@ -114,12 +128,13 @@ const commands: Array<{
 
 export const getBuiltinCommandsList = () => commands.flatMap(command => command.command)
 
-export const tryHandleBuiltinCommand = (message) => {
+export const tryHandleBuiltinCommand = (message: string) => {
   if (!localServer) return
+  const [userCommand, ...args] = message.split(' ')
 
   for (const command of commands) {
-    if (command.command.includes(message)) {
-      void command.invoke() // ignoring for now
+    if (command.command.includes(userCommand)) {
+      void command.invoke(args) // ignoring for now
       return true
     }
   }

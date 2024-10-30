@@ -10,6 +10,7 @@ export default function ScoreboardProvider () {
 
   useMemo(() => { // useMemo instead of useEffect to register them asap and not after the initial dom render
     const updateSidebarScoreboard = () => {
+      addStatPerSec('scoreboard')
       if (bot.scoreboard.sidebar) {
         setTitle(bot.scoreboard.sidebar.title)
         setItems([...bot.scoreboard.sidebar.items])

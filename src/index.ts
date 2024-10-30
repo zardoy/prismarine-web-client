@@ -6,7 +6,7 @@ import './devtools'
 import './entities'
 import './assembly'
 import './globalDomListeners'
-import initCollisionShapes from './getCollisionShapes'
+import initCollisionShapes from './getCollisionInteractionShapes'
 import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
@@ -73,7 +73,7 @@ import defaultServerOptions from './defaultLocalServerOptions'
 import dayCycle from './dayCycle'
 
 import { onAppLoad, resourcepackReload } from './resourcePack'
-import { connectToPeer } from './localServerMultiplayer'
+import { ConnectPeerOptions, connectToPeer } from './localServerMultiplayer'
 import CustomChannelClient from './customClient'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
@@ -186,7 +186,7 @@ viewer.entities.getItemUv = (idOrName: number | string) => {
       u: 0,
       v: 0,
       size: 16 / viewer.world.material.map!.image.width,
-      texture: viewer.world.material.map
+      texture: viewer.world.material.map!
     }
   }
 }
@@ -233,7 +233,12 @@ function hideCurrentScreens () {
 }
 
 const loadSingleplayer = (serverOverrides = {}, flattenedServerOverrides = {}) => {
-  void connect({ singleplayer: true, username: options.localUsername, serverOverrides, serverOverridesFlat: flattenedServerOverrides })
+  const serverSettingsQsRaw = new URLSearchParams(window.location.search).getAll('serverSetting')
+  const serverSettingsQs = serverSettingsQsRaw.map(x => x.split(':')).reduce<Record<string, string>>((acc, [key, value]) => {
+    acc[key] = JSON.parse(value)
+    return acc
+  }, {})
+  void connect({ singleplayer: true, username: options.localUsername, serverOverrides, serverOverridesFlat: { ...flattenedServerOverrides, ...serverSettingsQs } })
 }
 function listenGlobalEvents () {
   window.addEventListener('connect', e => {
@@ -381,6 +386,7 @@ async function connect (connectOptions: ConnectOptions) {
   try {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
+    window._LOAD_MC_DATA() // start loading data (if not loaded yet)
     const downloadMcData = async (version: string) => {
       if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
         // todo support it (just need to fix .export crash)
@@ -393,13 +399,13 @@ async function connect (connectOptions: ConnectOptions) {
         // ignore cache hit
         versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
       }
+      setLoadingScreenStatus(`Loading data for ${version}`)
       if (!document.fonts.check('1em mojangles')) {
         // todo instead re-render signs on load
         await document.fonts.load('1em mojangles').catch(() => { })
       }
-      setLoadingScreenStatus(`Downloading data for ${version}`)
+      await window._MC_DATA_RESOLVER.promise // ensure data is loaded
       await downloadSoundsIfNeeded()
-      await loadScript(`./mc-data/${toMajorVersion(version)}.js`)
       miscUiState.loadedDataVersion = version
       try {
         await resourcepackReload(version)
@@ -481,7 +487,7 @@ async function connect (connectOptions: ConnectOptions) {
       port: server.port ? +server.port : undefined,
       version: connectOptions.botVersion || false,
       ...p2pMultiplayer ? {
-        stream: await connectToPeer(connectOptions.peerId!),
+        stream: await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions),
       } : {},
       ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
@@ -704,7 +710,7 @@ async function connect (connectOptions: ConnectOptions) {
 
 
     // Link WorldDataEmitter and Viewer
-    viewer.listen(worldView)
+    viewer.connect(worldView)
     worldView.listenToBot(bot)
     void worldView.init(bot.entity.position)
 
@@ -1017,6 +1023,10 @@ downloadAndOpenFile().then((downloadAction) => {
   void Promise.resolve().then(() => {
     // try to connect to peer
     const peerId = qs.get('connectPeer')
+    const peerOptions = {} as ConnectPeerOptions
+    if (qs.get('server')) {
+      peerOptions.server = qs.get('server')!
+    }
     const version = qs.get('peerVersion')
     if (peerId) {
       let username: string | null = options.guestUsername
@@ -1026,7 +1036,8 @@ downloadAndOpenFile().then((downloadAction) => {
       void connect({
         username,
         botVersion: version || undefined,
-        peerId
+        peerId,
+        peerOptions
       })
     }
   })

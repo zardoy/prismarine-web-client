@@ -5,6 +5,7 @@ import { proxy, subscribe } from 'valtio/vanilla'
 import { subscribeKey } from 'valtio/utils'
 import { omitObj } from '@zardoy/utils'
 
+const isDev = process.env.NODE_ENV === 'development'
 const defaultOptions = {
   renderDistance: 3,
   keepChunksDistance: 1,
@@ -47,6 +48,7 @@ const defaultOptions = {
   enabledResourcepack: null as string | null,
   useVersionsTextures: 'latest',
   serverResourcePacks: 'prompt' as 'prompt' | 'always' | 'never',
+  handDisplay: false,
 
   // antiAliasing: false,
 
@@ -73,6 +75,8 @@ const defaultOptions = {
   chatSelect: true,
   autoJump: 'auto' as 'auto' | 'always' | 'never',
   autoParkour: false,
+  vrSupport: true, // doesn't directly affect the VR mode, should only disable the button which is annoying to android users
+  renderDebug: (isDev ? 'advanced' : 'basic') as 'none' | 'advanced' | 'basic',
 
   // advanced bot options
   autoRespawn: false,
@@ -81,6 +85,9 @@ const defaultOptions = {
   /** Wether to popup sign editor on server action */
   autoSignEditor: true,
   wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
+  displayBossBars: false, // boss bar overlay was removed for some reason, enable safely
+  disabledUiParts: [] as string[],
+  neighborChunkUpdates: true
 }
 
 function getDefaultTouchControlsPositions () {

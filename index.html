@@ -1,8 +1,18 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <meta name="darkreader-lock">
     <script>
       window.startLoad = Date.now()
+      // g663 fix: forbid change of string prototype
+      Object.defineProperty(String.prototype, 'format', {
+        writable: false,
+        configurable: false
+      });
+      Object.defineProperty(String.prototype, 'replaceAll', {
+        writable: false,
+        configurable: false
+      });
     </script>
     <!-- // #region initial loader -->
     <script async>

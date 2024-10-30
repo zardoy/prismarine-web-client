@@ -11,14 +11,16 @@ import PItem, { Item } from 'prismarine-item'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import { getRenamedData } from 'flying-squid/dist/blockRenames'
+import PrismarineChatLoader from 'prismarine-chat'
 import Generic95 from '../assets/generic_95.png'
 import { appReplacableResources } from './generated/resources'
 import { activeModalStack, hideCurrentModal, hideModal, miscUiState, showModal } from './globalState'
 import { options } from './optionsStorage'
 import { assertDefined, inGameError } from './utils'
-import { MessageFormatPart } from './botUtils'
+import { displayClientChat } from './botUtils'
 import { currentScaling } from './scaleInterface'
 import { getItemDescription } from './itemsDescriptions'
+import { MessageFormatPart } from './chatUtils'
 
 const loadedImagesCache = new Map<string, HTMLImageElement>()
 const cleanLoadedImagesCache = () => {
@@ -54,26 +56,23 @@ export const onGameLoad = (onLoad) => {
 
   bot.on('windowOpen', (win) => {
     if (implementedContainersGuiMap[win.type]) {
-      // todo also render title!
       openWindow(implementedContainersGuiMap[win.type])
     } else if (options.unimplementedContainers) {
       openWindow('ChestWin')
     } else {
       // todo format
-      bot._client.emit('chat', {
-        message: JSON.stringify({
-          text: `[client error] cannot open unimplemented window ${win.id} (${win.type}). Slots: ${win.slots.map(item => getItemName(item)).filter(Boolean).join(', ')}`
-        })
-      })
+      displayClientChat(`[client error] cannot open unimplemented window ${win.id} (${win.type}). Slots: ${win.slots.map(item => getItemName(item)).filter(Boolean).join(', ')}`)
       bot.currentWindow?.['close']()
     }
   })
 
+  // workaround: singleplayer player inventory crafting
+  let skipUpdate = false
   bot.inventory.on('updateSlot', ((_oldSlot, oldItem, newItem) => {
-    const oldSlot = _oldSlot as number
-    if (!miscUiState.singleplayer) return
+    const currentSlot = _oldSlot as number
+    if (!miscUiState.singleplayer || oldItem === newItem || skipUpdate) return
     const { craftingResultSlot } = bot.inventory
-    if (oldSlot === craftingResultSlot && oldItem && !newItem) {
+    if (currentSlot === craftingResultSlot && oldItem && !newItem) {
       for (let i = 1; i < 5; i++) {
         const count = bot.inventory.slots[i]?.count
         if (count && count > 1) {
@@ -86,9 +85,18 @@ export const onGameLoad = (onLoad) => {
       }
       return
     }
+    if (currentSlot > 4) return
     const craftingSlots = bot.inventory.slots.slice(1, 5)
-    const resultingItem = getResultingRecipe(craftingSlots, 2)
-    void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null)
+    try {
+      const resultingItem = getResultingRecipe(craftingSlots, 2)
+      skipUpdate = true
+      void bot.creative.setInventorySlot(craftingResultSlot, resultingItem ?? null).then(() => {
+        skipUpdate = false
+      })
+    } catch (err) {
+      console.error(err)
+      // todo resolve the error! and why would we ever get here on every update?
+    }
   }) as any)
 
   bot.on('windowClose', () => {
@@ -282,6 +290,7 @@ const implementedContainersGuiMap = {
   'minecraft:furnace': 'FurnaceWin',
   'minecraft:smoker': 'FurnaceWin',
   'minecraft:crafting': 'CraftingWin',
+  'minecraft:crafting3x3': 'CraftingWin', // todo different result slot
   'minecraft:anvil': 'AnvilWin',
   // enchant
   'minecraft:enchanting_table': 'EnchantingWin',
@@ -359,7 +368,18 @@ const openWindow = (type: string | undefined) => {
   cleanLoadedImagesCache()
   const inv = openItemsCanvas(type)
   inv.canvasManager.children[0].mobileHelpers = miscUiState.currentTouch
-  inv.canvasManager.children[0].customTitleText = bot.currentWindow?.title ? fromFormattedString(bot.currentWindow.title).text : undefined
+  const title = bot.currentWindow?.title
+  const PrismarineChat = PrismarineChatLoader(bot.version)
+  try {
+    inv.canvasManager.children[0].customTitleText = title ?
+      typeof title === 'string' ?
+        fromFormattedString(title).text :
+        new PrismarineChat(title).toString() :
+      undefined
+  } catch (err) {
+    reportError?.(err)
+    inv.canvasManager.children[0].customTitleText = undefined
+  }
   // todo
   inv.canvasManager.setScale(currentScaling.scale === 1 ? 1.5 : currentScaling.scale)
   inv.canvas.style.zIndex = '10'
@@ -378,6 +398,11 @@ const openWindow = (type: string | undefined) => {
 
   lastWindow = inv
   const upWindowItems = () => {
+    if (!lastWindow && bot.currentWindow) {
+      // edge case: might happen due to high ping, inventory should be closed soon!
+      // openWindow(implementedContainersGuiMap[bot.currentWindow.type])
+      return
+    }
     void Promise.resolve().then(() => upInventoryItems(type === undefined))
   }
   upWindowItems()

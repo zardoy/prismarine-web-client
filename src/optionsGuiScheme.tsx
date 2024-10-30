@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
+import { noCase } from 'change-case'
 import { loadedGameState, miscUiState, openOptionsMenu, showModal } from './globalState'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
@@ -11,7 +12,6 @@ import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
 import { completeTexturePackInstall, getResourcePackNames, resourcePackState, uninstallTexturePack } from './resourcePack'
 import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay'
 import { showOptionsModal } from './react/SelectOption'
-
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
@@ -72,7 +72,7 @@ export const guiOptionsScheme: {
       dayCycleAndLighting: {
         text: 'Day Cycle',
       },
-      // smoothLighting: {},
+      smoothLighting: {},
       newVersionsLighting: {
         text: 'Lighting in newer versions',
       },
@@ -87,6 +87,15 @@ export const guiOptionsScheme: {
         max: 5,
         unit: '',
         tooltip: 'Additional distance to keep the chunks loading before unloading them by marking them as too far',
+      },
+      handDisplay: {},
+      neighborChunkUpdates: {},
+      renderDebug: {
+        values: [
+          'advanced',
+          'basic',
+          'none'
+        ],
       },
     },
   ],
@@ -227,7 +236,40 @@ export const guiOptionsScheme: {
           'never'
         ],
       },
-    }
+    },
+    {
+      custom () {
+        return <Category>Experimental</Category>
+      },
+      displayBossBars: {
+        text: 'Boss Bars',
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='title' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='chat' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='scoreboard' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='effects-indicators' />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='hotbar' />
+      },
+    },
   ],
   controls: [
     {
@@ -331,15 +373,21 @@ export const guiOptionsScheme: {
     }
     // { ignoreSilentSwitch: {} },
   ],
+
   VR: [
     {
       custom () {
-        return <>
-          <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>VR currently has basic support</span>
-          <div />
-        </>
+        return (
+          <>
+            <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              VR currently has basic support
+            </span>
+            <div />
+          </>
+        )
       },
-    }
+      vrSupport: {}
+    },
   ],
   advanced: [
     {
@@ -389,6 +437,20 @@ const Category = ({ children }) => <div style={{
   textAlign: 'center',
   gridColumn: 'span 2'
 }}>{children}</div>
+
+const UiToggleButton = ({ name, addUiText = false, label = noCase(name) }) => {
+  const { disabledUiParts } = useSnapshot(options)
+
+  const currentlyDisabled = disabledUiParts.includes(name)
+  if (addUiText) label = `${label} UI`
+  return <Button
+    inScreen
+    onClick={() => {
+      const newDisabledUiParts = currentlyDisabled ? disabledUiParts.filter(x => x !== name) : [...disabledUiParts, name]
+      options.disabledUiParts = newDisabledUiParts
+    }}
+  >{currentlyDisabled ? 'Enable' : 'Disable'} {label}</Button>
+}
 
 export const tryFindOptionConfig = (option: keyof AppOptions) => {
   for (const group of Object.values(guiOptionsScheme)) {

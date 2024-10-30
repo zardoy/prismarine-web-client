@@ -5,10 +5,9 @@
   "scripts": {
     "dev-rsbuild": "rsbuild dev",
     "dev-proxy": "node server.js",
-    "start": "run-p dev-rsbuild dev-proxy",
-    "start-watch-script": "nodemon -w rsbuild.config.ts --watch",
-    "build": "rsbuild build",
-    "build-analyze": "BUNDLE_ANALYZE=true rsbuild build",
+    "start": "run-p dev-rsbuild dev-proxy watch-mesher",
+    "build": "pnpm build-other-workers && rsbuild build",
+    "build-analyze": "BUNDLE_ANALYZE=true rsbuild build && pnpm build-other-workers",
     "check-build": "tsx scripts/genShims.ts && tsc && pnpm build",
     "test:cypress": "cypress run",
     "test-unit": "vitest",
@@ -20,13 +19,13 @@
     "build-storybook": "storybook build && node scripts/build.js moveStorybookFiles",
     "start-experiments": "vite --config experiments/vite.config.ts --host",
     "watch-other-workers": "echo NOT IMPLEMENTED",
+    "build-other-workers": "echo NOT IMPLEMENTED",
     "build-mesher": "node prismarine-viewer/buildMesherWorker.mjs",
     "watch-mesher": "pnpm build-mesher -w",
-    "run-playground": "run-p watch-mesher watch-other-workers playground-server watch-playground",
+    "run-playground": "run-p watch-mesher watch-other-workers watch-playground",
     "run-all": "run-p start run-playground",
-    "playground-server": "live-server --port=9090 prismarine-viewer/public",
-    "build-playground": "node prismarine-viewer/esbuild.mjs",
-    "watch-playground": "node prismarine-viewer/esbuild.mjs -w"
+    "build-playground": "rsbuild build --config prismarine-viewer/rsbuild.config.ts",
+    "watch-playground": "rsbuild dev --config prismarine-viewer/rsbuild.config.ts"
   },
   "keywords": [
     "prismarine",
@@ -44,8 +43,8 @@
     "@dimaka/interface": "0.0.3-alpha.0",
     "@floating-ui/react": "^0.26.1",
     "@mui/base": "5.0.0-beta.40",
-    "@nxg-org/mineflayer-auto-jump": "^0.7.7",
-    "@nxg-org/mineflayer-tracker": "^1.2.1",
+    "@nxg-org/mineflayer-auto-jump": "^0.7.12",
+    "@nxg-org/mineflayer-tracker": "1.2.1",
     "@react-oauth/google": "^0.12.1",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/gapi": "^0.0.47",
@@ -68,12 +67,12 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
     "filesize": "^10.0.12",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.35",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.45",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "jszip": "^3.10.1",
     "lodash-es": "^4.17.21",
-    "minecraft-data": "3.65.0",
+    "minecraft-data": "3.78.0",
     "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
     "mineflayer-item-map-downloader": "github:zardoy/mineflayer-item-map-downloader",
     "mojangson": "^2.0.4",
@@ -173,20 +172,22 @@
       "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
       "prismarine-world": "github:zardoy/prismarine-world#next-era",
-      "minecraft-data": "3.65.0",
+      "minecraft-data": "3.78.0",
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
+      "prismarine-physics": "github:zardoy/prismarine-physics",
       "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
       "react": "^18.2.0",
-      "prismarine-chunk": "github:zardoy/prismarine-chunk"
+      "prismarine-chunk": "github:zardoy/prismarine-chunk#master",
+      "prismarine-item": "latest"
     },
     "updateConfig": {
       "ignoreDependencies": []
     },
     "patchedDependencies": {
-      "minecraft-protocol@1.47.0": "patches/minecraft-protocol@1.47.0.patch",
       "three@0.154.0": "patches/three@0.154.0.patch",
       "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch",
-      "mineflayer-item-map-downloader@1.2.0": "patches/mineflayer-item-map-downloader@1.2.0.patch"
+      "mineflayer-item-map-downloader@1.2.0": "patches/mineflayer-item-map-downloader@1.2.0.patch",
+      "minecraft-protocol@1.50.0": "patches/minecraft-protocol@1.49.0.patch"
     }
   },
   "packageManager": "pnpm@9.0.4"

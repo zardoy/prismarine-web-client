@@ -7,7 +7,8 @@ import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { WorldRendererThree } from './worldrendererThree'
 import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
-import { renderBlockThree } from './mesher/standaloneRenderer'
+import { getThreeBlockModelGroup, renderBlockThree, setBlockPosition } from './mesher/standaloneRenderer'
+import { addNewStat } from './ui/newStats'
 
 export class Viewer {
   scene: THREE.Scene
@@ -97,22 +98,39 @@ export class Viewer {
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
+    if (!this.world.loadedChunks[`${Math.floor(pos.x / 16)},${Math.floor(pos.z / 16)}`]) {
+      console.warn('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
+    }
     this.world.setBlockStateId(pos, stateId)
   }
 
   demoModel () {
+    //@ts-expect-error
+    const pos = cursorBlockRel(0, 1, 0).position
     const blockProvider = worldBlockProvider(this.world.blockstatesModels, this.world.blocksAtlases, 'latest')
     const models = blockProvider.getAllResolvedModels0_1({
       name: 'item_frame',
       properties: {
-        map: false
+        // map: false
       }
-    })
-    const geometry = renderBlockThree(models, undefined, 'plains', loadedData)
+    }, true)
     const { material } = this.world
-    // block material
-    const mesh = new THREE.Mesh(geometry, material)
-    mesh.position.set(this.camera.position.x, this.camera.position.y, this.camera.position.z)
+    const mesh = getThreeBlockModelGroup(material, models, undefined, 'plains', loadedData)
+    // mesh.rotation.y = THREE.MathUtils.degToRad(90)
+    setBlockPosition(mesh, pos)
+    const helper = new THREE.BoxHelper(mesh, 0xff_ff_00)
+    mesh.add(helper)
+    this.scene.add(mesh)
+  }
+
+  demoItem () {
+    //@ts-expect-error
+    const pos = cursorBlockRel(0, 1, 0).position
+    const { mesh } = this.entities.getItemMesh({
+      itemId: 541,
+    })!
+    mesh.position.set(pos.x + 0.5, pos.y + 0.5, pos.z + 0.5)
+    // mesh.scale.set(0.5, 0.5, 0.5)
     const helper = new THREE.BoxHelper(mesh, 0xff_ff_00)
     mesh.add(helper)
     this.scene.add(mesh)
@@ -172,13 +190,12 @@ export class Viewer {
 
   addChunksBatchWaitTime = 200
 
-  // todo type
-  listen (emitter: EventEmitter) {
-    emitter.on('entity', (e) => {
+  connect (worldEmitter: EventEmitter) {
+    worldEmitter.on('entity', (e) => {
       this.updateEntity(e)
     })
 
-    emitter.on('primitive', (p) => {
+    worldEmitter.on('primitive', (p) => {
       // this.updatePrimitive(p)
     })
 
@@ -186,51 +203,51 @@ export class Viewer {
       timeout
       data
     } | null
-    emitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
+    worldEmitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
       this.world.worldConfig = worldConfig
+      const args = [x, z, chunk, isLightUpdate]
       if (!currentLoadChunkBatch) {
         // add a setting to use debounce instead
         currentLoadChunkBatch = {
           data: [],
           timeout: setTimeout(() => {
             for (const args of currentLoadChunkBatch!.data) {
-              //@ts-expect-error
-              this.addColumn(...args)
+              this.addColumn(...args as Parameters<typeof this.addColumn>)
             }
             currentLoadChunkBatch = null
           }, this.addChunksBatchWaitTime)
         }
       }
-      currentLoadChunkBatch.data.push([x, z, chunk, isLightUpdate])
+      currentLoadChunkBatch.data.push(args)
     })
     // todo remove and use other architecture instead so data flow is clear
-    emitter.on('blockEntities', (blockEntities) => {
+    worldEmitter.on('blockEntities', (blockEntities) => {
       if (this.world instanceof WorldRendererThree) this.world.blockEntities = blockEntities
     })
 
-    emitter.on('unloadChunk', ({ x, z }) => {
+    worldEmitter.on('unloadChunk', ({ x, z }) => {
       this.removeColumn(x, z)
     })
 
-    emitter.on('blockUpdate', ({ pos, stateId }) => {
+    worldEmitter.on('blockUpdate', ({ pos, stateId }) => {
       this.setBlockStateId(new Vec3(pos.x, pos.y, pos.z), stateId)
     })
 
-    emitter.on('chunkPosUpdate', ({ pos }) => {
+    worldEmitter.on('chunkPosUpdate', ({ pos }) => {
       this.world.updateViewerPosition(pos)
     })
 
-    emitter.on('renderDistance', (d) => {
+    worldEmitter.on('renderDistance', (d) => {
       this.world.viewDistance = d
       this.world.chunksLength = d === 0 ? 1 : generateSpiralMatrix(d).length
       this.world.allChunksFinished = Object.keys(this.world.finishedChunks).length === this.world.chunksLength
     })
 
-    emitter.on('updateLight', ({ pos }) => {
+    worldEmitter.on('updateLight', ({ pos }) => {
       if (this.world instanceof WorldRendererThree) this.world.updateLight(pos.x, pos.z)
     })
 
-    emitter.on('time', (timeOfDay) => {
+    worldEmitter.on('time', (timeOfDay) => {
       this.world.timeUpdated?.(timeOfDay)
 
       let skyLight = 15
@@ -251,7 +268,7 @@ export class Viewer {
       (this.world as WorldRendererThree).rerenderAllChunks?.()
     })
 
-    emitter.emit('listening')
+    worldEmitter.emit('listening')
   }
 
   render () {

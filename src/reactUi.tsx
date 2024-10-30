@@ -28,7 +28,7 @@ import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
 import { useIsWidgetActive } from './react/utilsApp'
-import GlobalSearchInput from './GlobalSearchInput'
+import GlobalSearchInput from './react/GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
 import HotbarRenderApp from './react/HotbarRenderApp'
@@ -42,6 +42,8 @@ import BedTime from './react/BedTime'
 import NoModalFoundProvider from './react/NoModalFoundProvider'
 import SignInMessageProvider from './react/SignInMessageProvider'
 import BookProvider from './react/BookProvider'
+import { options } from './optionsStorage'
+import BossBarOverlayProvider from './react/BossBarOverlayProvider'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -99,34 +101,36 @@ const InGameComponent = ({ children }) => {
 
 const InGameUi = () => {
   const { gameLoaded, showUI: showUIRaw } = useSnapshot(miscUiState)
+  const { disabledUiParts, displayBossBars } = useSnapshot(options)
   const hasModals = useSnapshot(activeModalStack).length > 0
   const showUI = showUIRaw || hasModals
-  if (!gameLoaded || !bot) return
+  if (!gameLoaded || !bot || disabledUiParts.includes('*')) return
 
   return <>
     <RobustPortal to={document.querySelector('#ui-root')}>
       {/* apply scaling */}
       <div style={{ display: showUI ? 'block' : 'none' }}>
-        <DeathScreenProvider />
-        <DebugOverlay />
-        <MobileTopButtons />
-        <PlayerListOverlayProvider />
-        <ChatProvider />
+        {!disabledUiParts.includes('death-screen') && <DeathScreenProvider />}
+        {!disabledUiParts.includes('debug-overlay') && <DebugOverlay />}
+        {!disabledUiParts.includes('mobile-top-buttons') && <MobileTopButtons />}
+        {!disabledUiParts.includes('players-list') && <PlayerListOverlayProvider />}
+        {!disabledUiParts.includes('chat') && <ChatProvider />}
         <SoundMuffler />
-        <TitleProvider />
-        <ScoreboardProvider />
-        <IndicatorEffectsProvider />
-        <Crosshair />
-        <BookProvider />
+        {!disabledUiParts.includes('title') && <TitleProvider />}
+        {!disabledUiParts.includes('scoreboard') && <ScoreboardProvider />}
+        {!disabledUiParts.includes('effects-indicators') && <IndicatorEffectsProvider />}
+        {!disabledUiParts.includes('crosshair') && <Crosshair />}
+        {!disabledUiParts.includes('books') && <BookProvider />}
+        {!disabledUiParts.includes('bossbars') && displayBossBars && <BossBarOverlayProvider />}
       </div>
 
       <PauseScreen />
       <div style={{ display: showUI ? 'block' : 'none' }}>
-        <XPBarProvider />
-        <HudBarsProvider />
+        {!disabledUiParts.includes('xp-bar') && <XPBarProvider />}
+        {!disabledUiParts.includes('hud-bars') && <HudBarsProvider />}
         <BedTime />
       </div>
-      {showUI && <HotbarRenderApp />}
+      {showUI && !disabledUiParts.includes('hotbar') && <HotbarRenderApp />}
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />

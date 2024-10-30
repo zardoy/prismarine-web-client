@@ -17,10 +17,11 @@ import { customCommandsConfig } from './customCommands'
 import type { CustomCommand } from './react/KeybindingsCustom'
 import { showOptionsModal } from './react/SelectOption'
 import widgets from './react/widgets'
-import { getItemFromBlock } from './botUtils'
+import { getItemFromBlock } from './chatUtils'
 import { gamepadUiCursorState, moveGamepadCursorByPx } from './react/GamepadUiCursor'
 import { completeTexturePackInstall, resourcePackState } from './resourcePack'
 import { showNotification } from './react/NotificationProvider'
+import { lastConnectOptions } from './react/AppStatusProvider'
 
 
 export const customKeymaps = proxy(JSON.parse(localStorage.keymap || '{}')) as UserOverridesConfig
@@ -291,6 +292,29 @@ const alwaysPressedHandledCommand = (command: Command) => {
       hideCurrentModal()
     }
   }
+  if (command === 'advanced.lockUrl') {
+    lockUrl()
+  }
+}
+
+function lockUrl () {
+  let newQs = ''
+  if (fsState.saveLoaded) {
+    const save = localServer!.options.worldFolder.split('/').at(-1)
+    newQs = `loadSave=${save}`
+  } else if (process.env.NODE_ENV === 'development') {
+    newQs = `reconnect=1`
+  } else if (lastConnectOptions.value?.server) {
+    const qs = new URLSearchParams()
+    const { server, botVersion } = lastConnectOptions.value
+    qs.set('server', server)
+    if (botVersion) qs.set('version', botVersion)
+    newQs = String(qs.toString())
+  }
+
+  if (newQs) {
+    window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
+  }
 }
 
 function cycleHotbarSlot (dir: 1 | -1) {
@@ -390,24 +414,6 @@ contro.on('trigger', ({ command }) => {
         break
     }
   }
-  if (command === 'advanced.lockUrl') {
-    let newQs = ''
-    if (fsState.saveLoaded) {
-      const save = localServer!.options.worldFolder.split('/').at(-1)
-      newQs = `loadSave=${save}`
-    } else if (process.env.NODE_ENV === 'development') {
-      newQs = `reconnect=1`
-    } else {
-      const qs = new URLSearchParams()
-      const { server, version } = localStorage
-      qs.set('server', server)
-      if (version) qs.set('version', version)
-      newQs = String(qs.toString())
-    }
-
-    window.history.replaceState({}, '', `${window.location.pathname}?${newQs}`)
-    // return
-  }
 
   if (command === 'ui.pauseMenu') {
     showModal({ reactType: 'pause-screen' })
@@ -472,7 +478,36 @@ export const f3Keybinds = [
         await completeTexturePackInstall('default', 'default')
       }
     },
-    mobileTitle: 'Open Widget'
+    mobileTitle: 'Reload Textures'
+  },
+  {
+    key: 'F4',
+    async action () {
+      switch (bot.game.gameMode) {
+        case 'creative': {
+          bot.chat('/gamemode survival')
+
+          break
+        }
+        case 'survival': {
+          bot.chat('/gamemode adventure')
+
+          break
+        }
+        case 'adventure': {
+          bot.chat('/gamemode spectator')
+
+          break
+        }
+        case 'spectator': {
+          bot.chat('/gamemode creative')
+
+          break
+        }
+      // No default
+      }
+    },
+    mobileTitle: 'Cycle Game Mode'
   }
 ]
 
@@ -568,6 +603,7 @@ const patchedSetControlState = (action, state) => {
 }
 
 const startFlying = (sendAbilities = true) => {
+  bot.entity['creativeFly'] = true
   if (sendAbilities) {
     bot._client.write('abilities', {
       flags: 2,
@@ -581,6 +617,7 @@ const startFlying = (sendAbilities = true) => {
 }
 
 const endFlying = (sendAbilities = true) => {
+  bot.entity['creativeFly'] = false
   if (bot.physics.gravity !== 0) return
   if (sendAbilities) {
     bot._client.write('abilities', {

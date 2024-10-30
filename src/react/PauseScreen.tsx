@@ -1,9 +1,12 @@
 import { join } from 'path'
 import fs from 'fs'
 import { useEffect } from 'react'
-import { useSnapshot } from 'valtio'
+import { subscribe, useSnapshot } from 'valtio'
 import { usedServerPathsV1 } from 'flying-squid/dist/lib/modules/world'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
+import { Vec3 } from 'vec3'
+import { generateSpiralMatrix } from 'flying-squid/dist/utils'
+import { subscribeKey } from 'valtio/utils'
 import {
   activeModalStack,
   showModal,
@@ -23,14 +26,29 @@ import Screen from './Screen'
 import styles from './PauseScreen.module.css'
 import { DiscordButton } from './DiscordButton'
 import { showNotification } from './NotificationProvider'
+import { appStatusState } from './AppStatusProvider'
+
+const waitForPotentialRender = async () => {
+  return new Promise<void>(resolve => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve as any))
+  })
+}
 
 export const saveToBrowserMemory = async () => {
   setLoadingScreenStatus('Saving world')
   try {
+    await new Promise<void>(resolve => {
+      subscribeKey(appStatusState, 'isDisplaying', () => {
+        if (appStatusState.isDisplaying) {
+          resolve()
+        }
+      })
+    })
     //@ts-expect-error
     const { worldFolder } = localServer.options
     const saveRootPath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
     await mkdirRecursive(saveRootPath)
+    console.log('made world folder', saveRootPath)
     const allRootPaths = [...usedServerPathsV1]
     const allFilesToCopy = [] as string[]
     for (const dirBase of allRootPaths) {
@@ -46,37 +64,85 @@ export const saveToBrowserMemory = async () => {
       }
       allFilesToCopy.push(...res.map(x => join(dirBase, x)))
     }
-    const pathsSplit = allFilesToCopy.reduce((acc, cur, i) => {
-      if (i % 15 === 0) {
-        acc.push([])
-      }
-      acc.at(-1)!.push(cur)
-      return acc
-    // eslint-disable-next-line @typescript-eslint/prefer-reduce-type-parameter
-    }, [] as string[][])
+    console.log('paths collected')
+    const pathsSplitBasic = allFilesToCopy.filter(path => {
+      if (!path.startsWith('region/')) return true
+      const [x, z] = path.split('/').at(-1)!.split('.').slice(1, 3).map(Number)
+      return Math.abs(x) > 50 || Math.abs(z) > 50 // HACK: otherwise it's too big and we can't handle it in visual display
+    })
     let copied = 0
-    const upProgress = () => {
+    let isRegionFiles = false
+    const upProgress = (totalSize: number) => {
       copied++
-      const action = fsState.remoteBackend ? 'Downloading & copying' : 'Copying'
-      setLoadingScreenStatus(`${action} files (${copied}/${allFilesToCopy.length})`)
+      let action = fsState.remoteBackend ? 'Downloading & copying' : 'Copying'
+      action += isRegionFiles ? ' region files (world chunks)' : ' basic save files'
+      setLoadingScreenStatus(`${action} files (${copied}/${totalSize})`)
     }
-    for (const copyPaths of pathsSplit) {
-      // eslint-disable-next-line no-await-in-loop
-      await Promise.all(copyPaths.map(async (copyPath) => {
-        const srcPath = join(worldFolder, copyPath)
-        const savePath = join(saveRootPath, copyPath)
-        await mkdirRecursive(savePath)
-        await fs.promises.writeFile(savePath, await fs.promises.readFile(srcPath))
-        upProgress()
-      }))
+    const copyFiles = async (copyPaths: string[][]) => {
+      const totalSIze = copyPaths.flat().length
+      for (const copyFileGroup of copyPaths) {
+        // eslint-disable-next-line no-await-in-loop, @typescript-eslint/no-loop-func
+        await Promise.all(copyFileGroup.map(async (copyPath) => {
+          const srcPath = join(worldFolder, copyPath)
+          const savePath = join(saveRootPath, copyPath)
+          await mkdirRecursive(savePath)
+          await fs.promises.writeFile(savePath, await fs.promises.readFile(srcPath))
+          upProgress(totalSIze)
+          if (isRegionFiles) {
+            const regionFile = copyPath.split('/').at(-1)!
+            appStatusState.loadingChunksData![regionFile] = 'done'
+          }
+        }))
+        // eslint-disable-next-line no-await-in-loop
+        await waitForPotentialRender()
+      }
     }
+    // basic save files
+    await copyFiles(splitByCopySize(pathsSplitBasic))
+    setLoadingScreenStatus('Preparing world chunks copying')
+    await waitForPotentialRender()
+
+    // region files
+    isRegionFiles = true
+    copied = 0
+    const regionFiles = allFilesToCopy.filter(x => !pathsSplitBasic.includes(x))
+    const regionFilesNumbers = regionFiles.map(x => x.split('/').at(-1)!.split('.').slice(1, 3).map(Number))
+    const xMin = Math.min(...regionFilesNumbers.flatMap(x => x[0]))
+    const zMin = Math.min(...regionFilesNumbers.flatMap(x => x[1]))
+    const xMax = Math.max(...regionFilesNumbers.flatMap(x => x[0]))
+    const zMax = Math.max(...regionFilesNumbers.flatMap(x => x[1]))
+    const playerPosRegion = bot.entity.position.divide(new Vec3(32 * 16, 32 * 16, 32 * 16)).floored()
+    const maxDistantRegion = Math.max(
+      Math.abs(playerPosRegion.x - xMin),
+      Math.abs(playerPosRegion.z - zMin),
+      Math.abs(playerPosRegion.x - xMax),
+      Math.abs(playerPosRegion.z - zMax)
+    )
+    const spiral = generateSpiralMatrix(maxDistantRegion)
+    const filesWithSpiral = spiral.filter(x => allFilesToCopy.includes(`region/r.${x[0]}.${x[1]}.mca`)).map(x => `region/r.${x[0]}.${x[1]}.mca`)
+    if (filesWithSpiral.length !== regionFiles.length) throw new Error('Something went wrong with region files')
+
+    appStatusState.loadingChunksData = Object.fromEntries(regionFiles.map(x => [x.split('/').at(-1)!, 'loading']))
+    appStatusState.loadingChunksDataPlayerChunk = { x: playerPosRegion.x, z: playerPosRegion.z }
+    await copyFiles(splitByCopySize(filesWithSpiral, 10))
 
     return saveRootPath
   } catch (err) {
+    console.error(err)
     void showOptionsModal(`Error while saving the world: ${err.message}`, [])
   } finally {
     setLoadingScreenStatus(undefined)
   }
+}
+
+const splitByCopySize = (files: string[], copySize = 15) => {
+  return files.reduce<string[][]>((acc, cur, i) => {
+    if (i % copySize === 0) {
+      acc.push([])
+    }
+    acc.at(-1)!.push(cur)
+    return acc
+  }, [])
 }
 
 export default () => {
@@ -85,7 +151,7 @@ export default () => {
   const isModalActive = useIsModalActive('pause-screen')
   const fsStateSnap = useSnapshot(fsState)
   const activeModalStackSnap = useSnapshot(activeModalStack)
-  const { singleplayer, wanOpened } = useSnapshot(miscUiState)
+  const { singleplayer, wanOpened, wanOpening } = useSnapshot(miscUiState)
 
   const handlePointerLockChange = () => {
     if (!pointerLock.hasPointerLock && activeModalStack.length === 0) {
@@ -122,7 +188,10 @@ export default () => {
       return
     }
     if (!wanOpened || !qr) {
-      await openToWanAndCopyJoinLink(() => { }, !qr)
+      await openToWanAndCopyJoinLink((err) => {
+        if (!miscUiState.wanOpening) return
+        alert(`Something went wrong: ${err}`)
+      }, !qr)
     }
     if (qr) {
       const joinLink = getJoinLink()
@@ -164,10 +233,11 @@ export default () => {
       {singleplayer ? (
         <div className={styles.row}>
           <Button className="button" style={{ width: '170px' }} onClick={async () => clickJoinLinkButton()}>
-            {wanOpened ? 'Close Wan' : 'Copy Join Link'}
+            {wanOpening ? 'Opening, wait...' : wanOpened ? 'Close Wan' : 'Copy Join Link'}
           </Button>
           {(navigator.share as typeof navigator.share | undefined) ? (
             <Button
+              title="Share Join Link"
               className="button"
               icon="pixelarticons:arrow-up"
               style={{ width: '20px' }}
@@ -175,6 +245,7 @@ export default () => {
             />
           ) : null}
           <Button
+            title='Display QR for the Join Link'
             className="button"
             icon="pixelarticons:dice"
             style={{ width: '20px' }}

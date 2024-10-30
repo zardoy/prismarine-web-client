@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { BotEvents } from 'mineflayer'
 import BossBar, { BossBarType } from './BossBarOverlay'
 import './BossBarOverlay.css'
 
@@ -8,9 +7,8 @@ export default () => {
   const [bossBars, setBossBars] = useState(new Map<string, BossBarType>())
 
   useEffect(() => {
-    // typescript error: no bossBarCreated in BotEvents. Why??
-    bot.on('bossBarCreated' as keyof BotEvents, (bossBar) => {
-      setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar)))
+    bot.on('bossBarCreated', (bossBar) => {
+      setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar as any)))
     })
     bot.on('bossBarUpdated', (bossBar) => {
       setBossBars(prevBossBars => new Map(prevBossBars.set(bossBar.entityUUID, bossBar as BossBarType)))
