@@ -185,8 +185,8 @@ export const reloadChunks = async () => {
   await worldView.updatePosition(bot.entity.position, true)
 }
 
-export const openGithub = () => {
-  window.open(process.env.GITHUB_URL, '_blank')
+export const openGithub = (addUrl = '') => {
+  window.open(`${process.env.GITHUB_URL}${addUrl}`, '_blank')
 }
 
 export const resolveTimeout = async (promise, timeout = 10_000) => {
