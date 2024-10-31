@@ -10,7 +10,7 @@ export default ({
   hideDots = false,
   lastStatus = '',
   backAction = undefined as undefined | (() => void),
-  description = '',
+  description = '' as string | JSX.Element,
   actionsSlot = null as React.ReactNode | null,
   children
 }) => {
@@ -57,7 +57,7 @@ export default ({
               })
             }
           </div>
-          <p className={styles['potential-problem']}>{description}</p>
+          <p className={styles.description}>{description}</p>
           <p className={styles['last-status']}>{lastStatus ? `Last status: ${lastStatus}` : lastStatus}</p>
         </>
       }
