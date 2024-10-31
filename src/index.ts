@@ -10,6 +10,7 @@ import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
+import nbt from 'prismarine-nbt'
 
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
@@ -634,8 +635,16 @@ async function connect (connectOptions: ConnectOptions) {
   bot.on('error', handleError)
 
   bot.on('kicked', (kickReason) => {
-    console.log('User was kicked!', kickReason)
-    setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${typeof kickReason === 'object' ? JSON.stringify(kickReason) : kickReason}`, true)
+    console.log('You were kicked!', kickReason)
+    let kickReasonString = typeof kickReason === 'string' ? kickReason : JSON.stringify(kickReason)
+    let kickReasonFormatted = undefined as undefined | Record<string, any>
+    if (typeof kickReason === 'object') {
+      try {
+        kickReasonFormatted = nbt.simplify(kickReason)
+        kickReasonString = ''
+      } catch {}
+    }
+    setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReasonString}`, true, undefined, undefined, kickReasonFormatted)
     destroyAll()
   })
 
