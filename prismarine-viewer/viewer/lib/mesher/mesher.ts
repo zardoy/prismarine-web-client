@@ -65,6 +65,7 @@ function setSectionDirty (pos, value = true) {
 const softCleanup = () => {
   // clean block cache and loaded chunks
   world = new World(world.config.version)
+  globalThis.world = world
 }
 
 const handleMessage = data => {
@@ -75,8 +76,10 @@ const handleMessage = data => {
   }
 
   if (data.config) {
-    if (data.type === 'mesherData' && allDataReady) {
-      world = undefined as any // reset models
+    if (data.type === 'mesherData' && world) {
+      // reset models
+      world.blockCache = {}
+      world.erroredBlockModel = undefined
     }
 
     world ??= new World(data.config.version)

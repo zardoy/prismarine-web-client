@@ -40,7 +40,7 @@ class RendererProblemReporter {
       z-index: -1;
       text-align: center;
     `
-    this.reportProblem(false, 'Bootstrapping renderer...')
+    this.reportProblem(false, 'Waiting for renderer...')
     this.mainIssueDom.style.color = 'white'
   }
 

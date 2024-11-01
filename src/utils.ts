@@ -123,7 +123,7 @@ export const isMajorVersionGreater = (ver1: string, ver2: string) => {
 }
 
 let ourLastStatus: string | undefined = ''
-export const setLoadingScreenStatus = function (status: string | undefined | null, isError = false, hideDots = false, fromFlyingSquid = false) {
+export const setLoadingScreenStatus = function (status: string | undefined | null, isError = false, hideDots = false, fromFlyingSquid = false, minecraftJsonMessage?: Record<string, any>) {
   // null can come from flying squid, should restore our last status
   if (status === null) {
     status = ourLastStatus
@@ -152,6 +152,7 @@ export const setLoadingScreenStatus = function (status: string | undefined | nul
   appStatusState.isError = isError
   appStatusState.lastStatus = isError ? appStatusState.status : ''
   appStatusState.status = status
+  appStatusState.minecraftJsonMessage = minecraftJsonMessage ?? null
 }
 
 // doesn't support snapshots
@@ -185,8 +186,8 @@ export const reloadChunks = async () => {
   await worldView.updatePosition(bot.entity.position, true)
 }
 
-export const openGithub = () => {
-  window.open(process.env.GITHUB_URL, '_blank')
+export const openGithub = (addUrl = '') => {
+  window.open(`${process.env.GITHUB_URL}${addUrl}`, '_blank')
 }
 
 export const resolveTimeout = async (promise, timeout = 10_000) => {

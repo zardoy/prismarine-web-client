@@ -122,8 +122,8 @@ importers:
         specifier: ^10.0.12
         version: 10.0.12
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.44
-        version: '@zardoy/flying-squid@0.0.44(encoding@0.1.13)'
+        specifier: npm:@zardoy/flying-squid@^0.0.45
+        version: '@zardoy/flying-squid@0.0.45(encoding@0.1.13)'
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -3403,8 +3403,8 @@ packages:
     resolution: {integrity: sha512-6xm38yGVIa6mKm/DUCF2zFFJhERh/QWp1ufm4cNUvxsONBmfPg8uZ9pZBdOmF6qFGr/HlT6ABBkCSx/dlEtvWg==}
     engines: {node: '>=12 <14 || 14.2 - 14.9 || >14.10.0'}
 
-  '@zardoy/flying-squid@0.0.44':
-    resolution: {integrity: sha512-Co1fmBU1FkDD3WxiMzIZ4z2pYKFVeLGfdWJT2qQg0eQ9kP064NteOlI5sNNBjMqedNsZSlQdHzT+jkgcFnaGsQ==}
+  '@zardoy/flying-squid@0.0.45':
+    resolution: {integrity: sha512-cXCcc1t/6pIevBHRRSwTHhL/dldjGPTYmPwyxsANcrf5PWVDG8hlcIbsz0S0Qf4P0OZjJiQi2I9PahGaWtxPgg==}
     engines: {node: '>=8'}
     hasBin: true
 
@@ -4059,6 +4059,10 @@ packages:
   chalk@4.1.2:
     resolution: {integrity: sha512-oKnbhFyRIXpUuez8iBMmyEa4nbj4IOQyuhc/wy9kY7/WVPcwIO9VA668Pu8RkO7+0G76SLROeyw9CpQ061i4mA==}
     engines: {node: '>=10'}
+
+  chalk@5.3.0:
+    resolution: {integrity: sha512-dLitG79d+GV1Nb/VYcCDFivJeK1hiukt9QjRNVOsUtTy1rR1YJsmpGGTZ3qJos+uw7WmWF4wUwBd9jxjocFC2w==}
+    engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   change-case@4.1.2:
     resolution: {integrity: sha512-bSxY2ws9OtviILG1EiY5K7NNxkqg/JnRnFxLtKQ96JaviiIxi7djMrSd0ECT9AC+lttClmYwKw53BWpOMblo7A==}
@@ -7525,7 +7529,7 @@ packages:
 
   prismarine-block@https://codeload.github.com/zardoy/prismarine-block/tar.gz/23849d4d24af91f45a5bd38781a6f82d40316c05:
     resolution: {tarball: https://codeload.github.com/zardoy/prismarine-block/tar.gz/23849d4d24af91f45a5bd38781a6f82d40316c05}
-    version: 1.17.1
+    version: 1.19.0
 
   prismarine-chat@1.10.1:
     resolution: {integrity: sha512-XukYcuueuhDxzEXG7r8BZyt6jOObrPPB4JESCgb+/XenB9nExoSHF8eTQWWj8faKPLqm1dRQaYwFJlNBlJZJUw==}
@@ -13428,11 +13432,11 @@ snapshots:
       '@types/emscripten': 1.39.8
       tslib: 1.14.1
 
-  '@zardoy/flying-squid@0.0.44(encoding@0.1.13)':
+  '@zardoy/flying-squid@0.0.45(encoding@0.1.13)':
     dependencies:
       '@tootallnate/once': 2.0.0
+      chalk: 5.3.0
       change-case: 4.1.2
-      colors: 1.4.0
       diamond-square: https://codeload.github.com/zardoy/diamond-square/tar.gz/cfaad2d1d5909fdfa63c8cc7bc05fb5e87782d71
       emit-then: 2.0.0
       exit-hook: 2.2.1
@@ -14280,6 +14284,8 @@ snapshots:
     dependencies:
       ansi-styles: 4.3.0
       supports-color: 7.2.0
+
+  chalk@5.3.0: {}
 
   change-case@4.1.2:
     dependencies:

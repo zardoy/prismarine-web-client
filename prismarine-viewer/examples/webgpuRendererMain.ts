@@ -13,7 +13,11 @@ const workerReadyProxy = Promise.withResolvers()
 
 // eslint-disable-next-line import/no-mutable-exports
 export let webgpuChannel: typeof workerProxyType['__workerProxy'] = new Proxy({}, {
-  get: () => () => { }
+  get: (target, p) => (...args) => {
+    void workerReadyProxy.promise.then(() => {
+      webgpuChannel[p](...args)
+    })
+  }
 }) as any // placeholder to avoid crashes
 
 declare const viewer: Viewer

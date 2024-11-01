@@ -72,7 +72,7 @@ export const guiOptionsScheme: {
       dayCycleAndLighting: {
         text: 'Day Cycle',
       },
-      // smoothLighting: {},
+      smoothLighting: {},
       newVersionsLighting: {
         text: 'Lighting in newer versions',
       },
@@ -164,7 +164,7 @@ export const guiOptionsScheme: {
               }
               if (choice === 'Enable') {
                 options.enabledResourcepack = name
-                await completeTexturePackInstall(name, name)
+                await completeTexturePackInstall(name, name, false)
                 return
               }
               if (choice === 'Uninstall') {

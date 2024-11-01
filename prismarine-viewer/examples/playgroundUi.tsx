@@ -43,7 +43,7 @@ function Playground () {
 function SceneSelector () {
   const { scenes, selected } = useSnapshot(playgroundGlobalUiState)
   const longPressEvents = useLongPress(() => {
-    alert('long press')
+    playgroundGlobalUiState.selectorOpened = true
   }, () => { })
 
   return <div
@@ -84,7 +84,12 @@ const ActionsSelector = () => {
     alignItems: 'center',
     gap: 5,
     fontSize: 24,
-  }}>{Object.entries(actions).map(([name, action]) => <div
+  }}>{Object.entries({
+      ...actions,
+      'Close' () {
+        playgroundGlobalUiState.selectorOpened = false
+      }
+    }).map(([name, action]) => <div
       key={name}
       style={{
         padding: '2px 5px',
@@ -94,6 +99,7 @@ const ActionsSelector = () => {
       }}
       onClick={() => {
         action()
+        playgroundGlobalUiState.selectorOpened = false
       }}
     >{name}</div>)}</div>
 }

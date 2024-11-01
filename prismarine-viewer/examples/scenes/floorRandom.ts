@@ -4,6 +4,7 @@ import { webgpuChannel } from '../webgpuRendererMain'
 import { defaultWebgpuRendererParams } from '../webgpuRendererShared'
 
 export default class RailsCobwebScene extends BasePlaygroundScene {
+  webgpuRendererParams = true
   viewDistance = 0
   continuousRender = true
   targetPos = new Vec3(0, 0, 0)
@@ -11,29 +12,13 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
   override initGui (): void {
     this.params = {
       chunksDistance: 16,
-      orbit: false,
-      worker: false,
-      ...defaultWebgpuRendererParams
     }
 
-    for (const key of Object.keys(defaultWebgpuRendererParams)) {
-      this.onParamUpdate[key] = () => {
-        webgpuChannel.updateConfig(this.params as any)
-      }
-    }
-
-    this.paramOptions = {
-      orbit: {
-        reloadOnChange: true,
-      },
-      worker: {
-        reloadOnChange: true,
-      }
+    this.paramOptions.chunksDistance = {
+      reloadOnChange: true,
     }
 
     super.initGui() // restore user params
-
-    this.enableCameraOrbitControl = this.params.orbit
   }
 
   setupWorld () {
