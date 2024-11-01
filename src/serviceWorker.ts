@@ -2,8 +2,8 @@ import { isCypress } from './standaloneUtils'
 
 // might not resolve at all
 export const registerServiceWorker = async () => {
-  if (!('serviceWorker' in navigator)) return
-  if (!isCypress() && process.env.NODE_ENV !== 'development' && !process.env.ONE_FILE_BUILD) {
+  if (!('serviceWorker' in navigator) || process.env.SINGLE_FILE_BUILD) return
+  if (!isCypress() && process.env.NODE_ENV !== 'development') {
     return new Promise<void>(resolve => {
       window.addEventListener('load', async () => {
         await navigator.serviceWorker.register('./service-worker.js').then(registration => {

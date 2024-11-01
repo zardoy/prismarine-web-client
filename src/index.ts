@@ -17,8 +17,6 @@ import 'core-js/features/promise/with-resolvers'
 
 import './scaleInterface'
 import { initWithRenderer } from './topRightStats'
-import PrismarineBlock from 'prismarine-block'
-import PrismarineItem from 'prismarine-item'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi'
@@ -33,7 +31,6 @@ import net from 'net'
 import mineflayer from 'mineflayer'
 import { WorldDataEmitter, Viewer } from 'prismarine-viewer/viewer'
 import pathfinder from 'mineflayer-pathfinder'
-import { Vec3 } from 'vec3'
 
 import worldInteractions from './worldInteractions'
 
@@ -102,6 +99,7 @@ import packetsPatcher from './packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
+import { loadMinecraftData, preloadAllMcData } from './mcDataHelpers'
 
 window.debug = debug
 window.THREE = THREE
@@ -386,27 +384,27 @@ async function connect (connectOptions: ConnectOptions) {
   try {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
-    window._LOAD_MC_DATA() // start loading data (if not loaded yet)
+    preloadAllMcData()
     const downloadMcData = async (version: string) => {
       if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
         // todo support it (just need to fix .export crash)
         throw new Error('Microsoft authentication is only supported in 1.19.4 and above (at least for now)')
       }
 
-      // todo expose cache
-      const lastVersion = supportedVersions.at(-1)
-      if (version === lastVersion) {
-        // ignore cache hit
-        versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
-      }
       setLoadingScreenStatus(`Loading data for ${version}`)
+
+      let fontsPromise: Promise<any> | undefined
       if (!document.fonts.check('1em mojangles')) {
         // todo instead re-render signs on load
-        await document.fonts.load('1em mojangles').catch(() => { })
+        fontsPromise = document.fonts.load('1em mojangles').catch(() => { })
       }
-      await window._MC_DATA_RESOLVER.promise // ensure data is loaded
-      await downloadSoundsIfNeeded()
+      await Promise.all([
+        loadMinecraftData(version),
+        fontsPromise,
+        downloadSoundsIfNeeded()
+      ])
       miscUiState.loadedDataVersion = version
+
       try {
         await resourcepackReload(version)
       } catch (err) {
@@ -416,8 +414,9 @@ async function connect (connectOptions: ConnectOptions) {
           throw err
         }
       }
-      viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
+
       viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      setLoadingScreenStatus(`Data loaded. Connected to server ${connectOptions.server}`)
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
@@ -680,11 +679,6 @@ async function connect (connectOptions: ConnectOptions) {
   // don't use spawn event, player can be dead
   bot.once(spawnEarlier ? 'forcedMove' : 'health', () => {
     errorAbortController.abort()
-    const mcData = MinecraftData(bot.version)
-    window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
-    window.PrismarineItem = PrismarineItem(mcData.version.minecraftVersion!)
-    window.loadedData = mcData
-    window.Vec3 = Vec3
     window.pathfinder = pathfinder
 
     miscUiState.gameLoaded = true
@@ -984,7 +978,7 @@ document.body.addEventListener('touchstart', (e) => {
 }, { passive: false })
 // #endregion
 
-void window.fetch('config.json').then(async res => res.json()).then(c => c, (error) => {
+void window.fetch(process.env.INLINED_APP_CONFIG_JSON || 'config.json').then(async res => res.json()).then(c => c, (error) => {
   console.warn('Failed to load optional app config.json', error)
   return {}
 }).then((config: AppConfig | {}) => {

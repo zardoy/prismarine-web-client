@@ -129,7 +129,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const src = typeof window === 'undefined' ? `${__dirname}/${workerName}` : workerName
 
       let worker: any
-      if (process.env.ONE_FILE_BUILD) {
+      if (process.env.SINGLE_FILE_BUILD) {
         const workerCode = document.getElementById('mesher-worker-code')!.textContent!
         const blob = new Blob([workerCode], { type: 'text/javascript' })
         worker = new Worker(window.URL.createObjectURL(blob))

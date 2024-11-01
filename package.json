@@ -8,7 +8,7 @@
     "start": "run-p dev-rsbuild dev-proxy watch-mesher",
     "build": "pnpm build-other-workers && rsbuild build",
     "build-analyze": "BUNDLE_ANALYZE=true rsbuild build && pnpm build-other-workers",
-    "build-one-file": "ONE_FILE_BUILD=true rsbuild build",
+    "build-single-file": "SINGLE_FILE_BUILD=true rsbuild build",
     "check-build": "tsx scripts/genShims.ts && tsc && pnpm build",
     "test:cypress": "cypress run",
     "test-unit": "vitest",
@@ -164,6 +164,9 @@
     "cypress": "^10.11.0",
     "cypress-plugin-snapshots": "^1.4.4",
     "systeminformation": "^5.21.22"
+  },
+  "release": {
+    "attachReleaseFiles": "dist/minecraft.html"
   },
   "pnpm": {
     "overrides": {
