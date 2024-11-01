@@ -13,12 +13,17 @@ struct CubePointer {
   ptr: array<u32, 2>
 }
 
+struct Depth {
+  locks: array<array<atomic<u32>, 4096>, 4096>
+}
+
 @group(0) @binding(0) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
 @group(1) @binding(0) var<storage, read> chunks : array<Chunk>;
 @group(0) @binding(1) var<storage, read_write> cubes: array<Cube>;
 @group(1) @binding(1) var occlusion : texture_storage_2d<r32uint, read_write>;
 @group(1) @binding(2) var occlusionIndex : texture_storage_2d<r32uint, read_write>;
-@group(0) @binding(4) var<storage, read_write> debug: array<u32>;
+@group(1) @binding(3) var<storage, read_write> depthAtomic : Depth;
+@group(0) @binding(4) var<storage, read_write> debug : array<u32>;
              
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
@@ -78,7 +83,16 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   { //Small Oversize because binding size
     
     let pos : vec2u = vec2u(u32((clipX + 1) / 2 * f32(textureSize.x)),u32((clipY + 1) / 2 * f32(textureSize.y)));
+
+
+    var depthPrev = atomicMin(&depthAtomic.locks[pos.x][pos.y], u32(clipDepth * 2147483646));
+
+    if (depthPrev == 0u) {
+      atomicMax(&depthAtomic.locks[pos.x][pos.y], u32(clipDepth * 2147483646));
+    }
+    if (depthPrev > u32(clipDepth * 2147483646) || depthPrev == 0u) {
     textureStore(occlusion, pos, vec4<u32>(index,0u,0u,1u));
     textureStore(occlusionIndex, pos, vec4<u32>(i,0u,0u,1u));
+    }
   }
 }

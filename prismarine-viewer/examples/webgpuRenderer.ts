@@ -54,6 +54,7 @@ export class WebgpuRenderer {
   occlusionTexture: GPUTexture
   computeSortPipeline: GPUComputePipeline
   occlusionTextureIndex: GPUTexture
+  DepthTextureBuffer: GPUBuffer
   
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
@@ -259,6 +260,7 @@ export class WebgpuRenderer {
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
         { binding: 1, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'read-write', format: 'r32uint', viewDimension: '2d' } },
         { binding: 2, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'read-write', format: 'r32uint', viewDimension: '2d' } },
+        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
       ],
     })
 
@@ -449,6 +451,10 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.occlusionTextureIndex.createView(),
         },
+        {
+          binding: 3,
+          resource: { buffer: this.DepthTextureBuffer },
+        },
         
       ],
     })
@@ -503,7 +509,11 @@ export class WebgpuRenderer {
       usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
     })
 
-
+    this.DepthTextureBuffer = this.device.createBuffer({
+      label: 'visibleCubesBuffer',
+      size: 4096 * 4096 * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+    })
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
@@ -710,6 +720,8 @@ export class WebgpuRenderer {
       this.indirectDrawBuffer, 0, this.indirectDrawParams
     )
 
+    
+
     renderPassDescriptor.colorAttachments[0].view = ctx
       .getCurrentTexture()
       .createView()
@@ -725,6 +737,7 @@ export class WebgpuRenderer {
     this.commandEncoder = device.createCommandEncoder()
     //this.commandEncoder.clearBuffer(this.occlusionTexture)
     //this.commandEncoder.
+    this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
     // Compute pass for occlusion culling
     this.commandEncoder.label = 'Main Comand Encoder'
     this.updateCubesBuffersDataFromLoop()
