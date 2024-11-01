@@ -47,6 +47,19 @@ export class WorldDataEmitter extends EventEmitter {
     })
   }
 
+  setBlockStateId (position: Vec3, stateId: number) {
+    const val = this.world.setBlockStateId(position, stateId) as Promise<void> | void
+    if (val) throw new Error('setBlockStateId returned promise (not supported)')
+    const chunkX = Math.floor(position.x / 16)
+    const chunkZ = Math.floor(position.z / 16)
+    if (!this.loadedChunks[`${chunkX},${chunkZ}`]) {
+      void this.loadChunk({ x: chunkX, z: chunkZ })
+      return
+    }
+
+    this.emit('blockUpdate', { pos: position, stateId })
+  }
+
   updateViewDistance (viewDistance: number) {
     this.viewDistance = viewDistance
     this.emitter.emit('renderDistance', viewDistance)

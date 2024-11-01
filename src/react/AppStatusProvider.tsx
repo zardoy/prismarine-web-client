@@ -15,6 +15,8 @@ import Button from './Button'
 import { AuthenticatedAccount, updateAuthenticatedAccountData, updateLoadedServerData } from './ServersListProvider'
 import { showOptionsModal } from './SelectOption'
 import LoadingChunks from './LoadingChunks'
+import MessageFormatted from './MessageFormatted'
+import MessageFormattedString from './MessageFormattedString'
 
 const initialState = {
   status: '',
@@ -25,7 +27,8 @@ const initialState = {
   hideDots: false,
   loadingChunksData: null as null | Record<string, string>,
   loadingChunksDataPlayerChunk: null as null | { x: number, z: number },
-  isDisplaying: false
+  isDisplaying: false,
+  minecraftJsonMessage: null as null | Record<string, any>
 }
 export const appStatusState = proxy(initialState)
 export const resetAppStatusState = () => {
@@ -37,7 +40,7 @@ export const lastConnectOptions = {
 }
 
 export default () => {
-  const { isError, lastStatus, maybeRecoverable, status, hideDots, descriptionHint, loadingChunksData, loadingChunksDataPlayerChunk } = useSnapshot(appStatusState)
+  const { isError, lastStatus, maybeRecoverable, status, hideDots, descriptionHint, loadingChunksData, loadingChunksDataPlayerChunk, minecraftJsonMessage } = useSnapshot(appStatusState)
   const { active: replayActive } = useSnapshot(packetsReplaceSessionState)
 
   const isOpen = useIsModalActive('app-status')
@@ -95,7 +98,11 @@ export default () => {
       isError={isError || appStatusState.status === ''} // display back button if status is empty as probably our app is errored
       hideDots={hideDots}
       lastStatus={lastStatus}
-      description={displayAuthButton ? '' : (isError ? guessProblem(status) : '') || descriptionHint}
+      description={<>{
+        displayAuthButton ? '' : (isError ? guessProblem(status) : '') || descriptionHint
+      }{
+        minecraftJsonMessage && <MessageFormattedString message={minecraftJsonMessage} />
+      }</>}
       backAction={maybeRecoverable ? () => {
         resetAppStatusState()
         miscUiState.gameLoaded = false

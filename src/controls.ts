@@ -475,7 +475,7 @@ export const f3Keybinds = [
       // TODO!
       if (resourcePackState.resourcePackInstalled || loadedGameState.usingServerResourcePack) {
         showNotification('Reloading textures...')
-        await completeTexturePackInstall('default', 'default')
+        await completeTexturePackInstall('default', 'default', loadedGameState.usingServerResourcePack)
       }
     },
     mobileTitle: 'Reload Textures'
@@ -603,6 +603,7 @@ const patchedSetControlState = (action, state) => {
 }
 
 const startFlying = (sendAbilities = true) => {
+  bot.entity['creativeFly'] = true
   if (sendAbilities) {
     bot._client.write('abilities', {
       flags: 2,
@@ -616,6 +617,7 @@ const startFlying = (sendAbilities = true) => {
 }
 
 const endFlying = (sendAbilities = true) => {
+  bot.entity['creativeFly'] = false
   if (bot.physics.gravity !== 0) return
   if (sendAbilities) {
     bot._client.write('abilities', {

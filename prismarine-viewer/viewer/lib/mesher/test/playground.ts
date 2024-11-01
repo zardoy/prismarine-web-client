@@ -1,3 +1,4 @@
+import { BlockNames } from '../../../../../src/mcDataTypes'
 import { setup } from './mesherTester'
 
 const addPositions = [
@@ -10,8 +11,10 @@ const addPositions = [
   [[0, 0, -1], 'stone'],
 ] as const
 
-const { mesherWorld, getGeometry, pos, mcData } = setup('1.18.1', addPositions as any)
+const { mesherWorld, getGeometry, pos, mcData } = setup('1.21.1', addPositions as any)
 
-// mesherWorld.setBlockStateId(pos, mcData.blocksByName.soul_sand.defaultState)
+// mesherWorld.setBlockStateId(pos, 712)
+// mesherWorld.setBlockStateId(pos, mcData.blocksByName.stone_slab.defaultState)
+mesherWorld.setBlockStateId(pos, 11_225)
 
-// console.log(getGeometry().centerTileNeighbors)
+console.log(getGeometry().centerTileNeighbors)
