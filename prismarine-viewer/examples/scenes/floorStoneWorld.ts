@@ -1,35 +1,19 @@
 import { Vec3 } from 'vec3'
 import { BasePlaygroundScene } from '../baseScene'
 import { webgpuChannel } from '../webgpuRendererMain'
-import { defaultWebgpuRendererParams } from '../webgpuRendererShared'
 
 export default class Scene extends BasePlaygroundScene {
   viewDistance = 16
   continuousRender = true
   targetPos = new Vec3(0, 0, 0)
+  webgpuRendererParams = true
 
   override initGui (): void {
     this.params = {
       chunksDistance: 2,
-      orbit: false,
-      ...defaultWebgpuRendererParams
-    }
-
-    for (const key of Object.keys(defaultWebgpuRendererParams)) {
-      this.onParamUpdate[key] = () => {
-        webgpuChannel.updateConfig(this.params as any)
-      }
-    }
-
-    this.paramOptions = {
-      orbit: {
-        reloadOnChange: true,
-      }
     }
 
     super.initGui() // restore user params
-
-    this.enableCameraOrbitControl = this.params.orbit
   }
 
   async setupWorld () {

@@ -17,17 +17,20 @@ import { WorldDataEmitter } from '../viewer'
 import { Viewer } from '../viewer/lib/viewer'
 import { BlockNames } from '../../src/mcDataTypes'
 import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
-import { initWebgpuRenderer } from './webgpuRendererMain'
+import { initWebgpuRenderer, webgpuChannel } from './webgpuRendererMain'
 import { getSyncWorld } from './shared'
+import { defaultWebgpuRendererParams } from './webgpuRendererShared'
 
 window.THREE = THREE
 
 export class BasePlaygroundScene {
+  webgpuRendererParams = false
   continuousRender = false
   guiParams = {}
   viewDistance = 0
   targetPos = new Vec3(2, 90, 2)
   params = {} as Record<string, any>
+  allParamsValuesInit = {} as Record<string, any>
   paramOptions = {} as Partial<Record<keyof typeof this.params, {
     hide?: boolean
     options?: string[]
@@ -76,12 +79,33 @@ export class BasePlaygroundScene {
   }
 
   initGui () {
+    if (this.enableCameraControls) {
+      Object.assign(this.params, {
+        orbit: false,
+        worker: false,
+        ...defaultWebgpuRendererParams
+      })
+
+      Object.assign(this.paramOptions, {
+        orbit: {
+          reloadOnChange: true,
+        },
+        worker: {
+          reloadOnChange: true,
+        }
+      })
+    }
+
     const qs = new URLSearchParams(window.location.search)
-    for (const key of Object.keys(this.params)) {
+    for (const key of qs.keys()) {
       const value = qs.get(key)
       if (!value) continue
       const parsed = /^-?\d+$/.test(value) ? Number(value) : value === 'true' ? true : value === 'false' ? false : value
-      this.params[key] = parsed
+      this.allParamsValuesInit[key] = parsed
+    }
+    for (const key of Object.keys(this.allParamsValuesInit)) {
+      if (this.params[key] === undefined) continue
+      this.params[key] = this.allParamsValuesInit[key]
     }
 
     for (const param of Object.keys(this.params)) {
@@ -106,6 +130,17 @@ export class BasePlaygroundScene {
       }
       this.updateQs()
     })
+
+    if (this.webgpuRendererParams) {
+      for (const key of Object.keys(defaultWebgpuRendererParams)) {
+        this.onParamUpdate[key] = () => {
+          webgpuChannel.updateConfig(this.params as any)
+        }
+      }
+
+      this.enableCameraOrbitControl = this.params.orbit
+      webgpuChannel.updateConfig(this.params as any)
+    }
   }
 
   // mainChunk: import('prismarine-chunk/types/index').PCChunk
@@ -122,7 +157,13 @@ export class BasePlaygroundScene {
     this.world.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
   }
 
+  lockCameraInUrl () {
+    this.params.camera = this.getCameraStateString()
+    this.updateQs()
+  }
+
   resetCamera () {
+    this.controls?.reset()
     const { targetPos } = this
     this.controls?.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
@@ -133,6 +174,17 @@ export class BasePlaygroundScene {
     viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
     viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
     this.controls?.update()
+  }
+
+  getCameraStateString () {
+    const { camera } = viewer
+    return [
+      camera.position.x.toFixed(2),
+      camera.position.y.toFixed(2),
+      camera.position.z.toFixed(2),
+      camera.rotation.x.toFixed(2),
+      camera.rotation.y.toFixed(2),
+    ].join(',')
   }
 
   async initData () {
@@ -195,7 +247,7 @@ export class BasePlaygroundScene {
       this.resetCamera()
 
       // #region camera rotation param
-      const cameraSet = this.params.camera || localStorage.camera
+      const cameraSet = this.allParamsValuesInit.camera || localStorage.camera
       if (cameraSet) {
         const [x, y, z, rx, ry] = cameraSet.split(',').map(Number)
         viewer.camera.position.set(x, y, z)
@@ -206,13 +258,7 @@ export class BasePlaygroundScene {
         const { camera } = viewer
         // params.camera = `${camera.rotation.x.toFixed(2)},${camera.rotation.y.toFixed(2)}`
         // this.updateQs()
-        localStorage.camera = [
-          camera.position.x.toFixed(2),
-          camera.position.y.toFixed(2),
-          camera.position.z.toFixed(2),
-          camera.rotation.x.toFixed(2),
-          camera.rotation.y.toFixed(2),
-        ].join(',')
+        localStorage.camera = this.getCameraStateString()
       }, 200)
       if (this.controls) {
         this.controls.addEventListener('change', () => {
@@ -284,7 +330,6 @@ export class BasePlaygroundScene {
   addKeyboardShortcuts () {
     document.addEventListener('keydown', (e) => {
       if (e.code === 'KeyR' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        this.controls?.reset()
         this.resetCamera()
       }
     })

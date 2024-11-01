@@ -54,7 +54,7 @@ export class WebgpuRenderer {
   occlusionTexture: GPUTexture
   computeSortPipeline: GPUComputePipeline
   occlusionTextureIndex: GPUTexture
-  
+
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
     void this.init().catch((err) => {
@@ -69,6 +69,7 @@ export class WebgpuRenderer {
   }
 
   updateConfig (newParams: RendererParams) {
+    console.log('received new params', newParams)
     this.rendererParams = { ...this.rendererParams, ...newParams }
   }
 
@@ -289,7 +290,7 @@ export class WebgpuRenderer {
       },
     })
 
-    
+
 
     this.indirectDrawBuffer = device.createBuffer({
       label: 'indirectDrawBuffer',
@@ -449,7 +450,7 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.occlusionTextureIndex.createView(),
         },
-        
+
       ],
     })
   }
