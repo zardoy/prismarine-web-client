@@ -123,6 +123,7 @@ export default () => {
         onVersionTextClick={async () => {
           openGithub('/releases')
         }}
+        versionText={process.env.RELEASE_TAG}
       />
     </div>}
   </Transition>
