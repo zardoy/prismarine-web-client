@@ -38,6 +38,7 @@ export class World {
   blockCache = {}
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
+  erroredBlockModel?: BlockModelPartsResolved
 
   constructor (version) {
     this.Chunk = Chunks(version) as any
@@ -47,6 +48,8 @@ export class World {
   }
 
   getLight (pos: Vec3, isNeighbor = false, skipMoreChecks = false, curBlockName = '') {
+    // for easier testing
+    if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const { enableLighting, skyLight } = this.config
     if (!enableLighting) return 15
     // const key = `${pos.x},${pos.y},${pos.z}`
@@ -70,8 +73,10 @@ export class World {
         this.getLight(pos.offset(1, 0, 0), undefined, true),
         this.getLight(pos.offset(-1, 0, 0), undefined, true)
       ].filter(x => x !== 2)
-      const min = Math.min(...lights)
-      result = min
+      if (lights.length) {
+        const min = Math.min(...lights)
+        result = min
+      }
     }
     if (isNeighbor && result === 2) result = 15 // TODO
     return result
@@ -108,7 +113,7 @@ export class World {
     return this.getColumn(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
   }
 
-  getBlock (pos: Vec3): WorldBlock | null {
+  getBlock (pos: Vec3, blockProvider?, attr?): WorldBlock | null {
     // for easier testing
     if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
@@ -122,8 +127,7 @@ export class World {
     const stateId = column.getBlockStateId(locInChunk)
 
     if (!this.blockCache[stateId]) {
-      const b = column.getBlock(locInChunk)
-      //@ts-expect-error
+      const b = column.getBlock(locInChunk) as unknown as WorldBlock
       b.isCube = isCube(b.shapes)
       this.blockCache[stateId] = b
       Object.defineProperty(b, 'position', {
@@ -132,7 +136,6 @@ export class World {
         }
       })
       if (this.preflat) {
-        //@ts-expect-error
         b._properties = {}
 
         const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || findClosestLegacyBlockFallback(b.type, b.metadata, pos)
@@ -145,7 +148,6 @@ export class World {
               if (!isNaN(val)) val = parseInt(val, 10)
               return [key, val]
             }))
-            //@ts-expect-error
             b._properties = newProperties
           }
         }
@@ -153,6 +155,40 @@ export class World {
     }
 
     const block = this.blockCache[stateId]
+
+    if (block.models === undefined && blockProvider) {
+      if (!attr) throw new Error('attr is required')
+      const props = block.getProperties()
+      try {
+        // fixme
+        if (this.preflat) {
+          if (block.name === 'cobblestone_wall') {
+            props.up = 'true'
+            for (const key of ['north', 'south', 'east', 'west']) {
+              const val = props[key]
+              if (val === 'false' || val === 'true') {
+                props[key] = val === 'true' ? 'low' : 'none'
+              }
+            }
+          }
+        }
+
+        block.models = blockProvider.getAllResolvedModels0_1({
+          name: block.name,
+          properties: props,
+        }, this.preflat)! // fixme! this is a hack (also need a setting for all versions)
+        if (!block.models!.length) {
+          console.debug('[mesher] block to render not found', block.name, props)
+          block.models = null
+        }
+      } catch (err) {
+        this.erroredBlockModel ??= blockProvider.getAllResolvedModels0_1({ name: 'errored', properties: {} })
+        block.models ??= this.erroredBlockModel
+        console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(props)}]: ` + err.message, err.stack)
+        attr.hadErrors = true
+      }
+    }
+
     if (block.name === 'flowing_water') block.name = 'water'
     if (block.name === 'flowing_lava') block.name = 'lava'
     // block.position = loc // it overrides position of all currently loaded blocks

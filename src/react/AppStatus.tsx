@@ -10,31 +10,30 @@ export default ({
   hideDots = false,
   lastStatus = '',
   backAction = undefined as undefined | (() => void),
-  description = '',
+  description = '' as string | JSX.Element,
   actionsSlot = null as React.ReactNode | null,
   children
 }) => {
-  const [loadingDots, setLoadingDots] = useState('')
+  const [loadingDotIndex, setLoadingDotIndex] = useState(0)
 
   useEffect(() => {
+    const statusRunner = async () => {
+      const timer = async (ms) => new Promise((resolve) => { setTimeout(resolve, ms) })
+
+      const load = async () => {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          setLoadingDotIndex(i => (i + 1) % 4)
+          await timer(500) // eslint-disable-line no-await-in-loop
+        }
+      }
+
+      void load()
+    }
+
     void statusRunner()
   }, [])
 
-  const statusRunner = async () => {
-    const array = ['.', '..', '...', '']
-
-    const timer = async (ms) => new Promise((resolve) => { setTimeout(resolve, ms) })
-
-    const load = async () => {
-      // eslint-disable-next-line no-constant-condition
-      for (let i = 0; true; i = (i + 1) % array.length) {
-        setLoadingDots(array[i])
-        await timer(500) // eslint-disable-line no-await-in-loop
-      }
-    }
-
-    void load()
-  }
 
   return (
     <Screen
@@ -48,8 +47,17 @@ export default ({
           >
             {status}
           </span>
-          {isError || hideDots ? '' : loadingDots}
-          <p className={styles['potential-problem']}>{description}</p>
+          <div style={{ display: 'inline-flex', gap: '1px', }} hidden={hideDots || isError}>
+            {
+              [...'...'].map((dot, i) => {
+                return <span
+                  key={i} style={{
+                    visibility: loadingDotIndex <= i ? 'hidden' : 'visible',
+                  }}>{dot}</span>
+              })
+            }
+          </div>
+          <p className={styles.description}>{description}</p>
           <p className={styles['last-status']}>{lastStatus ? `Last status: ${lastStatus}` : lastStatus}</p>
         </>
       }

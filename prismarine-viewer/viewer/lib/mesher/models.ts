@@ -196,13 +196,53 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
   }
 }
 
-let needRecompute = false
+const identicalCull = (currentElement: BlockElement, neighbor: Block, direction: Vec3) => {
+  const dirStr = `${direction.x},${direction.y},${direction.z}`
+  const lookForOppositeSide = {
+    '0,1,0': 'down',
+    '0,-1,0': 'up',
+    '1,0,0': 'east',
+    '-1,0,0': 'west',
+    '0,0,1': 'south',
+    '0,0,-1': 'north',
+  }[dirStr]!
+  const elemCompareForm = {
+    '0,1,0': (e: BlockElement) => `${e.from[0]},${e.from[2]}:${e.to[0]},${e.to[2]}`,
+    '0,-1,0': (e: BlockElement) => `${e.to[0]},${e.to[2]}:${e.from[0]},${e.from[2]}`,
+    '1,0,0': (e: BlockElement) => `${e.from[2]},${e.from[1]}:${e.to[2]},${e.to[1]}`,
+    '-1,0,0': (e: BlockElement) => `${e.to[2]},${e.to[1]}:${e.from[2]},${e.from[1]}`,
+    '0,0,1': (e: BlockElement) => `${e.from[1]},${e.from[2]}:${e.to[1]},${e.to[2]}`,
+    '0,0,-1': (e: BlockElement) => `${e.to[1]},${e.to[2]}:${e.from[1]},${e.from[2]}`,
+  }[dirStr]!
+  const elementEdgeValidator = {
+    '0,1,0': (e: BlockElement) => currentElement.from[1] === 0 && e.to[2] === 16,
+    '0,-1,0': (e: BlockElement) => currentElement.from[1] === 0 && e.to[2] === 16,
+    '1,0,0': (e: BlockElement) => currentElement.from[0] === 0 && e.to[1] === 16,
+    '-1,0,0': (e: BlockElement) => currentElement.from[0] === 0 && e.to[1] === 16,
+    '0,0,1': (e: BlockElement) => currentElement.from[2] === 0 && e.to[0] === 16,
+    '0,0,-1': (e: BlockElement) => currentElement.from[2] === 0 && e.to[0] === 16,
+  }[dirStr]!
+  const useVar = 0
+  const models = neighbor.models?.map(m => m[useVar] ?? m[0]) ?? []
+  // TODO we should support it! rewrite with optimizing general pipeline
+  if (models.some(m => m.x || m.y || m.z)) return
+  for (const model of models) {
+    for (const element of model.elements ?? []) {
+      // todo check alfa on texture
+      if (element.faces[lookForOppositeSide]?.cullface && elemCompareForm(currentElement) === elemCompareForm(element) && elementEdgeValidator(element)) {
+        return true
+      }
+    }
+  }
+}
+
+let needSectionRecomputeOnChange = false
 
 function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO: boolean, attr: MesherGeometryOutput, globalMatrix: any, globalShift: any, block: Block, biome: string) {
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
   // if (!globalThis.allowedBlocks.includes(key)) return
-  const cullIfIdentical = block.name.includes('glass')
+  const cullIfIdentical = block.name.includes('glass') || block.name.includes('ice')
 
   // eslint-disable-next-line guard-for-in
   for (const face in element.faces) {
@@ -211,12 +251,12 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     const dir = matmul3(globalMatrix, elemFaces[face].dir)
 
     if (eFace.cullface) {
-      const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)))
+      const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)), blockProvider, {})
       if (neighbor) {
-        if (cullIfIdentical && neighbor.type === block.type) continue
-        if (!neighbor.transparent && isCube(neighbor)) continue
+        if (cullIfIdentical && neighbor.stateId === block.stateId) continue
+        if (!neighbor.transparent && (isCube(neighbor) || identicalCull(element, neighbor, new Vec3(...dir)))) continue
       } else {
-        needRecompute = true
+        needSectionRecomputeOnChange = true
         continue
       }
     }
@@ -310,6 +350,8 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       }
 
       let light = 1
+      const { smoothLighting } = world.config
+      // const smoothLighting = true
       if (doAO) {
         const dx = pos[0] * 2 - 1
         const dy = pos[1] * 2 - 1
@@ -321,14 +363,25 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
         const side2 = world.getBlock(cursor.offset(...side2Dir))
         const corner = world.getBlock(cursor.offset(...cornerDir))
 
-        let cornerLightResult = 15
-        // eslint-disable-next-line no-constant-condition, sonarjs/no-gratuitous-expressions
-        if (/* world.config.smoothLighting */false) { // todo fix
-          const side1Light = world.getLight(cursor.plus(new Vec3(...side1Dir)), true)
-          const side2Light = world.getLight(cursor.plus(new Vec3(...side2Dir)), true)
-          const cornerLight = world.getLight(cursor.plus(new Vec3(...cornerDir)), true)
+        let cornerLightResult = baseLight * 15
+
+        if (smoothLighting) {
+          const dirVec = new Vec3(...dir)
+          const getVec = (v: Vec3) => {
+            for (const coord of ['x', 'y', 'z']) {
+              if (Math.abs(dirVec[coord]) > 0) v[coord] = 0
+            }
+            return v.plus(dirVec)
+          }
+          const side1LightDir = getVec(new Vec3(...side1Dir))
+          const side1Light = world.getLight(cursor.plus(side1LightDir))
+          const side2DirLight = getVec(new Vec3(...side2Dir))
+          const side2Light = world.getLight(cursor.plus(side2DirLight))
+          const cornerLightDir = getVec(new Vec3(...cornerDir))
+          const cornerLight = world.getLight(cursor.plus(cornerLightDir))
           // interpolate
-          cornerLightResult = (side1Light + side2Light + cornerLight) / 3
+          const lights = [side1Light, side2Light, cornerLight, baseLight * 15]
+          cornerLightResult = lights.reduce((acc, cur) => acc + cur, 0) / lights.length
         }
 
         const side1Block = world.shouldMakeAo(side1) ? 1 : 0
@@ -344,7 +397,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       }
 
       if (!needTiles) {
-        attr.colors.push(baseLight * tint[0] * light, baseLight * tint[1] * light, baseLight * tint[2] * light)
+        attr.colors.push(tint[0] * light, tint[1] * light, tint[2] * light)
       }
     }
 
@@ -391,7 +444,6 @@ const invisibleBlocks = new Set(['air', 'cave_air', 'void_air', 'barrier'])
 const isBlockWaterlogged = (block: Block) => block.getProperties().waterlogged === true || block.getProperties().waterlogged === 'true'
 
 let unknownBlockModel: BlockModelPartsResolved
-let erroredBlockModel: BlockModelPartsResolved
 export function getSectionGeometry (sx, sy, sz, world: World) {
   let delayedRender = [] as Array<() => void>
 
@@ -421,7 +473,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   for (cursor.y = sy; cursor.y < sy + 16; cursor.y++) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
-        const block = world.getBlock(cursor)!
+        let block = world.getBlock(cursor, blockProvider, attr)!
         if (!invisibleBlocks.has(block.name)) {
           const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
           if (!highest || highest.y < cursor.y) {
@@ -459,6 +511,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             if (block.models && JSON.stringify(block._originalProperties) !== JSON.stringify(block._properties)) {
               // recompute models
               block.models = undefined
+              block = world.getBlock(cursor, blockProvider, attr)!
             }
           } else {
             block._properties = block._originalProperties ?? block._properties
@@ -481,37 +534,6 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         if (block.name !== 'water' && block.name !== 'lava' && !invisibleBlocks.has(block.name)) {
           // cache
           let { models } = block
-          if (block.models === undefined) {
-            const props = block.getProperties()
-            try {
-              // fixme
-              if (world.preflat) {
-                if (block.name === 'cobblestone_wall') {
-                  props.up = 'true'
-                  for (const key of ['north', 'south', 'east', 'west']) {
-                    const val = props[key]
-                    if (val === 'false' || val === 'true') {
-                      props[key] = val === 'true' ? 'low' : 'none'
-                    }
-                  }
-                }
-              }
-
-              models = blockProvider.getAllResolvedModels0_1({
-                name: block.name,
-                properties: props,
-              }, world.preflat)! // fixme! this is a hack (also need a setting for all versions)
-              if (!models.length) {
-                console.debug('[mesher] block to render not found', block.name, props)
-                models = null
-              }
-            } catch (err) {
-              models ??= erroredBlockModel
-              console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(props)}]: ` + err.message, err.stack)
-              attr.hadErrors = true
-            }
-          }
-          block.models = models ?? null
 
           models ??= unknownBlockModel
 
@@ -607,7 +629,6 @@ export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTil
   globalThis.blockProvider = blockProvider
   if (useUnknownBlockModel) {
     unknownBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'unknown', properties: {} })
-    erroredBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'errored', properties: {} })
   }
 
   needTiles = _needTiles
