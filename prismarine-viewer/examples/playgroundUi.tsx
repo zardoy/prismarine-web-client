@@ -4,10 +4,13 @@ import { proxy, useSnapshot } from 'valtio'
 import { LeftTouchArea, RightTouchArea, useInterfaceState } from '@dimaka/interface'
 import { css } from '@emotion/css'
 import { Vec3 } from 'vec3'
+import useLongPress from '../../src/react/useLongPress'
 
 export const playgroundGlobalUiState = proxy({
   scenes: [] as string[],
-  selected: ''
+  selected: '',
+  selectorOpened: false,
+  actions: {} as Record<string, () => void>,
 })
 
 renderToDom(<Playground />)
@@ -33,17 +36,22 @@ function Playground () {
   }}>
     <Controls />
     <SceneSelector />
+    <ActionsSelector />
   </div>
 }
 
 function SceneSelector () {
   const { scenes, selected } = useSnapshot(playgroundGlobalUiState)
+  const longPressEvents = useLongPress(() => {
+    alert('long press')
+  }, () => { })
 
-  return <div style={{
-    position: 'fixed',
-    top: 0,
-    left: 0,
-  }}>
+  return <div
+    style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+    }} {...longPressEvents}>
     {scenes.map(scene => <div
       key={scene}
       style={{
@@ -59,6 +67,35 @@ function SceneSelector () {
       }}
     >{scene}</div>)}
   </div>
+}
+
+const ActionsSelector = () => {
+  const { actions, selectorOpened } = useSnapshot(playgroundGlobalUiState)
+
+  if (!selectorOpened) return null
+  return <div style={{
+    position: 'fixed',
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    zIndex: 10,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 5,
+    fontSize: 24,
+  }}>{Object.entries(actions).map(([name, action]) => <div
+      key={name}
+      style={{
+        padding: '2px 5px',
+        cursor: 'pointer',
+        userSelect: 'none',
+        background: 'rgba(0, 0, 0, 0.5)',
+      }}
+      onClick={() => {
+        action()
+      }}
+    >{name}</div>)}</div>
 }
 
 const Controls = () => {
