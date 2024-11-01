@@ -6,7 +6,7 @@ import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
 import ComputeSortShader from './CubeSort.comp.wgsl'
-import { chunksStorage, updateSize } from './webgpuRendererWorker'
+import { chunksStorage, updateSize, postMessage } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
 
 export class WebgpuRenderer {
@@ -57,7 +57,10 @@ export class WebgpuRenderer {
   
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
-    this.init()
+    void this.init().catch((err) => {
+      console.error(err)
+      postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
+    })
   }
 
   changeBackgroundColor (color: [number, number, number]) {
@@ -77,6 +80,7 @@ export class WebgpuRenderer {
     const textureWidth = textureBitmap.width
     const textureHeight = textureBitmap.height
 
+    if (!navigator.gpu) throw new Error('WebGPU not supported (probably can be enabled in settings)')
     const adapter = await navigator.gpu.requestAdapter()
     if (!adapter) throw new Error('WebGPU not supported')
     this.device = await adapter.requestDevice()
@@ -303,6 +307,11 @@ export class WebgpuRenderer {
     const indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0])
     device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams)
 
+    void device.lost.then((info) => {
+      console.warn('WebGPU context lost:', info)
+      postMessage({ type: 'rendererProblem', isContextLost: true, message: info.message })
+    })
+
     this.createNewDataBuffers()
 
 
@@ -312,6 +321,15 @@ export class WebgpuRenderer {
     this.loop(true) // start rendering
     this.ready = true
     return canvas
+  }
+
+  safeLoop (isFirst = false) {
+    try {
+      this.loop(isFirst)
+    } catch (err) {
+      console.error(err)
+      postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
+    }
   }
 
   private createUniformBindGroup (device: GPUDevice, pipeline: GPURenderPipeline) {
@@ -623,8 +641,14 @@ export class WebgpuRenderer {
 
 
   loop (forceFrame = false) {
+    const nextFrame = () => {
+      requestAnimationFrame(() => {
+        this.safeLoop()
+      })
+    }
+
     if (!this.rendering) {
-      requestAnimationFrame(() => this.loop())
+      nextFrame()
       if (!forceFrame) {
         return
       }
@@ -754,11 +778,11 @@ export class WebgpuRenderer {
     device.queue.submit([this.commandEncoder.finish()])
 
     this.renderedFrames++
-    requestAnimationFrame(() => this.loop())
+    nextFrame()
     this.notRenderedAdditions = 0
     const took = performance.now() - start
     if (took > 100) {
-      console.log('took', took)
+      console.log('One frame render loop took', took)
     }
   }
 }

@@ -16,7 +16,7 @@ globalThis.camera = camera
 
 let webgpuRenderer: WebgpuRenderer | undefined
 
-const postMessage = (data, ...args) => {
+export const postMessage = (data, ...args) => {
   if (globalThis.webgpuRendererChannel) {
     globalThis.webgpuRendererChannel.port2.postMessage(data, ...args)
   } else {

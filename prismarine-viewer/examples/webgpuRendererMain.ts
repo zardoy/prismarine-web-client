@@ -9,6 +9,7 @@ import { useWorkerProxy } from './workerProxy'
 import { MessageChannelReplacement } from './messageChannel'
 
 let worker: Worker | MessagePort
+const workerReadyProxy = Promise.withResolvers()
 
 // eslint-disable-next-line import/no-mutable-exports
 export let webgpuChannel: typeof workerProxyType['__workerProxy'] = new Proxy({}, {
@@ -163,6 +164,8 @@ export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeI
   }
 
   requestAnimationFrame(mainLoop)
+
+  workerReadyProxy.resolve(undefined)
 }
 
 export const setAnimationTick = (tick: number, frames?: number) => {
@@ -226,4 +229,14 @@ const addFpsCounters = () => {
     updateText2(`Main Loop: ${updates}`)
     updates = 0
   }, 1000)
+}
+
+export const addWebgpuListener = (type: string, listener: (data: any) => void) => {
+  void workerReadyProxy.promise.then(() => {
+    worker.addEventListener('message', (e: any) => {
+      if (e.data.type === type) {
+        listener(e.data)
+      }
+    })
+  })
 }
