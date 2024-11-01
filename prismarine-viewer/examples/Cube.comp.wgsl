@@ -8,12 +8,6 @@ struct Chunk{
   cubesCount : u32
 }
 
-struct IndirectDrawParams {
-  vertexCount: u32,
-  instanceCount: atomic<u32>,
-  firstVertex: u32,
-  firstInstance: u32,
-}
 
 struct CubePointer {
   ptr: array<u32, 2>
@@ -22,8 +16,8 @@ struct CubePointer {
 @group(0) @binding(0) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
 @group(1) @binding(0) var<storage, read> chunks : array<Chunk>;
 @group(0) @binding(1) var<storage, read_write> cubes: array<Cube>;
-@group(0) @binding(2) var<storage, read_write> visibleCubes: array<CubePointer>;
-@group(0) @binding(3) var<storage, read_write> drawParams: IndirectDrawParams;
+@group(1) @binding(1) var occlusion : texture_storage_2d<r32uint, read_write>;
+@group(1) @binding(2) var occlusionIndex : texture_storage_2d<r32uint, read_write>;
 @group(0) @binding(4) var<storage, read_write> debug: array<u32>;
              
 @compute @workgroup_size(256)
@@ -42,8 +36,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   var i : u32 = 0;
   while (counter < index)
   {
-
-
       counter += chunks[i].cubesCount;
       if (index < counter) {
         //i--;
@@ -52,14 +44,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
 
       i++;
-      
-
-      // if (counter >= index){
-      //   i--;
-      // break;
-      // }
-
-
   }
 
 
@@ -84,18 +68,17 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let clipDepth = clipPos.z / clipPos.w; // Obtain depth in clip space
   let clipX = clipPos.x / clipPos.w;
   let clipY = clipPos.y / clipPos.w;
-
+  let textureSize: vec2<u32> = textureDimensions(occlusion);
   // Check if cube is within the view frustum z-range (depth within near and far planes)
-  let Oversize = 1.25;
+  let Oversize = 1.0;
   if (
       clipDepth > 0 && clipDepth <=  1 &&
       clipX >= -Oversize && clipX <= Oversize &&
       clipY >= - Oversize && clipY <= Oversize) 
   { //Small Oversize because binding size
-    let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
-    visibleCubes[visibleIndex].ptr[0] = index;
-    visibleCubes[visibleIndex].ptr[1] = i;
-   // cubes[index].cube[1] = ((i << 24) | (cubes[index].cube[1] & 16777215));
-   // cubes[index].cube[0] = (((i>>8) << 27) | (cubes[index].cube[0] & 134217727));
+    
+    let pos : vec2u = vec2u(u32((clipX + 1) / 2 * f32(textureSize.x)),u32((clipY + 1) / 2 * f32(textureSize.y)));
+    textureStore(occlusion, pos, vec4<u32>(index,0u,0u,1u));
+    textureStore(occlusionIndex, pos, vec4<u32>(i,0u,0u,1u));
   }
 }

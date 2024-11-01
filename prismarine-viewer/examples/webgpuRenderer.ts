@@ -5,6 +5,7 @@ import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cub
 import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
+import ComputeSortShader from './CubeSort.comp.wgsl'
 import { chunksStorage, updateSize } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
 
@@ -49,6 +50,11 @@ export class WebgpuRenderer {
   chunkBindGroup: GPUBindGroup
   debugBuffer: GPUBuffer
 
+  actualBufferSize = 0
+  occlusionTexture: GPUTexture
+  computeSortPipeline: GPUComputePipeline
+  occlusionTextureIndex: GPUTexture
+  
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
     this.init()
@@ -224,7 +230,12 @@ export class WebgpuRenderer {
     // Create compute pipeline
     const computeShaderModule = device.createShaderModule({
       code: localStorage.computeShader || ComputeShader,
-      label: 'Culled Instance',
+      label: 'Occlusion Writing',
+    })
+
+    const computeSortShaderModule = device.createShaderModule({
+      code: ComputeSortShader,
+      label: 'Storage Texture Sorting',
     })
 
     const computeBindGroupLayout = device.createBindGroupLayout({
@@ -242,6 +253,8 @@ export class WebgpuRenderer {
       label: 'computeChunksLayout',
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
+        { binding: 1, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'read-write', format: 'r32uint', viewDimension: '2d' } },
+        { binding: 2, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'read-write', format: 'r32uint', viewDimension: '2d' } },
       ],
     })
 
@@ -261,6 +274,18 @@ export class WebgpuRenderer {
         entryPoint: 'main',
       },
     })
+
+    this.computeSortPipeline = device.createComputePipeline({
+      label: 'Culled Instance',
+      layout: computePipelineLayout,
+      // layout: 'auto',
+      compute: {
+        module: computeSortShaderModule,
+        entryPoint: 'main',
+      },
+    })
+
+    
 
     this.indirectDrawBuffer = device.createBuffer({
       label: 'indirectDrawBuffer',
@@ -398,6 +423,15 @@ export class WebgpuRenderer {
           binding: 0,
           resource: { buffer: this.chunksBuffer },
         },
+        {
+          binding: 1,
+          resource: this.occlusionTexture.createView(),
+        },
+        {
+          binding: 2,
+          resource: this.occlusionTextureIndex.createView(),
+        },
+        
       ],
     })
   }
@@ -437,6 +471,18 @@ export class WebgpuRenderer {
       label: 'chunksBuffer',
       size: 65_535 * 12, // 8 floats per cube - minimum buffer size
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+    })
+
+    this.occlusionTexture = this.device.createTexture({
+      size: [this.canvas.width, this.canvas.height],
+      format: 'r32uint',
+      usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+    })
+
+    this.occlusionTextureIndex = this.device.createTexture({
+      size: [this.canvas.width, this.canvas.height],
+      format: 'r32uint',
+      usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
     })
 
 
@@ -624,6 +670,17 @@ export class WebgpuRenderer {
     //   })
     //   this.multisampleTexture = multisampleTexture
     // }
+    // device.queue.writeTexture({
+    //   texture: this.occlusionTexture
+    // },
+    //   new Uint32Array([0, 0, 0, 1]),
+    // {
+    //   bytesPerRow: 4 * this.occlusionTexture.width,
+    //   rowsPerImage: this.occlusionTexture.height
+    // }, {
+    //   width: this.occlusionTexture.width,
+    //   height: this.occlusionTexture.height, depthOrArrayLayers: 1
+    // })
 
     device.queue.writeBuffer(
       this.indirectDrawBuffer, 0, this.indirectDrawParams
@@ -640,20 +697,38 @@ export class WebgpuRenderer {
     //     renderPassDescriptor.colorAttachments[0].resolveTarget =
     //     canvasTexture.createView();
 
+
     this.commandEncoder = device.createCommandEncoder()
+    //this.commandEncoder.clearBuffer(this.occlusionTexture)
+    //this.commandEncoder.
     // Compute pass for occlusion culling
     this.commandEncoder.label = 'Main Comand Encoder'
     this.updateCubesBuffersDataFromLoop()
     if (this.realNumberOfCubes) {
-      const computePass = this.commandEncoder.beginComputePass()
-      computePass.label = 'ComputePass'
-      computePass.setPipeline(this.computePipeline)
-      //computePass.setBindGroup(0, this.uniformBindGroup);
-      computePass.setBindGroup(0, this.computeBindGroup)
-      computePass.setBindGroup(1, this.chunkBindGroup)
-      computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
-      computePass.end()
-      device.queue.submit([this.commandEncoder.finish()])
+
+      {
+        const computePass = this.commandEncoder.beginComputePass()
+        computePass.label = 'ComputePass'
+        computePass.setPipeline(this.computePipeline)
+        computePass.setBindGroup(0, this.computeBindGroup)
+        computePass.setBindGroup(1, this.chunkBindGroup)
+        computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
+        computePass.end()
+        device.queue.submit([this.commandEncoder.finish()])
+      }
+
+      {
+        this.commandEncoder = device.createCommandEncoder()
+        const computePass = this.commandEncoder.beginComputePass()
+        computePass.label = 'ComputeSortPass'
+        //this.occlusionTexture.
+        computePass.setPipeline(this.computeSortPipeline)
+        computePass.setBindGroup(0, this.computeBindGroup)
+        computePass.setBindGroup(1, this.chunkBindGroup)
+        computePass.dispatchWorkgroups(Math.ceil(this.canvas.width / 16), Math.ceil(this.canvas.height / 16))
+        computePass.end()
+        device.queue.submit([this.commandEncoder.finish()])
+      }
       this.commandEncoder = device.createCommandEncoder()
       //device.queue.submit([commandEncoder.finish()]);
       // Render pass
