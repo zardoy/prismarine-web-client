@@ -337,6 +337,9 @@ export class BasePlaygroundScene {
           worldView?.setBlockStateId(this.targetPos, this.world.getBlockStateId(this.targetPos))
         }
       }
+      if (e.code === 'KeyT') {
+        viewer.camera.position.y += 100 * (e.shiftKey ? -1 : 1)
+      }
     })
     document.addEventListener('visibilitychange', () => {
       this.windowHidden = document.visibilityState === 'hidden'
