@@ -157,6 +157,7 @@ let lastCommandTrigger = null as { command: string, time: number } | null
 const secondActionActivationTimeout = 300
 const secondActionCommands = {
   'general.jump' () {
+    // if (bot.game.gameMode === 'spectator') return
     toggleFly()
   },
   'general.forward' () {
@@ -645,6 +646,17 @@ export const onBotCreate = () => {
       toggleFly(false, false)
     }
     allowFlying = !!(flags & 4)
+  })
+  const gamemodeCheck = () => {
+    if (bot.game.gameMode === 'spectator') {
+      toggleFly(true, false)
+    }
+  }
+  bot.on('game', () => {
+    gamemodeCheck()
+  })
+  bot.on('login', () => {
+    gamemodeCheck()
   })
 }
 
