@@ -54,9 +54,22 @@ export const onGameLoad = (onLoad) => {
 
   PrismarineItem = PItem(version)
 
+  const mapWindowType = (type: string, inventoryStart: number) => {
+    if (type === 'minecraft:container') {
+      if (inventoryStart === 45 - 9 * 4) return 'minecraft:generic_9x1'
+      if (inventoryStart === 45 - 9 * 3) return 'minecraft:generic_9x2'
+      if (inventoryStart === 45 - 9 * 2) return 'minecraft:generic_9x3'
+      if (inventoryStart === 45 - 9) return 'minecraft:generic_9x4'
+      if (inventoryStart === 45) return 'minecraft:generic_9x5'
+      if (inventoryStart === 45 + 9) return 'minecraft:generic_9x6'
+    }
+    return type
+  }
+
   bot.on('windowOpen', (win) => {
-    if (implementedContainersGuiMap[win.type]) {
-      openWindow(implementedContainersGuiMap[win.type])
+    const implementedWindow = implementedContainersGuiMap[mapWindowType(win.type as string, win.inventoryStart)]
+    if (implementedWindow) {
+      openWindow(implementedWindow)
     } else if (options.unimplementedContainers) {
       openWindow('ChestWin')
     } else {
@@ -205,7 +218,7 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
   const customName = itemNbt.display?.Name
   if (!customName) return
   try {
-    const parsed = mojangson.simplify(mojangson.parse(customName))
+    const parsed = customName.startsWith('{') && customName.endsWith('}') ? mojangson.simplify(mojangson.parse(customName)) : fromFormattedString(customName)
     if (parsed.extra) {
       return parsed as Record<string, any>
     } else {
