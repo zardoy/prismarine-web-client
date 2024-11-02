@@ -12,7 +12,7 @@ export const displayClientChat = (text: string) => {
     })
     return
   }
-  bot._client.write('chat', {
+  bot._client.emit('chat', {
     message: JSON.stringify(message),
     position: 0,
     sender: 'minecraft:chat'
