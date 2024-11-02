@@ -10,6 +10,7 @@ import stevePng from 'mc-assets/dist/other-textures/latest/entity/player/wide/st
 import { NameTagObject } from 'skinview3d/libs/nametag'
 import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
+import { snakeCase } from 'change-case'
 import * as Entity from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
 import externalTexturesJson from './entity/externalTextures.json'
@@ -63,11 +64,13 @@ const addNametag = (entity, options, mesh) => {
 // todo cleanup
 const nametags = {}
 
+const isFirstUpperCase = (str) => str.charAt(0) === str.charAt(0).toUpperCase()
+
 function getEntityMesh (entity, scene, options, overrides) {
   if (entity.name) {
     try {
       // https://github.com/PrismarineJS/prismarine-viewer/pull/410
-      const entityName = entity.name.toLowerCase()
+      const entityName = (isFirstUpperCase(entity.name) ? snakeCase(entity.name) : entity.name).toLowerCase()
       const e = new Entity.EntityMesh('1.16.4', entityName, scene, overrides)
 
       if (e.mesh) {
