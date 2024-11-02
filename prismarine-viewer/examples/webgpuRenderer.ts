@@ -54,12 +54,8 @@ export class WebgpuRenderer {
   occlusionTexture: GPUTexture
   computeSortPipeline: GPUComputePipeline
   occlusionTextureIndex: GPUTexture
-<<<<<<< HEAD
   DepthTextureBuffer: GPUBuffer
-  
-=======
 
->>>>>>> bdf71645c0be2e4fc3879c1f8f074d21a93b887e
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
     void this.init().catch((err) => {
@@ -456,15 +452,10 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.occlusionTextureIndex.createView(),
         },
-<<<<<<< HEAD
         {
           binding: 3,
           resource: { buffer: this.DepthTextureBuffer },
         },
-        
-=======
-
->>>>>>> bdf71645c0be2e4fc3879c1f8f074d21a93b887e
       ],
     })
   }
@@ -729,7 +720,7 @@ export class WebgpuRenderer {
       this.indirectDrawBuffer, 0, this.indirectDrawParams
     )
 
-    
+
 
     renderPassDescriptor.colorAttachments[0].view = ctx
       .getCurrentTexture()
@@ -746,7 +737,7 @@ export class WebgpuRenderer {
     this.commandEncoder = device.createCommandEncoder()
     //this.commandEncoder.clearBuffer(this.occlusionTexture)
     //this.commandEncoder.
-    this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
+    this.commandEncoder.clearBuffer(this.DepthTextureBuffer)
     // Compute pass for occlusion culling
     this.commandEncoder.label = 'Main Comand Encoder'
     this.updateCubesBuffersDataFromLoop()
