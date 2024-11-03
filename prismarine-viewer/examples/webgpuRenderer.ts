@@ -259,8 +259,8 @@ export class WebgpuRenderer {
       label: 'computeChunksLayout',
       entries: [
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
-        { binding: 1, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'read-write', format: 'r32uint', viewDimension: '2d' } },
-        { binding: 2, visibility: GPUShaderStage.COMPUTE, storageTexture: { access: 'read-write', format: 'r32uint', viewDimension: '2d' } },
+        { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+        { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
       ],
     })
@@ -446,11 +446,11 @@ export class WebgpuRenderer {
         },
         {
           binding: 1,
-          resource: this.occlusionTexture.createView(),
+          resource: { buffer: this.occlusionTexture},
         },
         {
           binding: 2,
-          resource: this.occlusionTextureIndex.createView(),
+          resource: { buffer: this.occlusionTextureIndex},
         },
         {
           binding: 3,
@@ -507,6 +507,18 @@ export class WebgpuRenderer {
       size: [this.canvas.width, this.canvas.height],
       format: 'r32uint',
       usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
+    })
+
+    this.occlusionTexture = this.device.createBuffer({
+      label: 'visibleCubesBuffer',
+      size: 4096 * 4096 * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+    })
+
+    this.occlusionTextureIndex = this.device.createBuffer({
+      label: 'visibleCubesBuffer',
+      size: 4096 * 4096 * 4,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
     this.DepthTextureBuffer = this.device.createBuffer({
@@ -737,7 +749,13 @@ export class WebgpuRenderer {
     this.commandEncoder = device.createCommandEncoder()
     //this.commandEncoder.clearBuffer(this.occlusionTexture)
     //this.commandEncoder.
-    this.commandEncoder.clearBuffer(this.DepthTextureBuffer)
+
+    //this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
+    this.commandEncoder.clearBuffer(this.occlusionTexture);
+    this.commandEncoder.clearBuffer(this.occlusionTextureIndex);
+    this.commandEncoder.clearBuffer(this.visibleCubesBuffer);
+    //this.commandEncoder.clearBuffer(this.visibleCubesBuffer);
+    //this.commandEncoder.clearBuffer(this.chun);
     // Compute pass for occlusion culling
     this.commandEncoder.label = 'Main Comand Encoder'
     this.updateCubesBuffersDataFromLoop()
