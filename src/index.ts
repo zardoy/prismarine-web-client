@@ -388,9 +388,9 @@ async function connect (connectOptions: ConnectOptions) {
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     window._LOAD_MC_DATA() // start loading data (if not loaded yet)
     const downloadMcData = async (version: string) => {
-      if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
+      if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
         // todo support it (just need to fix .export crash)
-        throw new Error('Microsoft authentication is only supported in 1.19.4 and above (at least for now)')
+        throw new Error('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
       }
 
       // todo expose cache
