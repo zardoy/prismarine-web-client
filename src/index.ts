@@ -505,6 +505,7 @@ async function connect (connectOptions: ConnectOptions) {
       sessionServer: authData?.sessionEndpoint?.toString(),
       auth: connectOptions.authenticatedAccount ? async (client, options) => {
         authData!.setOnMsaCodeCallback(options.onMsaCode)
+        authData?.setConnectingVersion(client.version)
         //@ts-expect-error
         client.authflow = authData!.authFlow
         try {

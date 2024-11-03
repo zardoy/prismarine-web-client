@@ -12,6 +12,7 @@ export const getProxyDetails = async (proxyBaseUrl: string) => {
 
 export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult, connectingServer }) => {
   let onMsaCodeCallback
+  let connectingVersion = ''
   // const authEndpoint = 'http://localhost:3000/'
   // const sessionEndpoint = 'http://localhost:3000/session'
   let authEndpoint: URL | undefined
@@ -39,7 +40,8 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
         body: JSON.stringify({
           ...tokenCaches,
           // important to set this param and not fake it as auth server might reject the request otherwise
-          connectingServer
+          connectingServer,
+          connectingServerVersion: connectingVersion
         }),
       }).then(async response => {
         if (!response.ok) {
@@ -89,6 +91,9 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
     sessionEndpoint,
     setOnMsaCodeCallback (callback) {
       onMsaCodeCallback = callback
+    },
+    setConnectingVersion (version) {
+      connectingVersion = version
     }
   }
 }
