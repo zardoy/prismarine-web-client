@@ -82,7 +82,7 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
       })
       if (!window.crypto && !isPageSecure()) throw new Error('Crypto API is available only in secure contexts. Be sure to use https!')
       const restoredData = await restoreData(result)
-      if (!restoredData?.certificates?.profileKeys?.private) {
+      if (!restoredData?.certificates?.profileKeys?.privatePEM) {
         throw new Error(`Failed to restore profile keys in ${JSON.stringify(result)}: ${JSON.stringify(restoredData)}`)
       }
       restoredData.certificates.profileKeys.private = restoredData.certificates.profileKeys.privatePEM
