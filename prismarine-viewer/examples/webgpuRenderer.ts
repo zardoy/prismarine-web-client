@@ -771,8 +771,8 @@ export class WebgpuRenderer {
     //this.commandEncoder.clearBuffer(this.chun);
     // Compute pass for occlusion culling
     this.commandEncoder.label = 'Main Comand Encoder'
-    const textureSize = new Uint32Array([this.canvas.width, this.canvas.height]);
-    device.queue.writeBuffer(this.textureSizeBuffer, 0, textureSize);
+    const textureSize = new Uint32Array([this.canvas.width, this.canvas.height])
+    device.queue.writeBuffer(this.textureSizeBuffer, 0, textureSize)
 
     this.updateCubesBuffersDataFromLoop()
     if (this.realNumberOfCubes) {
