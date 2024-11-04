@@ -1,5 +1,5 @@
 struct Cube {
-  cube: array<u32, 2>
+  cube: array<u32, 3>
 }
 
 struct Chunk {
@@ -8,9 +8,6 @@ struct Chunk {
   cubesCount: u32
 }
 
-struct CubePointer {
-  ptr: array<u32, 2>
-}
 
 struct Depth {
   locks: array<array<atomic<u32>, 4096>, 4096>
@@ -20,8 +17,7 @@ struct Depth {
 @group(1) @binding(0) var<storage, read> chunks: array<Chunk>;
 @group(0) @binding(1) var<storage, read_write> cubes: array<Cube>;
 @group(1) @binding(1) var<storage, read_write> occlusion : Depth;
-@group(1) @binding(2) var<storage, read_write> occlusionIndex : Depth;
-@group(1) @binding(3) var<storage, read_write> depthAtomic : Depth;
+@group(1) @binding(2) var<storage, read_write> depthAtomic : Depth;
 @group(0) @binding(4) var<storage, read_write> debug : array<u32>;
              
 @compute @workgroup_size(256)
@@ -33,16 +29,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
   let cube = cubes[index];
 
-  var counter: u32 = 0;
-  var i: u32 = 0;
-  while (counter < index) {
-      counter += chunks[i].cubesCount;
-      if (index < counter) {
-        break;
-      }
-      i++;
-  }
-
+  let i = cube.cube[2];
   let chunk = chunks[i];
 
   var positionX: f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16);
@@ -73,8 +60,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     if (depth < depthPrev) {
       atomicStore(&occlusion.locks[pos.x][pos.y], index);
-      atomicStore(&occlusionIndex.locks[pos.x][pos.y], i);
-      
     }
 
 

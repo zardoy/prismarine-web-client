@@ -6,7 +6,7 @@ struct IndirectDrawParams {
 }
 
 struct CubePointer {
-  ptr: array<u32, 2>
+  ptr: u32
 }
 
 struct Depth {
@@ -14,8 +14,7 @@ struct Depth {
 }
 
 @group(1) @binding(1) var <storage, read_write>occlusion : Depth;
-@group(1) @binding(2) var<storage, read_write> occlusionIndex : Depth;
-@group(1) @binding(3) var<storage, read_write> depthAtomic : Depth;
+@group(1) @binding(2) var<storage, read_write> depthAtomic : Depth;
 @group(0) @binding(2) var<storage, read_write> visibleCubes: array<CubePointer>;
 @group(0) @binding(3) var<storage, read_write> drawParams: IndirectDrawParams;
 
@@ -29,13 +28,11 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   }
 
   var occlusionData: u32 = occlusion.locks[position.x][position.y];
-  var occlusionDataIndex: u32 = occlusionIndex.locks[position.x][position.y];
   
   
 
 if (occlusionData != 0) {
     let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
-    visibleCubes[visibleIndex].ptr[0] = occlusionData;
-    visibleCubes[visibleIndex].ptr[1] = occlusionDataIndex;
+    visibleCubes[visibleIndex].ptr = occlusionData;
   }
 }

@@ -1,6 +1,6 @@
 
 struct Cube {
-  cube : array<u32, 2>
+  cube : array<u32, 3>
 }
 
 struct Chunk{
@@ -11,7 +11,7 @@ struct Chunk{
 
 
 struct CubePointer {
-  ptr: array<u32, 2>
+  ptr: u32
 }
 
 struct VertexOutput {
@@ -31,9 +31,9 @@ fn main(
   @location(0) position: vec4<f32>,
   @location(1) uv: vec2<f32>
 ) -> VertexOutput {
-  let cube = cubes[visibleCubes[instanceIndex].ptr[0]];
+  let cube = cubes[visibleCubes[instanceIndex].ptr];
   //let chunkIndex = (cube.cube[1] >> 24)  + ((cube.cube[0] >> 27) << 8);
-  let chunk = chunks[visibleCubes[instanceIndex].ptr[1]];
+  let chunk = chunks[cube.cube[2]];
 
   var positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
   let positionY : f32 = f32((cube.cube[0] >> 4) & 511); //9 bytes

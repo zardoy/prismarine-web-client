@@ -53,7 +53,6 @@ export class WebgpuRenderer {
   actualBufferSize = 0
   occlusionTexture: GPUTexture
   computeSortPipeline: GPUComputePipeline
-  occlusionTextureIndex: GPUTexture
   DepthTextureBuffer: GPUBuffer
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
@@ -261,7 +260,6 @@ export class WebgpuRenderer {
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
-        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
       ],
     })
 
@@ -450,10 +448,6 @@ export class WebgpuRenderer {
         },
         {
           binding: 2,
-          resource: { buffer: this.occlusionTextureIndex},
-        },
-        {
-          binding: 3,
           resource: { buffer: this.DepthTextureBuffer },
         },
       ],
@@ -487,7 +481,7 @@ export class WebgpuRenderer {
     // Create buffers for compute shader and indirect drawing
     this.cubesBuffer = this.device.createBuffer({
       label: 'cubesBuffer',
-      size: this.NUMBER_OF_CUBES * 8, // 8 floats per cube - minimum buffer size
+      size: this.NUMBER_OF_CUBES * 12, // 8 floats per cube - minimum buffer size
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
@@ -497,17 +491,7 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
-    this.occlusionTexture = this.device.createTexture({
-      size: [this.canvas.width, this.canvas.height],
-      format: 'r32uint',
-      usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
-    })
 
-    this.occlusionTextureIndex = this.device.createTexture({
-      size: [this.canvas.width, this.canvas.height],
-      format: 'r32uint',
-      usage: GPUTextureUsage.STORAGE_BINDING | GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST
-    })
 
     this.occlusionTexture = this.device.createBuffer({
       label: 'visibleCubesBuffer',
@@ -515,11 +499,6 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
-    this.occlusionTextureIndex = this.device.createBuffer({
-      label: 'visibleCubesBuffer',
-      size: 4096 * 4096 * 4,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    })
 
     this.DepthTextureBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
@@ -529,7 +508,7 @@ export class WebgpuRenderer {
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
-      size: this.NUMBER_OF_CUBES * 8,
+      size: this.NUMBER_OF_CUBES * 4,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
@@ -584,17 +563,24 @@ export class WebgpuRenderer {
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
     const BYTES_PER_ELEMENT = 2
-    const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 2)
+    let kk = 0, ii = 0;
+    const chunksKeys = [...chunkSides.keys()]
+    const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 3)
     for (let i = 0; i < actualCount; i++) {
-      const offset = i * 2
+      const offset = i * 3
       const first = (((textureIndexes[i] << 4) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
       //const first = (textureIndexes[i] << 17) | (positions[i * 3 + 2] << 13) | (positions[i * 3 + 1] << 4) | positions[i * 3]
       const second = ((colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
       cubeFlatData[offset] = first
       cubeFlatData[offset + 1] = second
+      cubeFlatData[offset + 2] = ii
+      if (chunkSides.get(chunksKeys[ii])!?.length + kk < i) {
+        kk += chunkSides.get(chunksKeys[ii])!?.length;
+        ii++;
+      }  
     }
     const chunksCount = chunkSides.size
-    const chunksKeys = [...chunkSides.keys()]
+    
     const chunksBuffer = new Int32Array(chunksCount * 3)
     let totalFromChunks = 0
     for (let i = 0; i < chunksCount; i++) {
@@ -752,7 +738,6 @@ export class WebgpuRenderer {
 
     //this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
     this.commandEncoder.clearBuffer(this.occlusionTexture);
-    this.commandEncoder.clearBuffer(this.occlusionTextureIndex);
     this.commandEncoder.clearBuffer(this.visibleCubesBuffer);
     //this.commandEncoder.clearBuffer(this.visibleCubesBuffer);
     //this.commandEncoder.clearBuffer(this.chun);
