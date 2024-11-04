@@ -51,9 +51,11 @@ export class WebgpuRenderer {
   debugBuffer: GPUBuffer
 
   actualBufferSize = 0
-  occlusionTexture: GPUTexture
+  occlusionTexture: GPUBuffer
   computeSortPipeline: GPUComputePipeline
   DepthTextureBuffer: GPUBuffer
+  textureSizeBuffer: any
+  textureSizeBindGroup: GPUBindGroup
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
@@ -264,10 +266,37 @@ export class WebgpuRenderer {
     })
 
 
+    const textureSizeBindGroupLayout = device.createBindGroupLayout({
+      entries: [
+        {
+          binding: 0,
+          visibility: GPUShaderStage.COMPUTE,
+          buffer: { type: 'uniform' },
+        },
+      ],
+    })
+
     const computePipelineLayout = device.createPipelineLayout({
       label: 'computePipelineLayout',
-      bindGroupLayouts: [computeBindGroupLayout, computeChunksLayout]
+      bindGroupLayouts: [computeBindGroupLayout, computeChunksLayout, textureSizeBindGroupLayout]
+    })
 
+    this.textureSizeBuffer = this.device.createBuffer({
+      size: 8, // vec2<u32> consists of two 32-bit unsigned integers
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
+
+    this.textureSizeBindGroup = device.createBindGroup({
+      layout: textureSizeBindGroupLayout,
+      entries: [
+        {
+          binding: 0,
+          resource: {
+            buffer: this.textureSizeBuffer,
+          },
+        },
+      ],
     })
 
     this.computePipeline = device.createComputePipeline({
@@ -290,8 +319,6 @@ export class WebgpuRenderer {
       },
     })
 
-
-
     this.indirectDrawBuffer = device.createBuffer({
       label: 'indirectDrawBuffer',
       size: 16, // 4 uint32 values
@@ -307,6 +334,10 @@ export class WebgpuRenderer {
     // Initialize indirect draw parameters
     const indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0])
     device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams)
+
+    // initialize texture size
+    const textureSize = new Uint32Array([this.canvas.width, this.canvas.height])
+    device.queue.writeBuffer(this.textureSizeBuffer, 0, textureSize)
 
     void device.lost.then((info) => {
       console.warn('WebGPU context lost:', info)
@@ -444,7 +475,7 @@ export class WebgpuRenderer {
         },
         {
           binding: 1,
-          resource: { buffer: this.occlusionTexture},
+          resource: { buffer: this.occlusionTexture },
         },
         {
           binding: 2,
@@ -498,7 +529,6 @@ export class WebgpuRenderer {
       size: 4096 * 4096 * 4,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
-
 
     this.DepthTextureBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
@@ -562,7 +592,7 @@ export class WebgpuRenderer {
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
     const BYTES_PER_ELEMENT = 2
-    let kk = 0, ii = 0;
+    let kk = 0; let ii = 0
     const chunksKeys = [...chunkSides.keys()]
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 3)
     for (let i = 0; i < actualCount; i++) {
@@ -574,12 +604,12 @@ export class WebgpuRenderer {
       cubeFlatData[offset + 1] = second
       cubeFlatData[offset + 2] = ii
       if (chunkSides.get(chunksKeys[ii])!?.length + kk < i) {
-        kk += chunkSides.get(chunksKeys[ii])!?.length;
-        ii++;
-      }  
+        kk += chunkSides.get(chunksKeys[ii])!?.length
+        ii++
+      }
     }
     const chunksCount = chunkSides.size
-    
+
     const chunksBuffer = new Int32Array(chunksCount * 3)
     let totalFromChunks = 0
     for (let i = 0; i < chunksCount; i++) {
@@ -735,12 +765,15 @@ export class WebgpuRenderer {
     //this.commandEncoder.
 
     //this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
-    this.commandEncoder.clearBuffer(this.occlusionTexture);
-    this.commandEncoder.clearBuffer(this.visibleCubesBuffer);
+    this.commandEncoder.clearBuffer(this.occlusionTexture)
+    this.commandEncoder.clearBuffer(this.visibleCubesBuffer)
     //this.commandEncoder.clearBuffer(this.visibleCubesBuffer);
     //this.commandEncoder.clearBuffer(this.chun);
     // Compute pass for occlusion culling
     this.commandEncoder.label = 'Main Comand Encoder'
+    const textureSize = new Uint32Array([this.canvas.width, this.canvas.height]);
+    device.queue.writeBuffer(this.textureSizeBuffer, 0, textureSize);
+
     this.updateCubesBuffersDataFromLoop()
     if (this.realNumberOfCubes) {
 
@@ -750,6 +783,7 @@ export class WebgpuRenderer {
         computePass.setPipeline(this.computePipeline)
         computePass.setBindGroup(0, this.computeBindGroup)
         computePass.setBindGroup(1, this.chunkBindGroup)
+        computePass.setBindGroup(2, this.textureSizeBindGroup)
         computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
         computePass.end()
         device.queue.submit([this.commandEncoder.finish()])
@@ -759,10 +793,10 @@ export class WebgpuRenderer {
         this.commandEncoder = device.createCommandEncoder()
         const computePass = this.commandEncoder.beginComputePass()
         computePass.label = 'ComputeSortPass'
-        //this.occlusionTexture.
         computePass.setPipeline(this.computeSortPipeline)
         computePass.setBindGroup(0, this.computeBindGroup)
         computePass.setBindGroup(1, this.chunkBindGroup)
+        computePass.setBindGroup(2, this.textureSizeBindGroup)
         computePass.dispatchWorkgroups(Math.ceil(this.canvas.width / 16), Math.ceil(this.canvas.height / 16))
         computePass.end()
         device.queue.submit([this.commandEncoder.finish()])
