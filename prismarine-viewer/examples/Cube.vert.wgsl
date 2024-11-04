@@ -6,7 +6,6 @@ struct Cube {
 struct Chunk{
   x : i32,
   z : i32,
-  cubesCount : u32
 }
 
 

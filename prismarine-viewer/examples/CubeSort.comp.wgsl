@@ -21,8 +21,8 @@ struct Depth {
 @compute @workgroup_size(16, 16)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let position = global_id.xy;
-  depthAtomic.locks[position.x][position.y] = 214748364;
   storageBarrier();
+  depthAtomic.locks[position.x][position.y] = 4294967295;
   if (position.x >= 3840 || position.y >= 2160) {
     return;
   }

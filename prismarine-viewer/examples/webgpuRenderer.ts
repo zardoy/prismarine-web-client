@@ -555,7 +555,6 @@ export class WebgpuRenderer {
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
       console.warn('extending number of cubes', NUMBER_OF_CUBES_NEEDED, this.NUMBER_OF_CUBES)
       this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEEDED
-
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
@@ -584,13 +583,12 @@ export class WebgpuRenderer {
     const chunksBuffer = new Int32Array(chunksCount * 3)
     let totalFromChunks = 0
     for (let i = 0; i < chunksCount; i++) {
-      const offset = i * 3
+      const offset = i * 2
       const chunkKey = chunksKeys[i]
       const [x, y, z] = chunkKey.split(',').map(Number)
       chunksBuffer[offset] = x
       chunksBuffer[offset + 1] = z
       const cubesCount = chunkSides.get(chunkKey)!.length
-      chunksBuffer[offset + 2] = cubesCount
       totalFromChunks += cubesCount
     }
     if (totalFromChunks !== actualCount) {
