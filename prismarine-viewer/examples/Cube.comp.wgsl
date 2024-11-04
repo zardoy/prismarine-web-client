@@ -58,7 +58,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     var depthPrev = atomicMin(&depthAtomic.locks[pos.x][pos.y], depth);
     //depthPrev = atomicLoad(&depthAtomic.locks[pos.x][pos.y]);
     if (depth < depthPrev) {
-      atomicStore(&occlusion.locks[pos.x][pos.y], index);
+      atomicStore(&occlusion.locks[pos.x][pos.y], index + 1);
     }
 
 

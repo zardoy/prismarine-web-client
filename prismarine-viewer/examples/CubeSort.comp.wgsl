@@ -33,6 +33,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
 if (occlusionData != 0) {
     let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
-    visibleCubes[visibleIndex].ptr = occlusionData;
+    visibleCubes[visibleIndex].ptr = occlusionData - 1;
   }
 }
