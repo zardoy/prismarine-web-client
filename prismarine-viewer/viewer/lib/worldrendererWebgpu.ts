@@ -71,11 +71,6 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       this.issueReporter.reportProblem(data.isContextLost, data.message)
     })
 
-    // TODO!
-    if (typeof localServer !== 'undefined') {
-      localServer.players[0].stopChunkUpdates = true
-    }
-
     this.renderUpdateEmitter.on('update', () => {
       const loadedChunks = Object.keys(this.finishedChunks).length
       updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance})`)
