@@ -63,6 +63,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   loaded = new Set()
   allowUpdates = false
   issueReporter = new RendererProblemReporter()
+  allChunksHasLoaded = false
 
   constructor (config) {
     super(config)
@@ -95,6 +96,11 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   isWaitingForChunksToRender = false
 
   allChunksLoaded (): void {
+    if (this.allChunksHasLoaded) {
+      console.log('allChunksLoaded (ignored)')
+      return
+    }
+    this.allChunksHasLoaded = true
     console.log('allChunksLoaded')
     webgpuChannel.addBlocksSectionDone()
   }
