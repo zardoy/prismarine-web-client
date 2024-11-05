@@ -21,12 +21,9 @@ jobs:
       - run: node scripts/replaceFavicon.mjs ${{ secrets.FAVICON_MAIN }}
       # will install + build to .vercel/output/static
       - name: Get Release Info
-        run: pnpx zardoy-release empty --skip-github
+        run: pnpx zardoy-release empty --skip-github --output-file assets/release.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        id: releaseInfo
-      - name: Write Release Info
-        run: echo '${{ toJson(steps.releaseInfo.outputs) }}' > assets/release.json
       - run: vercel build --token=${{ secrets.VERCEL_TOKEN }} --prod
       - run: pnpm build-storybook
       - name: Copy playground files
