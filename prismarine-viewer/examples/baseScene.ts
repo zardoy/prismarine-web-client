@@ -281,9 +281,14 @@ export class BasePlaygroundScene {
 
   addKeyboardShortcuts () {
     document.addEventListener('keydown', (e) => {
-      if (e.code === 'KeyR' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        this.controls?.reset()
-        this.resetCamera()
+      if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        if (e.code === 'KeyR') {
+          this.controls?.reset()
+          this.resetCamera()
+        }
+        if (e.code === 'KeyE') {
+          worldView?.setBlockStateId(this.targetPos, this.world.getBlockStateId(this.targetPos))
+        }
       }
     })
     document.addEventListener('visibilitychange', () => {
@@ -297,6 +302,9 @@ export class BasePlaygroundScene {
     })
 
     const updateKeys = () => {
+      if (pressedKeys.has('ControlLeft') || pressedKeys.has('MetaLeft')) {
+        return
+      }
       // if (typeof viewer === 'undefined') return
       // Create a vector that points in the direction the camera is looking
       const direction = new THREE.Vector3(0, 0, 0)

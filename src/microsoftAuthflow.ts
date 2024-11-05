@@ -12,6 +12,7 @@ export const getProxyDetails = async (proxyBaseUrl: string) => {
 
 export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult, connectingServer }) => {
   let onMsaCodeCallback
+  let connectingVersion = ''
   // const authEndpoint = 'http://localhost:3000/'
   // const sessionEndpoint = 'http://localhost:3000/session'
   let authEndpoint: URL | undefined
@@ -39,7 +40,8 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
         body: JSON.stringify({
           ...tokenCaches,
           // important to set this param and not fake it as auth server might reject the request otherwise
-          connectingServer
+          connectingServer,
+          connectingServerVersion: connectingVersion
         }),
       }).then(async response => {
         if (!response.ok) {
@@ -80,6 +82,9 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
       })
       if (!window.crypto && !isPageSecure()) throw new Error('Crypto API is available only in secure contexts. Be sure to use https!')
       const restoredData = await restoreData(result)
+      if (!restoredData?.certificates?.profileKeys?.privatePEM) {
+        throw new Error(`Authentication server issue: it didn't return auth data. Most probably because the auth request was rejected by the end authority and retrying won't help until the issue is resolved.`)
+      }
       restoredData.certificates.profileKeys.private = restoredData.certificates.profileKeys.privatePEM
       return restoredData
     }
@@ -89,6 +94,9 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
     sessionEndpoint,
     setOnMsaCodeCallback (callback) {
       onMsaCodeCallback = callback
+    },
+    setConnectingVersion (version) {
+      connectingVersion = version
     }
   }
 }
