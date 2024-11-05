@@ -56,6 +56,7 @@ export class WebgpuRenderer {
   DepthTextureBuffer: GPUBuffer
   textureSizeBuffer: any
   textureSizeBindGroup: GPUBindGroup
+  cameraComputeUniform: GPUBuffer
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
@@ -180,14 +181,19 @@ export class WebgpuRenderer {
       //sampleCount: 4,
     })
 
-    const uniformBufferSize = 4 * (4 * 4) // 4x4 matrix
+    const Mat4x4BufferSize = 4 * (4 * 4) // 4x4 matrix
     this.cameraUniform = device.createBuffer({
-      size: uniformBufferSize,
+      size: Mat4x4BufferSize,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
+    this.cameraComputeUniform = device.createBuffer({
+      size: Mat4x4BufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
     this.secondCameraUniform = device.createBuffer({
-      size: uniformBufferSize,
+      size: Mat4x4BufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
@@ -262,6 +268,8 @@ export class WebgpuRenderer {
         { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'read-only-storage' } },
         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+        { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
+
       ],
     })
 
@@ -376,7 +384,8 @@ export class WebgpuRenderer {
       entries: [
         {
           binding: 0,
-          resource: {
+          resource: 
+          {
             buffer: this.cameraUniform,
           },
         },
@@ -481,6 +490,10 @@ export class WebgpuRenderer {
           binding: 2,
           resource: { buffer: this.DepthTextureBuffer },
         },
+        {
+          binding: 3,
+          resource: { buffer: this.cameraComputeUniform },
+        }
       ],
     })
   }
@@ -691,18 +704,36 @@ export class WebgpuRenderer {
     }
     const start = performance.now()
 
-    const { device, cameraUniform: uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
+    const { device, cameraUniform: uniformBuffer, cameraComputeUniform: computeUniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
 
     const now = Date.now()
     tweenJs.update()
+    let fov = 90;
+    this.camera.fov = fov;
+    this.camera.fov
+    this.camera.updateProjectionMatrix();
+    let oversize = 1.35;
 
-    const ViewProjectionMat4 = new THREE.Matrix4()
+    
     this.camera.updateMatrix()
     const { projectionMatrix, matrix } = this.camera
+    let ViewProjectionMat4 = new THREE.Matrix4()
     ViewProjectionMat4.multiplyMatrices(projectionMatrix, matrix.invert())
-    const ViewProjection = new Float32Array(ViewProjectionMat4.elements)
+    let ViewProjection = new Float32Array(ViewProjectionMat4.elements)
     device.queue.writeBuffer(
       uniformBuffer,
+      0,
+      ViewProjection
+    )
+
+    this.camera.fov = fov * oversize;
+    this.camera.updateProjectionMatrix();
+
+    let ViewProjectionMatCompute = new THREE.Matrix4()
+    ViewProjectionMatCompute.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrix)
+    ViewProjection = new Float32Array(ViewProjectionMatCompute.elements)
+    device.queue.writeBuffer(
+      this.cameraComputeUniform,
       0,
       ViewProjection
     )
