@@ -83,7 +83,7 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
       if (!window.crypto && !isPageSecure()) throw new Error('Crypto API is available only in secure contexts. Be sure to use https!')
       const restoredData = await restoreData(result)
       if (!restoredData?.certificates?.profileKeys?.privatePEM) {
-        throw new Error(`Failed to restore profile keys in ${JSON.stringify(result)}: ${JSON.stringify(restoredData)}`)
+        throw new Error(`Authentication server issue: it didn't return auth data. Most probably because the auth request was rejected by the end authority and retrying won't help until the issue is resolved.`)
       }
       restoredData.certificates.profileKeys.private = restoredData.certificates.profileKeys.privatePEM
       return restoredData
