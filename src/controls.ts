@@ -639,6 +639,7 @@ const endFlying = (sendAbilities = true) => {
 let allowFlying = false
 
 export const onBotCreate = () => {
+  let wasSpectatorFlying = false
   bot._client.on('abilities', ({ flags }) => {
     if (flags & 2) { // flying
       toggleFly(true, false)
@@ -650,6 +651,10 @@ export const onBotCreate = () => {
   const gamemodeCheck = () => {
     if (bot.game.gameMode === 'spectator') {
       toggleFly(true, false)
+      wasSpectatorFlying = true
+    } else if (wasSpectatorFlying) {
+      toggleFly(false, false)
+      wasSpectatorFlying = false
     }
   }
   bot.on('game', () => {
