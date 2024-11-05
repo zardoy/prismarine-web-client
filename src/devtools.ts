@@ -2,8 +2,10 @@
 
 import fs from 'fs'
 import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
+import { Vec3 } from 'vec3'
 import { getEntityCursor } from './worldInteractions'
 
+window.Vec3 = Vec3
 window.cursorBlockRel = (x = 0, y = 0, z = 0) => {
   const newPos = bot.blockAtCursor(5)?.position.offset(x, y, z)
   if (!newPos) return

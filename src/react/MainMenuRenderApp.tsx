@@ -49,7 +49,9 @@ export default () => {
   const [versionTitle, setVersionTitle] = useState('')
 
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.SINGLE_FILE_BUILD_MODE) {
+      setVersionStatus('(single file build)')
+    } else if (process.env.NODE_ENV === 'development') {
       setVersionStatus('(dev)')
     } else {
       fetch('./version.txt').then(async (f) => {

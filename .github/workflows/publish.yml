@@ -25,6 +25,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: vercel build --token=${{ secrets.VERCEL_TOKEN }} --prod
+        env:
+          INLINE_APP_CONFIG_JSON: true
       - run: pnpm build-storybook
       - name: Copy playground files
         run: |

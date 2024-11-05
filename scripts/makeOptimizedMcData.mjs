@@ -42,8 +42,9 @@ const versionToNumber = (ver) => {
   return +`${x.padStart(2, '0')}${y.padStart(2, '0')}${z.padStart(2, '0')}`
 }
 
-const compressedOutput = false
 // if not included here (even as {}) will not be bundled & accessible!
+// const compressedOutput = !!process.env.SINGLE_FILE_BUILD
+const compressedOutput = true
 // const dataTypeBundling = {
 //   protocol: {
 //     // ignoreRemoved: true,
@@ -225,8 +226,14 @@ fs.writeFileSync(filePath, JSON.stringify(sources), 'utf8')
 if (compressedOutput) {
   const minizedCompressed = compressToBase64(fs.readFileSync(filePath))
   console.log('size of compressed', Buffer.byteLength(minizedCompressed, 'utf8') / 1000 / 1000)
-  const compressedFilePath = './experiments/compressed.js'
-  fs.writeFileSync(compressedFilePath, minizedCompressed, 'utf8')
+  const compressedFilePath = './generated/mc-data-compressed.js'
+  fs.writeFileSync(compressedFilePath, `export default ${JSON.stringify(minizedCompressed)}`, 'utf8')
+
+  const mcAssets = JSON.stringify(require('mc-assets/dist/blockStatesModels.json'))
+  fs.writeFileSync('./generated/mc-assets-compressed.txt', `export default ${JSON.stringify(compressToBase64(mcAssets))}`, 'utf8')
+
+  const modelsObj = fs.readFileSync('./prismarine-viewer/viewer/lib/entity/exportedModels.js')
+  // const models =
 }
 
 console.log('size', fs.lstatSync(filePath).size / 1000 / 1000, gzipSizeFromFileSync(filePath) / 1000 / 1000)
