@@ -63,6 +63,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   loaded = new Set()
   allowUpdates = false
   issueReporter = new RendererProblemReporter()
+  allChunksHasLoaded = false
 
   constructor (config) {
     super(config)
@@ -70,11 +71,6 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     addWebgpuListener('rendererProblem', (data) => {
       this.issueReporter.reportProblem(data.isContextLost, data.message)
     })
-
-    // TODO!
-    if (typeof localServer !== 'undefined') {
-      localServer.players[0].stopChunkUpdates = true
-    }
 
     this.renderUpdateEmitter.on('update', () => {
       const loadedChunks = Object.keys(this.finishedChunks).length
@@ -100,6 +96,11 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   isWaitingForChunksToRender = false
 
   allChunksLoaded (): void {
+    if (this.allChunksHasLoaded) {
+      console.log('allChunksLoaded (ignored)')
+      return
+    }
+    this.allChunksHasLoaded = true
     console.log('allChunksLoaded')
     webgpuChannel.addBlocksSectionDone()
   }

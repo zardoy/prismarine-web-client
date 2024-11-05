@@ -13,7 +13,7 @@ struct Depth {
 }
 
 struct Uniforms {
-    textureSize: vec2<u32>
+  textureSize: vec2<u32>
 }
 
 @group(1) @binding(3) var<uniform> ViewProjectionMatrix: mat4x4<f32>;

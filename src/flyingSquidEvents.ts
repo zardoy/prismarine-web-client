@@ -10,4 +10,8 @@ export default () => {
       showModal({ reactType: 'chat' })
     })
   })
+
+  localServer!.on('newPlayer', (player) => {
+    player.stopChunkUpdates = true
+  })
 }
