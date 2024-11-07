@@ -932,7 +932,7 @@ watchValue(miscUiState, async s => {
     const qs = new URLSearchParams(window.location.search)
     const moreServerOptions = {} as Record<string, any>
     if (qs.has('version')) moreServerOptions.version = qs.get('version')
-    if (qs.get('singleplayer') === '1') {
+    if (qs.get('singleplayer') === '1' || qs.get('sp') === '1') {
       loadSingleplayer({}, {
         worldFolder: undefined,
         ...moreServerOptions

@@ -139,7 +139,7 @@ Server specific:
 Single player specific:
 
 - `?loadSave=<save_name>` - Load the save on load with the specified folder name (not title)
-- `?singleplayer=1` - Create empty world on load. Nothing will be saved
+- `?singleplayer=1` or `?sp=1` - Create empty world on load. Nothing will be saved
 - `?version=<version>` - Set the version for the singleplayer world (when used with `?singleplayer=1`)
 - `?noSave=true` - Disable auto save on unload / disconnect / export whenever a world is loaded. Only manual save with `/save` command will work.
 - `?serverSetting=<key>:<value>` - Set local server [options](https://github.com/zardoy/space-squid/tree/everything/src/modules.ts#L51). For example `?serverSetting=noInitialChunksSend:true` will disable initial chunks loading on the loading screen.
