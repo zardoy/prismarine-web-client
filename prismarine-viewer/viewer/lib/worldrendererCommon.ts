@@ -324,6 +324,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     console.log('texture loaded')
   }
 
+  get worldMinYRender () {
+    return Math.floor(Math.max(this.worldConfig.minY, this.mesherConfig.clipWorldBelowY ?? -Infinity) / 16) * 16
+  }
+
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
     if (!this.active) return
     if (this.workers.length === 0) throw new Error('workers not initialized yet')
@@ -333,7 +337,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       // todo optimize
       worker.postMessage({ type: 'chunk', x, z, chunk })
     }
-    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+    for (let y = this.worldMinYRender; y < this.worldConfig.worldHeight; y += 16) {
       const loc = new Vec3(x, y, z)
       this.setSectionDirty(loc)
       if (this.neighborChunkUpdates && (!isLightUpdate || this.mesherConfig.smoothLighting)) {
