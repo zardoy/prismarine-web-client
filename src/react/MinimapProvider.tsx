@@ -214,8 +214,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
           heightmap[index] = hBlock.y
           let color: string
           if (this.isOldVersion) {
-            color = BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] 
-              ?? 'rgb(0, 0, 255)' 
+            color = BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')]
+            ?? 'rgb(0, 0, 255)'
           } else {
             color = this.blockData[block.name] ?? 'rgb(0, 255, 0)'
           }
