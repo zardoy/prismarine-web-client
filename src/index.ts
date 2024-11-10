@@ -457,7 +457,7 @@ async function connect (connectOptions: ConnectOptions) {
       flyingSquidEvents()
     }
 
-    if (connectOptions.authenticatedAccount) username = 'not-used'
+    if (connectOptions.authenticatedAccount) username = 'you'
     let initialLoadingText: string
     if (singleplayer) {
       initialLoadingText = 'Local server is still starting'
