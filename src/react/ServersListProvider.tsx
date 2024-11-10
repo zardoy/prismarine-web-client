@@ -195,7 +195,7 @@ const Inner = () => {
         })
       }
     }
-    void update()
+    void update().catch((err) => {})
   }, [serversListSorted])
 
   const isEditScreenModal = useIsModalActive('editServer')
