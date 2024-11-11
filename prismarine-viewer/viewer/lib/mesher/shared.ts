@@ -8,7 +8,8 @@ export const defaultMesherConfig = {
   outputFormat: 'threeJs' as 'threeJs' | 'webgpu',
   textureSize: 1024, // for testing
   debugModelVariant: undefined as undefined | number[],
-  clipWorldBelowY: undefined as undefined | number
+  clipWorldBelowY: undefined as undefined | number,
+  disableSignsMapsSupport: false
 }
 
 export type MesherConfig = typeof defaultMesherConfig

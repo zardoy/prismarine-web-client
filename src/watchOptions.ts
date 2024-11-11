@@ -60,6 +60,7 @@ export const watchOptionsAfterViewerInit = () => {
   })
   watchValue(options, (o, isChanged) => {
     viewer.world.mesherConfig.clipWorldBelowY = o.clipWorldBelowY
+    viewer.world.mesherConfig.disableSignsMapsSupport = o.disableSignsMapsSupport
     if (isChanged) {
       (viewer.world as WorldRendererThree).rerenderAllChunks()
     }

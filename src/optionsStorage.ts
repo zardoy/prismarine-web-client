@@ -53,6 +53,8 @@ const defaultOptions = {
   // antiAliasing: false,
 
   clipWorldBelowY: undefined as undefined | number, // will be removed
+  disableSignsMapsSupport: false,
+  singleplayerAutoSave: false,
   showChunkBorders: false, // todo rename option
   frameLimit: false as number | false,
   alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
