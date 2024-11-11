@@ -402,7 +402,9 @@ async function connect (connectOptions: ConnectOptions) {
       setLoadingScreenStatus(`Loading data for ${version}`)
       if (!document.fonts.check('1em mojangles')) {
         // todo instead re-render signs on load
-        await document.fonts.load('1em mojangles').catch(() => { })
+        await document.fonts.load('1em mojangles').catch(() => {
+          console.error('Failed to load font, signs wont be rendered correctly')
+        })
       }
       await window._MC_DATA_RESOLVER.promise // ensure data is loaded
       await downloadSoundsIfNeeded()
