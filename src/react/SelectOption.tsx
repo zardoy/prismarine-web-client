@@ -8,6 +8,7 @@ const state = proxy({
   title: '',
   options: [] as string[],
   showCancel: true,
+  behavior: 'resolve-close' as 'resolve-close' | 'close-resolve',
 })
 
 let resolve
@@ -32,18 +33,26 @@ export default () => {
   const isModalActive = useIsModalActive('general-select')
   if (!isModalActive) return
 
+  const resolveClose = (value: string | undefined) => {
+    if (state.behavior === 'resolve-close') {
+      resolve(value)
+      hideCurrentModal()
+    } else {
+      hideCurrentModal()
+      resolve(value)
+    }
+  }
+
   return <Screen title={title} backdrop>
     {options.map(option => <Button
       key={option} onClick={() => {
-        hideCurrentModal()
-        resolve(option)
+        resolveClose(option)
       }}
     >{option}
     </Button>)}
     {showCancel && <Button
       style={{ marginTop: 30 }} onClick={() => {
-        hideCurrentModal()
-        resolve(undefined)
+        resolveClose(undefined)
       }}
     >Cancel
     </Button>}
