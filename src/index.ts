@@ -102,6 +102,7 @@ import packetsPatcher from './packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
+import { parseFormattedMessagePacket } from './botUtils'
 
 window.debug = debug
 window.THREE = THREE
@@ -639,14 +640,7 @@ async function connect (connectOptions: ConnectOptions) {
 
   bot.on('kicked', (kickReason) => {
     console.log('You were kicked!', kickReason)
-    let kickReasonString = typeof kickReason === 'string' ? kickReason : JSON.stringify(kickReason)
-    let kickReasonFormatted = undefined as undefined | Record<string, any>
-    if (typeof kickReason === 'object') {
-      try {
-        kickReasonFormatted = nbt.simplify(kickReason)
-        kickReasonString = ''
-      } catch {}
-    }
+    const { formatted: kickReasonFormatted, plain: kickReasonString } = parseFormattedMessagePacket(kickReason)
     setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReasonString}`, true, undefined, undefined, kickReasonFormatted)
     destroyAll()
   })

@@ -74,7 +74,7 @@ export const guiOptionsScheme: {
       },
       smoothLighting: {},
       newVersionsLighting: {
-        text: 'Lighting in newer versions',
+        text: 'Lighting in Newer Versions',
       },
       lowMemoryMode: {
         text: 'Low Memory Mode',
@@ -98,6 +98,19 @@ export const guiOptionsScheme: {
         ],
       },
     },
+    {
+      custom () {
+        return <Category>Resource Packs</Category>
+      },
+      serverResourcePacks: {
+        text: 'Download From Server',
+        values: [
+          'prompt',
+          'always',
+          'never'
+        ],
+      }
+    }
   ],
   main: [
     {
