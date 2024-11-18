@@ -30,19 +30,19 @@ export default ({ type, val, isPS }: Props) => {
   </>
 }
 
-async function parseBindingName (binding: string) {
+export async function parseBindingName (binding: string) {
   if (!binding) return ''
 
   const { keyboard } = navigator
-  const layoutMap = await keyboard?.getLayoutMap?.() ?? new Map()
+  const layoutMap = await keyboard?.getLayoutMap?.() ?? new Map<string, string>()
 
-  const mapKey = key => layoutMap.get(key) || key
+  const mapKey = (key: string) => layoutMap.get(key) || key
 
-  const cut = binding.replaceAll(/(Numpad|Digit|Key)/g, '')
+  const cut = binding.replaceAll(/(Digit|Key)/g, '')
   const parts = cut.includes('+') ? cut.split('+') : [cut]
 
   for (let i = 0; i < parts.length; i++) {
-    parts[i] = mapKey(parts[i]).split(/(?=[A-Z\d])/).reverse().join(' ')
+    parts[i] = mapKey(parts[i]).split(/(?<=[a-z])(?=\d)/).join(' ').split(/(?=[A-Z])/).reverse().join(' ')
   }
 
   return parts.join(' + ')
