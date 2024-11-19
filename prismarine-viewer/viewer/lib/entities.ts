@@ -29,17 +29,27 @@ function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: an
   const padding = 5
   ctx.font = `${fontSize}px ${fontFamily}`
 
-  const textWidth = ctx.measureText(username).width + padding * 2
+  const lines = String(username).split('\n')
+
+  let textWidth = 0
+  for (const line of lines) {
+    const width = ctx.measureText(line).width + padding * 2
+    if (width > textWidth) textWidth = width
+  }
 
   canvas.width = textWidth
-  canvas.height = fontSize + padding * 2
+  canvas.height = (fontSize + padding * 2) * lines.length
 
   ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   ctx.font = `${fontSize}px ${fontFamily}`
   ctx.fillStyle = 'white'
-  ctx.fillText(username, padding, fontSize)
+  let i = 0
+  for (const line of lines) {
+    i++
+    ctx.fillText(line, padding + (textWidth - ctx.measureText(line).width) / 2, fontSize * i)
+  }
 
   return canvas
 }
@@ -454,6 +464,7 @@ export class Entities extends EventEmitter {
     // ---
     // not player
     const displayText = entity.metadata?.[3] && this.parseEntityLabel(entity.metadata[2])
+      || entity.metadata?.[23] && this.parseEntityLabel(entity.metadata[23]) // text displays
     if (entity.name !== 'player' && displayText) {
       addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
     }
