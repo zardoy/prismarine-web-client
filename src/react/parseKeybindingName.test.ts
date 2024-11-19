@@ -1,5 +1,5 @@
 import { test, expect } from 'vitest'
-import { parseBindingName } from './Keybinding'
+import { parseBindingName } from './parseKeybindingName'
 
 test('display keybinding correctly', async () => {
   expect(await parseBindingName('unknown')).toMatchInlineSnapshot('"unknown"')
