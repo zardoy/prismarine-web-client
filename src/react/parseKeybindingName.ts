@@ -1,8 +1,8 @@
 export async function parseBindingName (binding: string) {
   if (!binding) return ''
 
-  const { keyboard } = navigator
-  const layoutMap = (typeof keyboard === 'undefined' ? undefined : await keyboard?.getLayoutMap?.()) ?? new Map<string, string>()
+  const { keyboard } = (typeof navigator === 'undefined' ? undefined : navigator) ?? {}
+  const layoutMap = await keyboard?.getLayoutMap?.() ?? new Map<string, string>()
 
   const mapKey = (key: string) => layoutMap.get(key) || key
 
