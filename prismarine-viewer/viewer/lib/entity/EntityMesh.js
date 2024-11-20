@@ -224,8 +224,8 @@ export const knownNotHandled = [
   'item_display', 'item_frame',
   'lightning_bolt', 'marker',
   'painting', 'spawner_minecart',
-  'spectral_arrow', 'text_display',
-  'tnt', 'trader_llama', 'zombie_horse'
+  'spectral_arrow', 'tnt',
+  'trader_llama', 'zombie_horse'
 ]
 
 export const temporaryMap = {

@@ -22,7 +22,7 @@ interface Props {
   initialData?: BaseServerInfo
   parseQs?: boolean
   onQsConnect?: (server: BaseServerInfo) => void
-  defaults?: Pick<BaseServerInfo, 'proxyOverride' | 'usernameOverride'>
+  placeholders?: Pick<BaseServerInfo, 'proxyOverride' | 'usernameOverride'>
   accounts?: string[]
   authenticatedAccounts?: number
   versions?: string[]
@@ -30,7 +30,7 @@ interface Props {
 
 const ELEMENTS_WIDTH = 190
 
-export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, defaults, accounts, versions, authenticatedAccounts }: Props) => {
+export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQs, onQsConnect, placeholders, accounts, versions, authenticatedAccounts }: Props) => {
   const qsParams = parseQs ? new URLSearchParams(window.location.search) : undefined
   const qsParamName = qsParams?.get('name')
   const qsParamIp = qsParams?.get('ip')
@@ -111,8 +111,8 @@ export default ({ onBack, onConfirm, title = 'Add a Server', initialData, parseQ
           />
         </div>
 
-        <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && qsParamProxy !== null} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={defaults?.proxyOverride} />
-        <InputWithLabel label="Username Override" value={usernameOverride} disabled={!noAccountSelected || lockConnect && qsParamUsername !== null} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={defaults?.usernameOverride} />
+        <InputWithLabel label="Proxy Override" value={proxyOverride} disabled={lockConnect && qsParamProxy !== null} onChange={({ target: { value } }) => setProxyOverride(value)} placeholder={placeholders?.proxyOverride} />
+        <InputWithLabel label="Username Override" value={usernameOverride} disabled={!noAccountSelected || lockConnect && qsParamUsername !== null} onChange={({ target: { value } }) => setUsernameOverride(value)} placeholder={placeholders?.usernameOverride} />
         <label style={{
           display: 'flex',
           flexDirection: 'column',

@@ -31,6 +31,7 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
   const authFlow = {
     async getMinecraftJavaToken () {
       setProgressText('Authenticating with Microsoft account')
+      if (!window.crypto && !isPageSecure()) throw new Error('Crypto API is available only in secure contexts. Be sure to use https!')
       let result = null
       await fetch(authEndpoint, {
         method: 'POST',
@@ -43,22 +44,29 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
           connectingServer,
           connectingServerVersion: connectingVersion
         }),
-      }).then(async response => {
-        if (!response.ok) {
-          throw new Error(`Auth server error (${response.status}): ${await response.text()}`)
-        }
-
-        const reader = response.body!.getReader()
-        const decoder = new TextDecoder('utf8')
-
-        const processText = ({ done, value = undefined as Uint8Array | undefined }) => {
-          if (done) {
-            return
+      })
+        .catch(e => {
+          throw new Error(`Failed to connect to auth server (network error): ${e.message}`)
+        })
+        .then(async response => {
+          if (!response.ok) {
+            throw new Error(`Auth server error (${response.status}): ${await response.text()}`)
           }
 
-          const processChunk = (chunkStr) => {
-            try {
-              const json = JSON.parse(chunkStr)
+          const reader = response.body!.getReader()
+          const decoder = new TextDecoder('utf8')
+
+          const processText = ({ done, value = undefined as Uint8Array | undefined }) => {
+            if (done) {
+              return
+            }
+
+            const processChunk = (chunkStr) => {
+              let json: any
+              try {
+                json = JSON.parse(chunkStr)
+              } catch (err) {}
+              if (!json) return
               if (json.user_code) {
                 onMsaCodeCallback(json)
                 // this.codeCallback(json)
@@ -66,26 +74,22 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
               if (json.error) throw new Error(json.error)
               if (json.token) result = json
               if (json.newCache) setCacheResult(json.newCache)
-            } catch (err) {
             }
+
+            const strings = decoder.decode(value)
+
+            for (const chunk of strings.split('\n\n')) {
+              processChunk(chunk)
+            }
+
+            return reader.read().then(processText)
           }
-
-          const strings = decoder.decode(value)
-
-          for (const chunk of strings.split('\n\n')) {
-            processChunk(chunk)
-          }
-
           return reader.read().then(processText)
-        }
-        return reader.read().then(processText)
-      })
-      if (!window.crypto && !isPageSecure()) throw new Error('Crypto API is available only in secure contexts. Be sure to use https!')
+        })
       const restoredData = await restoreData(result)
-      if (!restoredData?.certificates?.profileKeys?.privatePEM) {
-        throw new Error(`Authentication server issue: it didn't return auth data. Most probably because the auth request was rejected by the end authority and retrying won't help until the issue is resolved.`)
+      if (restoredData?.certificates?.profileKeys?.privatePEM) {
+        restoredData.certificates.profileKeys.private = restoredData.certificates.profileKeys.privatePEM
       }
-      restoredData.certificates.profileKeys.private = restoredData.certificates.profileKeys.privatePEM
       return restoredData
     }
   }

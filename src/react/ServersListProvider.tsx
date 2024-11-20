@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useUtilsEffect } from '@zardoy/react-util'
+import { useSnapshot } from 'valtio'
 import { ConnectOptions } from '../connect'
-import { hideCurrentModal, miscUiState, showModal } from '../globalState'
+import { activeModalStack, hideCurrentModal, miscUiState, showModal } from '../globalState'
 import supportedVersions from '../supportedVersions.mjs'
 import ServersList from './ServersList'
 import AddServerOrConnect, { BaseServerInfo } from './AddServerOrConnect'
@@ -132,29 +133,31 @@ export const updateAuthenticatedAccountData = (callback: (data: AuthenticatedAcc
 // todo move to base
 const normalizeIp = (ip: string) => ip.replace(/https?:\/\//, '').replace(/\/(:|$)/, '')
 
-const Inner = () => {
+const Inner = ({ hidden }: { hidden?: boolean }) => {
   const [proxies, setProxies] = useState<readonly string[]>(localStorage['proxies'] ? JSON.parse(localStorage['proxies']) : getInitialProxies())
   const [selectedProxy, setSelectedProxy] = useState(localStorage.getItem('selectedProxy') ?? proxies?.[0] ?? '')
   const [serverEditScreen, setServerEditScreen] = useState<StoreServerItem | true | null>(null) // true for add
-  const [defaultUsername, setDefaultUsername] = useState(localStorage['username'] ?? (`mcrafter${Math.floor(Math.random() * 1000)}`))
-  const [authenticatedAccounts, setAuthenticatedAccounts] = useState<AuthenticatedAccount[]>(JSON.parse(localStorage['authenticatedAccounts'] || '[]'))
+  const [defaultUsername, _setDefaultUsername] = useState(localStorage['username'] ?? (`mcrafter${Math.floor(Math.random() * 1000)}`))
+  const [authenticatedAccounts, _setAuthenticatedAccounts] = useState<AuthenticatedAccount[]>(JSON.parse(localStorage['authenticatedAccounts'] || '[]'))
+  const [quickConnectIp, setQuickConnectIp] = useState('')
+
+  const setAuthenticatedAccounts = (newState: typeof authenticatedAccounts) => {
+    _setAuthenticatedAccounts(newState)
+    localStorage.setItem('authenticatedAccounts', JSON.stringify(newState))
+  }
+
+  const setDefaultUsername = (newState: typeof defaultUsername) => {
+    _setDefaultUsername(newState)
+    localStorage.setItem('username', newState)
+  }
 
   useEffect(() => {
-    localStorage.setItem('authenticatedAccounts', JSON.stringify(authenticatedAccounts))
-  }, [authenticatedAccounts])
-
-  useEffect(() => {
-    localStorage.setItem('username', defaultUsername)
-  }, [defaultUsername])
-
-  useEffect(() => {
-    // TODO! do not unmount on connecting screen
-    // if (proxies.length) {
-    //   localStorage.setItem('proxies', JSON.stringify(proxies))
-    // }
-    // if (selectedProxy) {
-    //   localStorage.setItem('selectedProxy', selectedProxy)
-    // }
+    if (proxies.length) {
+      localStorage.setItem('proxies', JSON.stringify(proxies))
+    }
+    if (selectedProxy) {
+      localStorage.setItem('selectedProxy', selectedProxy)
+    }
   }, [proxies])
 
   const [serversList, setServersList] = useState<StoreServerItem[]>(() => getInitialServersList())
@@ -195,7 +198,7 @@ const Inner = () => {
         })
       }
     }
-    void update()
+    void update().catch((err) => {})
   }, [serversListSorted])
 
   const isEditScreenModal = useIsModalActive('editServer')
@@ -215,46 +218,46 @@ const Inner = () => {
     }
   }, [isEditScreenModal])
 
-  if (isEditScreenModal) {
-    return <AddServerOrConnect
-      defaults={{
-        proxyOverride: selectedProxy,
-        usernameOverride: defaultUsername,
-      }}
-      parseQs={!serverEditScreen}
-      onBack={() => {
-        hideCurrentModal()
-      }}
-      onConfirm={(info) => {
-        if (!serverEditScreen) return
-        if (serverEditScreen === true) {
-          const server: StoreServerItem = { ...info, lastJoined: Date.now() } // so it appears first
-          setServersList(old => [...old, server])
-        } else {
-          const index = serversList.indexOf(serverEditScreen)
-          const { lastJoined } = serversList[index]
-          serversList[index] = { ...info, lastJoined }
-          setServersList([...serversList])
-        }
-        setServerEditScreen(null)
-      }}
-      accounts={authenticatedAccounts.map(a => a.username)}
-      initialData={!serverEditScreen || serverEditScreen === true ? undefined : serverEditScreen}
-      onQsConnect={(info) => {
-        const connectOptions: ConnectOptions = {
-          username: info.usernameOverride || defaultUsername,
-          server: normalizeIp(info.ip),
-          proxy: info.proxyOverride || selectedProxy,
-          botVersion: info.versionOverride,
-          ignoreQs: true,
-        }
-        dispatchEvent(new CustomEvent('connect', { detail: connectOptions }))
-      }}
-      versions={supportedVersions}
-    />
-  }
+  const editModalJsx = isEditScreenModal ? <AddServerOrConnect
+    placeholders={{
+      proxyOverride: selectedProxy,
+      usernameOverride: defaultUsername,
+    }}
+    parseQs={!serverEditScreen}
+    onBack={() => {
+      hideCurrentModal()
+    }}
+    onConfirm={(info) => {
+      if (!serverEditScreen) return
+      if (serverEditScreen === true) {
+        const server: StoreServerItem = { ...info, lastJoined: Date.now() } // so it appears first
+        setServersList(old => [...old, server])
+      } else {
+        const index = serversList.indexOf(serverEditScreen)
+        const { lastJoined } = serversList[index]
+        serversList[index] = { ...info, lastJoined }
+        setServersList([...serversList])
+      }
+      setServerEditScreen(null)
+    }}
+    accounts={authenticatedAccounts.map(a => a.username)}
+    initialData={!serverEditScreen || serverEditScreen === true ? {
+      ip: quickConnectIp
+    } : serverEditScreen}
+    onQsConnect={(info) => {
+      const connectOptions: ConnectOptions = {
+        username: info.usernameOverride || defaultUsername,
+        server: normalizeIp(info.ip),
+        proxy: info.proxyOverride || selectedProxy,
+        botVersion: info.versionOverride,
+        ignoreQs: true,
+      }
+      dispatchEvent(new CustomEvent('connect', { detail: connectOptions }))
+    }}
+    versions={supportedVersions}
+  /> : null
 
-  return <ServersList
+  const serversListJsx = <ServersList
     joinServer={(overrides, { shouldSave }) => {
       const indexOrIp = overrides.ip
       let ip = indexOrIp
@@ -327,10 +330,11 @@ const Inner = () => {
     }}
     username={defaultUsername}
     setUsername={setDefaultUsername}
+    setQuickConnectIp={setQuickConnectIp}
     onProfileClick={async () => {
       const username = await showOptionsModal('Select authenticated account to remove', authenticatedAccounts.map(a => a.username))
       if (!username) return
-      setAuthenticatedAccounts(old => old.filter(a => a.username !== username))
+      setAuthenticatedAccounts(authenticatedAccounts.filter(a => a.username !== username))
     }}
     onWorldAction={(action, index) => {
       const server = serversList[index]
@@ -372,12 +376,21 @@ const Inner = () => {
       setProxies(proxies)
       setSelectedProxy(selected)
     }}
+    hidden={hidden}
   />
+  return <>
+    {serversListJsx}
+    {editModalJsx}
+  </>
 }
 
 export default () => {
+  const modalStack = useSnapshot(activeModalStack)
+  const hasServersListModal = modalStack.some(x => x.reactType === 'serversList')
   const editServerModalActive = useIsModalActive('editServer')
   const isServersListModalActive = useIsModalActive('serversList')
+
   const eitherModal = isServersListModalActive || editServerModalActive
-  return eitherModal ? <Inner /> : null
+  const render = eitherModal || hasServersListModal
+  return render ? <Inner hidden={!isServersListModalActive} /> : null
 }

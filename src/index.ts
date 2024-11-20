@@ -102,6 +102,7 @@ import packetsPatcher from './packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
+import { parseFormattedMessagePacket } from './botUtils'
 
 window.debug = debug
 window.THREE = THREE
@@ -402,7 +403,9 @@ async function connect (connectOptions: ConnectOptions) {
       setLoadingScreenStatus(`Loading data for ${version}`)
       if (!document.fonts.check('1em mojangles')) {
         // todo instead re-render signs on load
-        await document.fonts.load('1em mojangles').catch(() => { })
+        await document.fonts.load('1em mojangles').catch(() => {
+          console.error('Failed to load font, signs wont be rendered correctly')
+        })
       }
       await window._MC_DATA_RESOLVER.promise // ensure data is loaded
       await downloadSoundsIfNeeded()
@@ -457,7 +460,7 @@ async function connect (connectOptions: ConnectOptions) {
       flyingSquidEvents()
     }
 
-    if (connectOptions.authenticatedAccount) username = 'not-used'
+    if (connectOptions.authenticatedAccount) username = 'you'
     let initialLoadingText: string
     if (singleplayer) {
       initialLoadingText = 'Local server is still starting'
@@ -637,14 +640,7 @@ async function connect (connectOptions: ConnectOptions) {
 
   bot.on('kicked', (kickReason) => {
     console.log('You were kicked!', kickReason)
-    let kickReasonString = typeof kickReason === 'string' ? kickReason : JSON.stringify(kickReason)
-    let kickReasonFormatted = undefined as undefined | Record<string, any>
-    if (typeof kickReason === 'object') {
-      try {
-        kickReasonFormatted = nbt.simplify(kickReason)
-        kickReasonString = ''
-      } catch {}
-    }
+    const { formatted: kickReasonFormatted, plain: kickReasonString } = parseFormattedMessagePacket(kickReason)
     setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReasonString}`, true, undefined, undefined, kickReasonFormatted)
     destroyAll()
   })
@@ -932,7 +928,7 @@ watchValue(miscUiState, async s => {
     const qs = new URLSearchParams(window.location.search)
     const moreServerOptions = {} as Record<string, any>
     if (qs.has('version')) moreServerOptions.version = qs.get('version')
-    if (qs.get('singleplayer') === '1') {
+    if (qs.get('singleplayer') === '1' || qs.get('sp') === '1') {
       loadSingleplayer({}, {
         worldFolder: undefined,
         ...moreServerOptions

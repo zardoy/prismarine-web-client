@@ -85,9 +85,15 @@ interface Props {
   warning?: string
   warningAction?: () => void
   warningActionLabel?: string
+  hidden?: boolean
 
   onWorldAction (action: 'load' | 'export' | 'delete' | 'edit', worldName: string): void
   onGeneralAction (action: 'cancel' | 'create'): void
+  onRowSelect? (name: string, index: number): void
+  defaultSelectedRow?: number
+  listStyle?: React.CSSProperties
+  setListHovered?: (hovered: boolean) => void
+  secondRowStyles?: React.CSSProperties
 }
 
 export default ({
@@ -104,7 +110,13 @@ export default ({
   disabledProviders,
   error,
   isReadonly,
-  warning, warningAction, warningActionLabel
+  warning, warningAction, warningActionLabel,
+  hidden,
+  onRowSelect,
+  defaultSelectedRow,
+  listStyle,
+  setListHovered,
+  secondRowStyles
 }: Props) => {
   const containerRef = useRef<any>()
   const firstButton = useRef<HTMLButtonElement>(null)
@@ -122,13 +134,17 @@ export default ({
   })
 
   const [search, setSearch] = useState('')
-  const [focusedWorld, setFocusedWorld] = useState('')
+  const [focusedWorld, setFocusedWorld] = useState(defaultSelectedRow ? worldData?.[defaultSelectedRow]?.name ?? '' : '')
 
   useEffect(() => {
     setFocusedWorld('')
   }, [activeProvider])
 
-  return <div ref={containerRef}>
+  const onRowSelectHandler = (name: string, index: number) => {
+    onRowSelect?.(name, index)
+    setFocusedWorld(name)
+  }
+  return <div ref={containerRef} hidden={hidden}>
     <div className="dirt-bg" />
     <div className={classNames('fullscreen', styles.root)}>
       <span className={classNames('screen-title', styles.title)}>{serversLayout ? 'Join Java Servers' : 'Select Saved World'}</span>
@@ -141,9 +157,13 @@ export default ({
             setActiveProvider?.(tab as any)
           }} fullSize
         />
-        <div style={{
-          marginTop: 3,
-        }}
+        <div
+          style={{
+            marginTop: 3,
+            ...listStyle
+          }}
+          onMouseEnter={() => setListHovered?.(true)}
+          onMouseLeave={() => setListHovered?.(false)}
         >
           {
             providerActions && <div style={{
@@ -159,9 +179,9 @@ export default ({
           }
           {
             worldData
-              ? worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, size, detail, ...rest }) => (
+              ? worldData.filter(data => data.title.toLowerCase().includes(search.toLowerCase())).map(({ name, size, detail, ...rest }, index) => (
                 <World
-                  {...rest} size={size} name={name} onFocus={setFocusedWorld} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
+                  {...rest} size={size} name={name} onFocus={row => onRowSelectHandler(row, index)} isFocused={focusedWorld === name} key={name} onInteraction={(interaction) => {
                     if (interaction === 'enter') onWorldAction('load', name)
                     else if (interaction === 'space') firstButton.current?.focus()
                   }}
@@ -192,7 +212,7 @@ export default ({
           <Button rootRef={firstButton} disabled={!focusedWorld} onClick={() => onWorldAction('load', focusedWorld)}>Load World</Button>
           <Button onClick={() => onGeneralAction('create')} disabled={isReadonly}>Create New World</Button>
         </div>}
-        <div>
+        <div style={{ ...secondRowStyles }}>
           {serversLayout ? <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('edit', focusedWorld)}>Edit</Button> : <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('export', focusedWorld)}>Export</Button>}
           <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('delete', focusedWorld)}>Delete</Button>
           {serversLayout ?
