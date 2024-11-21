@@ -46,10 +46,6 @@ const versionToNumber = (ver) => {
 // const compressedOutput = !!process.env.SINGLE_FILE_BUILD
 const compressedOutput = true
 // const dataTypeBundling = {
-//   protocol: {
-//     // ignoreRemoved: true,
-//     // ignoreChanges: true
-//   }
 // }
 const dataTypeBundling = {
   language: {
@@ -132,8 +128,8 @@ const dataTypeBundling = {
     arrKey: 'block'
   },
   recipes: {
-    raw: true
-  }, // todo we can do better
+    processData: processRecipes
+  },
   blockCollisionShapes: {},
   loginPacket: {},
   protocol: {
@@ -142,6 +138,84 @@ const dataTypeBundling = {
   sounds: {
     arrKey: 'name'
   }
+}
+
+function processRecipes (current, prev, getData, version) {
+  // can require the same multiple times per different versions
+  if (current._proccessed) return
+  const items = getData('items')
+  const blocks = getData('blocks')
+  const itemsIdsMap = Object.fromEntries(items.map((b) => [b.id, b.name]))
+  const blocksIdsMap = Object.fromEntries(blocks.map((b) => [b.id, b.name]))
+  for (const key of Object.keys(current)) {
+    const mapId = (id) => {
+      if (typeof id !== 'string' && typeof id !== 'number') throw new Error('Incorrect type')
+      const mapped = itemsIdsMap[id] ?? blocksIdsMap[id]
+      if (!mapped) {
+        throw new Error(`No item/block name with id ${id}`)
+      }
+      return mapped
+    }
+    const processRecipe = (obj) => {
+      // if (!obj) return
+      // if (Array.isArray(obj)) {
+      //   obj.forEach((id, i) => {
+      //     obj[i] = mapId(obj[id])
+      //   })
+      // } else if (obj && typeof obj === 'object') {
+      //   if (!'count metadata id'.split(' ').every(x => x in obj)) {
+      //     throw new Error(`process error: Unknown deep object pattern: ${JSON.stringify(obj)}`)
+      //   }
+      //   obj.id = mapId(obj.id)
+      // } else {
+      //   throw new Error('unknown type')
+      // }
+      const parseRecipeItem = (item) => {
+        if (typeof item === 'number') return mapId(item)
+        if (Array.isArray(item)) return [mapId(item), ...item.slice(1)]
+        if (!item) {
+          return item
+        }
+        if ('id' in item) {
+          item.id = mapId(item.id)
+          return item
+        }
+        throw new Error('unhandled')
+      }
+      const maybeProccessShape = (shape) => {
+        if (!shape) return
+        for (const shapeRow of shape) {
+          for (const [i, item] of shapeRow.entries()) {
+            shapeRow[i] = parseRecipeItem(item)
+          }
+        }
+      }
+      if (obj.result) obj.result = parseRecipeItem(obj.result)
+      maybeProccessShape(obj.inShape)
+      maybeProccessShape(obj.outShape)
+      if (obj.ingredients) {
+        for (const [i, ingredient] of obj.ingredients.entries()) {
+          obj.ingredients[i] = parseRecipeItem(ingredient)
+        }
+      }
+    }
+    try {
+      const name = mapId(key)
+      for (const [i, recipe] of current[key].entries()) {
+        try {
+          processRecipe(recipe)
+        } catch (err) {
+          console.warn(`${version} [warn] Removing incorrect recipe: ${err}`)
+          delete current[i]
+        }
+      }
+      current[name] = current[key]
+    } catch (err) {
+      console.warn(`${version} [warn] Removing incorrect recipe: ${err}`)
+    }
+    delete current[key]
+  }
+  current._proccessed = true
 }
 
 const notBundling = [...dataTypes.keys()].filter(x => !Object.keys(dataTypeBundling).includes(x))
@@ -162,11 +236,15 @@ for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
       // contents += `      get ${dataType} () { return window.globalGetCollisionShapes?.("${version}") },\n`
       continue
     }
-    const loc = `minecraft-data/data/${dataPath}/`
-    const dataPathAbsolute = require.resolve(`minecraft-data/${loc}${dataType}`)
-    // const data = fs.readFileSync(dataPathAbsolute, 'utf8')
-    const dataRaw = require(dataPathAbsolute)
     let injectCode = ''
+    const getData = (type) => {
+      const loc = `minecraft-data/data/${dataSet[type]}/`
+      const dataPathAbsolute = require.resolve(`minecraft-data/${loc}${type}`)
+      // const data = fs.readFileSync(dataPathAbsolute, 'utf8')
+      const dataRaw = require(dataPathAbsolute)
+      return dataRaw
+    }
+    const dataRaw = getData(dataType)
     let rawData = dataRaw
     if (config.raw) {
       rawDataVersions[dataType] ??= {}
@@ -177,7 +255,7 @@ for (const [i, [version, dataSet]] of versionsArr.reverse().entries()) {
         diffSources[dataType] = new JsonOptimizer(config.arrKey, config.ignoreChanges, config.ignoreRemoved)
       }
       try {
-        config.processData?.(dataRaw, previousData[dataType])
+        config.processData?.(dataRaw, previousData[dataType], getData, version)
         diffSources[dataType].recordDiff(version, dataRaw)
         injectCode = `restoreDiff(sources, ${JSON.stringify(dataType)}, ${JSON.stringify(version)})`
       } catch (err) {
@@ -230,7 +308,7 @@ if (compressedOutput) {
   fs.writeFileSync(compressedFilePath, `export default ${JSON.stringify(minizedCompressed)}`, 'utf8')
 
   const mcAssets = JSON.stringify(require('mc-assets/dist/blockStatesModels.json'))
-  fs.writeFileSync('./generated/mc-assets-compressed.txt', `export default ${JSON.stringify(compressToBase64(mcAssets))}`, 'utf8')
+  fs.writeFileSync('./generated/mc-assets-compressed.js', `export default ${JSON.stringify(compressToBase64(mcAssets))}`, 'utf8')
 
   const modelsObj = fs.readFileSync('./prismarine-viewer/viewer/lib/entity/exportedModels.js')
   // const models =

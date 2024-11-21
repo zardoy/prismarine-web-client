@@ -22,6 +22,7 @@ export default () => {
   const text = useRef<string[]>(['', '', '', ''])
   const [enableWysiwyg, setEnableWysiwyg] = useState(false)
   const isModalActive = useIsModalActive('signs-editor-screen')
+  const [proseMirrorView, setProseMirrorView] = useState(null as any)
 
   const handleClick = (result: ResultType) => {
     hideModal({ reactType: 'signs-editor-screen' })
@@ -72,8 +73,14 @@ export default () => {
         setEnableWysiwyg(false)
       }
     })
+
+    if (!process.env.SINGLE_FILE_BUILD) {
+      void import('./prosemirror-markdown').then(({ ProseMirrorView }) => {
+        setProseMirrorView(ProseMirrorView)
+      })
+    }
   }, [])
 
   if (!isModalActive) return null
-  return <SignEditor isWysiwyg={enableWysiwyg} handleInput={handleInput} handleClick={handleClick} />
+  return <SignEditor ProseMirrorView={enableWysiwyg ? proseMirrorView : undefined} handleInput={handleInput} handleClick={handleClick} />
 }

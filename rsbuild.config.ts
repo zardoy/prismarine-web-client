@@ -143,7 +143,7 @@ const appConfig = defineConfig({
                 const prep = async () => {
                     console.time('total-prep')
                     fs.mkdirSync('./generated', { recursive: true })
-                    if (!fs.existsSync('./generated/minecraft-data-optimized.json') || require('./generated/minecraft-data-optimized.json').versionKey !== require('minecraft-data/package.json').version) {
+                    if (!fs.existsSync('./generated/minecraft-data-optimized.json') || !fs.existsSync('./generated/mc-assets-compressed.js') || require('./generated/minecraft-data-optimized.json').versionKey !== require('minecraft-data/package.json').version) {
                         childProcess.execSync('tsx ./scripts/makeOptimizedMcData.mjs', { stdio: 'inherit' })
                     }
                     childProcess.execSync('tsx ./scripts/genShims.ts', { stdio: 'inherit' })

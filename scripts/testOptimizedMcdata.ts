@@ -1,5 +1,5 @@
 import assert from 'assert'
-import JsonOptimizer from '../src/optimizeJson';
+import JsonOptimizer, { restoreMinecraftData } from '../src/optimizeJson';
 import fs from 'fs'
 import minecraftData from 'minecraft-data'
 
@@ -8,7 +8,7 @@ const json = JSON.parse(fs.readFileSync('./generated/minecraft-data-optimized.js
 const dataPaths = require('minecraft-data/minecraft-data/data/dataPaths.json')
 
 const validateData = (ver, type) => {
-  const target = JsonOptimizer.restoreData(structuredClone(json[type]), ver)
+  const target = restoreMinecraftData(structuredClone(json), type, ver)
   const arrKey = json[type].arrKey
   const originalPath = dataPaths.pc[ver][type]
   const original = require(`minecraft-data/minecraft-data/data/${originalPath}/${type}.json`)
@@ -92,8 +92,8 @@ const checkKeys = (source, diffing, isUniq = true, msg = '', redundantIsOk = fal
 }
 
 // const data = minecraftData('1.20.4')
-const oldId = JsonOptimizer.restoreData(json['blocks'], '1.20').find(x => x.name === 'brown_stained_glass').id;
-const newId = JsonOptimizer.restoreData(json['blocks'], '1.20.4').find(x => x.name === 'brown_stained_glass').id;
+const oldId = JsonOptimizer.restoreData(json['blocks'], '1.20', undefined).find(x => x.name === 'brown_stained_glass').id;
+const newId = JsonOptimizer.restoreData(json['blocks'], '1.20.4', undefined).find(x => x.name === 'brown_stained_glass').id;
 assert(oldId !== newId)
 // test all types + all versions
 

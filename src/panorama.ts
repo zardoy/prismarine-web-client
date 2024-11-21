@@ -8,6 +8,7 @@ import { EntityMesh } from 'prismarine-viewer/viewer/lib/entity/EntityMesh'
 import { WorldDataEmitter } from 'prismarine-viewer/viewer'
 import { Vec3 } from 'vec3'
 import { getSyncWorld } from 'prismarine-viewer/examples/shared'
+import * as tweenJs from '@tweenjs/tween.js'
 import { fromTexturePackPath, resourcePackState } from './resourcePack'
 import { options, watchValue } from './optionsStorage'
 import { miscUiState } from './globalState'
@@ -68,6 +69,8 @@ subscribeKey(miscUiState, 'loadedDataVersion', () => {
   if (miscUiState.loadedDataVersion) removePanorama()
   else void addPanoramaCubeMap()
 })
+
+let unloadPanoramaCallbacks = [] as Array<() => void>
 
 // Menu panorama background
 // TODO-low use abort controller
@@ -130,6 +133,10 @@ export async function addPanoramaCubeMap () {
 }
 
 export function removePanorama () {
+  for (const unloadPanoramaCallback of unloadPanoramaCallbacks) {
+    unloadPanoramaCallback()
+  }
+  unloadPanoramaCallbacks = []
   viewer.camera.fov = options.fov
   shouldDisplayPanorama = false
   if (!panoramaCubeMap) return
@@ -177,6 +184,35 @@ const initDemoWorld = async () => {
   viewer.connect(worldView)
   void worldView.init(initPos)
   await viewer.world.waitForChunksToRender()
+  const abortController = new AbortController()
+  // add small camera rotation to side on mouse move depending on absolute position of the cursor
+  const { camera } = viewer
+  const initX = camera.position.x
+  const initY = camera.position.y
+  let prevTwin: tweenJs.Tween<THREE.Vector3> | undefined
+  document.body.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return
+    const pos = new THREE.Vector2(e.clientX, e.clientY)
+    const SCALE = 0.2
+    /* -0.5 - 0.5 */
+    const xRel = pos.x / window.innerWidth - 0.5
+    const yRel = -(pos.y / window.innerHeight - 0.5)
+    prevTwin?.stop()
+    const to = {
+      x: initX + (xRel * SCALE),
+      y: initY + (yRel * SCALE)
+    }
+    prevTwin = new tweenJs.Tween(camera.position).to(to, 0) // todo use the number depending on diff // todo use the number depending on diff
+    // prevTwin.easing(tweenJs.Easing.Exponential.InOut)
+    prevTwin.start()
+    camera.updateProjectionMatrix()
+  }, {
+    signal: abortController.signal
+  })
+
+  unloadPanoramaCallbacks.push(() => {
+    abortController.abort()
+  })
 
   console.timeEnd('load scene')
 }

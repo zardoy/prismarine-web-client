@@ -1,5 +1,5 @@
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
-import JsonOptimizer from '../optimizeJson'
+import { restoreMinecraftData } from '../optimizeJson'
 import minecraftInitialDataJson from '../../generated/minecraft-initial-data.json'
 import { toMajorVersion } from '../utils'
 import { importLargeData } from '../../generated/large-data-aliases'
@@ -54,7 +54,7 @@ const possiblyGetFromCache = (version: string) => {
 
       const data = optimizedDataResolver.resolvedData[dataType]
       if (data.__IS_OPTIMIZED__) {
-        allRestored[dataType] = JsonOptimizer.restoreData(data, version)
+        allRestored[dataType] = restoreMinecraftData(optimizedDataResolver.resolvedData, dataType, version)
       } else {
         allRestored[dataType] = data[version] ?? data[toMajorVersion(version)]
       }

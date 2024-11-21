@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { focusable } from 'tabbable'
 import markdownToFormattedText from '../markdownToFormattedText'
-import { ProseMirrorView } from './prosemirror-markdown'
+import type { ProseMirrorView } from './prosemirror-markdown'
 import Button from './Button'
 import 'prosemirror-view/style/prosemirror.css'
 import 'prosemirror-menu/style/menu.css'
@@ -12,7 +12,7 @@ const imageSource = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAMCAYAA
 
 type Props = {
   handleInput: (target: HTMLInputElement) => void,
-  isWysiwyg: boolean,
+  ProseMirrorView: typeof ProseMirrorView,
   handleClick?: (view: ResultType) => void
 }
 
@@ -22,7 +22,8 @@ export type ResultType = {
   dataText: string[]
 }
 
-export default ({ handleInput, isWysiwyg, handleClick }: Props) => {
+export default ({ handleInput, ProseMirrorView, handleClick }: Props) => {
+  const isWysiwyg = !!ProseMirrorView
   const prosemirrorContainer = useRef(null)
   const editorView = useRef<ProseMirrorView | null>(null)
 
