@@ -1,5 +1,6 @@
 //@ts-check
 import EventEmitter from 'events'
+import { UnionToIntersection } from 'type-fest'
 import nbt from 'prismarine-nbt'
 import * as TWEEN from '@tweenjs/tween.js'
 import * as THREE from 'three'
@@ -11,6 +12,7 @@ import { NameTagObject } from 'skinview3d/libs/nametag'
 import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import { snakeCase } from 'change-case'
+import { EntityMetadataVersions } from '../../../src/mcDataTypes'
 import * as Entity from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
 import externalTexturesJson from './entity/externalTextures.json'
@@ -352,7 +354,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  update (entity: import('prismarine-entity').Entity & { delete?; pos }, overrides) {
+  update (entity: import('prismarine-entity').Entity & { delete?; pos, name }, overrides) {
     const isPlayerModel = entity.name === 'player'
     if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
       overrides.texture = `textures/1.16.4/entity/${entity.name === 'zombie_villager' ? 'zombie_villager/zombie_villager.png' : `zombie/${entity.name}.png`}`
@@ -453,6 +455,8 @@ export class Entities extends EventEmitter {
       this.setRendering(this.rendering, group)
     }
 
+    const meta = getGeneralEntitiesMetadata(entity)
+
     //@ts-expect-error
     // set visibility
     const isInvisible = entity.metadata?.[0] & 0x20
@@ -463,8 +467,8 @@ export class Entities extends EventEmitter {
     }
     // ---
     // not player
-    const displayText = entity.metadata?.[3] && this.parseEntityLabel(entity.metadata[2])
-      || entity.metadata?.[23] && this.parseEntityLabel(entity.metadata[23]) // text displays
+    const displayTextRaw = meta.custom_name_visible || getSpecificEntityMetadata('text_display', entity)?.text
+    const displayText = displayTextRaw && this.parseEntityLabel(displayTextRaw)
     if (entity.name !== 'player' && displayText) {
       addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
     }
@@ -546,4 +550,20 @@ export class Entities extends EventEmitter {
       })
     }
   }
+}
+
+function getGeneralEntitiesMetadata (entity: { name; metadata }): Partial<UnionToIntersection<EntityMetadataVersions[keyof EntityMetadataVersions]>> {
+  const entityData = loadedData.entitiesByName[entity.name]
+  return new Proxy({}, {
+    get (target, p, receiver) {
+      if (typeof p !== 'string') return
+      const index = entityData.metadataKeys?.indexOf(p)
+      return entity.metadata[index ?? -1]
+    },
+  })
+}
+
+function getSpecificEntityMetadata<T extends keyof EntityMetadataVersions> (name: T, entity): EntityMetadataVersions[T] | undefined {
+  if (entity.name !== name) return
+  return getGeneralEntitiesMetadata(entity) as any
 }
