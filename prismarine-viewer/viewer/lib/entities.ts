@@ -139,9 +139,7 @@ export type SceneEntity = THREE.Object3D & {
 export class Entities extends EventEmitter {
   entities = {} as Record<string, SceneEntity>
   entitiesOptions: {
-    fontFamily?: string,
-    nameTagBackgroundColor?: string,
-    nameTagTextOpacity?: number,
+    fontFamily?: string
   } = {}
   debugMode: string
   onSkinUpdate: () => void
