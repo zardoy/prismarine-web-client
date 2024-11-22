@@ -22,7 +22,27 @@ export const TWEEN_DURATION = 120
 
 type PlayerObjectType = PlayerObject & { animation?: PlayerAnimation }
 
-function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: any) {
+function toRgba (color?: string) {
+  if (!color || parseInt(color, 10) === 0) {
+    return 'rgba(0, 0, 0, 0)'
+  }
+  const hex = parseInt(color, 10).toString(16)
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  if (hex.length === 9) {
+    const a = parseInt(hex.slice(7, 9), 16) / 255
+    return `rgba(${r}, ${g}, ${b}, ${a})`
+  } else {
+    return `rgb(${r}, ${g}, ${b})`
+  }
+}
+
+function getUsernameTexture ({
+  username,
+  nameTagBackgroundColor = 'rgba(0, 0, 0, 0.3)',
+  nameTagTextOpacity = 255
+}: any, { fontFamily = 'sans-serif' }: any) {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2d context')
@@ -42,11 +62,11 @@ function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: an
   canvas.width = textWidth
   canvas.height = (fontSize + padding * 2) * lines.length
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+  ctx.fillStyle = nameTagBackgroundColor
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   ctx.font = `${fontSize}px ${fontFamily}`
-  ctx.fillStyle = 'white'
+  ctx.fillStyle = `rgba(255, 255, 255, ${nameTagTextOpacity / 255})`
   let i = 0
   for (const line of lines) {
     i++
@@ -59,7 +79,7 @@ function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: an
 const addNametag = (entity, options, mesh) => {
   if (entity.username !== undefined) {
     if (mesh.children.some(c => c.name === 'nametag')) return // todo update
-    const canvas = getUsernameTexture(entity.username, options)
+    const canvas = getUsernameTexture(entity, options)
     const tex = new THREE.Texture(canvas)
     tex.needsUpdate = true
     const spriteMat = new THREE.SpriteMaterial({ map: tex })
@@ -304,6 +324,9 @@ export class Entities extends EventEmitter {
   parseEntityLabel (jsonLike) {
     if (!jsonLike) return
     try {
+      if (jsonLike.type === 'string') {
+        return jsonLike.value
+      }
       const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
       const text = flat(parsed).map(x => x.text)
       return text.join('')
@@ -467,10 +490,21 @@ export class Entities extends EventEmitter {
     }
     // ---
     // not player
-    const displayTextRaw = meta.custom_name_visible || getSpecificEntityMetadata('text_display', entity)?.text
-    const displayText = displayTextRaw && this.parseEntityLabel(displayTextRaw)
+    const textDisplayMeta = getSpecificEntityMetadata('text_display', entity)
+    const displayTextRaw = textDisplayMeta?.text || meta.custom_name_visible && meta.custom_name
+    const displayText = this.parseEntityLabel(displayTextRaw)
     if (entity.name !== 'player' && displayText) {
-      addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
+      const nameTagBackgroundColor = textDisplayMeta && toRgba(textDisplayMeta.background_color)
+      let nameTagTextOpacity: any
+      if (textDisplayMeta?.text_opacity) {
+        const rawOpacity = parseInt(textDisplayMeta?.text_opacity, 10)
+        nameTagTextOpacity = rawOpacity > 0 ? rawOpacity : 256 - rawOpacity
+      }
+      addNametag(
+        { ...entity, username: displayText, nameTagBackgroundColor, nameTagTextOpacity },
+        this.entitiesOptions,
+        this.entities[entity.id].children.find(c => c.name === 'mesh')
+      )
     }
 
     // todo handle map, map_chunks events
@@ -556,7 +590,7 @@ function getGeneralEntitiesMetadata (entity: { name; metadata }): Partial<UnionT
   const entityData = loadedData.entitiesByName[entity.name]
   return new Proxy({}, {
     get (target, p, receiver) {
-      if (typeof p !== 'string') return
+      if (typeof p !== 'string' || !entityData) return
       const index = entityData.metadataKeys?.indexOf(p)
       return entity.metadata[index ?? -1]
     },

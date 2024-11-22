@@ -6,3 +6,4 @@ generated
 dist
 public
 **/*/rsbuildSharedConfig.ts
+src/mcDataTypes.ts
