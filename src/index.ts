@@ -1046,6 +1046,10 @@ downloadAndOpenFile().then((downloadAction) => {
       })
     }
   })
+
+  if (qs.get('serversList')) {
+    showModal({ reactType: 'serversList' })
+  }
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)
