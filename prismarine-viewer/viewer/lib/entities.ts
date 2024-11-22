@@ -22,8 +22,8 @@ export const TWEEN_DURATION = 120
 
 type PlayerObjectType = PlayerObject & { animation?: PlayerAnimation }
 
-function toRgba (color: string) {
-  if (parseInt(color, 10) === 0) {
+function toRgba (color?: string) {
+  if (!color || parseInt(color, 10) === 0) {
     return 'rgba(0, 0, 0, 0)'
   }
   const hex = parseInt(color, 10).toString(16)
@@ -38,11 +38,11 @@ function toRgba (color: string) {
   }
 }
 
-function getUsernameTexture (username: string, {
-  fontFamily = 'sans-serif',
+function getUsernameTexture ({
+  username,
   nameTagBackgroundColor = 'rgba(0, 0, 0, 0.3)',
   nameTagTextOpacity = 255
-}: any) {
+}: any, { fontFamily = 'sans-serif' }: any) {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2d context')
@@ -79,7 +79,7 @@ function getUsernameTexture (username: string, {
 const addNametag = (entity, options, mesh) => {
   if (entity.username !== undefined) {
     if (mesh.children.some(c => c.name === 'nametag')) return // todo update
-    const canvas = getUsernameTexture(entity.username, options)
+    const canvas = getUsernameTexture(entity, options)
     const tex = new THREE.Texture(canvas)
     tex.needsUpdate = true
     const spriteMat = new THREE.SpriteMaterial({ map: tex })
@@ -496,14 +496,17 @@ export class Entities extends EventEmitter {
     const displayTextRaw = textDisplayMeta?.text || meta.custom_name_visible && meta.custom_name
     const displayText = this.parseEntityLabel(displayTextRaw)
     if (entity.name !== 'player' && displayText) {
-      if (textDisplayMeta) {
-        this.entitiesOptions.nameTagBackgroundColor = toRgba(textDisplayMeta.background_color)
-        if (textDisplayMeta.text_opacity) {
-          const rawOpacity = parseInt(textDisplayMeta.text_opacity, 10)
-          this.entitiesOptions.nameTagTextOpacity = rawOpacity > 0 ? rawOpacity : 256 - rawOpacity
-        }
+      const nameTagBackgroundColor = textDisplayMeta && toRgba(textDisplayMeta.background_color)
+      let nameTagTextOpacity: any
+      if (textDisplayMeta?.text_opacity) {
+        const rawOpacity = parseInt(textDisplayMeta?.text_opacity, 10)
+        nameTagTextOpacity = rawOpacity > 0 ? rawOpacity : 256 - rawOpacity
       }
-      addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
+      addNametag(
+        { ...entity, username: displayText, nameTagBackgroundColor, nameTagTextOpacity },
+        this.entitiesOptions,
+        this.entities[entity.id].children.find(c => c.name === 'mesh')
+      )
     }
 
     // todo handle map, map_chunks events
