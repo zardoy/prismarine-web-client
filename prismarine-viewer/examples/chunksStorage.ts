@@ -10,6 +10,7 @@ export class ChunksStorage {
   // flatBuffer = new Uint32Array()
   lastNotUpdatedIndex
   lastNotUpdatedArrSize
+  dataSize = 0
 
   getDataForBuffers () {
     return {
@@ -20,6 +21,7 @@ export class ChunksStorage {
 
   clearData () {
     this.chunkSides.clear()
+    this.dataSize = 0
   }
 
   addData (tiles: Record<string, BlockType>, rawPosKey: string) {
@@ -38,6 +40,8 @@ export class ChunksStorage {
     })
 
     this.chunkSides.set(chunkPosKey, newData)
+
+    this.dataSize += newData.length
 
     // const currentLength = this.allSides.length
 

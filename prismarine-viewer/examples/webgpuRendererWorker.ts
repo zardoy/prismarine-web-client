@@ -27,7 +27,7 @@ export const postMessage = (data, ...args) => {
 setInterval(() => {
   if (!webgpuRenderer) return
   // console.log('FPS:', renderedFrames)
-  postMessage({ type: 'fps', fps: webgpuRenderer.renderedFrames })
+  postMessage({ type: 'fps', fps: `${webgpuRenderer.renderedFrames} (${new Intl.NumberFormat().format(chunksStorage.dataSize)} blocks)` })
   webgpuRenderer.renderedFrames = 0
 }, 1000)
 
