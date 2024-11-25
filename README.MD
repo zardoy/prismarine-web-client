@@ -128,6 +128,10 @@ Press `Y` to set query parameters to url of your current game state.
 
 There are some parameters you can set in the url to archive some specific behaviors:
 
+General:
+
+- **`?setting=<setting_name>:<setting_value>`** - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
+
 Server specific:
 
 - `?ip=<server_address>` - Display connect screen to the server on load with predefined server ip. `:<port>` is optional and can be added to the ip.
@@ -171,10 +175,6 @@ In this case you must use `?mapDirBaseUrl` to specify the base URL to fetch the 
 - `?mapDirBaseUrl` - See above.
 
 <!-- - `?mapDirGuess=<base_url>` - Load the map from the provided URL and paths will be guessed with a few additional fetch requests. -->
-
-General:
-
-- `?setting=<setting_name>:<setting_value>` - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
 
 ### Notable Things that Power this Project
 
