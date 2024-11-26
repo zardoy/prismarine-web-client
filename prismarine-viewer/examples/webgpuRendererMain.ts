@@ -210,7 +210,7 @@ export const exportLoadedTiles = () => {
 
 
 const addFpsCounters = () => {
-  const { updateText } = addNewStat('fps')
+  const { updateText } = addNewStat('fps', 200)
   let prevTimeout
   worker.addEventListener('message', (e: any) => {
     if (e.data.type === 'fps') {
