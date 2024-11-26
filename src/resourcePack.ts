@@ -295,14 +295,16 @@ export const onAppLoad = () => {
     // todo also handle resourcePack
     const handleResourcePackRequest = async (packet) => {
       if (options.serverResourcePacks === 'never') return
-      const promptMessage = ('promptMessage' in packet && packet.promptMessage) ? JSON.stringify(packet.promptMessage) : 'Do you want to use server resource pack?'
+      const promptMessagePacket = ('promptMessage' in packet && packet.promptMessage) ? packet.promptMessage : undefined
+      const promptMessageText = promptMessagePacket ? '' : 'Do you want to use server resource pack?'
       // TODO!
       const hash = 'hash' in packet ? packet.hash : '-'
       const forced = 'forced' in packet ? packet.forced : false
       const choice = options.serverResourcePacks === 'always'
         ? true
-        : await showOptionsModal(promptMessage, ['Download & Install (recommended)', 'Pretend Installed (not recommended)'], {
-          cancel: !forced
+        : await showOptionsModal(promptMessageText, ['Download & Install (recommended)', 'Pretend Installed (not recommended)'], {
+          cancel: !forced,
+          minecraftJsonMessage: promptMessagePacket,
         })
       if (!choice) return
       bot.acceptResourcePack()

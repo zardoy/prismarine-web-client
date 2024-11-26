@@ -27,7 +27,7 @@ type Tiles = {
   [blockPos: string]: BlockType
 }
 
-function prepareTints(tints) {
+function prepareTints (tints) {
   const map = new Map()
   const defaultValue = tintToGl(tints.default)
   for (let { keys, color } of tints.data) {
@@ -37,18 +37,18 @@ function prepareTints(tints) {
     }
   }
   return new Proxy(map, {
-    get(target, key) {
+    get (target, key) {
       return target.has(key) ? target.get(key) : defaultValue
     }
   })
 }
 
-function mod(x: number, n: number) {
+function mod (x: number, n: number) {
   return ((x % n) + n) % n
 }
 
 const calculatedBlocksEntries = Object.entries(legacyJson.clientCalculatedBlocks)
-export function preflatBlockCalculation(block: Block, world: World, position: Vec3) {
+export function preflatBlockCalculation (block: Block, world: World, position: Vec3) {
   const type = calculatedBlocksEntries.find(([name, blocks]) => blocks.includes(block.name))?.[0]
   if (!type) return
   switch (type) {
@@ -100,14 +100,14 @@ export function preflatBlockCalculation(block: Block, world: World, position: Ve
   }
 }
 
-function tintToGl(tint) {
+function tintToGl (tint) {
   const r = (tint >> 16) & 0xff
   const g = (tint >> 8) & 0xff
   const b = tint & 0xff
   return [r / 255, g / 255, b / 255]
 }
 
-function getLiquidRenderHeight(world, block, type, pos) {
+function getLiquidRenderHeight (world, block, type, pos) {
   if (!block || block.type !== type) return 1 / 9
   if (block.metadata === 0) { // source block
     const blockAbove = world.getBlock(pos.offset(0, 1, 0))
@@ -128,7 +128,7 @@ const isCube = (block: Block) => {
   }))
 }
 
-function renderLiquid(world: World, cursor: Vec3, texture: any | undefined, type: number, biome: string, water: boolean, attr: Record<string, any>) {
+function renderLiquid (world: World, cursor: Vec3, texture: any | undefined, type: number, biome: string, water: boolean, attr: Record<string, any>) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
@@ -240,7 +240,7 @@ const identicalCull = (currentElement: BlockElement, neighbor: Block, direction:
 
 let needSectionRecomputeOnChange = false
 
-function renderElement(world: World, cursor: Vec3, element: BlockElement, doAO: boolean, attr: MesherGeometryOutput, globalMatrix: any, globalShift: any, block: Block, biome: string) {
+function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO: boolean, attr: MesherGeometryOutput, globalMatrix: any, globalShift: any, block: Block, biome: string) {
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
   // if (!globalThis.allowedBlocks.includes(key)) return
@@ -464,7 +464,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     // todo this can be removed here
     signs: {},
     // isFull: true,
-    highestBlocks: new Map<string, HighestBlockInfo>([]), 
+    highestBlocks: new Map<string, HighestBlockInfo>([]),
     hadErrors: false,
     blocksCount: 0
   }

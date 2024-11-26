@@ -52,6 +52,7 @@ export const contro = new ControMax({
       selectItem: ['KeyH'] // default will be removed
     },
     ui: {
+      toggleFullscreen: ['F11'],
       back: [null/* 'Escape' */, 'B'],
       toggleMap: ['KeyM'],
       leftClick: [null, 'A'],
@@ -420,6 +421,10 @@ contro.on('trigger', ({ command }) => {
   if (command === 'ui.pauseMenu') {
     showModal({ reactType: 'pause-screen' })
   }
+
+  if (command === 'ui.toggleFullscreen') {
+    void goFullscreen(true)
+  }
 })
 
 contro.on('release', ({ command }) => {
@@ -743,10 +748,6 @@ window.addEventListener('keydown', (e) => {
 
 // #region experimental debug things
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'F11') {
-    e.preventDefault()
-    void goFullscreen(true)
-  }
   if (e.code === 'KeyL' && e.altKey) {
     console.clear()
   }
