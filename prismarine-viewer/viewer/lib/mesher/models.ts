@@ -481,7 +481,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           }
         }
         if (INVISIBLE_BLOCKS.has(block.name)) continue
-        if (block.name.includes('_sign') || block.name === 'sign') {
+        if ((block.name.includes('_sign') || block.name === 'sign') && !world.config.disableSignsMapsSupport) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
           const facingRotationMap = {
