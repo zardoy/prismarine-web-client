@@ -96,6 +96,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
             this.loadChunkFullmap = this.loadChunkNoRegion
             console.log('[minimap] not using heightmap')
           }
+        }).catch(err => {
+          console.error(err)
+          this.isBuiltinHeightmapAvailable = false
+          this.loadChunkFullmap = this.loadChunkFromViewer
         })
       } else {
         this.isBuiltinHeightmapAvailable = false
@@ -586,30 +590,20 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
     console.log('Done!', chunks)
   }
 
-  const toggleFullMap = ({ command }: { command?: string }) => {
-    if (command === 'ui.toggleMap') {
-      if (activeModalStack.at(-1)?.reactType === 'full-map') {
-        hideModal({ reactType: 'full-map' })
-      } else {
-        showModal({ reactType: 'full-map' })
-      }
-    }
-  }
-
-  useEffect(() => {
-    if (displayMode !== 'fullmapOnly') return
-    contro?.on('trigger', toggleFullMap)
-    return () => {
-      contro?.off('trigger', toggleFullMap)
-    }
-  }, [])
-
   if (
     displayMode === 'minimapOnly'
       ? showMinimap === 'never' || (showMinimap === 'singleplayer' && !miscUiState.singleplayer)
       : !fullMapOpened
   ) {
     return null
+  }
+
+  const toggleFullMap = () => {
+    if (activeModalStack.at(-1)?.reactType === 'full-map') {
+      hideModal({ reactType: 'full-map' })
+    } else {
+      showModal({ reactType: 'full-map' })
+    }
   }
 
   return <Inner adapter={adapter} displayMode={displayMode} toggleFullMap={toggleFullMap} />

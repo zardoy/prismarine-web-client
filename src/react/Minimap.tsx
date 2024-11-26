@@ -106,7 +106,9 @@ export default (
     }
   }, [])
 
-  return fullMap && displayMode !== 'minimapOnly' && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
+  const displayFullmap = fullMap && displayMode !== 'minimapOnly' && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
+  const displayMini = displayMode !== 'fullmapOnly' && (showMinimap === 'singleplayer' && singleplayer || showMinimap === 'always')
+  return displayFullmap
     ? <Fullmap
       toggleFullMap={() => {
         toggleFullMap?.({ command: 'ui.toggleMap' })
@@ -115,7 +117,7 @@ export default (
       drawer={drawerRef.current}
       canvasRef={canvasRef}
     />
-    : displayMode !== 'fullmapOnly' && (showMinimap === 'singleplayer' && singleplayer || showMinimap === 'always')
+    : displayMini
       ? <div
         className='minimap'
         style={{

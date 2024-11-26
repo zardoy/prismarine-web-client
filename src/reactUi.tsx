@@ -28,7 +28,7 @@ import PauseScreen from './react/PauseScreen'
 import SoundMuffler from './react/SoundMuffler'
 import TouchControls from './react/TouchControls'
 import widgets from './react/widgets'
-import { useIsWidgetActive } from './react/utilsApp'
+import { useIsModalActive, useIsWidgetActive } from './react/utilsApp'
 import GlobalSearchInput from './react/GlobalSearchInput'
 import TouchAreasControlsProvider from './react/TouchAreasControlsProvider'
 import NotificationProvider, { showNotification } from './react/NotificationProvider'
@@ -102,9 +102,11 @@ const InGameComponent = ({ children }) => {
 
 const InGameUi = () => {
   const { gameLoaded, showUI: showUIRaw } = useSnapshot(miscUiState)
-  const { disabledUiParts, displayBossBars } = useSnapshot(options)
-  const hasModals = useSnapshot(activeModalStack).length > 0
+  const { disabledUiParts, displayBossBars, showMinimap } = useSnapshot(options)
+  const modalsSnapshot = useSnapshot(activeModalStack)
+  const hasModals = modalsSnapshot.length > 0
   const showUI = showUIRaw || hasModals
+  const displayFullmap = modalsSnapshot.some(modal => modal.reactType === 'full-map')
   if (!gameLoaded || !bot || disabledUiParts.includes('*')) return
 
   return <>
@@ -117,7 +119,7 @@ const InGameUi = () => {
         {!disabledUiParts.includes('players-list') && <PlayerListOverlayProvider />}
         {!disabledUiParts.includes('chat') && <ChatProvider />}
         <SoundMuffler />
-        <MinimapProvider displayMode='minimapOnly' />
+        {showMinimap !== 'never' && <MinimapProvider displayMode='minimapOnly' />}
         {!disabledUiParts.includes('title') && <TitleProvider />}
         {!disabledUiParts.includes('scoreboard') && <ScoreboardProvider />}
         {!disabledUiParts.includes('effects-indicators') && <IndicatorEffectsProvider />}
@@ -139,7 +141,7 @@ const InGameUi = () => {
       <DisplayQr />
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
-      <MinimapProvider displayMode='fullmapOnly' />
+      {displayFullmap && <MinimapProvider displayMode='fullmapOnly' />}
       {/* because of z-index */}
       {showUI && <TouchControls />}
       <GlobalSearchInput />
