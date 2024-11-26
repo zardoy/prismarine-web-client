@@ -55,7 +55,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   regions = new Map<string, RegionFile>()
   chunksHeightmaps: Record<string, any> = {}
   loadChunk: (key: string) => Promise<void>
-  loadChunkFullmap: (key: string) => Promise<ChunkInfo | null | undefined>
+  loadChunkFullmap: ((key: string) => Promise<ChunkInfo | null | undefined>) | undefined
   _full: boolean
   isBuiltinHeightmapAvailable = false
 
@@ -76,26 +76,31 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const regionX = Math.floor(chunkX / 32)
       const regionZ = Math.floor(chunkZ / 32)
       const regionKey = `${regionX},${regionZ}`
-      const { worldFolder } = localServer.options
-      const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
-      const region = new RegionFile(path)
-      void region.initialize()
-      this.regions.set(regionKey, region)
-      const readX = chunkX % 32
-      const readZ = chunkZ % 32
-      void this.regions.get(regionKey)!.read(readX, readZ).then((rawChunk) => {
-        const chunk = simplify(rawChunk as any)
-        const heightmap = findHeightMap(chunk)
-        if (heightmap) {
-          this.isBuiltinHeightmapAvailable = true
-          this.loadChunkFullmap = this.loadChunkFromRegion
-          console.log('using heightmap')
-        } else {
-          this.isBuiltinHeightmapAvailable = false
-          this.loadChunkFullmap = this.loadChunkNoRegion
-          console.log('dont use heightmap')
-        }
-      })
+      const worldFolder = this.getSingleplayerRootPath()
+      if (worldFolder && options.minimapOptimizations) {
+        const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
+        const region = new RegionFile(path)
+        void region.initialize()
+        this.regions.set(regionKey, region)
+        const readX = chunkX % 32
+        const readZ = chunkZ % 32
+        void this.regions.get(regionKey)!.read(readX, readZ).then((rawChunk) => {
+          const chunk = simplify(rawChunk as any)
+          const heightmap = findHeightMap(chunk)
+          if (heightmap) {
+            this.isBuiltinHeightmapAvailable = true
+            this.loadChunkFullmap = this.loadChunkFromRegion
+            console.log('using heightmap')
+          } else {
+            this.isBuiltinHeightmapAvailable = false
+            this.loadChunkFullmap = this.loadChunkNoRegion
+            console.log('[minimap] not using heightmap')
+          }
+        })
+      } else {
+        this.isBuiltinHeightmapAvailable = false
+        this.loadChunkFullmap = this.loadChunkFromViewer
+      }
     } else {
       this.isBuiltinHeightmapAvailable = false
       this.loadChunkFullmap = this.loadChunkFromViewer
@@ -292,12 +297,17 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return chunk
   }
 
+  getSingleplayerRootPath (): string | undefined {
+    return localServer!.options.worldFolder
+  }
+
   async getChunkHeightMapFromRegion (chunkX: number, chunkZ: number, cb?: (hm: number[]) => void) {
     const regionX = Math.floor(chunkX / 32)
     const regionZ = Math.floor(chunkZ / 32)
     const regionKey = `${regionX},${regionZ}`
     if (!this.regions.has(regionKey)) {
-      const { worldFolder } = localServer!.options
+      const worldFolder = this.getSingleplayerRootPath()
+      if (!worldFolder) return
       const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
       const region = new RegionFile(path)
       await region.initialize()
@@ -452,7 +462,25 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   async drawChunkOnCanvas (key: string, canvas: HTMLCanvasElement) {
-    console.log('chunk', key, 'on canvas')
+    // console.log('chunk', key, 'on canvas')
+    if (!this.loadChunkFullmap) {
+      // wait for it to be available
+      await new Promise(resolve => {
+        const interval = setInterval(() => {
+          if (this.loadChunkFullmap) {
+            clearInterval(interval)
+            resolve(undefined)
+          }
+        }, 100)
+        setTimeout(() => {
+          clearInterval(interval)
+          resolve(undefined)
+        }, 10_000)
+      })
+      if (!this.loadChunkFullmap) {
+        throw new Error('loadChunkFullmap not available')
+      }
+    }
     const chunk = await this.loadChunkFullmap(key)
     const [worldX, worldZ] = key.split(',').map(x => Number(x) * 16)
     const center = new Vec3(worldX + 8, 0, worldZ + 8)
