@@ -52,6 +52,7 @@ export const contro = new ControMax({
       selectItem: ['KeyH'] // default will be removed
     },
     ui: {
+      toggleFullscreen: ['F11'],
       back: [null/* 'Escape' */, 'B'],
       leftClick: [null, 'A'],
       rightClick: [null, 'Y'],
@@ -156,6 +157,7 @@ let lastCommandTrigger = null as { command: string, time: number } | null
 const secondActionActivationTimeout = 300
 const secondActionCommands = {
   'general.jump' () {
+    // if (bot.game.gameMode === 'spectator') return
     toggleFly()
   },
   'general.forward' () {
@@ -418,6 +420,10 @@ contro.on('trigger', ({ command }) => {
   if (command === 'ui.pauseMenu') {
     showModal({ reactType: 'pause-screen' })
   }
+
+  if (command === 'ui.toggleFullscreen') {
+    void goFullscreen(true)
+  }
 })
 
 contro.on('release', ({ command }) => {
@@ -641,6 +647,7 @@ const endFlying = (sendAbilities = true) => {
 let allowFlying = false
 
 export const onBotCreate = () => {
+  let wasSpectatorFlying = false
   bot._client.on('abilities', ({ flags }) => {
     if (flags & 2) { // flying
       toggleFly(true, false)
@@ -648,6 +655,21 @@ export const onBotCreate = () => {
       toggleFly(false, false)
     }
     allowFlying = !!(flags & 4)
+  })
+  const gamemodeCheck = () => {
+    if (bot.game.gameMode === 'spectator') {
+      toggleFly(true, false)
+      wasSpectatorFlying = true
+    } else if (wasSpectatorFlying) {
+      toggleFly(false, false)
+      wasSpectatorFlying = false
+    }
+  }
+  bot.on('game', () => {
+    gamemodeCheck()
+  })
+  bot.on('login', () => {
+    gamemodeCheck()
   })
 }
 
@@ -729,10 +751,6 @@ window.addEventListener('keydown', (e) => {
 
 // #region experimental debug things
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'F11') {
-    e.preventDefault()
-    void goFullscreen(true)
-  }
   if (e.code === 'KeyL' && e.altKey) {
     console.clear()
   }

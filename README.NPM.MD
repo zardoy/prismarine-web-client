@@ -6,7 +6,7 @@ Minecraft UI components for React extracted from [mcraft.fun](https://mcraft.fun
 pnpm i minecraft-react
 ```
 
-![demo](https://github-production-user-asset-6210df.s3.amazonaws.com/46503702/346295584-80f3ed4a-cab6-45d2-8896-5e20233cc9b1.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20240706%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20240706T195400Z&X-Amz-Expires=300&X-Amz-Signature=5b063823a57057c4042c15edd1db3edd107e00940fd0e66a2ba1df4e564a2809&X-Amz-SignedHeaders=host&actor_id=46503702&key_id=0&repo_id=432411890)
+![demo](./docs-assets/npm-banner.jpeg)
 
 ## Usage
 

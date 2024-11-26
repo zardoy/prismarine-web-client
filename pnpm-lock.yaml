@@ -122,8 +122,8 @@ importers:
         specifier: ^10.0.12
         version: 10.0.12
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.45
-        version: '@zardoy/flying-squid@0.0.45(encoding@0.1.13)'
+        specifier: npm:@zardoy/flying-squid@^0.0.49
+        version: '@zardoy/flying-squid@0.0.49(encoding@0.1.13)'
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -150,7 +150,7 @@ importers:
         version: 2.0.4
       net-browserify:
         specifier: github:zardoy/prismarinejs-net-browserify
-        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/d3f7f77d8ac751bc171173bba639086c931a62f7
+        version: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/ab3721ca833308a0be099d14ea0053fbd8459ace
       node-gzip:
         specifier: ^1.1.2
         version: 1.1.2
@@ -356,7 +356,7 @@ importers:
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/75e940a4cd50d89e0ba03db3733d5d704917a3c8(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
-        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/519acba455d3387414b81fcaa12e550dcdc4f88e(encoding@0.1.13)
+        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/ece6755d94931116924874d9f55bc024998cc1ae(encoding@0.1.13)
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -3403,8 +3403,8 @@ packages:
     resolution: {integrity: sha512-6xm38yGVIa6mKm/DUCF2zFFJhERh/QWp1ufm4cNUvxsONBmfPg8uZ9pZBdOmF6qFGr/HlT6ABBkCSx/dlEtvWg==}
     engines: {node: '>=12 <14 || 14.2 - 14.9 || >14.10.0'}
 
-  '@zardoy/flying-squid@0.0.45':
-    resolution: {integrity: sha512-cXCcc1t/6pIevBHRRSwTHhL/dldjGPTYmPwyxsANcrf5PWVDG8hlcIbsz0S0Qf4P0OZjJiQi2I9PahGaWtxPgg==}
+  '@zardoy/flying-squid@0.0.49':
+    resolution: {integrity: sha512-Kt4wr5/R+44tcLU9gjuNG2an9weWeKEpIoKXfsgJN2GGQqdnbd5nBpxfGDdgZ9aMdFugsVW8BsyPZNhj9vbMXA==}
     engines: {node: '>=8'}
     hasBin: true
 
@@ -4877,10 +4877,6 @@ packages:
     resolution: {integrity: sha512-UlJ1qUUA2jL2nNib1JTSkifQTcYTroFqRjwCFW4QYEKEsixXD5Tik9xML7zh2gTxkYTBKGHNH9y7txMwVyPbjw==}
     engines: {node: '>=12'}
     hasBin: true
-
-  escalade@3.1.1:
-    resolution: {integrity: sha512-k0er2gUkLf8O0zKJiAhmkTnJlTvINGv7ygDNPbeIsX/TJjGJZHuh9B2UxbsaEkmlEo9MfhrSzmhIlhRlI2GXnw==}
-    engines: {node: '>=6'}
 
   escalade@3.1.2:
     resolution: {integrity: sha512-ErCHMCae19vR8vQGe50xIsVomy19rg6gFu3+r3jkEO46suLMWBksvVyoGgQV+jOfl84ZSOSlmv6Gxa89PmTGmA==}
@@ -6811,8 +6807,8 @@ packages:
     resolution: {integrity: sha512-wSchhS59hK+oPs8tFg847H82YEvxU7zYKdDKj4e5FVo3CxJ74eXJVT+JcFwEvoqFO7kXiQlhJITxEvO13GOSKA==}
     engines: {node: '>=18'}
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/519acba455d3387414b81fcaa12e550dcdc4f88e:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/519acba455d3387414b81fcaa12e550dcdc4f88e}
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/ece6755d94931116924874d9f55bc024998cc1ae:
+    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/ece6755d94931116924874d9f55bc024998cc1ae}
     version: 4.23.0
     engines: {node: '>=18'}
 
@@ -6977,8 +6973,8 @@ packages:
   neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/d3f7f77d8ac751bc171173bba639086c931a62f7:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/d3f7f77d8ac751bc171173bba639086c931a62f7}
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/ab3721ca833308a0be099d14ea0053fbd8459ace:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/ab3721ca833308a0be099d14ea0053fbd8459ace}
     version: 0.2.4
 
   nice-try@1.0.5:
@@ -13150,7 +13146,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 6.1.0(typescript@5.5.4)
       '@typescript-eslint/utils': 6.1.0(eslint@8.50.0)(typescript@5.5.4)
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
       eslint: 8.50.0
       ts-api-utils: 1.0.3(typescript@5.5.4)
     optionalDependencies:
@@ -13182,7 +13178,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 6.7.3
       '@typescript-eslint/visitor-keys': 6.7.3
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.6.0
@@ -13432,7 +13428,7 @@ snapshots:
       '@types/emscripten': 1.39.8
       tslib: 1.14.1
 
-  '@zardoy/flying-squid@0.0.45(encoding@0.1.13)':
+  '@zardoy/flying-squid@0.0.49(encoding@0.1.13)':
     dependencies:
       '@tootallnate/once': 2.0.0
       chalk: 5.3.0
@@ -15430,8 +15426,6 @@ snapshots:
       '@esbuild/win32-arm64': 0.19.3
       '@esbuild/win32-ia32': 0.19.3
       '@esbuild/win32-x64': 0.19.3
-
-  escalade@3.1.1: {}
 
   escalade@3.1.2: {}
 
@@ -17840,7 +17834,7 @@ snapshots:
       - encoding
       - supports-color
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/519acba455d3387414b81fcaa12e550dcdc4f88e(encoding@0.1.13):
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/ece6755d94931116924874d9f55bc024998cc1ae(encoding@0.1.13):
     dependencies:
       minecraft-data: 3.78.0
       minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/590dc33fed2100e77ef58e7db716dfc45eb61159(patch_hash=7sh5krubuk2vjuogjioaktvwzi)(encoding@0.1.13)
@@ -18041,7 +18035,7 @@ snapshots:
 
   neo-async@2.6.2: {}
 
-  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/d3f7f77d8ac751bc171173bba639086c931a62f7:
+  net-browserify@https://codeload.github.com/zardoy/prismarinejs-net-browserify/tar.gz/ab3721ca833308a0be099d14ea0053fbd8459ace:
     dependencies:
       body-parser: 1.20.2
       express: 4.18.2
@@ -20713,7 +20707,7 @@ snapshots:
   update-browserslist-db@1.0.11(browserslist@4.21.10):
     dependencies:
       browserslist: 4.21.10
-      escalade: 3.1.1
+      escalade: 3.1.2
       picocolors: 1.0.1
 
   update-browserslist-db@1.1.0(browserslist@4.23.2):
@@ -21325,7 +21319,7 @@ snapshots:
   yargs@16.2.0:
     dependencies:
       cliui: 7.0.4
-      escalade: 3.1.1
+      escalade: 3.1.2
       get-caller-file: 2.0.5
       require-directory: 2.1.1
       string-width: 4.2.3

@@ -198,7 +198,8 @@
         "no-async-promise-executor": "off",
         "no-bitwise": "off",
         "unicorn/filename-case": "off",
-        "max-depth": "off"
+        "max-depth": "off",
+        "unicorn/no-typeof-undefined": "off"
     },
     "overrides": [
         {

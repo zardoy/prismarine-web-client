@@ -52,6 +52,9 @@ const defaultOptions = {
 
   // antiAliasing: false,
 
+  clipWorldBelowY: undefined as undefined | number, // will be removed
+  disableSignsMapsSupport: false,
+  singleplayerAutoSave: false,
   showChunkBorders: false, // todo rename option
   frameLimit: false as number | false,
   alwaysBackupWorldBeforeLoading: undefined as boolean | undefined | null,
@@ -157,7 +160,7 @@ subscribe(options, () => {
   localStorage.options = JSON.stringify(saveOptions)
 })
 
-type WatchValue = <T extends Record<string, any>>(proxy: T, callback: (p: T) => void) => void
+type WatchValue = <T extends Record<string, any>>(proxy: T, callback: (p: T, isChanged: boolean) => void) => void
 
 export const watchValue: WatchValue = (proxy, callback) => {
   const watchedProps = new Set<string>()
@@ -166,10 +169,10 @@ export const watchValue: WatchValue = (proxy, callback) => {
       watchedProps.add(p.toString())
       return Reflect.get(target, p, receiver)
     },
-  }))
+  }), false)
   for (const prop of watchedProps) {
     subscribeKey(proxy, prop, () => {
-      callback(proxy)
+      callback(proxy, true)
     })
   }
 }
