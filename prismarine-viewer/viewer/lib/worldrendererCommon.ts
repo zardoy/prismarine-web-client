@@ -14,10 +14,9 @@ import TypedEmitter from 'typed-emitter'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
-import { defaultMesherConfig } from './mesher/shared'
+import { defaultMesherConfig, HighestBlockInfo, MesherGeometryOutput } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
-import { HighestBlockInfo, MesherGeometryOutput} from './mesher/shared'
 import { updateStatText } from './ui/newStats'
 
 function mod (x, n) {
