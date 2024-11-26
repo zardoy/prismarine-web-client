@@ -130,11 +130,11 @@ export class World {
       const b = column.getBlock(locInChunk) as unknown as WorldBlock
       b.isCube = isCube(b.shapes)
       this.blockCache[stateId] = b
-      // Object.defineProperty(b, 'position', {
-      //   get () {
-      //     throw new Error('position is not reliable, use pos parameter instead of block.position')
-      //   }
-      // })
+      Object.defineProperty(b, 'position', {
+        get () {
+          throw new Error('position is not reliable, use pos parameter instead of block.position')
+        }
+      })
       if (this.preflat) {
         b._properties = {}
 

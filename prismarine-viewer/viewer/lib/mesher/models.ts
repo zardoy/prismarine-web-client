@@ -473,7 +473,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   for (cursor.y = sy; cursor.y < sy + 16; cursor.y++) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
-        let block = world.getBlock(cursor)!
+        let block = world.getBlock(cursor, blockProvider, attr)!
         if (!INVISIBLE_BLOCKS.has(block.name)) {
           const highest = attr.highestBlocks.get(`${cursor.x},${cursor.z}`)
           if (!highest || highest.y < cursor.y) {
