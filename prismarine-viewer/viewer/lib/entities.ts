@@ -22,20 +22,39 @@ export const TWEEN_DURATION = 120
 
 type PlayerObjectType = PlayerObject & { animation?: PlayerAnimation }
 
-function toRgba (color?: string) {
-  if (!color || parseInt(color, 10) === 0) {
+function convert2sComplementToHex (complement: number) {
+  if (complement < 0) {
+    complement = (0xFF_FF_FF_FF + complement + 1) >>> 0
+  }
+  return complement.toString(16)
+}
+
+function toRgba (color: string | undefined) {
+  if (color === undefined) {
+    return undefined
+  }
+  if (parseInt(color, 10) === 0) {
     return 'rgba(0, 0, 0, 0)'
   }
-  const hex = parseInt(color, 10).toString(16)
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  if (hex.length === 9) {
-    const a = parseInt(hex.slice(7, 9), 16) / 255
-    return `rgba(${r}, ${g}, ${b}, ${a})`
+  const hex = convert2sComplementToHex(parseInt(color, 10))
+  if (hex.length === 8) {
+    return `#${hex.slice(2, 8)}${hex.slice(0, 2)}`
   } else {
-    return `rgb(${r}, ${g}, ${b})`
+    return `#${hex}`
   }
+}
+
+function toQuaternion (quaternion: any, defaultValue?: THREE.Quaternion) {
+  if (quaternion === undefined) {
+    return defaultValue
+  }
+  if (quaternion instanceof THREE.Quaternion) {
+    return quaternion
+  }
+  if (Array.isArray(quaternion)) {
+    return new THREE.Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3])
+  }
+  return new THREE.Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
 }
 
 function getUsernameTexture ({
@@ -47,7 +66,7 @@ function getUsernameTexture ({
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2d context')
 
-  const fontSize = 50
+  const fontSize = 48
   const padding = 5
   ctx.font = `${fontSize}px ${fontFamily}`
 
@@ -60,7 +79,7 @@ function getUsernameTexture ({
   }
 
   canvas.width = textWidth
-  canvas.height = (fontSize + padding * 2) * lines.length
+  canvas.height = (fontSize + padding) * lines.length
 
   ctx.fillStyle = nameTagBackgroundColor
   ctx.fillRect(0, 0, canvas.width, canvas.height)
@@ -70,7 +89,7 @@ function getUsernameTexture ({
   let i = 0
   for (const line of lines) {
     i++
-    ctx.fillText(line, padding + (textWidth - ctx.measureText(line).width) / 2, fontSize * i)
+    ctx.fillText(line, (textWidth - ctx.measureText(line).width) / 2, -padding + fontSize * i)
   }
 
   return canvas
@@ -82,14 +101,36 @@ const addNametag = (entity, options, mesh) => {
     const canvas = getUsernameTexture(entity, options)
     const tex = new THREE.Texture(canvas)
     tex.needsUpdate = true
-    const spriteMat = new THREE.SpriteMaterial({ map: tex })
-    const sprite = new THREE.Sprite(spriteMat)
-    sprite.renderOrder = 1000
-    sprite.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
-    sprite.position.y += entity.height + 0.6
-    sprite.name = 'nametag'
+    let nameTag
+    if (entity.nameTagFixed) {
+      const geometry = new THREE.PlaneGeometry()
+      const material = new THREE.MeshBasicMaterial({ map: tex })
+      material.transparent = true
+      nameTag = new THREE.Mesh(geometry, material)
+      nameTag.rotation.set(entity.pitch, THREE.MathUtils.degToRad(entity.yaw + 180), 0)
+      nameTag.position.y += entity.height + 0.3
+    } else {
+      const spriteMat = new THREE.SpriteMaterial({ map: tex })
+      nameTag = new THREE.Sprite(spriteMat)
+      nameTag.position.y += entity.height + 0.6
+    }
+    nameTag.renderOrder = 1000
+    nameTag.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
+    if (entity.nameTagRotationRight) {
+      nameTag.applyQuaternion(entity.nameTagRotationRight)
+    }
+    if (entity.nameTagScale) {
+      nameTag.scale.multiply(entity.nameTagScale)
+    }
+    if (entity.nameTagRotationLeft) {
+      nameTag.applyQuaternion(entity.nameTagRotationLeft)
+    }
+    if (entity.nameTagTranslation) {
+      nameTag.position.add(entity.nameTagTranslation)
+    }
+    nameTag.name = 'nametag'
 
-    mesh.add(sprite)
+    mesh.add(nameTag)
   }
 }
 
@@ -494,6 +535,7 @@ export class Entities extends EventEmitter {
     const displayTextRaw = textDisplayMeta?.text || meta.custom_name_visible && meta.custom_name
     const displayText = this.parseEntityLabel(displayTextRaw)
     if (entity.name !== 'player' && displayText) {
+      const nameTagFixed = textDisplayMeta && (textDisplayMeta.billboard_render_constraints === 'fixed' || !textDisplayMeta.billboard_render_constraints)
       const nameTagBackgroundColor = textDisplayMeta && toRgba(textDisplayMeta.background_color)
       let nameTagTextOpacity: any
       if (textDisplayMeta?.text_opacity) {
@@ -501,7 +543,9 @@ export class Entities extends EventEmitter {
         nameTagTextOpacity = rawOpacity > 0 ? rawOpacity : 256 - rawOpacity
       }
       addNametag(
-        { ...entity, username: displayText, nameTagBackgroundColor, nameTagTextOpacity },
+        { ...entity, username: displayText, nameTagBackgroundColor, nameTagTextOpacity, nameTagFixed,
+          nameTagScale: textDisplayMeta?.scale, nameTagTranslation: textDisplayMeta && (textDisplayMeta.translation || new THREE.Vector3(0, 0, 0)),
+          nameTagRotationLeft: toQuaternion(textDisplayMeta?.left_rotation), nameTagRotationRight: toQuaternion(textDisplayMeta?.right_rotation) },
         this.entitiesOptions,
         this.entities[entity.id].children.find(c => c.name === 'mesh')
       )
