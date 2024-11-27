@@ -384,7 +384,7 @@ export class WebgpuRenderer {
       entries: [
         {
           binding: 0,
-          resource: 
+          resource:
           {
             buffer: this.cameraUniform,
           },
@@ -578,17 +578,30 @@ export class WebgpuRenderer {
     const startOffset = this.waitingNextUpdateSidesOffset
     console.time('updateSides')
     const positions = [] as number[]
-    const textureIndexes = [] as number[]
+    const allBlockSides = [] as number[][]
+    const textureIndexes = [] as number[][]
+    const textureIndexesOld = [] as number[]
     const colors = [] as number[]
     const { allSides, chunkSides } = chunksStorage.getDataForBuffers()
     for (const sides of allSides) {
       for (const side of sides) {
         if (!side) continue
-        const [x, y, z] = side
+        const faces = side[3]
+        const firstFace = faces[0]
+        if (!firstFace) continue
+        const [x, y, z, block] = side
         positions.push(x, y, z)
-        const face = side[3]
-        textureIndexes.push(face.textureIndex)
-        const tint = face.tint ?? [1, 1, 1]
+        const localSides = [] as number[]
+        const localTextureIndexes = [] as number[]
+        for (const face of faces) {
+          localSides.push(face.side)
+          localTextureIndexes.push(face.textureIndex)
+        }
+        allBlockSides.push(localSides)
+        textureIndexes.push(localTextureIndexes)
+        textureIndexesOld.push(firstFace.textureIndex)
+
+        const tint = firstFace.tint ?? [1, 1, 1]
         colors.push(...tint.map(x => x * 255))
       }
     }
@@ -610,7 +623,7 @@ export class WebgpuRenderer {
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 3)
     for (let i = 0; i < actualCount; i++) {
       const offset = i * 3
-      const first = (((textureIndexes[i] << 4) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
+      const first = (((textureIndexesOld[i] << 4) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
       //const first = (textureIndexes[i] << 17) | (positions[i * 3 + 2] << 13) | (positions[i * 3 + 1] << 4) | positions[i * 3]
       const second = ((colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
       cubeFlatData[offset] = first
@@ -714,7 +727,7 @@ export class WebgpuRenderer {
     this.camera.updateProjectionMatrix();
     let oversize = 1.35;
 
-    
+
     this.camera.updateMatrix()
     const { projectionMatrix, matrix } = this.camera
     let ViewProjectionMat4 = new THREE.Matrix4()
