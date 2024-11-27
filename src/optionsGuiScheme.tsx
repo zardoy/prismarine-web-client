@@ -252,6 +252,19 @@ export const guiOptionsScheme: {
     },
     {
       custom () {
+        return <Category>Map</Category>
+      },
+      showMinimap: {
+        text: 'Enable Minimap',
+        values: [
+          'always',
+          'singleplayer',
+          'never'
+        ],
+      },
+    },
+    {
+      custom () {
         return <Category>Experimental</Category>
       },
       displayBossBars: {
