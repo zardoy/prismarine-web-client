@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react'
 
 import { useEffect, useState } from 'react'
-import { formatMessage } from '../botUtils'
+import { formatMessage } from '../chatUtils'
 import Chat, { fadeMessage, chatInputValueGlobal } from './Chat'
 import Button from './Button'
 
@@ -73,17 +73,20 @@ const meta: Meta<typeof Chat> = {
 
     return <div style={{
       marginTop: args.usingTouch ? 100 : 0
-    }}>
+    }}
+    >
       <div style={{ fontSize: 6, userSelect: 'auto', color: 'gray' }}>Hint: you can capture needed message with <code>bot.on('message', console.log)</code>, copy object, and assign it here to <code>window.spamMessage</code> variable (but ensure the correct frame window is selected in devtools)</div>
-      <Chat {...args} opened={open} messages={messages} onClose={() => setOpen(false)} fetchCompletionItems={async (triggerType, value) => {
-        console.log('fetchCompletionItems')
-        await new Promise(resolve => {
-          setTimeout(resolve, 0)
-        })
-        let items = ['test', ...Array.from({ length: 50 }).map((_, i) => `minecraft:hello${i}`)]
-        if (value === '/') items = items.map(item => `/${item}`)
-        return items
-      }} />
+      <Chat
+        {...args} opened={open} messages={messages} onClose={() => setOpen(false)} fetchCompletionItems={async (triggerType, value) => {
+          console.log('fetchCompletionItems')
+          await new Promise(resolve => {
+            setTimeout(resolve, 0)
+          })
+          let items = ['test', ...Array.from({ length: 50 }).map((_, i) => `minecraft:hello${i}`)]
+          if (value === '/') items = items.map(item => `/${item}`)
+          return items
+        }}
+      />
       <Button onClick={() => setOpen(s => !s)}>Open: {open ? 'on' : 'off'}</Button>
       <Button onClick={() => fadeMessages()}>Fade</Button>
       <Button onClick={() => setAutoSpam(s => !s)}>Auto Spam: {autoSpam ? 'on' : 'off'}</Button>

@@ -7,7 +7,7 @@ const meta: Meta<typeof Scoreboard> = {
 }
 
 export default meta
-type Story = StoryObj<typeof Scoreboard>;
+type Story = StoryObj<typeof Scoreboard>
 
 export const Primary: Story = {
   args: {

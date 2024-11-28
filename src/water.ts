@@ -1,3 +1,4 @@
+import * as THREE from 'three'
 import { watchUnloadForCleanup } from './gameUnload'
 
 let inWater = false

@@ -9,7 +9,7 @@ const endExitStyle = { opacity: 0, transform: 'translateZ(150px)' }
 const endStyle = { opacity: 1, transform: 'translateZ(0)' }
 
 const stateStyles = {
-  entering: startStyle,
+  entering: endStyle,
   entered: endStyle,
   exiting: endExitStyle,
   exited: endExitStyle,
@@ -25,6 +25,15 @@ export default ({ children, open }) => {
   useEffect(() => {
     if (!mounted && open) {
       setMounted(true)
+    }
+    let timeout
+    if (mounted && !open) {
+      timeout = setTimeout(() => {
+        setMounted(false)
+      }, duration)
+    }
+    return () => {
+      if (timeout) clearTimeout(timeout)
     }
   }, [open])
 
@@ -43,5 +52,4 @@ export default ({ children, open }) => {
       </div>
     }}
   </Transition>
-
 }

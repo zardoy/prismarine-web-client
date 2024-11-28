@@ -1,5 +1,5 @@
 import './deathScreen.css'
-import type { MessageFormatPart } from '../botUtils'
+import type { MessageFormatPart } from '../chatUtils'
 import MessageFormatted from './MessageFormatted'
 import Button from './Button'
 
@@ -18,12 +18,16 @@ export default ({ dieReasonMessage, respawnCallback, disconnectCallback }: Props
           <MessageFormatted parts={dieReasonMessage} />
         </h5>
         <div className='deathScreen-buttons-grouped'>
-          <Button label="Respawn" onClick={() => {
-            respawnCallback()
-          }} />
-          <Button label="Disconnnect" onClick={() => {
-            disconnectCallback()
-          }} />
+          <Button
+            label="Respawn" onClick={() => {
+              respawnCallback()
+            }}
+          />
+          <Button
+            label="Disconnnect" onClick={() => {
+              disconnectCallback()
+            }}
+          />
         </div>
       </div>
     </div>

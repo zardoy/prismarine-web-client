@@ -1,7 +1,8 @@
-name: Deploy to GitHub pages
+name: Release
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  MAIN_MENU_LINKS: ${{ vars.MAIN_MENU_LINKS }}
 on:
   push:
     branches: [release]
@@ -17,11 +18,19 @@ jobs:
       # - run: pnpm install
       # - run: pnpm build
       - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - run: node scripts/replaceFavicon.mjs ${{ secrets.FAVICON_MAIN }}
       # will install + build to .vercel/output/static
+      - name: Get Release Info
+        run: pnpx zardoy-release empty --skip-github --output-file assets/release.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - run: vercel build --token=${{ secrets.VERCEL_TOKEN }} --prod
       - run: pnpm build-storybook
       - name: Copy playground files
-        run: node prismarine-viewer/esbuild.mjs && cp prismarine-viewer/public/index.html .vercel/output/static/playground.html && cp prismarine-viewer/public/playground.js .vercel/output/static/playground.js
+        run: |
+          mkdir -p .vercel/output/static/playground
+          pnpm build-playground
+          cp -r prismarine-viewer/dist/* .vercel/output/static/playground/
       - name: Download Generated Sounds map
         run: node scripts/downloadSoundsMap.mjs
       - name: Deploy Project to Vercel
@@ -42,6 +51,10 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: .vercel/output/static
           force_orphan: true
+      - name: Set publishing config
+        run: pnpm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: pnpm tsx scripts/buildNpmReact.ts ${{ steps.release.outputs.tag }}
         if: steps.release.outputs.tag
         env:

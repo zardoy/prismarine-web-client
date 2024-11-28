@@ -16390,6 +16390,10 @@
     },
     "render_controllers": ["controller.render.strider"]
   },
+  "text_display": {
+    "identifier": "minecraft:text_display",
+    "geometry": {}
+  },
   "trident": {
     "identifier": "minecraft:thrown_trident",
     "textures": {

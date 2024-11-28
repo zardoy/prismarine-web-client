@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react'
 import { inGameError } from '../utils'
 import { fsState } from '../loadSave'
 import { miscUiState } from '../globalState'
+import { options } from '../optionsStorage'
 import IndicatorEffects, { EffectType, defaultIndicatorsState } from './IndicatorEffects'
 import { images } from './effectsImages'
 
@@ -52,6 +53,7 @@ const getEffectIndex = (newEffect: EffectType) => {
 export default () => {
   const stateIndicators = useSnapshot(state.indicators)
   const { hasErrors } = useSnapshot(miscUiState)
+  const { disabledUiParts } = useSnapshot(options)
   const { isReadonly, openReadOperations, openWriteOperations } = useSnapshot(fsState)
   const allIndicators: typeof defaultIndicatorsState = {
     readonlyFiles: isReadonly,

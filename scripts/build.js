@@ -5,18 +5,15 @@ const glob = require('glob')
 const fs = require('fs')
 const crypto = require('crypto')
 const path = require('path')
-const McAssets = require('minecraft-assets')
 
 const prismarineViewerBase = "./node_modules/prismarine-viewer"
-const entityMcAssets = McAssets('1.16.4')
 
 // these files could be copied at build time eg with copy plugin, but copy plugin slows down the config so we copy them there, alternative we could inline it in esbuild config
 const filesToCopy = [
-    { from: `${prismarineViewerBase}/public/blocksStates/`, to: 'dist/blocksStates/' },
     { from: `${prismarineViewerBase}/public/mesher.js`, to: 'dist/mesher.js' },
     { from: './assets/', to: './dist/' },
     { from: './config.json', to: 'dist/config.json' },
-    { from: path.join(entityMcAssets.directory, 'entity'), to: 'dist/textures/1.16.4/entity' },
+    // { from: path.join(entityMcAssets.directory, 'entity'), to: 'dist/textures/1.16.4/entity' },
 ]
 exports.filesToCopy = filesToCopy
 exports.copyFiles = (dev = false) => {
@@ -46,29 +43,23 @@ exports.copyFilesDev = () => {
 
 exports.getSwAdditionalEntries = () => {
     // need to be careful with this
-    const singlePlayerVersion = defaultLocalServerOptions.version
     const filesToCachePatterns = [
         'index.html',
-        'index.js',
-        'index.css',
-        'favicon.ico',
-        `mc-data/${defaultLocalServerOptions.versionMajor}.js`,
-        `blocksStates/${singlePlayerVersion}.json`,
-        'extra-textures/**',
+        'background/**',
         // todo-low copy from assets
         '*.mp3',
         '*.ttf',
         '*.png',
         '*.woff',
         'mesher.js',
+        'manifest.json',
         'worldSaveWorker.js',
-        // todo-low preload entity atlas?
-        `textures/${singlePlayerVersion}.png`,
-        `textures/1.16.4/entity/squid.png`,
+        `textures/entity/squid/squid.png`,
+        // everything but not .map
+        'static/**/!(*.map)',
     ]
     const filesNeedsCacheKey = [
-        'index.js',
-        'index.css',
+        'index.html',
         'mesher.js',
         'worldSaveWorker.js',
     ]
@@ -89,6 +80,9 @@ exports.getSwAdditionalEntries = () => {
             output.push({ url, revision })
         }
     }
+    if (output.length > 40) {
+        throw new Error(`SW: Ios has a limit of 40 urls to cache (now ${output.length})`)
+    }
     console.log(`Got ${output.length} additional sw entries to cache`)
     return output
 }
@@ -96,6 +90,16 @@ exports.getSwAdditionalEntries = () => {
 exports.moveStorybookFiles = () => {
     fsExtra.moveSync('storybook-static', 'dist/storybook', { overwrite: true, })
     fsExtra.copySync('dist/storybook', '.vercel/output/static/storybook')
+}
+
+exports.getSwFilesSize = () => {
+    const files = exports.getSwAdditionalEntries()
+    let size = 0
+    for (const { url } of files) {
+        const file = path.join(__dirname, '../dist', url)
+        size += fs.statSync(file).size
+    }
+    console.log('mb', size / 1024 / 1024)
 }
 
 const fn = require.main === module && exports[process.argv[2]]

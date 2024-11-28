@@ -6,6 +6,7 @@ import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
 import { miscUiState } from './globalState'
+import { toggleStatsVisibility } from './topRightStats'
 
 subscribeKey(options, 'renderDistance', reloadChunks)
 subscribeKey(options, 'multiplayerRenderDistance', reloadChunks)
@@ -44,8 +45,28 @@ export const watchOptionsAfterViewerInit = () => {
     viewer.entities.setRendering(o.renderEntities)
   })
 
-  // viewer.world.mesherConfig.smoothLighting = options.smoothLighting
-  viewer.world.mesherConfig.smoothLighting = false // todo not supported for now
+  if (options.renderDebug === 'none') {
+    toggleStatsVisibility(false)
+  }
+  subscribeKey(options, 'renderDebug', () => {
+    if (options.renderDebug === 'none') {
+      toggleStatsVisibility(false)
+    } else {
+      toggleStatsVisibility(true)
+    }
+  })
+  watchValue(options, o => {
+    viewer.world.displayStats = o.renderDebug === 'advanced'
+  })
+  watchValue(options, (o, isChanged) => {
+    viewer.world.mesherConfig.clipWorldBelowY = o.clipWorldBelowY
+    viewer.world.mesherConfig.disableSignsMapsSupport = o.disableSignsMapsSupport
+    if (isChanged) {
+      (viewer.world as WorldRendererThree).rerenderAllChunks()
+    }
+  })
+
+  viewer.world.mesherConfig.smoothLighting = options.smoothLighting
   subscribeKey(options, 'smoothLighting', () => {
     viewer.world.mesherConfig.smoothLighting = options.smoothLighting;
     (viewer.world as WorldRendererThree).rerenderAllChunks()
@@ -61,5 +82,20 @@ export const watchOptionsAfterViewerInit = () => {
   watchValue(options, o => {
     if (!(viewer.world instanceof WorldRendererThree)) return
     viewer.world.starField.enabled = o.starfieldRendering
+  })
+
+  watchValue(options, o => {
+    viewer.world.neighborChunkUpdates = o.neighborChunkUpdates
+  })
+}
+
+let viewWatched = false
+export const watchOptionsAfterWorldViewInit = () => {
+  if (viewWatched) return
+  viewWatched = true
+  watchValue(options, o => {
+    if (!worldView) return
+    worldView.keepChunksDistance = o.keepChunksDistance
+    worldView.handDisplay = o.handDisplay
   })
 }

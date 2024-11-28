@@ -1,10 +1,12 @@
-import { chunkPos } from './simpleUtils'
+/* eslint-disable guard-for-in */
 
 // todo refactor into its own commons module
+import { EventEmitter } from 'events'
 import { generateSpiralMatrix, ViewRect } from 'flying-squid/dist/utils'
 import { Vec3 } from 'vec3'
-import { EventEmitter } from 'events'
 import { BotEvents } from 'mineflayer'
+import { getItemFromBlock } from '../../../src/chatUtils'
+import { chunkPos } from './simpleUtils'
 
 export type ChunkPosKey = string
 type ChunkPos = { x: number, z: number }
@@ -15,9 +17,19 @@ type ChunkPos = { x: number, z: number }
  */
 export class WorldDataEmitter extends EventEmitter {
   private loadedChunks: Record<ChunkPosKey, boolean>
-  private lastPos: Vec3
-  private eventListeners: Record<string, any> = {};
-  private emitter: WorldDataEmitter
+  private readonly lastPos: Vec3
+  private eventListeners: Record<string, any> = {}
+  private readonly emitter: WorldDataEmitter
+  keepChunksDistance = 0
+  addWaitTime = 1
+  _handDisplay = false
+  get handDisplay () {
+    return this._handDisplay
+  }
+  set handDisplay (newVal) {
+    this._handDisplay = newVal
+    this.eventListeners.heldItemChanged?.()
+  }
 
   constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
@@ -31,9 +43,21 @@ export class WorldDataEmitter extends EventEmitter {
       const dir = new Vec3(click.direction.x, click.direction.y, click.direction.z)
       const block = this.world.raycast(ori, dir, 256)
       if (!block) return
-      //@ts-ignore
       this.emit('blockClicked', block, block.face, click.button)
     })
+  }
+
+  setBlockStateId (position: Vec3, stateId: number) {
+    const val = this.world.setBlockStateId(position, stateId) as Promise<void> | void
+    if (val) throw new Error('setBlockStateId returned promise (not supported)')
+    const chunkX = Math.floor(position.x / 16)
+    const chunkZ = Math.floor(position.z / 16)
+    if (!this.loadedChunks[`${chunkX},${chunkZ}`]) {
+      void this.loadChunk({ x: chunkX, z: chunkZ })
+      return
+    }
+
+    this.emit('blockUpdate', { pos: position, stateId })
   }
 
   updateViewDistance (viewDistance: number) {
@@ -44,38 +68,65 @@ export class WorldDataEmitter extends EventEmitter {
   listenToBot (bot: typeof __type_bot) {
     const emitEntity = (e) => {
       if (!e || e === bot.entity) return
-      this.emitter.emit('entity', { ...e, pos: e.position, username: e.username })
+      this.emitter.emit('entity', {
+        ...e,
+        pos: e.position,
+        username: e.username,
+        // set debugTree (obj) {
+        //   e.debugTree = obj
+        // }
+      })
     }
 
-    this.eventListeners[bot.username] = {
+    this.eventListeners = {
       // 'move': botPosition,
-      entitySpawn: (e: any) => {
+      entitySpawn (e: any) {
         emitEntity(e)
       },
-      entityUpdate: (e: any) => {
+      entityUpdate (e: any) {
         emitEntity(e)
       },
-      entityMoved: (e: any) => {
+      entityMoved (e: any) {
         emitEntity(e)
       },
       entityGone: (e: any) => {
         this.emitter.emit('entity', { id: e.id, delete: true })
       },
       chunkColumnLoad: (pos: Vec3) => {
-        this.loadChunk(pos)
+        void this.loadChunk(pos)
+      },
+      chunkColumnUnload: (pos: Vec3) => {
+        this.unloadChunk(pos)
       },
       blockUpdate: (oldBlock: any, newBlock: any) => {
-        const stateId = newBlock.stateId ? newBlock.stateId : ((newBlock.type << 4) | newBlock.metadata)
+        const stateId = newBlock.stateId ?? ((newBlock.type << 4) | newBlock.metadata)
         this.emitter.emit('blockUpdate', { pos: oldBlock.position, stateId })
       },
       time: () => {
         this.emitter.emit('time', bot.time.timeOfDay)
       },
+      heldItemChanged: () => {
+        if (!this.handDisplay) {
+          viewer.world.onHandItemSwitch(undefined)
+          return
+        }
+        const newItem = bot.heldItem
+        if (!newItem) {
+          viewer.world.onHandItemSwitch(undefined)
+          return
+        }
+        const block = loadedData.blocksByName[newItem.name]
+        // todo clean types
+        const blockProperties = block ? new window.PrismarineBlock(block.id, 'void', newItem.metadata).getProperties() : {}
+        viewer.world.onHandItemSwitch({ name: newItem.name, properties: blockProperties })
+      },
     } satisfies Partial<BotEvents>
+    this.eventListeners.heldItemChanged()
+
 
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {
       const chunkPos = new Vec3(chunkX * 16, 0, chunkZ * 16)
-      this.loadChunk(chunkPos, true)
+      void this.loadChunk(chunkPos, true)
     })
 
     this.emitter.on('listening', () => {
@@ -94,7 +145,7 @@ export class WorldDataEmitter extends EventEmitter {
       this.emitter.emit('listening')
     }
 
-    for (const [evt, listener] of Object.entries(this.eventListeners[bot.username])) {
+    for (const [evt, listener] of Object.entries(this.eventListeners)) {
       bot.on(evt as any, listener)
     }
 
@@ -105,10 +156,9 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   removeListenersFromBot (bot: import('mineflayer').Bot) {
-    for (const [evt, listener] of Object.entries(this.eventListeners[bot.username])) {
+    for (const [evt, listener] of Object.entries(this.eventListeners)) {
       bot.removeListener(evt as any, listener)
     }
-    delete this.eventListeners[bot.username]
   }
 
   async init (pos: Vec3) {
@@ -122,16 +172,20 @@ export class WorldDataEmitter extends EventEmitter {
     await this._loadChunks(positions)
   }
 
-  async _loadChunks (positions: Vec3[], sliceSize = 5, waitTime = 0) {
+  async _loadChunks (positions: Vec3[], sliceSize = 5) {
     let i = 0
-    const interval = setInterval(() => {
-      if (i >= positions.length) {
-        clearInterval(interval)
-        return
-      }
-      this.loadChunk(positions[i])
-      i++
-    }, 1)
+    const promises = [] as Array<Promise<void>>
+    return new Promise<void>(resolve => {
+      const interval = setInterval(() => {
+        if (i >= positions.length) {
+          clearInterval(interval)
+          void Promise.all(promises).then(() => resolve())
+          return
+        }
+        promises.push(this.loadChunk(positions[i]))
+        i++
+      }, this.addWaitTime)
+    })
   }
 
   readdDebug () {
@@ -139,17 +193,24 @@ export class WorldDataEmitter extends EventEmitter {
     this.unloadAllChunks()
     for (const loadedChunk in clonedLoadedChunks) {
       const [x, z] = loadedChunk.split(',').map(Number)
-      this.loadChunk(new Vec3(x, 0, z))
+      void this.loadChunk(new Vec3(x, 0, z))
     }
   }
+
+  // debugGotChunkLatency = [] as number[]
+  // lastTime = 0
 
   async loadChunk (pos: ChunkPos, isLightUpdate = false) {
     const [botX, botZ] = chunkPos(this.lastPos)
     const dx = Math.abs(botX - Math.floor(pos.x / 16))
     const dz = Math.abs(botZ - Math.floor(pos.z / 16))
     if (dx <= this.viewDistance && dz <= this.viewDistance) {
+      // eslint-disable-next-line @typescript-eslint/await-thenable -- todo allow to use async world provider but not sure if needed
       const column = await this.world.getColumnAt(pos['y'] ? pos as Vec3 : new Vec3(pos.x, 0, pos.z))
       if (column) {
+        // const latency = Math.floor(performance.now() - this.lastTime)
+        // this.debugGotChunkLatency.push(latency)
+        // this.lastTime = performance.now()
         // todo optimize toJson data, make it clear why it is used
         const chunk = column.toJson()
         // TODO: blockEntities
@@ -157,7 +218,7 @@ export class WorldDataEmitter extends EventEmitter {
           minY: column['minY'] ?? 0,
           worldHeight: column['worldHeight'] ?? 256,
         }
-        //@ts-ignore
+        //@ts-expect-error
         this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       }
@@ -183,14 +244,14 @@ export class WorldDataEmitter extends EventEmitter {
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {
       this.emitter.emit('chunkPosUpdate', { pos })
-      const newView = new ViewRect(botX, botZ, this.viewDistance)
+      const newViewToUnload = new ViewRect(botX, botZ, this.viewDistance + this.keepChunksDistance)
       const chunksToUnload: Vec3[] = []
       for (const coords of Object.keys(this.loadedChunks)) {
-        const x = parseInt(coords.split(',')[0])
-        const z = parseInt(coords.split(',')[1])
+        const x = parseInt(coords.split(',')[0], 10)
+        const z = parseInt(coords.split(',')[1], 10)
         const p = new Vec3(x, 0, z)
         const [chunkX, chunkZ] = chunkPos(p)
-        if (!newView.contains(chunkX, chunkZ)) {
+        if (!newViewToUnload.contains(chunkX, chunkZ)) {
           chunksToUnload.push(p)
         }
       }
@@ -204,7 +265,7 @@ export class WorldDataEmitter extends EventEmitter {
         return undefined!
       }).filter(a => !!a)
       this.lastPos.update(pos)
-      await this._loadChunks(positions)
+      void this._loadChunks(positions)
     } else {
       this.emitter.emit('chunkPosUpdate', { pos }) // todo-low
       this.lastPos.update(pos)

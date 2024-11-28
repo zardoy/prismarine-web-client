@@ -7,7 +7,7 @@ const meta: Meta<typeof BreathBar> = {
 }
 
 export default meta
-type Story = StoryObj<typeof BreathBar>;
+type Story = StoryObj<typeof BreathBar>
 
 export const Primary: Story = {
   args: {

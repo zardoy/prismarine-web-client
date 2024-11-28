@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Prismarine Viewer Playground</title>
+    <title>Renderer Playground</title>
     <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover'>
     <style type="text/css">
       html {
@@ -28,9 +28,18 @@
           font-family: mojangles;
           src: url(../../../assets/mojangles.ttf);
       }
+      * {
+        user-select: none;
+      }
     </style>
+    <script>
+      if (window.location.pathname.endsWith('playground')) {
+        // add trailing slash
+        window.location.href = `${window.location.origin}${window.location.pathname}/${window.location.search}`
+      }
+    </script>
   </head>
   <body>
-    <script type="text/javascript" src="playground.js"></script>
+    <div id="root"></div>
   </body>
 </html>

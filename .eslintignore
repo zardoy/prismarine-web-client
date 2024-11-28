@@ -1,1 +1,9 @@
 node_modules
+rsbuild.config.ts
+*.module.css.d.ts
+*.generated.ts
+generated
+dist
+public
+**/*/rsbuildSharedConfig.ts
+src/mcDataTypes.ts

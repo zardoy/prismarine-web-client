@@ -10,6 +10,7 @@
   transform: translate(-50%, -50%);
   image-rendering: pixelated;
   pointer-events: none;
+  background-color: transparent !important;
 }
 
 .crosshair-indicator {

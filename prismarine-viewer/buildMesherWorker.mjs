@@ -30,7 +30,7 @@ const buildOptions = {
   sourcemap: 'linked',
   write: false,
   metafile: true,
-  outdir: path.join(__dirname, './public'),
+  outdir: path.join(__dirname, './dist'),
   define: {
     'process.env.BROWSER': '"true"',
   },
@@ -108,15 +108,17 @@ const buildOptions = {
         })
         build.onEnd(({ metafile, outputFiles }) => {
           if (!metafile) return
-          fs.writeFileSync(path.join(__dirname, './public/metafile.json'), JSON.stringify(metafile))
-          for (const outDir of ['../dist/', './public/']) {
+          fs.mkdirSync(path.join(__dirname, './dist'), { recursive: true })
+          fs.writeFileSync(path.join(__dirname, './dist/metafile.json'), JSON.stringify(metafile))
+          for (const outDir of ['../dist/', './dist/']) {
             for (const outputFile of outputFiles) {
               if (outDir === '../dist/' && outputFile.path.endsWith('.map')) {
                 // skip writing & browser loading sourcemap there, worker debugging should be done in playground
                 // continue
               }
-              fs.mkdirSync(outDir, { recursive: true })
-              fs.writeFileSync(path.join(__dirname, outDir, path.basename(outputFile.path)), outputFile.text)
+              const writePath = path.join(__dirname, outDir, path.basename(outputFile.path))
+              fs.mkdirSync(path.dirname(writePath), { recursive: true })
+              fs.writeFileSync(writePath, outputFile.text)
             }
           }
         })

@@ -1,8 +1,12 @@
 # Minecraft React
 
+Minecraft UI components for React extracted from [mcraft.fun](https://mcraft.fun) project.
+
 ```bash
-yarn add minecraft-react
+pnpm i minecraft-react
 ```
+
+![demo](./docs-assets/npm-banner.jpeg)
 
 ## Usage
 

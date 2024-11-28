@@ -1,5 +1,8 @@
 //@ts-check
+import * as THREE from 'three'
 import { OBJLoader } from 'three-stdlib'
+import huskPng from 'mc-assets/dist/other-textures/latest/entity/zombie/husk.png'
+import { Vec3 } from 'vec3'
 import entities from './entities.json'
 import { externalModels } from './objModels'
 import externalTexturesJson from './externalTextures.json'
@@ -87,11 +90,11 @@ const elemFaces = {
   }
 }
 
-function dot (a, b) {
+function dot(a, b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
-function addCube (attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
+function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
   const cubeRotation = new THREE.Euler(0, 0, 0)
   if (cube.rotation) {
     cubeRotation.x = -cube.rotation[0] * Math.PI / 180
@@ -105,7 +108,7 @@ function addCube (attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
       const u = (cube.uv[0] + dot(pos[3] ? u1 : u0, cube.size)) / texWidth
       const v = (cube.uv[1] + dot(pos[4] ? v1 : v0, cube.size)) / texHeight
 
-      const inflate = cube.inflate ? cube.inflate : 0
+      const inflate = cube.inflate ?? 0
       let vecPos = new THREE.Vector3(
         cube.origin[0] + pos[0] * cube.size[0] + (pos[0] ? inflate : -inflate),
         cube.origin[1] + pos[1] * cube.size[1] + (pos[1] ? inflate : -inflate),
@@ -124,14 +127,11 @@ function addCube (attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
       attr.skinWeights.push(1, 0, 0, 0)
     }
 
-    attr.indices.push(
-      ndx, ndx + 1, ndx + 2,
-      ndx + 2, ndx + 1, ndx + 3
-    )
+    attr.indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3)
   }
 }
 
-function getMesh (texture, jsonModel, overrides = {}) {
+function getMesh(texture, jsonModel, overrides = {}) {
   const bones = {}
 
   const geoData = {
@@ -177,8 +177,7 @@ function getMesh (texture, jsonModel, overrides = {}) {
 
   const rootBones = []
   for (const jsonBone of jsonModel.bones) {
-    if (jsonBone.parent && bones[jsonBone.parent]) bones[jsonBone.parent].add(bones[jsonBone.name])
-    else {
+    if (jsonBone.parent && bones[jsonBone.parent]) { bones[jsonBone.parent].add(bones[jsonBone.name]) } else {
       rootBones.push(bones[jsonBone.name])
     }
   }
@@ -225,8 +224,8 @@ export const knownNotHandled = [
   'item_display', 'item_frame',
   'lightning_bolt', 'marker',
   'painting', 'spawner_minecart',
-  'spectral_arrow', 'text_display',
-  'tnt', 'trader_llama', 'zombie_horse'
+  'spectral_arrow', 'tnt',
+  'trader_llama', 'zombie_horse'
 ]
 
 export const temporaryMap = {
@@ -293,9 +292,20 @@ const getEntity = (name) => {
 //   zombie_villager: 'zombie_villager/zombie_villager'
 // }
 
+const scaleEntity = {
+  zombie: 1.85,
+  husk: 1.85
+}
+const offsetEntity = {
+  zombie: new Vec3(0, 1, 0),
+  husk: new Vec3(0, 1, 0),
+  boat: new Vec3(0, -1, 0),
+}
+
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EntityMesh {
-  constructor (version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
-    let originalType = type
+  constructor(version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
+    const originalType = type
     const mappedValue = temporaryMap[type]
     if (mappedValue) type = mappedValue
 
@@ -304,6 +314,9 @@ export class EntityMesh {
       let texturePath = externalTexturesJson[type]
       if (originalType === 'zombie_horse') {
         texturePath = `textures/${version}/entity/horse/horse_zombie.png`
+      }
+      if (originalType === 'husk') {
+        texturePath = huskPng
       }
       if (originalType === 'skeleton_horse') {
         texturePath = `textures/${version}/entity/horse/horse_skeleton.png`
@@ -327,7 +340,10 @@ export class EntityMesh {
         alphaTest: 0.1
       })
       const obj = objLoader.parse(externalModels[type])
-      if (type === 'boat') obj.position.y = -1 // todo, should not be hardcoded
+      const scale = scaleEntity[originalType]
+      if (scale) obj.scale.set(scale, scale, scale)
+      const offset = offsetEntity[originalType]
+      if (offset) obj.position.set(offset.x, offset.y, offset.z)
       obj.traverse((child) => {
         if (child instanceof THREE.Mesh) {
           child.material = material
@@ -355,19 +371,19 @@ export class EntityMesh {
       const texture = overrides.textures?.[name] ?? e.textures[name]
       if (!texture) continue
       // console.log(JSON.stringify(jsonModel, null, 2))
-      const mesh = getMesh(texture.replace('textures', 'textures/' + version) + '.png', jsonModel, overrides)
+      const mesh = getMesh(texture + '.png', jsonModel, overrides)
       mesh.name = `geometry_${name}`
       this.mesh.add(mesh)
 
       const skeletonHelper = new THREE.SkeletonHelper(mesh)
-      //@ts-ignore
+      //@ts-expect-error
       skeletonHelper.material.linewidth = 2
       skeletonHelper.visible = false
       this.mesh.add(skeletonHelper)
     }
   }
 
-  static getStaticData (name) {
+  static getStaticData(name) {
     name = temporaryMap[name] || name
     if (externalModels[name]) {
       return {

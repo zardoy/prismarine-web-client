@@ -21,6 +21,8 @@ jobs:
           # cache: "pnpm"
       - run: pnpm install
       - run: pnpm check-build
+      - run: pnpm build-playground
+      - run: pnpm build-storybook
       - run: pnpm test-unit
       - run: pnpm lint
       - run: pnpm tsx scripts/buildNpmReact.ts
@@ -33,8 +35,8 @@ jobs:
         if: failure()
         with:
           name: cypress-images
-          path: cypress/integration/__image_snapshots__/
-      - run: node scripts/outdatedGitPackages.mjs
-        if: github.ref == 'refs/heads/next'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          path: cypress/screenshots/
+      # - run: node scripts/outdatedGitPackages.mjs
+      #   if: ${{ github.event.pull_request.base.ref == 'release' }}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,24 +1,28 @@
 //@ts-check
 
-// wouldn't better to create atlas instead?
-import destroyStage0 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_0.png'
-import destroyStage1 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_1.png'
-import destroyStage2 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_2.png'
-import destroyStage3 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_3.png'
-import destroyStage4 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_4.png'
-import destroyStage5 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_5.png'
-import destroyStage6 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_6.png'
-import destroyStage7 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_7.png'
-import destroyStage8 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_8.png'
-import destroyStage9 from 'minecraft-assets/minecraft-assets/data/1.10/blocks/destroy_stage_9.png'
+import * as THREE from 'three'
 
+// wouldn't better to create atlas instead?
 import { Vec3 } from 'vec3'
 import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
+import { Entity } from 'prismarine-entity'
+import destroyStage0 from '../assets/destroy_stage_0.png'
+import destroyStage1 from '../assets/destroy_stage_1.png'
+import destroyStage2 from '../assets/destroy_stage_2.png'
+import destroyStage3 from '../assets/destroy_stage_3.png'
+import destroyStage4 from '../assets/destroy_stage_4.png'
+import destroyStage5 from '../assets/destroy_stage_5.png'
+import destroyStage6 from '../assets/destroy_stage_6.png'
+import destroyStage7 from '../assets/destroy_stage_7.png'
+import destroyStage8 from '../assets/destroy_stage_8.png'
+import destroyStage9 from '../assets/destroy_stage_9.png'
+
 import { hideCurrentModal, isGameActive, showModal } from './globalState'
 import { assertDefined } from './utils'
 import { options } from './optionsStorage'
 import { itemBeingUsed } from './react/Crosshair'
 import { isCypress } from './standaloneUtils'
+import { displayClientChat } from './botUtils'
 
 function getViewDirection (pitch, yaw) {
   const csPitch = Math.cos(pitch)
@@ -35,6 +39,7 @@ class WorldInteraction {
   currentDigTime
   prevOnGround
   lastBlockPlaced: number
+  lastSwing = 0
   buttons = [false, false, false]
   lastButtons = [false, false, false]
   breakStartTime: number | undefined = 0
@@ -44,7 +49,7 @@ class WorldInteraction {
   breakTextures: THREE.Texture[]
   lastDigged: number
   lineMaterial: LineMaterial
-  debugStatus: string
+  debugDigStatus: string
 
   oneTimeInit () {
     const loader = new THREE.TextureLoader()
@@ -95,7 +100,7 @@ class WorldInteraction {
         if (e.button === 0) { // left click
           bot.attack(entity)
         } else if (e.button === 2) { // right click
-          void bot.activateEntity(entity)
+          this.activateEntity(entity)
         }
       }
     })
@@ -125,11 +130,11 @@ class WorldInteraction {
       // TODO: If the tool and enchantments immediately exceed the hardness times 30, the block breaks with no delay; SO WE NEED TO CHECK THAT
       // TODO: Any blocks with a breaking time of 0.05
       this.lastDigged = Date.now()
-      this.debugStatus = 'done'
+      this.debugDigStatus = 'done'
     })
     bot.on('diggingAborted', (block) => {
       if (!this.cursorBlock?.position.equals(block.position)) return
-      this.debugStatus = 'aborted'
+      this.debugDigStatus = 'aborted'
       // if (this.lastDugBlock)
       this.breakStartTime = undefined
       if (this.buttons[0]) {
@@ -156,6 +161,35 @@ class WorldInteraction {
     upLineMaterial()
     // todo use gamemode update only
     bot.on('game', upLineMaterial)
+  }
+
+  activateEntity (entity: Entity) {
+    // mineflayer has completely wrong implementation of this action
+    if (bot.supportFeature('armAnimationBeforeUse')) {
+      bot.swingArm('right')
+    }
+    bot._client.write('use_entity', {
+      target: entity.id,
+      mouse: 2,
+      // todo do not fake
+      x: 0.581_012_585_759_162_9,
+      y: 0.581_012_585_759_162_9,
+      z: 0.581_012_585_759_162_9,
+      // x: raycastPosition.x - entity.position.x,
+      // y: raycastPosition.y - entity.position.y,
+      // z: raycastPosition.z - entity.position.z
+      sneaking: bot.getControlState('sneak'),
+      hand: 0
+    })
+    bot._client.write('use_entity', {
+      target: entity.id,
+      mouse: 0,
+      sneaking: bot.getControlState('sneak'),
+      hand: 0
+    })
+    if (!bot.supportFeature('armAnimationBeforeUse')) {
+      bot.swingArm('right')
+    }
   }
 
   updateBlockInteractionLines (blockPos: Vec3 | null, shapePositions?: Array<{ position; width; height; depth }>) {
@@ -189,7 +223,12 @@ class WorldInteraction {
   // todo this shouldnt be done in the render loop, migrate the code to dom events to avoid delays on lags
   update () {
     const inSpectator = bot.game.gameMode === 'spectator'
-    const cursorBlock = inSpectator && !options.showCursorBlockInSpectator ? null : bot.blockAtCursor(5)
+    const entity = getEntityCursor()
+    let cursorBlock = inSpectator && !options.showCursorBlockInSpectator ? null : bot.blockAtCursor(5)
+    if (entity) {
+      cursorBlock = null
+    }
+
     let cursorBlockDiggable = cursorBlock
     if (cursorBlock && !bot.canDigBlock(cursorBlock) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
 
@@ -225,11 +264,7 @@ class WorldInteraction {
               hideCurrentModal()
             }
             // if (e.message === 'bot is not sleeping') return
-            bot._client.emit('chat', {
-              message: JSON.stringify({
-                text: e.message,
-              })
-            })
+            displayClientChat(e.message)
           })
           setTimeout(() => {
             cancelSleep = false
@@ -251,13 +286,20 @@ class WorldInteraction {
           //@ts-expect-error
           bot.lookAt = (pos) => { }
           //@ts-expect-error
+          // TODO it still must 1. fire block place 2. swing arm (right)
           bot.activateBlock(cursorBlock, vecArray[cursorBlock.face], delta).finally(() => {
             bot.lookAt = oldLookAt
           }).catch(console.warn)
         }
+        viewer.world.changeHandSwingingState(true)
+        viewer.world.changeHandSwingingState(false)
       } else if (!stop) {
         const offhand = activate ? false : activatableItems(bot.inventory.slots[45]?.name ?? '')
         bot.activateItem(offhand) // todo offhand
+        const item = offhand ? bot.inventory.slots[45] : bot.heldItem
+        if (item) {
+          customEvents.emit('activateItem', item, offhand ? 45 : bot.quickBarSlot, offhand)
+        }
         itemBeingUsed.name = (offhand ? bot.inventory.slots[45]?.name : bot.heldItem?.name) ?? null
         itemBeingUsed.hand = offhand ? 1 : 0
       }
@@ -281,7 +323,8 @@ class WorldInteraction {
     // We stopped breaking
     if ((!this.buttons[0] && this.lastButtons[0])) {
       this.lastDugBlock = null
-      this.debugStatus = 'cancelled'
+      this.breakStartTime = undefined
+      this.debugDigStatus = 'cancelled'
     }
 
     const onGround = bot.entity.onGround || bot.game.gameMode === 'creative'
@@ -295,7 +338,7 @@ class WorldInteraction {
         && (!this.lastButtons[0] || ((cursorChanged || (this.lastDugBlock && !this.lastDugBlock.equals(cursorBlock!.position))) && Date.now() - (this.lastDigged ?? 0) > 300) || onGround !== this.prevOnGround)
         && onGround) {
         this.lastDugBlock = null
-        this.debugStatus = 'breaking'
+        this.debugDigStatus = 'breaking'
         this.currentDigTime = bot.digTime(cursorBlockDiggable)
         this.breakStartTime = performance.now()
         const vecArray = [new Vec3(0, -1, 0), new Vec3(0, 1, 0), new Vec3(0, 0, -1), new Vec3(0, 0, 1), new Vec3(-1, 0, 0), new Vec3(1, 0, 0)]
@@ -308,9 +351,14 @@ class WorldInteraction {
         })
         customEvents.emit('digStart')
         this.lastDigged = Date.now()
-      } else {
+        viewer.world.changeHandSwingingState(true)
+      } else if (performance.now() - this.lastSwing > 200) {
         bot.swingArm('right')
+        this.lastSwing = performance.now()
       }
+    }
+    if (!this.buttons[0] && this.lastButtons[0]) {
+      viewer.world.changeHandSwingingState(false)
     }
     this.prevOnGround = onGround
 

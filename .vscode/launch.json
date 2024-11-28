@@ -1,6 +1,5 @@
 {
     "configurations": [
-        // UPDATED: all configs below are misconfigured and will crash vscode, open dist/index.html and use live preview debug instead
         // recommended as much faster
         {
             // to launch "C:\Program Files\Google\Chrome Beta\Application\chrome.exe" --remote-debugging-port=9222
@@ -29,7 +28,7 @@
             "type": "chrome",
             "name": "Launch Chrome",
             "request": "launch",
-            "url": "http://localhost:8080/",
+            "url": "http://localhost:3000/",
             "pathMapping": {
                 "/": "${workspaceFolder}/dist"
             },
@@ -50,7 +49,7 @@
             "name": "Attach Firefox",
             "request": "attach",
             // comment if using webpack
-            "url": "http://localhost:8080/",
+            "url": "http://localhost:3000/",
             "webRoot": "${workspaceFolder}/",
             "skipFiles": [
                 // "<node_internals>/**/*vendors*"

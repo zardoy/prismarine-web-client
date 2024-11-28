@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { proxy, useSnapshot } from 'valtio'
 import { disconnect } from '../flyingSquidUtils'
-import { MessageFormatPart, formatMessage } from '../botUtils'
+import { MessageFormatPart, formatMessage } from '../chatUtils'
 import { showModal, hideModal } from '../globalState'
 import { options } from '../optionsStorage'
 import DeathScreen from './DeathScreen'

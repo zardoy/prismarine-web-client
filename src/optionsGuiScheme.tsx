@@ -1,18 +1,20 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useSnapshot } from 'valtio'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
-import { miscUiState, openOptionsMenu, showModal } from './globalState'
+import { noCase } from 'change-case'
+import { loadedGameState, miscUiState, openOptionsMenu, showModal } from './globalState'
 import { AppOptions, options } from './optionsStorage'
 import Button from './react/Button'
 import { OptionMeta, OptionSlider } from './react/OptionsItems'
 import Slider from './react/Slider'
 import { getScreenRefreshRate, setLoadingScreenStatus } from './utils'
 import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
-import { getResourcePackName, resourcePackState, uninstallTexturePack } from './texturePack'
-
+import { completeTexturePackInstall, getResourcePackNames, resourcePackState, uninstallTexturePack } from './resourcePack'
+import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay'
+import { showOptionsModal } from './react/SelectOption'
 
 export const guiOptionsScheme: {
-  [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom?}>
+  [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
 } = {
   render: [
     {
@@ -21,13 +23,23 @@ export const guiOptionsScheme: {
         const [frameLimitMax, setFrameLimitMax] = useState(null as number | null)
 
         return <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Slider style={{ width: 130 }} label='Frame Limit' disabledReason={frameLimitMax ? undefined : 'press lock button first'} unit={frameLimitValue ? 'fps' : ''} valueDisplay={frameLimitValue || 'VSync'} value={frameLimitValue || frameLimitMax! + 1} min={20} max={frameLimitMax! + 1} updateValue={(newVal) => {
-            options.frameLimit = newVal > frameLimitMax! ? false : newVal
-          }} />
-          <Button style={{ width: 20 }} icon='pixelarticons:lock-open' onClick={async () => {
-            const rate = await getScreenRefreshRate()
-            setFrameLimitMax(rate)
-          }} />
+          <Slider
+            style={{ width: 130 }}
+            label='Frame Limit'
+            disabledReason={frameLimitMax ? undefined : 'press lock button first'}
+            unit={frameLimitValue ? 'fps' : ''}
+            valueDisplay={frameLimitValue || 'VSync'}
+            value={frameLimitValue || frameLimitMax! + 1} min={20}
+            max={frameLimitMax! + 1} updateValue={(newVal) => {
+              options.frameLimit = newVal > frameLimitMax! ? false : newVal
+            }}
+          />
+          <Button
+            style={{ width: 20 }} icon='pixelarticons:lock-open' onClick={async () => {
+              const rate = await getScreenRefreshRate()
+              setFrameLimitMax(rate)
+            }}
+          />
         </div>
       }
     },
@@ -60,9 +72,9 @@ export const guiOptionsScheme: {
       dayCycleAndLighting: {
         text: 'Day Cycle',
       },
-      // smoothLighting: {},
+      smoothLighting: {},
       newVersionsLighting: {
-        text: 'Lighting in newer versions',
+        text: 'Lighting in Newer Versions',
       },
       lowMemoryMode: {
         text: 'Low Memory Mode',
@@ -71,7 +83,34 @@ export const guiOptionsScheme: {
       },
       starfieldRendering: {},
       renderEntities: {},
+      keepChunksDistance: {
+        max: 5,
+        unit: '',
+        tooltip: 'Additional distance to keep the chunks loading before unloading them by marking them as too far',
+      },
+      handDisplay: {},
+      neighborChunkUpdates: {},
+      renderDebug: {
+        values: [
+          'advanced',
+          'basic',
+          'none'
+        ],
+      },
     },
+    {
+      custom () {
+        return <Category>Resource Packs</Category>
+      },
+      serverResourcePacks: {
+        text: 'Download From Server',
+        values: [
+          'prompt',
+          'always',
+          'never'
+        ],
+      }
+    }
   ],
   main: [
     {
@@ -92,7 +131,8 @@ export const guiOptionsScheme: {
           unit: '',
           max: sp ? 16 : 12,
           min: 1
-        }} />
+        }}
+        />
       },
     },
     {
@@ -118,23 +158,43 @@ export const guiOptionsScheme: {
     {
       custom () {
         const { resourcePackInstalled } = useSnapshot(resourcePackState)
-        return <Button label={`Resource Pack... ${resourcePackInstalled ? 'ON' : 'OFF'}`} inScreen onClick={async () => {
-          if (resourcePackState.resourcePackInstalled) {
-            const resourcePackName = await getResourcePackName()
-            if (confirm(`Uninstall ${resourcePackName} resource pack?`)) {
+        const { usingServerResourcePack } = useSnapshot(loadedGameState)
+        const { enabledResourcepack } = useSnapshot(options)
+        return <Button
+          label={`Resource Pack: ${usingServerResourcePack ? 'SERVER ON' : resourcePackInstalled ? enabledResourcepack ? 'ON' : 'OFF' : 'NO'}`} inScreen onClick={async () => {
+            if (resourcePackState.resourcePackInstalled) {
+              const names = Object.keys(await getResourcePackNames())
+              const name = names[0]
+              const choices = [
+                options.enabledResourcepack ? 'Disable' : 'Enable',
+                'Uninstall',
+              ]
+              const choice = await showOptionsModal(`Resource Pack ${name} action`, choices)
+              if (!choice) return
+              if (choice === 'Disable') {
+                options.enabledResourcepack = null
+                return
+              }
+              if (choice === 'Enable') {
+                options.enabledResourcepack = name
+                await completeTexturePackInstall(name, name, false)
+                return
+              }
+              if (choice === 'Uninstall') {
               // todo make hidable
-              setLoadingScreenStatus('Uninstalling texturepack...')
-              await uninstallTexturePack()
-              setLoadingScreenStatus(undefined)
-            }
-          } else {
+                setLoadingScreenStatus('Uninstalling texturepack')
+                await uninstallTexturePack()
+                setLoadingScreenStatus(undefined)
+              }
+            } else {
             // if (!fsState.inMemorySave && isGameActive(false)) {
             //   alert('Unable to install resource pack in loaded save for now')
             //   return
             // }
-            openFilePicker('resourcepack')
-          }
-        }} />
+              openFilePicker('resourcepack')
+            }
+          }}
+        />
       },
     },
     {
@@ -189,7 +249,53 @@ export const guiOptionsScheme: {
           'never'
         ],
       },
-    }
+    },
+    {
+      custom () {
+        return <Category>Map</Category>
+      },
+      showMinimap: {
+        text: 'Enable Minimap',
+        values: [
+          'always',
+          'singleplayer',
+          'never'
+        ],
+      },
+    },
+    {
+      custom () {
+        return <Category>Experimental</Category>
+      },
+      displayBossBars: {
+        text: 'Boss Bars',
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='title' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='chat' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='scoreboard' addUiText />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='effects-indicators' />
+      },
+    },
+    {
+      custom () {
+        return <UiToggleButton name='hotbar' />
+      },
+    },
   ],
   controls: [
     {
@@ -204,7 +310,8 @@ export const guiOptionsScheme: {
           onClick={() => {
             showModal({ reactType: 'keybindings' })
           }}
-        >Keybindings</Button>
+        >Keybindings
+        </Button>
       },
       mouseSensX: {},
       mouseSensY: {
@@ -234,14 +341,26 @@ export const guiOptionsScheme: {
         text: 'Always Mobile Controls',
       },
       touchButtonsSize: {
-        min: 40
+        min: 40,
+        disableIf: [
+          'touchControlsType',
+          'joystick-buttons'
+        ],
       },
       touchButtonsOpacity: {
         min: 10,
-        max: 90
+        max: 90,
+        disableIf: [
+          'touchControlsType',
+          'joystick-buttons'
+        ],
       },
       touchButtonsPosition: {
-        max: 80
+        max: 80,
+        disableIf: [
+          'touchControlsType',
+          'joystick-buttons'
+        ],
       },
       touchControlsType: {
         values: [['classic', 'Classic'], ['joystick-buttons', 'New']],
@@ -263,6 +382,10 @@ export const guiOptionsScheme: {
           'auto',
           'never'
         ],
+        disableIf: [
+          'autoParkour',
+          true
+        ],
       },
       autoParkour: {},
     }
@@ -276,22 +399,59 @@ export const guiOptionsScheme: {
     }
     // { ignoreSilentSwitch: {} },
   ],
+
   VR: [
     {
       custom () {
-        return <>
-          <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>VR currently has basic support</span>
-          <div />
-        </>
+        return (
+          <>
+            <span style={{ fontSize: 9, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              VR currently has basic support
+            </span>
+            <div />
+          </>
+        )
       },
-    }
+      vrSupport: {}
+    },
   ],
   advanced: [
     {
       custom () {
-        return <Button inScreen onClick={() => {
-          if (confirm('Are you sure you want to reset all settings?')) resetLocalStorageWithoutWorld()
-        }}>Reset all settings</Button>
+        return <Button
+          inScreen
+          onClick={() => {
+            if (confirm('Are you sure you want to reset all settings?')) resetLocalStorageWithoutWorld()
+          }}
+        >Reset all settings</Button>
+      },
+    },
+    {
+      custom () {
+        return <Category>Developer</Category>
+      },
+    },
+    {
+      custom () {
+        const { active } = useSnapshot(packetsReplaceSessionState)
+        return <Button
+          inScreen
+          onClick={() => {
+            packetsReplaceSessionState.active = !active
+          }}
+        >{active ? 'Disable' : 'Enable'} Packets Replay</Button>
+      },
+    },
+    {
+      custom () {
+        const { active } = useSnapshot(packetsReplaceSessionState)
+        return <Button
+          disabled={!active}
+          inScreen
+          onClick={() => {
+            void downloadPacketsReplay()
+          }}
+        >Download Packets Replay</Button>
       },
     }
   ],
@@ -303,6 +463,20 @@ const Category = ({ children }) => <div style={{
   textAlign: 'center',
   gridColumn: 'span 2'
 }}>{children}</div>
+
+const UiToggleButton = ({ name, addUiText = false, label = noCase(name) }) => {
+  const { disabledUiParts } = useSnapshot(options)
+
+  const currentlyDisabled = disabledUiParts.includes(name)
+  if (addUiText) label = `${label} UI`
+  return <Button
+    inScreen
+    onClick={() => {
+      const newDisabledUiParts = currentlyDisabled ? disabledUiParts.filter(x => x !== name) : [...disabledUiParts, name]
+      options.disabledUiParts = newDisabledUiParts
+    }}
+  >{currentlyDisabled ? 'Enable' : 'Disable'} {label}</Button>
+}
 
 export const tryFindOptionConfig = (option: keyof AppOptions) => {
   for (const group of Object.values(guiOptionsScheme)) {

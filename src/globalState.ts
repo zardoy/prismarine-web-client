@@ -1,6 +1,7 @@
 //@ts-check
 
 import { proxy, ref, subscribe } from 'valtio'
+import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { pointerLock } from './utils'
 import type { OptionsGroupType } from './optionsGuiScheme'
 
@@ -35,24 +36,11 @@ subscribe(activeModalStack, () => {
   }
 })
 
-export const customDisplayManageKeyword = 'custom'
-
-const defaultModalActions = {
-  show (modal: Modal) {
-    if (modal.elem) modal.elem.style.display = 'block'
-  },
-  hide (modal: Modal) {
-    if (modal.elem) modal.elem.style.display = 'none'
-  }
-}
-
 /**
  * @returns true if operation was successful
  */
 const showModalInner = (modal: Modal) => {
   const cancel = modal.elem?.show?.()
-  if (cancel && cancel !== customDisplayManageKeyword) return false
-  if (cancel !== 'custom') defaultModalActions.show(modal)
   return true
 }
 
@@ -60,7 +48,6 @@ export const showModal = (elem: /* (HTMLElement & Record<string, any>) |  */{ re
   const resolved = elem
   const curModal = activeModalStack.at(-1)
   if (/* elem === curModal?.elem ||  */(elem.reactType && elem.reactType === curModal?.reactType) || !showModalInner(resolved)) return
-  if (curModal) defaultModalActions.hide(curModal)
   activeModalStack.push(resolved)
 }
 
@@ -71,21 +58,21 @@ export const showModal = (elem: /* (HTMLElement & Record<string, any>) |  */{ re
 export const hideModal = (modal = activeModalStack.at(-1), data: any = undefined, options: { force?: boolean; restorePrevious?: boolean } = {}) => {
   const { force = false, restorePrevious = true } = options
   if (!modal) return
-  let cancel
-  if (modal.elem) {
-    cancel = modal.elem.hide?.(data)
-  } else if (modal.reactType) {
-    cancel = notHideableModalsWithoutForce.has(modal.reactType) ? !force : undefined
-  }
-  if (force && cancel !== customDisplayManageKeyword) {
+  let cancel = notHideableModalsWithoutForce.has(modal.reactType) ? !force : undefined
+  if (force) {
     cancel = undefined
   }
 
-  if (!cancel || cancel === customDisplayManageKeyword) {
-    if (cancel !== customDisplayManageKeyword) defaultModalActions.hide(modal)
-    activeModalStack.pop()
+  if (!cancel) {
+    const lastModal = activeModalStack.at(-1)
+    for (let i = activeModalStack.length - 1; i >= 0; i--) {
+      if (activeModalStack[i].reactType === modal.reactType) {
+        activeModalStack.splice(i, 1)
+        break
+      }
+    }
     const newModal = activeModalStack.at(-1)
-    if (newModal && restorePrevious) {
+    if (newModal && lastModal !== newModal && restorePrevious) {
       // would be great to ignore cancel I guess?
       showModalInner(newModal)
     }
@@ -123,19 +110,20 @@ export type AppConfig = {
   defaultProxy?: string
   // defaultProxySave?: string
   // defaultVersion?: string
-  promoteServers?: Array<{ ip, description, version?}>
+  peerJsServer?: string
+  peerJsServerFallback?: string
+  promoteServers?: Array<{ ip, description, version? }>
   mapsProvider?: string
 }
 
 export const miscUiState = proxy({
   currentDisplayQr: null as string | null,
   currentTouch: null as boolean | null,
-  serverIp: null as string | null,
-  username: '',
   hasErrors: false,
   singleplayer: false,
   flyingSquid: false,
   wanOpened: false,
+  wanOpening: false,
   /** wether game hud is shown (in playing state) */
   gameLoaded: false,
   showUI: true,
@@ -146,6 +134,12 @@ export const miscUiState = proxy({
   usingGamepadInput: false,
   appConfig: null as AppConfig | null,
   displaySearchInput: false,
+})
+
+export const loadedGameState = proxy({
+  username: '',
+  serverIp: '' as string | null,
+  usingServerResourcePack: false,
 })
 
 export const isGameActive = (foregroundCheck: boolean) => {
@@ -160,6 +154,7 @@ export const gameAdditionalState = proxy({
   isFlying: false,
   isSprinting: false,
   isSneaking: false,
+  warps: [] as WorldWarp[]
 })
 
 window.gameAdditionalState = gameAdditionalState

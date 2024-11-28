@@ -1,4 +1,5 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
+import * as THREE from 'three'
 import { getFixedFilesize } from '../downloadAndOpenFile'
 import { options } from '../optionsStorage'
 import worldInteractions from '../worldInteractions'
@@ -13,10 +14,17 @@ export default () => {
     received: {} as { [key: string]: number },
     sent: {} as { [key: string]: number }
   })
+  window.packetsCountByNamePerSec = packetsCountByNamePerSec
+  const packetsCountByNamePer10Sec = useRef({
+    received: {} as { [key: string]: number },
+    sent: {} as { [key: string]: number }
+  })
+  window.packetsCountByNamePer10Sec = packetsCountByNamePer10Sec
   const packetsCountByName = useRef({
     received: {} as { [key: string]: number },
     sent: {} as { [key: string]: number }
   })
+  window.packetsCountByName = packetsCountByName
   const ignoredPackets = useRef(new Set([] as any[]))
   const [packetsString, setPacketsString] = useState('')
   const [showDebug, setShowDebug] = useState(false)
@@ -61,9 +69,11 @@ export default () => {
   const managePackets = (type, name, data) => {
     packetsCountByName.current[type][name] ??= 0
     packetsCountByName.current[type][name]++
+    packetsCountByNamePerSec.current[type][name] ??= 0
+    packetsCountByNamePerSec.current[type][name]++
+    packetsCountByNamePer10Sec.current[type][name] ??= 0
+    packetsCountByNamePer10Sec.current[type][name]++
     if (options.debugLogNotFrequentPackets && !ignoredPackets.current.has(name) && !hardcodedListOfDebugPacketsToIgnore[type].includes(name)) {
-      packetsCountByNamePerSec.current[type][name] ??= 0
-      packetsCountByNamePerSec.current[type][name]++
       if (packetsCountByNamePerSec.current[type][name] > 5 || packetsCountByName.current[type][name] > 100) { // todo think of tracking the count within 10s
         console.info(`[packet ${name} was ${type} too frequent] Ignoring...`)
         ignoredPackets.current.add(name)
@@ -75,12 +85,17 @@ export default () => {
 
   useEffect(() => {
     document.addEventListener('keydown', handleF3)
+    let update = 0
     const packetsUpdateInterval = setInterval(() => {
       setPacketsString(`↓ ${received.current.count} (${(received.current.size / 1024).toFixed(2)} KB/s, ${getFixedFilesize(receivedTotal.current)}) ↑ ${sent.current.count}`)
       received.current = { ...defaultPacketsCount }
       sent.current = { ...defaultPacketsCount }
       packetsCountByNamePerSec.current.received = {}
       packetsCountByNamePerSec.current.sent = {}
+      if (update++ % 10 === 0) {
+        packetsCountByNamePer10Sec.current.received = {}
+        packetsCountByNamePer10Sec.current.sent = {}
+      }
     }, 1000)
 
     const freqUpdateInterval = setInterval(() => {
@@ -129,7 +144,7 @@ export default () => {
       <p>Prismarine Web Client ({bot.version})</p>
       <p>E: {entitiesCount}</p>
       <p>{dimension}</p>
-      <div className={styles.empty}></div>
+      <div className={styles.empty} />
       <p>XYZ: {pos.x.toFixed(3)} / {pos.y.toFixed(3)} / {pos.z.toFixed(3)}</p>
       <p>Chunk: {Math.floor(pos.x % 16)} ~ {Math.floor(pos.z % 16)} in {Math.floor(pos.x / 16)} ~ {Math.floor(pos.z / 16)}</p>
       <p>Packets: {packetsString}</p>
@@ -139,27 +154,25 @@ export default () => {
 
       <p>Biome: minecraft:{loadedData.biomesArray[biomeId]?.name ?? 'unknown biome'}</p>
       <p>Day: {day}</p>
-      <div className={styles.empty}></div>
+      <div className={styles.empty} />
       {Object.entries(customEntries.current).map(([name, value]) => <p key={name}>{name}: {value}</p>)}
     </div>
 
     <div className={styles['debug-right-side']}>
       <p>Renderer: {rendererDevice} powered by three.js r{THREE.REVISION}</p>
-      <div className={styles.empty}></div>
+      <div className={styles.empty} />
       {cursorBlock ? (<>
         <p>{cursorBlock.name}</p>
         {
-          Object.entries(cursorBlock.getProperties()).map(
-            ([name, value], idx, arr) => {
-              return <p key={name}>
-                {name}: {
-                  typeof value === 'boolean' ? (
-                    <span style={{ color: value ? 'lightgreen' : 'red' }}>{value}</span>
-                  ) : value
-                }
-              </p>
-            }
-          )
+          Object.entries(cursorBlock.getProperties()).map(([name, value], idx, arr) => {
+            return <p key={name}>
+              {name}: {
+                typeof value === 'boolean' ? (
+                  <span style={{ color: value ? 'lightgreen' : 'red' }}>{String(value)}</span>
+                ) : value
+              }
+            </p>
+          })
         }
       </>)
         : ''}
@@ -199,7 +212,8 @@ const hardcodedListOfDebugPacketsToIgnore = {
     'chat',
     'playerlist_header',
     'scoreboard_objective',
-    'scoreboard_score'
+    'scoreboard_score',
+    'entity_status'
   ],
   sent: [
     'pong',

@@ -1,9 +1,10 @@
 import React from 'react'
 
-import type { Preview } from "@storybook/react";
+import type { Preview } from "@storybook/react"
 
-import '../src/styles.css'
 import './storybook.css'
+import '../src/styles.css'
+import '../src/scaleInterface'
 
 const preview: Preview = {
   decorators: [
@@ -11,7 +12,7 @@ const preview: Preview = {
       const noScaling = c.parameters.noScaling
       return <div id={noScaling ? '' : 'ui-root'}>
         <Story />
-      </div>;
+      </div>
     },
   ],
   parameters: {
@@ -23,6 +24,6 @@ const preview: Preview = {
       },
     },
   },
-};
+}
 
-export default preview;
+export default preview

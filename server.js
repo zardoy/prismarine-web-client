@@ -17,11 +17,9 @@ const app = express()
 
 const isProd = process.argv.includes('--prod')
 app.use(compression())
+app.use(cors())
 app.use(netApi({ allowOrigin: '*' }))
 if (!isProd) {
-  app.use('/blocksStates', express.static(path.join(__dirname, './prismarine-viewer/public/blocksStates')))
-  app.use('/textures', express.static(path.join(__dirname, './prismarine-viewer/public/textures')))
-
   app.use('/sounds', express.static(path.join(__dirname, './generated/sounds/')))
 }
 // patch config
@@ -40,23 +38,24 @@ app.get('/config.json', (req, res, next) => {
     'defaultProxy': '', // use current url (this server)
   })
 })
-// add headers to enable shared array buffer
-app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
-  next()
-})
-app.use(express.static(path.join(__dirname, './dist')))
+if (isProd) {
+  // add headers to enable shared array buffer
+  app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
+    next()
+  })
+  app.use(express.static(path.join(__dirname, './dist')))
+}
 
-const portArg = process.argv.indexOf('--port')
-const port = (require.main === module ? process.argv[2] : portArg !== -1 ? process.argv[portArg + 1] : undefined) || 8080
+const numArg = process.argv.find(x => x.match(/^\d+$/))
+const port = (require.main === module ? numArg : undefined) || 8080
 
 // Start the server
-const server = isProd ?
-  undefined :
+const server =
   app.listen(port, async function () {
-    console.log('Server listening on port ' + server.address().port)
-    if (siModule) {
+    console.log('Proxy server listening on port ' + server.address().port)
+    if (siModule && isProd) {
       const _interfaces = await siModule.networkInterfaces()
       const interfaces = Array.isArray(_interfaces) ? _interfaces : [_interfaces]
       let netInterface = interfaces.find(int => int.default)

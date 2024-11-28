@@ -41,6 +41,18 @@
     gap: 10px;
 }
 
+@media screen and (max-height: 426px) {
+    .fullscreen:not(.small-content) {
+        .screen-content {
+            margin-top: 14px;
+        }
+
+        .screen-title {
+            margin-bottom: 5px;
+        }
+    }
+}
+
 .screen-items {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

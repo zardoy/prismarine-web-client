@@ -62,10 +62,12 @@ export const readWorlds = (abortController: AbortController) => {
 
       const newMappedWorlds = (await Promise.allSettled(worlds.map(async (folder) => {
         const { levelDat } = (await readLevelDat(`${worldsPath}/${folder}`))!
+        const levelDatStat = await fs.promises.stat(`${worldsPath}/${folder}/level.dat`)
         let size = 0
         if (providersEnableFeatures[provider].calculateSize) {
           // todo use whole dir size
           for (const region of await fs.promises.readdir(`${worldsPath}/${folder}/region`)) {
+            // eslint-disable-next-line no-await-in-loop -- it's still fast enough, nobody complains about it
             const stat = await fs.promises.stat(`${worldsPath}/${folder}/region/${region}`)
             size += stat.size
           }
@@ -87,7 +89,8 @@ export const readWorlds = (abortController: AbortController) => {
           detail: `${levelDat.Version?.Name ?? 'unknown version'}, ${folder}`,
           iconSrc: iconBase64 ? `data:image/png;base64,${iconBase64}` : undefined,
           size,
-        } satisfies WorldProps
+          lastModified: levelDatStat.mtimeMs,
+        } satisfies WorldProps & { lastModified?: number }
       }))).filter((x, i) => {
         if (x.status === 'rejected') {
           console.warn(x.reason)
@@ -95,7 +98,12 @@ export const readWorlds = (abortController: AbortController) => {
           return false
         }
         return true
-      }).map(x => (x as Extract<typeof x, { value }>).value)
+      }).map(x => (x as Extract<typeof x, { value }>).value).sort((a, b) => {
+        const getScore = (x: typeof a) => {
+          return x.lastModified ?? 0
+        }
+        return getScore(b) - getScore(a)
+      })
       if (abortController.signal.aborted) return
       worldsProxy.value = newMappedWorlds
     } catch (err) {

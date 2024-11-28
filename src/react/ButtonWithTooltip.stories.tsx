@@ -7,7 +7,7 @@ const meta: Meta<typeof ButtonWithTooltip> = {
 }
 
 export default meta
-type Story = StoryObj<typeof ButtonWithTooltip>;
+type Story = StoryObj<typeof ButtonWithTooltip>
 
 export const Primary: Story = {
   args: {

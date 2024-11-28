@@ -50,8 +50,8 @@
     white-space: pre;
 }
 .world_info_description_line {
-  color: #999;
-  white-space: nowrap;
+    color: #999;
+    white-space: nowrap;
 }
 .world_image {
     height: 100%;

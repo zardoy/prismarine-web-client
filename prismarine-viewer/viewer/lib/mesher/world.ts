@@ -1,10 +1,11 @@
 import Chunks from 'prismarine-chunk'
 import mcData from 'minecraft-data'
-import { Block } from "prismarine-block"
+import { Block } from 'prismarine-block'
 import { Vec3 } from 'vec3'
+import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
-import { defaultMesherConfig } from './shared'
 import legacyJson from '../../../../src/preflatMap.json'
+import { defaultMesherConfig } from './shared'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -18,10 +19,15 @@ function isCube (shapes) {
   return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
 }
 
+export type BlockModelPartsResolved = ReturnType<WorldBlockProvider['getAllResolvedModels0_1']>
+
 export type WorldBlock = Omit<Block, 'position'> & {
-  variant?: any
   // todo
   isCube: boolean
+  /** cache */
+  models?: BlockModelPartsResolved | null
+  _originalProperties?: Record<string, any>
+  _properties?: Record<string, any>
 }
 
 
@@ -32,8 +38,9 @@ export class World {
   blockCache = {}
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
+  erroredBlockModel?: BlockModelPartsResolved
 
-  constructor(version) {
+  constructor (version) {
     this.Chunk = Chunks(version) as any
     this.biomeCache = mcData(version).biomes
     this.preflat = !mcData(version).supportFeature('blockStateId')
@@ -41,6 +48,8 @@ export class World {
   }
 
   getLight (pos: Vec3, isNeighbor = false, skipMoreChecks = false, curBlockName = '') {
+    // for easier testing
+    if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const { enableLighting, skyLight } = this.config
     if (!enableLighting) return 15
     // const key = `${pos.x},${pos.y},${pos.z}`
@@ -55,7 +64,7 @@ export class World {
       ) + 2
     )
     // lightsCache.set(key, result)
-    if (result === 2 && [this.getBlock(pos)?.name ?? '', curBlockName].some(x => x.match(/_stairs|slab|glass_pane/)) && !skipMoreChecks) { // todo this is obviously wrong
+    if (result === 2 && [this.getBlock(pos)?.name ?? '', curBlockName].some(x => /_stairs|slab|glass_pane/.exec(x)) && !skipMoreChecks) { // todo this is obviously wrong
       const lights = [
         this.getLight(pos.offset(0, 1, 0), undefined, true),
         this.getLight(pos.offset(0, -1, 0), undefined, true),
@@ -64,8 +73,10 @@ export class World {
         this.getLight(pos.offset(1, 0, 0), undefined, true),
         this.getLight(pos.offset(-1, 0, 0), undefined, true)
       ].filter(x => x !== 2)
-      const min = Math.min(...lights)
-      result = min
+      if (lights.length) {
+        const min = Math.min(...lights)
+        result = min
+      }
     }
     if (isNeighbor && result === 2) result = 15 // TODO
     return result
@@ -102,7 +113,7 @@ export class World {
     return this.getColumn(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
   }
 
-  getBlock (pos: Vec3): WorldBlock | null {
+  getBlock (pos: Vec3, blockProvider?, attr?): WorldBlock | null {
     // for easier testing
     if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
@@ -116,8 +127,7 @@ export class World {
     const stateId = column.getBlockStateId(locInChunk)
 
     if (!this.blockCache[stateId]) {
-      const b = column.getBlock(locInChunk)
-      //@ts-expect-error
+      const b = column.getBlock(locInChunk) as unknown as WorldBlock
       b.isCube = isCube(b.shapes)
       this.blockCache[stateId] = b
       Object.defineProperty(b, 'position', {
@@ -126,25 +136,59 @@ export class World {
         }
       })
       if (this.preflat) {
-        const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || legacyJson.blocks[b.type + ':' + '0']
-        b.name = namePropsStr.split('[')[0]
-        const propsStr = namePropsStr.split('[')?.[1]?.split(']');
-        if (propsStr) {
-          const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
-            let [key, val] = x.split('=') as any
-            if (!isNaN(val)) val = parseInt(val)
-            return [key, val]
-          }))
-          //@ts-ignore
-          b._properties = newProperties
-        } else {
-          //@ts-ignore
-          b._properties = {}
+        b._properties = {}
+
+        const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || findClosestLegacyBlockFallback(b.type, b.metadata, pos)
+        if (namePropsStr) {
+          b.name = namePropsStr.split('[')[0]
+          const propsStr = namePropsStr.split('[')?.[1]?.split(']')
+          if (propsStr) {
+            const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
+              let [key, val] = x.split('=')
+              if (!isNaN(val)) val = parseInt(val, 10)
+              return [key, val]
+            }))
+            b._properties = newProperties
+          }
         }
       }
     }
 
     const block = this.blockCache[stateId]
+
+    if (block.models === undefined && blockProvider) {
+      if (!attr) throw new Error('attr is required')
+      const props = block.getProperties()
+      try {
+        // fixme
+        if (this.preflat) {
+          if (block.name === 'cobblestone_wall') {
+            props.up = 'true'
+            for (const key of ['north', 'south', 'east', 'west']) {
+              const val = props[key]
+              if (val === 'false' || val === 'true') {
+                props[key] = val === 'true' ? 'low' : 'none'
+              }
+            }
+          }
+        }
+
+        block.models = blockProvider.getAllResolvedModels0_1({
+          name: block.name,
+          properties: props,
+        }, this.preflat)! // fixme! this is a hack (also need a setting for all versions)
+        if (!block.models!.length) {
+          console.debug('[mesher] block to render not found', block.name, props)
+          block.models = null
+        }
+      } catch (err) {
+        this.erroredBlockModel ??= blockProvider.getAllResolvedModels0_1({ name: 'errored', properties: {} })
+        block.models ??= this.erroredBlockModel
+        console.error(`Critical assets error. Unable to get block model for ${block.name}[${JSON.stringify(props)}]: ` + err.message, err.stack)
+        attr.hadErrors = true
+      }
+    }
+
     if (block.name === 'flowing_water') block.name = 'water'
     if (block.name === 'flowing_lava') block.name = 'lava'
     // block.position = loc // it overrides position of all currently loaded blocks
@@ -156,6 +200,15 @@ export class World {
   shouldMakeAo (block: WorldBlock | null) {
     return block?.isCube && !ignoreAoBlocks.includes(block.name)
   }
+}
+
+const findClosestLegacyBlockFallback = (id, metadata, pos) => {
+  console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos}, falling back`) // todo has known issues
+  for (const [key, value] of Object.entries(legacyJson.blocks)) {
+    const [idKey, meta] = key.split(':')
+    if (idKey === id) return value
+  }
+  return null
 }
 
 // todo export in chunk instead

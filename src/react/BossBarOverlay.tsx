@@ -19,12 +19,12 @@ export type BossBarType = BossBarTypeRaw & {
   _health: number
 }
 
-export default ({ bar }: {bar: BossBarType}) => {
+export default ({ bar }: { bar: BossBarType }) => {
   const [title, setTitle] = useState('')
-  const [bossBarStyles, setBossBarStyles] = useState<{[key: string]: string | number}>({})
-  const [fillStyles, setFillStyles] = useState<{[key: string]: string | number}>({})
-  const [div1Styles, setDiv1Styles] = useState<{[key: string]: string | number}>({})
-  const [div2Styles, setDiv2Styles] = useState<{[key: string]: string | number}>({})
+  const [bossBarStyles, setBossBarStyles] = useState<{ [key: string]: string | number }>({})
+  const [fillStyles, setFillStyles] = useState<{ [key: string]: string | number }>({})
+  const [div1Styles, setDiv1Styles] = useState<{ [key: string]: string | number }>({})
+  const [div2Styles, setDiv2Styles] = useState<{ [key: string]: string | number }>({})
 
   useEffect(() => {
     setTitle(bar._title.text ? bar.title.text : translations[bar.title.translate] || 'Unknown Entity')
@@ -52,11 +52,10 @@ export default ({ bar }: {bar: BossBarType}) => {
     <div className="bossbar-container">
       <div className="bossbar-title"><MessageFormattedString message={title} /></div>
       <div className="bossbar" style={bossBarStyles}>
-        <div className="fill" style={fillStyles}></div>
-        <div className="fill" style={div1Styles}></div>
-        <div className="fill" style={div2Styles}></div>
+        <div className="fill" style={fillStyles} />
+        <div className="fill" style={div1Styles} />
+        <div className="fill" style={div2Styles} />
       </div>
     </div>
   )
 }
-

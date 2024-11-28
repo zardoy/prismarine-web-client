@@ -4,3 +4,4315 @@ export type ItemNames = 'air' | 'stone' | 'granite' | 'polished_granite' | 'dior
 export type EntityNames = 'allay' | 'area_effect_cloud' | 'armor_stand' | 'arrow' | 'axolotl' | 'bat' | 'bee' | 'blaze' | 'block_display' | 'boat' | 'camel' | 'cat' | 'cave_spider' | 'chest_boat' | 'chest_minecart' | 'chicken' | 'cod' | 'command_block_minecart' | 'cow' | 'creeper' | 'dolphin' | 'donkey' | 'dragon_fireball' | 'drowned' | 'egg' | 'elder_guardian' | 'end_crystal' | 'ender_dragon' | 'ender_pearl' | 'enderman' | 'endermite' | 'evoker' | 'evoker_fangs' | 'experience_bottle' | 'experience_orb' | 'eye_of_ender' | 'falling_block' | 'firework_rocket' | 'fox' | 'frog' | 'furnace_minecart' | 'ghast' | 'giant' | 'glow_item_frame' | 'glow_squid' | 'goat' | 'guardian' | 'hoglin' | 'hopper_minecart' | 'horse' | 'husk' | 'illusioner' | 'interaction' | 'iron_golem' | 'item' | 'item_display' | 'item_frame' | 'fireball' | 'leash_knot' | 'lightning_bolt' | 'llama' | 'llama_spit' | 'magma_cube' | 'marker' | 'minecart' | 'mooshroom' | 'mule' | 'ocelot' | 'painting' | 'panda' | 'parrot' | 'phantom' | 'pig' | 'piglin' | 'piglin_brute' | 'pillager' | 'polar_bear' | 'potion' | 'pufferfish' | 'rabbit' | 'ravager' | 'salmon' | 'sheep' | 'shulker' | 'shulker_bullet' | 'silverfish' | 'skeleton' | 'skeleton_horse' | 'slime' | 'small_fireball' | 'sniffer' | 'snow_golem' | 'snowball' | 'spawner_minecart' | 'spectral_arrow' | 'spider' | 'squid' | 'stray' | 'strider' | 'tadpole' | 'text_display' | 'tnt' | 'tnt_minecart' | 'trader_llama' | 'trident' | 'tropical_fish' | 'turtle' | 'vex' | 'villager' | 'vindicator' | 'wandering_trader' | 'warden' | 'witch' | 'wither' | 'wither_skeleton' | 'wither_skull' | 'wolf' | 'zoglin' | 'zombie' | 'zombie_horse' | 'zombie_villager' | 'zombified_piglin' | 'player' | 'fishing_bobber';
 export type BiomesNames = 'badlands' | 'bamboo_jungle' | 'basalt_deltas' | 'beach' | 'birch_forest' | 'cherry_grove' | 'cold_ocean' | 'crimson_forest' | 'dark_forest' | 'deep_cold_ocean' | 'deep_dark' | 'deep_frozen_ocean' | 'deep_lukewarm_ocean' | 'deep_ocean' | 'desert' | 'dripstone_caves' | 'end_barrens' | 'end_highlands' | 'end_midlands' | 'eroded_badlands' | 'flower_forest' | 'forest' | 'frozen_ocean' | 'frozen_peaks' | 'frozen_river' | 'grove' | 'ice_spikes' | 'jagged_peaks' | 'jungle' | 'lukewarm_ocean' | 'lush_caves' | 'mangrove_swamp' | 'meadow' | 'mushroom_fields' | 'nether_wastes' | 'ocean' | 'old_growth_birch_forest' | 'old_growth_pine_taiga' | 'old_growth_spruce_taiga' | 'plains' | 'river' | 'savanna' | 'savanna_plateau' | 'small_end_islands' | 'snowy_beach' | 'snowy_plains' | 'snowy_slopes' | 'snowy_taiga' | 'soul_sand_valley' | 'sparse_jungle' | 'stony_peaks' | 'stony_shore' | 'sunflower_plains' | 'swamp' | 'taiga' | 'the_end' | 'the_void' | 'warm_ocean' | 'warped_forest' | 'windswept_forest' | 'windswept_gravelly_hills' | 'windswept_hills' | 'windswept_savanna' | 'wooded_badlands';
 export type EnchantmentNames = 'protection' | 'fire_protection' | 'feather_falling' | 'blast_protection' | 'projectile_protection' | 'respiration' | 'aqua_affinity' | 'thorns' | 'depth_strider' | 'frost_walker' | 'binding_curse' | 'soul_speed' | 'swift_sneak' | 'sharpness' | 'smite' | 'bane_of_arthropods' | 'knockback' | 'fire_aspect' | 'looting' | 'sweeping' | 'efficiency' | 'silk_touch' | 'unbreaking' | 'fortune' | 'power' | 'punch' | 'flame' | 'infinity' | 'luck_of_the_sea' | 'lure' | 'loyalty' | 'impaling' | 'riptide' | 'channeling' | 'multishot' | 'quick_charge' | 'piercing' | 'mending' | 'vanishing_curse';
+
+export type EntityMetadataVersions = {
+'Mob': {},'Monster': {},'Creeper': {},'Skeleton': {},'Spider': {},'Giant': {},'Zombie': {},'Slime': {},'Ghast': {},'PigZombie': {},'Enderman': {},'CaveSpider': {},'Silverfish': {},'Blaze': {},'LavaSlime': {},'EnderDragon': {},'WitherBoss': {},'Bat': {},'Witch': {},'Endermite': {},'Guardian': {},'Pig': {},'Sheep': {},'Cow': {},'Chicken': {},'Squid': {},'Wolf': {},'MushroomCow': {},'SnowMan': {},'Ozelot': {},'VillagerGolem': {},'EntityHorse': {},'Rabbit': {},'Villager': {},'Boat': {},'Item': {},'MinecartRideable': {},'PrimedTnt': {},'EnderCrystal': {},'Arrow': {},'Snowball': {},'ThrownEgg': {},'Fireball': {},'SmallFireball': {},'ThrownEnderpearl': {},'WitherSkull': {},'FallingSand': {},'ItemFrame': {},'EyeOfEnderSignal': {},'ThrownPotion': {},'ThrownExpBottle': {},'FireworksRocketEntity': {},'LeashKnot': {},'ArmorStand': {},'Fishing Float': {},'Shulker': {},'XPOrb': {},'Dragon Fireball': {},'item': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item': string;},'xp_orb': {},'area_effect_cloud': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'radius': string;
+/** 1.19.4+ (9) */
+'color': string;
+/** 1.19.4+ (10) */
+'waiting': string;
+/** 1.19.4+ (11) */
+'particle': string;},'elder_guardian': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'moving': string;
+/** 1.19.4+ (17) */
+'attack_target': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'wither_skeleton': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'stray': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'egg': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item_stack': string;},'leash_knot': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;},'painting': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'painting_variant': string;},'arrow': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'flags': string;
+/** 1.19.4+ (9) */
+'pierce_level': string;
+/** 1.19.4+ (10) */
+'effect_color': string;},'snowball': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item_stack': string;},'fireball': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item_stack': string;},'small_fireball': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item_stack': string;},'ender_pearl': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item_stack': string;},'eye_of_ender_signal': {},'potion': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item_stack': string;},'xp_bottle': {},'item_frame': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item': string;
+/** 1.19.4+ (9) */
+'rotation': string;},'wither_skull': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'dangerous': string;},'tnt': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'fuse': string;
+/** 1.20.3+ (9) */
+'block_state': string;},'falling_block': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'start_pos': string;},'fireworks_rocket': {},'husk': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'special_type': string;
+/** 1.19.4+ (18) */
+'drowned_conversion': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'spectral_arrow': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'flags': string;
+/** 1.19.4+ (9) */
+'pierce_level': string;},'shulker_bullet': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;},'dragon_fireball': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;},'zombie_villager': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'special_type': string;
+/** 1.19.4+ (18) */
+'drowned_conversion': string;
+/** 1.19.4+ (19) */
+'converting': string;
+/** 1.19.4+ (20) */
+'villager_data': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'skeleton_horse': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'zombie_horse': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'armor_stand': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'client_flags': string;
+/** 1.19.4+ (16) */
+'head_pose': string;
+/** 1.19.4+ (17) */
+'body_pose': string;
+/** 1.19.4+ (18) */
+'left_arm_pose': string;
+/** 1.19.4+ (19) */
+'right_arm_pose': string;
+/** 1.19.4+ (20) */
+'left_leg_pose': string;
+/** 1.19.4+ (21) */
+'right_leg_pose': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'donkey': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'chest': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'mule': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'chest': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'evocation_fangs': {},'evocation_illager': {},'vex': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'vindication_illager': {},'commandblock_minecart': {},'boat': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'type': string;
+/** 1.19.4+ (12) */
+'paddle_left': string;
+/** 1.19.4+ (13) */
+'paddle_right': string;
+/** 1.19.4+ (14) */
+'bubble_time': string;},'minecart': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'display_block': string;
+/** 1.19.4+ (12) */
+'display_offset': string;
+/** 1.19.4+ (13) */
+'custom_display': string;},'chest_minecart': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'display_block': string;
+/** 1.19.4+ (12) */
+'display_offset': string;
+/** 1.19.4+ (13) */
+'custom_display': string;},'furnace_minecart': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'display_block': string;
+/** 1.19.4+ (12) */
+'display_offset': string;
+/** 1.19.4+ (13) */
+'custom_display': string;
+/** 1.19.4+ (14) */
+'fuel': string;},'tnt_minecart': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'display_block': string;
+/** 1.19.4+ (12) */
+'display_offset': string;
+/** 1.19.4+ (13) */
+'custom_display': string;},'hopper_minecart': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'display_block': string;
+/** 1.19.4+ (12) */
+'display_offset': string;
+/** 1.19.4+ (13) */
+'custom_display': string;},'spawner_minecart': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'display_block': string;
+/** 1.19.4+ (12) */
+'display_offset': string;
+/** 1.19.4+ (13) */
+'custom_display': string;},'creeper': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'swell_dir': string;
+/** 1.19.4+ (17) */
+'is_powered': string;
+/** 1.19.4+ (18) */
+'is_ignited': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'skeleton': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'stray_conversion': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'spider': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'giant': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'zombie': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'special_type': string;
+/** 1.19.4+ (18) */
+'drowned_conversion': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'slime': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'size': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'ghast': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'is_charging': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'zombie_pigman': {},'enderman': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'carry_state': string;
+/** 1.19.4+ (17) */
+'creepy': string;
+/** 1.19.4+ (18) */
+'stared_at': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'cave_spider': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'silverfish': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'blaze': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'magma_cube': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'size': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'ender_dragon': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'phase': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'wither': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'target_a': string;
+/** 1.19.4+ (17) */
+'target_b': string;
+/** 1.19.4+ (18) */
+'target_c': string;
+/** 1.19.4+ (19) */
+'inv': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'bat': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'witch': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'is_celebrating': string;
+/** 1.19.4+ (17) */
+'using_item': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'endermite': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'guardian': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'moving': string;
+/** 1.19.4+ (17) */
+'attack_target': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'shulker': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'attach_face': string;
+/** 1.19.4+ (17) */
+'peek': string;
+/** 1.19.4+ (18) */
+'color': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'pig': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'saddle': string;
+/** 1.19.4+ (18) */
+'boost_time': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'sheep': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'wool': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'cow': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'chicken': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'squid': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'wolf': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'owneruuid': string;
+/** 1.19.4+ (19) */
+'interested': string;
+/** 1.19.4+ (20) */
+'collar_color': string;
+/** 1.19.4+ (21) */
+'remaining_anger_time': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;
+/** 1.20.5+ (22) */
+'variant': string;},'mooshroom': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'type': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'snowman': {},'ocelot': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'trusting': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'villager_golem': {},'horse': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'type_variant': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'rabbit': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'type': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'polar_bear': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'standing': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'llama': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'chest': string;
+/** 1.19.4+ (19) */
+'strength': string;
+/** 1.19.4+ (20) */
+'swag': string;
+/** 1.19.4+ (21) */
+'variant': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'llama_spit': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;},'villager': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'unhappy_counter': string;
+/** 1.19.4+ (18) */
+'villager_data': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'ender_crystal': {},'Fishing Hook': {},'illusion_illager': {},'parrot': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'owneruuid': string;
+/** 1.19.4+ (19) */
+'variant': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'cod': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'from_bucket': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'dolphin': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'treasure_pos': string;
+/** 1.19.4+ (17) */
+'got_fish': string;
+/** 1.19.4+ (18) */
+'moistness_level': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'drowned': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'special_type': string;
+/** 1.19.4+ (18) */
+'drowned_conversion': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'end_crystal': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'beam_target': string;
+/** 1.19.4+ (9) */
+'show_bottom': string;},'evoker_fangs': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;},'evoker': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'is_celebrating': string;
+/** 1.19.4+ (17) */
+'spell_casting': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'experience_orb': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;},'eye_of_ender': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item_stack': string;},'illusioner': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'is_celebrating': string;
+/** 1.19.4+ (17) */
+'spell_casting': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'pufferfish': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'from_bucket': string;
+/** 1.19.4+ (17) */
+'puff_state': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'salmon': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'from_bucket': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'snow_golem': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'pumpkin': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'tropical_fish': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'from_bucket': string;
+/** 1.19.4+ (17) */
+'type_variant': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'turtle': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'home_pos': string;
+/** 1.19.4+ (18) */
+'has_egg': string;
+/** 1.19.4+ (19) */
+'laying_egg': string;
+/** 1.19.4+ (20) */
+'travel_pos': string;
+/** 1.19.4+ (21) */
+'going_home': string;
+/** 1.19.4+ (22) */
+'travelling': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'experience_bottle': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item_stack': string;},'iron_golem}': {},'vindicator': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'is_celebrating': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'phantom': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'size': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'lightning_bolt': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;},'player': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'player_absorption': string;
+/** 1.19.4+ (16) */
+'score': string;
+/** 1.19.4+ (17) */
+'player_mode_customisation': string;
+/** 1.19.4+ (18) */
+'player_main_hand': string;
+/** 1.19.4+ (19) */
+'shoulder_left': string;
+/** 1.19.4+ (20) */
+'shoulder_right': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'fishing_bobber': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hooked_entity': string;
+/** 1.19.4+ (9) */
+'biting': string;},'trident': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'flags': string;
+/** 1.19.4+ (9) */
+'pierce_level': string;
+/** 1.19.4+ (10) */
+'loyalty': string;
+/** 1.19.4+ (11) */
+'foil': string;},'item_stack': {},'area_effect cloud': {},'activated_tnt': {},'endercrystal': {},'tipped_arrow': {},'firecharge': {},'thrown_enderpearl': {},'falling_objects': {},'item_frames': {},'eye_of ender': {},'thrown_potion': {},'thrown_exp bottle': {},'firework_rocket': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'fireworks_item': string;
+/** 1.19.4+ (9) */
+'attached_to_target': string;
+/** 1.19.4+ (10) */
+'shot_at_angle': string;},'armorstand': {},'fishing_hook': {},'cat': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'owneruuid': string;
+/** 1.19.4+ (19) */
+'variant': string;
+/** 1.19.4+ (20) */
+'is_lying': string;
+/** 1.19.4+ (21) */
+'relax_state_one': string;
+/** 1.19.4+ (22) */
+'collar_color': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'fox': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'type': string;
+/** 1.19.4+ (18) */
+'flags': string;
+/** 1.19.4+ (19) */
+'trusted_0': string;
+/** 1.19.4+ (20) */
+'trusted_1': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'command_block_minecart': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'display_block': string;
+/** 1.19.4+ (12) */
+'display_offset': string;
+/** 1.19.4+ (13) */
+'custom_display': string;
+/** 1.19.4+ (14) */
+'command_name': string;
+/** 1.19.4+ (15) */
+'last_output': string;},'panda': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'unhappy_counter': string;
+/** 1.19.4+ (18) */
+'sneeze_counter': string;
+/** 1.19.4+ (19) */
+'eat_counter': string;
+/** 1.19.4+ (20) */
+'main_gene': string;
+/** 1.19.4+ (21) */
+'hidden_gene': string;
+/** 1.19.4+ (22) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'trader_llama': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'chest': string;
+/** 1.19.4+ (19) */
+'strength': string;
+/** 1.19.4+ (20) */
+'swag': string;
+/** 1.19.4+ (21) */
+'variant': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'iron_golem': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'pillager': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'is_celebrating': string;
+/** 1.19.4+ (17) */
+'is_charging_crossbow': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'wandering_trader': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'unhappy_counter': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'ravager': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'is_celebrating': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'bee': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'remaining_anger_time': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'hoglin': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'immune_to_zombification': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'piglin': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'immune_to_zombification': string;
+/** 1.19.4+ (17) */
+'baby': string;
+/** 1.19.4+ (18) */
+'is_charging_crossbow': string;
+/** 1.19.4+ (19) */
+'is_dancing': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'strider': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'boost_time': string;
+/** 1.19.4+ (18) */
+'suffocating': string;
+/** 1.19.4+ (19) */
+'saddle': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'zoglin': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'zombified_piglin': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'special_type': string;
+/** 1.19.4+ (18) */
+'drowned_conversion': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'piglin_brute': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'immune_to_zombification': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'axolotl': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'variant': string;
+/** 1.19.4+ (18) */
+'playing_dead': string;
+/** 1.19.4+ (19) */
+'from_bucket': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'glow_item_frame': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'item': string;
+/** 1.19.4+ (9) */
+'rotation': string;},'glow_squid': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'dark_ticks_remaining': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'goat': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'is_screaming_goat': string;
+/** 1.19.4+ (18) */
+'has_left_horn': string;
+/** 1.19.4+ (19) */
+'has_right_horn': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'marker': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;},'allay': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'dancing': string;
+/** 1.19.4+ (17) */
+'can_duplicate': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'chest_boat': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'hurt': string;
+/** 1.19.4+ (9) */
+'hurtdir': string;
+/** 1.19.4+ (10) */
+'damage': string;
+/** 1.19.4+ (11) */
+'type': string;
+/** 1.19.4+ (12) */
+'paddle_left': string;
+/** 1.19.4+ (13) */
+'paddle_right': string;
+/** 1.19.4+ (14) */
+'bubble_time': string;},'frog': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'variant': string;
+/** 1.19.4+ (18) */
+'tongue_target': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'tadpole': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'from_bucket': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'warden': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'client_anger_level': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'camel': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'flags': string;
+/** 1.19.4+ (18) */
+'dash': string;
+/** 1.19.4+ (19) */
+'last_pose_change_tick': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'block_display': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'interpolation_start_delta_ticks': string;
+/** 1.19.4+ (9) */
+'interpolation_duration': string;
+/** 1.19.4+ (10) */
+'translation': string;
+/** 1.19.4+ (11) */
+'scale': string;
+/** 1.19.4+ (12) */
+'left_rotation': string;
+/** 1.19.4+ (13) */
+'right_rotation': string;
+/** 1.19.4+ (14) */
+'billboard_render_constraints': string;
+/** 1.19.4+ (15) */
+'brightness_override': string;
+/** 1.19.4+ (16) */
+'view_range': string;
+/** 1.19.4+ (17) */
+'shadow_radius': string;
+/** 1.19.4+ (18) */
+'shadow_strength': string;
+/** 1.19.4+ (19) */
+'width': string;
+/** 1.19.4+ (20) */
+'height': string;
+/** 1.19.4+ (21) */
+'glow_color_override': string;
+/** 1.19.4+ (22) */
+'block_state': string;
+/** 1.20.2+ (8) */
+'transformation_interpolation_start_delta_ticks': string;
+/** 1.20.2+ (9) */
+'transformation_interpolation_duration': string;
+/** 1.20.2+ (10) */
+'pos_rot_interpolation_duration': string;},'interaction': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'width': string;
+/** 1.19.4+ (9) */
+'height': string;
+/** 1.19.4+ (10) */
+'response': string;},'item_display': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'interpolation_start_delta_ticks': string;
+/** 1.19.4+ (9) */
+'interpolation_duration': string;
+/** 1.19.4+ (10) */
+'translation': string;
+/** 1.19.4+ (11) */
+'scale': string;
+/** 1.19.4+ (12) */
+'left_rotation': string;
+/** 1.19.4+ (13) */
+'right_rotation': string;
+/** 1.19.4+ (14) */
+'billboard_render_constraints': string;
+/** 1.19.4+ (15) */
+'brightness_override': string;
+/** 1.19.4+ (16) */
+'view_range': string;
+/** 1.19.4+ (17) */
+'shadow_radius': string;
+/** 1.19.4+ (18) */
+'shadow_strength': string;
+/** 1.19.4+ (19) */
+'width': string;
+/** 1.19.4+ (20) */
+'height': string;
+/** 1.19.4+ (21) */
+'glow_color_override': string;
+/** 1.19.4+ (22) */
+'item_stack': string;
+/** 1.19.4+ (23) */
+'item_display': string;
+/** 1.20.2+ (8) */
+'transformation_interpolation_start_delta_ticks': string;
+/** 1.20.2+ (9) */
+'transformation_interpolation_duration': string;
+/** 1.20.2+ (10) */
+'pos_rot_interpolation_duration': string;},'sniffer': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'living_entity_flags': string;
+/** 1.19.4+ (9) */
+'health': string;
+/** 1.19.4+ (10) */
+'effect_color': string;
+/** 1.19.4+ (11) */
+'effect_ambience': string;
+/** 1.19.4+ (12) */
+'arrow_count': string;
+/** 1.19.4+ (13) */
+'stinger_count': string;
+/** 1.19.4+ (14) */
+'sleeping_pos': string;
+/** 1.19.4+ (15) */
+'mob_flags': string;
+/** 1.19.4+ (16) */
+'baby': string;
+/** 1.19.4+ (17) */
+'state': string;
+/** 1.19.4+ (18) */
+'drop_seed_at_tick': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'text_display': {
+/** 1.19.4+ (0) */
+'shared_flags': string;
+/** 1.19.4+ (1) */
+'air_supply': string;
+/** 1.19.4+ (2) */
+'custom_name': string;
+/** 1.19.4+ (3) */
+'custom_name_visible': string;
+/** 1.19.4+ (4) */
+'silent': string;
+/** 1.19.4+ (5) */
+'no_gravity': string;
+/** 1.19.4+ (6) */
+'pose': string;
+/** 1.19.4+ (7) */
+'ticks_frozen': string;
+/** 1.19.4+ (8) */
+'interpolation_start_delta_ticks': string;
+/** 1.19.4+ (9) */
+'interpolation_duration': string;
+/** 1.19.4+ (10) */
+'translation': string;
+/** 1.19.4+ (11) */
+'scale': string;
+/** 1.19.4+ (12) */
+'left_rotation': string;
+/** 1.19.4+ (13) */
+'right_rotation': string;
+/** 1.19.4+ (14) */
+'billboard_render_constraints': string;
+/** 1.19.4+ (15) */
+'brightness_override': string;
+/** 1.19.4+ (16) */
+'view_range': string;
+/** 1.19.4+ (17) */
+'shadow_radius': string;
+/** 1.19.4+ (18) */
+'shadow_strength': string;
+/** 1.19.4+ (19) */
+'width': string;
+/** 1.19.4+ (20) */
+'height': string;
+/** 1.19.4+ (21) */
+'glow_color_override': string;
+/** 1.19.4+ (22) */
+'text': string;
+/** 1.19.4+ (23) */
+'line_width': string;
+/** 1.19.4+ (24) */
+'background_color': string;
+/** 1.19.4+ (25) */
+'text_opacity': string;
+/** 1.19.4+ (26) */
+'style_flags': string;
+/** 1.20.2+ (8) */
+'transformation_interpolation_start_delta_ticks': string;
+/** 1.20.2+ (9) */
+'transformation_interpolation_duration': string;
+/** 1.20.2+ (10) */
+'pos_rot_interpolation_duration': string;},'breeze': {
+/** 1.20.3+ (0) */
+'shared_flags': string;
+/** 1.20.3+ (1) */
+'air_supply': string;
+/** 1.20.3+ (2) */
+'custom_name': string;
+/** 1.20.3+ (3) */
+'custom_name_visible': string;
+/** 1.20.3+ (4) */
+'silent': string;
+/** 1.20.3+ (5) */
+'no_gravity': string;
+/** 1.20.3+ (6) */
+'pose': string;
+/** 1.20.3+ (7) */
+'ticks_frozen': string;
+/** 1.20.3+ (8) */
+'living_entity_flags': string;
+/** 1.20.3+ (9) */
+'health': string;
+/** 1.20.3+ (10) */
+'effect_color': string;
+/** 1.20.3+ (11) */
+'effect_ambience': string;
+/** 1.20.3+ (12) */
+'arrow_count': string;
+/** 1.20.3+ (13) */
+'stinger_count': string;
+/** 1.20.3+ (14) */
+'sleeping_pos': string;
+/** 1.20.3+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;},'wind_charge': {
+/** 1.20.3+ (0) */
+'shared_flags': string;
+/** 1.20.3+ (1) */
+'air_supply': string;
+/** 1.20.3+ (2) */
+'custom_name': string;
+/** 1.20.3+ (3) */
+'custom_name_visible': string;
+/** 1.20.3+ (4) */
+'silent': string;
+/** 1.20.3+ (5) */
+'no_gravity': string;
+/** 1.20.3+ (6) */
+'pose': string;
+/** 1.20.3+ (7) */
+'ticks_frozen': string;},'armadillo': {
+/** 1.20.5+ (0) */
+'shared_flags': string;
+/** 1.20.5+ (1) */
+'air_supply': string;
+/** 1.20.5+ (2) */
+'custom_name': string;
+/** 1.20.5+ (3) */
+'custom_name_visible': string;
+/** 1.20.5+ (4) */
+'silent': string;
+/** 1.20.5+ (5) */
+'no_gravity': string;
+/** 1.20.5+ (6) */
+'pose': string;
+/** 1.20.5+ (7) */
+'ticks_frozen': string;
+/** 1.20.5+ (8) */
+'living_entity_flags': string;
+/** 1.20.5+ (9) */
+'health': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;
+/** 1.20.5+ (11) */
+'effect_ambience': string;
+/** 1.20.5+ (12) */
+'arrow_count': string;
+/** 1.20.5+ (13) */
+'stinger_count': string;
+/** 1.20.5+ (14) */
+'sleeping_pos': string;
+/** 1.20.5+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (16) */
+'baby': string;
+/** 1.20.5+ (17) */
+'armadillo_state': string;},'bogged': {
+/** 1.20.5+ (0) */
+'shared_flags': string;
+/** 1.20.5+ (1) */
+'air_supply': string;
+/** 1.20.5+ (2) */
+'custom_name': string;
+/** 1.20.5+ (3) */
+'custom_name_visible': string;
+/** 1.20.5+ (4) */
+'silent': string;
+/** 1.20.5+ (5) */
+'no_gravity': string;
+/** 1.20.5+ (6) */
+'pose': string;
+/** 1.20.5+ (7) */
+'ticks_frozen': string;
+/** 1.20.5+ (8) */
+'living_entity_flags': string;
+/** 1.20.5+ (9) */
+'health': string;
+/** 1.20.5+ (10) */
+'effect_particles': string;
+/** 1.20.5+ (11) */
+'effect_ambience': string;
+/** 1.20.5+ (12) */
+'arrow_count': string;
+/** 1.20.5+ (13) */
+'stinger_count': string;
+/** 1.20.5+ (14) */
+'sleeping_pos': string;
+/** 1.20.5+ (15) */
+'mob_flags': string;
+/** 1.20.5+ (16) */
+'sheared': string;},'breeze_wind_charge': {
+/** 1.20.5+ (0) */
+'shared_flags': string;
+/** 1.20.5+ (1) */
+'air_supply': string;
+/** 1.20.5+ (2) */
+'custom_name': string;
+/** 1.20.5+ (3) */
+'custom_name_visible': string;
+/** 1.20.5+ (4) */
+'silent': string;
+/** 1.20.5+ (5) */
+'no_gravity': string;
+/** 1.20.5+ (6) */
+'pose': string;
+/** 1.20.5+ (7) */
+'ticks_frozen': string;},'ominous_item_spawner': {
+/** 1.20.5+ (0) */
+'shared_flags': string;
+/** 1.20.5+ (1) */
+'air_supply': string;
+/** 1.20.5+ (2) */
+'custom_name': string;
+/** 1.20.5+ (3) */
+'custom_name_visible': string;
+/** 1.20.5+ (4) */
+'silent': string;
+/** 1.20.5+ (5) */
+'no_gravity': string;
+/** 1.20.5+ (6) */
+'pose': string;
+/** 1.20.5+ (7) */
+'ticks_frozen': string;
+/** 1.20.5+ (8) */
+'item': string;},
+}

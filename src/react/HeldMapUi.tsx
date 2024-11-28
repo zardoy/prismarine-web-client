@@ -45,11 +45,14 @@ export default () => {
     bottom: 20,
     left: 8,
     pointerEvents: 'none',
-  }}>
-    <img src={dataUrl} style={{
-      width: 92,
-      height: 92,
-      imageRendering: 'pixelated',
-    }} />
+  }}
+  >
+    <img
+      src={dataUrl} style={{
+        width: 92,
+        height: 92,
+        imageRendering: 'pixelated',
+      }}
+    />
   </div> : null
 }
