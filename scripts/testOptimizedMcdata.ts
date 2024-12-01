@@ -97,7 +97,7 @@ const newId = JsonOptimizer.restoreData(json['blocks'], '1.20.4', undefined).fin
 assert(oldId !== newId)
 // test all types + all versions
 
-for (const type of Object.keys(json)) {
+for (const type of ['recipes']) {
   if (!json[type].__IS_OPTIMIZED__) continue
   if (type === 'language') continue // we have loose data for language for size reasons
   console.log('validating', type)

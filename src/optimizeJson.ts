@@ -242,6 +242,7 @@ export default class JsonOptimizer {
 
   recordDiff (key: string, diffObj: string) {
     const diff = this.diffObj(diffObj)
+    // problem is that 274 key 10.20.6 no removed keys in diff created
     this.diffs[key] = diff
   }
 
