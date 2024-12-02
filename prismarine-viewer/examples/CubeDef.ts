@@ -59,7 +59,4 @@ export const quadVertexArray = new Float32Array([
   0.5, 0.5, 0.5, 1, 1, // top-right
   -0.5, -0.5, 0.5, 0, 0, // bottom-let
   -0.5, 0.5, 0.5, 0, 1, // top-let
-
-
 ])
- 

@@ -56,7 +56,6 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     let pos : vec2u = vec2u(u32((clipX + 1) / 2 * f32(textureSize.x)),u32((clipY + 1) / 2 * f32(textureSize.y)));
 
-    //atomicCompareExchangeWeak(&depthAtomic.locks[pos.x][pos.y], 1 ,u32(clipDepth * 2147483646));
     let depth = u32(clipDepth * 4294967295);
     var depthPrev = atomicMin(&depthAtomic.locks[pos.x][pos.y], depth);
     //depthPrev = atomicLoad(&depthAtomic.locks[pos.x][pos.y]);

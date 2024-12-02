@@ -116,7 +116,7 @@ fn main(
   }
 
   var output: VertexOutput;
-  output.Position = ViewProjectionMatrix * ((position * normal) + cube_position);
+  output.Position = ViewProjectionMatrix * (position * normal + cube_position);
   output.fragUV = uv;
   output.TextureIndex = textureIndex;
   output.ColorBlend = colorBlend;

@@ -274,7 +274,6 @@ export class WebgpuRenderer {
       ],
     })
 
-
     const textureSizeBindGroupLayout = device.createBindGroupLayout({
       entries: [
         {
@@ -523,56 +522,35 @@ export class WebgpuRenderer {
     return debugData
   }
 
-
-
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
     const oldVisibleCubesBuffer = this.visibleCubesBuffer
 
-    // Create buffers for compute shader and indirect drawing
-    this.cubesBuffer = this.device.createBuffer({
-      label: 'cubesBuffer',
-      size: this.NUMBER_OF_CUBES * 12, 
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    })
+    this.cubesBuffer =  this.chunksBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, "cubesBuffer")
 
-    this.chunksBuffer = this.device.createBuffer({
-      label: 'chunksBuffer',
-      size: 65_535 * 12, // 8 floats per cube - minimum buffer size
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    })
+    this.chunksBuffer = this.createVertexStorage(65_535 * 12, "chunksBuffer")
 
-    this.modelsBuffer = this.device.createBuffer({
-      label: 'modelsBuffer',
-      size: 20_000 * 12, 
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    })
+    this.modelsBuffer = this.createVertexStorage(20_000 * 12, "modelsBuffer")
 
+    this.occlusionTexture =  this.createVertexStorage(4096 * 4096 * 4, "visibleCubesBuffer")
 
+    this.DepthTextureBuffer =  this.createVertexStorage(4096 * 4096 * 4, "visibleCubesBuffer")
 
-    this.occlusionTexture = this.device.createBuffer({
-      label: 'visibleCubesBuffer',
-      size: 4096 * 4096 * 4,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    })
-
-    this.DepthTextureBuffer = this.device.createBuffer({
-      label: 'visibleCubesBuffer',
-      size: 4096 * 4096 * 4,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    })
-
-    this.visibleCubesBuffer = this.device.createBuffer({
-      label: 'visibleCubesBuffer',
-      size: this.NUMBER_OF_CUBES * 4 * 6,
-      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
-    })
+    this.visibleCubesBuffer =  this.createVertexStorage(this.NUMBER_OF_CUBES * 4 * 6, "visibleCubesBuffer")
 
     if (oldCubesBuffer) {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, this.realNumberOfCubes * 8)
     }
 
     this.createUniformBindGroup(this.device, this.pipeline)
+  }
+
+  private createVertexStorage(size:number, label:string) {
+    return this.device.createBuffer({
+      label,
+      size: size,
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+    })
   }
 
   removeOne () { }
@@ -666,33 +644,6 @@ export class WebgpuRenderer {
     this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeFlatData)
     this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
-    // Object.defineProperty(window, 'getBufferBlocksPositions', {
-    //   get () {
-    //     let minX = 0
-    //     let minZ = 0
-    //     let maxX = 0
-    //     let maxZ = 0
-    //     for (let i = 0; i < positions.length; i += 3) {
-    //       const x = positions[i]
-    //       const z = positions[i + 2]
-    //       minX = Math.min(minX, x)
-    //       minZ = Math.min(minZ, z)
-    //       maxX = Math.max(maxX, x)
-    //       maxZ = Math.max(maxZ, z)
-    //     }
-    //     console.log({ minX, minZ, maxX, maxZ })
-    //     let str = ''
-    //     for (let x = -minX; x <= maxX; x++) {
-    //       for (let z = -minZ; z <= maxZ; z++) {
-    //         const hasBlock = allSides.some(side => side && side[0] === x && side[2] === z)
-    //         str += hasBlock ? 'X' : ' '
-    //       }
-    //       str += '\n'
-    //     }
-    //     return str
-    //   },
-    // })
-
     this.notRenderedAdditions++
     console.timeEnd('updateSides')
     this.waitingNextUpdateSidesOffset = undefined
@@ -710,9 +661,6 @@ export class WebgpuRenderer {
     camera.updateMatrix()
     return camera
   })()
-
-  // debugBlockPositions() {}
-
 
   loop (forceFrame = false) {
     const nextFrame = () => {
@@ -818,7 +766,6 @@ export class WebgpuRenderer {
 
     this.commandEncoder = device.createCommandEncoder()
     //this.commandEncoder.clearBuffer(this.occlusionTexture)
-    //this.commandEncoder.
 
     //this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
     this.commandEncoder.clearBuffer(this.occlusionTexture)
@@ -832,7 +779,6 @@ export class WebgpuRenderer {
 
     this.updateCubesBuffersDataFromLoop()
     if (this.realNumberOfCubes) {
-
       {
         const computePass = this.commandEncoder.beginComputePass()
         computePass.label = 'ComputePass'
@@ -858,9 +804,6 @@ export class WebgpuRenderer {
         device.queue.submit([this.commandEncoder.finish()])
       }
       this.commandEncoder = device.createCommandEncoder()
-      //device.queue.submit([commandEncoder.finish()]);
-      // Render pass
-      //console.log(this.indirectDrawBuffer.getMappedRange());
       const renderPass = this.commandEncoder.beginRenderPass(this.renderPassDescriptor)
       renderPass.label = 'RenderPass'
       renderPass.setPipeline(pipeline)
@@ -876,6 +819,7 @@ export class WebgpuRenderer {
         renderPass.setViewport(this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
         renderPass.drawIndirect(this.indirectDrawBuffer, 0)
       }
+
       renderPass.end()
     }
 
