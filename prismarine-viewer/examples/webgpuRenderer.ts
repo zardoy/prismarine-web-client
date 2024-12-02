@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BlockFaceType } from './shared'
-import { cubePositionOffset, cubeUVOffset, cubeVertexArray, cubeVertexCount, cubeVertexSize } from './CubeDef'
+import { PositionOffset, UVOffset, quadVertexArray, quadVertexCount, cubeVertexSize } from './CubeDef'
 import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
@@ -57,6 +57,7 @@ export class WebgpuRenderer {
   textureSizeBuffer: any
   textureSizeBindGroup: GPUBindGroup
   cameraComputeUniform: GPUBuffer
+  modelsBuffer: GPUBuffer
 
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
     this.NUMBER_OF_CUBES = 1
@@ -104,12 +105,12 @@ export class WebgpuRenderer {
     })
 
     const verticesBuffer = device.createBuffer({
-      size: cubeVertexArray.byteLength,
+      size: quadVertexArray.byteLength,
       usage: GPUBufferUsage.VERTEX,
       mappedAtCreation: true,
     })
     this.verticesBuffer = verticesBuffer
-    new Float32Array(verticesBuffer.getMappedRange()).set(cubeVertexArray)
+    new Float32Array(verticesBuffer.getMappedRange()).set(quadVertexArray)
     verticesBuffer.unmap()
 
     const pipeline = device.createRenderPipeline({
@@ -125,12 +126,12 @@ export class WebgpuRenderer {
             attributes: [
               {
                 shaderLocation: 0,
-                offset: cubePositionOffset,
+                offset: PositionOffset,
                 format: 'float32x3',
               },
               {
                 shaderLocation: 1,
-                offset: cubeUVOffset,
+                offset: UVOffset,
                 format: 'float32x2',
               },
             ],
@@ -340,7 +341,7 @@ export class WebgpuRenderer {
     })
 
     // Initialize indirect draw parameters
-    const indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0])
+    const indirectDrawParams = new Uint32Array([quadVertexCount, 0, 0, 0])
     device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams)
 
     // initialize texture size
@@ -355,7 +356,7 @@ export class WebgpuRenderer {
     this.createNewDataBuffers()
 
 
-    this.indirectDrawParams = new Uint32Array([cubeVertexCount, 0, 0, 0])
+    this.indirectDrawParams = new Uint32Array([quadVertexCount, 0, 0, 0])
 
     // always last!
     this.loop(true) // start rendering
@@ -443,6 +444,12 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.AtlasTexture.createView(),
         },
+        // {
+        //   binding: 3,
+        //   resource: {
+        //     buffer: this.modelsBuffer
+        //   }
+        // }
       ],
     })
 
@@ -525,13 +532,19 @@ export class WebgpuRenderer {
     // Create buffers for compute shader and indirect drawing
     this.cubesBuffer = this.device.createBuffer({
       label: 'cubesBuffer',
-      size: this.NUMBER_OF_CUBES * 12, // 8 floats per cube - minimum buffer size
+      size: this.NUMBER_OF_CUBES * 12, 
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
     this.chunksBuffer = this.device.createBuffer({
       label: 'chunksBuffer',
       size: 65_535 * 12, // 8 floats per cube - minimum buffer size
+      usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
+    })
+
+    this.modelsBuffer = this.device.createBuffer({
+      label: 'modelsBuffer',
+      size: 20_000 * 12, 
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
@@ -551,7 +564,7 @@ export class WebgpuRenderer {
 
     this.visibleCubesBuffer = this.device.createBuffer({
       label: 'visibleCubesBuffer',
-      size: this.NUMBER_OF_CUBES * 4,
+      size: this.NUMBER_OF_CUBES * 4 * 6,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
 
@@ -604,7 +617,6 @@ export class WebgpuRenderer {
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
-    const BYTES_PER_ELEMENT = 2
     let kk = 0; let ii = 0
     const chunksKeys = [...chunkSides.keys()]
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 3)

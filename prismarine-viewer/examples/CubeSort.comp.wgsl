@@ -34,11 +34,42 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   }
 
   var occlusionData: u32 = occlusion.locks[position.x][position.y];
-
+  let visibleSides = 63;
+  
 
 
 if (occlusionData != 0) {
-    let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
-    visibleCubes[visibleIndex].ptr = occlusionData - 1;
+  occlusionData = (occlusionData - 1) << 3;
+
+  if ((visibleSides & 1) != 0) {
+  let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
+  visibleCubes[visibleIndex].ptr =occlusionData;
+  }
+
+  if (((visibleSides >> 1) & 1) != 0) {
+  let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
+  visibleCubes[visibleIndex].ptr =occlusionData | 1;
+  }
+
+  if (((visibleSides >> 2) & 1) != 0) {
+  let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
+  visibleCubes[visibleIndex].ptr =occlusionData | 2;
+  }
+
+  if (((visibleSides >> 3) & 1) != 0) {
+  let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
+  visibleCubes[visibleIndex].ptr =occlusionData | 3;
+  }
+
+  if (((visibleSides >> 4) & 1) != 0) {
+  let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
+  visibleCubes[visibleIndex].ptr =occlusionData | 4;
+  }
+
+  if (((visibleSides >> 5) & 1) != 0) {
+  let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
+  visibleCubes[visibleIndex].ptr =occlusionData | 5;
+  }
+
   }
 }
