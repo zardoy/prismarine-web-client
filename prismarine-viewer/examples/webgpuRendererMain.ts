@@ -3,10 +3,10 @@ import { pickObj } from '@zardoy/utils'
 import { Viewer } from '../viewer/lib/viewer'
 import { MesherGeometryOutput } from '../viewer/lib/mesher/shared'
 import { isMobile } from '../viewer/lib/simpleUtils'
-import { addNewStat } from './newStats'
 import type { workerProxyType } from './webgpuRendererWorker'
 import { useWorkerProxy } from './workerProxy'
 import { MessageChannelReplacement } from './messageChannel'
+import { addNewStat } from '../viewer/lib/ui/newStats'
 
 let worker: Worker | MessagePort
 const workerReadyProxy = Promise.withResolvers()
@@ -210,7 +210,7 @@ export const exportLoadedTiles = () => {
 
 
 const addFpsCounters = () => {
-  const { updateText } = addNewStat('fps', 200)
+  const { updateText } = addNewStat('fps', 200, undefined, 0)
   let prevTimeout
   worker.addEventListener('message', (e: any) => {
     if (e.data.type === 'fps') {

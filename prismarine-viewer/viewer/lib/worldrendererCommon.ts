@@ -120,7 +120,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
     this.renderUpdateEmitter.on('update', () => {
       const loadedChunks = Object.keys(this.finishedChunks).length
-      updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance})`)
+      updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance}/${this.viewDistance})`)
     })
   }
 
@@ -335,11 +335,16 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     return Math.floor(Math.max(this.worldConfig.minY, this.mesherConfig.clipWorldBelowY ?? -Infinity) / 16) * 16
   }
 
+  upateDownloadedChunksText () {
+    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D`)  
+  }
+
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
     if (!this.active) return
     if (this.workers.length === 0) throw new Error('workers not initialized yet')
     this.initialChunksLoad = false
     this.loadedChunks[`${x},${z}`] = true
+    this.upateDownloadedChunksText()
     for (const worker of this.workers) {
       // todo optimize
       worker.postMessage({ type: 'chunk', x, z, chunk })

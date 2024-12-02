@@ -100,12 +100,12 @@ import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
 import { initWebgpuRenderer } from 'prismarine-viewer/examples/webgpuRendererMain'
-import { addNewStat } from 'prismarine-viewer/examples/newStats'
 // import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
+import { addNewStat } from 'prismarine-viewer/viewer/lib/ui/newStats'
 
 window.debug = debug
 window.THREE = THREE
@@ -391,6 +391,8 @@ async function connect (connectOptions: ConnectOptions) {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     window._LOAD_MC_DATA() // start loading data (if not loaded yet)
+    addNewStat('loaded-chunks', undefined, 200, 0)
+    addNewStat('downloaded-chunks', 90, 200, 20)
     const downloadMcData = async (version: string) => {
       if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
         // todo support it (just need to fix .export crash)
@@ -434,7 +436,6 @@ async function connect (connectOptions: ConnectOptions) {
     await initWebgpuRenderer(() => {
       renderWrapper.postRender()
     })
-    addNewStat('loaded-chunks')
 
     if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:

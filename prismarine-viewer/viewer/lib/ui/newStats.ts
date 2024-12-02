@@ -4,11 +4,11 @@ const rightOffset = 0
 const stats = {}
 
 let lastY = 20
-export const addNewStat = (id: string, width = 80, x = rightOffset, y = lastY) => {
+export const addNewStat = (id: string, width = 80, x = rightOffset, y?: number) => {
   const pane = document.createElement('div')
   pane.id = 'fps-counter'
   pane.style.position = 'fixed'
-  pane.style.top = `${y}px`
+  pane.style.top = `${y ?? lastY}px`
   pane.style.right = `${x}px`
   // gray bg
   pane.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'
@@ -20,7 +20,7 @@ export const addNewStat = (id: string, width = 80, x = rightOffset, y = lastY) =
   pane.style.pointerEvents = 'none'
   document.body.appendChild(pane)
   stats[id] = pane
-  if (y === 0) { // otherwise it's a custom position
+  if (y === undefined && x === rightOffset) { // otherwise it's a custom position
     // rightOffset += width
     lastY += 20
   }
