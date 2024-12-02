@@ -82,15 +82,15 @@ export class Viewer {
     // this.primitives.clear()
   }
 
-  setVersion (userVersion: string, texturesVersion = userVersion) {
+  setVersion (userVersion: string, texturesVersion = userVersion): void | Promise<void> {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
-    void this.world.setVersion(userVersion, texturesVersion).then(async () => {
+    this.entities.clear()
+    // this.primitives.clear()
+    return this.world.setVersion(userVersion, texturesVersion).then(async () => {
       return new THREE.TextureLoader().loadAsync(this.world.itemsAtlasParser!.latestImage)
     }).then((texture) => {
       this.entities.itemsTexture = texture
     })
-    this.entities.clear()
-    // this.primitives.clear()
   }
 
   addColumn (x, z, chunk, isLightUpdate = false) {

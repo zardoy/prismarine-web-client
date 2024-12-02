@@ -423,7 +423,13 @@ async function connect (connectOptions: ConnectOptions) {
         }
       }
       viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
-      viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      const promise = viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      const isWebgpu = true
+      if (isWebgpu) {
+        await promise
+      }
+      const mcData = MinecraftData(version)
+      window.loadedData = mcData
     }
 
     // serverOptions.version = '1.18.1'
@@ -685,10 +691,8 @@ async function connect (connectOptions: ConnectOptions) {
   // don't use spawn event, player can be dead
   bot.once(spawnEarlier ? 'forcedMove' : 'health', () => {
     errorAbortController.abort()
-    const mcData = MinecraftData(bot.version)
-    window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
-    window.PrismarineItem = PrismarineItem(mcData.version.minecraftVersion!)
-    window.loadedData = mcData
+    window.PrismarineBlock = PrismarineBlock(loadedData.version.minecraftVersion!)
+    window.PrismarineItem = PrismarineItem(loadedData.version.minecraftVersion!)
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
 

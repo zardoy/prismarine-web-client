@@ -164,17 +164,17 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
 
     if (needTiles) {
       const tiles = attr.tiles as Tiles
-      tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
-        block: 'water',
-        faces: [],
-      }
-      tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
-        face,
-        neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
-        side: 0, // todo
-        textureIndex: 0,
-        // texture: eFace.texture.name,
-      })
+      // tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+      //   block: 'water',
+      //   faces: [],
+      // }
+      // tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+      //   face,
+      //   neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+      //   side: 0, // todo
+      //   textureIndex: 0,
+      //   // texture: eFace.texture.name,
+      // })
     }
 
     const { u } = texture
@@ -247,7 +247,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
   // eslint-disable-next-line guard-for-in
   for (const face in element.faces) {
     const eFace = element.faces[face]
-    const { corners, mask1, mask2, side } = elemFaces[face]
+    const { corners, mask1, mask2, webgpuSide } = elemFaces[face]
     const dir = matmul3(globalMatrix, elemFaces[face].dir)
 
     if (eFace.cullface) {
@@ -407,22 +407,20 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       const tiles = attr.tiles as Tiles
       tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
         block: block.name,
-        faces: [],
+        visibleFaces: [],
+        modelId: block.stateId!,
+        tint: lightWithColor,
       }
-      const needsOnlyOneFace = true
-      const isTilesEmpty = tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.length < 1
-      if (isTilesEmpty || !needsOnlyOneFace) {
-        tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
-          face,
-          side,
-          textureIndex: eFace.texture.tileIndex,
-          neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
-          light: baseLight,
-          tint: lightWithColor,
-          //@ts-expect-error debug prop
-          texture: eFace.texture.debugName || block.name,
-        } satisfies BlockType['faces'][number])
-      }
+      tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
+      // tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+      //   face,
+      //   side,
+      //   modelId: eFace,
+      //   // textureIndex: eFace.texture.tileIndex,
+      //   neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+      //   //@ts-expect-error debug prop
+      //   texture: eFace.texture.debugName || block.name,
+      // } satisfies BlockType['faces'][number])
     }
 
     if (!needTiles) {

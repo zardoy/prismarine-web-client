@@ -75,6 +75,7 @@ export function matmulmat3 (a, b) {
 export const elemFaces = {
   up: {
     side: 0,
+    webgpuSide: 5,
     dir: [0, 1, 0],
     mask1: [1, 1, 0],
     mask2: [0, 1, 1],
@@ -87,6 +88,7 @@ export const elemFaces = {
   },
   down: {
     side: 1,
+    webgpuSide: 4,
     dir: [0, -1, 0],
     mask1: [1, 1, 0],
     mask2: [0, 1, 1],
@@ -99,6 +101,7 @@ export const elemFaces = {
   },
   east: {
     side: 2,
+    webgpuSide: 3,
     dir: [1, 0, 0],
     mask1: [1, 1, 0],
     mask2: [1, 0, 1],
@@ -111,6 +114,7 @@ export const elemFaces = {
   },
   west: {
     side: 3,
+    webgpuSide: 2,
     dir: [-1, 0, 0],
     mask1: [1, 1, 0],
     mask2: [1, 0, 1],
@@ -123,6 +127,7 @@ export const elemFaces = {
   },
   north: {
     side: 4,
+    webgpuSide: 0,
     dir: [0, 0, -1],
     mask1: [1, 0, 1],
     mask2: [0, 1, 1],
@@ -135,6 +140,7 @@ export const elemFaces = {
   },
   south: {
     side: 5,
+    webgpuSide: 1,
     dir: [0, 0, 1],
     mask1: [1, 0, 1],
     mask2: [0, 1, 1],

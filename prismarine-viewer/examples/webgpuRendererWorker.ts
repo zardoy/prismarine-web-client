@@ -77,7 +77,8 @@ let started = false
 let autoTickUpdate = undefined as number | undefined
 
 export const workerProxyType = createWorkerProxy({
-  canvas (canvas, imageBlob, isPlayground, localStorage, NUMBER_OF_CUBES) {
+  // eslint-disable-next-line max-params
+  canvas (canvas, imageBlob, isPlayground, localStorage, NUMBER_OF_CUBES, blocksDataModel) {
     if (globalThis.webgpuRendererChannel) {
       // HACK! IOS safari bug: no support for transferControlToOffscreen in the same context! so we create a new canvas here!
       const newCanvas = document.createElement('canvas')
@@ -90,7 +91,7 @@ export const workerProxyType = createWorkerProxy({
       document.body.appendChild(canvas)
     }
     started = true
-    webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, NUMBER_OF_CUBES)
+    webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, NUMBER_OF_CUBES, blocksDataModel)
     globalThis.webgpuRenderer = webgpuRenderer
     postMessage({ type: 'webgpuRendererReady' })
   },
@@ -130,11 +131,13 @@ export const workerProxyType = createWorkerProxy({
   generateRandom (count: number, offsetX = 0, offsetZ = 0, yOffset = 0) {
     const square = Math.sqrt(count)
     if (square % 1 !== 0) throw new Error('square must be a whole number')
-    const blocks = {}
+    const blocks = {} as Record<string, BlockType>
     for (let x = offsetX; x < square + offsetX; x++) {
       for (let z = offsetZ; z < square + offsetZ; z++) {
         blocks[`${x},${yOffset},${z}`] = {
-          faces: this.getFaces()
+          visibleFaces: [0, 1, 2, 3, 4, 5],
+          modelId: 1,
+          block: '',
         }
       }
     }
@@ -266,7 +269,7 @@ const exportData = () => {
   for (const [i, sideData] of allSides.entries()) {
     if (!sideData) continue
     const [x, y, z, side] = sideData
-    flatData.set([x, y, z, side.side, side.textureIndex], i * 5)
+    // flatData.set([x, y, z, side.side, side.textureIndex], i * 5)
   }
 
   return { sides: flatData }

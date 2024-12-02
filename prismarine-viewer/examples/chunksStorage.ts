@@ -1,6 +1,6 @@
 import { BlockFaceType, BlockType, makeError } from './shared'
 
-export type BlockWithTiles = [number, number, number, BlockFaceType[]]
+export type BlockWithTiles = [number, number, number, BlockType]
 
 const chunksArrIndexes = {}
 // const freeArrayIndexes = [] as Array<[number, number]>
@@ -26,17 +26,17 @@ export class ChunksStorage {
     this.dataSize = 0
   }
 
-  addData (tiles: Record<string, BlockType>, rawPosKey: string) {
+  addData (blocks: Record<string, BlockType>, rawPosKey: string) {
     const [xSection, ySection, zSection] = rawPosKey.split(',').map(Number)
     const chunkPosKey = `${xSection / 16},${ySection / 16},${zSection / 16}`
 
-    const newData = Object.entries(tiles).map(([key, value]) => {
+    const newData = Object.entries(blocks).map(([key, value]) => {
       const [x, y, z] = key.split(',').map(Number)
       const block = value
       // return block.faces.map((side) => {
       const xRel = Math.abs(x % 16)
       const zRel = Math.abs(z % 16)
-      return [xRel, y, zRel, block.faces] satisfies BlockWithTiles
+      return [xRel, y, zRel, block] satisfies BlockWithTiles
     })
 
     this.chunkSides.set(chunkPosKey, newData)
