@@ -202,6 +202,7 @@ export class BasePlaygroundScene {
     this.initGui()
 
     const worldView = new WorldDataEmitter(world, this.viewDistance, this.targetPos)
+    worldView.isPlayground = true
     worldView.addWaitTime = 0
     window.worldView = worldView
 

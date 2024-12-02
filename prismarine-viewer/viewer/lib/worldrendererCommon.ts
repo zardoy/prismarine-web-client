@@ -356,13 +356,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
+  markAsLoaded (x, z) {
+    this.loadedChunks[`${x},${z}`] = true
+    this.finishedChunks[`${x},${z}`] = true
+    this.checkAllFinished()
+  }
+
   removeColumn (x, z) {
     delete this.loadedChunks[`${x},${z}`]
     for (const worker of this.workers) {
       worker.postMessage({ type: 'unloadChunk', x, z })
     }
-    this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     delete this.finishedChunks[`${x},${z}`]
+    this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
       this.setSectionDirty(new Vec3(x, y, z), false)
     }

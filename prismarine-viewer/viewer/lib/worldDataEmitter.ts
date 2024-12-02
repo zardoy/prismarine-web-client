@@ -24,6 +24,7 @@ export class WorldDataEmitter extends EventEmitter {
   keepChunksDistance = 0
   addWaitTime = 1
   _handDisplay = false
+  isPlayground = false
   get handDisplay () {
     return this._handDisplay
   }
@@ -214,7 +215,7 @@ export class WorldDataEmitter extends EventEmitter {
         //@ts-expect-error
         this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
-      } else {
+      } else if (this.isPlayground) { // don't allow in real worlds pre-flag chunks as loaded to avoid race condition when the chunk might still be loading. In playground it's assumed we always pre-load all chunks first
         this.emitter.emit('markAsLoaded', { x: pos.x, z: pos.z })
       }
     } else {

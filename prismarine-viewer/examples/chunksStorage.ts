@@ -11,8 +11,10 @@ export class ChunksStorage {
   lastNotUpdatedIndex
   lastNotUpdatedArrSize
   dataSize = 0
+  lastFetchedSize = 0
 
   getDataForBuffers () {
+    this.lastFetchedSize = this.dataSize
     return {
       allSides: this.chunkSides.values(),
       chunkSides: this.chunkSides

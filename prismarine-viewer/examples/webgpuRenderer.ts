@@ -525,7 +525,8 @@ export class WebgpuRenderer {
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
     const oldVisibleCubesBuffer = this.visibleCubesBuffer
-
+    
+    //let 
     this.cubesBuffer =  this.chunksBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, "cubesBuffer")
 
     this.chunksBuffer = this.createVertexStorage(65_535 * 12, "chunksBuffer")
@@ -535,6 +536,7 @@ export class WebgpuRenderer {
     this.occlusionTexture =  this.createVertexStorage(4096 * 4096 * 4, "visibleCubesBuffer")
 
     this.DepthTextureBuffer =  this.createVertexStorage(4096 * 4096 * 4, "visibleCubesBuffer")
+
 
     this.visibleCubesBuffer =  this.createVertexStorage(this.NUMBER_OF_CUBES * 4 * 6, "visibleCubesBuffer")
 

@@ -265,8 +265,7 @@ export class Viewer {
     })
 
     worldEmitter.on('markAsLoaded', ({ x, z }) => {
-      this.world.finishedChunks[`${x},${z}`] = true
-      this.world.checkAllFinished()
+      this.world.markAsLoaded(x, z)
     })
 
     worldEmitter.on('updateLight', ({ pos }) => {
