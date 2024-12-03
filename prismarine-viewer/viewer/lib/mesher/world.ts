@@ -6,6 +6,7 @@ import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
 import legacyJson from '../../../../src/preflatMap.json'
 import { defaultMesherConfig } from './shared'
+import type { AllBlocksStateIdToModelIdMap } from '../../../examples/webgpuRendererMain'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -39,6 +40,7 @@ export class World {
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
   erroredBlockModel?: BlockModelPartsResolved
+  webgpuModelsMapping: AllBlocksStateIdToModelIdMap
 
   constructor (version) {
     this.Chunk = Chunks(version) as any
@@ -199,6 +201,10 @@ export class World {
 
   shouldMakeAo (block: WorldBlock | null) {
     return block?.isCube && !ignoreAoBlocks.includes(block.name)
+  }
+
+  setDataForWebgpuRenderer (data: { allBlocksStateIdToModelIdMap: AllBlocksStateIdToModelIdMap }) {
+    this.webgpuModelsMapping = data.allBlocksStateIdToModelIdMap
   }
 }
 

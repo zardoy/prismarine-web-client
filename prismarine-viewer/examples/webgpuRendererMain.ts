@@ -96,7 +96,8 @@ export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeI
   // })
   const { image } = (viewer.world.material.map!)
   const imageBlob = await fetch(image.src).then(async (res) => res.blob())
-  const modelsData = getBlocksModelData()
+  const { blocksDataModel: modelsData, allBlocksStateIdToModelIdMap } = getBlocksModelData()
+  viewer.world.sendDataForWebgpuRenderer({ allBlocksStateIdToModelIdMap })
 
   const canvas = document.createElement('canvas')
   canvas.width = window.innerWidth * window.devicePixelRatio
@@ -245,15 +246,18 @@ export type BlocksModelData = {
   rotation: number[]
 }
 
+export type AllBlocksDataModels = Record<string, BlocksModelData>
+export type AllBlocksStateIdToModelIdMap = Record<number, number>
 const getBlocksModelData = () => {
   const provider = worldBlockProvider(viewer.world.blockstatesModels, viewer.world.blocksAtlases, 'latest')
   const PBlock = PrismarineBlock(viewer.world.version!)
 
-  const blocksDataModel = {} as Record<string, BlocksModelData>
+  const blocksDataModel = {} as AllBlocksDataModels
   let i = 0
+  const allBlocksStateIdToModelIdMap = {} as AllBlocksStateIdToModelIdMap
   for (const b of loadedData.blocksArray) {
-    for (let i = b.defaultState; i <= b.defaultState; i++) {
-      const block = PBlock.fromStateId(i, 0)
+    for (let state = b.defaultState; state <= b.defaultState; state++) {
+      const block = PBlock.fromStateId(state, 0)
       if (block.shapes.length === 0 || !block.shapes.every(shape => {
         return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
       })) {
@@ -277,12 +281,12 @@ const getBlocksModelData = () => {
         continue
       }
       const facesMapping = [
-        ['back', 'north'],
         ['front', 'south'],
-        ['left', 'west'],
-        ['right', 'east'],
         ['bottom', 'down'],
-        ['top', 'up']
+        ['top', 'up'],
+        ['right', 'east'],
+        ['left', 'west'],
+        ['back', 'north'],
       ]
       const blockData = {
         textures: [0, 0, 0, 0, 0, 0],
@@ -299,11 +303,15 @@ const getBlocksModelData = () => {
           throw new Error(`Invalid rotation ${rotation} ${b.name}`)
         }
       }
-      blocksDataModel[block.stateId!] = blockData
-      // blocksDataModel[i] = blockData
+      const k = i++
+      allBlocksStateIdToModelIdMap[block.stateId!] = k
+      blocksDataModel[k] = blockData
     }
   }
-  return blocksDataModel
+  return {
+    blocksDataModel,
+    allBlocksStateIdToModelIdMap
+  }
 }
 
 export const addWebgpuListener = (type: string, listener: (data: any) => void) => {

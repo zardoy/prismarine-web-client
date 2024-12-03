@@ -1,13 +1,16 @@
+//@ts-check
 // main worker file intended for computing world geometry is built using prismarine-viewer/buildWorker.mjs
 import { build, context } from 'esbuild'
 import fs from 'fs'
-import path from 'path'
+import path, { join } from 'path'
+import { polyfillNode } from 'esbuild-plugin-polyfill-node'
 
 const watch = process.argv.includes('-w')
 
 const result = await (watch ? context : build)({
     bundle: true,
     platform: 'browser',
+    // entryPoints: ['prismarine-viewer/examples/webgpuRendererWorker.ts', 'src/worldSaveWorker.ts'],
     entryPoints: ['prismarine-viewer/examples/webgpuRendererWorker.ts'],
     outdir: 'prismarine-viewer/dist/',
     sourcemap: watch ? 'inline' : 'external',
@@ -43,7 +46,50 @@ const result = await (watch ? context : build)({
                     }
                 })
             }
-        }
+        },
+        {
+            name: 'fix-dynamic-require',
+            setup (build) {
+              build.onResolve({
+                filter: /1\.14\/chunk/,
+              }, async ({ resolveDir, path }) => {
+                if (!resolveDir.includes('prismarine-provider-anvil')) return
+                return {
+                  namespace: 'fix-dynamic-require',
+                  path,
+                  pluginData: {
+                    resolvedPath: `${join(resolveDir, path)}.js`,
+                    resolveDir
+                  },
+                }
+              })
+              build.onLoad({
+                filter: /.+/,
+                namespace: 'fix-dynamic-require',
+              }, async ({ pluginData: { resolvedPath, resolveDir } }) => {
+                const resolvedFile = await fs.promises.readFile(resolvedPath, 'utf8')
+                return {
+                  contents: resolvedFile.replace("require(`prismarine-chunk/src/pc/common/BitArray${noSpan ? 'NoSpan' : ''}`)", "noSpan ? require(`prismarine-chunk/src/pc/common/BitArray`) : require(`prismarine-chunk/src/pc/common/BitArrayNoSpan`)"),
+                  resolveDir,
+                  loader: 'js',
+                }
+              })
+            }
+        },
+        polyfillNode({
+            polyfills: {
+              fs: false,
+              dns: false,
+              crypto: false,
+              events: false,
+              http: false,
+              stream: false,
+              buffer: false,
+              perf_hooks: false,
+              net: false,
+              assert: false,
+            },
+          })
     ],
     loader: {
         '.vert': 'text',
@@ -58,5 +104,6 @@ const result = await (watch ? context : build)({
 })
 
 if (watch) {
+    //@ts-ignore
     await result.watch()
 }
