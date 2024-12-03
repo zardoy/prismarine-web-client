@@ -1,17 +1,17 @@
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { pickObj } from '@zardoy/utils'
+import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
+import PrismarineBlock from 'prismarine-block'
 import { Viewer } from '../viewer/lib/viewer'
 import { MesherGeometryOutput } from '../viewer/lib/mesher/shared'
 import { isMobile } from '../viewer/lib/simpleUtils'
-import type { workerProxyType } from './webgpuRendererWorker'
-import { useWorkerProxy } from './workerProxy'
-import { MessageChannelReplacement } from './messageChannel'
 import { addNewStat } from '../viewer/lib/ui/newStats'
-import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
-import PrismarineBlock from 'prismarine-block'
 import { versionToNumber } from '../viewer/prepare/utils'
 import preflatMapJson from '../../src/preflatMap.json'
 import { getPreflatBlock } from '../viewer/lib/mesher/getPreflatBlock'
+import { MessageChannelReplacement } from './messageChannel'
+import { useWorkerProxy } from './workerProxy'
+import type { workerProxyType } from './webgpuRendererWorker'
 
 let worker: Worker | MessagePort
 const workerReadyProxy = Promise.withResolvers()
@@ -252,16 +252,39 @@ export type BlocksModelData = {
 export type AllBlocksDataModels = Record<string, BlocksModelData>
 export type AllBlocksStateIdToModelIdMap = Record<number, number>
 const getBlocksModelData = () => {
+  const blocksMap = {
+    'double_stone_slab': 'stone',
+    'stone_slab': 'stone',
+    'oak_stairs': 'planks',
+    'stone_stairs': 'stone',
+    'glass_pane': 'stained_glass',
+    'brick_stairs': 'brick_block',
+    'stone_brick_stairs': 'stonebrick',
+    'nether_brick_stairs': 'nether_brick',
+    'double_wooden_slab': 'planks',
+    'wooden_slab': 'planks',
+    'sandstone_stairs': 'sandstone',
+    'cobblestone_wall': 'cobblestone',
+    'quartz_stairs': 'quartz_block',
+    'stained_glass_pane': 'stained_glass',
+    'red_sandstone_stairs': 'red_sandstone',
+    'stone_slab2': 'stone_slab',
+    'purpur_stairs': 'purpur_block',
+    'purpur_slab': 'purpur_block'
+  }
+
   const isPreflat = versionToNumber(viewer.world.version!) < versionToNumber('1.13')
   const provider = worldBlockProvider(viewer.world.blockstatesModels, viewer.world.blocksAtlases, 'latest')
   const PBlockOriginal = PrismarineBlock(viewer.world.version!)
 
   const blocksDataModel = {} as AllBlocksDataModels
+  const blocksProccessed = {} as Record<string, boolean>
   let i = 0
   const allBlocksStateIdToModelIdMap = {} as AllBlocksStateIdToModelIdMap
   for (const b of loadedData.blocksArray) {
     for (let state = b.defaultState; state <= b.defaultState; state++) {
-      const block = PBlockOriginal.fromStateId(state, 0)
+      const mapping = blocksMap[b.name]
+      const block = PBlockOriginal.fromStateId(mapping && loadedData.blocksByName[mapping] ? loadedData.blocksByName[mapping].defaultState : state, 0)
       if (isPreflat) {
         getPreflatBlock(block)
       }
@@ -311,8 +334,9 @@ const getBlocksModelData = () => {
         }
       }
       const k = i++
-      allBlocksStateIdToModelIdMap[block.stateId!] = k
+      allBlocksStateIdToModelIdMap[state] = k
       blocksDataModel[k] = blockData
+      blocksProccessed[block.name] = true
     }
   }
   return {

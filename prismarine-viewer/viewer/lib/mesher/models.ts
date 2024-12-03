@@ -407,7 +407,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     if (needTiles) {
       const tiles = attr.tiles as Tiles
       const model = world.webgpuModelsMapping[block.stateId!]
-      if (model) {
+      if (model !== undefined) {
         tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
           block: block.name,
           visibleFaces: [],

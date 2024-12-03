@@ -142,7 +142,12 @@ export class ChunksStorage {
     const { chunk, start } = this.getAvailableChunk(newData.length)
     chunk.x = xSection / 16
     chunk.z = zSection / 16
-    this.chunksMap.set(rawPosKey, this.chunks.indexOf(chunk))
+    const chunkIndex = this.chunks.indexOf(chunk);
+    this.chunksMap.set(rawPosKey, chunkIndex)
+
+    // newData.forEach(newDatum => {
+    //   newDatum[3].chunk = chunkIndex
+    // })
 
     this.addBlocksData(start, newData)
     this.awaitingUpdateStart = Math.min(this.awaitingUpdateStart ?? Infinity, start)

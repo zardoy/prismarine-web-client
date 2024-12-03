@@ -613,7 +613,7 @@ export class WebgpuRenderer {
     for (let i = 0; i < blocksToUpdate.length; i++) {
       if (remaining-- === 0) {
         chunk = chunksStorage.findBelongingChunk(updateOffset + i)!
-        remaining = chunk.chunk.length
+        remaining = chunk.chunk.length - 1
       }
 
       let first = 0
@@ -622,6 +622,9 @@ export class WebgpuRenderer {
       const chunkBlock = blocksToUpdate[i]
       if (chunkBlock) {
         const [x, y, z, block] = chunkBlock
+        // if (chunk.index !== block.chunk) {
+        //   throw new Error(`Block chunk mismatch ${block.chunk} !== ${chunk.index}`)
+        // }
         const positions = [x, y, z]
         const visibility = Array.from({ length: 6 }, (_, i) => (block.visibleFaces.includes(i) ? 1 : 0))
 
