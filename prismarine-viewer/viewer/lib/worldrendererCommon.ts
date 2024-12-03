@@ -278,6 +278,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
+  sendDataForWebgpuRenderer (data) {
+    for (const worker of this.workers) {
+      worker.postMessage({ type: 'webgpuData', data })
+    }
+  }
+
   async updateTexturesData () {
     const blocksAssetsParser = new AtlasParser(this.blocksAtlases, blocksAtlasLatest, blocksAtlasLegacy)
     const itemsAssetsParser = new AtlasParser(this.itemsAtlases, itemsAtlasLatest, itemsAtlasLegacy)

@@ -213,6 +213,13 @@ export class BasePlaygroundScene {
 
     // Create viewer
     const viewer = new Viewer(renderer, { numWorkers: 6, showChunkBorders: false, })
+    viewer.world.blockstatesModels = blockstatesModels
+    viewer.addChunksBatchWaitTime = 0
+    viewer.entities.setDebugMode('basic')
+    viewer.world.mesherConfig.enableLighting = false
+    viewer.world.allowUpdates = true
+    await viewer.setVersion(this.version)
+
     window.viewer = viewer
     const isWebgpu = true
     const promises = [] as Array<Promise<void>>
@@ -223,15 +230,9 @@ export class BasePlaygroundScene {
       renderer.domElement.id = 'viewer-canvas'
       document.body.appendChild(renderer.domElement)
     }
-    viewer.addChunksBatchWaitTime = 0
-    viewer.world.blockstatesModels = blockstatesModels
-    viewer.entities.setDebugMode('basic')
-    viewer.setVersion(this.version)
     viewer.entities.onSkinUpdate = () => {
       viewer.render()
     }
-    viewer.world.mesherConfig.enableLighting = false
-    viewer.world.allowUpdates = true
     await Promise.all(promises)
     this.setupWorld()
 

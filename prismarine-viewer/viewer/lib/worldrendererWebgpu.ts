@@ -71,6 +71,11 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     addWebgpuListener('rendererProblem', (data) => {
       this.issueReporter.reportProblem(data.isContextLost, data.message)
     })
+
+    this.renderUpdateEmitter.on('update', () => {
+      const loadedChunks = Object.keys(this.finishedChunks).length
+      updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance}/${this.viewDistance})`)
+    })
   }
 
   playgroundGetWebglData () {

@@ -14,8 +14,8 @@ struct CubePointer {
 }
 
 struct CubeModel {
-  textureIndex123: i32,
-  textureIndex456: i32,
+  textureIndex123: u32,
+  textureIndex456: u32,
 }
 
 struct VertexOutput {
@@ -26,6 +26,7 @@ struct VertexOutput {
 }
 @group(1) @binding(0) var<storage, read> cubes: array<Cube>;
 @group(0) @binding(0) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
+@group(0) @binding(3) var<storage, read> models: array<CubeModel>;
 @group(1) @binding(1) var<storage, read> visibleCubes: array<CubePointer>;
 @group(1) @binding(2) var<storage, read> chunks : array<Chunk>;
 
@@ -65,8 +66,8 @@ fn main(
   var positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
   var positionY : f32 = f32((cube.cube[0] >> 4) & 511); //9 bytes
   var positionZ : f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16); // 4 bytes
-  let modelIndex : f32 = f32((cube.cube[0] >> 17) & 1023); ///10 bits
-  var textureIndex : f32 = modelIndex;
+  let modelIndex : u32 = ((cube.cube[0] >> 17) & 1023); ///10 bits
+  var textureIndex : u32;
 
   positionX += 0.5;
   positionZ += 0.5;
@@ -79,46 +80,46 @@ fn main(
   let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 255);
   let colorBlend = vec3f(colorBlendR, colorBlendG, colorBlendB);
 
-  
+
   var normal : mat4x4<f32>;
 
   switch (normalIndex) {
-    case 0: 
+    case 0:
     {
        normal = rotationX(radians(-90f));
-       //textureIndex = models[modelIndex].textureIndex123 & 1023;
+       textureIndex = models[modelIndex].textureIndex123 & 1023;
     }
-    case 1: 
+    case 1:
     {
-      normal = rotationX(radians(90f)); 
-      //textureIndex = (models[modelIndex].textureIndex123 >> 19) & 1023;
+      normal = rotationX(radians(90f));
+      textureIndex = (models[modelIndex].textureIndex123 >> 10) & 1023;
     }
-    case 2: 
+    case 2:
     {
-      normal = rotationX(radians(0f)); 
-      //textureIndex = (models[modelIndex].textureIndex123 >> 20) & 1023;
+      normal = rotationX(radians(0f));
+      textureIndex = (models[modelIndex].textureIndex123 >> 20) & 1023;
     }
-    case 3: 
+    case 3:
     {
-      normal = rotationX(radians(180f)); 
-      //textureIndex = models[modelIndex].textureIndex456 & 1023;
+      normal = rotationX(radians(180f));
+      textureIndex = models[modelIndex].textureIndex456 & 1023;
     }
-    case 4: 
+    case 4:
     {
-      normal = rotationY(radians(90f)); 
-      //textureIndex = (models[modelIndex].textureIndex456 >> 19) & 1023;
+      normal = rotationY(radians(90f));
+      textureIndex = (models[modelIndex].textureIndex456 >> 10) & 1023;
     }
-    case 5, default: 
+    case 5, default:
     {
-     normal = rotationY(radians(-90f)); 
-     //textureIndex = (models[modelIndex].textureIndex456 >> 20) & 1023;
+     normal = rotationY(radians(-90f));
+     textureIndex = (models[modelIndex].textureIndex456 >> 20) & 1023;
     }
   }
 
   var output: VertexOutput;
   output.Position = ViewProjectionMatrix * (position * normal + cube_position);
   output.fragUV = uv;
-  output.TextureIndex = textureIndex;
+  output.TextureIndex = f32(textureIndex);
   output.ColorBlend = colorBlend;
   return output;
 }

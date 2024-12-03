@@ -7,6 +7,9 @@ import type { workerProxyType } from './webgpuRendererWorker'
 import { useWorkerProxy } from './workerProxy'
 import { MessageChannelReplacement } from './messageChannel'
 import { addNewStat } from '../viewer/lib/ui/newStats'
+import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
+import PrismarineBlock from 'prismarine-block'
+import { versionToNumber } from '../viewer/prepare/utils'
 
 let worker: Worker | MessagePort
 const workerReadyProxy = Promise.withResolvers()
@@ -84,16 +87,19 @@ const USE_WORKER = workerParam ? workerParam === 'true' : !isSafari
 let playground = false
 export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeInWorker = false, actuallyPlayground = false) => {
   playground = actuallyPlayground
-  await new Promise<void>(resolve => {
-    // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
-    // viewer.world.material.map!.image.onload = () => {
-    //   console.log(this.material.map!.image)
-    //   resolve()
-    // }
-    viewer.world.renderUpdateEmitter.once('textureDownloaded', resolve)
-  })
+  // await new Promise<void>(resolve => {
+  // console.log('viewer.world.material.map!.image', viewer.world.material.map!.image)
+  // viewer.world.material.map!.image.onload = () => {
+  //   console.log(this.material.map!.image)
+  //   resolve()
+  // }
+  //   viewer.world.renderUpdateEmitter.once('textureDownloaded', resolve)
+  // })
   const { image } = (viewer.world.material.map!)
   const imageBlob = await fetch(image.src).then(async (res) => res.blob())
+  const { blocksDataModel: modelsData, allBlocksStateIdToModelIdMap } = getBlocksModelData()
+  viewer.world.sendDataForWebgpuRenderer({ allBlocksStateIdToModelIdMap })
+
   const canvas = document.createElement('canvas')
   canvas.width = window.innerWidth * window.devicePixelRatio
   canvas.height = window.innerHeight * window.devicePixelRatio
@@ -120,7 +126,8 @@ export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeI
     imageBlob,
     playgroundModeInWorker,
     pickObj(localStorage, 'vertShader', 'fragShader', 'computeShader'),
-    isMobile() || playground ? 490_000 : 2_000_000
+    isMobile() || playground ? 490_000 : 2_000_000,
+    modelsData
   )
 
   if (!USE_WORKER) {
@@ -233,6 +240,80 @@ const addFpsCounters = () => {
     updateText2(`Main Loop: ${updates}`)
     updates = 0
   }, 1000)
+}
+
+export type BlocksModelData = {
+  textures: number[]
+  rotation: number[]
+}
+
+export type AllBlocksDataModels = Record<string, BlocksModelData>
+export type AllBlocksStateIdToModelIdMap = Record<number, number>
+const getBlocksModelData = () => {
+  const provider = worldBlockProvider(viewer.world.blockstatesModels, viewer.world.blocksAtlases, 'latest')
+  const PBlock = PrismarineBlock(viewer.world.version!)
+
+  const blocksDataModel = {} as AllBlocksDataModels
+  let i = 0
+  const allBlocksStateIdToModelIdMap = {} as AllBlocksStateIdToModelIdMap
+  for (const b of loadedData.blocksArray) {
+    for (let state = b.defaultState; state <= b.defaultState; state++) {
+      const block = PBlock.fromStateId(state, 0)
+      if (block.shapes.length === 0 || !block.shapes.every(shape => {
+        return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
+      })) {
+        continue
+      }
+      const isPreflat = versionToNumber(viewer.world.version!) < versionToNumber('1.13')
+      const models = provider.getAllResolvedModels0_1({
+        name: block.name,
+        properties: block.getProperties()
+      }, isPreflat)
+      // skipping composite blocks
+      if (models.length !== 1 || !models[0]![0].elements) {
+        continue
+      }
+      const elements = models[0]![0]?.elements
+      if (elements.length !== 1 && block.name !== 'grass_block') {
+        continue
+      }
+      const elem = models[0]![0].elements[0]
+      if (elem.from[0] !== 0 || elem.from[1] !== 0 || elem.from[2] !== 0 || elem.to[0] !== 16 || elem.to[1] !== 16 || elem.to[2] !== 16) {
+        // not full block
+        continue
+      }
+      const facesMapping = [
+        ['front', 'south'],
+        ['bottom', 'down'],
+        ['top', 'up'],
+        ['right', 'east'],
+        ['left', 'west'],
+        ['back', 'north'],
+      ]
+      const blockData = {
+        textures: [0, 0, 0, 0, 0, 0],
+        rotation: [0, 0, 0, 0, 0, 0]
+      }
+      for (const [face, { texture, cullface, rotation = 0 }] of Object.entries(elem.faces)) {
+        const faceIndex = facesMapping.findIndex(x => x.includes(face))
+        if (faceIndex === -1) {
+          throw new Error(`Unknown face ${face}`)
+        }
+        blockData.textures[faceIndex] = texture.tileIndex
+        blockData.rotation[faceIndex] = rotation / 90
+        if (Math.floor(blockData.rotation[faceIndex]) !== blockData.rotation[faceIndex]) {
+          throw new Error(`Invalid rotation ${rotation} ${b.name}`)
+        }
+      }
+      const k = i++
+      allBlocksStateIdToModelIdMap[block.stateId!] = k
+      blocksDataModel[k] = blockData
+    }
+  }
+  return {
+    blocksDataModel,
+    allBlocksStateIdToModelIdMap
+  }
 }
 
 export const addWebgpuListener = (type: string, listener: (data: any) => void) => {

@@ -8,6 +8,7 @@ import ComputeShader from './Cube.comp.wgsl'
 import ComputeSortShader from './CubeSort.comp.wgsl'
 import { chunksStorage, updateSize, postMessage } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
+import type { BlocksModelData } from './webgpuRendererMain'
 
 export class WebgpuRenderer {
   rendering = true
@@ -59,7 +60,8 @@ export class WebgpuRenderer {
   cameraComputeUniform: GPUBuffer
   modelsBuffer: GPUBuffer
 
-  constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number) {
+  // eslint-disable-next-line max-params
+  constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
     this.NUMBER_OF_CUBES = 1
     void this.init().catch((err) => {
       console.error(err)
@@ -73,7 +75,6 @@ export class WebgpuRenderer {
   }
 
   updateConfig (newParams: RendererParams) {
-    console.log('received new params', newParams)
     this.rendererParams = { ...this.rendererParams, ...newParams }
   }
 
@@ -352,8 +353,8 @@ export class WebgpuRenderer {
       postMessage({ type: 'rendererProblem', isContextLost: true, message: info.message })
     })
 
+    this.setBlocksModelData()
     this.createNewDataBuffers()
-
 
     this.indirectDrawParams = new Uint32Array([quadVertexCount, 0, 0, 0])
 
@@ -370,6 +371,27 @@ export class WebgpuRenderer {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
     }
+  }
+
+  private setBlocksModelData () {
+    const keys = Object.keys(this.blocksDataModel)
+    // const modelsDataLength = keys.length
+    const modelsDataLength = +keys.at(-1)!
+    const modelsBuffer = new Uint32Array(modelsDataLength * 2)
+    for (let i = 0; i < modelsDataLength; i++) {
+      const blockData = this.blocksDataModel[i]/*  ?? {
+        textures: [0, 0, 0, 0, 0, 0],
+        rotation: [0, 0, 0, 0],
+      } */
+      if (!blockData) throw new Error(`Block model ${i} not found`)
+      const tempBuffer1 = (((blockData.textures[0] << 10) | blockData.textures[1]) << 10) | blockData.textures[2]
+      const tempBuffer2 = (((blockData.textures[3] << 10) | blockData.textures[4]) << 10) | blockData.textures[5]
+      modelsBuffer[+i * 2] = tempBuffer1
+      modelsBuffer[+i * 2 + 1] = tempBuffer2
+    }
+
+    this.modelsBuffer = this.createVertexStorage(modelsDataLength * 12, 'modelsBuffer')
+    this.device.queue.writeBuffer(this.modelsBuffer, 0, modelsBuffer)
   }
 
   private createUniformBindGroup (device: GPUDevice, pipeline: GPURenderPipeline) {
@@ -397,12 +419,12 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.AtlasTexture.createView(),
         },
-        // {
-        //   binding: 3,
-        //   resource: {
-        //     buffer: this.visibleCubesBuffer
-        //   }
-        // }
+        {
+          binding: 3,
+          resource: {
+            buffer: this.modelsBuffer
+          },
+        }
       ],
     })
 
@@ -443,12 +465,12 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.AtlasTexture.createView(),
         },
-        // {
-        //   binding: 3,
-        //   resource: {
-        //     buffer: this.modelsBuffer
-        //   }
-        // }
+        {
+          binding: 3,
+          resource: {
+            buffer: this.modelsBuffer
+          },
+        }
       ],
     })
 
@@ -525,20 +547,16 @@ export class WebgpuRenderer {
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
     const oldVisibleCubesBuffer = this.visibleCubesBuffer
-    
-    //let 
-    this.cubesBuffer =  this.chunksBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, "cubesBuffer")
 
-    this.chunksBuffer = this.createVertexStorage(65_535 * 12, "chunksBuffer")
+    this.cubesBuffer = this.chunksBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'cubesBuffer')
 
-    this.modelsBuffer = this.createVertexStorage(20_000 * 12, "modelsBuffer")
+    this.chunksBuffer = this.createVertexStorage(65_535 * 12, 'chunksBuffer')
 
-    this.occlusionTexture =  this.createVertexStorage(4096 * 4096 * 4, "visibleCubesBuffer")
+    this.occlusionTexture = this.createVertexStorage(4096 * 4096 * 4, 'occlusionTexture')
 
-    this.DepthTextureBuffer =  this.createVertexStorage(4096 * 4096 * 4, "visibleCubesBuffer")
+    this.DepthTextureBuffer = this.createVertexStorage(4096 * 4096 * 4, 'depthTextureBuffer')
 
-
-    this.visibleCubesBuffer =  this.createVertexStorage(this.NUMBER_OF_CUBES * 4 * 6, "visibleCubesBuffer")
+    this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 4 * 6, 'visibleCubesBuffer')
 
     if (oldCubesBuffer) {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, this.realNumberOfCubes * 8)
@@ -547,10 +565,10 @@ export class WebgpuRenderer {
     this.createUniformBindGroup(this.device, this.pipeline)
   }
 
-  private createVertexStorage(size:number, label:string) {
+  private createVertexStorage (size: number, label: string) {
     return this.device.createBuffer({
       label,
-      size: size,
+      size,
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC,
     })
   }
@@ -570,32 +588,25 @@ export class WebgpuRenderer {
     if (this.waitingNextUpdateSidesOffset === undefined) return
     const startOffset = this.waitingNextUpdateSidesOffset
     console.time('updateSides')
-    const positions = [] as number[]
-    const allBlockSides = [] as number[][]
-    const textureIndexes = [] as number[][]
-    const textureIndexesOld = [] as number[]
-    const colors = [] as number[]
-    const { allSides, chunkSides } = chunksStorage.getDataForBuffers()
-    for (const sides of allSides) {
-      for (const side of sides) {
-        if (!side) continue
-        const faces = side[3]
-        const firstFace = faces[0]
-        if (!firstFace) continue
-        const [x, y, z, block] = side
-        positions.push(x, y, z)
-        const localSides = [] as number[]
-        const localTextureIndexes = [] as number[]
-        for (const face of faces) {
-          localSides.push(face.side)
-          localTextureIndexes.push(face.textureIndex)
-        }
-        allBlockSides.push(localSides)
-        textureIndexes.push(localTextureIndexes)
-        textureIndexesOld.push(firstFace.textureIndex)
 
-        const tint = firstFace.tint ?? [1, 1, 1]
+    const positions = [] as number[]
+    const blockModelIds = [] as number[]
+    const colors = [] as number[]
+    const visibility = [] as number[][]
+    const allChunks = [] as number[]
+
+    const { allSides, chunkSides } = chunksStorage.getDataForBuffers()
+    for (const [chunkNumber, chunkBlocks] of [...allSides].entries()) {
+      for (const chunkBlock of chunkBlocks) {
+        if (!chunkBlock) continue
+        const [x, y, z, block] = chunkBlock
+        positions.push(x, y, z)
+        blockModelIds.push(block.modelId)
+        visibility.push(Array.from({ length: 6 }, (_, i) => (block.visibleFaces.includes(i) ? 1 : 0)))
+
+        const tint = block.tint ?? [1, 1, 1]
         colors.push(...tint.map(x => x * 255))
+        allChunks.push(chunkNumber)
       }
     }
 
@@ -610,25 +621,27 @@ export class WebgpuRenderer {
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
-    let kk = 0; let ii = 0
     const chunksKeys = [...chunkSides.keys()]
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 3)
     for (let i = 0; i < actualCount; i++) {
       const offset = i * 3
-      const first = (((textureIndexesOld[i] << 4) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
+      const first = ((blockModelIds[i] << 4 | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
       //const first = (textureIndexes[i] << 17) | (positions[i * 3 + 2] << 13) | (positions[i * 3 + 1] << 4) | positions[i * 3]
-      const second = ((colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
+      const visibilityCombined = (visibility[i][0]) |
+        (visibility[i][1] << 1) |
+        (visibility[i][2] << 2) |
+        (visibility[i][3] << 3) |
+        (visibility[i][4] << 4) |
+        (visibility[i][5] << 5)
+      const second = ((visibilityCombined << 8 | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
+
       cubeFlatData[offset] = first
       cubeFlatData[offset + 1] = second
-      cubeFlatData[offset + 2] = ii
-      if (chunkSides.get(chunksKeys[ii])!?.length + kk < i) {
-        kk += chunkSides.get(chunksKeys[ii])!?.length
-        ii++
-      }
+      cubeFlatData[offset + 2] = allChunks[i]
     }
     const chunksCount = chunkSides.size
 
-    const chunksBuffer = new Int32Array(chunksCount * 3)
+    const chunksBuffer = new Int32Array(chunksCount * 2)
     let totalFromChunks = 0
     for (let i = 0; i < chunksCount; i++) {
       const offset = i * 2
@@ -683,16 +696,15 @@ export class WebgpuRenderer {
 
     const now = Date.now()
     tweenJs.update()
-    let fov = 90;
-    this.camera.fov = fov;
-    this.camera.fov
-    this.camera.updateProjectionMatrix();
-    let oversize = 1.35;
+    const fov = 90
+    this.camera.fov = fov
+    this.camera.updateProjectionMatrix()
+    const oversize = 1.35
 
 
     this.camera.updateMatrix()
     const { projectionMatrix, matrix } = this.camera
-    let ViewProjectionMat4 = new THREE.Matrix4()
+    const ViewProjectionMat4 = new THREE.Matrix4()
     ViewProjectionMat4.multiplyMatrices(projectionMatrix, matrix.invert())
     let ViewProjection = new Float32Array(ViewProjectionMat4.elements)
     device.queue.writeBuffer(
@@ -701,10 +713,10 @@ export class WebgpuRenderer {
       ViewProjection
     )
 
-    this.camera.fov = fov * oversize;
-    this.camera.updateProjectionMatrix();
+    this.camera.fov = fov * oversize
+    this.camera.updateProjectionMatrix()
 
-    let ViewProjectionMatCompute = new THREE.Matrix4()
+    const ViewProjectionMatCompute = new THREE.Matrix4()
     ViewProjectionMatCompute.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrix)
     ViewProjection = new Float32Array(ViewProjectionMatCompute.elements)
     device.queue.writeBuffer(

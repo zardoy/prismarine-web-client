@@ -35,8 +35,8 @@ export default class Scene extends BasePlaygroundScene {
       return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
     })
 
-    for (let x = 15; x <= 17; x++) {
-      for (let z = 15; z <= 17; z++) {
+    for (let x = -squareSize; x <= squareSize; x++) {
+      for (let z = -squareSize; z <= squareSize; z++) {
         const isEven = x === z
         worldView!.world.setBlockStateId(this.targetPos.offset(x, 0, z), isEven ? 1 : 2)
       }
