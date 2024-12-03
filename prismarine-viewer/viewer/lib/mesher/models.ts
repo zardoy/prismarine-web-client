@@ -406,13 +406,16 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
     if (needTiles) {
       const tiles = attr.tiles as Tiles
-      tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
-        block: block.name,
-        visibleFaces: [],
-        modelId: world.webgpuModelsMapping[block.stateId!],
-        tint: lightWithColor,
+      const model = world.webgpuModelsMapping[block.stateId!]
+      if (model) {
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+          block: block.name,
+          visibleFaces: [],
+          modelId: model,
+          tint: lightWithColor,
+        }
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
       }
-      tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
       // tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
       //   face,
       //   side,
