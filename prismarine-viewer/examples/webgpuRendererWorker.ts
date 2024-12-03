@@ -135,7 +135,7 @@ export const workerProxyType = createWorkerProxy({
       for (let z = offsetZ; z < square + offsetZ; z++) {
         blocks[`${x},${yOffset},${z}`] = {
           visibleFaces: [0, 1, 2, 3, 4, 5],
-          modelId: 1,
+          modelId: Math.floor(Math.random() * 900),
           block: '',
         }
       }
