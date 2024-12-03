@@ -1,9 +1,8 @@
 import { Vec3 } from 'vec3'
 import { BasePlaygroundScene } from '../baseScene'
 import { webgpuChannel } from '../webgpuRendererMain'
-import { defaultWebgpuRendererParams } from '../webgpuRendererShared'
 
-export default class RailsCobwebScene extends BasePlaygroundScene {
+export default class Scene extends BasePlaygroundScene {
   viewDistance = 16
   continuousRender = true
   targetPos = new Vec3(0, 0, 0)
@@ -11,16 +10,16 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
 
   override initGui (): void {
     this.params = {
-      chunkDistance: 4,
+      chunksDistance: 2,
     }
 
     super.initGui() // restore user params
   }
 
-  setupWorld () {
-    viewer.world.allowUpdates = false
-
-    const { chunkDistance } = this.params
+  async setupWorld () {
+    const squareSize = this.params.chunksDistance * 16
+    const maxSquareSize = this.viewDistance * 16 * 2
+    if (squareSize > maxSquareSize) throw new Error(`Square size too big, max is ${maxSquareSize}`)
     // const fullBlocks = loadedData.blocksArray.map(x => x.name)
     const fullBlocks = loadedData.blocksArray.filter(block => {
       const b = this.Block.fromStateId(block.defaultState, 0)
@@ -29,23 +28,19 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
       return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
     })
 
-    const squareSize = chunkDistance * 16
-    // for (let y = 0; y < squareSize; y += 2) {
-    //   for (let x = 0; x < squareSize; x++) {
-    //     for (let z = 0; z < squareSize; z++) {
-    //       const isEven = x === z
-    //       if (y > 400) continue
-    //       worldView!.world.setBlockStateId(this.targetPos.offset(x, y, z), isEven ? 1 : 2)
-    //     }
-    //   }
-    // }
+    const start = -squareSize
+    const end = squareSize
 
-    for (let x = 0; x < chunkDistance; x++) {
-      for (let z = 0; z < chunkDistance; z++) {
-        for (let y = 0; y < 200; y++) {
-          webgpuChannel.generateRandom(16 ** 2, x * 16, z * 16, y)
+    const STEP = 40
+    for (let y = 0; y <= 256; y += STEP) {
+      for (let x = start; x <= end; x++) {
+        for (let z = start; z <= end; z++) {
+          const isEven = x === z
+          worldView!.world.setBlockStateId(this.targetPos.offset(x, y, z), fullBlocks[y / STEP]!.defaultState)
         }
       }
     }
+
+    console.log('setting done')
   }
 }
