@@ -387,8 +387,8 @@ export class WebgpuRenderer {
       modelsBuffer[+i * 2] = tempBuffer1
       modelsBuffer[+i * 2 + 1] = tempBuffer2
     }
-    this.modelsBuffer = this.createVertexStorage(20_000 * 12, 'modelsBuffer')
 
+    this.modelsBuffer = this.createVertexStorage(20_000 * 12, 'modelsBuffer')
     this.device.queue.writeBuffer(this.modelsBuffer, 0, modelsBuffer)
   }
 
@@ -643,7 +643,7 @@ export class WebgpuRenderer {
     }
     const chunksCount = chunkSides.size
 
-    const chunksBuffer = new Int32Array(chunksCount * 3)
+    const chunksBuffer = new Int32Array(chunksCount * 2)
     let totalFromChunks = 0
     for (let i = 0; i < chunksCount; i++) {
       const offset = i * 2
