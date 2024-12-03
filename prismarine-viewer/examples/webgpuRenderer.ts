@@ -593,18 +593,20 @@ export class WebgpuRenderer {
     const blockModelIds = [] as number[]
     const colors = [] as number[]
     const visibility = [] as number[][]
+    const allChunks = [] as number[]
 
     const { allSides, chunkSides } = chunksStorage.getDataForBuffers()
-    for (const chunkSides of allSides) {
-      for (const side of chunkSides) {
-        if (!side) continue
-        const [x, y, z, block] = side
+    for (const [chunkNumber, chunkBlocks] of [...allSides].entries()) {
+      for (const chunkBlock of chunkBlocks) {
+        if (!chunkBlock) continue
+        const [x, y, z, block] = chunkBlock
         positions.push(x, y, z)
         blockModelIds.push(block.modelId)
         visibility.push(Array.from({ length: 6 }, (_, i) => (block.visibleFaces.includes(i) ? 1 : 0)))
 
         const tint = block.tint ?? [1, 1, 1]
         colors.push(...tint.map(x => x * 255))
+        allChunks.push(chunkNumber)
       }
     }
 
@@ -619,29 +621,23 @@ export class WebgpuRenderer {
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
-    let kk = 0; let ii = 0
     const chunksKeys = [...chunkSides.keys()]
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 3)
     for (let i = 0; i < actualCount; i++) {
       const offset = i * 3
       const first = ((blockModelIds[i] << 4 | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
       //const first = (textureIndexes[i] << 17) | (positions[i * 3 + 2] << 13) | (positions[i * 3 + 1] << 4) | positions[i * 3]
-      let visibilityCombined = (visibility[i][0]) |
+      const visibilityCombined = (visibility[i][0]) |
         (visibility[i][1] << 1) |
         (visibility[i][2] << 2) |
         (visibility[i][3] << 3) |
         (visibility[i][4] << 4) |
         (visibility[i][5] << 5)
-      //visibilityCombined = 127
       const second = ((visibilityCombined << 8 | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
 
       cubeFlatData[offset] = first
       cubeFlatData[offset + 1] = second
-      cubeFlatData[offset + 2] = ii
-      if (chunkSides.get(chunksKeys[ii])!?.length + kk < i) {
-        kk += chunkSides.get(chunksKeys[ii])!?.length
-        ii++
-      }
+      cubeFlatData[offset + 2] = allChunks[i]
     }
     const chunksCount = chunkSides.size
 
