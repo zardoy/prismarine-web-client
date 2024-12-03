@@ -10,6 +10,8 @@ import { addNewStat } from '../viewer/lib/ui/newStats'
 import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import PrismarineBlock from 'prismarine-block'
 import { versionToNumber } from '../viewer/prepare/utils'
+import preflatMapJson from '../../src/preflatMap.json'
+import { getPreflatBlock } from '../viewer/lib/mesher/getPreflatBlock'
 
 let worker: Worker | MessagePort
 const workerReadyProxy = Promise.withResolvers()
@@ -250,21 +252,24 @@ export type BlocksModelData = {
 export type AllBlocksDataModels = Record<string, BlocksModelData>
 export type AllBlocksStateIdToModelIdMap = Record<number, number>
 const getBlocksModelData = () => {
+  const isPreflat = versionToNumber(viewer.world.version!) < versionToNumber('1.13')
   const provider = worldBlockProvider(viewer.world.blockstatesModels, viewer.world.blocksAtlases, 'latest')
-  const PBlock = PrismarineBlock(viewer.world.version!)
+  const PBlockOriginal = PrismarineBlock(viewer.world.version!)
 
   const blocksDataModel = {} as AllBlocksDataModels
   let i = 0
   const allBlocksStateIdToModelIdMap = {} as AllBlocksStateIdToModelIdMap
   for (const b of loadedData.blocksArray) {
     for (let state = b.defaultState; state <= b.defaultState; state++) {
-      const block = PBlock.fromStateId(state, 0)
+      const block = PBlockOriginal.fromStateId(state, 0)
+      if (isPreflat) {
+        getPreflatBlock(block)
+      }
       if (block.shapes.length === 0 || !block.shapes.every(shape => {
         return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
       })) {
         continue
       }
-      const isPreflat = versionToNumber(viewer.world.version!) < versionToNumber('1.13')
       const models = provider.getAllResolvedModels0_1({
         name: block.name,
         properties: block.getProperties()

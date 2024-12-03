@@ -39,11 +39,11 @@ export const updateSize = (width, height) => {
 
 let fullReset
 
-const updateCubesWhenAvailable = () => {
-  onceRendererAvailable((renderer) => {
-    renderer.updateSides()
-  })
-}
+// const updateCubesWhenAvailable = () => {
+//   onceRendererAvailable((renderer) => {
+//     renderer.updateSides()
+//   })
+// }
 
 let requests = [] as Array<{ resolve: () => void }>
 let requestsNamed = {} as Record<string, () => void>
@@ -135,9 +135,9 @@ export const workerProxyType = createWorkerProxy({
       for (let z = offsetZ; z < square + offsetZ; z++) {
         blocks[`${x},${yOffset},${z}`] = {
           visibleFaces: [0, 1, 2, 3, 4, 5],
-          modelId: Math.floor(Math.random() * 900),
+          modelId: Math.floor(Math.random() * 300),
           block: '',
-        }
+        } satisfies BlockType
       }
     }
     // console.log('generated random data:', count)
@@ -163,36 +163,20 @@ export const workerProxyType = createWorkerProxy({
     }
   },
   addBlocksSection (tiles: Record<string, BlockType>, key: string, updateData = true) {
-    chunksStorage.addData(tiles, key)
-    if (updateData) {
-      updateCubesWhenAvailable()
-      chunksStorage.lastNotUpdatedIndex = undefined
-      chunksStorage.lastNotUpdatedArrSize = undefined
-    }
+    chunksStorage.addChunk(tiles, key)
+    // if (updateData || true) {
+    //   updateCubesWhenAvailable()
+    //   chunksStorage.awaitingUpdateStart = undefined
+    //   chunksStorage.awaitingUpdateEnd = undefined
+    // }
   },
   addBlocksSectionDone () {
-    updateCubesWhenAvailable()
-    chunksStorage.lastNotUpdatedIndex = undefined
-    chunksStorage.lastNotUpdatedArrSize = undefined
+    // updateCubesWhenAvailable()
+    // chunksStorage.awaitingUpdateStart = undefined
+    // chunksStorage.awaitingUpdateEnd = undefined
   },
   removeBlocksSection (key) {
-    // return
-    // fill data with 0
-    // const [startIndex, endIndex] = chunksArrIndexes[key]
-    // for (let i = startIndex; i < endIndex; i++) {
-    //   allSides[i] = undefined
-    // }
-    // lastNotUpdatedArrSize = endIndex - startIndex
-    // updateCubesWhenAvailable(startIndex)
-
-    // freeArrayIndexes.push([startIndex, endIndex])
-
-    // // merge freeArrayIndexes TODO
-    // if (freeArrayIndexes.at(-1)[0] === freeArrayIndexes.at(-2)?.[1]) {
-    //     const [startIndex, endIndex] = freeArrayIndexes.pop()!
-    //     const [startIndex2, endIndex2] = freeArrayIndexes.pop()!
-    //     freeArrayIndexes.push([startIndex2, endIndex])
-    // }
+    chunksStorage.removeChunk(key)
   },
   camera (newCam: { rotation: { x: number, y: number, z: number }, position: { x: number, y: number, z: number }, fov: number }) {
     // if (webgpuRenderer?.isPlayground) {
@@ -231,7 +215,7 @@ export const workerProxyType = createWorkerProxy({
   },
   exportData () {
     const exported = exportData()
-    postMessage({ type: 'exportData', data: exported }, undefined as any, [exported.sides.buffer])
+    // postMessage({ type: 'exportData', data: exported }, undefined as any, [exported.sides.buffer])
   },
   loadFixture (json) {
     // allSides = json.map(([x, y, z, face, textureIndex]) => {
@@ -256,22 +240,22 @@ export const workerProxyType = createWorkerProxy({
 // }
 
 const exportData = () => {
-  const allSides = [...chunksStorage.getDataForBuffers().allSides].flat()
+  // const allSides = [...chunksStorage.getDataForBuffers().allSides].flat()
 
-  // Calculate the total length of the final array
-  const totalLength = allSides.length * 5
+  // // Calculate the total length of the final array
+  // const totalLength = allSides.length * 5
 
-  // Create a new Int16Array with the total length
-  const flatData = new Int16Array(totalLength)
+  // // Create a new Int16Array with the total length
+  // const flatData = new Int16Array(totalLength)
 
-  // Fill the flatData array
-  for (const [i, sideData] of allSides.entries()) {
-    if (!sideData) continue
-    const [x, y, z, side] = sideData
-    // flatData.set([x, y, z, side.side, side.textureIndex], i * 5)
-  }
+  // // Fill the flatData array
+  // for (const [i, sideData] of allSides.entries()) {
+  //   if (!sideData) continue
+  //   const [x, y, z, side] = sideData
+  //   // flatData.set([x, y, z, side.side, side.textureIndex], i * 5)
+  // }
 
-  return { sides: flatData }
+  // return { sides: flatData }
 }
 
 setInterval(() => {

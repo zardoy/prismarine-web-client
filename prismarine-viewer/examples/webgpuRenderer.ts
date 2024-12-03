@@ -10,6 +10,7 @@ import { chunksStorage, updateSize, postMessage } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
 import type { BlocksModelData } from './webgpuRendererMain'
 
+const cubeByteLength = 12
 export class WebgpuRenderer {
   rendering = true
   renderedFrames = 0
@@ -62,7 +63,7 @@ export class WebgpuRenderer {
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
-    this.NUMBER_OF_CUBES = 1
+    this.NUMBER_OF_CUBES = 3_000_000
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -394,7 +395,7 @@ export class WebgpuRenderer {
       modelsBuffer[+i * 2 + 1] = tempBuffer2
     }
 
-    this.modelsBuffer = this.createVertexStorage(modelsDataLength * 12, 'modelsBuffer')
+    this.modelsBuffer = this.createVertexStorage(modelsDataLength * cubeByteLength, 'modelsBuffer')
     this.device.queue.writeBuffer(this.modelsBuffer, 0, modelsBuffer)
   }
 
@@ -557,7 +558,7 @@ export class WebgpuRenderer {
     this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 8, 'visibleCubesBuffer')
 
     if (oldCubesBuffer) {
-      this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, this.realNumberOfCubes * 8)
+      this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
     }
 
     this.createUniformBindGroup(this.device, this.pipeline)
@@ -571,45 +572,19 @@ export class WebgpuRenderer {
     })
   }
 
-  removeOne () { }
-
   realNumberOfCubes = 0
-  waitingNextUpdateSidesOffset = undefined as undefined | number
 
-  updateSides (startOffset = 0) {
-    if (this.waitingNextUpdateSidesOffset !== undefined && startOffset >= this.waitingNextUpdateSidesOffset) return
-    console.log('updating', startOffset, !!this.waitingNextUpdateSidesOffset)
-    this.waitingNextUpdateSidesOffset = startOffset
+  updateSides () {
   }
 
   updateCubesBuffersDataFromLoop () {
-    if (this.waitingNextUpdateSidesOffset === undefined) return
-    const startOffset = this.waitingNextUpdateSidesOffset
-    console.time('updateSides')
+    const dataForBuffers = chunksStorage.getDataForBuffers()
+    if (!dataForBuffers) return
+    const { allBlocks, chunks, awaitingUpdateSize: updateSize, awaitingUpdateStart: updateOffset } = dataForBuffers
+    console.log('updating', updateOffset, updateSize)
+    console.time('updateBlocks')
 
-    const positions = [] as number[]
-    const blockModelIds = [] as number[]
-    const colors = [] as number[]
-    const visibility = [] as number[][]
-    const allChunks = [] as number[]
-
-    const { allSides, chunkSides } = chunksStorage.getDataForBuffers()
-    for (const [chunkNumber, chunkBlocks] of [...allSides].entries()) {
-      for (const chunkBlock of chunkBlocks) {
-        if (!chunkBlock) continue
-        const [x, y, z, block] = chunkBlock
-        positions.push(x, y, z)
-        blockModelIds.push(block.modelId)
-        visibility.push(Array.from({ length: 6 }, (_, i) => (block.visibleFaces.includes(i) ? 1 : 0)))
-
-        const tint = block.tint ?? [1, 1, 1]
-        colors.push(...tint.map(x => x * 255))
-        allChunks.push(chunkNumber)
-      }
-    }
-
-    const actualCount = Math.ceil(positions.length / 3)
-    const NUMBER_OF_CUBES_NEEDED = actualCount
+    const NUMBER_OF_CUBES_NEEDED = allBlocks.length
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
       console.warn('extending number of cubes', NUMBER_OF_CUBES_NEEDED, this.NUMBER_OF_CUBES)
       this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEEDED
@@ -619,47 +594,76 @@ export class WebgpuRenderer {
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
-    const chunksKeys = [...chunkSides.keys()]
-    const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 3)
-    for (let i = 0; i < actualCount; i++) {
-      const offset = i * 3
-      const first = ((blockModelIds[i] << 4 | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
-      //const first = (textureIndexes[i] << 17) | (positions[i * 3 + 2] << 13) | (positions[i * 3 + 1] << 4) | positions[i * 3]
-      const visibilityCombined = (visibility[i][0]) |
-        (visibility[i][1] << 1) |
-        (visibility[i][2] << 2) |
-        (visibility[i][3] << 3) |
-        (visibility[i][4] << 4) |
-        (visibility[i][5] << 5)
-      const second = ((visibilityCombined << 8 | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
-
-      cubeFlatData[offset] = first
-      cubeFlatData[offset + 1] = second
-      cubeFlatData[offset + 2] = allChunks[i]
+    const unique = new Set()
+    const debugCheckDuplicate = (first, second, third) => {
+      const key = `${first},${second},${third}`
+      if (unique.has(key)) {
+        throw new Error(`Duplicate: ${key}`)
+      }
+      unique.add(key)
     }
-    const chunksCount = chunkSides.size
+
+    const cubeFlatData = new Uint32Array(updateSize * 3)
+    const blocksToUpdate = allBlocks.slice(updateOffset, updateOffset + updateSize)
+    const actualCount = updateOffset + blocksToUpdate.length
+
+    let chunk = chunksStorage.findBelongingChunk(updateOffset)!
+    let remaining = chunk.chunk.length
+    // eslint-disable-next-line unicorn/no-for-loop
+    for (let i = 0; i < blocksToUpdate.length; i++) {
+      if (remaining-- === 0) {
+        chunk = chunksStorage.findBelongingChunk(updateOffset + i)!
+        remaining = chunk.chunk.length
+      }
+
+      let first = 0
+      let second = 0
+      const third = chunk.index
+      const chunkBlock = blocksToUpdate[i]
+      if (chunkBlock) {
+        const [x, y, z, block] = chunkBlock
+        const positions = [x, y, z]
+        const visibility = Array.from({ length: 6 }, (_, i) => (block.visibleFaces.includes(i) ? 1 : 0))
+
+        const tint = block.tint ?? [1, 1, 1]
+        const colors = tint.map(x => x * 255)
+
+        first = ((block.modelId << 4 | positions[2]) << 9 | positions[1]) << 4 | positions[0]
+        const visibilityCombined = (visibility[0]) |
+          (visibility[1] << 1) |
+          (visibility[2] << 2) |
+          (visibility[3] << 3) |
+          (visibility[4] << 4) |
+          (visibility[5] << 5)
+        second = ((visibilityCombined << 8 | colors[2]) << 8 | colors[1]) << 8 | colors[0]
+      }
+
+      cubeFlatData[i * 3] = first
+      cubeFlatData[i * 3 + 1] = second
+      cubeFlatData[i * 3 + 2] = third
+      debugCheckDuplicate(first, second, third)
+    }
+    const chunksCount = chunks.length
 
     const chunksBuffer = new Int32Array(chunksCount * 2)
     let totalFromChunks = 0
     for (let i = 0; i < chunksCount; i++) {
       const offset = i * 2
-      const chunkKey = chunksKeys[i]
-      const [x, y, z] = chunkKey.split(',').map(Number)
+      const { x, z, length } = chunks[i]!
       chunksBuffer[offset] = x
       chunksBuffer[offset + 1] = z
-      const cubesCount = chunkSides.get(chunkKey)!.length
+      const cubesCount = length
       totalFromChunks += cubesCount
     }
     if (totalFromChunks !== actualCount) {
-      reportError?.(new Error(`Buffers length mismatch: chunks: ${totalFromChunks}, flat data: ${actualCount}`))
+      reportError?.(new Error(`Buffers length mismatch: from chunks: ${totalFromChunks}, flat data: ${actualCount}`))
     }
 
-    this.device.queue.writeBuffer(this.cubesBuffer, 0, cubeFlatData)
+    this.device.queue.writeBuffer(this.cubesBuffer, updateOffset * cubeByteLength, cubeFlatData)
     this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
     this.notRenderedAdditions++
-    console.timeEnd('updateSides')
-    this.waitingNextUpdateSidesOffset = undefined
+    console.timeEnd('updateBlocks')
     this.realNumberOfCubes = this.NUMBER_OF_CUBES
   }
 
@@ -844,5 +848,13 @@ export class WebgpuRenderer {
     if (took > 100) {
       console.log('One frame render loop took', took)
     }
+  }
+}
+
+const debugCheckDuplicates = (arr: any[]) => {
+  const seen = new Set()
+  for (const item of arr) {
+    if (seen.has(item)) throw new Error(`Duplicate: ${item}`)
+    seen.add(item)
   }
 }

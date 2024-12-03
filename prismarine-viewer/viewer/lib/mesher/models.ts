@@ -258,7 +258,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       } else {
         needSectionRecomputeOnChange = true
         // TODO support sync worlds
-        // continue
+        continue
       }
     }
 

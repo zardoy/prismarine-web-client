@@ -4,9 +4,9 @@ import { Block } from 'prismarine-block'
 import { Vec3 } from 'vec3'
 import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
-import legacyJson from '../../../../src/preflatMap.json'
 import { defaultMesherConfig } from './shared'
 import type { AllBlocksStateIdToModelIdMap } from '../../../examples/webgpuRendererMain'
+import { getPreflatBlock } from './getPreflatBlock'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -138,21 +138,12 @@ export class World {
         }
       })
       if (this.preflat) {
-        b._properties = {}
-
-        const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || findClosestLegacyBlockFallback(b.type, b.metadata, pos)
-        if (namePropsStr) {
-          b.name = namePropsStr.split('[')[0]
-          const propsStr = namePropsStr.split('[')?.[1]?.split(']')
-          if (propsStr) {
-            const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
-              let [key, val] = x.split('=')
-              if (!isNaN(val)) val = parseInt(val, 10)
-              return [key, val]
-            }))
-            b._properties = newProperties
-          }
-        }
+        // patch block
+        getPreflatBlock(b, () => {
+          const id = b.type
+          const metadata = b.metadata
+          console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos}, falling back`) // todo has known issues
+        })
       }
     }
 
@@ -206,15 +197,6 @@ export class World {
   setDataForWebgpuRenderer (data: { allBlocksStateIdToModelIdMap: AllBlocksStateIdToModelIdMap }) {
     this.webgpuModelsMapping = data.allBlocksStateIdToModelIdMap
   }
-}
-
-const findClosestLegacyBlockFallback = (id, metadata, pos) => {
-  console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos}, falling back`) // todo has known issues
-  for (const [key, value] of Object.entries(legacyJson.blocks)) {
-    const [idKey, meta] = key.split(':')
-    if (idKey === id) return value
-  }
-  return null
 }
 
 // todo export in chunk instead
