@@ -9,6 +9,7 @@ import { useWorkerProxy } from './workerProxy'
 import { MessageChannelReplacement } from './messageChannel'
 import worldBlockProvider, { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import PrismarineBlock from 'prismarine-block'
+import { versionToNumber } from '../viewer/prepare/utils'
 
 let worker: Worker | MessagePort
 const workerReadyProxy = Promise.withResolvers()
@@ -263,10 +264,11 @@ const getBlocksModelData = () => {
       })) {
         continue
       }
+      const isPreflat = versionToNumber(viewer.world.version!) < versionToNumber('1.13')
       const models = provider.getAllResolvedModels0_1({
         name: block.name,
         properties: block.getProperties()
-      }, false)
+      }, isPreflat)
       // skipping composite blocks
       if (models.length !== 1 || !models[0]![0].elements) {
         continue
