@@ -41,9 +41,9 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   var occlusionData: u32 = occlusion.locks[position.x][position.y];
 
 if (occlusionData != 0) {
-  var visibleSides = cubes[occlusionData - 1].cube[1] >> 24;
+  var visibleSides = (cubes[occlusionData - 1].cube[1] >> 24) & 63;
+ //visibleSides = 63;
   occlusionData = (occlusionData - 1) << 3;
-  //visibleSides = 63;
   if ((visibleSides & 1) != 0) {
   let visibleIndex = atomicAdd(&drawParams.instanceCount, 1);
   visibleCubes[visibleIndex].ptr =occlusionData;

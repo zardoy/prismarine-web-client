@@ -215,6 +215,7 @@ export class WebgpuRenderer {
     this.AtlasTexture = device.createTexture({
       size: [textureBitmap.width, textureBitmap.height, 1],
       format: 'rgba8unorm',
+
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
       //sampleCount: 4
     })
@@ -381,8 +382,8 @@ export class WebgpuRenderer {
     for (const i of keys) {
       const blockData = this.blocksDataModel[i]
       if (!blockData) continue
-      const tempBuffer1 = (((blockData.textures[0] << 10) & blockData.textures[1]) << 10) & blockData.textures[2]
-      const tempBuffer2 = (((blockData.textures[3] << 10) & blockData.textures[4]) << 10) & blockData.textures[5]
+      const tempBuffer1 = (((blockData.textures[0] << 10) | blockData.textures[1]) << 10) | blockData.textures[2]
+      const tempBuffer2 = (((blockData.textures[3] << 10) | blockData.textures[4]) << 10) | blockData.textures[5]
       modelsBuffer[+i * 2] = tempBuffer1
       modelsBuffer[+i * 2 + 1] = tempBuffer2
     }
@@ -621,7 +622,7 @@ export class WebgpuRenderer {
     const cubeFlatData = new Uint32Array(this.NUMBER_OF_CUBES * 3)
     for (let i = 0; i < actualCount; i++) {
       const offset = i * 3
-      const first = (((this.modelsBuffer[i] << 4) | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
+      const first = ((blockModelIds[i] << 4 | positions[i * 3 + 2]) << 9 | positions[i * 3 + 1]) << 4 | positions[i * 3]
       //const first = (textureIndexes[i] << 17) | (positions[i * 3 + 2] << 13) | (positions[i * 3 + 1] << 4) | positions[i * 3]
       let visibilityCombined = (visibility[i][0]) |
         (visibility[i][1] << 1) |
@@ -629,8 +630,8 @@ export class WebgpuRenderer {
         (visibility[i][3] << 3) |
         (visibility[i][4] << 4) |
         (visibility[i][5] << 5)
-      visibilityCombined = 63
-      const second = ((visibilityCombined << 6 & colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
+      //visibilityCombined = 127
+      const second = ((visibilityCombined << 8 | colors[i * 3 + 2]) << 8 | colors[i * 3 + 1]) << 8 | colors[i * 3]
 
       cubeFlatData[offset] = first
       cubeFlatData[offset + 1] = second
