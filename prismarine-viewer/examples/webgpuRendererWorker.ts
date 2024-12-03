@@ -8,6 +8,7 @@ import { RendererParams } from './webgpuRendererShared'
 import { ChunksStorage } from './chunksStorage'
 
 export const chunksStorage = new ChunksStorage()
+globalThis.chunksStorage = chunksStorage
 
 let animationTick = 0
 

@@ -130,19 +130,39 @@ export class ChunksStorage {
     const [xSection, ySection, zSection] = rawPosKey.split(',').map(Number)
     const chunkPosKey = `${xSection / 16},${ySection / 16},${zSection / 16}`
 
+    //   if (xSection === 0 && (zSection === -16) && ySection === 128) {
+    //     // if (xSection >= 0 && (zSection >= 0) && ySection >= 128) {
+    // // newData = newData.slice
+    //     } else {
+    //       return
+    //     }
+
     const newData = Object.entries(blocks).map(([key, value]) => {
       const [x, y, z] = key.split(',').map(Number)
       const block = value
-      // return block.faces.map((side) => {
-      const xRel = Math.abs(x % 16)
-      const zRel = Math.abs(z % 16)
+      const xRel = ((x % 16) + 16) % 16
+      const zRel = ((z % 16) + 16) % 16
+      // if (xRel !== 0 || (zRel !== 1 && zRel !== 0)) return
       return [xRel, y, zRel, block] satisfies BlockWithWebgpuData
-    })
+    }).filter(Boolean)
+
+    // if (ySection > 100 && (xSection < 0 || xSection > 0)) {
+    //   newData = Array.from({ length: 16 }, (_, i) => 0).flatMap((_, i) => {
+    //     return Array.from({ length: 16 }, (_, j) => 0).map((_, k) => {
+    //       return [i % 16, ySection + k, k, {
+    //         visibleFaces: [0, 1, 2, 3, 4, 5],
+    //         modelId: k === 0 ? 1 : 0,
+    //         block: ''
+    //       }
+    //       ]
+    //     })
+    //   })
+    // }
 
     const { chunk, start } = this.getAvailableChunk(newData.length)
     chunk.x = xSection / 16
     chunk.z = zSection / 16
-    const chunkIndex = this.chunks.indexOf(chunk);
+    const chunkIndex = this.chunks.indexOf(chunk)
     this.chunksMap.set(rawPosKey, chunkIndex)
 
     // newData.forEach(newDatum => {
