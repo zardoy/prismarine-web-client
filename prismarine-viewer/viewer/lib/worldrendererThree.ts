@@ -132,7 +132,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     const scale = 20 / 16 / 16
     water.scale.set(scale, scale, 1)
     //@ts-expect-error
-    water.material.uniforms['color'].value.set(new THREE.Color(117, 202, 255).getHex())
+    water.material.uniforms['color'].value.set(new THREE.Color(117 / 255, 202 / 255, 255 / 255).getHex())
     water.rotation.x = Math.PI * - 0.5
     water.position.set(...posChunkMiddle)
     this.scene.add(water)
