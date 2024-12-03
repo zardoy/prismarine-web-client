@@ -54,7 +54,7 @@ export class WebgpuRenderer {
   actualBufferSize = 0
   occlusionTexture: GPUBuffer
   computeSortPipeline: GPUComputePipeline
-  DepthTextureBuffer: GPUBuffer
+  depthTextureBuffer: GPUBuffer
   textureSizeBuffer: any
   textureSizeBindGroup: GPUBindGroup
   cameraComputeUniform: GPUBuffer
@@ -340,6 +340,10 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     })
 
+    this.chunksBuffer = this.createVertexStorage(65_535 * 12, 'chunksBuffer')
+    this.occlusionTexture = this.createVertexStorage(4096 * 4096 * 4, 'occlusionTexture')
+    this.depthTextureBuffer = this.createVertexStorage(4096 * 4096 * 4, 'depthTextureBuffer')
+
     // Initialize indirect draw parameters
     const indirectDrawParams = new Uint32Array([quadVertexCount, 0, 0, 0])
     device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams)
@@ -516,7 +520,7 @@ export class WebgpuRenderer {
         },
         {
           binding: 2,
-          resource: { buffer: this.DepthTextureBuffer },
+          resource: { buffer: this.depthTextureBuffer },
         },
         {
           binding: 3,
@@ -548,15 +552,9 @@ export class WebgpuRenderer {
     const oldCubesBuffer = this.cubesBuffer
     const oldVisibleCubesBuffer = this.visibleCubesBuffer
 
-    this.cubesBuffer = this.chunksBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'cubesBuffer')
-
-    this.chunksBuffer = this.createVertexStorage(65_535 * 12, 'chunksBuffer')
-
-    this.occlusionTexture = this.createVertexStorage(4096 * 4096 * 4, 'occlusionTexture')
-
-    this.DepthTextureBuffer = this.createVertexStorage(4096 * 4096 * 4, 'depthTextureBuffer')
-
-    this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 4 * 6, 'visibleCubesBuffer')
+    this.cubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'cubesBuffer')
+    this.chunksBuffer = this.createVertexStorage(65_535 * 12, 'cubesBuffer')
+    this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 8, 'visibleCubesBuffer')
 
     if (oldCubesBuffer) {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, this.realNumberOfCubes * 8)
