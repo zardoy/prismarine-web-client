@@ -228,14 +228,12 @@ const identicalCull = (currentElement: BlockElement, neighbor: Block, direction:
   const models = neighbor.models?.map(m => m[useVar] ?? m[0]) ?? []
   // TODO we should support it! rewrite with optimizing general pipeline
   if (models.some(m => m.x || m.y || m.z)) return
-  for (const model of models) {
-    for (const element of model.elements ?? []) {
+  return models.every(model => {
+    return (model.elements ?? []).every(element => {
       // todo check alfa on texture
-      if (element.faces[lookForOppositeSide]?.cullface && elemCompareForm(currentElement) === elemCompareForm(element) && elementEdgeValidator(element)) {
-        return true
-      }
-    }
-  }
+      return !!(element.faces[lookForOppositeSide]?.cullface && elemCompareForm(currentElement) === elemCompareForm(element) && elementEdgeValidator(element))
+    })
+  })
 }
 
 let needSectionRecomputeOnChange = false
