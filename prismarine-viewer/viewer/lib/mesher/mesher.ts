@@ -95,6 +95,10 @@ const handleMessage = data => {
 
       break
     }
+    case 'webgpuData': {
+      world.setDataForWebgpuRenderer(data.data)
+      break
+    }
     case 'dirty': {
       const loc = new Vec3(data.x, data.y, data.z)
       setSectionDirty(loc, data.value)

@@ -75,7 +75,6 @@ export class WebgpuRenderer {
   }
 
   updateConfig (newParams: RendererParams) {
-    console.log('received new params', newParams)
     this.rendererParams = { ...this.rendererParams, ...newParams }
   }
 
@@ -215,7 +214,6 @@ export class WebgpuRenderer {
     this.AtlasTexture = device.createTexture({
       size: [textureBitmap.width, textureBitmap.height, 1],
       format: 'rgba8unorm',
-
       usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
       //sampleCount: 4
     })
@@ -377,17 +375,21 @@ export class WebgpuRenderer {
 
   private setBlocksModelData () {
     const keys = Object.keys(this.blocksDataModel)
-    const modelsDataLength = keys.length
+    // const modelsDataLength = keys.length
+    const modelsDataLength = +keys.at(-1)!
     const modelsBuffer = new Uint32Array(modelsDataLength * 2)
-    for (const i of keys) {
-      const blockData = this.blocksDataModel[i]
-      if (!blockData) continue
+    for (let i = 0; i < modelsDataLength; i++) {
+      const blockData = this.blocksDataModel[i]/*  ?? {
+        textures: [0, 0, 0, 0, 0, 0],
+        rotation: [0, 0, 0, 0],
+      } */
+      if (!blockData) throw new Error(`Block model ${i} not found`)
       const tempBuffer1 = (((blockData.textures[0] << 10) | blockData.textures[1]) << 10) | blockData.textures[2]
       const tempBuffer2 = (((blockData.textures[3] << 10) | blockData.textures[4]) << 10) | blockData.textures[5]
       modelsBuffer[+i * 2] = tempBuffer1
       modelsBuffer[+i * 2 + 1] = tempBuffer2
     }
-    this.modelsBuffer = this.createVertexStorage(20_000 * 12, 'modelsBuffer')
+    this.modelsBuffer = this.createVertexStorage(modelsDataLength * 12, 'modelsBuffer')
 
     this.device.queue.writeBuffer(this.modelsBuffer, 0, modelsBuffer)
   }

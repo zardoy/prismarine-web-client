@@ -107,7 +107,6 @@ export const workerProxyType = createWorkerProxy({
     updateSize(newWidth, newHeight)
   },
   updateConfig (params: RendererParams) {
-    console.log('received', params)
     // when available
     onceRendererAvailable(() => {
       webgpuRenderer?.updateConfig(params)

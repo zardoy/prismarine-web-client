@@ -408,7 +408,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
         block: block.name,
         visibleFaces: [],
-        modelId: block.stateId!,
+        modelId: world.webgpuModelsMapping[block.stateId!],
         tint: lightWithColor,
       }
       tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
