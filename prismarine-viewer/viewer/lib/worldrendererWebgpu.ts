@@ -1,10 +1,10 @@
 import { Vec3 } from 'vec3'
-import { updateStatText } from '../../examples/newStats'
 import { addBlocksSection, addWebgpuListener, webgpuChannel } from '../../examples/webgpuRendererMain'
 import type { WebglData } from '../prepare/webglData'
 import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
 import { MesherGeometryOutput } from './mesher/shared'
+import { updateStatText } from './ui/newStats'
 
 class RendererProblemReporter {
   dom = document.createElement('div')
