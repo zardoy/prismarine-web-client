@@ -749,7 +749,7 @@ export class WebgpuRenderer {
       ViewProjection
     )
 
-    let cameraPosition = new Float32Array([this.camera.position.x, this.camera.position.y, this.camera.position.z])
+    const cameraPosition = new Float32Array([this.camera.position.x, this.camera.position.y, this.camera.position.z])
     device.queue.writeBuffer(
       this.cameraComputePositionUniform,
       0,
@@ -869,22 +869,6 @@ export class WebgpuRenderer {
     this.updateCubesBuffersDataFromLoop()
     this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
     device.queue.submit([this.commandEncoder.finish()])
- 
-  //   if (this.renderedFrames % 120 === 0 ) {
-  //   this.indirectDrawBufferMap.mapAsync(GPUMapMode.READ).then(() => {
-  //     const arrayBuffer = this.indirectDrawBufferMap.getMappedRange();
-  //     const data = new Uint32Array(arrayBuffer);
-  
-  //     // Read the indirect draw parameters
-  //     const vertexCount = data[0];
-  //     const instanceCount = data[1];
-  //     const firstVertex = data[2];
-  //     const firstInstance = data[3];
-  //     this.indirectDrawBufferMap.unmap();
-  //     console.log('Indirect draw parameters:', { vertexCount, instanceCount, firstVertex, firstInstance });
-
-  //   });
-  // }
 
    
     this.renderedFrames++
@@ -894,6 +878,19 @@ export class WebgpuRenderer {
     if (took > 100) {
       console.log('One frame render loop took', took)
     }
+  }
+
+  async getRenderingTilesCount () {
+    await this.indirectDrawBufferMap.mapAsync(GPUMapMode.READ)
+    const arrayBuffer = this.indirectDrawBufferMap.getMappedRange()
+    const data = new Uint32Array(arrayBuffer)
+    // Read the indirect draw parameters
+    const vertexCount = data[0]
+    const instanceCount = data[1]
+    const firstVertex = data[2]
+    const firstInstance = data[3]
+    this.indirectDrawBufferMap.unmap()
+    return { vertexCount, instanceCount, firstVertex, firstInstance }
   }
 }
 
