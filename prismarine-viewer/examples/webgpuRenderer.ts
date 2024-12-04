@@ -61,6 +61,7 @@ export class WebgpuRenderer {
   cameraComputeUniform: GPUBuffer
   modelsBuffer: GPUBuffer
   indirectDrawBufferMap: GPUBuffer
+  cameraComputePositionUniform: GPUBuffer
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
@@ -168,7 +169,7 @@ export class WebgpuRenderer {
       // },
       primitive: {
         topology: 'triangle-list',
-        cullMode: 'front',
+        cullMode: 'none',
       },
       depthStencil: {
         depthWriteEnabled: true,
@@ -193,6 +194,11 @@ export class WebgpuRenderer {
 
     this.cameraComputeUniform = device.createBuffer({
       size: Mat4x4BufferSize,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
+    this.cameraComputePositionUniform = device.createBuffer({
+      size: 4 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
@@ -273,7 +279,7 @@ export class WebgpuRenderer {
         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
-
+        { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
       ],
     })
 
@@ -516,7 +522,7 @@ export class WebgpuRenderer {
 
     this.chunkBindGroup = device.createBindGroup({
       layout: this.computePipeline.getBindGroupLayout(1),
-      label: 'computeBindGroup',
+      label: 'anotherComputeBindGroup',
       entries: [
         {
           binding: 0,
@@ -533,6 +539,10 @@ export class WebgpuRenderer {
         {
           binding: 3,
           resource: { buffer: this.cameraComputeUniform },
+        },
+        {
+          binding: 4,
+          resource: { buffer: this.cameraComputePositionUniform },
         }
       ],
     })
@@ -562,7 +572,7 @@ export class WebgpuRenderer {
 
     this.cubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'cubesBuffer')
     this.chunksBuffer = this.createVertexStorage(65_535 * 12, 'cubesBuffer')
-    this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 8, 'visibleCubesBuffer')
+    this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'visibleCubesBuffer')
 
     if (oldCubesBuffer) {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
@@ -689,7 +699,7 @@ export class WebgpuRenderer {
     return camera
   })()
 
-   loop (forceFrame = false) {
+    loop (forceFrame = false) {
     const nextFrame = () => {
       requestAnimationFrame(() => {
         this.safeLoop()
@@ -735,6 +745,13 @@ export class WebgpuRenderer {
       this.cameraComputeUniform,
       0,
       ViewProjection
+    )
+
+    let cameraPosition = new Float32Array([this.camera.position.x, this.camera.position.y, this.camera.position.z])
+    device.queue.writeBuffer(
+      this.cameraComputePositionUniform,
+      0,
+      cameraPosition
     )
 
     const canvasTexture = ctx.getCurrentTexture()
