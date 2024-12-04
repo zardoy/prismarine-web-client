@@ -105,7 +105,7 @@ export class WebgpuRenderer {
     ctx.configure({
       device,
       format: presentationFormat,
-      alphaMode: 'premultiplied',
+      alphaMode: 'opaque',
     })
 
     const verticesBuffer = device.createBuffer({
@@ -869,21 +869,24 @@ export class WebgpuRenderer {
     this.updateCubesBuffersDataFromLoop()
     this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
     device.queue.submit([this.commandEncoder.finish()])
+ 
+  //   if (this.renderedFrames % 120 === 0 ) {
+  //   this.indirectDrawBufferMap.mapAsync(GPUMapMode.READ).then(() => {
+  //     const arrayBuffer = this.indirectDrawBufferMap.getMappedRange();
+  //     const data = new Uint32Array(arrayBuffer);
+  
+  //     // Read the indirect draw parameters
+  //     const vertexCount = data[0];
+  //     const instanceCount = data[1];
+  //     const firstVertex = data[2];
+  //     const firstInstance = data[3];
+  //     this.indirectDrawBufferMap.unmap();
+  //     console.log('Indirect draw parameters:', { vertexCount, instanceCount, firstVertex, firstInstance });
 
+  //   });
+  // }
 
-    // await this.indirectDrawBufferMap.mapAsync(GPUMapMode.READ);
-    // const arrayBuffer = this.indirectDrawBufferMap.getMappedRange();
-    // const data = new Uint32Array(arrayBuffer);
-
-    // // Read the indirect draw parameters
-    // const vertexCount = data[0];
-    // const instanceCount = data[1];
-    // const firstVertex = data[2];
-    // const firstInstance = data[3];
-
-    // console.log('Indirect draw parameters:', { vertexCount, instanceCount, firstVertex, firstInstance });
-
-    // this.indirectDrawBufferMap.unmap();
+   
     this.renderedFrames++
     nextFrame()
     this.notRenderedAdditions = 0
