@@ -631,7 +631,7 @@ export class WebgpuRenderer {
         const tint = block.tint ?? [1, 1, 1]
         const colors = tint.map(x => x * 255)
 
-        first = ((block.modelId << 4 | positions[2]) << 9 | positions[1]) << 4 | positions[0]
+        first = ((block.modelId << 4 | positions[2]) << 10 | positions[1]) << 4 | positions[0]
         const visibilityCombined = (visibility[0]) |
           (visibility[1] << 1) |
           (visibility[2] << 2) |

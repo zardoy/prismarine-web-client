@@ -64,9 +64,9 @@ fn main(
   let chunk = chunks[cube.cube[2]];
 
   var positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
-  var positionY : f32 = f32((cube.cube[0] >> 4) & 511); //9 bytes
-  var positionZ : f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16); // 4 bytes
-  let modelIndex : u32 = ((cube.cube[0] >> 17) & 1023); ///10 bits
+  var positionY : f32 = f32((cube.cube[0] >> 4) & 1023); //10 bytes
+  var positionZ : f32 = f32(i32((cube.cube[0] >> 14) & 15) + chunk.z * 16); // 4 bytes
+  let modelIndex : u32 = ((cube.cube[0] >> 18) & 16383); ///14 bits
   var textureIndex : u32;
 
   positionX += 0.5;

@@ -36,8 +36,8 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let chunk = chunks[i];
 
   var positionX: f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
-  let positionY: f32 = f32((cube.cube[0] >> 4) & 511); //4 bytes
-  var positionZ: f32 = f32(i32((cube.cube[0] >> 13) & 15) + chunk.z * 16);
+  let positionY: f32 = f32((cube.cube[0] >> 4) & 1023); //10 bytes
+  var positionZ: f32 = f32(i32((cube.cube[0] >> 14) & 15) + chunk.z * 16);
   positionX += 0.5;
   positionZ += 0.5;
   let position = vec4f(positionX, positionY, positionZ, 1.0);
