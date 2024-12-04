@@ -5,6 +5,7 @@ import { LeftTouchArea, RightTouchArea, useInterfaceState } from '@dimaka/interf
 import { css } from '@emotion/css'
 import { Vec3 } from 'vec3'
 import useLongPress from '../../src/react/useLongPress'
+import { isMobile } from '../viewer/lib/simpleUtils'
 
 export const playgroundGlobalUiState = proxy({
   scenes: [] as string[],
@@ -41,6 +42,7 @@ function Playground () {
 }
 
 function SceneSelector () {
+  const mobile = isMobile()
   const { scenes, selected } = useSnapshot(playgroundGlobalUiState)
   const longPressEvents = useLongPress(() => {
     playgroundGlobalUiState.selectorOpened = true
@@ -55,10 +57,11 @@ function SceneSelector () {
     {scenes.map(scene => <div
       key={scene}
       style={{
-        padding: '2px 5px',
+        padding: mobile ? '5px' : '2px 5px',
         cursor: 'pointer',
         userSelect: 'none',
         background: scene === selected ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.6)',
+        fontWeight: scene === selected ? 'bold' : 'normal',
       }}
       onClick={() => {
         const qs = new URLSearchParams(window.location.search)

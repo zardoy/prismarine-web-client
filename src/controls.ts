@@ -518,6 +518,15 @@ export const f3Keybinds = [
       }
     },
     mobileTitle: 'Cycle Game Mode'
+  },
+  {
+    key: 'KeyP',
+    async action () {
+      const { uuid, ping: playerPing, username } = bot.player
+      const proxyPing = await bot['pingProxy']()
+      void showOptionsModal(`${username}: last known total latency (ping): ${playerPing}. Connected to ${lastConnectOptions.value?.proxy} with current ping ${proxyPing}. Player UUID: ${uuid}`, [])
+    },
+    mobileTitle: 'Show Proxy & Ping Details'
   }
 ]
 
