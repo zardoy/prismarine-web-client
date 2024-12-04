@@ -624,18 +624,18 @@ export class WebgpuRenderer {
     const blocksToUpdate = allBlocks.slice(updateOffset, updateOffset + updateSize)
     const actualCount = updateOffset + blocksToUpdate.length
 
-    let chunk = chunksStorage.findBelongingChunk(updateOffset)!
-    let remaining = chunk.chunk.length
+    // let chunk = chunksStorage.findBelongingChunk(updateOffset)!
+    // let remaining = chunk.chunk.length
     // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < blocksToUpdate.length; i++) {
-      if (remaining-- === 0) {
-        chunk = chunksStorage.findBelongingChunk(updateOffset + i)!
-        remaining = chunk.chunk.length - 1
-      }
+      // if (remaining-- === 0) {
+      //   chunk = chunksStorage.findBelongingChunk(updateOffset + i)!
+      //   remaining = chunk.chunk.length - 1
+      // }
 
       let first = 0
       let second = 0
-      const third = chunk.index
+      let third = 0
       const chunkBlock = blocksToUpdate[i]
       if (chunkBlock) {
         const [x, y, z, block] = chunkBlock
@@ -656,6 +656,8 @@ export class WebgpuRenderer {
           (visibility[4] << 4) |
           (visibility[5] << 5)
         second = ((visibilityCombined << 8 | colors[2]) << 8 | colors[1]) << 8 | colors[0]
+        //@ts-expect-error
+        third = block.chunk
       }
 
       cubeFlatData[i * 3] = first

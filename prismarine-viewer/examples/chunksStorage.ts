@@ -165,9 +165,10 @@ export class ChunksStorage {
     const chunkIndex = this.chunks.indexOf(chunk)
     this.chunksMap.set(rawPosKey, chunkIndex)
 
-    // newData.forEach(newDatum => {
-    //   newDatum[3].chunk = chunkIndex
-    // })
+    for (const newDatum of newData) {
+      //@ts-expect-error
+      newDatum[3].chunk = chunkIndex
+    }
 
     this.addBlocksData(start, newData)
     this.awaitingUpdateStart = Math.min(this.awaitingUpdateStart ?? Infinity, start)
