@@ -80,12 +80,13 @@ fn main(
   let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 255);
   let colorBlend = vec3f(colorBlendR, colorBlendG, colorBlendB);
 
-
+  var Uv = uv;
   var normal : mat4x4<f32>;
-
+    Uv = vec2(uv.x, (1.0 - uv.y));
   switch (normalIndex) {
     case 0:
     {
+       Uv = vec2((1.0f-uv.x), (1.0 - uv.y));
        normal = rotationX(radians(-90f));
        textureIndex = models[modelIndex].textureIndex123 & 1023;
     }
@@ -101,6 +102,7 @@ fn main(
     }
     case 3:
     {
+      Uv = uv;
       normal = rotationX(radians(180f));
       textureIndex = models[modelIndex].textureIndex456 & 1023;
     }
@@ -118,7 +120,7 @@ fn main(
 
   var output: VertexOutput;
   output.Position = ViewProjectionMatrix * (position * normal + cube_position);
-  output.fragUV = uv;
+  output.fragUV = Uv;
   output.TextureIndex = f32(textureIndex);
   output.ColorBlend = colorBlend;
   return output;
