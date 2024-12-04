@@ -80,9 +80,8 @@ fn main(
   let colorBlendB : f32 = f32((cube.cube[1] >> 16) & 255);
   let colorBlend = vec3f(colorBlendR, colorBlendG, colorBlendB);
 
-  var Uv = uv;
   var normal : mat4x4<f32>;
-    Uv = vec2(uv.x, (1.0 - uv.y));
+  var Uv = vec2(uv.x, (1.0 - uv.y));
   switch (normalIndex) {
     case 0:
     {

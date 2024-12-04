@@ -48,7 +48,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let clipY = clipPos.y / clipPos.w;
   let textureSize = uniforms.textureSize;
   // Check if cube is within the view frustum z-range (depth within near and far planes)
-  if (
+  if (  
       clipDepth > 0 && clipDepth <=  1 &&
       clipX >= -1 && clipX <= 1 &&
       clipY >= - 1 && clipY <= 1)
@@ -56,11 +56,15 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     let pos : vec2u = vec2u(u32((clipX + 1) / 2 * f32(textureSize.x)),u32((clipY + 1) / 2 * f32(textureSize.y)));
 
-    let depth = u32(clipDepth * 10000);
+    var depth = u32(clipDepth * 100000000);
     var depthPrev = atomicMin(&depthAtomic.locks[pos.x][pos.y], depth);
     //depthPrev = atomicLoad(&depthAtomic.locks[pos.x][pos.y]);
     if (depth < depthPrev) {
-      atomicStore(&occlusion.locks[pos.x][pos.y], index + 1);
+      let k = atomicCompareExchangeWeak(&depthAtomic.locks[pos.x][pos.y], depth, depth);
+      if (k.exchanged == true) {
+
+        atomicStore(&occlusion.locks[pos.x][pos.y], index + 1);
+      }
     }
 
 
