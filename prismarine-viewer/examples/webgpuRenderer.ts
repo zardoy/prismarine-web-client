@@ -60,10 +60,11 @@ export class WebgpuRenderer {
   textureSizeBindGroup: GPUBindGroup
   cameraComputeUniform: GPUBuffer
   modelsBuffer: GPUBuffer
+  indirectDrawBufferMap: GPUBuffer
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
-    this.NUMBER_OF_CUBES = 3_000_000
+    this.NUMBER_OF_CUBES = 9_000_000
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -332,7 +333,13 @@ export class WebgpuRenderer {
     this.indirectDrawBuffer = device.createBuffer({
       label: 'indirectDrawBuffer',
       size: 16, // 4 uint32 values
-      usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST,
+      usage: GPUBufferUsage.INDIRECT | GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST | GPUBufferUsage.COPY_SRC
+    })
+
+    this.indirectDrawBufferMap = device.createBuffer({
+      label: 'indirectDrawBufferMap',
+      size: 16, // 4 uint32 values
+      usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
     })
 
     this.debugBuffer = device.createBuffer({
@@ -682,7 +689,7 @@ export class WebgpuRenderer {
     return camera
   })()
 
-  loop (forceFrame = false) {
+   loop (forceFrame = false) {
     const nextFrame = () => {
       requestAnimationFrame(() => {
         this.safeLoop()
@@ -796,7 +803,6 @@ export class WebgpuRenderer {
     const textureSize = new Uint32Array([this.canvas.width, this.canvas.height])
     device.queue.writeBuffer(this.textureSizeBuffer, 0, textureSize)
 
-    this.updateCubesBuffersDataFromLoop()
     if (this.realNumberOfCubes) {
       {
         const computePass = this.commandEncoder.beginComputePass()
@@ -841,9 +847,24 @@ export class WebgpuRenderer {
 
       renderPass.end()
     }
-
+    this.updateCubesBuffersDataFromLoop()
+    this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
     device.queue.submit([this.commandEncoder.finish()])
 
+
+    // await this.indirectDrawBufferMap.mapAsync(GPUMapMode.READ);
+    // const arrayBuffer = this.indirectDrawBufferMap.getMappedRange();
+    // const data = new Uint32Array(arrayBuffer);
+
+    // // Read the indirect draw parameters
+    // const vertexCount = data[0];
+    // const instanceCount = data[1];
+    // const firstVertex = data[2];
+    // const firstInstance = data[3];
+
+    // console.log('Indirect draw parameters:', { vertexCount, instanceCount, firstVertex, firstInstance });
+
+    // this.indirectDrawBufferMap.unmap();
     this.renderedFrames++
     nextFrame()
     this.notRenderedAdditions = 0
