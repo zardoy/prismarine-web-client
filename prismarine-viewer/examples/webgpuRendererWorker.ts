@@ -165,16 +165,8 @@ export const workerProxyType = createWorkerProxy({
   },
   addBlocksSection (tiles: Record<string, BlockType>, key: string, updateData = true) {
     chunksStorage.addChunk(tiles, key)
-    // if (updateData || true) {
-    //   updateCubesWhenAvailable()
-    //   chunksStorage.awaitingUpdateStart = undefined
-    //   chunksStorage.awaitingUpdateEnd = undefined
-    // }
   },
   addBlocksSectionDone () {
-    // updateCubesWhenAvailable()
-    // chunksStorage.awaitingUpdateStart = undefined
-    // chunksStorage.awaitingUpdateEnd = undefined
   },
   removeBlocksSection (key) {
     chunksStorage.removeChunk(key)

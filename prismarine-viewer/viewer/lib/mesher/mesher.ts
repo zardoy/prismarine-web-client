@@ -112,7 +112,6 @@ const handleMessage = data => {
     }
     case 'unloadChunk': {
       world.removeColumn(data.x, data.z)
-      if (Object.keys(world.columns).length === 0) softCleanup()
 
       break
     }

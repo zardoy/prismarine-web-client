@@ -282,7 +282,7 @@ const getBlocksModelData = () => {
   let i = 0
   const allBlocksStateIdToModelIdMap = {} as AllBlocksStateIdToModelIdMap
   for (const b of loadedData.blocksArray) {
-    for (let state = b.defaultState; state <= b.defaultState; state++) {
+    for (let state = b.minStateId; state <= b.maxStateId; state++) {
       const mapping = blocksMap[b.name]
       const block = PBlockOriginal.fromStateId(mapping && loadedData.blocksByName[mapping] ? loadedData.blocksByName[mapping].defaultState : state, 0)
       if (isPreflat) {

@@ -56,14 +56,10 @@ class RendererProblemReporter {
 
 export class WorldRendererWebgpu extends WorldRendererCommon {
   outputFormat = 'webgpu' as const
-  newChunks = {} as Record<string, any>
   // webglData: WebglData
   stopBlockUpdate = false
-  lastChunkDistance = 0
-  loaded = new Set()
-  allowUpdates = false
+  allowUpdates = true
   issueReporter = new RendererProblemReporter()
-  allChunksHasLoaded = false
 
   constructor (config) {
     super(config)
@@ -79,12 +75,12 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   }
 
   playgroundGetWebglData () {
-    const playgroundChunk = Object.values(this.newChunks).find((x: any) => Object.keys(x?.blocks ?? {}).length > 0)
-    if (!playgroundChunk) return
-    const block = Object.values(playgroundChunk.blocks)?.[0] as any
-    if (!block) return
-    const { textureName } = block
-    if (!textureName) return
+    // const playgroundChunk = Object.values(this.newChunks).find((x: any) => Object.keys(x?.blocks ?? {}).length > 0)
+    // if (!playgroundChunk) return
+    // const block = Object.values(playgroundChunk.blocks)?.[0] as any
+    // if (!block) return
+    // const { textureName } = block
+    // if (!textureName) return
     // return this.webglData[textureName]
   }
 
@@ -96,11 +92,6 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   isWaitingForChunksToRender = false
 
   allChunksLoaded (): void {
-    if (this.allChunksHasLoaded) {
-      console.log('allChunksLoaded (ignored)')
-      return
-    }
-    this.allChunksHasLoaded = true
     console.log('allChunksLoaded')
     webgpuChannel.addBlocksSectionDone()
   }
@@ -112,16 +103,11 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   }
 
   addChunksToScene (key: string, geometry: MesherGeometryOutput) {
-    if (this.loaded.has(key) && !this.allowUpdates) return
-    this.loaded.add(key)
-    const chunkCoords = key.split(',').map(Number) as [number, number, number]
+    if (this.finishedChunks[key] && !this.allowUpdates) return
+    // const chunkCoords = key.split(',').map(Number) as [number, number, number]
     if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 
     addBlocksSection(key, geometry)
-    this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
-
-    // todo
-    // this.newChunks[data.key] = data.geometry
   }
 
   updateCamera (pos: Vec3 | null, yaw: number, pitch: number): void { }
@@ -148,28 +134,11 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
 
 
   removeColumn (x, z) {
-    // TODO! disabled for now!
-    // console.log('removeColumn', x, z)
-    // super.removeColumn(x, z)
-    // for (const key of Object.keys(this.newChunks)) {
-    //   const [xSec, _ySec, zSec] = key.split(',').map(Number)
-    //   // if (Math.floor(x / 16) === x && Math.floor(z / 16) === z) {
-    //   if (x === xSec && z === zSec) {
-    //     // foundSections.push(key)
-    //     removeBlocksSection(key)
-    //   }
-    // }
+  //   console.log('removeColumn', x, z)
+  //   super.removeColumn(x, z)
 
-    // for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
-    //   this.setSectionDirty(new Vec3(x, y, z), false)
-    //   const key = `${x},${y},${z}`
-    //   const mesh = this.sectionObjects[key]
-    //   if (mesh) {
-    //     this.scene.remove(mesh)
-    //     dispose3(mesh)
-    //   }
-    //   delete this.sectionObjects[key]
-    // }
+  //   for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+  //     webgpuChannel.removeBlocksSection(`${x},${y},${z}`)
+  //   }
   }
-
 }

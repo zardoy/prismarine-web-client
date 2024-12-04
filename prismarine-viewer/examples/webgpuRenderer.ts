@@ -596,7 +596,7 @@ export class WebgpuRenderer {
 
     const unique = new Set()
     const debugCheckDuplicate = (first, second, third) => {
-      const key = `${first},${second},${third}`
+      const key = `${first},${third}`
       if (unique.has(key)) {
         throw new Error(`Duplicate: ${key}`)
       }
@@ -644,7 +644,7 @@ export class WebgpuRenderer {
       cubeFlatData[i * 3] = first
       cubeFlatData[i * 3 + 1] = second
       cubeFlatData[i * 3 + 2] = third
-      debugCheckDuplicate(first, second, third)
+      // debugCheckDuplicate(first, second, third)
     }
     const chunksCount = chunks.length
 
