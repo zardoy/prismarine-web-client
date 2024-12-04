@@ -32,6 +32,14 @@ setInterval(() => {
   webgpuRenderer.renderedFrames = 0
 }, 1000)
 
+setInterval(() => {
+  postMessage({ type: 'stats', stats: `Rendering Tiles: ${formatLargeNumber(webgpuRenderer?.renderingStats?.instanceCount ?? -1, false)} Buffer: ${formatLargeNumber(webgpuRenderer?.NUMBER_OF_CUBES ?? -1)}` })
+}, 300)
+
+const formatLargeNumber = (number: number, compact = true) => {
+  return new Intl.NumberFormat(undefined, { notation: compact ? 'compact' : 'standard', compactDisplay: 'short' }).format(number)
+}
+
 export const updateSize = (width, height) => {
   camera.aspect = width / height
   camera.updateProjectionMatrix()

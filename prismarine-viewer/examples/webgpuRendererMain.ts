@@ -5,7 +5,7 @@ import PrismarineBlock from 'prismarine-block'
 import { Viewer } from '../viewer/lib/viewer'
 import { MesherGeometryOutput } from '../viewer/lib/mesher/shared'
 import { isMobile } from '../viewer/lib/simpleUtils'
-import { addNewStat } from '../viewer/lib/ui/newStats'
+import { addNewStat, addNewStat2 } from '../viewer/lib/ui/newStats'
 import { versionToNumber } from '../viewer/prepare/utils'
 import preflatMapJson from '../../src/preflatMap.json'
 import { getPreflatBlock } from '../viewer/lib/mesher/getPreflatBlock'
@@ -121,7 +121,7 @@ export const initWebgpuRenderer = async (postRender = () => { }, playgroundModeI
     messageChannel.port2.start()
     await import('./webgpuRendererWorker')
   }
-  addFpsCounters()
+  addFpsCounters(actuallyPlayground)
   webgpuChannel = useWorkerProxy<typeof workerProxyType>(worker, true)
   webgpuChannel.canvas(
     canvas.transferControlToOffscreen(),
@@ -218,7 +218,8 @@ export const exportLoadedTiles = () => {
 }
 
 
-const addFpsCounters = () => {
+const addFpsCounters = (isPlayground) => {
+  const mobile = isMobile()
   const { updateText } = addNewStat('fps', 200, undefined, 0)
   let prevTimeout
   worker.addEventListener('message', (e: any) => {
@@ -229,9 +230,18 @@ const addFpsCounters = () => {
         updateText('<hanging>')
       }, 1002)
     }
+    if (e.data.type === 'stats') {
+      updateTextGpuStats(e.data.stats)
+    }
   })
 
   const { updateText: updateText2 } = addNewStat('fps-main', 90, 0, 20)
+  const { updateText: updateTextGpuStats } = addNewStat('gpu-stats', 90, 0, 40)
+  const leftUi = isPlayground ? 130 : mobile ? 25 : 0
+  const { updateText: updateTextBuild } = addNewStat2('build-info', {
+    left: leftUi
+  })
+  updateTextBuild(`WebGPU Renderer Demo by @SA2URAMI. Build: ${process.env.NODE_ENV === 'development' ? 'dev' : process.env.RELEASE_TAG}`)
   let updates = 0
   const mainLoop = () => {
     requestAnimationFrame(mainLoop)

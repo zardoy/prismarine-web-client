@@ -20,7 +20,7 @@ function Playground () {
     const style = document.createElement('style')
     style.innerHTML = /* css */ `
       .lil-gui {
-        top: 40px !important;
+        top: 60px !important;
         right: 0 !important;
       }
     `
