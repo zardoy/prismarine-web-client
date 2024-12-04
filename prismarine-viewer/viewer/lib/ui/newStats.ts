@@ -34,7 +34,7 @@ export const addNewStat = (id: string, width = 80, x = rightOffset, y?: number) 
   }
 }
 
-export const addNewStat2 = (id: string, { top, bottom, right, left }: { top?: number, bottom?: number, right?: number, left?: number }) => {
+export const addNewStat2 = (id: string, { top, bottom, right, left, displayOnlyWhenWider }: { top?: number, bottom?: number, right?: number, left?: number, displayOnlyWhenWider?: number }) => {
   if (top === undefined && bottom === undefined) top = 0
   const pane = document.createElement('div')
   pane.style.position = 'fixed'
@@ -60,6 +60,13 @@ export const addNewStat2 = (id: string, { top, bottom, right, left }: { top?: nu
   pane.style.pointerEvents = 'none'
   document.body.appendChild(pane)
   stats[id] = pane
+
+  const resizeCheck = () => {
+    if (!displayOnlyWhenWider) return
+    pane.style.display = window.innerWidth > displayOnlyWhenWider ? 'block' : 'none'
+  }
+  window.addEventListener('resize', resizeCheck)
+  resizeCheck()
 
   return {
     updateText (text: string) {

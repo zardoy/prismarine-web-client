@@ -239,7 +239,8 @@ const addFpsCounters = (isPlayground) => {
   const { updateText: updateTextGpuStats } = addNewStat('gpu-stats', 90, 0, 40)
   const leftUi = isPlayground ? 130 : mobile ? 25 : 0
   const { updateText: updateTextBuild } = addNewStat2('build-info', {
-    left: leftUi
+    left: leftUi,
+    displayOnlyWhenWider: 600,
   })
   updateTextBuild(`WebGPU Renderer Demo by @SA2URAMI. Build: ${process.env.NODE_ENV === 'development' ? 'dev' : process.env.RELEASE_TAG}`)
   let updates = 0
