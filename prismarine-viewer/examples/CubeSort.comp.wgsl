@@ -45,7 +45,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   storageBarrier();
   depthAtomic.locks[position.x][position.y] = 4294967295;
   let textureSize = uniforms.textureSize;
-  if (position.x >= textureSize.x || position.y >= textureSize.y) {
+  if (position.x >= textureSize.x + 2 || position.y >= textureSize.y) {
     return;
   }
 

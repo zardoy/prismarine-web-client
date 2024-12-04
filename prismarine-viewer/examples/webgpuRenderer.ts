@@ -723,7 +723,7 @@ export class WebgpuRenderer {
     const fov = 90
     this.camera.fov = fov
     this.camera.updateProjectionMatrix()
-    const oversize = 1.35
+    const oversize = 1.1
 
 
     this.camera.updateMatrix()

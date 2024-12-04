@@ -16,12 +16,17 @@ struct Uniforms {
   textureSize: vec2<u32>
 }
 
+struct CameraPosition {
+  position: vec3<f32>,
+}
+
 @group(1) @binding(3) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
 @group(1) @binding(0) var<storage, read> chunks: array<Chunk>;
 @group(0) @binding(1) var<storage, read_write> cubes: array<Cube>;
 @group(1) @binding(1) var<storage, read_write> occlusion : Depth;
 @group(1) @binding(2) var<storage, read_write> depthAtomic : Depth;
 @group(2) @binding(0) var<uniform> uniforms: Uniforms;
+@group(1) @binding(4) var<uniform> cameraPosition: CameraPosition;
 
 @compute @workgroup_size(256)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
@@ -41,21 +46,36 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   positionX += 0.5;
   positionZ += 0.5;
   let position = vec4f(positionX, positionY, positionZ, 1.0);
+  let transopesPos = position.xyz - cameraPosition.position;
+  let nearby : bool = abs(transopesPos.x) <= 8 && abs(transopesPos.y) <= 8 && abs(transopesPos.z) <= 8;
   // Transform cube position to clip space
   let clipPos = ViewProjectionMatrix * position;
   let clipDepth = clipPos.z / clipPos.w; // Obtain depth in clip space
-  let clipX = clipPos.x / clipPos.w;
-  let clipY = clipPos.y / clipPos.w;
+  var clipX = clipPos.x / clipPos.w;
+  var clipY = clipPos.y / clipPos.w;
   let textureSize = uniforms.textureSize;
   // Check if cube is within the view frustum z-range (depth within near and far planes)
   if (  
-      clipDepth > 0 && clipDepth <=  1 &&
-      clipX >= -1 && clipX <= 1 &&
-      clipY >= - 1 && clipY <= 1)
+      
+      (clipDepth > 0 && clipDepth <=  1) &&
+      ((clipX >= -1 && clipX <= 1 &&
+      clipY >= - 1 && clipY <= 1) || nearby))
   { 
+    if (nearby) {
+      clipY = clamp(clipY, -1, 1);
+      clipX = clamp(clipX, -1, 1);
+    }
+    var pos : vec2u = vec2u(u32((clipX + 1) / 2 * f32(textureSize.x)),u32((clipY + 1) / 2 * f32(textureSize.y)));
+    if (nearby) {
+      if (clipX == 1|| clipX == -1) {
 
-    let pos : vec2u = vec2u(u32((clipX + 1) / 2 * f32(textureSize.x)),u32((clipY + 1) / 2 * f32(textureSize.y)));
+      pos.x = textureSize.x + 1;
+      }
+      if (clipY == 1|| clipY == -1) {
 
+      pos.y = index % textureSize.y;
+      }
+    }
     var depth = u32(clipDepth * 100000000);
     var depthPrev = atomicMin(&depthAtomic.locks[pos.x][pos.y], depth);
     //depthPrev = atomicLoad(&depthAtomic.locks[pos.x][pos.y]);
