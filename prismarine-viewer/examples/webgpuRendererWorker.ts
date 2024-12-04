@@ -136,7 +136,7 @@ export const workerProxyType = createWorkerProxy({
     }
     return faces
   },
-  generateRandom (count: number, offsetX = 0, offsetZ = 0, yOffset = 0) {
+  generateRandom (count: number, offsetX = 0, offsetZ = 0, yOffset = 0, model = 0) {
     const square = Math.sqrt(count)
     if (square % 1 !== 0) throw new Error('square must be a whole number')
     const blocks = {} as Record<string, BlockType>
@@ -144,7 +144,7 @@ export const workerProxyType = createWorkerProxy({
       for (let z = offsetZ; z < square + offsetZ; z++) {
         blocks[`${x},${yOffset},${z}`] = {
           visibleFaces: [0, 1, 2, 3, 4, 5],
-          modelId: Math.floor(Math.random() * 3000),
+          modelId: model || Math.floor(Math.random() * 3000),
           block: '',
         } satisfies BlockType
       }

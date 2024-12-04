@@ -68,7 +68,7 @@ export class WebgpuRenderer {
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
-    this.NUMBER_OF_CUBES = 9_000_000
+    this.NUMBER_OF_CUBES = 3_000_000
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -606,8 +606,9 @@ export class WebgpuRenderer {
 
     const NUMBER_OF_CUBES_NEEDED = allBlocks.length
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
-      console.warn('extending number of cubes', NUMBER_OF_CUBES_NEEDED, this.NUMBER_OF_CUBES)
-      this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEEDED
+      const NUMBER_OF_CUBES_NEW = this.NUMBER_OF_CUBES + 1_000_000
+      console.warn('extending number of cubes', this.NUMBER_OF_CUBES, '->', NUMBER_OF_CUBES_NEW, `(needed ${NUMBER_OF_CUBES_NEEDED})`)
+      this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEW
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
@@ -878,10 +879,8 @@ export class WebgpuRenderer {
     device.queue.submit([this.commandEncoder.finish()])
     if (!this.indirectDrawBufferMapBeingUsed && (!this.renderingStatsRequestTime || time - this.renderingStatsRequestTime > 500)) {
       this.renderingStatsRequestTime = time
-      console.time('getRenderingTilesCount')
       void this.getRenderingTilesCount().then((result) => {
         this.renderingStats = result
-        console.timeEnd('getRenderingTilesCount')
       })
     }
 
