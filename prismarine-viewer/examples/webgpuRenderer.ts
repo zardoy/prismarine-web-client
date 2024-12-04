@@ -31,7 +31,9 @@ export class WebgpuRenderer {
   pipeline: GPURenderPipeline
   InstancedTextureIndexBuffer: GPUBuffer
   InstancedColorBuffer: GPUBuffer
-  notRenderedAdditions = 0
+  notRenderedBlockChanges = 0
+  renderingStats: undefined | { instanceCount: number }
+  renderingStatsRequestTime: number | undefined
 
   // Add these properties to the WebgpuRenderer class
   computePipeline: GPUComputePipeline
@@ -61,6 +63,7 @@ export class WebgpuRenderer {
   cameraComputeUniform: GPUBuffer
   modelsBuffer: GPUBuffer
   indirectDrawBufferMap: GPUBuffer
+  indirectDrawBufferMapBeingUsed = false
   cameraComputePositionUniform: GPUBuffer
 
   // eslint-disable-next-line max-params
@@ -382,9 +385,9 @@ export class WebgpuRenderer {
     return canvas
   }
 
-  safeLoop (isFirst = false) {
+  safeLoop (isFirst: boolean | undefined, time: number | undefined) {
     try {
-      this.loop(isFirst)
+      this.loop(isFirst, time)
     } catch (err) {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -684,9 +687,10 @@ export class WebgpuRenderer {
     this.device.queue.writeBuffer(this.cubesBuffer, updateOffset * cubeByteLength, cubeFlatData)
     this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
-    this.notRenderedAdditions++
+    this.notRenderedBlockChanges++
     console.timeEnd('updateBlocks')
     this.realNumberOfCubes = this.NUMBER_OF_CUBES
+    // chunksStorage.clearRange(updateOffset, updateOffset + updateSize)
   }
 
   lastCall = performance.now()
@@ -701,10 +705,10 @@ export class WebgpuRenderer {
     return camera
   })()
 
-    loop (forceFrame = false) {
+  loop (forceFrame = false, time = performance.now()) {
     const nextFrame = () => {
-      requestAnimationFrame(() => {
-        this.safeLoop()
+      requestAnimationFrame((time) => {
+        this.safeLoop(undefined, time)
       })
     }
 
@@ -867,13 +871,23 @@ export class WebgpuRenderer {
       renderPass.end()
     }
     this.updateCubesBuffersDataFromLoop()
-    this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
-    device.queue.submit([this.commandEncoder.finish()])
+    if (!this.indirectDrawBufferMapBeingUsed) {
+      this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
+    }
 
-   
+    device.queue.submit([this.commandEncoder.finish()])
+    if (!this.indirectDrawBufferMapBeingUsed && (!this.renderingStatsRequestTime || time - this.renderingStatsRequestTime > 500)) {
+      this.renderingStatsRequestTime = time
+      console.time('getRenderingTilesCount')
+      void this.getRenderingTilesCount().then((result) => {
+        this.renderingStats = result
+        console.timeEnd('getRenderingTilesCount')
+      })
+    }
+
     this.renderedFrames++
     nextFrame()
-    this.notRenderedAdditions = 0
+    this.notRenderedBlockChanges = 0
     const took = performance.now() - start
     if (took > 100) {
       console.log('One frame render loop took', took)
@@ -881,6 +895,7 @@ export class WebgpuRenderer {
   }
 
   async getRenderingTilesCount () {
+    this.indirectDrawBufferMapBeingUsed = true
     await this.indirectDrawBufferMap.mapAsync(GPUMapMode.READ)
     const arrayBuffer = this.indirectDrawBufferMap.getMappedRange()
     const data = new Uint32Array(arrayBuffer)
@@ -890,6 +905,7 @@ export class WebgpuRenderer {
     const firstVertex = data[2]
     const firstInstance = data[3]
     this.indirectDrawBufferMap.unmap()
+    this.indirectDrawBufferMapBeingUsed = false
     return { vertexCount, instanceCount, firstVertex, firstInstance }
   }
 }
