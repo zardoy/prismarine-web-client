@@ -8,7 +8,7 @@ export class ChunksStorage {
   chunksMap = new Map<string, number>()
   // flatBuffer = new Uint32Array()
 
-  maxDataUpdate = 10_000
+  maxDataUpdate = 10_000_000
   awaitingUpdateStart: number | undefined
   awaitingUpdateEnd: number | undefined
   // dataSize = 0
