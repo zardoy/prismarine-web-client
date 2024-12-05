@@ -8,6 +8,7 @@ export class ChunksStorage {
   chunksMap = new Map<string, number>()
   // flatBuffer = new Uint32Array()
 
+  maxDataUpdate = 10_000
   awaitingUpdateStart: number | undefined
   awaitingUpdateEnd: number | undefined
   // dataSize = 0
@@ -38,9 +39,14 @@ export class ChunksStorage {
     this.lastFetchedSize = this.dataSize
     if (this.awaitingUpdateStart === undefined) return
     const { awaitingUpdateStart } = this
-    const awaitingUpdateEnd = this.awaitingUpdateEnd!
-    this.awaitingUpdateStart = undefined
-    this.awaitingUpdateEnd = undefined
+    let awaitingUpdateEnd = this.awaitingUpdateEnd!
+    if (awaitingUpdateEnd - awaitingUpdateStart > this.maxDataUpdate) {
+      this.awaitingUpdateStart = awaitingUpdateStart + this.maxDataUpdate
+      awaitingUpdateEnd = awaitingUpdateStart + this.maxDataUpdate
+    } else {
+      this.awaitingUpdateStart = undefined
+      this.awaitingUpdateEnd = undefined
+    }
     return {
       allBlocks: this.allBlocks,
       chunks: this.chunks,
@@ -103,7 +109,7 @@ export class ChunksStorage {
   removeChunk (chunkPosKey: string) {
     if (!this.chunksMap.has(chunkPosKey)) return
     let currentStart = 0
-    let chunkIndex = this.chunksMap.get(chunkPosKey)!
+    const chunkIndex = this.chunksMap.get(chunkPosKey)!
     const chunk = this.chunks[chunkIndex]
     for (let i = 0; i < chunkIndex; i++) {
       const chunk = this.chunks[i]!
