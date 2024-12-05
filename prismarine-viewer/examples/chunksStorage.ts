@@ -35,6 +35,39 @@ export class ChunksStorage {
     }
   }
 
+  printSectionData ({ x, y, z }) {
+    x = Math.floor(x / 16) * 16
+    y = Math.floor(y / 16) * 16
+    z = Math.floor(z / 16) * 16
+    const key = `${x},${y},${z}`
+    const chunkIndex = this.chunksMap.get(key)
+    if (chunkIndex === undefined) return
+    const chunk = this.chunks[chunkIndex]
+    let start = 0
+    for (let i = 0; i < chunkIndex; i++) {
+      start += this.chunks[i].length
+    }
+    const end = start + chunk.length
+    return {
+      blocks: this.allBlocks.slice(start, end),
+      index: chunkIndex,
+      range: [start, end]
+    }
+  }
+
+  printBlock ([x, y, z]: [number, number, number]) {
+    const section = this.printSectionData({ x, y, z })
+    if (!section) return
+    const xRel = ((x % 16) + 16) % 16
+    const zRel = ((z % 16) + 16) % 16
+    for (const block of section.blocks) {
+      if (block && block[0] === xRel && block[1] === y && block[2] === zRel) {
+        return block
+      }
+    }
+    return null
+  }
+
   getDataForBuffers () {
     this.lastFetchedSize = this.dataSize
     if (this.awaitingUpdateStart === undefined) return

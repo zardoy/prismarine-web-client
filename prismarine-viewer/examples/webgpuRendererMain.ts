@@ -292,6 +292,54 @@ const getBlocksModelData = () => {
   const blocksProccessed = {} as Record<string, boolean>
   let i = 0
   const allBlocksStateIdToModelIdMap = {} as AllBlocksStateIdToModelIdMap
+
+  const addBlockModel = (state: number, name: string, props: Record<string, any>) => {
+    const models = provider.getAllResolvedModels0_1({
+      name,
+      properties: props
+    }, isPreflat)
+    // skipping composite blocks
+    if (models.length !== 1 || !models[0]![0].elements) {
+      return
+    }
+    const elements = models[0]![0]?.elements
+    if (elements.length !== 1 && name !== 'grass_block') {
+      return
+    }
+    const elem = models[0]![0].elements[0]
+    if (elem.from[0] !== 0 || elem.from[1] !== 0 || elem.from[2] !== 0 || elem.to[0] !== 16 || elem.to[1] !== 16 || elem.to[2] !== 16) {
+      // not full block
+      return
+    }
+    const facesMapping = [
+      ['front', 'south'],
+      ['bottom', 'down'],
+      ['top', 'up'],
+      ['right', 'east'],
+      ['left', 'west'],
+      ['back', 'north'],
+    ]
+    const blockData = {
+      textures: [0, 0, 0, 0, 0, 0],
+      rotation: [0, 0, 0, 0, 0, 0]
+    }
+    for (const [face, { texture, cullface, rotation = 0 }] of Object.entries(elem.faces)) {
+      const faceIndex = facesMapping.findIndex(x => x.includes(face))
+      if (faceIndex === -1) {
+        throw new Error(`Unknown face ${face}`)
+      }
+      blockData.textures[faceIndex] = texture.tileIndex
+      blockData.rotation[faceIndex] = rotation / 90
+      if (Math.floor(blockData.rotation[faceIndex]) !== blockData.rotation[faceIndex]) {
+        throw new Error(`Invalid rotation ${rotation} ${name}`)
+      }
+    }
+    const k = i++
+    allBlocksStateIdToModelIdMap[state] = k
+    blocksDataModel[k] = blockData
+    blocksProccessed[name] = true
+  }
+  addBlockModel(-1, 'unknown', {})
   for (const b of loadedData.blocksArray) {
     for (let state = b.minStateId; state <= b.maxStateId; state++) {
       const mapping = blocksMap[b.name]
@@ -304,50 +352,7 @@ const getBlocksModelData = () => {
       })) {
         continue
       }
-      const models = provider.getAllResolvedModels0_1({
-        name: block.name,
-        properties: block.getProperties()
-      }, isPreflat)
-      // skipping composite blocks
-      if (models.length !== 1 || !models[0]![0].elements) {
-        continue
-      }
-      const elements = models[0]![0]?.elements
-      if (elements.length !== 1 && block.name !== 'grass_block') {
-        continue
-      }
-      const elem = models[0]![0].elements[0]
-      if (elem.from[0] !== 0 || elem.from[1] !== 0 || elem.from[2] !== 0 || elem.to[0] !== 16 || elem.to[1] !== 16 || elem.to[2] !== 16) {
-        // not full block
-        continue
-      }
-      const facesMapping = [
-        ['front', 'south'],
-        ['bottom', 'down'],
-        ['top', 'up'],
-        ['right', 'east'],
-        ['left', 'west'],
-        ['back', 'north'],
-      ]
-      const blockData = {
-        textures: [0, 0, 0, 0, 0, 0],
-        rotation: [0, 0, 0, 0, 0, 0]
-      }
-      for (const [face, { texture, cullface, rotation = 0 }] of Object.entries(elem.faces)) {
-        const faceIndex = facesMapping.findIndex(x => x.includes(face))
-        if (faceIndex === -1) {
-          throw new Error(`Unknown face ${face}`)
-        }
-        blockData.textures[faceIndex] = texture.tileIndex
-        blockData.rotation[faceIndex] = rotation / 90
-        if (Math.floor(blockData.rotation[faceIndex]) !== blockData.rotation[faceIndex]) {
-          throw new Error(`Invalid rotation ${rotation} ${b.name}`)
-        }
-      }
-      const k = i++
-      allBlocksStateIdToModelIdMap[state] = k
-      blocksDataModel[k] = blockData
-      blocksProccessed[block.name] = true
+      addBlockModel(state, block.name, block.getProperties())
     }
   }
   return {
