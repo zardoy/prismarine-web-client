@@ -11,5 +11,6 @@ fn main(
   let tileSize: vec2<f32> = vec2<f32>(16.0, 16.0);
   let tilesPerTexture: vec2<f32> = textureSize / tileSize;
   let pixelColor = textureSample(myTexture, mySampler, fragUV / tilesPerTexture + vec2f(trunc(TextureIndex % tilesPerTexture.y), trunc(TextureIndex / tilesPerTexture.x)) / tilesPerTexture);
+  // return vec4f(pixelColor.rgb * ColorBlend / 255, pixelColor.a); // Set alpha to 1.0 for full opacity
   return vec4f(pixelColor.rgb * ColorBlend / 255, 1.0); // Set alpha to 1.0 for full opacity
 }

@@ -36,7 +36,7 @@ export default class Scene extends BasePlaygroundScene {
       for (let x = start; x <= end; x++) {
         for (let z = start; z <= end; z++) {
           const isEven = x === z
-          worldView!.world.setBlockStateId(this.targetPos.offset(x, y, z), fullBlocks[y / STEP]!.defaultState)
+          worldView!.world.setBlockStateId(this.targetPos.offset(x, y, z), y === 0 ? fullBlocks.find(block => block.name === 'glass')!.defaultState : fullBlocks[y / STEP]!.defaultState)
         }
       }
     }

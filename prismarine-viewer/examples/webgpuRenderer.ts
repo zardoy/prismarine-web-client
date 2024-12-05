@@ -54,7 +54,7 @@ export class WebgpuRenderer {
   chunkBindGroup: GPUBindGroup
   debugBuffer: GPUBuffer
 
-  actualBufferSize = 0
+  realNumberOfCubes = 0
   occlusionTexture: GPUBuffer
   computeSortPipeline: GPUComputePipeline
   depthTextureBuffer: GPUBuffer
@@ -592,8 +592,6 @@ export class WebgpuRenderer {
     })
   }
 
-  realNumberOfCubes = 0
-
   updateSides () {
   }
 
@@ -698,7 +696,7 @@ export class WebgpuRenderer {
 
     this.notRenderedBlockChanges++
     console.timeEnd('updateBlocks')
-    this.realNumberOfCubes = this.NUMBER_OF_CUBES
+    this.realNumberOfCubes = allBlocks.length
     if (!DEBUG_DATA) {
       chunksStorage.clearRange(updateOffset, updateOffset + updateSize)
     }
@@ -737,7 +735,7 @@ export class WebgpuRenderer {
     tweenJs.update()
     const fov = 90
     this.camera.fov = fov
-    this.camera.near = 0.001;
+    this.camera.near = 0.001
     this.camera.updateProjectionMatrix()
     const oversize = 1.1
 
@@ -846,7 +844,7 @@ export class WebgpuRenderer {
         computePass.setBindGroup(0, this.computeBindGroup)
         computePass.setBindGroup(1, this.chunkBindGroup)
         computePass.setBindGroup(2, this.textureSizeBindGroup)
-        computePass.dispatchWorkgroups(Math.ceil(this.NUMBER_OF_CUBES / 256))
+        computePass.dispatchWorkgroups(Math.ceil(this.realNumberOfCubes / 256))
         computePass.end()
         device.queue.submit([this.commandEncoder.finish()])
       }
