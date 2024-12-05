@@ -670,7 +670,7 @@ export class WebgpuRenderer {
       cubeFlatData[i * 3] = first
       cubeFlatData[i * 3 + 1] = second
       cubeFlatData[i * 3 + 2] = third
-      if (DEBUG_DATA) {
+      if (DEBUG_DATA && chunkBlock) {
         debugCheckDuplicate(first, second, third)
       }
     }

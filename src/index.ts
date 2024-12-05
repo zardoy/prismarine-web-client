@@ -432,6 +432,9 @@ async function connect (connectOptions: ConnectOptions) {
       }
       const mcData = MinecraftData(version)
       window.loadedData = mcData
+      await initWebgpuRenderer(() => {
+        renderWrapper.postRender()
+      })
     }
 
     // serverOptions.version = '1.18.1'
@@ -439,9 +442,6 @@ async function connect (connectOptions: ConnectOptions) {
     if (downloadVersion) {
       await downloadMcData(downloadVersion)
     }
-    await initWebgpuRenderer(() => {
-      renderWrapper.postRender()
-    })
 
     if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:
