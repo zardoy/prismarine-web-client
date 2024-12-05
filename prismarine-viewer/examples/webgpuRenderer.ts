@@ -687,7 +687,7 @@ export class WebgpuRenderer {
       totalFromChunks += cubesCount
     }
     if (DEBUG_DATA) {
-      const actualCount = allBlocks.filter(Boolean).length
+      const actualCount = allBlocks.length
       if (totalFromChunks !== actualCount) {
         reportError?.(new Error(`Buffers length mismatch: from chunks: ${totalFromChunks}, flat data: ${actualCount}`))
       }
