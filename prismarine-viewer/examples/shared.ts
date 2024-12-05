@@ -21,6 +21,7 @@ export type BlockType = {
   tint?: [number, number, number]
 
   // for testing
+  chunk?: number
   block: string
 }
 

@@ -12,6 +12,7 @@ export class ChunksStorage {
   awaitingUpdateEnd: number | undefined
   // dataSize = 0
   lastFetchedSize = 0
+  chunkSizeDisplay = 16
 
   get dataSize () {
     return this.allBlocks.length
@@ -48,6 +49,11 @@ export class ChunksStorage {
     }
   }
 
+  setAwaitingUpdate ({ awaitingUpdateStart, awaitingUpdateSize }: { awaitingUpdateStart: number, awaitingUpdateSize: number }) {
+    this.awaitingUpdateStart = awaitingUpdateStart
+    this.awaitingUpdateEnd = awaitingUpdateStart + awaitingUpdateSize
+  }
+
   clearData () {
     this.chunks = []
     this.allBlocks = []
@@ -55,12 +61,11 @@ export class ChunksStorage {
     this.awaitingUpdateEnd = undefined
   }
 
-  addBlocksData (start: number, newData: typeof this.allBlocks) {
-    let i = 0
-    while (i < newData.length) {
-      this.allBlocks.splice(start + i, 0, ...newData.slice(i, i + 1024))
-      i += 1024
+  replaceBlocksData (start: number, newData: typeof this.allBlocks) {
+    if (newData.length > 16 * 16 * 16) {
+      throw new Error(`Chunk cant be that big: ${newData.length}`)
     }
+    this.allBlocks.splice(start, newData.length, ...newData)
   }
 
   getAvailableChunk (size: number) {
@@ -73,6 +78,7 @@ export class ChunksStorage {
       if (chunkLength >= size) {
         usingChunk = chunk
         usingChunk.free = false
+        currentStart -= chunkLength
         break
       }
     }
@@ -97,31 +103,33 @@ export class ChunksStorage {
   removeChunk (chunkPosKey: string) {
     if (!this.chunksMap.has(chunkPosKey)) return
     let currentStart = 0
-    const chunkIndex = this.chunksMap.get(chunkPosKey)!
+    let chunkIndex = this.chunksMap.get(chunkPosKey)!
     const chunk = this.chunks[chunkIndex]
-    for (let i = 0; i <= chunkIndex; i++) {
+    for (let i = 0; i < chunkIndex; i++) {
       const chunk = this.chunks[i]!
       currentStart += chunk.length
     }
 
-    this.addBlocksData(currentStart, Array.from({ length: chunk.length }).map(() => undefined)) // empty data, will be filled with 0
+    this.replaceBlocksData(currentStart, Array.from({ length: chunk.length }).map(() => undefined)) // empty data, will be filled with 0
+    this.requestRangeUpdate(currentStart, currentStart + chunk.length)
     chunk.free = true
     this.chunksMap.delete(chunkPosKey)
     // try merge backwards
-    for (let i = chunkIndex - 1; i >= 0; i--) {
-      const chunk = this.chunks[i]!
-      if (!chunk.free) break
-      chunk.length += this.chunks[i]!.length
-      this.chunks.splice(i, 1)
-    }
-    // try merge forwards
-    for (let i = chunkIndex + 1; i < this.chunks.length; i++) {
-      const chunk = this.chunks[i]!
-      if (!chunk.free) break
-      chunk.length += this.chunks[i]!.length
-      this.chunks.splice(i, 1)
-      i--
-    }
+    // for (let i = chunkIndex - 1; i >= 0; i--) {
+    //   const chunk = this.chunks[i]!
+    //   if (!chunk.free) break
+    //   chunk.length += this.chunks[i]!.length
+    //   this.chunks.splice(i, 1)
+    //   chunkIndex--
+    // }
+    // // try merge forwards
+    // for (let i = chunkIndex + 1; i < this.chunks.length; i++) {
+    //   const chunk = this.chunks[i]!
+    //   if (!chunk.free) break
+    //   chunk.length += this.chunks[i]!.length
+    //   this.chunks.splice(i, 1)
+    //   i--
+    // }
   }
 
   addChunk (blocks: Record<string, BlockType>, rawPosKey: string) {
@@ -160,18 +168,27 @@ export class ChunksStorage {
     // }
 
     const { chunk, start } = this.getAvailableChunk(newData.length)
-    chunk.x = xSection / 16
-    chunk.z = zSection / 16
+    chunk.x = xSection / this.chunkSizeDisplay
+    chunk.z = zSection / this.chunkSizeDisplay
     const chunkIndex = this.chunks.indexOf(chunk)
     this.chunksMap.set(rawPosKey, chunkIndex)
 
-    for (const newDatum of newData) {
-      //@ts-expect-error
-      newDatum[3].chunk = chunkIndex
+    for (const b of newData) {
+      if (b[3] && typeof b[3] === 'object') {
+        b[3].chunk = chunkIndex
+      }
     }
 
-    this.addBlocksData(start, newData)
+    this.replaceBlocksData(start, newData)
+    this.requestRangeUpdate(start, start + newData.length)
+  }
+
+  requestRangeUpdate (start: number, end: number) {
     this.awaitingUpdateStart = Math.min(this.awaitingUpdateStart ?? Infinity, start)
-    this.awaitingUpdateEnd = Math.max(this.awaitingUpdateEnd ?? -Infinity, start + newData.length)
+    this.awaitingUpdateEnd = Math.max(this.awaitingUpdateEnd ?? -Infinity, end)
+  }
+
+  clearRange (start: number, end: number) {
+    // this.replaceBlocksData(start, Array.from({ length: end - start }).map(() => undefined))
   }
 }

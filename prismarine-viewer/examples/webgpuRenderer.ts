@@ -68,7 +68,7 @@ export class WebgpuRenderer {
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
-    this.NUMBER_OF_CUBES = 3_000_000
+    this.NUMBER_OF_CUBES = 500_000
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -573,7 +573,7 @@ export class WebgpuRenderer {
     const oldCubesBuffer = this.cubesBuffer
     const oldVisibleCubesBuffer = this.visibleCubesBuffer
 
-    this.cubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'cubesBuffer')
+    this.cubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * cubeByteLength, 'cubesBuffer')
     this.chunksBuffer = this.createVertexStorage(65_535 * 12, 'cubesBuffer')
     this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'visibleCubesBuffer')
 
@@ -598,6 +598,8 @@ export class WebgpuRenderer {
   }
 
   updateCubesBuffersDataFromLoop () {
+    const DEBUG_DATA = false
+
     const dataForBuffers = chunksStorage.getDataForBuffers()
     if (!dataForBuffers) return
     const { allBlocks, chunks, awaitingUpdateSize: updateSize, awaitingUpdateStart: updateOffset } = dataForBuffers
@@ -612,6 +614,9 @@ export class WebgpuRenderer {
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
+      chunksStorage.setAwaitingUpdate(dataForBuffers)
+      console.timeEnd('updateBlocks')
+      return
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
@@ -626,7 +631,6 @@ export class WebgpuRenderer {
 
     const cubeFlatData = new Uint32Array(updateSize * 3)
     const blocksToUpdate = allBlocks.slice(updateOffset, updateOffset + updateSize)
-    const actualCount = updateOffset + blocksToUpdate.length
 
     // let chunk = chunksStorage.findBelongingChunk(updateOffset)!
     // let remaining = chunk.chunk.length
@@ -660,14 +664,15 @@ export class WebgpuRenderer {
           (visibility[4] << 4) |
           (visibility[5] << 5)
         second = ((visibilityCombined << 8 | colors[2]) << 8 | colors[1]) << 8 | colors[0]
-        //@ts-expect-error
-        third = block.chunk
+        third = block.chunk!
       }
 
       cubeFlatData[i * 3] = first
       cubeFlatData[i * 3 + 1] = second
       cubeFlatData[i * 3 + 2] = third
-      // debugCheckDuplicate(first, second, third)
+      if (DEBUG_DATA) {
+        debugCheckDuplicate(first, second, third)
+      }
     }
     const chunksCount = chunks.length
 
@@ -681,8 +686,11 @@ export class WebgpuRenderer {
       const cubesCount = length
       totalFromChunks += cubesCount
     }
-    if (totalFromChunks !== actualCount) {
-      reportError?.(new Error(`Buffers length mismatch: from chunks: ${totalFromChunks}, flat data: ${actualCount}`))
+    if (DEBUG_DATA) {
+      const actualCount = allBlocks.filter(Boolean).length
+      if (totalFromChunks !== actualCount) {
+        reportError?.(new Error(`Buffers length mismatch: from chunks: ${totalFromChunks}, flat data: ${actualCount}`))
+      }
     }
 
     this.device.queue.writeBuffer(this.cubesBuffer, updateOffset * cubeByteLength, cubeFlatData)
@@ -691,7 +699,9 @@ export class WebgpuRenderer {
     this.notRenderedBlockChanges++
     console.timeEnd('updateBlocks')
     this.realNumberOfCubes = this.NUMBER_OF_CUBES
-    // chunksStorage.clearRange(updateOffset, updateOffset + updateSize)
+    if (!DEBUG_DATA) {
+      chunksStorage.clearRange(updateOffset, updateOffset + updateSize)
+    }
   }
 
   lastCall = performance.now()
