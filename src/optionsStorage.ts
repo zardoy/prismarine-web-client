@@ -26,7 +26,7 @@ const defaultOptions = {
   messagesLimit: 200,
   volume: 50,
   // fov: 70,
-  fov: 75,
+  fov: 90,
   guiScale: 3,
   autoRequestCompletions: true,
   touchButtonsSize: 40,

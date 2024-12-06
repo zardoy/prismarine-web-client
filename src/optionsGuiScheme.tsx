@@ -129,7 +129,7 @@ export const guiOptionsScheme: {
           id,
           text: 'Render Distance',
           unit: '',
-          max: sp ? 16 : 12,
+          max: sp ? 48 : 16,
           min: 1
         }}
         />
