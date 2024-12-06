@@ -65,10 +65,11 @@ export class WebgpuRenderer {
   indirectDrawBufferMap: GPUBuffer
   indirectDrawBufferMapBeingUsed = false
   cameraComputePositionUniform: GPUBuffer
+  depthTexture: GPUTexture
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
-    this.NUMBER_OF_CUBES = 5_000_000
+    this.NUMBER_OF_CUBES = 20_000_000
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -95,7 +96,16 @@ export class WebgpuRenderer {
     if (!navigator.gpu) throw new Error('WebGPU not supported (probably can be enabled in settings)')
     const adapter = await navigator.gpu.requestAdapter()
     if (!adapter) throw new Error('WebGPU not supported')
-    this.device = await adapter.requestDevice()
+
+
+      const twoGig = 2147483644;
+      const required_limits = {};
+      // https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/limits
+      required_limits.maxStorageBufferBindingSize = twoGig;
+      required_limits.maxBufferSize = twoGig;
+      this.device = await adapter.requestDevice({
+        "requiredLimits": required_limits
+      });
     const { device } = this
     this.maxBufferSize = device.limits.maxStorageBufferBindingSize
     this.renderedFrames = device.limits.maxComputeWorkgroupSizeX
@@ -177,15 +187,15 @@ export class WebgpuRenderer {
       depthStencil: {
         depthWriteEnabled: true,
         depthCompare: 'less',
-        format: 'depth24plus',
+        format: 'depth32float',
       },
     })
     this.pipeline = pipeline
 
-    const depthTexture = device.createTexture({
+    this.depthTexture = device.createTexture({
       size: [canvas.width, canvas.height],
-      format: 'depth24plus',
-      usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      format: 'depth32float',
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
       //sampleCount: 4,
     })
 
@@ -246,7 +256,7 @@ export class WebgpuRenderer {
         },
       ],
       depthStencilAttachment: {
-        view: depthTexture.createView(),
+        view: this.depthTexture.createView(),
         depthClearValue: 1,
         depthLoadOp: 'clear',
         depthStoreOp: 'store',
@@ -272,6 +282,7 @@ export class WebgpuRenderer {
         { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
+        { binding: 5, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'depth' } },
       ],
     })
 
@@ -519,7 +530,11 @@ export class WebgpuRenderer {
         {
           binding: 4,
           resource: { buffer: this.debugBuffer },
-        }
+        },
+        {
+          binding: 5,
+          resource: this.depthTexture.createView(),
+        },
       ],
     })
 
@@ -732,7 +747,7 @@ export class WebgpuRenderer {
     tweenJs.update()
     this.camera.near = 0.05
     this.camera.updateProjectionMatrix()
-    const oversize = 1.1
+    const oversize = 1.0
 
 
     this.camera.updateMatrix()
@@ -791,15 +806,15 @@ export class WebgpuRenderer {
     //   this.multisampleTexture = multisampleTexture
     // }
     // device.queue.writeTexture({
-    //   texture: this.occlusionTexture
+    //   texture: this.multisampleTexture
     // },
     //   new Uint32Array([0, 0, 0, 1]),
     // {
-    //   bytesPerRow: 4 * this.occlusionTexture.width,
-    //   rowsPerImage: this.occlusionTexture.height
+    //   bytesPerRow: 4 * canvasTexture.width,
+    //   rowsPerImage: canvasTexture.height
     // }, {
-    //   width: this.occlusionTexture.width,
-    //   height: this.occlusionTexture.height, depthOrArrayLayers: 1
+    //   width: canvasTexture.width,
+    //   height: canvasTexture.height, depthOrArrayLayers: 1
     // })
 
     device.queue.writeBuffer(

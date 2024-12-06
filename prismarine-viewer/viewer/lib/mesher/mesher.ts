@@ -20,7 +20,7 @@ function sectionKey (x, y, z) {
   return `${x},${y},${z}`
 }
 
-const batchMessagesLimit = 100
+const batchMessagesLimit = 1
 
 let queuedMessages = [] as any[]
 let queueWaiting = false
