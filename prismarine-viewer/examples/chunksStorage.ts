@@ -9,7 +9,7 @@ export class ChunksStorage {
   // flatBuffer = new Uint32Array()
   updateQueue = [] as Array<{ start: number, end: number }>
 
-  maxDataUpdate = 10_000_000
+  maxDataUpdate = 10_000
   // awaitingUpdateStart: number | undefined
   // awaitingUpdateEnd: number | undefined
   // dataSize = 0
@@ -56,7 +56,7 @@ export class ChunksStorage {
     }
   }
 
-  printBlock ({x, y, z}: { x: number, y: number, z: number }) {
+  printBlock ({ x, y, z }: { x: number, y: number, z: number }) {
     const section = this.printSectionData({ x, y, z })
     if (!section) return
     x = Math.floor(x / 16) * 16
@@ -76,7 +76,7 @@ export class ChunksStorage {
     const task = this.updateQueue.shift()
     if (!task) return
     const { start: awaitingUpdateStart, end } = task
-    let awaitingUpdateEnd = end
+    const awaitingUpdateEnd = end
     // if (awaitingUpdateEnd - awaitingUpdateStart > this.maxDataUpdate) {
     //   this.awaitingUpdateStart = awaitingUpdateStart + this.maxDataUpdate
     //   awaitingUpdateEnd = awaitingUpdateStart + this.maxDataUpdate

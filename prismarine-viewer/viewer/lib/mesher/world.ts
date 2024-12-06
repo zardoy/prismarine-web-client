@@ -4,8 +4,8 @@ import { Block } from 'prismarine-block'
 import { Vec3 } from 'vec3'
 import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
+import type { AllBlocksStateIdToModelIdMap } from '../../../examples/webgpuBlockModels'
 import { defaultMesherConfig } from './shared'
-import type { AllBlocksStateIdToModelIdMap } from '../../../examples/webgpuRendererMain'
 import { getPreflatBlock } from './getPreflatBlock'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
@@ -141,7 +141,7 @@ export class World {
         // patch block
         getPreflatBlock(b, () => {
           const id = b.type
-          const metadata = b.metadata
+          const { metadata } = b
           console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos}, falling back`) // todo has known issues
         })
       }

@@ -8,10 +8,11 @@ import ComputeShader from './Cube.comp.wgsl'
 import ComputeSortShader from './CubeSort.comp.wgsl'
 import { chunksStorage, updateSize, postMessage } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
-import type { BlocksModelData } from './webgpuRendererMain'
+import type { BlocksModelData } from './webgpuBlockModels'
 
 const cubeByteLength = 12
 export class WebgpuRenderer {
+  destroyed = false
   rendering = true
   renderedFrames = 0
   rendererParams = { ...defaultWebgpuRendererParams }
@@ -65,11 +66,12 @@ export class WebgpuRenderer {
   indirectDrawBufferMap: GPUBuffer
   indirectDrawBufferMapBeingUsed = false
   cameraComputePositionUniform: GPUBuffer
+  NUMBER_OF_CUBES: number
   depthTexture: GPUTexture
 
   // eslint-disable-next-line max-params
-  constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
-    this.NUMBER_OF_CUBES = 20_000_000
+  constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public blocksDataModel: Record<string, BlocksModelData>) {
+    this.NUMBER_OF_CUBES = 5_000_000
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -89,9 +91,6 @@ export class WebgpuRenderer {
     const { canvas, imageBlob, isPlayground, localStorage } = this
 
     updateSize(canvas.width, canvas.height)
-    const textureBitmap = await createImageBitmap(imageBlob)
-    const textureWidth = textureBitmap.width
-    const textureHeight = textureBitmap.height
 
     if (!navigator.gpu) throw new Error('WebGPU not supported (probably can be enabled in settings)')
     const adapter = await navigator.gpu.requestAdapter()
@@ -230,19 +229,8 @@ export class WebgpuRenderer {
       ViewProjection2
     )
 
-    // Fetch the image and upload it into a GPUTexture.
-
-    this.AtlasTexture = device.createTexture({
-      size: [textureBitmap.width, textureBitmap.height, 1],
-      format: 'rgba8unorm',
-      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
-      //sampleCount: 4
-    })
-    device.queue.copyExternalImageToTexture(
-      { source: textureBitmap },
-      { texture: this.AtlasTexture },
-      [textureBitmap.width, textureBitmap.height]
-    )
+    // upload image into a GPUTexture.
+    await this.updateTexture(imageBlob, true)
 
 
     this.renderPassDescriptor = {
@@ -396,6 +384,25 @@ export class WebgpuRenderer {
     return canvas
   }
 
+  async updateTexture (imageBlob: ImageBitmapSource, isInitial = false) {
+    const textureBitmap = await createImageBitmap(imageBlob)
+    this.AtlasTexture = this.device.createTexture({
+      size: [textureBitmap.width, textureBitmap.height, 1],
+      format: 'rgba8unorm',
+      usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+      //sampleCount: 4
+    })
+    this.device.queue.copyExternalImageToTexture(
+      { source: textureBitmap },
+      { texture: this.AtlasTexture },
+      [textureBitmap.width, textureBitmap.height]
+    )
+
+    if (!isInitial) {
+      this.createUniformBindGroup()
+    }
+  }
+
   safeLoop (isFirst: boolean | undefined, time: number | undefined) {
     try {
       this.loop(isFirst, time)
@@ -426,7 +433,8 @@ export class WebgpuRenderer {
     this.device.queue.writeBuffer(this.modelsBuffer, 0, modelsBuffer)
   }
 
-  private createUniformBindGroup (device: GPUDevice, pipeline: GPURenderPipeline) {
+  private createUniformBindGroup () {
+    const { device, pipeline } = this
     const sampler = device.createSampler({
       magFilter: 'nearest',
       minFilter: 'nearest',
@@ -596,7 +604,7 @@ export class WebgpuRenderer {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
     }
 
-    this.createUniformBindGroup(this.device, this.pipeline)
+    this.createUniformBindGroup()
   }
 
   private createVertexStorage (size: number, label: string) {
@@ -727,6 +735,7 @@ export class WebgpuRenderer {
   })()
 
   loop (forceFrame = false, time = performance.now()) {
+    if (this.destroyed) return
     const nextFrame = () => {
       requestAnimationFrame((time) => {
         this.safeLoop(undefined, time)
@@ -934,6 +943,11 @@ export class WebgpuRenderer {
     this.indirectDrawBufferMap.unmap()
     this.indirectDrawBufferMapBeingUsed = false
     return { vertexCount, instanceCount, firstVertex, firstInstance }
+  }
+
+  destroy () {
+    this.rendering = false
+    this.device.destroy()
   }
 }
 

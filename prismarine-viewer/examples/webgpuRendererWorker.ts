@@ -46,8 +46,6 @@ export const updateSize = (width, height) => {
 }
 
 
-let fullReset
-
 // const updateCubesWhenAvailable = () => {
 //   onceRendererAvailable((renderer) => {
 //     renderer.updateSides()
@@ -87,7 +85,7 @@ let autoTickUpdate = undefined as number | undefined
 
 export const workerProxyType = createWorkerProxy({
   // eslint-disable-next-line max-params
-  canvas (canvas, imageBlob, isPlayground, localStorage, NUMBER_OF_CUBES, blocksDataModel) {
+  canvas (canvas, imageBlob, isPlayground, localStorage, blocksDataModel) {
     if (globalThis.webgpuRendererChannel) {
       // HACK! IOS safari bug: no support for transferControlToOffscreen in the same context! so we create a new canvas here!
       const newCanvas = document.createElement('canvas')
@@ -100,7 +98,7 @@ export const workerProxyType = createWorkerProxy({
       document.body.appendChild(canvas)
     }
     started = true
-    webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, NUMBER_OF_CUBES, blocksDataModel)
+    webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, blocksDataModel)
     globalThis.webgpuRenderer = webgpuRenderer
     postMessage({ type: 'webgpuRendererReady' })
   },
@@ -176,6 +174,10 @@ export const workerProxyType = createWorkerProxy({
   },
   addBlocksSectionDone () {
   },
+  updateTexture (imageBlob: Blob) {
+    if (!webgpuRenderer) return
+    void webgpuRenderer.updateTexture(imageBlob)
+  },
   removeBlocksSection (key) {
     chunksStorage.removeChunk(key)
   },
@@ -211,8 +213,12 @@ export const workerProxyType = createWorkerProxy({
       animationTick = tick % 20 // todo update automatically in worker
     }
   },
-  fullReset () {
-    fullReset()
+  fullDataReset () {
+    if (chunksStorage.chunksMap.size) {
+      console.warn('fullReset: chunksMap not empty', chunksStorage.chunksMap)
+    }
+    // todo clear existing ranges with limit
+    chunksStorage.clearData()
   },
   exportData () {
     const exported = exportData()
@@ -233,6 +239,10 @@ export const workerProxyType = createWorkerProxy({
       renderer.changeBackgroundColor(color)
     }, 'updateBackground')
   },
+  destroy () {
+    chunksStorage.clearData()
+    webgpuRenderer?.destroy()
+  }
 }, globalThis.webgpuRendererChannel?.port2)
 
 // globalThis.testDuplicates = () => {

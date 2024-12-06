@@ -3,7 +3,6 @@ import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
-import { sendCameraToWorker } from '../../examples/webgpuRendererMain'
 import { WorldRendererWebgpu } from './worldrendererWebgpu'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
@@ -45,8 +44,7 @@ export class Viewer {
     this.scene = new THREE.Scene()
     this.scene.matrixAutoUpdate = false // for perf
     // this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, worldConfig)
-    this.webgpuWorld = new WorldRendererWebgpu(worldConfig)
-    this.setWorld()
+    this.setWorld(worldConfig)
     this.resetScene()
     this.entities = new Entities(this.scene)
     // this.primitives = new Primitives(this.scene, this.camera)
@@ -54,8 +52,14 @@ export class Viewer {
     this.domElement = renderer.domElement
   }
 
-  setWorld () {
+  setWorld (worldConfig: typeof defaultWorldRendererConfig = this.world.config) {
+    const { version, texturesVersion } = this.world ?? {}
+    if (this.world) this.world.destroy()
+    this.webgpuWorld = new WorldRendererWebgpu(worldConfig)
     this.world = this.webgpuWorld
+    if (version) {
+      void this.setVersion(version, texturesVersion)
+    }
   }
 
   resetScene () {
@@ -162,14 +166,12 @@ export class Viewer {
 
   setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number, roll = 0) {
     const cam = this.cameraObjectOverride || this.camera
-    if (pos) {
-      let y = pos.y + this.playerHeight
-      if (this.isSneaking) y -= 0.3
-      // new tweenJs.Tween(cam.position).to({ x: pos.x, y, z: pos.z }, 50).start()
-      cam.position.set(pos.x, y, pos.z)
-    }
-    cam.rotation.set(pitch, yaw, roll, 'ZYX')
-    sendCameraToWorker()
+    let yOffset = this.playerHeight
+    if (this.isSneaking) yOffset -= 0.3
+
+    this.world.camera = cam as THREE.PerspectiveCamera
+
+    this.world.updateCamera(pos?.offset(0, yOffset, 0) ?? null, yaw, pitch)
   }
 
   playSound (position: Vec3, path: string, volume = 1, pitch = 1) {
@@ -237,7 +239,7 @@ export class Viewer {
     })
     // todo remove and use other architecture instead so data flow is clear
     worldEmitter.on('blockEntities', (blockEntities) => {
-      if (this.world instanceof WorldRendererThree) this.world.blockEntities = blockEntities
+      if (this.world instanceof WorldRendererThree) (this.world as WorldRendererThree).blockEntities = blockEntities
     })
 
     worldEmitter.on('unloadChunk', ({ x, z }) => {
@@ -269,7 +271,7 @@ export class Viewer {
     })
 
     worldEmitter.on('updateLight', ({ pos }) => {
-      if (this.world instanceof WorldRendererThree) this.world.updateLight(pos.x, pos.z)
+      if (this.world instanceof WorldRendererThree) (this.world as WorldRendererThree).updateLight(pos.x, pos.z)
     })
 
     worldEmitter.on('time', (timeOfDay) => {

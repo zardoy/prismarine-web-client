@@ -381,7 +381,7 @@ const updateTextures = async () => {
     }
   }
   if (viewer.world.active) {
-    await viewer.world.updateTexturesData()
+    await viewer.world.updateTexturesData(true)
   }
 }
 
