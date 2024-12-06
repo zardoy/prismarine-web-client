@@ -205,6 +205,12 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     super.setBlockStateId(pos, stateId)
   }
 
+  sendDataForWebgpuRenderer (data) {
+    for (const worker of this.workers) {
+      worker.postMessage({ type: 'webgpuData', data })
+    }
+  }
+
   isWaitingForChunksToRender = false
 
   allChunksLoaded (): void {

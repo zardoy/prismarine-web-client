@@ -6,8 +6,8 @@ import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
 import { WorldRendererWebgpu } from './worldrendererWebgpu'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
-import { defaultWorldRendererConfig } from './worldrendererCommon'
 import { WorldRendererThree } from './worldrendererThree'
+import { WorldRendererCommon, WorldRendererConfig, defaultWorldRendererConfig } from './worldrendererCommon'
 import { getThreeBlockModelGroup, renderBlockThree, setBlockPosition } from './mesher/standaloneRenderer'
 import { addNewStat } from './ui/newStats'
 
@@ -15,7 +15,6 @@ export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
-  camera: THREE.PerspectiveCamera
   world: WorldRendererWebgpu/*  | WorldRendererThree */
   entities: Entities
   // primitives: Primitives
@@ -29,12 +28,13 @@ export class Viewer {
   processEntityOverrides = (e, overrides) => overrides
   webgpuWorld: WorldRendererWebgpu
 
-  // get camera () {
-  //   return this.world.camera
-  // }
-  // set camera (camera) {
-  //   this.world.camera = camera
-  // }
+  get camera () {
+    return this.world.camera
+  }
+
+  set camera (camera) {
+    this.world.camera = camera
+  }
 
   constructor (public renderer: THREE.WebGLRenderer, worldConfig = defaultWorldRendererConfig) {
     // https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791
@@ -300,16 +300,11 @@ export class Viewer {
     worldEmitter.emit('listening')
   }
 
-  loadChunksFixture () { }
-
   render () {
-    // if (this.composer) {
-    //   this.renderPass.camera = this.camera
-    //   this.composer.render()
-    // } else {
-    //   this.renderer.render(this.scene, this.camera)
-    // }
-    // this.entities.render()
+    if (this.world instanceof WorldRendererThree) {
+      (this.world as WorldRendererThree).render()
+      this.entities.render()
+    }
   }
 
   async waitForChunksToRender () {
