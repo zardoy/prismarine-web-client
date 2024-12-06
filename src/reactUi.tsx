@@ -107,12 +107,8 @@ const InGameUi = () => {
   const hasModals = modalsSnapshot.length > 0
   const showUI = showUIRaw || hasModals
   const displayFullmap = modalsSnapshot.some(modal => modal.reactType === 'full-map')
-  const [gameMode, setGameMode] = useState(bot.game.gameMode)
-  useEffect(() => {
-    bot.on('game', () => {
-      setGameMode(bot.game.gameMode)
-    })
-  }, [])
+  // bot can't be used here
+
   if (!gameLoaded || !bot || disabledUiParts.includes('*')) return
 
   return <>
@@ -140,7 +136,7 @@ const InGameUi = () => {
         {!disabledUiParts.includes('hud-bars') && <HudBarsProvider />}
         <BedTime />
       </div>
-      {showUI && gameMode !== 'spectator' && !disabledUiParts.includes('hotbar') && <HotbarRenderApp />}
+      {showUI && !disabledUiParts.includes('hotbar') && <HotbarRenderApp />}
     </RobustPortal>
     <PerComponentErrorBoundary>
       <SignEditorProvider />

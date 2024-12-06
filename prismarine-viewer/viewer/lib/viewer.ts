@@ -78,15 +78,15 @@ export class Viewer {
     // this.primitives.clear()
   }
 
-  setVersion (userVersion: string, texturesVersion = userVersion) {
+  setVersion (userVersion: string, texturesVersion = userVersion): void | Promise<void> {
     console.log('[viewer] Using version:', userVersion, 'textures:', texturesVersion)
-    void this.world.setVersion(userVersion, texturesVersion).then(async () => {
+    this.entities.clear()
+    // this.primitives.clear()
+    return this.world.setVersion(userVersion, texturesVersion).then(async () => {
       return new THREE.TextureLoader().loadAsync(this.world.itemsAtlasParser!.latestImage)
     }).then((texture) => {
       this.entities.itemsTexture = texture
     })
-    this.entities.clear()
-    // this.primitives.clear()
   }
 
   addColumn (x, z, chunk, isLightUpdate = false) {
@@ -98,10 +98,18 @@ export class Viewer {
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
-    if (!this.world.loadedChunks[`${Math.floor(pos.x / 16) * 16},${Math.floor(pos.z / 16) * 16}`]) {
-      console.debug('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
+    const set = async () => {
+      const sectionX = Math.floor(pos.x / 16) * 16
+      const sectionZ = Math.floor(pos.z / 16) * 16
+      if (this.world.queuedChunks.has(`${sectionX},${sectionZ}`)) {
+        await this.world.waitForChunkToLoad(pos)
+      }
+      if (!this.world.loadedChunks[`${sectionX},${sectionZ}`]) {
+        console.debug('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
+      }
+      this.world.setBlockStateId(pos, stateId)
     }
-    this.world.setBlockStateId(pos, stateId)
+    void set()
   }
 
   demoModel () {
@@ -153,9 +161,8 @@ export class Viewer {
     let yOffset = this.playerHeight
     if (this.isSneaking) yOffset -= 0.3
 
-    if (this.world instanceof WorldRendererThree) {
-      this.world.camera = cam as THREE.PerspectiveCamera
-    }
+    this.world.camera = cam as THREE.PerspectiveCamera
+
     this.world.updateCamera(pos?.offset(0, yOffset, 0) ?? null, yaw, pitch)
   }
 
@@ -205,6 +212,7 @@ export class Viewer {
     } | null
     worldEmitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
       this.world.worldConfig = worldConfig
+      this.world.queuedChunks.add(`${x},${z}`)
       const args = [x, z, chunk, isLightUpdate]
       if (!currentLoadChunkBatch) {
         // add a setting to use debounce instead
@@ -212,6 +220,7 @@ export class Viewer {
           data: [],
           timeout: setTimeout(() => {
             for (const args of currentLoadChunkBatch!.data) {
+              this.world.queuedChunks.delete(`${args[0]},${args[1]}`)
               this.addColumn(...args as Parameters<typeof this.addColumn>)
             }
             currentLoadChunkBatch = null
@@ -222,7 +231,7 @@ export class Viewer {
     })
     // todo remove and use other architecture instead so data flow is clear
     worldEmitter.on('blockEntities', (blockEntities) => {
-      if (this.world instanceof WorldRendererThree) this.world.blockEntities = blockEntities
+      if (this.world instanceof WorldRendererThree) (this.world).blockEntities = blockEntities
     })
 
     worldEmitter.on('unloadChunk', ({ x, z }) => {
@@ -237,14 +246,24 @@ export class Viewer {
       this.world.updateViewerPosition(pos)
     })
 
+
+    worldEmitter.on('renderDistance', (d) => {
+      this.world.viewDistance = d
+      this.world.chunksLength = d === 0 ? 1 : generateSpiralMatrix(d).length
+    })
+
     worldEmitter.on('renderDistance', (d) => {
       this.world.viewDistance = d
       this.world.chunksLength = d === 0 ? 1 : generateSpiralMatrix(d).length
       this.world.allChunksFinished = Object.keys(this.world.finishedChunks).length === this.world.chunksLength
     })
 
+    worldEmitter.on('markAsLoaded', ({ x, z }) => {
+      this.world.markAsLoaded(x, z)
+    })
+
     worldEmitter.on('updateLight', ({ pos }) => {
-      if (this.world instanceof WorldRendererThree) this.world.updateLight(pos.x, pos.z)
+      if (this.world instanceof WorldRendererThree) (this.world).updateLight(pos.x, pos.z)
     })
 
     worldEmitter.on('time', (timeOfDay) => {
@@ -264,16 +283,20 @@ export class Viewer {
       skyLight = Math.floor(skyLight) // todo: remove this after optimization
 
       if (this.world.mesherConfig.skyLight === skyLight) return
-      this.world.mesherConfig.skyLight = skyLight;
-      (this.world as WorldRendererThree).rerenderAllChunks?.()
+      this.world.mesherConfig.skyLight = skyLight
+      if (this.world instanceof WorldRendererThree) {
+        (this.world).rerenderAllChunks?.()
+      }
     })
 
     worldEmitter.emit('listening')
   }
 
   render () {
-    this.world.render()
-    this.entities.render()
+    if (this.world instanceof WorldRendererThree) {
+      (this.world).render()
+      this.entities.render()
+    }
   }
 
   async waitForChunksToRender () {

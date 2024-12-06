@@ -6,6 +6,7 @@ import { generateSpiralMatrix, ViewRect } from 'flying-squid/dist/utils'
 import { Vec3 } from 'vec3'
 import { BotEvents } from 'mineflayer'
 import { getItemFromBlock } from '../../../src/chatUtils'
+import { delayedIterator } from '../../examples/shared'
 import { chunkPos } from './simpleUtils'
 
 export type ChunkPosKey = string
@@ -23,6 +24,7 @@ export class WorldDataEmitter extends EventEmitter {
   keepChunksDistance = 0
   addWaitTime = 1
   _handDisplay = false
+  isPlayground = false
   get handDisplay () {
     return this._handDisplay
   }
@@ -173,19 +175,11 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async _loadChunks (positions: Vec3[], sliceSize = 5) {
-    let i = 0
     const promises = [] as Array<Promise<void>>
-    return new Promise<void>(resolve => {
-      const interval = setInterval(() => {
-        if (i >= positions.length) {
-          clearInterval(interval)
-          void Promise.all(promises).then(() => resolve())
-          return
-        }
-        promises.push(this.loadChunk(positions[i]))
-        i++
-      }, this.addWaitTime)
+    await delayedIterator(positions, this.addWaitTime, (pos) => {
+      promises.push(this.loadChunk(pos))
     })
+    await Promise.all(promises)
   }
 
   readdDebug () {
@@ -221,6 +215,8 @@ export class WorldDataEmitter extends EventEmitter {
         //@ts-expect-error
         this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
+      } else if (this.isPlayground) { // don't allow in real worlds pre-flag chunks as loaded to avoid race condition when the chunk might still be loading. In playground it's assumed we always pre-load all chunks first
+        this.emitter.emit('markAsLoaded', { x: pos.x, z: pos.z })
       }
     } else {
       // console.debug('skipped loading chunk', dx, dz, '>', this.viewDistance)
