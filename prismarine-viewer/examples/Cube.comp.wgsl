@@ -56,10 +56,9 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let textureSize = uniforms.textureSize;
   // Check if cube is within the view frustum z-range (depth within near and far planes)
   if (
-
-      (clipDepth > 0 && clipDepth <=  1) &&
-      ((clipX >= -1 && clipX <= 1 &&
-      clipY >= - 1 && clipY <= 1) || nearby))
+    ((clipDepth > 0 && clipDepth <= 1) &&
+      (clipX >= -1 && clipX <= 1)  &&
+      (clipY >= - 1 && clipY <= 1)) || nearby)
   {
     if (nearby) {
       clipY = clamp(clipY, -1, 1);
