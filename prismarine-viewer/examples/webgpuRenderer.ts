@@ -68,7 +68,7 @@ export class WebgpuRenderer {
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public NUMBER_OF_CUBES: number, public blocksDataModel: Record<string, BlocksModelData>) {
-    this.NUMBER_OF_CUBES = 500_000
+    this.NUMBER_OF_CUBES = 5_000_000
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
