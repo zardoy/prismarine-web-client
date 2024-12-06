@@ -199,8 +199,6 @@ export class BasePlaygroundScene {
     world.setBlockStateId(this.targetPos, 0)
     this.world = world
 
-    this.initGui()
-
     const worldView = new WorldDataEmitter(world, this.viewDistance, this.targetPos)
     worldView.isPlayground = true
     worldView.addWaitTime = 0
@@ -213,14 +211,16 @@ export class BasePlaygroundScene {
 
     // Create viewer
     const viewer = new Viewer(renderer, { numWorkers: 6, showChunkBorders: false, })
+    viewer.setFirstPersonCamera(null, viewer.camera.rotation.y, viewer.camera.rotation.x)
+    window.viewer = viewer
     viewer.world.blockstatesModels = blockstatesModels
     viewer.addChunksBatchWaitTime = 0
     viewer.entities.setDebugMode('basic')
     viewer.world.mesherConfig.enableLighting = false
     viewer.world.allowUpdates = true
+    this.initGui()
     await viewer.setVersion(this.version)
 
-    window.viewer = viewer
     const isWebgpu = true
     const promises = [] as Array<Promise<void>>
     if (isWebgpu) {

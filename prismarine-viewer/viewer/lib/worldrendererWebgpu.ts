@@ -139,6 +139,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       this.webgpuChannel.stopRender()
     }, { signal })
     const mainLoop = () => {
+      if (this.abortController.signal.aborted) return
       requestAnimationFrame(mainLoop)
       if (!focused || window.stopRender) return
 
@@ -231,7 +232,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       this.camera.position.set(pos.x, pos.y, pos.z)
     }
     this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-    this.sendCameraToWorker()
+    // this.sendCameraToWorker()
   }
   render (): void { }
 
@@ -283,7 +284,7 @@ class RendererProblemReporter {
     this.dom.style.fontSize = '20px'
     this.contextlostDom.style.cssText = `
       position: fixed;
-      top: 0;
+      top: 60px;
       left: 0;
       right: 0;
       color: red;
@@ -318,6 +319,7 @@ class RendererProblemReporter {
 }
 
 const addWebgpuDebugUi = (worker, isPlayground) => {
+  // todo destroy
   const mobile = isMobile()
   const { updateText } = addNewStat('fps', 200, undefined, 0)
   let prevTimeout

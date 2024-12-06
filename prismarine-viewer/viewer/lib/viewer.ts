@@ -169,7 +169,7 @@ export class Viewer {
     let yOffset = this.playerHeight
     if (this.isSneaking) yOffset -= 0.3
 
-    viewer.world.camera = cam as THREE.PerspectiveCamera
+    this.world.camera = cam as THREE.PerspectiveCamera
 
     this.world.updateCamera(pos?.offset(0, yOffset, 0) ?? null, yaw, pitch)
   }

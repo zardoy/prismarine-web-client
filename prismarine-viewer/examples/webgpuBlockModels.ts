@@ -1,6 +1,7 @@
 import { versionToNumber } from 'flying-squid/dist/utils'
 import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
-import PrismarineBlock from 'prismarine-block'
+import PrismarineBlock, { Block } from 'prismarine-block'
+import { IndexedBlock } from 'minecraft-data'
 import { getPreflatBlock } from '../viewer/lib/mesher/getPreflatBlock'
 
 export const prepareCreateWebgpuBlocksModelsData = () => {
@@ -34,7 +35,7 @@ export const prepareCreateWebgpuBlocksModelsData = () => {
   let i = 0
   const allBlocksStateIdToModelIdMap = {} as AllBlocksStateIdToModelIdMap
 
-  const addBlockModel = (state: number, name: string, props: Record<string, any>) => {
+  const addBlockModel = (state: number, name: string, props: Record<string, any>, mcBlockData?: IndexedBlock) => {
     const models = provider.getAllResolvedModels0_1({
       name,
       properties: props
@@ -60,7 +61,7 @@ export const prepareCreateWebgpuBlocksModelsData = () => {
       ['left', 'west'],
       ['back', 'north'],
     ]
-    const blockData = {
+    const blockData: BlocksModelData = {
       textures: [0, 0, 0, 0, 0, 0],
       rotation: [0, 0, 0, 0, 0, 0]
     }
@@ -79,6 +80,11 @@ export const prepareCreateWebgpuBlocksModelsData = () => {
     allBlocksStateIdToModelIdMap[state] = k
     blocksDataModel[k] = blockData
     blocksProccessed[name] = true
+    if (mcBlockData) {
+      blockData.transparent = mcBlockData.transparent
+      blockData.emitLight = mcBlockData.emitLight
+      blockData.filterLight = mcBlockData.filterLight
+    }
   }
   addBlockModel(-1, 'unknown', {})
   const textureOverrideFullBlocks = {
@@ -107,13 +113,14 @@ export const prepareCreateWebgpuBlocksModelsData = () => {
         }
         const texIndex = texture.tileIndex
         allBlocksStateIdToModelIdMap[state] = k
-        const blockData = {
+        const blockData: BlocksModelData = {
           textures: [texIndex, texIndex, texIndex, texIndex, texIndex, texIndex],
-          rotation: [0, 0, 0, 0, 0, 0]
+          rotation: [0, 0, 0, 0, 0, 0],
+          filterLight: b.filterLight
         }
         blocksDataModel[k] = blockData
       } else {
-        addBlockModel(state, block.name, block.getProperties())
+        addBlockModel(state, block.name, block.getProperties(), b)
       }
     }
   }
@@ -128,4 +135,7 @@ export type AllBlocksStateIdToModelIdMap = Record<number, number>
 export type BlocksModelData = {
   textures: number[]
   rotation: number[]
+  transparent?: boolean
+  emitLight?: number
+  filterLight?: number
 }
