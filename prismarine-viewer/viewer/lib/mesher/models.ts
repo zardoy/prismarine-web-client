@@ -119,7 +119,7 @@ function getLiquidRenderHeight (world, block, type, pos) {
 const isCube = (block: Block) => {
   if (!block || block.transparent) return false
   if (block.isCube) return true
-  if (!block.models?.length || block.models.length !== 1) return false
+  if (!block.models?.length || block.models.length !== 1 || !block.models[0]) return false
   // all variants
   return block.models[0].every(v => v.elements!.every(e => {
     return e.from[0] === 0 && e.from[1] === 0 && e.from[2] === 0 && e.to[0] === 16 && e.to[1] === 16 && e.to[2] === 16

@@ -730,8 +730,6 @@ export class WebgpuRenderer {
 
     const now = Date.now()
     tweenJs.update()
-    const fov = 90
-    this.camera.fov = fov
     this.camera.near = 0.05
     this.camera.updateProjectionMatrix()
     const oversize = 1.1
@@ -748,8 +746,10 @@ export class WebgpuRenderer {
       ViewProjection
     )
 
-    this.camera.fov = fov * oversize
+    const origFov = this.camera.fov
+    this.camera.fov *= oversize
     this.camera.updateProjectionMatrix()
+    this.camera.fov = origFov
 
     const ViewProjectionMatCompute = new THREE.Matrix4()
     ViewProjectionMatCompute.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrix)
