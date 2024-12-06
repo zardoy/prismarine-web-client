@@ -601,7 +601,7 @@ export class WebgpuRenderer {
     const dataForBuffers = chunksStorage.getDataForBuffers()
     if (!dataForBuffers) return
     const { allBlocks, chunks, awaitingUpdateSize: updateSize, awaitingUpdateStart: updateOffset } = dataForBuffers
-    console.log('updating', updateOffset, updateSize)
+    // console.log('updating', updateOffset, updateSize)
 
     const NUMBER_OF_CUBES_NEEDED = allBlocks.length
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {

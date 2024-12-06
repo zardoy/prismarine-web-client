@@ -126,7 +126,7 @@ const isCube = (block: Block) => {
   }))
 }
 
-function renderLiquid (world, cursor, texture, type, biome, water, attr) {
+function renderLiquid (world, cursor, texture, type, biome, water, attr, stateId) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
@@ -143,7 +143,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
 
   // eslint-disable-next-line guard-for-in
   for (const face in elemFaces) {
-    const { dir, corners } = elemFaces[face]
+    const { dir, corners, webgpuSide } = elemFaces[face]
     const isUp = dir[1] === 1
 
     const neighborPos = cursor.offset(...dir)
@@ -153,7 +153,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     const isGlass = neighbor.name.includes('glass')
     if ((isCube(neighbor) && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
 
-    let tint = [1, 1, 1]
+    let tint = [1, 1, 1] as [number, number, number]
     if (water) {
       let m = 1 // Fake lighting to improve lisibility
       if (Math.abs(dir[0]) > 0) m = 0.6
@@ -164,10 +164,17 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
 
     if (needTiles) {
       const tiles = attr.tiles as Tiles
-      // tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
-      //   block: 'water',
-      //   faces: [],
-      // }
+      const model = world.webgpuModelsMapping[stateId]
+      // TODO height
+      if (model) {
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+          block: 'water',
+          visibleFaces: [],
+          modelId: model,
+          tint,
+        }
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
+      }
       // tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
       //   face,
       //   neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
@@ -182,16 +189,18 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr) {
     const { su } = texture
     const { sv } = texture
 
-    for (const pos of corners) {
-      const height = cornerHeights[pos[2] * 2 + pos[0]]
-      attr.t_positions.push(
-        (pos[0] ? 0.999 : 0.001) + (cursor.x & 15) - 8,
-        (pos[1] ? height - 0.001 : 0.001) + (cursor.y & 15) - 8,
-        (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8
-      )
-      attr.t_normals.push(...dir)
-      attr.t_uvs.push(pos[3] * su + u, pos[4] * sv * (pos[1] ? 1 : height) + v)
-      attr.t_colors.push(tint[0], tint[1], tint[2])
+    if (!needTiles) {
+      for (const pos of corners) {
+        const height = cornerHeights[pos[2] * 2 + pos[0]]
+        attr.t_positions.push(
+          (pos[0] ? 0.999 : 0.001) + (cursor.x & 15) - 8,
+          (pos[1] ? height - 0.001 : 0.001) + (cursor.y & 15) - 8,
+          (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8
+        )
+        attr.t_normals.push(...dir)
+        attr.t_uvs.push(pos[3] * su + u, pos[4] * sv * (pos[1] ? 1 : height) + v)
+        attr.t_colors.push(tint[0], tint[1], tint[2])
+      }
     }
   }
 }
@@ -299,8 +308,6 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     if (face === 'down') {
       r += 180
     }
-    const uvcs = Math.cos(r * Math.PI / 180)
-    const uvsn = -Math.sin(r * Math.PI / 180)
 
     let localMatrix = null as any
     let localShift = null as any
@@ -333,6 +340,8 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       ]
 
       if (!needTiles) { // 10%
+        const uvcs = Math.cos(r * Math.PI / 180)
+        const uvsn = -Math.sin(r * Math.PI / 180)
         vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
         vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
         vertex = vertex.map(v => v / 16)
@@ -351,8 +360,9 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       }
 
       let light = 1
-      const { smoothLighting } = world.config
-      // const smoothLighting = true
+      // const { smoothLighting } = world.config
+      const smoothLighting = false
+      doAO = false
       if (doAO) {
         const dx = pos[0] * 2 - 1
         const dy = pos[1] * 2 - 1
@@ -406,7 +416,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
     if (needTiles) {
       const tiles = attr.tiles as Tiles
-      const model = world.webgpuModelsMapping[block.stateId!] ?? world.webgpuModelsMapping[-1]
+      const model = world.webgpuModelsMapping[block.stateId!]/*  ?? world.webgpuModelsMapping[-1] */
       if (model !== undefined) {
         tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
           block: block.name,
@@ -524,13 +534,12 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
         const isWaterlogged = isBlockWaterlogged(block)
         if (block.name === 'water' || isWaterlogged) {
           const pos = cursor.clone()
-          // eslint-disable-next-line @typescript-eslint/no-loop-func
-          delayedRender.push(() => {
-            renderLiquid(world, pos, blockProvider.getTextureInfo('water_still'), block.type, biome, true, attr)
-          })
+          // delayedRender.push(() => {
+          renderLiquid(world, pos, blockProvider.getTextureInfo('water_still'), block.type, biome, true, attr, block.stateId)
+          // })
           attr.blocksCount++
         } else if (block.name === 'lava') {
-          renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr)
+          renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr, block.stateId)
           attr.blocksCount++
         }
         if (block.name !== 'water' && block.name !== 'lava' && !invisibleBlocks.has(block.name)) {
@@ -542,6 +551,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           const firstForceVar = world.config.debugModelVariant?.[0]
           let part = 0
           for (const modelVars of models ?? []) {
+            if (part > 0) continue // todo only webgpu
             const pos = cursor.clone()
             // const variantRuntime = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), modelVars.length)
             const variantRuntime = 0
@@ -551,32 +561,32 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             if (!model) continue
 
             // #region 10%
-            let globalMatrix = null as any
-            let globalShift = null as any
-            for (const axis of ['x', 'y', 'z'] as const) {
-              if (axis in model) {
-                globalMatrix = globalMatrix ?
-                  matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0))) :
-                  buildRotationMatrix(axis, -(model[axis] ?? 0))
-              }
-            }
-            if (globalMatrix) {
-              globalShift = [8, 8, 8]
-              globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
-            }
+            const globalMatrix = null as any
+            const globalShift = null as any
+            // for (const axis of ['x', 'y', 'z'] as const) {
+            //   if (axis in model) {
+            //     globalMatrix = globalMatrix ?
+            //       matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0))) :
+            //       buildRotationMatrix(axis, -(model[axis] ?? 0))
+            //   }
+            // }
+            // if (globalMatrix) {
+            //   globalShift = [8, 8, 8]
+            //   globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
+            // }
             // #endregion
 
             for (const element of model.elements ?? []) {
               const ao = model.ao ?? true
-              if (block.transparent) {
-                const pos = cursor.clone()
-                delayedRender.push(() => {
-                  renderElement(world, pos, element, ao, attr, globalMatrix, globalShift, block, biome)
-                })
-              } else {
-                // 60%
-                renderElement(world, cursor, element, ao, attr, globalMatrix, globalShift, block, biome)
-              }
+              // if (block.transparent) {
+              //   const pos = cursor.clone()
+              //   delayedRender.push(() => {
+              //     renderElement(world, pos, element, ao, attr, globalMatrix, globalShift, block, biome)
+              //   })
+              // } else {
+              // 60%
+              renderElement(world, cursor, element, ao, attr, globalMatrix, globalShift, block, biome)
+              // }
             }
           }
           if (part > 0) attr.blocksCount++

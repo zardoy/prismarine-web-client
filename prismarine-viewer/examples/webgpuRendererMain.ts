@@ -340,6 +340,10 @@ const getBlocksModelData = () => {
     blocksProccessed[name] = true
   }
   addBlockModel(-1, 'unknown', {})
+  const textureOverrideFullBlocks = {
+    water: 'water_still',
+    lava: 'lava_still'
+  }
   for (const b of loadedData.blocksArray) {
     for (let state = b.minStateId; state <= b.maxStateId; state++) {
       const mapping = blocksMap[b.name]
@@ -347,12 +351,29 @@ const getBlocksModelData = () => {
       if (isPreflat) {
         getPreflatBlock(block)
       }
-      if (block.shapes.length === 0 || !block.shapes.every(shape => {
+      const textureOverride = textureOverrideFullBlocks[block.name]
+      if (!textureOverride && (block.shapes.length === 0 || !block.shapes.every(shape => {
         return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
-      })) {
+      }))) {
         continue
       }
-      addBlockModel(state, block.name, block.getProperties())
+      if (textureOverride) {
+        const k = i++
+        const texture = provider.getTextureInfo(textureOverride)
+        if (!texture) {
+          console.warn('Missing texture override')
+          continue
+        }
+        const texIndex = texture.tileIndex
+        allBlocksStateIdToModelIdMap[state] = k
+        const blockData = {
+          textures: [texIndex, texIndex, texIndex, texIndex, texIndex, texIndex],
+          rotation: [0, 0, 0, 0, 0, 0]
+        }
+        blocksDataModel[k] = blockData
+      } else {
+        addBlockModel(state, block.name, block.getProperties())
+      }
     }
   }
   return {
