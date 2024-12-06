@@ -450,7 +450,6 @@ export const f3Keybinds = [
       }
 
       viewer.world.chunksReset() // todo
-      viewer.world.newChunks = {}
 
       if (localServer) {
         //@ts-expect-error not sure why it is private... maybe revisit api?
@@ -526,7 +525,25 @@ export const f3Keybinds = [
       const proxyPing = await bot['pingProxy']()
       void showOptionsModal(`${username}: last known total latency (ping): ${playerPing}. Connected to ${lastConnectOptions.value?.proxy} with current ping ${proxyPing}. Player UUID: ${uuid}`, [])
     },
-    mobileTitle: 'Show Proxy & Ping Details'
+    mobileTitle: 'Show Proxy & Ping Details',
+    show: () => !miscUiState.singleplayer
+  },
+  {
+    key: 'KeyL',
+    async action () {
+      if (viewer.world.rendering) {
+        viewer.world.webgpuChannel.stopRender()
+      } else {
+        viewer.world.webgpuChannel.startRender()
+      }
+    },
+    mobileTitle: 'Toggle rendering'
+  },
+  {
+    key: 'KeyO',
+    async action () {
+    },
+    mobileTitle: 'Toggle renderer debug controls'
   }
 ]
 

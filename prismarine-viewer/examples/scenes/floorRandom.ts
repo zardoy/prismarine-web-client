@@ -1,7 +1,5 @@
 import { Vec3 } from 'vec3'
 import { BasePlaygroundScene } from '../baseScene'
-import { webgpuChannel } from '../webgpuRendererMain'
-import { defaultWebgpuRendererParams } from '../webgpuRendererShared'
 
 export default class RailsCobwebScene extends BasePlaygroundScene {
   webgpuRendererParams = true
@@ -26,7 +24,7 @@ export default class RailsCobwebScene extends BasePlaygroundScene {
     const chunkDistance = this.params.chunksDistance
     for (let x = -chunkDistance; x < chunkDistance; x++) {
       for (let z = -chunkDistance; z < chunkDistance; z++) {
-        webgpuChannel.generateRandom(16 ** 2, x * 16, z * 16)
+        viewer.world.webgpuChannel.generateRandom(16 ** 2, x * 16, z * 16)
       }
     }
 

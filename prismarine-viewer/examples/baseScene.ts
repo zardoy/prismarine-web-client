@@ -17,7 +17,6 @@ import { WorldDataEmitter } from '../viewer'
 import { Viewer } from '../viewer/lib/viewer'
 import { BlockNames } from '../../src/mcDataTypes'
 import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
-import { initWebgpuRenderer, webgpuChannel } from './webgpuRendererMain'
 import { getSyncWorld } from './shared'
 import { defaultWebgpuRendererParams } from './webgpuRendererShared'
 
@@ -133,13 +132,14 @@ export class BasePlaygroundScene {
 
     if (this.webgpuRendererParams) {
       for (const key of Object.keys(defaultWebgpuRendererParams)) {
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
         this.onParamUpdate[key] = () => {
-          webgpuChannel.updateConfig(this.params as any)
+          viewer.world.webgpuChannel.updateConfig(this.params as any)
         }
       }
 
       this.enableCameraOrbitControl = this.params.orbit
-      webgpuChannel.updateConfig(this.params as any)
+      viewer.world.webgpuChannel.updateConfig(this.params as any)
     }
   }
 
@@ -224,7 +224,7 @@ export class BasePlaygroundScene {
     const isWebgpu = true
     const promises = [] as Array<Promise<void>>
     if (isWebgpu) {
-      promises.push(initWebgpuRenderer(() => { }, true, true)) // todo
+      // promises.push(initWebgpuRenderer(() => { }, true, true)) // todo
     } else {
       initWithRenderer(renderer.domElement)
       renderer.domElement.id = 'viewer-canvas'

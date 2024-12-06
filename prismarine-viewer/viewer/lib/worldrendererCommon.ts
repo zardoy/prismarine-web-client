@@ -284,7 +284,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
-  async updateTexturesData () {
+  async updateTexturesData (resourcePackUpdate = false) {
     const blocksAssetsParser = new AtlasParser(this.blocksAtlases, blocksAtlasLatest, blocksAtlasLegacy)
     const itemsAssetsParser = new AtlasParser(this.itemsAtlases, itemsAtlasLatest, itemsAtlasLegacy)
     const { atlas: blocksAtlas, canvas: blocksCanvas } = await blocksAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
@@ -342,7 +342,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   upateDownloadedChunksText () {
-    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D`)  
+    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D`)
   }
 
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
@@ -487,5 +487,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       this.renderUpdateEmitter.on('update', updateHandler)
     })
+  }
+
+  destroy () {
+    console.warn('world destroy is not implemented')
   }
 }

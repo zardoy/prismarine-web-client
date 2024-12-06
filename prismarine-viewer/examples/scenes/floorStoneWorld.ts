@@ -1,6 +1,5 @@
 import { Vec3 } from 'vec3'
 import { BasePlaygroundScene } from '../baseScene'
-import { webgpuChannel } from '../webgpuRendererMain'
 
 export default class Scene extends BasePlaygroundScene {
   viewDistance = 16

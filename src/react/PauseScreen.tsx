@@ -4,7 +4,6 @@ import { useEffect } from 'react'
 import { subscribe, useSnapshot } from 'valtio'
 import { usedServerPathsV1 } from 'flying-squid/dist/lib/modules/world'
 import { openURL } from 'prismarine-viewer/viewer/lib/simpleUtils'
-import { exportLoadedTiles } from 'prismarine-viewer/examples/webgpuRendererMain'
 import { Vec3 } from 'vec3'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import { subscribeKey } from 'valtio/utils'
@@ -219,7 +218,7 @@ export default () => {
       // fsState.remoteBackend = false
     }
     if (action === 'Dump loaded chunks') {
-      exportLoadedTiles()
+      // viewer.world.exportLoadedTiles()
     }
   }
 

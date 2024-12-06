@@ -99,7 +99,6 @@ import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
-import { initWebgpuRenderer } from 'prismarine-viewer/examples/webgpuRendererMain'
 // import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
@@ -432,9 +431,9 @@ async function connect (connectOptions: ConnectOptions) {
       }
       const mcData = MinecraftData(version)
       window.loadedData = mcData
-      await initWebgpuRenderer(() => {
+      viewer.world.postRender = () => {
         renderWrapper.postRender()
-      })
+      }
     }
 
     // serverOptions.version = '1.18.1'
