@@ -25,7 +25,7 @@ export default ({
 
   useEffect(() => {
     if (foodRef.current) {
-      foodRef.current.classList.toggle('creative', gameMode === 'creative')
+      foodRef.current.classList.toggle('creative', gameMode === 'creative' || gameMode === 'spectator')
     }
   }, [gameMode])
 
