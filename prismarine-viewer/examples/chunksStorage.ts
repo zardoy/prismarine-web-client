@@ -7,10 +7,11 @@ export class ChunksStorage {
   chunks = [] as Array<{ length: number, free: boolean, x: number, z: number }>
   chunksMap = new Map<string, number>()
   // flatBuffer = new Uint32Array()
+  updateQueue = [] as Array<{ start: number, end: number }>
 
   maxDataUpdate = 10_000_000
-  awaitingUpdateStart: number | undefined
-  awaitingUpdateEnd: number | undefined
+  // awaitingUpdateStart: number | undefined
+  // awaitingUpdateEnd: number | undefined
   // dataSize = 0
   lastFetchedSize = 0
   chunkSizeDisplay = 16
@@ -55,9 +56,11 @@ export class ChunksStorage {
     }
   }
 
-  printBlock ([x, y, z]: [number, number, number]) {
+  printBlock ({x, y, z}: { x: number, y: number, z: number }) {
     const section = this.printSectionData({ x, y, z })
     if (!section) return
+    x = Math.floor(x / 16) * 16
+    z = Math.floor(z / 16) * 16
     const xRel = ((x % 16) + 16) % 16
     const zRel = ((z % 16) + 16) % 16
     for (const block of section.blocks) {
@@ -70,16 +73,17 @@ export class ChunksStorage {
 
   getDataForBuffers () {
     this.lastFetchedSize = this.dataSize
-    if (this.awaitingUpdateStart === undefined) return
-    const { awaitingUpdateStart } = this
-    let awaitingUpdateEnd = this.awaitingUpdateEnd!
-    if (awaitingUpdateEnd - awaitingUpdateStart > this.maxDataUpdate) {
-      this.awaitingUpdateStart = awaitingUpdateStart + this.maxDataUpdate
-      awaitingUpdateEnd = awaitingUpdateStart + this.maxDataUpdate
-    } else {
-      this.awaitingUpdateStart = undefined
-      this.awaitingUpdateEnd = undefined
-    }
+    const task = this.updateQueue.shift()
+    if (!task) return
+    const { start: awaitingUpdateStart, end } = task
+    let awaitingUpdateEnd = end
+    // if (awaitingUpdateEnd - awaitingUpdateStart > this.maxDataUpdate) {
+    //   this.awaitingUpdateStart = awaitingUpdateStart + this.maxDataUpdate
+    //   awaitingUpdateEnd = awaitingUpdateStart + this.maxDataUpdate
+    // } else {
+    //   this.awaitingUpdateStart = undefined
+    //   this.awaitingUpdateEnd = undefined
+    // }
     return {
       allBlocks: this.allBlocks,
       chunks: this.chunks,
@@ -88,16 +92,15 @@ export class ChunksStorage {
     }
   }
 
-  setAwaitingUpdate ({ awaitingUpdateStart, awaitingUpdateSize }: { awaitingUpdateStart: number, awaitingUpdateSize: number }) {
-    this.awaitingUpdateStart = awaitingUpdateStart
-    this.awaitingUpdateEnd = awaitingUpdateStart + awaitingUpdateSize
-  }
+  // setAwaitingUpdate ({ awaitingUpdateStart, awaitingUpdateSize }: { awaitingUpdateStart: number, awaitingUpdateSize: number }) {
+  //   this.awaitingUpdateStart = awaitingUpdateStart
+  //   this.awaitingUpdateEnd = awaitingUpdateStart + awaitingUpdateSize
+  // }
 
   clearData () {
     this.chunks = []
     this.allBlocks = []
-    this.awaitingUpdateStart = undefined
-    this.awaitingUpdateEnd = undefined
+    this.updateQueue = []
   }
 
   replaceBlocksData (start: number, newData: typeof this.allBlocks) {
@@ -223,11 +226,10 @@ export class ChunksStorage {
   }
 
   requestRangeUpdate (start: number, end: number) {
-    this.awaitingUpdateStart = Math.min(this.awaitingUpdateStart ?? Infinity, start)
-    this.awaitingUpdateEnd = Math.max(this.awaitingUpdateEnd ?? -Infinity, end)
+    this.updateQueue.push({ start, end })
   }
 
   clearRange (start: number, end: number) {
-    // this.replaceBlocksData(start, Array.from({ length: end - start }).map(() => undefined))
+    this.replaceBlocksData(start, Array.from({ length: end - start }).map(() => undefined))
   }
 }

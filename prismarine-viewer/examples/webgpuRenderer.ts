@@ -602,7 +602,6 @@ export class WebgpuRenderer {
     if (!dataForBuffers) return
     const { allBlocks, chunks, awaitingUpdateSize: updateSize, awaitingUpdateStart: updateOffset } = dataForBuffers
     console.log('updating', updateOffset, updateSize)
-    console.time('updateBlocks')
 
     const NUMBER_OF_CUBES_NEEDED = allBlocks.length
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
@@ -612,9 +611,8 @@ export class WebgpuRenderer {
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
-      chunksStorage.setAwaitingUpdate(dataForBuffers)
-      console.timeEnd('updateBlocks')
-      return
+      chunksStorage.updateQueue.unshift({ start: updateOffset, end: updateOffset + updateSize })
+      return true
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
@@ -695,7 +693,6 @@ export class WebgpuRenderer {
     this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
     this.notRenderedBlockChanges++
-    console.timeEnd('updateBlocks')
     this.realNumberOfCubes = allBlocks.length
     if (!DEBUG_DATA) {
       chunksStorage.clearRange(updateOffset, updateOffset + updateSize)
@@ -880,7 +877,14 @@ export class WebgpuRenderer {
 
       renderPass.end()
     }
-    this.updateCubesBuffersDataFromLoop()
+    let stop = false
+    if (chunksStorage.updateQueue.length) {
+      console.time('updateBlocks')
+      while (chunksStorage.updateQueue.length || stop) {
+        stop = !!this.updateCubesBuffersDataFromLoop()
+      }
+      console.timeEnd('updateBlocks')
+    }
     if (!this.indirectDrawBufferMapBeingUsed) {
       this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
     }
