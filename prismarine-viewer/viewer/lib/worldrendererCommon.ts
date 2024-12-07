@@ -71,9 +71,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   @worldCleanup()
   currentTextureImage = undefined as any
   workers: any[] = []
+  @worldCleanup()
   viewerPosition?: Vec3
   lastCamUpdate = 0
   droppedFpsPercentage = 0
+  @worldCleanup()
+  initialChunkLoadWasStartedIn: number | undefined
+  @worldCleanup()
   initialChunksLoad = true
   enableChunksLoadDelay = false
   texturesVersion?: string
@@ -101,6 +105,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   workersProcessAverageTime = 0
   workersProcessAverageTimeCount = 0
   maxWorkersProcessTime = 0
+  geometryReceiveCount = 0
+  allLoadedIn: undefined | number
+  messagesDelay = 0
+  messageDelayCount = 0
+
   edgeChunks = {} as Record<string, boolean>
   lastAddChunk = null as null | {
     timeout: any
@@ -122,6 +131,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const loadedChunks = Object.keys(this.finishedChunks).length
       updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance}/${this.viewDistance})`)
     })
+
+    setInterval(() => {
+      this.geometryReceiveCount = 0
+      this.updateChunksStatsText()
+    }, 1000)
   }
 
   snapshotInitialValues () { }
@@ -139,6 +153,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         if (!this.active) return
         this.handleWorkerMessage(data)
         if (data.type === 'geometry') {
+          this.geometryReceiveCount++
           const geometry = data.geometry as MesherGeometryOutput
           for (const key in geometry.highestBlocks) {
             const highest = geometry.highestBlocks[key]
@@ -176,8 +191,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       worker.onmessage = ({ data }) => {
         if (Array.isArray(data)) {
+          // const time = data[0]
+          // this.messagesDelay += Date.now() - time
+          // this.messageDelayCount++
           // eslint-disable-next-line unicorn/no-array-for-each
           data.forEach(handleMessage)
+          // data.slice(1).forEach(handleMessage)
           return
         }
         handleMessage(data)
@@ -192,6 +211,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const allFinished = Object.keys(this.finishedChunks).length === this.chunksLength
       if (allFinished) {
         this.allChunksLoaded?.()
+        this.allLoadedIn ??= this.initialChunkLoadWasStartedIn ? (Date.now() - this.initialChunkLoadWasStartedIn) / 1000 : 0
         this.allChunksFinished = true
       }
     }
@@ -335,16 +355,17 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     return Math.floor(Math.max(this.worldConfig.minY, this.mesherConfig.clipWorldBelowY ?? -Infinity) / 16) * 16
   }
 
-  upateDownloadedChunksText () {
-    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D`)
+  updateChunksStatsText () {
+    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D (${this.workersProcessAverageTime.toFixed(0)}ms/${this.geometryReceiveCount}ss/${this.allLoadedIn?.toFixed(1) ?? '-'}s)`)
   }
 
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
     if (!this.active) return
     if (this.workers.length === 0) throw new Error('workers not initialized yet')
     this.initialChunksLoad = false
+    this.initialChunkLoadWasStartedIn ??= Date.now()
     this.loadedChunks[`${x},${z}`] = true
-    this.upateDownloadedChunksText()
+    this.updateChunksStatsText()
     for (const worker of this.workers) {
       // todo optimize
       worker.postMessage({ type: 'chunk', x, z, chunk })

@@ -71,7 +71,7 @@ export class WebgpuRenderer {
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public blocksDataModel: Record<string, BlocksModelData>) {
-    this.NUMBER_OF_CUBES = 5_000_000
+    this.NUMBER_OF_CUBES = 4_000_000
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -97,14 +97,18 @@ export class WebgpuRenderer {
     if (!adapter) throw new Error('WebGPU not supported')
 
 
-      const twoGig = 2147483644;
-      const required_limits = {};
-      // https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/limits
-      required_limits.maxStorageBufferBindingSize = twoGig;
-      required_limits.maxBufferSize = twoGig;
+    const twoGigs = 2_147_483_644
+    try {
       this.device = await adapter.requestDevice({
-        "requiredLimits": required_limits
-      });
+        // https://developer.mozilla.org/en-US/docs/Web/API/GPUDevice/limits
+        requiredLimits: {
+          maxStorageBufferBindingSize: twoGigs,
+          maxBufferSize: twoGigs,
+        }
+      })
+    } catch (err) {
+      this.device = await adapter.requestDevice()
+    }
     const { device } = this
     this.maxBufferSize = device.limits.maxStorageBufferBindingSize
     this.renderedFrames = device.limits.maxComputeWorkgroupSizeX
@@ -669,7 +673,7 @@ export class WebgpuRenderer {
         // if (chunk.index !== block.chunk) {
         //   throw new Error(`Block chunk mismatch ${block.chunk} !== ${chunk.index}`)
         // }
-        const positions = [x, y, z]
+        const positions = [x, y + this.rendererParams.cameraOffset[1], z]
         const visibility = Array.from({ length: 6 }, (_, i) => (block.visibleFaces.includes(i) ? 1 : 0))
 
         const tint = block.tint ?? [1, 1, 1]
@@ -753,10 +757,15 @@ export class WebgpuRenderer {
     const { device, cameraUniform: uniformBuffer, cameraComputeUniform: computeUniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
 
     const now = Date.now()
+    // #region update camera
     tweenJs.update()
     this.camera.near = 0.05
+    const oldPos = this.camera.position.clone()
+    this.camera.position.x += this.rendererParams.cameraOffset[0]
+    this.camera.position.y += this.rendererParams.cameraOffset[1]
+    this.camera.position.z += this.rendererParams.cameraOffset[2]
     this.camera.updateProjectionMatrix()
-    const oversize = 1.0
+    const oversize = 1
 
 
     this.camera.updateMatrix()
@@ -773,7 +782,6 @@ export class WebgpuRenderer {
     const origFov = this.camera.fov
     this.camera.fov *= oversize
     this.camera.updateProjectionMatrix()
-    this.camera.fov = origFov
 
     const ViewProjectionMatCompute = new THREE.Matrix4()
     ViewProjectionMatCompute.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrix)
@@ -790,6 +798,10 @@ export class WebgpuRenderer {
       0,
       cameraPosition
     )
+
+    this.camera.position.set(oldPos.x, oldPos.y, oldPos.z)
+    this.camera.fov = origFov
+    // #endregion
 
     const canvasTexture = ctx.getCurrentTexture()
     // let { multisampleTexture } = this;

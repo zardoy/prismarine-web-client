@@ -5,6 +5,7 @@ import type { WebglData } from '../prepare/webglData'
 import { prepareCreateWebgpuBlocksModelsData } from '../../examples/webgpuBlockModels'
 import type { workerProxyType } from '../../examples/webgpuRendererWorker'
 import { useWorkerProxy } from '../../examples/workerProxy'
+import { defaultWebgpuRendererParams } from '../../examples/webgpuRendererShared'
 import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
 import { MesherGeometryOutput } from './mesher/shared'
@@ -24,6 +25,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   readyPromise = this._readyPromise.promise
   readyWorkerPromise = this._readyWorkerPromise.promise
   postRender = () => {}
+  rendererParams = defaultWebgpuRendererParams
 
   webgpuChannel: typeof workerProxyType['__workerProxy'] = this.getPlaceholderChannel()
 
@@ -59,6 +61,129 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
         })
       }
     }) as any // placeholder to avoid crashes
+  }
+
+  updateRendererParams (params: Partial<typeof defaultWebgpuRendererParams>) {
+    this.rendererParams = { ...this.rendererParams, ...params }
+    this.webgpuChannel.updateConfig(this.rendererParams)
+  }
+
+  sendCameraToWorker () {
+    const cameraVectors = ['rotation', 'position'].reduce((acc, key) => {
+      acc[key] = ['x', 'y', 'z'].reduce((acc2, key2) => {
+        acc2[key2] = this.camera[key][key2]
+        return acc2
+      }, {})
+      return acc
+    }, {}) as any
+    this.webgpuChannel.camera({
+      ...cameraVectors,
+      fov: this.camera.fov
+    })
+  }
+
+  addWebgpuListener (type: string, listener: (data: any) => void) {
+    void this.readyWorkerPromise.then(() => {
+      this.worker!.addEventListener('message', (e: any) => {
+        if (e.data.type === type) {
+          listener(e.data)
+        }
+      })
+    })
+  }
+
+  playgroundGetWebglData () {
+    // const playgroundChunk = Object.values(this.newChunks).find((x: any) => Object.keys(x?.blocks ?? {}).length > 0)
+    // if (!playgroundChunk) return
+    // const block = Object.values(playgroundChunk.blocks)?.[0] as any
+    // if (!block) return
+    // const { textureName } = block
+    // if (!textureName) return
+    // return this.webglData[textureName]
+  }
+
+  setBlockStateId (pos: any, stateId: any): void {
+    if (this.stopBlockUpdate) return
+    super.setBlockStateId(pos, stateId)
+  }
+
+  sendDataForWebgpuRenderer (data) {
+    for (const worker of this.workers) {
+      worker.postMessage({ type: 'webgpuData', data })
+    }
+  }
+
+  isWaitingForChunksToRender = false
+
+  override addColumn (x: number, z: number, data: any, _): void {
+    if (this.initialChunksLoad) {
+      this.updateRendererParams({
+        cameraOffset: [0, this.worldMinYRender < 0 ? Math.abs(this.worldMinYRender) : 0, 0]
+      })
+    }
+    super.addColumn(x, z, data, _)
+  }
+
+  allChunksLoaded (): void {
+    console.log('allChunksLoaded')
+    this.webgpuChannel.addBlocksSectionDone()
+  }
+
+  handleWorkerMessage (data: { geometry: MesherGeometryOutput, type, key }): void {
+    if (data.type === 'geometry' && Object.keys(data.geometry.tiles).length) {
+      this.addChunksToScene(data.key, data.geometry)
+    }
+  }
+
+  addChunksToScene (key: string, geometry: MesherGeometryOutput) {
+    if (this.finishedChunks[key] && !this.allowUpdates) return
+    // const chunkCoords = key.split(',').map(Number) as [number, number, number]
+    if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
+
+    this.webgpuChannel.addBlocksSection(geometry.tiles, key)
+  }
+
+  updateCamera (pos: Vec3 | null, yaw: number, pitch: number): void {
+    if (pos) {
+      // new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
+      this.camera.position.set(pos.x, pos.y, pos.z)
+    }
+    this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+    // this.sendCameraToWorker()
+  }
+  render (): void { }
+
+  chunksReset () {
+    this.webgpuChannel.fullDataReset()
+  }
+
+  updatePosDataChunk (key: string) {
+  }
+
+  async updateTexturesData (resourcePackUpdate = false): Promise<void> {
+    await super.updateTexturesData()
+    if (resourcePackUpdate) {
+      const blob = await fetch(this.material.map!.image.src).then(async (res) => res.blob())
+      this.webgpuChannel.updateTexture(blob)
+    }
+  }
+
+  updateShowChunksBorder (value: boolean) {
+    // todo
+  }
+
+  changeBackgroundColor (color: [number, number, number]) {
+    this.webgpuChannel.updateBackground(color)
+  }
+
+
+  removeColumn (x, z) {
+  //   console.log('removeColumn', x, z)
+  //   super.removeColumn(x, z)
+
+  //   for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+  //     webgpuChannel.removeBlocksSection(`${x},${y},${z}`)
+  //   }
   }
 
   async initWebgpu () {
@@ -164,115 +289,6 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     requestAnimationFrame(mainLoop)
 
     this._readyPromise.resolve(undefined)
-  }
-
-  sendCameraToWorker () {
-    const cameraVectors = ['rotation', 'position'].reduce((acc, key) => {
-      acc[key] = ['x', 'y', 'z'].reduce((acc2, key2) => {
-        acc2[key2] = this.camera[key][key2]
-        return acc2
-      }, {})
-      return acc
-    }, {}) as any
-    this.webgpuChannel.camera({
-      ...cameraVectors,
-      fov: this.camera.fov
-    })
-  }
-
-  addWebgpuListener (type: string, listener: (data: any) => void) {
-    void this.readyWorkerPromise.then(() => {
-      this.worker!.addEventListener('message', (e: any) => {
-        if (e.data.type === type) {
-          listener(e.data)
-        }
-      })
-    })
-  }
-
-  playgroundGetWebglData () {
-    // const playgroundChunk = Object.values(this.newChunks).find((x: any) => Object.keys(x?.blocks ?? {}).length > 0)
-    // if (!playgroundChunk) return
-    // const block = Object.values(playgroundChunk.blocks)?.[0] as any
-    // if (!block) return
-    // const { textureName } = block
-    // if (!textureName) return
-    // return this.webglData[textureName]
-  }
-
-  setBlockStateId (pos: any, stateId: any): void {
-    if (this.stopBlockUpdate) return
-    super.setBlockStateId(pos, stateId)
-  }
-
-  sendDataForWebgpuRenderer (data) {
-    for (const worker of this.workers) {
-      worker.postMessage({ type: 'webgpuData', data })
-    }
-  }
-
-  isWaitingForChunksToRender = false
-
-  allChunksLoaded (): void {
-    console.log('allChunksLoaded')
-    this.webgpuChannel.addBlocksSectionDone()
-  }
-
-  handleWorkerMessage (data: { geometry: MesherGeometryOutput, type, key }): void {
-    if (data.type === 'geometry' && Object.keys(data.geometry.tiles).length) {
-      this.addChunksToScene(data.key, data.geometry)
-    }
-  }
-
-  addChunksToScene (key: string, geometry: MesherGeometryOutput) {
-    if (this.finishedChunks[key] && !this.allowUpdates) return
-    // const chunkCoords = key.split(',').map(Number) as [number, number, number]
-    if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
-
-    this.webgpuChannel.addBlocksSection(geometry.tiles, key)
-  }
-
-  updateCamera (pos: Vec3 | null, yaw: number, pitch: number): void {
-    if (pos) {
-      // new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
-      this.camera.position.set(pos.x, pos.y, pos.z)
-    }
-    this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-    // this.sendCameraToWorker()
-  }
-  render (): void { }
-
-  chunksReset () {
-    this.webgpuChannel.fullDataReset()
-  }
-
-  updatePosDataChunk (key: string) {
-  }
-
-  async updateTexturesData (resourcePackUpdate = false): Promise<void> {
-    await super.updateTexturesData()
-    if (resourcePackUpdate) {
-      const blob = await fetch(this.material.map!.image.src).then(async (res) => res.blob())
-      this.webgpuChannel.updateTexture(blob)
-    }
-  }
-
-  updateShowChunksBorder (value: boolean) {
-    // todo
-  }
-
-  changeBackgroundColor (color: [number, number, number]) {
-    this.webgpuChannel.updateBackground(color)
-  }
-
-
-  removeColumn (x, z) {
-  //   console.log('removeColumn', x, z)
-  //   super.removeColumn(x, z)
-
-  //   for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
-  //     webgpuChannel.removeBlocksSection(`${x},${y},${z}`)
-  //   }
   }
 }
 

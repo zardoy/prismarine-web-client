@@ -126,6 +126,10 @@ const isCube = (block: Block) => {
   }))
 }
 
+const addPossibleTileCheck = (attr, pos, side) => {
+
+}
+
 function renderLiquid (world, cursor, texture, type, biome, water, attr, stateId) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
@@ -486,15 +490,15 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         let block = world.getBlock(cursor, blockProvider, attr)!
-        if (!invisibleBlocks.has(block.name)) {
-          const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
-          if (!highest || highest.y < cursor.y) {
-            attr.highestBlocks[`${cursor.x},${cursor.z}`] = {
-              y: cursor.y,
-              name: block.name
-            }
-          }
-        }
+        // if (!invisibleBlocks.has(block.name)) {
+        //   const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
+        //   if (!highest || highest.y < cursor.y) {
+        //     attr.highestBlocks[`${cursor.x},${cursor.z}`] = {
+        //       y: cursor.y,
+        //       name: block.name
+        //     }
+        //   }
+        // }
         if (invisibleBlocks.has(block.name)) continue
         if ((block.name.includes('_sign') || block.name === 'sign') && !world.config.disableSignsMapsSupport) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
