@@ -356,7 +356,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   updateChunksStatsText () {
-    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D (${this.workersProcessAverageTime.toFixed(0)}ms/${this.geometryReceiveCount}ss/${this.allLoadedIn?.toFixed(1) ?? '-'}s)`)
+    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D (${this.workers.length}:${this.workersProcessAverageTime.toFixed(0)}ms/${this.geometryReceiveCount}ss/${this.allLoadedIn?.toFixed(1) ?? '-'}s)`)
   }
 
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {

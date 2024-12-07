@@ -424,13 +424,13 @@ async function connect (connectOptions: ConnectOptions) {
         }
       }
       viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
+      const mcData = MinecraftData(version)
+      window.loadedData = mcData
       const promise = viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
       const isWebgpu = true
       if (isWebgpu) {
         await promise
       }
-      const mcData = MinecraftData(version)
-      window.loadedData = mcData
       viewer.world.postRender = () => {
         renderWrapper.postRender()
       }
