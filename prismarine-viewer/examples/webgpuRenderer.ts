@@ -603,18 +603,18 @@ export class WebgpuRenderer {
 
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
+    this.commandEncoder = this.device.createCommandEncoder();
 
     this.cubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * cubeByteLength, 'cubesBuffer')
 
     this.visibleCubesBuffer?.destroy();
-    this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'visibleCubesBuffer')
+    this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * cubeByteLength, 'visibleCubesBuffer')
 
     if (oldCubesBuffer) {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
+      this.device.queue.submit([this.commandEncoder.finish()])
       oldCubesBuffer.destroy();
-
-      this.commandEncoder.finish();
-      this.commandEncoder = this.device.createCommandEncoder();
+      
     }
 
     this.createUniformBindGroup()
@@ -633,7 +633,7 @@ export class WebgpuRenderer {
 
   updateCubesBuffersDataFromLoop () {
     const DEBUG_DATA = false
-    const commandEncoder = this.device.createCommandEncoder()
+
     const dataForBuffers = chunksStorage.getDataForBuffers()
     if (!dataForBuffers) return
     const { allBlocks, chunks, awaitingUpdateSize: updateSize, awaitingUpdateStart: updateOffset } = dataForBuffers
@@ -644,12 +644,13 @@ export class WebgpuRenderer {
       const NUMBER_OF_CUBES_OLD = this.NUMBER_OF_CUBES
       while (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) this.NUMBER_OF_CUBES *= 2
       
-      console.warn('extending number of cubes', this.NUMBER_OF_CUBES, '->', NUMBER_OF_CUBES_OLD, `(needed ${NUMBER_OF_CUBES_NEEDED})`)
+      console.warn('extending number of cubes', NUMBER_OF_CUBES_OLD, '->', this.NUMBER_OF_CUBES , `(needed ${NUMBER_OF_CUBES_NEEDED})`)
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
+    this.commandEncoder = this.device.createCommandEncoder()
 
     const unique = new Set()
     const debugCheckDuplicate = (first, second, third) => {
@@ -717,6 +718,7 @@ export class WebgpuRenderer {
 
     this.device.queue.writeBuffer(this.cubesBuffer, updateOffset * cubeByteLength, cubeFlatData)
     this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
+    this.device.queue.submit([this.commandEncoder.finish()])
 
     this.notRenderedBlockChanges++
     this.realNumberOfCubes = allBlocks.length
@@ -762,7 +764,7 @@ export class WebgpuRenderer {
     this.camera.position.x += this.rendererParams.cameraOffset[0]
     this.camera.position.y += this.rendererParams.cameraOffset[1]
     this.camera.position.z += this.rendererParams.cameraOffset[2]
-    const oversize = 1.0
+    const oversize = 1.1
     
     this.camera.updateProjectionMatrix()
     this.camera.updateMatrix()
@@ -856,7 +858,7 @@ export class WebgpuRenderer {
         computePass.setBindGroup(0, this.computeBindGroup)
         computePass.setBindGroup(1, this.chunkBindGroup)
         computePass.setBindGroup(2, this.textureSizeBindGroup)
-        computePass.dispatchWorkgroups(Math.ceil(this.realNumberOfCubes / 256))
+        computePass.dispatchWorkgroups(Math.max(Math.ceil(this.realNumberOfCubes / 256), 65535))
         computePass.end()
         device.queue.submit([this.commandEncoder.finish()])
       }
