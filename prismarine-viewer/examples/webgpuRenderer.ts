@@ -650,7 +650,6 @@ export class WebgpuRenderer {
       console.timeEnd('recreate buffers')
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
-    this.commandEncoder = this.device.createCommandEncoder()
 
     const unique = new Set()
     const debugCheckDuplicate = (first, second, third) => {
@@ -718,7 +717,6 @@ export class WebgpuRenderer {
 
     this.device.queue.writeBuffer(this.cubesBuffer, updateOffset * cubeByteLength, cubeFlatData)
     this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
-    this.device.queue.submit([this.commandEncoder.finish()])
 
     this.notRenderedBlockChanges++
     this.realNumberOfCubes = allBlocks.length
