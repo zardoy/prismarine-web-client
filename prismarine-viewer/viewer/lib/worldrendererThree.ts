@@ -54,6 +54,10 @@ export class WorldRendererThree extends WorldRendererCommon {
     void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
   }
 
+  changeBackgroundColor (color: [number, number, number]): void {
+    this.scene.background = new THREE.Color(color[0], color[1], color[2])
+  }
+
   changeHandSwingingState (isAnimationPlaying: boolean) {
     if (isAnimationPlaying) {
       this.holdingBlock.startSwing()
