@@ -216,21 +216,21 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     canvas.height = window.innerHeight * window.devicePixelRatio
     document.body.appendChild(canvas)
     canvas.id = 'viewer-canvas'
-    console.log('starting offscreen')
 
 
     // replacable by initWebglRenderer
     if (USE_WORKER) {
       this.worker = new Worker('./webgpuRendererWorker.js')
+      console.log('starting offscreen')
+    } else if (globalThis.webgpuRendererChannel) {
+      this.worker = globalThis.webgpuRendererChannel.port1 as MessagePort
     } else {
       const messageChannel = new MessageChannel()
       globalThis.webgpuRendererChannel = messageChannel
       this.worker = messageChannel.port1
       messageChannel.port1.start()
       messageChannel.port2.start()
-      if (!globalThis.webgpuRendererChannel) {
-        await import('../../examples/webgpuRendererWorker')
-      }
+      await import('../../examples/webgpuRendererWorker')
     }
     addWebgpuDebugUi(this.worker, playground)
     this.webgpuChannel = useWorkerProxy<typeof workerProxyType>(this.worker, true)
