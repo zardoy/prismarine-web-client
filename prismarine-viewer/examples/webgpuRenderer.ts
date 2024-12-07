@@ -72,7 +72,7 @@ export class WebgpuRenderer {
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public blocksDataModel: Record<string, BlocksModelData>, public rendererInitParams: RendererInitParams) {
-    this.NUMBER_OF_CUBES = 4_000_000
+    this.NUMBER_OF_CUBES = 65_536
     void this.init().catch((err) => {
       console.error(err)
       postMessage({ type: 'rendererProblem', isContextLost: false, message: err.message })
@@ -133,6 +133,7 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.VERTEX,
       mappedAtCreation: true,
     })
+
     this.verticesBuffer = verticesBuffer
     new Float32Array(verticesBuffer.getMappedRange()).set(quadVertexArray)
     verticesBuffer.unmap()
@@ -207,6 +208,7 @@ export class WebgpuRenderer {
     })
 
     const Mat4x4BufferSize = 4 * (4 * 4) // 4x4 matrix
+
     this.cameraUniform = device.createBuffer({
       size: Mat4x4BufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -239,7 +241,6 @@ export class WebgpuRenderer {
 
     // upload image into a GPUTexture.
     await this.updateTexture(imageBlob, true)
-
 
     this.renderPassDescriptor = {
       label: 'MainRenderPassDescriptor',
@@ -602,14 +603,18 @@ export class WebgpuRenderer {
 
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
-    const oldVisibleCubesBuffer = this.visibleCubesBuffer
 
     this.cubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * cubeByteLength, 'cubesBuffer')
-    this.chunksBuffer = this.createVertexStorage(65_535 * 12, 'cubesBuffer')
+
+    this.visibleCubesBuffer?.destroy();
     this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * 12, 'visibleCubesBuffer')
 
     if (oldCubesBuffer) {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
+      oldCubesBuffer.destroy();
+
+      this.commandEncoder.finish();
+      this.commandEncoder = this.device.createCommandEncoder();
     }
 
     this.createUniformBindGroup()
@@ -628,7 +633,7 @@ export class WebgpuRenderer {
 
   updateCubesBuffersDataFromLoop () {
     const DEBUG_DATA = false
-
+    const commandEncoder = this.device.createCommandEncoder()
     const dataForBuffers = chunksStorage.getDataForBuffers()
     if (!dataForBuffers) return
     const { allBlocks, chunks, awaitingUpdateSize: updateSize, awaitingUpdateStart: updateOffset } = dataForBuffers
@@ -636,14 +641,13 @@ export class WebgpuRenderer {
 
     const NUMBER_OF_CUBES_NEEDED = allBlocks.length
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
-      const NUMBER_OF_CUBES_NEW = this.NUMBER_OF_CUBES + 1_000_000
-      console.warn('extending number of cubes', this.NUMBER_OF_CUBES, '->', NUMBER_OF_CUBES_NEW, `(needed ${NUMBER_OF_CUBES_NEEDED})`)
-      this.NUMBER_OF_CUBES = NUMBER_OF_CUBES_NEW
+      const NUMBER_OF_CUBES_OLD = this.NUMBER_OF_CUBES
+      while (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) this.NUMBER_OF_CUBES *= 2
+      
+      console.warn('extending number of cubes', this.NUMBER_OF_CUBES, '->', NUMBER_OF_CUBES_OLD, `(needed ${NUMBER_OF_CUBES_NEEDED})`)
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
-      chunksStorage.updateQueue.unshift({ start: updateOffset, end: updateOffset + updateSize })
-      return true
     }
     this.realNumberOfCubes = NUMBER_OF_CUBES_NEEDED
 
@@ -659,19 +663,10 @@ export class WebgpuRenderer {
     const cubeFlatData = new Uint32Array(updateSize * 3)
     const blocksToUpdate = allBlocks.slice(updateOffset, updateOffset + updateSize)
 
-    // let chunk = chunksStorage.findBelongingChunk(updateOffset)!
-    // let remaining = chunk.chunk.length
-    // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < blocksToUpdate.length; i++) {
-      // if (remaining-- === 0) {
-      //   chunk = chunksStorage.findBelongingChunk(updateOffset + i)!
-      //   remaining = chunk.chunk.length - 1
-      // }
-
-      let first = 0
-      let second = 0
-      let third = 0
+      let first = 0, second = 0, third = 0
       const chunkBlock = blocksToUpdate[i]
+
       if (chunkBlock) {
         const [x, y, z, block] = chunkBlock
         // if (chunk.index !== block.chunk) {
@@ -737,7 +732,6 @@ export class WebgpuRenderer {
     camera.lookAt(0, -1, 0)
     camera.position.set(150, 500, 150)
     camera.fov = 100
-    //camera.rotation.set(0, 0, 0)
     camera.updateMatrix()
     return camera
   })()
@@ -768,11 +762,11 @@ export class WebgpuRenderer {
     this.camera.position.x += this.rendererParams.cameraOffset[0]
     this.camera.position.y += this.rendererParams.cameraOffset[1]
     this.camera.position.z += this.rendererParams.cameraOffset[2]
+    const oversize = 1.0
+    
     this.camera.updateProjectionMatrix()
-    const oversize = 1
-
-
     this.camera.updateMatrix()
+
     const { projectionMatrix, matrix } = this.camera
     const ViewProjectionMat4 = new THREE.Matrix4()
     ViewProjectionMat4.multiplyMatrices(projectionMatrix, matrix.invert())
@@ -807,7 +801,6 @@ export class WebgpuRenderer {
     this.camera.fov = origFov
     // #endregion
 
-    const canvasTexture = ctx.getCurrentTexture()
     // let { multisampleTexture } = this;
     // // If the multisample texture doesn't exist or
     // // is the wrong size then make a new one.
@@ -830,23 +823,8 @@ export class WebgpuRenderer {
     //   })
     //   this.multisampleTexture = multisampleTexture
     // }
-    // device.queue.writeTexture({
-    //   texture: this.multisampleTexture
-    // },
-    //   new Uint32Array([0, 0, 0, 1]),
-    // {
-    //   bytesPerRow: 4 * canvasTexture.width,
-    //   rowsPerImage: canvasTexture.height
-    // }, {
-    //   width: canvasTexture.width,
-    //   height: canvasTexture.height, depthOrArrayLayers: 1
-    // })
 
-    device.queue.writeBuffer(
-      this.indirectDrawBuffer, 0, this.indirectDrawParams
-    )
-
-
+    device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams)
 
     renderPassDescriptor.colorAttachments[0].view = ctx
       .getCurrentTexture()
@@ -866,17 +844,14 @@ export class WebgpuRenderer {
     //this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
     this.commandEncoder.clearBuffer(this.occlusionTexture)
     this.commandEncoder.clearBuffer(this.visibleCubesBuffer)
-    //this.commandEncoder.clearBuffer(this.visibleCubesBuffer);
-    //this.commandEncoder.clearBuffer(this.chun);
     // Compute pass for occlusion culling
-    this.commandEncoder.label = 'Main Comand Encoder'
     const textureSize = new Uint32Array([this.canvas.width, this.canvas.height])
     device.queue.writeBuffer(this.textureSizeBuffer, 0, textureSize)
 
     if (this.realNumberOfCubes) {
       {
         const computePass = this.commandEncoder.beginComputePass()
-        computePass.label = 'ComputePass'
+        computePass.label = 'Frustrum/Occluision Culling'
         computePass.setPipeline(this.computePipeline)
         computePass.setBindGroup(0, this.computeBindGroup)
         computePass.setBindGroup(1, this.chunkBindGroup)
@@ -885,11 +860,10 @@ export class WebgpuRenderer {
         computePass.end()
         device.queue.submit([this.commandEncoder.finish()])
       }
-
       {
         this.commandEncoder = device.createCommandEncoder()
         const computePass = this.commandEncoder.beginComputePass()
-        computePass.label = 'ComputeSortPass'
+        computePass.label = 'Texture Index Sorting'
         computePass.setPipeline(this.computeSortPipeline)
         computePass.setBindGroup(0, this.computeBindGroup)
         computePass.setBindGroup(1, this.chunkBindGroup)
@@ -898,24 +872,29 @@ export class WebgpuRenderer {
         computePass.end()
         device.queue.submit([this.commandEncoder.finish()])
       }
-      this.commandEncoder = device.createCommandEncoder()
-      const renderPass = this.commandEncoder.beginRenderPass(this.renderPassDescriptor)
-      renderPass.label = 'RenderPass'
-      renderPass.setPipeline(pipeline)
-      renderPass.setBindGroup(0, this.uniformBindGroup)
-      renderPass.setVertexBuffer(0, verticesBuffer)
-      renderPass.setBindGroup(1, this.vertexCubeBindGroup)
-
-      // Use indirect drawing
-      renderPass.drawIndirect(this.indirectDrawBuffer, 0)
-
-      if (this.rendererParams.secondCamera) {
-        renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
-        renderPass.setViewport(this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
+      {
+        this.commandEncoder = device.createCommandEncoder()
+        const renderPass = this.commandEncoder.beginRenderPass(this.renderPassDescriptor)
+        renderPass.label = 'Voxel Main Pass'
+        renderPass.setPipeline(pipeline)
+        renderPass.setBindGroup(0, this.uniformBindGroup)
+        renderPass.setVertexBuffer(0, verticesBuffer)
+        renderPass.setBindGroup(1, this.vertexCubeBindGroup)
+        // Use indirect drawing
         renderPass.drawIndirect(this.indirectDrawBuffer, 0)
-      }
+        if (this.rendererParams.secondCamera) {
+          renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
+          renderPass.setViewport(this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
+          renderPass.drawIndirect(this.indirectDrawBuffer, 0)
+        }
+        renderPass.end()
 
-      renderPass.end()
+        if (!this.indirectDrawBufferMapBeingUsed) {
+          this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
+        }
+    
+        device.queue.submit([this.commandEncoder.finish()])
+      }
     }
     let stop = false
     if (chunksStorage.updateQueue.length) {
@@ -925,11 +904,7 @@ export class WebgpuRenderer {
       }
       console.timeEnd('updateBlocks')
     }
-    if (!this.indirectDrawBufferMapBeingUsed) {
-      this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
-    }
 
-    device.queue.submit([this.commandEncoder.finish()])
     if (!this.indirectDrawBufferMapBeingUsed && (!this.renderingStatsRequestTime || time - this.renderingStatsRequestTime > 500)) {
       this.renderingStatsRequestTime = time
       void this.getRenderingTilesCount().then((result) => {
