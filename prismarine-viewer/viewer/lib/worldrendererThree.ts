@@ -22,6 +22,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   starField: StarField
   cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
   holdingBlock: HoldingBlock
+  rendererDevice = '...'
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -33,6 +34,12 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
+    try {
+      const gl = renderer.getContext()
+      this.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
+    } catch (err) {
+      console.warn('Failed to get renderer info', err)
+    }
     this.starField = new StarField(scene)
     this.holdingBlock = new HoldingBlock(this.scene)
 

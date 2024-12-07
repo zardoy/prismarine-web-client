@@ -28,9 +28,12 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   rendererParams = defaultWebgpuRendererParams
 
   webgpuChannel: typeof workerProxyType['__workerProxy'] = this.getPlaceholderChannel()
+  rendererDevice = '...'
+  powerPreference: string | undefined
 
-  constructor (config) {
+  constructor (config, { powerPreference } = {} as any) {
     super(config)
+    this.powerPreference = powerPreference
 
     void this.initWebgpu()
     void this.readyWorkerPromise.then(() => {
@@ -237,7 +240,8 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       imageBlob,
       playground,
       pickObj(localStorage, 'vertShader', 'fragShader', 'computeShader'),
-      modelsData
+      modelsData,
+      { powerPreference: this.powerPreference as GPUPowerPreference }
     )
 
     if (!USE_WORKER) {

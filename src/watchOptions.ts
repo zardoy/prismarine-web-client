@@ -62,18 +62,24 @@ export const watchOptionsAfterViewerInit = () => {
     viewer.world.mesherConfig.clipWorldBelowY = o.clipWorldBelowY
     viewer.world.mesherConfig.disableSignsMapsSupport = o.disableSignsMapsSupport
     if (isChanged) {
-      (viewer.world as WorldRendererThree).rerenderAllChunks()
+      if (viewer.world instanceof WorldRendererThree) {
+        (viewer.world as WorldRendererThree).rerenderAllChunks()
+      }
     }
   })
 
   viewer.world.mesherConfig.smoothLighting = options.smoothLighting
   subscribeKey(options, 'smoothLighting', () => {
-    viewer.world.mesherConfig.smoothLighting = options.smoothLighting;
-    (viewer.world as WorldRendererThree).rerenderAllChunks()
+    viewer.world.mesherConfig.smoothLighting = options.smoothLighting
+    if (viewer.world instanceof WorldRendererThree) {
+      (viewer.world as WorldRendererThree).rerenderAllChunks()
+    }
   })
   subscribeKey(options, 'newVersionsLighting', () => {
-    viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting;
-    (viewer.world as WorldRendererThree).rerenderAllChunks()
+    viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
+    if (viewer.world instanceof WorldRendererThree) {
+      (viewer.world as WorldRendererThree).rerenderAllChunks()
+    }
   })
   customEvents.on('gameLoaded', () => {
     viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
@@ -86,6 +92,9 @@ export const watchOptionsAfterViewerInit = () => {
 
   watchValue(options, o => {
     viewer.world.neighborChunkUpdates = o.neighborChunkUpdates
+  })
+  watchValue(options, o => {
+    viewer.powerPreference = o.gpuPreference
   })
 }
 

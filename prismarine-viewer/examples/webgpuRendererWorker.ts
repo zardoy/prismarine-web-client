@@ -4,7 +4,7 @@ import * as tweenJs from '@tweenjs/tween.js'
 import { BlockFaceType, BlockType, makeError } from './shared'
 import { createWorkerProxy } from './workerProxy'
 import { WebgpuRenderer } from './webgpuRenderer'
-import { RendererParams } from './webgpuRendererShared'
+import { RendererInitParams, RendererParams } from './webgpuRendererShared'
 import { ChunksStorage } from './chunksStorage'
 
 export const chunksStorage = new ChunksStorage()
@@ -33,7 +33,11 @@ setInterval(() => {
 }, 1000)
 
 setInterval(() => {
-  postMessage({ type: 'stats', stats: `Rendering Tiles: ${formatLargeNumber(webgpuRenderer?.renderingStats?.instanceCount ?? -1, false)} Buffer: ${formatLargeNumber(webgpuRenderer?.NUMBER_OF_CUBES ?? -1)}` })
+  postMessage({
+    type: 'stats',
+    stats: `Rendering Tiles: ${formatLargeNumber(webgpuRenderer?.renderingStats?.instanceCount ?? -1, false)} Buffer: ${formatLargeNumber(webgpuRenderer?.NUMBER_OF_CUBES ?? -1)}`,
+    device: webgpuRenderer?.rendererDeviceString,
+  })
 }, 300)
 
 const formatLargeNumber = (number: number, compact = true) => {
@@ -85,7 +89,7 @@ let autoTickUpdate = undefined as number | undefined
 
 export const workerProxyType = createWorkerProxy({
   // eslint-disable-next-line max-params
-  canvas (canvas, imageBlob, isPlayground, localStorage, blocksDataModel) {
+  canvas (canvas, imageBlob, isPlayground, localStorage, blocksDataModel, initConfig: RendererInitParams) {
     if (globalThis.webgpuRendererChannel) {
       // HACK! IOS safari bug: no support for transferControlToOffscreen in the same context! so we create a new canvas here!
       const newCanvas = document.createElement('canvas')
@@ -98,7 +102,7 @@ export const workerProxyType = createWorkerProxy({
       document.body.appendChild(canvas)
     }
     started = true
-    webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, blocksDataModel)
+    webgpuRenderer = new WebgpuRenderer(canvas, imageBlob, isPlayground, camera, localStorage, blocksDataModel, initConfig)
     globalThis.webgpuRenderer = webgpuRenderer
     postMessage({ type: 'webgpuRendererReady' })
   },

@@ -7,7 +7,7 @@ import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
 import ComputeSortShader from './CubeSort.comp.wgsl'
 import { chunksStorage, updateSize, postMessage } from './webgpuRendererWorker'
-import { defaultWebgpuRendererParams, RendererParams } from './webgpuRendererShared'
+import { defaultWebgpuRendererParams, RendererInitParams, RendererParams } from './webgpuRendererShared'
 import type { BlocksModelData } from './webgpuBlockModels'
 
 const cubeByteLength = 12
@@ -68,9 +68,10 @@ export class WebgpuRenderer {
   cameraComputePositionUniform: GPUBuffer
   NUMBER_OF_CUBES: number
   depthTexture: GPUTexture
+  rendererDeviceString: string
 
   // eslint-disable-next-line max-params
-  constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public blocksDataModel: Record<string, BlocksModelData>) {
+  constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public blocksDataModel: Record<string, BlocksModelData>, public rendererInitParams: RendererInitParams) {
     this.NUMBER_OF_CUBES = 4_000_000
     void this.init().catch((err) => {
       console.error(err)
@@ -93,9 +94,12 @@ export class WebgpuRenderer {
     updateSize(canvas.width, canvas.height)
 
     if (!navigator.gpu) throw new Error('WebGPU not supported (probably can be enabled in settings)')
-    const adapter = await navigator.gpu.requestAdapter()
+    const adapter = await navigator.gpu.requestAdapter({
+      ...this.rendererInitParams
+    })
     if (!adapter) throw new Error('WebGPU not supported')
-
+    const adapterInfo = adapter.info
+    this.rendererDeviceString = `${adapterInfo.vendor} ${adapterInfo.device} (${adapterInfo.architecture}) ${adapterInfo.description}`
 
     const twoGigs = 2_147_483_644
     try {
@@ -112,7 +116,7 @@ export class WebgpuRenderer {
     const { device } = this
     this.maxBufferSize = device.limits.maxStorageBufferBindingSize
     this.renderedFrames = device.limits.maxComputeWorkgroupSizeX
-    console.log('max buffer size', this.maxBufferSize / 1024 / 1024, 'MB')
+    console.log('max buffer size', this.maxBufferSize / 1024 / 1024, 'MB', 'available features', [...device.features.values()])
 
     const ctx = this.ctx = canvas.getContext('webgpu')!
 

@@ -4,4 +4,6 @@ export const defaultWebgpuRendererParams = {
   cameraOffset: [0, 0, 0] as [number, number, number],
 }
 
+export type RendererInitParams = GPURequestAdapterOptions & {}
+
 export type RendererParams = typeof defaultWebgpuRendererParams

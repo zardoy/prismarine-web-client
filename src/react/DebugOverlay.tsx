@@ -39,6 +39,7 @@ export default () => {
   const [rendererDevice, setRendererDevice] = useState('')
   const minecraftYaw = useRef(0)
   const minecraftQuad = useRef(0)
+  const renderer = viewer.world.rendererDevice
 
   const quadsDescription = [
     'north (towards negative Z)',
@@ -118,12 +119,7 @@ export default () => {
       managePackets('sent', name, data)
     })
 
-    try {
-      const gl = window.renderer.getContext()
-      setRendererDevice(gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL))
-    } catch (err) {
-      console.warn(err)
-    }
+    setRendererDevice()
 
     return () => {
       document.removeEventListener('keydown', handleF3)
