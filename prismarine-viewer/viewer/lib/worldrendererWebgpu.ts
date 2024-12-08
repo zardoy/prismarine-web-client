@@ -25,6 +25,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   readyPromise = this._readyPromise.promise
   readyWorkerPromise = this._readyWorkerPromise.promise
   postRender = () => {}
+  preRender = () => {}
   rendererParams = defaultWebgpuRendererParams
 
   webgpuChannel: typeof workerProxyType['__workerProxy'] = this.getPlaceholderChannel()
@@ -152,7 +153,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       this.camera.position.set(pos.x, pos.y, pos.z)
     }
     this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-    // this.sendCameraToWorker()
+    this.sendCameraToWorker()
   }
   render (): void { }
 
@@ -253,10 +254,6 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
 
     let oldWidth = window.innerWidth
     let oldHeight = window.innerHeight
-    const oldCamera = {
-      position: { x: 0, y: 0, z: 0 },
-      rotation: { x: 0, y: 0, z: 0 }
-    }
     let focused = true
     const { signal } = this.abortController
     window.addEventListener('focus', () => {
@@ -277,17 +274,9 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
         oldHeight = window.innerHeight
         this.webgpuChannel.resize(window.innerWidth * window.devicePixelRatio, window.innerHeight * window.devicePixelRatio)
       }
+      this.preRender()
       this.postRender()
-      // TODO! do it in viewer to avoid possible delays
-      if (['rotation', 'position'].some((key) => oldCamera[key] !== this.camera[key])) {
-      // TODO fix
-        for (const [key, val] of Object.entries(oldCamera)) {
-          for (const key2 of Object.keys(val)) {
-            oldCamera[key][key2] = this.camera[key][key2]
-          }
-        }
-        this.sendCameraToWorker()
-      }
+      this.sendCameraToWorker()
     }
 
     requestAnimationFrame(mainLoop)

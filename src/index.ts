@@ -204,6 +204,7 @@ let lastMouseMove: number
 const updateCursor = () => {
   worldInteractions.update()
 }
+let mouseEvents = 0
 function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
   e.stopPropagation?.()
@@ -218,8 +219,14 @@ function onCameraMove (e) {
     y: e.movementY * mouseSensY * 0.0001
   })
   updateCursor()
+  mouseEvents++
+  viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
 }
-window.addEventListener('mousemove', onCameraMove, { capture: true })
+setInterval(() => {
+  // console.log('mouseEvents', mouseEvents)
+  mouseEvents = 0
+}, 1000)
+window.addEventListener('mousemove', onCameraMove, { capture: true, passive: false })
 contro.on('stickMovement', ({ stick, vector }) => {
   if (!isGameActive(true)) return
   if (stick !== 'right') return
@@ -433,6 +440,9 @@ async function connect (connectOptions: ConnectOptions) {
       }
       viewer.world.postRender = () => {
         renderWrapper.postRender()
+      }
+      viewer.world.preRender = () => {
+        renderWrapper.preRender()
       }
     }
 
@@ -721,8 +731,8 @@ async function connect (connectOptions: ConnectOptions) {
 
     void initVR()
 
-    renderWrapper.postRender = () => {
-      viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
+    renderWrapper.preRender = () => {
+      // viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
     }
 
 

@@ -69,6 +69,16 @@ export class WebgpuRenderer {
   NUMBER_OF_CUBES: number
   depthTexture: GPUTexture
   rendererDeviceString: string
+  cameraUpdated = true
+  lastCameraUpdateTime = 0
+  noCameraUpdates = 0
+  positiveCameraUpdates = false
+  lastCameraUpdateDiff = undefined as undefined | {
+    x: number
+    y: number
+    z: number
+    time: number
+  }
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public blocksDataModel: Record<string, BlocksModelData>, public rendererInitParams: RendererInitParams) {
@@ -614,7 +624,7 @@ export class WebgpuRenderer {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
       this.device.queue.submit([this.commandEncoder.finish()])
       oldCubesBuffer.destroy();
-      
+
     }
 
     this.createUniformBindGroup()
@@ -642,8 +652,8 @@ export class WebgpuRenderer {
     const NUMBER_OF_CUBES_NEEDED = allBlocks.length
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
       const NUMBER_OF_CUBES_OLD = this.NUMBER_OF_CUBES
-      while (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) this.NUMBER_OF_CUBES *= 2
-      
+      while (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) this.NUMBER_OF_CUBES += 1000
+
       console.warn('extending number of cubes', NUMBER_OF_CUBES_OLD, '->', this.NUMBER_OF_CUBES , `(needed ${NUMBER_OF_CUBES_NEEDED})`)
       console.time('recreate buffers')
       this.createNewDataBuffers()
@@ -663,8 +673,11 @@ export class WebgpuRenderer {
     const cubeFlatData = new Uint32Array(updateSize * 3)
     const blocksToUpdate = allBlocks.slice(updateOffset, updateOffset + updateSize)
 
+    // eslint-disable-next-line unicorn/no-for-loop
     for (let i = 0; i < blocksToUpdate.length; i++) {
-      let first = 0, second = 0, third = 0
+      let first = 0
+      let second = 0
+      let third = 0
       const chunkBlock = blocksToUpdate[i]
 
       if (chunkBlock) {
@@ -736,6 +749,8 @@ export class WebgpuRenderer {
     return camera
   })()
 
+  lastLoopTime = performance.now()
+
   loop (forceFrame = false, time = performance.now()) {
     if (this.destroyed) return
     const nextFrame = () => {
@@ -751,10 +766,11 @@ export class WebgpuRenderer {
       }
     }
     const start = performance.now()
+    const timeDiff = time - this.lastLoopTime
+    this.loopPre(timeDiff)
 
     const { device, cameraUniform: uniformBuffer, cameraComputeUniform: computeUniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
 
-    const now = Date.now()
     // #region update camera
     tweenJs.update()
     this.camera.near = 0.05
@@ -763,7 +779,7 @@ export class WebgpuRenderer {
     this.camera.position.y += this.rendererParams.cameraOffset[1]
     this.camera.position.z += this.rendererParams.cameraOffset[2]
     const oversize = 1.1
-    
+
     this.camera.updateProjectionMatrix()
     this.camera.updateMatrix()
 
@@ -892,17 +908,16 @@ export class WebgpuRenderer {
         if (!this.indirectDrawBufferMapBeingUsed) {
           this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
         }
-    
+
         device.queue.submit([this.commandEncoder.finish()])
       }
     }
-    let stop = false
     if (chunksStorage.updateQueue.length) {
-      console.time('updateBlocks')
-      while (chunksStorage.updateQueue.length || stop) {
-        stop = !!this.updateCubesBuffersDataFromLoop()
+      // console.time('updateBlocks')
+      while (chunksStorage.updateQueue.length) {
+        this.updateCubesBuffersDataFromLoop()
       }
-      console.timeEnd('updateBlocks')
+      // console.timeEnd('updateBlocks')
     }
 
     if (!this.indirectDrawBufferMapBeingUsed && (!this.renderingStatsRequestTime || time - this.renderingStatsRequestTime > 500)) {
@@ -912,6 +927,8 @@ export class WebgpuRenderer {
       })
     }
 
+    this.loopPost()
+
     this.renderedFrames++
     nextFrame()
     this.notRenderedBlockChanges = 0
@@ -919,6 +936,28 @@ export class WebgpuRenderer {
     if (took > 100) {
       console.log('One frame render loop took', took)
     }
+  }
+
+  loopPre (timeDiff: number) {
+    if (!this.cameraUpdated) {
+      this.noCameraUpdates++
+      if (this.lastCameraUpdateDiff && this.positiveCameraUpdates) {
+        const pos = {} as { x: number, y: number, z: number }
+        for (const key of ['x', 'y', 'z']) {
+          const msDiff = this.lastCameraUpdateDiff[key] / this.lastCameraUpdateDiff.time
+          pos[key] = this.camera.position[key] + msDiff * timeDiff
+        }
+        this.updateCameraPos(pos)
+      }
+    }
+  }
+
+  loopPost () {
+    this.cameraUpdated = false
+  }
+
+  updateCameraPos (newPos: { x: number, y: number, z: number }) {
+    new tweenJs.Tween(this.camera.position).to({ x: newPos.x, y: newPos.y, z: newPos.z }, 50).start()
   }
 
   async getRenderingTilesCount () {

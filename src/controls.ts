@@ -780,6 +780,10 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL' && e.altKey) {
     console.clear()
   }
+  if (e.code === 'KeyK' && e.altKey) {
+    // eslint-disable-next-line no-debugger
+    debugger
+  }
 })
 // #endregion
 

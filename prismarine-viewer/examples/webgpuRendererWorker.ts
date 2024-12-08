@@ -29,6 +29,7 @@ setInterval(() => {
   if (!webgpuRenderer) return
   // console.log('FPS:', renderedFrames)
   postMessage({ type: 'fps', fps: `${webgpuRenderer.renderedFrames} (${new Intl.NumberFormat().format(chunksStorage.lastFetchedSize)} blocks)` })
+  webgpuRenderer.noCameraUpdates = 0
   webgpuRenderer.renderedFrames = 0
 }, 1000)
 
@@ -186,22 +187,35 @@ export const workerProxyType = createWorkerProxy({
     chunksStorage.removeChunk(key)
   },
   camera (newCam: { rotation: { x: number, y: number, z: number }, position: { x: number, y: number, z: number }, fov: number }) {
+    const oldPos = camera.position.clone()
     // if (webgpuRenderer?.isPlayground) {
     //     camera.rotation.order = 'ZYX'
     //     new tweenJs.Tween(camera.rotation).to({ x: newCam.rotation.x, y: newCam.rotation.y, z: newCam.rotation.z }, 50).start()
     // } else {
     camera.rotation.set(newCam.rotation.x, newCam.rotation.y, newCam.rotation.z, 'ZYX')
     // }
-    if (newCam.position.x === 0 && newCam.position.y === 0 && newCam.position.z === 0) {
+    if (!webgpuRenderer || (camera.position.x === 0 && camera.position.y === 0 && camera.position.z === 0)) {
       // initial camera position
       camera.position.set(newCam.position.x, newCam.position.y, newCam.position.z)
     } else {
-      new tweenJs.Tween(camera.position).to({ x: newCam.position.x, y: newCam.position.y, z: newCam.position.z }, 50).start()
+      webgpuRenderer?.updateCameraPos(newCam.position)
     }
 
     if (newCam.fov !== camera.fov) {
       camera.fov = newCam.fov
       camera.updateProjectionMatrix()
+    }
+    if (webgpuRenderer) {
+      webgpuRenderer.cameraUpdated = true
+      if (webgpuRenderer.lastCameraUpdateTime) {
+        webgpuRenderer.lastCameraUpdateDiff = {
+          x: oldPos.x - camera.position.x,
+          y: oldPos.y - camera.position.y,
+          z: oldPos.z - camera.position.z,
+          time: performance.now() - webgpuRenderer.lastCameraUpdateTime
+        }
+      }
+      webgpuRenderer.lastCameraUpdateTime = performance.now()
     }
   },
   animationTick (frames, tick) {
