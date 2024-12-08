@@ -98,7 +98,7 @@ export class WebgpuRenderer {
       ...this.rendererInitParams
     })
     if (!adapter) throw new Error('WebGPU not supported')
-    const adapterInfo = adapter.info
+    const adapterInfo = adapter.info ?? {} // todo fix ios
     this.rendererDeviceString = `${adapterInfo.vendor} ${adapterInfo.device} (${adapterInfo.architecture}) ${adapterInfo.description}`
 
     const twoGigs = 2_147_483_644
