@@ -68,12 +68,12 @@ jobs:
           cp -r prismarine-viewer/dist/* .vercel/output/static/playground/
       - name: Write pr redirect index.html
         run: |
-          mkdir -p .vercel/output/pr
-          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}'>" > .vercel/output/pr/index.html
+          mkdir -p .vercel/output/static/pr
+          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}'>" > .vercel/output/static/pr/index.html
       - name: Write commit redirect index.html
         run: |
-          mkdir -p .vercel/output/commit
-          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}/commits/${{ github.sha }}'>" > .vercel/output/commit/index.html
+          mkdir -p .vercel/output/static/commit
+          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}/commits/${{ github.sha }}'>" > .vercel/output/static/commit/index.html
       - name: Download Generated Sounds map
         run: node scripts/downloadSoundsMap.mjs
       - name: Deploy Project Artifacts to Vercel
