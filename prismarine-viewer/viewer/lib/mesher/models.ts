@@ -426,7 +426,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
           block: block.name,
           visibleFaces: [],
           modelId: model,
-          tint: lightWithColor,
+          tint: lightWithColor[0] === 1 && lightWithColor[1] === 1 && lightWithColor[2] === 1 ? undefined : lightWithColor,
         }
         tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
       }

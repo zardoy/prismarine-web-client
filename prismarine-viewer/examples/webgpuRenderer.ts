@@ -613,17 +613,17 @@ export class WebgpuRenderer {
 
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
-    this.commandEncoder = this.device.createCommandEncoder();
+    this.commandEncoder = this.device.createCommandEncoder()
 
     this.cubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * cubeByteLength, 'cubesBuffer')
 
-    this.visibleCubesBuffer?.destroy();
+    this.visibleCubesBuffer?.destroy()
     this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * cubeByteLength, 'visibleCubesBuffer')
 
     if (oldCubesBuffer) {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
       this.device.queue.submit([this.commandEncoder.finish()])
-      oldCubesBuffer.destroy();
+      oldCubesBuffer.destroy()
 
     }
 
@@ -654,7 +654,7 @@ export class WebgpuRenderer {
       const NUMBER_OF_CUBES_OLD = this.NUMBER_OF_CUBES
       while (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) this.NUMBER_OF_CUBES += 1000
 
-      console.warn('extending number of cubes', NUMBER_OF_CUBES_OLD, '->', this.NUMBER_OF_CUBES , `(needed ${NUMBER_OF_CUBES_NEEDED})`)
+      console.warn('extending number of cubes', NUMBER_OF_CUBES_OLD, '->', this.NUMBER_OF_CUBES, `(needed ${NUMBER_OF_CUBES_NEEDED})`)
       console.time('recreate buffers')
       this.createNewDataBuffers()
       console.timeEnd('recreate buffers')
@@ -733,9 +733,6 @@ export class WebgpuRenderer {
 
     this.notRenderedBlockChanges++
     this.realNumberOfCubes = allBlocks.length
-    if (!DEBUG_DATA) {
-      chunksStorage.clearRange(updateOffset, updateOffset + updateSize)
-    }
   }
 
   lastCall = performance.now()
@@ -872,7 +869,7 @@ export class WebgpuRenderer {
         computePass.setBindGroup(0, this.computeBindGroup)
         computePass.setBindGroup(1, this.chunkBindGroup)
         computePass.setBindGroup(2, this.textureSizeBindGroup)
-        computePass.dispatchWorkgroups(Math.max(Math.ceil(this.realNumberOfCubes / 256), 65535))
+        computePass.dispatchWorkgroups(Math.max(Math.ceil(this.realNumberOfCubes / 256), 65_535))
         computePass.end()
         device.queue.submit([this.commandEncoder.finish()])
       }
@@ -916,6 +913,9 @@ export class WebgpuRenderer {
       // console.time('updateBlocks')
       while (chunksStorage.updateQueue.length) {
         this.updateCubesBuffersDataFromLoop()
+      }
+      for (const { start, end } of chunksStorage.updateQueue) {
+        chunksStorage.clearRange(start, end)
       }
       // console.timeEnd('updateBlocks')
     }
