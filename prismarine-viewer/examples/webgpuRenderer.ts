@@ -911,10 +911,11 @@ export class WebgpuRenderer {
     }
     if (chunksStorage.updateQueue.length) {
       // console.time('updateBlocks')
+      const queue = [...chunksStorage.updateQueue]
       while (chunksStorage.updateQueue.length) {
         this.updateCubesBuffersDataFromLoop()
       }
-      for (const { start, end } of chunksStorage.updateQueue) {
+      for (const { start, end } of queue) {
         chunksStorage.clearRange(start, end)
       }
       // console.timeEnd('updateBlocks')
