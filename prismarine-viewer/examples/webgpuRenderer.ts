@@ -652,7 +652,7 @@ export class WebgpuRenderer {
     const NUMBER_OF_CUBES_NEEDED = allBlocks.length
     if (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) {
       const NUMBER_OF_CUBES_OLD = this.NUMBER_OF_CUBES
-      while (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) this.NUMBER_OF_CUBES += 1000
+      while (NUMBER_OF_CUBES_NEEDED > this.NUMBER_OF_CUBES) this.NUMBER_OF_CUBES += 1_000_000
 
       console.warn('extending number of cubes', NUMBER_OF_CUBES_OLD, '->', this.NUMBER_OF_CUBES, `(needed ${NUMBER_OF_CUBES_NEEDED})`)
       console.time('recreate buffers')
