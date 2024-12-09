@@ -9,6 +9,7 @@ interface Props extends React.ComponentProps<typeof Button> {
     localStorageKey?: string | null
     offset?: number
   }
+  alwaysTooltip?: string
 }
 
 const ARROW_HEIGHT = 7
@@ -16,7 +17,7 @@ const GAP = 0
 
 export default ({ initialTooltip, ...args }: Props) => {
   const { localStorageKey = 'firstTimeTooltip', offset = 0 } = initialTooltip
-  const [showTooltips, setShowTooltips] = useState(localStorageKey ? localStorage[localStorageKey] !== 'false' : true)
+  const [showTooltips, setShowTooltips] = useState(args.alwaysTooltip || (localStorageKey ? localStorage[localStorageKey] !== 'false' : true))
 
   useEffect(() => {
     let timeout
@@ -67,7 +68,7 @@ export default ({ initialTooltip, ...args }: Props) => {
         zIndex: 11
       }}
     >
-      {initialTooltip.content}
+      {args.alwaysTooltip || initialTooltip.content}
       <FloatingArrow ref={arrowRef} context={context} style={{ opacity: 0.7 }} />
     </div>
   </>

@@ -59,29 +59,28 @@ export default ({
       </div>
 
       <div className={styles.menu}>
-        <ButtonWithTooltip
-          initialTooltip={{
-            content: 'Connect to Java servers!',
-            placement: 'top',
-          }}
-          onClick={connectToServerAction}
-          data-test-id='servers-screen-button'
-        >
-          Connect to server
-        </ButtonWithTooltip>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <ButtonWithTooltip
-            style={{ width: 170 }}
+            style={{ width: 150 }}
             onClick={singleplayerAction}
             data-test-id='singleplayer-button'
             initialTooltip={{
-              content: 'Create worlds and play offline',
-              placement: 'left',
+              content: 'Create worlds to play offline',
+              placement: 'top-start',
               offset: -40
             }}
           >
             Singleplayer
           </ButtonWithTooltip>
+
+          <ButtonWithTooltip
+            disabled={!mapsProvider}
+            // className={styles['maps-provider']}
+            icon={pixelartIcons.map}
+            initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'top' }}
+            onClick={() => mapsProvider && openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider, false)}
+            alwaysTooltip='CHECK MAPS PERF!'
+          />
 
           <ButtonWithTooltip
             data-test-id='select-file-folder'
@@ -93,6 +92,16 @@ export default ({
             }}
           />
         </div>
+        <ButtonWithTooltip
+          initialTooltip={{
+            content: 'Connect to Java servers!',
+            placement: 'bottom',
+          }}
+          onClick={connectToServerAction}
+          data-test-id='servers-screen-button'
+        >
+          Multiplayer
+        </ButtonWithTooltip>
         <Button
           onClick={optionsAction}
         >
@@ -145,14 +154,6 @@ export default ({
           <span>A Minecraft client in the browser!</span>
         </span>
       </div>
-
-      {mapsProvider &&
-        <ButtonWithTooltip
-          className={styles['maps-provider']}
-          icon={pixelartIcons.map}
-          initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'right' }}
-          onClick={() => openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider, false)}
-        />}
     </div>
   )
 }
