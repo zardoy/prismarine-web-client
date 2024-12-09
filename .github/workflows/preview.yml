@@ -69,11 +69,11 @@ jobs:
       - name: Write pr redirect index.html
         run: |
           mkdir -p .vercel/output/static/pr
-          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}'>" > .vercel/output/static/pr/index.html
+          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number || github.event.pull_request.number }}'>" > .vercel/output/static/pr/index.html
       - name: Write commit redirect index.html
         run: |
           mkdir -p .vercel/output/static/commit
-          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number }}/commits/${{ github.sha }}'>" > .vercel/output/static/commit/index.html
+          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number || github.event.pull_request.number }}/commits/${{ github.sha }}'>" > .vercel/output/static/commit/index.html
       - name: Download Generated Sounds map
         run: node scripts/downloadSoundsMap.mjs
       - name: Deploy Project Artifacts to Vercel
