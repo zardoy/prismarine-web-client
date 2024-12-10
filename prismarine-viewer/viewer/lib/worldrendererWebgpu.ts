@@ -97,14 +97,11 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     })
   }
 
-  playgroundGetWebglData () {
-    // const playgroundChunk = Object.values(this.newChunks).find((x: any) => Object.keys(x?.blocks ?? {}).length > 0)
-    // if (!playgroundChunk) return
-    // const block = Object.values(playgroundChunk.blocks)?.[0] as any
-    // if (!block) return
-    // const { textureName } = block
-    // if (!textureName) return
-    // return this.webglData[textureName]
+  override async setVersion (version, texturesVersion = version): Promise<any> {
+    return Promise.all([
+      super.setVersion(version, texturesVersion),
+      this.readyPromise
+    ])
   }
 
   setBlockStateId (pos: any, stateId: any): void {

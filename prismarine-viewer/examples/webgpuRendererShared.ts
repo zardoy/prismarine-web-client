@@ -6,7 +6,7 @@ export const defaultWebgpuRendererParams = {
   MSAA: false,
   cameraOffset: [0, 0, 0] as [number, number, number],
   webgpuWorker: workerParam ? workerParam === 'true' : !isSafari,
-  lighting: true,
+  godRays: true,
 }
 
 export const rendererParamsGui = {
