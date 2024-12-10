@@ -69,7 +69,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
       clipY = clamp(clipY, -1, 1);
       clipX = clamp(clipX, -1, 1);
     }
-    var pos : vec2u = vec2u(u32((clipX + 1) / 2 * f32(textureSize.x)),u32((clipY + 1) / 2 * f32(textureSize.y)));
+    var pos : vec2u = vec2u(u32((clipX * 0.5 + 0.5) * f32(textureSize.x)),u32((clipY * 0.5 + 0.5) * f32(textureSize.y)));
 
     // if (linearize_depth_ndc(clipDepth, 0.05, 10000) - 2 > linearize_depth_ndc(textureLoad(depthTexture, vec2u(pos.x, textureSize.y - pos.y), 0), 0.05, 10000)  && !nearby) { 
     //   return;
@@ -84,15 +84,15 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
       pos.y = index % textureSize.y;
       }
     }
-    let depth = u32(clipDepth * 10000);
+    let depth = u32(clipDepth * 100000000);
     var depthPrev = atomicMin(&depthAtomic.locks[pos.x][pos.y], depth);
     //depthPrev = atomicLoad(&depthAtomic.locks[pos.x][pos.y]);
     if (depth < depthPrev) {
-      // let k = atomicCompareExchangeWeak(&depthAtomic.locks[pos.x][pos.y], depth, depth);
-      // if (k.exchanged == true) {
+      let k = atomicCompareExchangeWeak(&depthAtomic.locks[pos.x][pos.y], depth, depth);
+      if (k.exchanged == true) {
 
         atomicStore(&occlusion.locks[pos.x][pos.y], index + 1);
-      // }
+      }
     }
 
   }

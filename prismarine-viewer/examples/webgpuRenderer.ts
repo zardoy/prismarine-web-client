@@ -6,6 +6,8 @@ import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
 import ComputeSortShader from './CubeSort.comp.wgsl'
+import VolumtetricVertShader from '../webgpuShaders/RadialBlur/vert.wgsl'
+import VolumtetricFragShader from '../webgpuShaders/RadialBlur/frag.wgsl'
 import { chunksStorage, updateSize, postMessage } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererInitParams, RendererParams } from './webgpuRendererShared'
 import type { BlocksModelData } from './webgpuBlockModels'
@@ -79,6 +81,12 @@ export class WebgpuRenderer {
     z: number
     time: number
   }
+  volumtetricPipeline: GPURenderPipeline
+  VolumetricBindGroup: GPUBindGroup
+  depthTextureAnother: GPUTexture
+  volumetricRenderPassDescriptor: GPURenderPassDescriptor
+  tempTexture: GPUTexture
+  
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public blocksDataModel: Record<string, BlocksModelData>, public rendererInitParams: RendererInitParams) {
@@ -210,9 +218,81 @@ export class WebgpuRenderer {
     })
     this.pipeline = pipeline
 
+    this.volumtetricPipeline = device.createRenderPipeline({
+      label: 'volumtetricPipeline',
+      layout: 'auto',
+      vertex: {
+        module: device.createShaderModule({
+          code: localStorage.VolumtetricVertShader || VolumtetricVertShader,
+        }),
+        buffers: [
+          {
+            arrayStride: cubeVertexSize,
+            attributes: [
+              {
+                shaderLocation: 0,
+                offset: PositionOffset,
+                format: 'float32x3',
+              },
+              {
+                shaderLocation: 1,
+                offset: UVOffset,
+                format: 'float32x2',
+              },
+            ],
+          },
+        ],
+      },
+      fragment: {
+        module: device.createShaderModule({
+          code: localStorage.VolumtetricFragShader || VolumtetricFragShader,
+        }),
+        targets: [
+          {
+            format: presentationFormat,
+            blend: {
+              color: {
+                srcFactor: 'src-alpha',
+                dstFactor: 'one-minus-src-alpha',
+                operation: 'add',
+              },
+              alpha: {
+                srcFactor: 'src-alpha',
+                dstFactor: 'one-minus-src-alpha',
+                operation: 'add',
+              },
+            },
+          },
+        ],
+      },
+      primitive: {
+        topology: 'triangle-list',
+        cullMode: 'none',
+      },
+      depthStencil: {
+        depthWriteEnabled: false,
+        depthCompare: 'less',
+        format: 'depth32float',
+      },
+    })
+
     this.depthTexture = device.createTexture({
       size: [canvas.width, canvas.height],
       format: 'depth32float',
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+      //sampleCount: 4,
+    })
+
+    this.depthTextureAnother = device.createTexture({
+      size: [canvas.width, canvas.height],
+      format: 'depth32float',
+      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
+      //sampleCount: 4,
+    })
+
+    this.tempTexture = device.createTexture({
+      size: [canvas.width, canvas.height],
+      format: 'bgra8unorm',
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
       //sampleCount: 4,
     })
@@ -251,6 +331,24 @@ export class WebgpuRenderer {
 
     // upload image into a GPUTexture.
     await this.updateTexture(imageBlob, true)
+
+    this.volumetricRenderPassDescriptor = {
+      label: 'VolumteticRenderPassDescriptor',
+      colorAttachments: [
+        {
+          view: undefined as any, // Assigned later
+          clearValue: [0.678_431_372_549_019_6, 0.847_058_823_529_411_8, 0.901_960_784_313_725_5, 1],
+          loadOp: 'clear',
+          storeOp: 'store',
+        },
+      ],
+      depthStencilAttachment: {
+        view: this.depthTextureAnother.createView(),
+        depthClearValue: 1,
+        depthLoadOp: 'clear',
+        depthStoreOp: 'store',
+      },
+    }
 
     this.renderPassDescriptor = {
       label: 'MainRenderPassDescriptor',
@@ -533,6 +631,26 @@ export class WebgpuRenderer {
       ],
     })
 
+    this.VolumetricBindGroup = device.createBindGroup({
+      layout: this.volumtetricPipeline.getBindGroupLayout(0),
+      label: 'volumtetricBindGroup',
+      entries: [
+        {
+          binding: 0,
+          resource: this.depthTexture.createView(),
+        },
+        {
+          binding: 1,
+          resource: sampler,
+        },
+        {
+          binding: 2,
+          resource: this.tempTexture.createView(),
+        },
+      ]
+    })
+    
+
 
     this.computeBindGroup = device.createBindGroup({
       layout: this.computePipeline.getBindGroupLayout(0),
@@ -775,7 +893,7 @@ export class WebgpuRenderer {
     this.camera.position.x += this.rendererParams.cameraOffset[0]
     this.camera.position.y += this.rendererParams.cameraOffset[1]
     this.camera.position.z += this.rendererParams.cameraOffset[2]
-    const oversize = 1.1
+    const oversize = 1.0
 
     this.camera.updateProjectionMatrix()
     this.camera.updateMatrix()
@@ -839,7 +957,9 @@ export class WebgpuRenderer {
 
     device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams)
 
-    renderPassDescriptor.colorAttachments[0].view = ctx
+    renderPassDescriptor.colorAttachments[0].view = this.tempTexture.createView()  
+      
+      this.volumetricRenderPassDescriptor.colorAttachments[0].view = ctx
       .getCurrentTexture()
       .createView()
 
@@ -906,6 +1026,18 @@ export class WebgpuRenderer {
           this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
         }
 
+        device.queue.submit([this.commandEncoder.finish()])
+      }
+      // Volumetric lighting pass
+      {
+        this.commandEncoder = device.createCommandEncoder()
+        const volumtetricRenderPass = this.commandEncoder.beginRenderPass(this.volumetricRenderPassDescriptor)
+        volumtetricRenderPass.label = 'Volumetric Render Pass'
+        volumtetricRenderPass.setPipeline(this.volumtetricPipeline)
+        volumtetricRenderPass.setVertexBuffer(0, verticesBuffer)
+        volumtetricRenderPass.setBindGroup(0, this.VolumetricBindGroup)
+        volumtetricRenderPass.draw(6)
+        volumtetricRenderPass.end()
         device.queue.submit([this.commandEncoder.finish()])
       }
     }
