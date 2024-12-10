@@ -57,7 +57,7 @@ jobs:
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
       - name: Write Release Info
         run: |
-          echo "{\"latestTag\": \"$(git rev-parse --short $GITHUB_SHA)\"}" > assets/release.json
+          echo "{\"latestTag\": \"$(git rev-parse --short ${{ github.event.pull_request.head.sha }})\"}" > assets/release.json
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - run: pnpm build-storybook
@@ -73,7 +73,7 @@ jobs:
       - name: Write commit redirect index.html
         run: |
           mkdir -p .vercel/output/static/commit
-          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number || github.event.pull_request.number }}/commits/${{ github.sha }}'>" > .vercel/output/static/commit/index.html
+          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number || github.event.pull_request.number }}/commits/${{ github.event.pull_request.head.sha }}'>" > .vercel/output/static/commit/index.html
       - name: Download Generated Sounds map
         run: node scripts/downloadSoundsMap.mjs
       - name: Deploy Project Artifacts to Vercel
