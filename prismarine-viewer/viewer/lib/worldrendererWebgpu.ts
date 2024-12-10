@@ -1,11 +1,12 @@
 import { Vec3 } from 'vec3'
 // import { addBlocksSection, addWebgpuListener, webgpuChannel } from '../../examples/webgpuRendererMain'
 import { pickObj } from '@zardoy/utils'
+import { GUI } from 'lil-gui'
 import type { WebglData } from '../prepare/webglData'
 import { prepareCreateWebgpuBlocksModelsData } from '../../examples/webgpuBlockModels'
 import type { workerProxyType } from '../../examples/webgpuRendererWorker'
 import { useWorkerProxy } from '../../examples/workerProxy'
-import { defaultWebgpuRendererParams } from '../../examples/webgpuRendererShared'
+import { defaultWebgpuRendererParams, rendererParamsGui } from '../../examples/webgpuRendererShared'
 import { loadJSON } from './utils.web'
 import { WorldRendererCommon } from './worldrendererCommon'
 import { MesherGeometryOutput } from './mesher/shared'
@@ -182,19 +183,20 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
 
 
   removeColumn (x, z) {
-  //   console.log('removeColumn', x, z)
-  //   super.removeColumn(x, z)
+    console.log('removeColumn', x, z)
+    super.removeColumn(x, z)
 
-  //   for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
-  //     webgpuChannel.removeBlocksSection(`${x},${y},${z}`)
-  //   }
+    for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
+      this.webgpuChannel.removeBlocksSection(`${x},${y},${z}`)
+    }
   }
 
   async initWebgpu () {
     // do not use worker in safari, it is bugged
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     const workerParam = new URLSearchParams(window.location.search).get('webgpuWorker')
-    const USE_WORKER = workerParam ? workerParam === 'true' : !isSafari
+    // const USE_WORKER = workerParam ? workerParam === 'true' : !isSafari
+    const USE_WORKER = workerParam !== 'false'
 
     const playground = this.isPlayground
     if (!this.material.map) {
@@ -369,4 +371,27 @@ const addWebgpuDebugUi = (worker, isPlayground) => {
     updateText2(`Main Loop: ${updates}`)
     updates = 0
   }, 1000)
+
+  if (!isPlayground) {
+    const gui = new GUI()
+    gui.domElement.classList.add('webgpu-debug-ui')
+    gui.title('WebGPU Params')
+    gui.open(false)
+    setTimeout(() => {
+      gui.open(false)
+    }, 500)
+    for (const rendererParam of Object.entries(viewer.world.rendererParams)) {
+      const [key, value] = rendererParam
+      if (!rendererParamsGui[key]) continue
+      // eslint-disable-next-line @typescript-eslint/no-loop-func
+      gui.add(viewer.world.rendererParams, key).onChange((newVal) => {
+        viewer.world.updateRendererParams({ [key]: newVal })
+        if (rendererParamsGui[key]?.qsReload) {
+          const searchParams = new URLSearchParams(window.location.search)
+          searchParams.set(key, String(value))
+          window.location.search = searchParams.toString()
+        }
+      })
+    }
+  }
 }

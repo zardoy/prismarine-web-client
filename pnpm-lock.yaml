@@ -55,6 +55,9 @@ importers:
       '@react-oauth/google':
         specifier: ^0.12.1
         version: 0.12.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@rsbuild/plugin-basic-ssl':
+        specifier: ^1.1.1
+        version: 1.1.1(@rsbuild/core@1.0.1-beta.9)
       '@stylistic/eslint-plugin':
         specifier: ^2.6.1
         version: 2.6.1(eslint@8.50.0)(typescript@5.5.4)
@@ -2495,6 +2498,14 @@ packages:
     engines: {node: '>=16.7.0'}
     hasBin: true
 
+  '@rsbuild/plugin-basic-ssl@1.1.1':
+    resolution: {integrity: sha512-q4u7H8yh/S/DHwxG85bWbGXFiVV9RMDJDupOBHJVPtevU9mLCB4n5Qbrxu/l8CCdmZcBlvfWGjkDA/YoY61dig==}
+    peerDependencies:
+      '@rsbuild/core': 0.x || 1.x || ^1.0.1-beta.0
+    peerDependenciesMeta:
+      '@rsbuild/core':
+        optional: true
+
   '@rsbuild/plugin-node-polyfill@1.0.3':
     resolution: {integrity: sha512-AoPIOV1pyInIz08K1ECwUjFemLLSa5OUq8sfJN1ShXrGR2qc14b1wzwZKwF4vgKnBromqfMLagVbk6KT/nLIvQ==}
     peerDependencies:
@@ -3045,6 +3056,9 @@ packages:
 
   '@types/node-fetch@2.6.6':
     resolution: {integrity: sha512-95X8guJYhfqiuVVhRFxVQcf4hW/2bCuoPwDasMf/531STFoNoWTT7YDnWdXHEZKqAGUigmpG31r2FE70LwnzJw==}
+
+  '@types/node-forge@1.3.11':
+    resolution: {integrity: sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==}
 
   '@types/node@14.18.56':
     resolution: {integrity: sha512-+k+57NVS9opgrEn5l9c0gvD1r6C+PtyhVE4BTnMMRwiEA8ZO8uFcs6Yy2sXIy0eC95ZurBtRSvhZiHXBysbl6w==}
@@ -7012,6 +7026,10 @@ packages:
       encoding:
         optional: true
 
+  node-forge@1.3.1:
+    resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
+    engines: {node: '>= 6.13.0'}
+
   node-gyp-build-optional-packages@5.1.1:
     resolution: {integrity: sha512-+P72GAjVAbTxjjwUmwjVrqrdZROD4nf8KgpBoDxqXXTiYZZt/ud60dE5yvCSr9lRO8e8yv6kgJIC0K0PfZFVQw==}
     hasBin: true
@@ -8239,6 +8257,10 @@ packages:
 
   secure-compare@3.0.1:
     resolution: {integrity: sha512-AckIIV90rPDcBcglUwXPF3kg0P0qmPsPXAj6BBEENQE1p5yA1xfmDJzfi1Tappj37Pv2mVbKpL3Z1T+Nn7k1Qw==}
+
+  selfsigned@2.4.1:
+    resolution: {integrity: sha512-th5B4L2U+eGLq1TVh7zNRGBapioSORUeymIydxgFpwww9d2qyKvtuPU2jJuHvYAwwqi2Y596QBL3eEqcPEYL8Q==}
+    engines: {node: '>=10'}
 
   semver@5.7.2:
     resolution: {integrity: sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==}
@@ -11124,7 +11146,7 @@ snapshots:
       '@jest/schemas': 29.6.3
       '@types/istanbul-lib-coverage': 2.0.4
       '@types/istanbul-reports': 3.0.2
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       '@types/yargs': 17.0.28
       chalk: 4.1.2
 
@@ -11957,6 +11979,12 @@ snapshots:
       core-js: 3.37.1
     optionalDependencies:
       fsevents: 2.3.3
+
+  '@rsbuild/plugin-basic-ssl@1.1.1(@rsbuild/core@1.0.1-beta.9)':
+    dependencies:
+      selfsigned: 2.4.1
+    optionalDependencies:
+      '@rsbuild/core': 1.0.1-beta.9
 
   '@rsbuild/plugin-node-polyfill@1.0.3(@rsbuild/core@1.0.1-beta.9)':
     dependencies:
@@ -12830,7 +12858,7 @@ snapshots:
   '@types/body-parser@1.19.3':
     dependencies:
       '@types/connect': 3.4.36
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/chai-subset@1.3.3':
     dependencies:
@@ -12840,17 +12868,17 @@ snapshots:
 
   '@types/connect@3.4.36':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/cookie@0.4.1': {}
 
   '@types/cors@2.8.15':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/cross-spawn@6.0.3':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/debug@4.1.12':
     dependencies:
@@ -12890,7 +12918,7 @@ snapshots:
 
   '@types/express-serve-static-core@4.17.37':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       '@types/qs': 6.9.8
       '@types/range-parser': 1.2.5
       '@types/send': 0.17.2
@@ -12909,11 +12937,11 @@ snapshots:
   '@types/glob@7.2.0':
     dependencies:
       '@types/minimatch': 5.1.2
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/graceful-fs@4.1.7':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/http-cache-semantics@4.0.2': {}
 
@@ -12961,8 +12989,12 @@ snapshots:
 
   '@types/node-fetch@2.6.6':
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 22.8.1
       form-data: 4.0.0
+
+  '@types/node-forge@1.3.11':
+    dependencies:
+      '@types/node': 22.8.1
 
   '@types/node@14.18.56':
     optional: true
@@ -12978,7 +13010,6 @@ snapshots:
   '@types/node@22.8.1':
     dependencies:
       undici-types: 6.19.8
-    optional: true
 
   '@types/normalize-package-data@2.4.2': {}
 
@@ -13014,12 +13045,12 @@ snapshots:
 
   '@types/readable-stream@4.0.12':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       safe-buffer: 5.1.2
 
   '@types/resolve@1.17.1':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/sat@0.0.31': {}
 
@@ -13030,13 +13061,13 @@ snapshots:
   '@types/send@0.17.2':
     dependencies:
       '@types/mime': 1.3.3
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/serve-static@1.15.3':
     dependencies:
       '@types/http-errors': 2.0.2
       '@types/mime': 3.0.2
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
 
   '@types/sinonjs__fake-timers@8.1.1':
     optional: true
@@ -13086,11 +13117,11 @@ snapshots:
 
   '@types/yauzl@2.10.1':
     dependencies:
-      '@types/node': 20.8.0
+      '@types/node': 22.8.1
 
   '@types/yauzl@2.10.3':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
     optional: true
 
   '@typescript-eslint/eslint-plugin@6.1.0(@typescript-eslint/parser@6.7.3(eslint@8.50.0)(typescript@5.5.4))(eslint@8.50.0)(typescript@5.5.4)':
@@ -15136,7 +15167,7 @@ snapshots:
     dependencies:
       '@types/cookie': 0.4.1
       '@types/cors': 2.8.15
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       accepts: 1.3.8
       base64id: 2.0.0
       cookie: 0.4.2
@@ -16985,7 +17016,7 @@ snapshots:
     dependencies:
       '@jest/types': 29.6.3
       '@types/graceful-fs': 4.1.7
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       anymatch: 3.1.3
       fb-watchman: 2.0.2
       graceful-fs: 4.2.11
@@ -17002,7 +17033,7 @@ snapshots:
   jest-util@29.7.0:
     dependencies:
       '@jest/types': 29.6.3
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       chalk: 4.1.2
       ci-info: 3.8.0
       graceful-fs: 4.2.11
@@ -17010,19 +17041,19 @@ snapshots:
 
   jest-worker@26.6.2:
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       merge-stream: 2.0.0
       supports-color: 7.2.0
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
   jest-worker@29.7.0:
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       jest-util: 29.7.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
@@ -18081,6 +18112,8 @@ snapshots:
       whatwg-url: 5.0.0
     optionalDependencies:
       encoding: 0.1.13
+
+  node-forge@1.3.1: {}
 
   node-gyp-build-optional-packages@5.1.1:
     dependencies:
@@ -19562,6 +19595,11 @@ snapshots:
 
   secure-compare@3.0.1: {}
 
+  selfsigned@2.4.1:
+    dependencies:
+      '@types/node-forge': 1.3.11
+      node-forge: 1.3.1
+
   semver@5.7.2: {}
 
   semver@6.3.1: {}
@@ -20586,8 +20624,7 @@ snapshots:
 
   undici-types@5.26.5: {}
 
-  undici-types@6.19.8:
-    optional: true
+  undici-types@6.19.8: {}
 
   undici@5.25.4:
     dependencies:

@@ -47,6 +47,7 @@
     "@nxg-org/mineflayer-auto-jump": "^0.7.12",
     "@nxg-org/mineflayer-tracker": "1.2.1",
     "@react-oauth/google": "^0.12.1",
+    "@rsbuild/plugin-basic-ssl": "^1.1.1",
     "@stylistic/eslint-plugin": "^2.6.1",
     "@types/gapi": "^0.0.47",
     "@types/react": "^18.2.20",

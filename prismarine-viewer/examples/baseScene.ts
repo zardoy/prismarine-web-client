@@ -18,7 +18,7 @@ import { Viewer } from '../viewer/lib/viewer'
 import { BlockNames } from '../../src/mcDataTypes'
 import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
 import { getSyncWorld } from './shared'
-import { defaultWebgpuRendererParams } from './webgpuRendererShared'
+import { defaultWebgpuRendererParams, rendererParamsGui } from './webgpuRendererShared'
 
 window.THREE = THREE
 
@@ -81,17 +81,17 @@ export class BasePlaygroundScene {
     if (this.enableCameraControls) {
       Object.assign(this.params, {
         orbit: false,
-        worker: false,
-        ...defaultWebgpuRendererParams
+        ...Object.fromEntries(Object.entries(defaultWebgpuRendererParams).filter(([key]) => rendererParamsGui[key])),
       })
 
       Object.assign(this.paramOptions, {
         orbit: {
           reloadOnChange: true,
         },
-        worker: {
+        webgpuWorker: {
           reloadOnChange: true,
-        }
+        },
+        // ...Object.fromEntries(Object.entries(rendererParamsGui))
       })
     }
 
@@ -134,12 +134,12 @@ export class BasePlaygroundScene {
       for (const key of Object.keys(defaultWebgpuRendererParams)) {
         // eslint-disable-next-line @typescript-eslint/no-loop-func
         this.onParamUpdate[key] = () => {
-          viewer.world.webgpuChannel.updateConfig(this.params as any)
+          viewer.world.updateRendererParams(this.params)
         }
       }
 
       this.enableCameraOrbitControl = this.params.orbit
-      viewer.world.webgpuChannel.updateConfig(this.params as any)
+      viewer.world.updateRendererParams(this.params)
     }
   }
 

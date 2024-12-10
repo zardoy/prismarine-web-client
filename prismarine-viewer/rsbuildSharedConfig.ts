@@ -1,6 +1,7 @@
 import { defineConfig, ModifyRspackConfigUtils } from '@rsbuild/core';
 import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
 import { pluginReact } from '@rsbuild/plugin-react';
+import { pluginBasicSsl } from '@rsbuild/plugin-basic-ssl'
 import path from 'path'
 
 export const appAndRendererSharedConfig = () => defineConfig({
@@ -56,7 +57,8 @@ export const appAndRendererSharedConfig = () => defineConfig({
     },
     plugins: [
         pluginReact(),
-        pluginNodePolyfill()
+        pluginNodePolyfill(),
+        ...process.env.ENABLE_HTTPS ? [pluginBasicSsl()] :  []
     ],
     tools: {
         rspack (config, helpers) {

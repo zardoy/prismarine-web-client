@@ -81,6 +81,13 @@ export class WebgpuRenderer {
     z: number
     time: number
   }
+  debugCameraMove = {
+    x: 0,
+    y: 0,
+    z: 0
+  }
+  renderMs = 0
+  renderMsCount = 0
   volumtetricPipeline: GPURenderPipeline
   VolumetricBindGroup: GPUBindGroup
   depthTextureAnother: GPUTexture
@@ -1066,6 +1073,8 @@ export class WebgpuRenderer {
     nextFrame()
     this.notRenderedBlockChanges = 0
     const took = performance.now() - start
+    this.renderMs += took
+    this.renderMsCount++
     if (took > 100) {
       console.log('One frame render loop took', took)
     }
@@ -1083,6 +1092,12 @@ export class WebgpuRenderer {
         this.updateCameraPos(pos)
       }
     }
+
+    this.updateCameraPos({
+      x: this.camera.position.x + this.debugCameraMove.x,
+      y: this.camera.position.y + this.debugCameraMove.y,
+      z: this.camera.position.z + this.debugCameraMove.z
+    })
   }
 
   loopPost () {
@@ -1090,7 +1105,8 @@ export class WebgpuRenderer {
   }
 
   updateCameraPos (newPos: { x: number, y: number, z: number }) {
-    new tweenJs.Tween(this.camera.position).to({ x: newPos.x, y: newPos.y, z: newPos.z }, 50).start()
+    this.camera.position.set(newPos.x, newPos.y, newPos.z)
+    // new tweenJs.Tween(this.camera.position).to({ x: newPos.x, y: newPos.y, z: newPos.z }, 50).start()
   }
 
   async getRenderingTilesCount () {

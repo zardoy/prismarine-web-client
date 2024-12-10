@@ -28,9 +28,12 @@ export const postMessage = (data, ...args) => {
 setInterval(() => {
   if (!webgpuRenderer) return
   // console.log('FPS:', renderedFrames)
-  postMessage({ type: 'fps', fps: `${webgpuRenderer.renderedFrames} (${new Intl.NumberFormat().format(chunksStorage.lastFetchedSize)} blocks)` })
+  const renderMsAvg = (webgpuRenderer.renderMs / webgpuRenderer.renderMsCount).toFixed(0)
+  postMessage({ type: 'fps', fps: `${webgpuRenderer.renderedFrames} (${new Intl.NumberFormat().format(chunksStorage.lastFetchedSize)} blocks,${renderMsAvg}ms)` })
   webgpuRenderer.noCameraUpdates = 0
   webgpuRenderer.renderedFrames = 0
+  webgpuRenderer.renderMs = 0
+  webgpuRenderer.renderMsCount = 0
 }, 1000)
 
 setInterval(() => {
@@ -121,7 +124,7 @@ export const workerProxyType = createWorkerProxy({
   updateConfig (params: RendererParams) {
     // when available
     onceRendererAvailable(() => {
-      webgpuRenderer?.updateConfig(params)
+      webgpuRenderer!.updateConfig(params)
     })
   },
   getFaces () {
@@ -184,16 +187,14 @@ export const workerProxyType = createWorkerProxy({
     void webgpuRenderer.updateTexture(imageBlob)
   },
   removeBlocksSection (key) {
-    chunksStorage.removeChunk(key)
+    // chunksStorage.removeChunk(key)
+  },
+  debugCameraMove ({ x = 0, y = 0, z = 0 }) {
+    webgpuRenderer!.debugCameraMove = { x, y, z }
   },
   camera (newCam: { rotation: { x: number, y: number, z: number }, position: { x: number, y: number, z: number }, fov: number }) {
     const oldPos = camera.position.clone()
-    // if (webgpuRenderer?.isPlayground) {
-    //     camera.rotation.order = 'ZYX'
-    //     new tweenJs.Tween(camera.rotation).to({ x: newCam.rotation.x, y: newCam.rotation.y, z: newCam.rotation.z }, 50).start()
-    // } else {
     camera.rotation.set(newCam.rotation.x, newCam.rotation.y, newCam.rotation.z, 'ZYX')
-    // }
     if (!webgpuRenderer || (camera.position.x === 0 && camera.position.y === 0 && camera.position.z === 0)) {
       // initial camera position
       camera.position.set(newCam.position.x, newCam.position.y, newCam.position.z)
