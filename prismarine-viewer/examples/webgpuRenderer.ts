@@ -1,13 +1,13 @@
 import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
+import VolumtetricFragShader from '../webgpuShaders/RadialBlur/frag.wgsl'
+import VolumtetricVertShader from '../webgpuShaders/RadialBlur/vert.wgsl'
 import { BlockFaceType } from './shared'
 import { PositionOffset, UVOffset, quadVertexArray, quadVertexCount, cubeVertexSize } from './CubeDef'
 import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
 import ComputeSortShader from './CubeSort.comp.wgsl'
-import VolumtetricVertShader from '../webgpuShaders/RadialBlur/vert.wgsl'
-import VolumtetricFragShader from '../webgpuShaders/RadialBlur/frag.wgsl'
 import { chunksStorage, updateSize, postMessage } from './webgpuRendererWorker'
 import { defaultWebgpuRendererParams, RendererInitParams, RendererParams } from './webgpuRendererShared'
 import type { BlocksModelData } from './webgpuBlockModels'
@@ -966,7 +966,7 @@ export class WebgpuRenderer {
 
     renderPassDescriptor.colorAttachments[0].view = this.tempTexture.createView()  
       
-      this.volumetricRenderPassDescriptor.colorAttachments[0].view = ctx
+    this.volumetricRenderPassDescriptor.colorAttachments[0].view = ctx
       .getCurrentTexture()
       .createView()
 
