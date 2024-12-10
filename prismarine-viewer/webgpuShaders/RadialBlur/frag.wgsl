@@ -57,6 +57,7 @@ fn main(
     // scene a little clearer, but I'm going for a bit of abstraction.
     var temp = textureSample(tex,mySampler, uvs.xy);
     var col : f32;
+    var outTex = textureSample(texColor, mySampler, uvs);
     if (temp == 1.0) {
         col = temp * 0.25;
     }
@@ -77,6 +78,10 @@ fn main(
         weight *= decay;
         
     }
+
+    if (temp == 1.0) {
+        return outTex;
+    }
     
     // Multiplying the final color with a spotlight centered on the focal point of the radial
     // blur. It's a nice finishing touch... that Passion came up with. If it's a good idea,
@@ -87,7 +92,7 @@ fn main(
     // loose gamma correction.
     uvs = uv;
     uvs.y = 1.0 - uvs.y;
-    return textureSample(texColor, mySampler, uvs) + sqrt(smoothstep(0.0, 1.0, col));
+    return outTex + sqrt(smoothstep(0.0, 1.0, col));
 }
 
 // @group(0) @binding(1) var mySampler: sampler;
