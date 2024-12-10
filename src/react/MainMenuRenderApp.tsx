@@ -73,8 +73,10 @@ export default () => {
     }
   }, [])
 
-  let mapsProviderUrl = appConfig?.mapsProvider
-  if (mapsProviderUrl && location.origin !== 'https://mcraft.fun') mapsProviderUrl = mapsProviderUrl + '?to=' + encodeURIComponent(location.href)
+  const mapsProviderUrl = appConfig?.mapsProvider && new URL(appConfig?.mapsProvider)
+  if (mapsProviderUrl && location.origin !== 'https://mcraft.fun') {
+    mapsProviderUrl.searchParams.set('to', location.href)
+  }
 
   // todo clean, use custom csstransition
   return <Transition in={!noDisplay} timeout={disableAnimation ? 0 : 100} mountOnEnter unmountOnExit>
@@ -113,7 +115,7 @@ export default () => {
             openFilePicker()
           }
         }}
-        mapsProvider={mapsProviderUrl}
+        mapsProvider={mapsProviderUrl?.toString()}
         versionStatus={versionStatus}
         versionTitle={versionTitle}
         onVersionStatusClick={async () => {
