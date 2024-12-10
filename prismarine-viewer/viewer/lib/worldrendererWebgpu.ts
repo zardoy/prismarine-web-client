@@ -194,7 +194,8 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     // do not use worker in safari, it is bugged
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
     const workerParam = new URLSearchParams(window.location.search).get('webgpuWorker')
-    const USE_WORKER = workerParam ? workerParam === 'true' : !isSafari
+    // const USE_WORKER = workerParam ? workerParam === 'true' : !isSafari
+    const USE_WORKER = workerParam !== 'false'
 
     const playground = this.isPlayground
     if (!this.material.map) {
