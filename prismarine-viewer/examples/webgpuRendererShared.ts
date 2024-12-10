@@ -1,4 +1,4 @@
-const workerParam = new URLSearchParams(window.location.search).get('webgpuWorker')
+const workerParam = new URLSearchParams(typeof window === 'undefined' ? '?' : window.location.search).get('webgpuWorker')
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 
 export const defaultWebgpuRendererParams = {
@@ -6,6 +6,7 @@ export const defaultWebgpuRendererParams = {
   MSAA: false,
   cameraOffset: [0, 0, 0] as [number, number, number],
   webgpuWorker: workerParam ? workerParam === 'true' : !isSafari,
+  lighting: true,
 }
 
 export const rendererParamsGui = {
