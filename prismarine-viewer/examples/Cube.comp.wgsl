@@ -84,15 +84,15 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
       pos.y = index % textureSize.y;
       }
     }
-    let depth = u32(clipDepth * 100000000);
+    let depth = u32(clipDepth * 10000);
     var depthPrev = atomicMin(&depthAtomic.locks[pos.x][pos.y], depth);
     //depthPrev = atomicLoad(&depthAtomic.locks[pos.x][pos.y]);
     if (depth < depthPrev) {
-      let k = atomicCompareExchangeWeak(&depthAtomic.locks[pos.x][pos.y], depth, depth);
-      if (k.exchanged == true) {
+      // let k = atomicCompareExchangeWeak(&depthAtomic.locks[pos.x][pos.y], depth, depth);
+      // if (k.exchanged == true) {
 
         atomicStore(&occlusion.locks[pos.x][pos.y], index + 1);
-      }
+      // }
     }
 
   }

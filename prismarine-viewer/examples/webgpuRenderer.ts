@@ -900,7 +900,7 @@ export class WebgpuRenderer {
     this.camera.position.x += this.rendererParams.cameraOffset[0]
     this.camera.position.y += this.rendererParams.cameraOffset[1]
     this.camera.position.z += this.rendererParams.cameraOffset[2]
-    const oversize = 1.0
+    const oversize = 1.1
 
     this.camera.updateProjectionMatrix()
     this.camera.updateMatrix()
@@ -1093,11 +1093,11 @@ export class WebgpuRenderer {
       }
     }
 
-    this.updateCameraPos({
-      x: this.camera.position.x + this.debugCameraMove.x,
-      y: this.camera.position.y + this.debugCameraMove.y,
-      z: this.camera.position.z + this.debugCameraMove.z
-    })
+    // this.updateCameraPos({
+    //   x: this.camera.position.x + this.debugCameraMove.x,
+    //   y: this.camera.position.y + this.debugCameraMove.y,
+    //   z: this.camera.position.z + this.debugCameraMove.z
+    // })
   }
 
   loopPost () {
@@ -1105,8 +1105,8 @@ export class WebgpuRenderer {
   }
 
   updateCameraPos (newPos: { x: number, y: number, z: number }) {
-    this.camera.position.set(newPos.x, newPos.y, newPos.z)
-    // new tweenJs.Tween(this.camera.position).to({ x: newPos.x, y: newPos.y, z: newPos.z }, 50).start()
+    //this.camera.position.set(newPos.x, newPos.y, newPos.z)
+    new tweenJs.Tween(this.camera.position).to({ x: newPos.x, y: newPos.y, z: newPos.z }, 50).start()
   }
 
   async getRenderingTilesCount () {
