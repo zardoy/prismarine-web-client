@@ -187,7 +187,7 @@ export const workerProxyType = createWorkerProxy({
     void webgpuRenderer.updateTexture(imageBlob)
   },
   removeBlocksSection (key) {
-    chunksStorage.removeChunk(key)
+    // chunksStorage.removeChunk(key)
   },
   debugCameraMove ({ x = 0, y = 0, z = 0 }) {
     webgpuRenderer!.debugCameraMove = { x, y, z }

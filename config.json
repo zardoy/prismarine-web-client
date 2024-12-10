@@ -2,7 +2,7 @@
   "version": 1,
   "defaultHost": "<from-proxy>",
   "defaultProxy": "proxy.mcraft.fun",
-  "mapsProvider": "https://maps.mcraft.fun/",
+  "mapsProvider": "https://maps.mcraft.fun/?label=webgpu",
   "peerJsServer": "",
   "peerJsServerFallback": "https://p2p.mcraft.fun",
   "promoteServers": [

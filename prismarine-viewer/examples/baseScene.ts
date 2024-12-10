@@ -81,7 +81,6 @@ export class BasePlaygroundScene {
     if (this.enableCameraControls) {
       Object.assign(this.params, {
         orbit: false,
-        webgpuWorker: false,
         ...Object.fromEntries(Object.entries(defaultWebgpuRendererParams).filter(([key]) => rendererParamsGui[key])),
       })
 

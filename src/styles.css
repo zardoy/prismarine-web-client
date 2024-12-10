@@ -181,6 +181,15 @@ body::xr-overlay #viewer-canvas {
   color: #999;
 }
 
+.webgpu-debug-ui {
+  top: 68px !important;
+  background: transparent;
+}
+
+.webgpu-debug-ui .title {
+  background: transparent !important;
+}
+
 @media screen and (min-width: 430px) {
   .span-2 {
     grid-column: span 2;
