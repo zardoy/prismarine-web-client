@@ -14,7 +14,7 @@ import TypedEmitter from 'typed-emitter'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
-import { MesherGeometryOutput, defaultMesherConfig } from './mesher/shared'
+import { defaultMesherConfig, HighestBlockInfo, MesherGeometryOutput } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
 import { updateStatText } from './ui/newStats'
@@ -66,6 +66,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     dirty (pos: Vec3, value: boolean): void
     update (/* pos: Vec3, value: boolean */): void
     textureDownloaded (): void
+    chunkFinished (key: string): void
   }>
   customTexturesDataUrl = undefined as string | undefined
   @worldCleanup()
@@ -89,7 +90,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
-  highestBlocks: Record<string, { y: number, name: string }> = {}
+  highestBlocks = new Map<string, HighestBlockInfo>()
   blockstatesModels: any
   customBlockStates: Record<string, any> | undefined
   customModels: Record<string, any> | undefined
@@ -211,7 +212,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const allFinished = Object.keys(this.finishedChunks).length === this.chunksLength
       if (allFinished) {
         this.allChunksLoaded?.()
-        this.allLoadedIn ??= this.initialChunkLoadWasStartedIn ? (Date.now() - this.initialChunkLoadWasStartedIn) / 1000 : 0
         this.allChunksFinished = true
       }
     }
@@ -393,6 +393,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     for (const worker of this.workers) {
       worker.postMessage({ type: 'unloadChunk', x, z })
     }
+    delete this.finishedChunks[`${x},${z}`]
     delete this.finishedChunks[`${x},${z}`]
     this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {

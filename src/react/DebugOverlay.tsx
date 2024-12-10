@@ -106,7 +106,7 @@ export default () => {
       setBiomeId(bot.world.getBiome(bot.entity.position))
       setDimension(bot.game.dimension)
       setDay(bot.time.day)
-      setCursorBlock(worldInteractions.cursorBlock)
+      setCursorBlock(bot.blockAtCursor(5))
       setEntitiesCount(Object.values(bot.entities).length)
     }, 100)
 

@@ -6,7 +6,8 @@ import { activeModalStack, miscUiState } from '../globalState'
 export const watchedModalsFromHooks = new Set<string>()
 // todo should not be there
 export const hardcodedKnownModals = [
-  'player_win:'
+  'player_win:',
+  'full-map' // todo
 ]
 
 export const useUsingTouch = () => {
@@ -17,6 +18,7 @@ export const useIsModalActive = (modal: string, useIncludes = false) => {
     watchedModalsFromHooks.add(modal)
   }, [])
   useEffect(() => {
+    // watchedModalsFromHooks.add(modal)
     return () => {
       watchedModalsFromHooks.delete(modal)
     }

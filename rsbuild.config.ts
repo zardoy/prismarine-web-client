@@ -105,6 +105,7 @@ const appConfig = defineConfig({
                     if (fs.existsSync('./prismarine-viewer/dist/mesher.js') && dev) {
                         // copy mesher
                         fs.copyFileSync('./prismarine-viewer/dist/mesher.js', './dist/mesher.js')
+                        fs.copyFileSync('./prismarine-viewer/dist/mesher.js.map', './dist/mesher.js.map')
                     } else if (!dev) {
                         await execAsync('pnpm run build-mesher')
                     }

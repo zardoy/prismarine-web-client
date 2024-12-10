@@ -230,6 +230,7 @@ export class Viewer {
           timeout: setTimeout(() => {
             for (const args of currentLoadChunkBatch!.data) {
               this.world.queuedChunks.delete(`${args[0]},${args[1]}`)
+              this.world.queuedChunks.delete(`${args[0]},${args[1]}`)
               this.addColumn(...args as Parameters<typeof this.addColumn>)
             }
             currentLoadChunkBatch = null
