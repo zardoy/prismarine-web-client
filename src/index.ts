@@ -397,7 +397,7 @@ async function connect (connectOptions: ConnectOptions) {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     window._LOAD_MC_DATA() // start loading data (if not loaded yet)
-    addNewStat('loaded-chunks', undefined, 200, 0)
+    addNewStat('loaded-chunks', undefined, 220, 0)
     addNewStat('downloaded-chunks', 90, 200, 20)
     const downloadMcData = async (version: string) => {
       if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {

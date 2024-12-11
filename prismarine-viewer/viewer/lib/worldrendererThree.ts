@@ -36,7 +36,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     super(config)
     try {
       const gl = renderer.getContext()
-      this.rendererDevice = gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)
+      this.rendererDevice = `${gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)} powered by three.js r{THREE.REVISION}`
     } catch (err) {
       console.warn('Failed to get renderer info', err)
     }

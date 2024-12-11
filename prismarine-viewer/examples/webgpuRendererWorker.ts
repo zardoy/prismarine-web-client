@@ -11,6 +11,7 @@ export const chunksStorage = new ChunksStorage()
 globalThis.chunksStorage = chunksStorage
 
 let animationTick = 0
+let maxFps = 0
 
 const camera = new THREE.PerspectiveCamera(75, 1 / 1, 0.1, 10_000)
 globalThis.camera = camera
@@ -157,6 +158,9 @@ export const workerProxyType = createWorkerProxy({
     }
     // console.log('generated random data:', count)
     this.addBlocksSection(blocks, `${offsetX},${yOffset},${offsetZ}`)
+  },
+  updateMaxFps (fps) {
+    maxFps = fps
   },
   addAddBlocksFlat (positions: number[]) {
     const chunks = new Map<string, any>()

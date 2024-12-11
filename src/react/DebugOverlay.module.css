@@ -11,12 +11,12 @@
 }
 
 .debug-left-side {
-  top: 1px;
+  top: 25px;
   left: 1px;
 }
 
 .debug-right-side {
-  top: 5px;
+  top: 25px;
   right: 1px;
   /* limit renderer long text width */
   width: 50%;

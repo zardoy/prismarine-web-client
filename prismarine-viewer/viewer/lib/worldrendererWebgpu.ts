@@ -359,6 +359,7 @@ const addWebgpuDebugUi = (worker, isPlayground) => {
     }
     if (e.data.type === 'stats') {
       updateTextGpuStats(e.data.stats)
+      viewer.world.rendererDevice = e.data.device
     }
   })
 
@@ -367,7 +368,7 @@ const addWebgpuDebugUi = (worker, isPlayground) => {
   const leftUi = isPlayground ? 130 : mobile ? 25 : 0
   const { updateText: updateTextBuild } = addNewStat2('build-info', {
     left: leftUi,
-    displayOnlyWhenWider: 600,
+    displayOnlyWhenWider: 700,
   })
   updateTextBuild(`WebGPU Renderer Demo by @SA2URAMI. Build: ${process.env.NODE_ENV === 'development' ? 'dev' : process.env.RELEASE_TAG}`)
   let updates = 0
