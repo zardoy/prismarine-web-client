@@ -60,7 +60,8 @@ import {
 import {
   pointerLock,
   toMajorVersion,
-  setLoadingScreenStatus
+  setLoadingScreenStatus,
+  logAction
 } from './utils'
 import { isCypress } from './standaloneUtils'
 
@@ -311,6 +312,11 @@ async function connect (connectOptions: ConnectOptions) {
 
   console.log(`connecting to ${server.host}:${server.port} with ${username}`)
 
+  const playType = connectOptions.server ? 'Server' : connectOptions.singleplayer ? 'Singleplayer' : 'P2P Multiplayer'
+  const info = connectOptions.server ? `${server.host}:${server.port}` : connectOptions.singleplayer ?
+    (fsState.usingIndexFileUrl || fsState.remoteBackend ? 'remote' : fsState.inMemorySave ? 'IndexedDB' : fsState.syncFs ? 'ZIP' : 'Folder') : '-'
+  logAction('Play', playType, `v${connectOptions.botVersion} : ${info}`)
+  const startDisplayViewer = Date.now()
   hideCurrentScreens()
   setLoadingScreenStatus('Logging in')
 
@@ -717,6 +723,11 @@ async function connect (connectOptions: ConnectOptions) {
     if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && new URLSearchParams(location.search).size === 0) {
       lockUrl()
     }
+    logAction('Joined', playType, `Time: ${Date.now() - startDisplayViewer}ms`)
+    if (connectOptions.server) {
+      logAction('Server Version', bot.version)
+      logAction('Auth', connectOptions.authenticatedAccount ? 'Authenticated' : 'Offline')
+    }
     updateDataAfterJoin()
     if (connectOptions.autoLoginPassword) {
       bot.chat(`/login ${connectOptions.autoLoginPassword}`)
@@ -919,13 +930,14 @@ async function connect (connectOptions: ConnectOptions) {
     }, 600)
 
     setLoadingScreenStatus(undefined)
-    const start = Date.now()
+    const startLoadingChunks = Date.now()
     let done = false
     void viewer.world.renderUpdateEmitter.on('update', () => {
       // todo might not emit as servers simply don't send chunk if it's empty
       if (!viewer.world.allChunksFinished || done) return
       done = true
-      console.log('All done and ready! In', (Date.now() - start) / 1000, 's')
+      console.log('All done and ready! In', (Date.now() - startLoadingChunks) / 1000, 's')
+      logAction('Chunks Loaded', 'All', `Distance: ${viewer.world.viewDistance} Time: ${(Date.now() - startLoadingChunks) / 1000}s`)
       viewer.render() // ensure the last state is rendered
       document.dispatchEvent(new Event('cypress-world-ready'))
     })

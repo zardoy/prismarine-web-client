@@ -477,6 +477,7 @@ export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopi
 
 export const openWorldFromHttpDir = async (fileDescriptorUrls: string[]/*  | undefined */, baseUrlParam) => {
   // todo try go guess mode
+  let indexFileUrl
   let index
   let baseUrl
   for (const url of fileDescriptorUrls) {
@@ -502,6 +503,7 @@ export const openWorldFromHttpDir = async (fileDescriptorUrls: string[]/*  | und
       index = file
       baseUrl = baseUrlParam ?? url.split('/').slice(0, -1).join('/')
     }
+    indexFileUrl = url
     break
   }
   if (!index) throw new Error(`The provided mapDir file is not valid descriptor file! ${fileDescriptorUrls.join(', ')}`)
@@ -529,6 +531,7 @@ export const openWorldFromHttpDir = async (fileDescriptorUrls: string[]/*  | und
   fsState.syncFs = false
   fsState.inMemorySave = false
   fsState.remoteBackend = true
+  fsState.usingIndexFileUrl = indexFileUrl
 
   await loadSave()
 }

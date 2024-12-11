@@ -65,6 +65,16 @@ export const pointerLock = {
   }
 }
 
+export const logAction = (category: string, action: string, value?: string, label?: string) => {
+  if (!options.externalLoggingService) return
+  window.loggingServiceChannel?.({
+    category,
+    action,
+    value,
+    label
+  })
+}
+
 window.getScreenRefreshRate = getScreenRefreshRate
 
 /**
