@@ -541,13 +541,14 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           if (patchProperties) {
             block._originalProperties ??= block._properties
             block._properties = { ...block._originalProperties, ...patchProperties }
-            const patched = JSON.stringify(block._properties);
+            const patched = JSON.stringify(block._properties)
             block.patchedModels[''] ??= block.models!
             block.models = block.patchedModels[patched]
             if (!block.models) {
               // need to recompute models
               block = world.getBlock(cursor, blockProvider, attr)!
             }
+            block.patchedModels[patched] = block.models!
           } else {
             block._properties = block._originalProperties ?? block._properties
             block._originalProperties = undefined

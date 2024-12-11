@@ -116,7 +116,7 @@ export class World {
     return this.getColumn(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
   }
 
-  getBlock (pos: Vec3, blockProvider?, attr?: Partial<MesherGeometryOutput>, patchProperties?: string): WorldBlock | null {
+  getBlock (pos: Vec3, blockProvider?, attr?: Partial<MesherGeometryOutput>): WorldBlock | null {
     // for easier testing
     if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
@@ -144,7 +144,7 @@ export class World {
         getPreflatBlock(b, () => {
           const id = b.type
           const { metadata } = b
-          console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos}, falling back`) // todo has known issues
+          console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos.toString()}, falling back`) // todo has known issues
         })
       }
     }
