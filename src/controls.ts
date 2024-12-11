@@ -300,7 +300,7 @@ const alwaysPressedHandledCommand = (command: Command) => {
   }
 }
 
-function lockUrl () {
+export function lockUrl () {
   let newQs = ''
   if (fsState.saveLoaded) {
     const save = localServer!.options.worldFolder.split('/').at(-1)

@@ -480,7 +480,7 @@ export const openWorldFromHttpDir = async (fileDescriptorUrls: string[]/*  | und
   let index
   let baseUrl
   for (const url of fileDescriptorUrls) {
-    let response: Response | undefined
+    let file
     try {
       setLoadingScreenStatus(`Trying to get world descriptor from ${new URL(url).host}`)
       const controller = new AbortController()
@@ -488,13 +488,13 @@ export const openWorldFromHttpDir = async (fileDescriptorUrls: string[]/*  | und
         controller.abort()
       }, 3000)
       // eslint-disable-next-line no-await-in-loop
-      response = await fetch(url, { signal: controller.signal })
+      const response = await fetch(url, { signal: controller.signal })
+      // eslint-disable-next-line no-await-in-loop
+      file = await response.json()
     } catch (err) {
       console.error('Error fetching file descriptor', url, err)
     }
-    if (!response) continue
-    // eslint-disable-next-line no-await-in-loop
-    const file = await response.json()
+    if (!file) continue
     if (file.baseUrl) {
       baseUrl = new URL(file.baseUrl, baseUrl).toString()
       index = file.index
@@ -502,6 +502,7 @@ export const openWorldFromHttpDir = async (fileDescriptorUrls: string[]/*  | und
       index = file
       baseUrl = baseUrlParam ?? url.split('/').slice(0, -1).join('/')
     }
+    break
   }
   if (!index) throw new Error(`The provided mapDir file is not valid descriptor file! ${fileDescriptorUrls.join(', ')}`)
   await new Promise<void>(async resolve => {
