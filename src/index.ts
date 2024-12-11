@@ -22,7 +22,7 @@ import PrismarineItem from 'prismarine-item'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi'
-import { contro, onBotCreate } from './controls'
+import { contro, lockUrl, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
 import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
@@ -692,6 +692,9 @@ async function connect (connectOptions: ConnectOptions) {
     setLoadingScreenStatus('Placing blocks (starting viewer)')
     localStorage.lastConnectOptions = JSON.stringify(connectOptions)
     connectOptions.onSuccessfulPlay?.()
+    if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && new URLSearchParams(location.search).size === 0) {
+      lockUrl()
+    }
     updateDataAfterJoin()
     if (connectOptions.autoLoginPassword) {
       bot.chat(`/login ${connectOptions.autoLoginPassword}`)
