@@ -5,7 +5,7 @@ import { Vec3 } from 'vec3'
 import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
 import type { AllBlocksStateIdToModelIdMap } from '../../../examples/webgpuBlockModels'
-import { defaultMesherConfig } from './shared'
+import { defaultMesherConfig, MesherGeometryOutput } from './shared'
 import { getPreflatBlock } from './getPreflatBlock'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
@@ -27,6 +27,7 @@ export type WorldBlock = Omit<Block, 'position'> & {
   isCube: boolean
   /** cache */
   models?: BlockModelPartsResolved | null
+  patchedModels: Record<string, BlockModelPartsResolved>
   _originalProperties?: Record<string, any>
   _properties?: Record<string, any>
 }
@@ -115,7 +116,7 @@ export class World {
     return this.getColumn(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
   }
 
-  getBlock (pos: Vec3, blockProvider?, attr?): WorldBlock | null {
+  getBlock (pos: Vec3, blockProvider?, attr?: Partial<MesherGeometryOutput>, patchProperties?: string): WorldBlock | null {
     // for easier testing
     if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
@@ -130,6 +131,7 @@ export class World {
 
     if (!this.blockCache[stateId]) {
       const b = column.getBlock(locInChunk) as unknown as WorldBlock
+      b.patchedModels = {}
       b.isCube = isCube(b.shapes)
       this.blockCache[stateId] = b
       Object.defineProperty(b, 'position', {

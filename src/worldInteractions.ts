@@ -44,7 +44,6 @@ class WorldInteraction {
   lastButtons = [false, false, false]
   breakStartTime: number | undefined = 0
   lastDugBlock: Vec3 | null = null
-  cursorBlock: import('prismarine-block').Block | null = null
   blockBreakMesh: THREE.Mesh
   breakTextures: THREE.Texture[]
   lastDigged: number
@@ -133,7 +132,7 @@ class WorldInteraction {
       this.debugDigStatus = 'done'
     })
     bot.on('diggingAborted', (block) => {
-      if (!this.cursorBlock?.position.equals(block.position)) return
+      if (!viewer.world.cursorBlock?.equals(block.position)) return
       this.debugDigStatus = 'aborted'
       // if (this.lastDugBlock)
       this.breakStartTime = undefined
@@ -232,10 +231,7 @@ class WorldInteraction {
     let cursorBlockDiggable = cursorBlock
     if (cursorBlock && !bot.canDigBlock(cursorBlock) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
 
-    let cursorChanged = !cursorBlock !== !this.cursorBlock
-    if (cursorBlock && this.cursorBlock) {
-      cursorChanged = !cursorBlock.position.equals(this.cursorBlock.position)
-    }
+    const cursorChanged = cursorBlock && viewer.world.cursorBlock ? !viewer.world.cursorBlock.equals(cursorBlock.position) : viewer.world.cursorBlock !== cursorBlock
 
     // Place / interact / activate
     if (this.buttons[2] && this.lastBlockPlaced >= 4) {
@@ -411,7 +407,9 @@ class WorldInteraction {
     }
 
     // Update state
-    this.cursorBlock = cursorBlock
+    if (cursorChanged) {
+      viewer.world.setHighlightCursorBlock(cursorBlock?.position ?? null)
+    }
     this.lastButtons[0] = this.buttons[0]
     this.lastButtons[1] = this.buttons[1]
     this.lastButtons[2] = this.buttons[2]

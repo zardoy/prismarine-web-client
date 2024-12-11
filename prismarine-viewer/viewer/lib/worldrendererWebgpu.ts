@@ -178,6 +178,21 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     this.webgpuChannel.updateBackground(color)
   }
 
+  setHighlightCursorBlock (position: typeof this.cursorBlock): void {
+    if (this.cursorBlock) {
+      const worker = this.workers[this.getWorkerNumber(this.cursorBlock)]
+      worker.postMessage({ type: 'specialBlockState', data: { value: null, position: this.cursorBlock }})
+      this.setSectionDirty(this.cursorBlock)
+    }
+
+    this.cursorBlock = position
+    if (this.cursorBlock) {
+      const worker = this.workers[this.getWorkerNumber(this.cursorBlock)]
+      worker.postMessage({ type: 'specialBlockState', data: { value: 'highlight', position: this.cursorBlock }})
+      this.setSectionDirty(this.cursorBlock)
+    }
+  }
+
 
   removeColumn (x, z) {
     console.log('removeColumn', x, z)

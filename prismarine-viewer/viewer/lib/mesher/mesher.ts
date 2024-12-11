@@ -1,6 +1,6 @@
 import { Vec3 } from 'vec3'
 import { World } from './world'
-import { getSectionGeometry, setBlockStatesData as setMesherData } from './models'
+import { getSectionGeometry, setBlockStatesData as setMesherData, setSpecialBlockState, setWorld, world } from './models'
 
 if (module.require) {
   // If we are in a node environement, we need to fake some env variables
@@ -12,7 +12,6 @@ if (module.require) {
 }
 
 let workerIndex = 0
-let world: World
 let dirtySections = new Map<string, number>()
 let allDataReady = false
 
@@ -62,12 +61,6 @@ function setSectionDirty (pos, value = true) {
   }
 }
 
-const softCleanup = () => {
-  // clean block cache and loaded chunks
-  world = new World(world.config.version)
-  globalThis.world = world
-}
-
 const handleMessage = data => {
   const globalVar: any = globalThis
 
@@ -82,7 +75,9 @@ const handleMessage = data => {
       world.erroredBlockModel = undefined
     }
 
-    world ??= new World(data.config.version)
+    if (!world) {
+      setWorld(new World(data.config.version))
+    }
     world.config = { ...world.config, ...data.config }
     globalThis.world = world
   }
@@ -121,8 +116,13 @@ const handleMessage = data => {
 
       break
     }
+    case 'specialBlockState': {
+      setSpecialBlockState(data.data)
+
+      break
+    }
     case 'reset': {
-      world = undefined as any
+      setWorld(undefined)
       // blocksStates = null
       dirtySections = new Map()
       // todo also remove cached

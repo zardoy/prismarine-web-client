@@ -23,6 +23,16 @@ for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
 }
 
+let specialBlockState: undefined | Record<string, any>
+export const setSpecialBlockState = (blockState) => {
+  specialBlockState = blockState
+}
+// eslint-disable-next-line import/no-mutable-exports
+export let world: World
+export const setWorld = (_world) => {
+  world = _world
+}
+
 type Tiles = {
   [blockPos: string]: BlockType
 }
@@ -74,13 +84,13 @@ export function preflatBlockCalculation (block: Block, world: World, position: V
     }
     // case 'gate_in_wall': {}
     case 'block_snowy': {
-      const aboveIsSnow = world.getBlock(position.offset(0, 1, 0))?.name === 'snow'
-      if (aboveIsSnow) {
-        return {
-          snowy: `${aboveIsSnow}`
-        }
-      } else {
+      const aboveIsSnow = `${world.getBlock(position.offset(0, 1, 0))?.name === 'snow'}`
+      if (aboveIsSnow === block.getProperties().snowy) {
         return
+      } else {
+        return {
+          snowy: aboveIsSnow
+        }
       }
     }
     case 'door': {
@@ -251,6 +261,11 @@ const identicalCull = (currentElement: BlockElement, neighbor: Block, direction:
 
 let needSectionRecomputeOnChange = false
 
+// todo remove
+const hasModelForNeighbor = (world: World, block: Block) => {
+  return !!world.webgpuModelsMapping[block.stateId!]/*  ?? world.webgpuModelsMapping[-1] */
+}
+
 function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO: boolean, attr: MesherGeometryOutput, globalMatrix: any, globalShift: any, block: Block, biome: string) {
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
@@ -266,8 +281,10 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     if (eFace.cullface) {
       const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)), blockProvider, {})
       if (neighbor) {
-        if (cullIfIdentical && neighbor.stateId === block.stateId) continue
-        if (!neighbor.transparent && (isCube(neighbor) || identicalCull(element, neighbor, new Vec3(...dir)))) continue
+        if (hasModelForNeighbor(world, block)) {
+          if (cullIfIdentical && neighbor.stateId === block.stateId) continue
+          if (!neighbor.transparent && (isCube(neighbor) || identicalCull(element, neighbor, new Vec3(...dir)))) continue
+        }
       } else {
         needSectionRecomputeOnChange = true
         // TODO support sync worlds
@@ -422,6 +439,11 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       const tiles = attr.tiles as Tiles
       const model = world.webgpuModelsMapping[block.stateId!]/*  ?? world.webgpuModelsMapping[-1] */
       if (model !== undefined) {
+        if (specialBlockState?.value === 'highlight' && specialBlockState.position.x === cursor.x && specialBlockState.position.y === cursor.y && specialBlockState.position.z === cursor.z) {
+          lightWithColor[0] *= 0.5
+          lightWithColor[1] *= 0.5
+          lightWithColor[2] *= 0.5
+        }
         tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
           block: block.name,
           visibleFaces: [],
@@ -519,14 +541,17 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           if (patchProperties) {
             block._originalProperties ??= block._properties
             block._properties = { ...block._originalProperties, ...patchProperties }
-            if (block.models && JSON.stringify(block._originalProperties) !== JSON.stringify(block._properties)) {
-              // recompute models
-              block.models = undefined
+            const patched = JSON.stringify(block._properties);
+            block.patchedModels[''] ??= block.models!
+            block.models = block.patchedModels[patched]
+            if (!block.models) {
+              // need to recompute models
               block = world.getBlock(cursor, blockProvider, attr)!
             }
           } else {
             block._properties = block._originalProperties ?? block._properties
             block._originalProperties = undefined
+            block.models = block.patchedModels[''] ?? block.models
           }
         }
 
@@ -637,6 +662,9 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
 
 export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false, useUnknownBlockModel = true) => {
   blockProvider = worldBlockProvider(blockstatesModels, blocksAtlas, 'latest')
+  if (world) {
+    world.blockCache = {}
+  }
   globalThis.blockProvider = blockProvider
   if (useUnknownBlockModel) {
     unknownBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'unknown', properties: {} })

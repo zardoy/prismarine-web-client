@@ -93,7 +93,7 @@ export class WebgpuRenderer {
   depthTextureAnother: GPUTexture
   volumetricRenderPassDescriptor: GPURenderPassDescriptor
   tempTexture: GPUTexture
-  
+
 
   // eslint-disable-next-line max-params
   constructor (public canvas: HTMLCanvasElement, public imageBlob: ImageBitmapSource, public isPlayground: boolean, public camera: THREE.PerspectiveCamera, public localStorage: any, public blocksDataModel: Record<string, BlocksModelData>, public rendererInitParams: RendererInitParams) {
@@ -656,7 +656,7 @@ export class WebgpuRenderer {
         },
       ]
     })
-    
+
 
 
     this.computeBindGroup = device.createBindGroup({
@@ -965,8 +965,8 @@ export class WebgpuRenderer {
     device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams)
 
     // TODO!
-    renderPassDescriptor.colorAttachments[0].view = this.tempTexture.createView()  
-      
+    renderPassDescriptor.colorAttachments[0].view = this.tempTexture.createView()
+
     this.volumetricRenderPassDescriptor.colorAttachments[0].view = ctx
       .getCurrentTexture()
       .createView()
@@ -1037,7 +1037,7 @@ export class WebgpuRenderer {
         device.queue.submit([this.commandEncoder.finish()])
       }
       // Volumetric lighting pass
-      {
+      if (this.rendererParams.godRays) {
         this.commandEncoder = device.createCommandEncoder()
         const volumtetricRenderPass = this.commandEncoder.beginRenderPass(this.volumetricRenderPassDescriptor)
         volumtetricRenderPass.label = 'Volumetric Render Pass'

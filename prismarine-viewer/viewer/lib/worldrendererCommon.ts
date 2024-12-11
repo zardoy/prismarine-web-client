@@ -38,6 +38,7 @@ type CustomTexturesData = {
 }
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
+  cursorBlock = null as Vec3 | null
   isPlayground = false
   displayStats = true
   worldConfig = { minY: 0, worldHeight: 256 }
@@ -394,7 +395,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       worker.postMessage({ type: 'unloadChunk', x, z })
     }
     delete this.finishedChunks[`${x},${z}`]
-    delete this.finishedChunks[`${x},${z}`]
     this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
       this.setSectionDirty(new Vec3(x, y, z), false)
@@ -429,6 +429,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   queueAwaited = false
   messagesQueue = {} as { [workerIndex: string]: any[] }
 
+  getWorkerNumber (pos: Vec3) {
+    const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
+    return hash
+  }
+
   setSectionDirty (pos: Vec3, value = true) { // value false is used for unloading chunks
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.allChunksFinished = false
@@ -440,7 +445,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // Dispatch sections to workers based on position
     // This guarantees uniformity accross workers and that a given section
     // is always dispatched to the same worker
-    const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
+    const hash = this.getWorkerNumber(pos)
     this.sectionsWaiting.set(key, (this.sectionsWaiting.get(key) ?? 0) + 1)
     this.messagesQueue[hash] ??= []
     this.messagesQueue[hash].push({
@@ -508,4 +513,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   destroy () {
     console.warn('world destroy is not implemented')
   }
+
+  abstract setHighlightCursorBlock (block: typeof this.cursorBlock): void
 }
