@@ -157,6 +157,7 @@ if (isIphone) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
+viewer.getMineflayerBot = () => bot
 // todo unify
 viewer.entities.getItemUv = (idOrName: number | string) => {
   try {
@@ -420,7 +421,7 @@ async function connect (connectOptions: ConnectOptions) {
         }
       }
       viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
-      viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      void viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
