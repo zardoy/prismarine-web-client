@@ -74,6 +74,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     dirty (pos: Vec3, value: boolean): void
     update (/* pos: Vec3, value: boolean */): void
     textureDownloaded (): void
+    itemsTextureDownloaded (): void
     chunkFinished (key: string): void
   }>
   customTexturesDataUrl = undefined as string | undefined
@@ -410,17 +411,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
+    const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
+    const useChangeWorker = !this.sectionsWaiting[key]
     for (const worker of this.workers) {
       worker.postMessage({ type: 'blockUpdate', pos, stateId })
     }
-    this.setSectionDirty(pos, true, true)
+    this.setSectionDirty(pos, true, useChangeWorker)
     if (this.neighborChunkUpdates) {
-      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0), true, true)
-      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0), true, true)
-      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0), true, true)
-      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0), true, true)
-      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16), true, true)
-      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16), true, true)
+      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0), true, useChangeWorker)
+      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0), true, useChangeWorker)
+      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0), true, useChangeWorker)
+      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0), true, useChangeWorker)
+      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16), true, useChangeWorker)
+      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16), true, useChangeWorker)
     }
   }
 
