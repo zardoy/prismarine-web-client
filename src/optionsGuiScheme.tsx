@@ -89,7 +89,6 @@ export const guiOptionsScheme: {
         tooltip: 'Additional distance to keep the chunks loading before unloading them by marking them as too far',
       },
       handDisplay: {},
-      neighborChunkUpdates: {},
       renderDebug: {
         values: [
           'advanced',

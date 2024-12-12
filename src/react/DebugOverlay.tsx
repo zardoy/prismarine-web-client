@@ -1,8 +1,8 @@
 import { useEffect, useRef, useMemo, useState } from 'react'
 import * as THREE from 'three'
+import type { Block } from 'prismarine-block'
 import { getFixedFilesize } from '../downloadAndOpenFile'
 import { options } from '../optionsStorage'
-import worldInteractions from '../worldInteractions'
 import styles from './DebugOverlay.module.css'
 
 export default () => {
@@ -35,10 +35,10 @@ export default () => {
   const [day, setDay] = useState(0)
   const [entitiesCount, setEntitiesCount] = useState(0)
   const [dimension, setDimension] = useState('')
-  const [cursorBlock, setCursorBlock] = useState<typeof worldInteractions.cursorBlock>(null)
-  const [rendererDevice, setRendererDevice] = useState('')
+  const [cursorBlock, setCursorBlock] = useState<Block | null>(null)
   const minecraftYaw = useRef(0)
   const minecraftQuad = useRef(0)
+  const { rendererDevice } = viewer.world
 
   const quadsDescription = [
     'north (towards negative Z)',
@@ -118,13 +118,6 @@ export default () => {
       managePackets('sent', name, data)
     })
 
-    try {
-      const gl = window.renderer.getContext()
-      setRendererDevice(gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL))
-    } catch (err) {
-      console.warn(err)
-    }
-
     return () => {
       document.removeEventListener('keydown', handleF3)
       clearInterval(packetsUpdateInterval)
@@ -159,7 +152,7 @@ export default () => {
     </div>
 
     <div className={styles['debug-right-side']}>
-      <p>Renderer: {rendererDevice} powered by three.js r{THREE.REVISION}</p>
+      <p>Renderer: {rendererDevice}</p>
       <div className={styles.empty} />
       {cursorBlock ? (<>
         <p>{cursorBlock.name}</p>
