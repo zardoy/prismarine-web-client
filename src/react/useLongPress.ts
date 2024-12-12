@@ -31,9 +31,9 @@ const useLongPress = (
   )
 
   const clear = useCallback(
-    (event: React.MouseEvent | React.TouchEvent, shouldTriggerClick = true) => {
+    (event: React.MouseEvent | React.TouchEvent) => {
       if (timeout.current) clearTimeout(timeout.current)
-      if (shouldTriggerClick && !longPressTriggered) onClick()
+      if (!longPressTriggered) onClick()
       setLongPressTriggered(false)
       if (shouldPreventDefault && target.current) {
         target.current.removeEventListener('touchend', preventDefault)
@@ -46,7 +46,7 @@ const useLongPress = (
     onMouseDown: (e: React.MouseEvent) => start(e),
     onTouchStart: (e: React.TouchEvent) => start(e),
     onMouseUp: (e: React.MouseEvent) => clear(e),
-    onMouseLeave: (e: React.MouseEvent) => clear(e, false),
+    onMouseLeave: (e: React.MouseEvent) => clear(e),
     onTouchEnd: (e: React.TouchEvent) => clear(e)
   }
 }
@@ -61,4 +61,3 @@ const preventDefault = (event: Event) => {
 }
 
 export default useLongPress
-

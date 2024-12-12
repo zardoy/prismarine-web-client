@@ -20,6 +20,9 @@ jobs:
         run: npm install --global vercel pnpm@9.0.4
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Write Release Info
+        run: |
+          echo "{\"latestTag\": \"$(git rev-parse --short $GITHUB_SHA)\"}" > assets/release.json
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - run: pnpm build-storybook
@@ -35,9 +38,8 @@ jobs:
         with:
           run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         id: deploy
-      - name: Set deployment alias
-        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
-      # - uses: mshick/add-pr-comment@v2
-      #   with:
-      #     message: |
-      #       Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
+      - name: Set deployment aliases
+        run: |
+          for alias in $(echo ${{ secrets.TEST_PREVIEW_DOMAIN }} | tr "," "\n"); do
+            vercel alias set ${{ steps.deploy.outputs.stdout }} $alias --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
+          done

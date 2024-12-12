@@ -10,6 +10,7 @@ import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
 import protocolMicrosoftAuth from 'minecraft-protocol/src/client/microsoftAuth'
 import microsoftAuthflow from './microsoftAuthflow'
+import nbt from 'prismarine-nbt'
 
 import 'core-js/features/array/at'
 import 'core-js/features/promise/with-resolvers'
@@ -21,7 +22,7 @@ import PrismarineItem from 'prismarine-item'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi'
-import { contro, onBotCreate } from './controls'
+import { contro, lockUrl, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
 import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
@@ -101,6 +102,7 @@ import packetsPatcher from './packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
+import { parseFormattedMessagePacket } from './botUtils'
 
 window.debug = debug
 window.THREE = THREE
@@ -155,6 +157,7 @@ if (isIphone) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
+viewer.getMineflayerBot = () => bot
 // todo unify
 viewer.entities.getItemUv = (idOrName: number | string) => {
   try {
@@ -387,9 +390,9 @@ async function connect (connectOptions: ConnectOptions) {
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     window._LOAD_MC_DATA() // start loading data (if not loaded yet)
     const downloadMcData = async (version: string) => {
-      if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
+      if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
         // todo support it (just need to fix .export crash)
-        throw new Error('Microsoft authentication is only supported in 1.19.4 and above (at least for now)')
+        throw new Error('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
       }
 
       // todo expose cache
@@ -401,7 +404,9 @@ async function connect (connectOptions: ConnectOptions) {
       setLoadingScreenStatus(`Loading data for ${version}`)
       if (!document.fonts.check('1em mojangles')) {
         // todo instead re-render signs on load
-        await document.fonts.load('1em mojangles').catch(() => { })
+        await document.fonts.load('1em mojangles').catch(() => {
+          console.error('Failed to load font, signs wont be rendered correctly')
+        })
       }
       await window._MC_DATA_RESOLVER.promise // ensure data is loaded
       await downloadSoundsIfNeeded()
@@ -416,7 +421,7 @@ async function connect (connectOptions: ConnectOptions) {
         }
       }
       viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
-      viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      void viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
@@ -456,7 +461,7 @@ async function connect (connectOptions: ConnectOptions) {
       flyingSquidEvents()
     }
 
-    if (connectOptions.authenticatedAccount) username = 'not-used'
+    if (connectOptions.authenticatedAccount) username = 'you'
     let initialLoadingText: string
     if (singleplayer) {
       initialLoadingText = 'Local server is still starting'
@@ -504,6 +509,7 @@ async function connect (connectOptions: ConnectOptions) {
       sessionServer: authData?.sessionEndpoint?.toString(),
       auth: connectOptions.authenticatedAccount ? async (client, options) => {
         authData!.setOnMsaCodeCallback(options.onMsaCode)
+        authData?.setConnectingVersion(client.version)
         //@ts-expect-error
         client.authflow = authData!.authFlow
         try {
@@ -634,8 +640,9 @@ async function connect (connectOptions: ConnectOptions) {
   bot.on('error', handleError)
 
   bot.on('kicked', (kickReason) => {
-    console.log('User was kicked!', kickReason)
-    setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${typeof kickReason === 'object' ? JSON.stringify(kickReason) : kickReason}`, true)
+    console.log('You were kicked!', kickReason)
+    const { formatted: kickReasonFormatted, plain: kickReasonString } = parseFormattedMessagePacket(kickReason)
+    setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReasonString}`, true, undefined, undefined, kickReasonFormatted)
     destroyAll()
   })
 
@@ -686,6 +693,9 @@ async function connect (connectOptions: ConnectOptions) {
     setLoadingScreenStatus('Placing blocks (starting viewer)')
     localStorage.lastConnectOptions = JSON.stringify(connectOptions)
     connectOptions.onSuccessfulPlay?.()
+    if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && new URLSearchParams(location.search).size === 0) {
+      lockUrl()
+    }
     updateDataAfterJoin()
     if (connectOptions.autoLoginPassword) {
       bot.chat(`/login ${connectOptions.autoLoginPassword}`)
@@ -922,7 +932,7 @@ watchValue(miscUiState, async s => {
     const qs = new URLSearchParams(window.location.search)
     const moreServerOptions = {} as Record<string, any>
     if (qs.has('version')) moreServerOptions.version = qs.get('version')
-    if (qs.get('singleplayer') === '1') {
+    if (qs.get('singleplayer') === '1' || qs.get('sp') === '1') {
       loadSingleplayer({}, {
         worldFolder: undefined,
         ...moreServerOptions
@@ -1040,6 +1050,10 @@ downloadAndOpenFile().then((downloadAction) => {
       })
     }
   })
+
+  if (qs.get('serversList')) {
+    showModal({ reactType: 'serversList' })
+  }
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)

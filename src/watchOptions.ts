@@ -58,9 +58,15 @@ export const watchOptionsAfterViewerInit = () => {
   watchValue(options, o => {
     viewer.world.displayStats = o.renderDebug === 'advanced'
   })
+  watchValue(options, (o, isChanged) => {
+    viewer.world.mesherConfig.clipWorldBelowY = o.clipWorldBelowY
+    viewer.world.mesherConfig.disableSignsMapsSupport = o.disableSignsMapsSupport
+    if (isChanged) {
+      (viewer.world as WorldRendererThree).rerenderAllChunks()
+    }
+  })
 
-  // viewer.world.mesherConfig.smoothLighting = options.smoothLighting
-  viewer.world.mesherConfig.smoothLighting = false // todo not supported for now
+  viewer.world.mesherConfig.smoothLighting = options.smoothLighting
   subscribeKey(options, 'smoothLighting', () => {
     viewer.world.mesherConfig.smoothLighting = options.smoothLighting;
     (viewer.world as WorldRendererThree).rerenderAllChunks()

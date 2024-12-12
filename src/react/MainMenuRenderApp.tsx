@@ -62,11 +62,14 @@ export default () => {
           return
         }
         const upStatus = () => {
-          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}${mainMenuState.serviceWorkerLoaded ? ' - Available Offline' : ''})`)
+          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}${mainMenuState.serviceWorkerLoaded ? ', Downloaded' : ''})`)
         }
         subscribe(mainMenuState, upStatus)
+        upStatus()
         setVersionTitle(`Loaded: ${process.env.BUILD_VERSION}. Remote: ${contents}`)
-      }, () => { })
+      }, () => {
+        setVersionStatus('(offline)')
+      })
     }
   }, [])
 
@@ -113,10 +116,14 @@ export default () => {
         mapsProvider={mapsProviderUrl}
         versionStatus={versionStatus}
         versionTitle={versionTitle}
-        onVersionClick={async () => {
+        onVersionStatusClick={async () => {
           setVersionStatus('(reloading)')
           await refreshApp()
         }}
+        onVersionTextClick={async () => {
+          openGithub('/releases')
+        }}
+        versionText={process.env.RELEASE_TAG}
       />
     </div>}
   </Transition>

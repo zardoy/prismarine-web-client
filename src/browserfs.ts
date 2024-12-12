@@ -16,6 +16,7 @@ browserfs.install(window)
 const defaultMountablePoints = {
   '/world': { fs: 'LocalStorage' }, // will be removed in future
   '/data': { fs: 'IndexedDB' },
+  '/resourcepack': { fs: 'InMemory' }, // temporary storage for currently loaded resource pack
 }
 browserfs.configure({
   fs: 'MountableFileSystem',
@@ -388,7 +389,7 @@ export const copyFilesAsyncWithProgress = async (pathSrc: string, pathDest: stri
     return
   }
   if (!stat.isDirectory()) {
-    await fs.promises.writeFile(pathDest, await fs.promises.readFile(pathSrc))
+    await fs.promises.writeFile(pathDest, await fs.promises.readFile(pathSrc) as any)
     console.debug('copied single file', pathSrc, pathDest)
     return
   }
@@ -463,7 +464,7 @@ export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopi
     } else {
       // Copy file
       try {
-        await fs.promises.writeFile(curPathDest, await fs.promises.readFile(curPathSrc))
+        await fs.promises.writeFile(curPathDest, await fs.promises.readFile(curPathSrc) as any)
         console.debug('copied file', curPathSrc, curPathDest)
       } catch (err) {
         console.error('Error copying file', curPathSrc, curPathDest, err)
@@ -474,17 +475,36 @@ export const copyFilesAsync = async (pathSrc: string, pathDest: string, fileCopi
   }))
 }
 
-export const openWorldFromHttpDir = async (fileDescriptorUrl: string/*  | undefined */, baseUrl = fileDescriptorUrl.split('/').slice(0, -1).join('/')) => {
+export const openWorldFromHttpDir = async (fileDescriptorUrls: string[]/*  | undefined */, baseUrlParam) => {
   // todo try go guess mode
   let index
-  const file = await fetch(fileDescriptorUrl).then(async a => a.json())
-  if (file.baseUrl) {
-    baseUrl = new URL(file.baseUrl, baseUrl).toString()
-    index = file.index
-  } else {
-    index = file
+  let baseUrl
+  for (const url of fileDescriptorUrls) {
+    let file
+    try {
+      setLoadingScreenStatus(`Trying to get world descriptor from ${new URL(url).host}`)
+      const controller = new AbortController()
+      setTimeout(() => {
+        controller.abort()
+      }, 3000)
+      // eslint-disable-next-line no-await-in-loop
+      const response = await fetch(url, { signal: controller.signal })
+      // eslint-disable-next-line no-await-in-loop
+      file = await response.json()
+    } catch (err) {
+      console.error('Error fetching file descriptor', url, err)
+    }
+    if (!file) continue
+    if (file.baseUrl) {
+      baseUrl = new URL(file.baseUrl, baseUrl).toString()
+      index = file.index
+    } else {
+      index = file
+      baseUrl = baseUrlParam ?? url.split('/').slice(0, -1).join('/')
+    }
+    break
   }
-  if (!index) throw new Error(`The provided mapDir file is not valid descriptor file! ${fileDescriptorUrl}`)
+  if (!index) throw new Error(`The provided mapDir file is not valid descriptor file! ${fileDescriptorUrls.join(', ')}`)
   await new Promise<void>(async resolve => {
     browserfs.configure({
       fs: 'MountableFileSystem',

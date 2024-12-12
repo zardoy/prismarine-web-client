@@ -5,7 +5,8 @@
   "scripts": {
     "dev-rsbuild": "rsbuild dev",
     "dev-proxy": "node server.js",
-    "start": "run-p dev-rsbuild dev-proxy watch-mesher",
+    "start": "run-p dev-proxy dev-rsbuild watch-mesher",
+    "start2": "run-p dev-rsbuild watch-mesher",
     "build": "pnpm build-other-workers && rsbuild build",
     "build-analyze": "BUNDLE_ANALYZE=true rsbuild build && pnpm build-other-workers",
     "check-build": "tsx scripts/genShims.ts && tsc && pnpm build",
@@ -67,12 +68,12 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
     "filesize": "^10.0.12",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.44",
+    "flying-squid": "npm:@zardoy/flying-squid@^0.0.49",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "jszip": "^3.10.1",
     "lodash-es": "^4.17.21",
-    "minecraft-data": "3.76.0",
+    "minecraft-data": "3.80.0",
     "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
     "mineflayer-item-map-downloader": "github:zardoy/mineflayer-item-map-downloader",
     "mojangson": "^2.0.4",
@@ -92,6 +93,7 @@
     "react-dom": "^18.2.0",
     "react-select": "^5.8.0",
     "react-transition-group": "^4.4.5",
+    "react-zoom-pan-pinch": "3.4.4",
     "remark": "^15.0.1",
     "sanitize-filename": "^1.6.3",
     "skinview3d": "^3.0.1",
@@ -172,11 +174,12 @@
       "diamond-square": "github:zardoy/diamond-square",
       "prismarine-block": "github:zardoy/prismarine-block#next-era",
       "prismarine-world": "github:zardoy/prismarine-world#next-era",
-      "minecraft-data": "3.76.0",
+      "minecraft-data": "3.80.0",
       "prismarine-provider-anvil": "github:zardoy/prismarine-provider-anvil#everything",
+      "prismarine-physics": "github:zardoy/prismarine-physics",
       "minecraft-protocol": "github:PrismarineJS/node-minecraft-protocol#master",
       "react": "^18.2.0",
-      "prismarine-chunk": "github:zardoy/prismarine-chunk",
+      "prismarine-chunk": "github:zardoy/prismarine-chunk#master",
       "prismarine-item": "latest"
     },
     "updateConfig": {
@@ -186,7 +189,7 @@
       "three@0.154.0": "patches/three@0.154.0.patch",
       "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch",
       "mineflayer-item-map-downloader@1.2.0": "patches/mineflayer-item-map-downloader@1.2.0.patch",
-      "minecraft-protocol@1.49.0": "patches/minecraft-protocol@1.49.0.patch"
+      "minecraft-protocol@1.51.0": "patches/minecraft-protocol@1.49.0.patch"
     }
   },
   "packageManager": "pnpm@9.0.4"

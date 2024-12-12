@@ -17,7 +17,7 @@ RUN pnpm i
 # ENTRYPOINT ["pnpm", "run", "run-all"]
 
 # only for prod
-RUN pnpm run build
+RUN GITHUB_REPOSITORY=zardoy/minecraft-web-client pnpm run build
 
 # ---- Run Stage ----
 FROM node:18-alpine
