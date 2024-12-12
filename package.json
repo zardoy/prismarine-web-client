@@ -142,7 +142,7 @@
     "http-browserify": "^1.7.0",
     "http-server": "^14.1.1",
     "https-browserify": "^1.0.0",
-    "mc-assets": "^0.2.12",
+    "mc-assets": "^0.2.23",
     "minecraft-inventory-gui": "github:zardoy/minecraft-inventory-gui#next",
     "mineflayer": "github:zardoy/mineflayer",
     "mineflayer-pathfinder": "^2.4.4",
