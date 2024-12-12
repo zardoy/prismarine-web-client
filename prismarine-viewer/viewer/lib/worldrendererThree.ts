@@ -37,9 +37,9 @@ export class WorldRendererThree extends WorldRendererCommon {
     super(config)
     this.rendererDevice = String(WorldRendererThree.getRendererInfo(this.renderer))
     this.starField = new StarField(scene)
-    this.holdingBlock = new HoldingBlock(this.scene)
+    this.holdingBlock = new HoldingBlock()
 
-    this.renderUpdateEmitter.on('textureDownloaded', () => {
+    this.renderUpdateEmitter.on('itemsTextureDownloaded', () => {
       if (this.holdingBlock.toBeRenderedItem || true) {
         this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem)
         this.holdingBlock.toBeRenderedItem = undefined
@@ -226,10 +226,10 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   render () {
     tweenJs.update()
-    this.holdingBlock.update(this.camera)
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
     this.renderer.render(this.scene, cam)
+    this.holdingBlock.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
   }
 
   renderSign (position: Vec3, rotation: number, isWall: boolean, isHanging: boolean, blockEntity) {

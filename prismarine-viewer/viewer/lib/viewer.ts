@@ -90,6 +90,7 @@ export class Viewer {
       return new THREE.TextureLoader().loadAsync(this.world.itemsAtlasParser!.latestImage)
     }).then((texture) => {
       this.entities.itemsTexture = texture
+      this.world.renderUpdateEmitter.emit('itemsTextureDownloaded')
     })
   }
 
