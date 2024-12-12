@@ -92,4 +92,7 @@ jobs:
       # - run: git checkout next scripts/githubActions.mjs
       - name: Set deployment alias
         if: ${{ steps.alias.outputs.alias != '' && steps.alias.outputs.alias != 'mcraft.fun' && steps.alias.outputs.alias != 's.mcraft.fun' }}
-        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ steps.alias.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
+        run: |
+          for alias in $(echo ${{ steps.alias.outputs.alias }} | tr "," "\n"); do
+            vercel alias set ${{ steps.deploy.outputs.stdout }} $alias --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
+          done

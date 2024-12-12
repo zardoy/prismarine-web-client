@@ -11,6 +11,7 @@ import itemsAtlasLatest from 'mc-assets/dist/itemsAtlasLatest.png'
 import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
 import { AtlasParser } from 'mc-assets'
 import TypedEmitter from 'typed-emitter'
+import { LineMaterial } from 'three-stdlib'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
@@ -18,6 +19,7 @@ import { defaultMesherConfig, HighestBlockInfo, MesherGeometryOutput } from './m
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
 import { updateStatText } from './ui/newStats'
+import { WorldRendererThree } from './worldrendererThree'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -38,9 +40,14 @@ type CustomTexturesData = {
 }
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
+  // todo
+  @worldCleanup()
+  threejsCursorLineMaterial: LineMaterial
+  @worldCleanup()
   cursorBlock = null as Vec3 | null
   isPlayground = false
   displayStats = true
+  @worldCleanup()
   worldConfig = { minY: 0, worldHeight: 256 }
   // todo need to cleanup
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
@@ -67,6 +74,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     dirty (pos: Vec3, value: boolean): void
     update (/* pos: Vec3, value: boolean */): void
     textureDownloaded (): void
+    itemsTextureDownloaded (): void
     chunkFinished (key: string): void
   }>
   customTexturesDataUrl = undefined as string | undefined
@@ -112,6 +120,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   messagesDelay = 0
   messageDelayCount = 0
 
+  // geometryReceiveCount = {}
+  rendererDevice = '...'
+
   edgeChunks = {} as Record<string, boolean>
   lastAddChunk = null as null | {
     timeout: any
@@ -144,7 +155,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   initWorkers (numWorkers = this.config.numWorkers) {
     // init workers
-    for (let i = 0; i < numWorkers; i++) {
+    for (let i = 0; i < numWorkers + 1; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
       const workerName = 'mesher.js'
       // eslint-disable-next-line node/no-path-concat
@@ -155,6 +166,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         if (!this.active) return
         this.handleWorkerMessage(data)
         if (data.type === 'geometry') {
+          // this.geometryReceiveCount[data.workerIndex] ??= 0
+          // this.geometryReceiveCount[data.workerIndex]++
           this.geometryReceiveCount++
           const geometry = data.geometry as MesherGeometryOutput
           for (const key in geometry.highestBlocks) {
@@ -412,17 +425,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
+    const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
+    const useChangeWorker = !this.sectionsWaiting[key]
     for (const worker of this.workers) {
       worker.postMessage({ type: 'blockUpdate', pos, stateId })
     }
-    this.setSectionDirty(pos)
+    this.setSectionDirty(pos, true, useChangeWorker)
     if (this.neighborChunkUpdates) {
-      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0))
-      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0))
-      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0))
-      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0))
-      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16))
-      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16))
+      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0), true, useChangeWorker)
+      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0), true, useChangeWorker)
+      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0), true, useChangeWorker)
+      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0), true, useChangeWorker)
+      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16), true, useChangeWorker)
+      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16), true, useChangeWorker)
     }
   }
 
@@ -430,11 +445,11 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   messagesQueue = {} as { [workerIndex: string]: any[] }
 
   getWorkerNumber (pos: Vec3) {
-    const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
-    return hash
+    const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length - 1)
+    return hash + 1
   }
 
-  setSectionDirty (pos: Vec3, value = true) { // value false is used for unloading chunks
+  setSectionDirty (pos: Vec3, value = true, useChangeWorker = false) { // value false is used for unloading chunks
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.allChunksFinished = false
     const distance = this.getDistance(pos)
@@ -445,7 +460,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // Dispatch sections to workers based on position
     // This guarantees uniformity accross workers and that a given section
     // is always dispatched to the same worker
-    const hash = this.getWorkerNumber(pos)
+    const hash = useChangeWorker ? 0 : this.getWorkerNumber(pos)
     this.sectionsWaiting.set(key, (this.sectionsWaiting.get(key) ?? 0) + 1)
     this.messagesQueue[hash] ??= []
     this.messagesQueue[hash].push({
@@ -514,5 +529,5 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     console.warn('world destroy is not implemented')
   }
 
-  abstract setHighlightCursorBlock (block: typeof this.cursorBlock): void
+  abstract setHighlightCursorBlock (block: typeof this.cursorBlock, shapePositions?: Array<{ position; width; height; depth }>): void
 }

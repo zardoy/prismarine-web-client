@@ -160,6 +160,7 @@ if (isIphone) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
+viewer.getMineflayerBot = () => bot
 // todo unify
 viewer.entities.getItemUv = (idOrName: number | string) => {
   try {

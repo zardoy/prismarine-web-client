@@ -661,8 +661,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   return attr
 }
 
-export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false, useUnknownBlockModel = true) => {
-  blockProvider = worldBlockProvider(blockstatesModels, blocksAtlas, 'latest')
+export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false, useUnknownBlockModel = true, version = 'latest') => {
+  blockProvider = worldBlockProvider(blockstatesModels, blocksAtlas, version)
   if (world) {
     world.blockCache = {}
   }

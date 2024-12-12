@@ -4,8 +4,9 @@ import * as THREE from 'three'
 
 // wouldn't better to create atlas instead?
 import { Vec3 } from 'vec3'
-import { LineMaterial, Wireframe, LineSegmentsGeometry } from 'three-stdlib'
+import { LineMaterial } from 'three-stdlib'
 import { Entity } from 'prismarine-entity'
+import { WorldRendererCommon } from 'prismarine-viewer/viewer/lib/worldrendererCommon'
 import destroyStage0 from '../assets/destroy_stage_0.png'
 import destroyStage1 from '../assets/destroy_stage_1.png'
 import destroyStage2 from '../assets/destroy_stage_2.png'
@@ -34,7 +35,6 @@ function getViewDirection (pitch, yaw) {
 
 class WorldInteraction {
   ready = false
-  interactionLines: null | { blockPos; mesh } = null
   prevBreakState
   currentDigTime
   prevOnGround
@@ -47,7 +47,6 @@ class WorldInteraction {
   blockBreakMesh: THREE.Mesh
   breakTextures: THREE.Texture[]
   lastDigged: number
-  lineMaterial: LineMaterial
   debugDigStatus: string
 
   oneTimeInit () {
@@ -108,10 +107,10 @@ class WorldInteraction {
     })
 
     beforeRenderFrame.push(() => {
-      if (this.lineMaterial) {
+      if (viewer.world.threejsCursorLineMaterial) {
         const { renderer } = viewer
-        this.lineMaterial.resolution.set(renderer.domElement.width, renderer.domElement.height)
-        this.lineMaterial.dashOffset = performance.now() / 750
+        viewer.world.threejsCursorLineMaterial.resolution.set(renderer.domElement.width, renderer.domElement.height)
+        viewer.world.threejsCursorLineMaterial.dashOffset = performance.now() / 750
       }
     })
   }
@@ -150,7 +149,7 @@ class WorldInteraction {
     const upLineMaterial = () => {
       const inCreative = bot.game.gameMode === 'creative'
       const pixelRatio = viewer.renderer.getPixelRatio()
-      this.lineMaterial = new LineMaterial({
+      viewer.world.threejsCursorLineMaterial = new LineMaterial({
         color: inCreative ? 0x40_80_ff : 0x00_00_00,
         linewidth: Math.max(pixelRatio * 0.7, 1) * 2,
         // dashed: true,
@@ -189,34 +188,6 @@ class WorldInteraction {
     if (!bot.supportFeature('armAnimationBeforeUse')) {
       bot.swingArm('right')
     }
-  }
-
-  updateBlockInteractionLines (blockPos: Vec3 | null, shapePositions?: Array<{ position; width; height; depth }>) {
-    assertDefined(viewer)
-    if (blockPos && this.interactionLines && blockPos.equals(this.interactionLines.blockPos)) {
-      return
-    }
-    if (this.interactionLines !== null) {
-      viewer.scene.remove(this.interactionLines.mesh)
-      this.interactionLines = null
-    }
-    if (blockPos === null) {
-      return
-    }
-
-    const group = new THREE.Group()
-    for (const { position, width, height, depth } of shapePositions ?? []) {
-      const scale = [1.0001 * width, 1.0001 * height, 1.0001 * depth] as const
-      const geometry = new THREE.BoxGeometry(...scale)
-      const lines = new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(geometry))
-      const wireframe = new Wireframe(lines, this.lineMaterial)
-      const pos = blockPos.plus(position)
-      wireframe.position.set(pos.x, pos.y, pos.z)
-      wireframe.computeLineDistances()
-      group.add(wireframe)
-    }
-    viewer.scene.add(group)
-    this.interactionLines = { blockPos, mesh: group }
   }
 
   // todo this shouldnt be done in the render loop, migrate the code to dom events to avoid delays on lags
@@ -359,30 +330,24 @@ class WorldInteraction {
     this.prevOnGround = onGround
 
     // Show cursor
+    const allShapes = [...cursorBlock?.shapes ?? [], ...cursorBlock?.['interactionShapes'] ?? []]
     if (cursorBlock) {
-      const allShapes = [...cursorBlock.shapes, ...cursorBlock['interactionShapes'] ?? []]
-      this.updateBlockInteractionLines(cursorBlock.position, allShapes.map(shape => {
-        return getDataFromShape(shape)
-      }))
-      {
-        // union of all values
-        const breakShape = allShapes.reduce((acc, cur) => {
-          return [
-            Math.min(acc[0], cur[0]),
-            Math.min(acc[1], cur[1]),
-            Math.min(acc[2], cur[2]),
-            Math.max(acc[3], cur[3]),
-            Math.max(acc[4], cur[4]),
-            Math.max(acc[5], cur[5])
-          ]
-        })
-        const { position, width, height, depth } = getDataFromShape(breakShape)
-        this.blockBreakMesh.scale.set(width * 1.001, height * 1.001, depth * 1.001)
-        position.add(cursorBlock.position)
-        this.blockBreakMesh.position.set(position.x, position.y, position.z)
-      }
-    } else {
-      this.updateBlockInteractionLines(null)
+      // BREAK MESH
+      // union of all values
+      const breakShape = allShapes.reduce((acc, cur) => {
+        return [
+          Math.min(acc[0], cur[0]),
+          Math.min(acc[1], cur[1]),
+          Math.min(acc[2], cur[2]),
+          Math.max(acc[3], cur[3]),
+          Math.max(acc[4], cur[4]),
+          Math.max(acc[5], cur[5])
+        ]
+      })
+      const { position, width, height, depth } = getDataFromShape(breakShape)
+      this.blockBreakMesh.scale.set(width * 1.001, height * 1.001, depth * 1.001)
+      position.add(cursorBlock.position)
+      this.blockBreakMesh.position.set(position.x, position.y, position.z)
     }
 
     // Show break animation
@@ -408,7 +373,9 @@ class WorldInteraction {
 
     // Update state
     if (cursorChanged) {
-      viewer.world.setHighlightCursorBlock(cursorBlock?.position ?? null)
+      (viewer.world as WorldRendererCommon).setHighlightCursorBlock(cursorBlock?.position ?? null, allShapes.map(shape => {
+        return getDataFromShape(shape)
+      }))
     }
     this.lastButtons[0] = this.buttons[0]
     this.lastButtons[1] = this.buttons[1]

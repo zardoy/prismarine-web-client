@@ -29,6 +29,8 @@ export class Viewer {
   webgpuWorld: WorldRendererWebgpu
   powerPreference: string | undefined
 
+  getMineflayerBot (): void | Record<string, any> {} // to be overridden
+
   get camera () {
     return this.world.camera
   }
@@ -167,7 +169,7 @@ export class Viewer {
 
   setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number, roll = 0) {
     const cam = this.cameraObjectOverride || this.camera
-    let yOffset = this.playerHeight
+    let yOffset = this.getMineflayerBot()?.entity?.eyeHeight ?? this.playerHeight
     if (this.isSneaking) yOffset -= 0.3
 
     this.world.camera = cam as THREE.PerspectiveCamera
