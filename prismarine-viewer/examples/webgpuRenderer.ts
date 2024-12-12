@@ -965,11 +965,17 @@ export class WebgpuRenderer {
     device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams)
 
     // TODO!
-    renderPassDescriptor.colorAttachments[0].view = this.tempTexture.createView()
+    if (this.rendererParams.godRays) {
+      renderPassDescriptor.colorAttachments[0].view = this.tempTexture.createView()
+      this.volumetricRenderPassDescriptor.colorAttachments[0].view = ctx
+        .getCurrentTexture()
+        .createView()
+    } else {
+      renderPassDescriptor.colorAttachments[0].view = ctx
+        .getCurrentTexture()
+        .createView()
+    }
 
-    this.volumetricRenderPassDescriptor.colorAttachments[0].view = ctx
-      .getCurrentTexture()
-      .createView()
 
     //     renderPassDescriptor.colorAttachments[0].view =
     //     multisampleTexture.createView();

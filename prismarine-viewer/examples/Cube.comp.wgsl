@@ -71,9 +71,9 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
     var pos : vec2u = vec2u(u32((clipX * 0.5 + 0.5) * f32(textureSize.x)),u32((clipY * 0.5 + 0.5) * f32(textureSize.y)));
 
-    // if (linearize_depth_ndc(clipDepth, 0.05, 10000) - 2 > linearize_depth_ndc(textureLoad(depthTexture, vec2u(pos.x, textureSize.y - pos.y), 0), 0.05, 10000)  && !nearby) { 
-    //   return;
-    // }
+    if (linearize_depth_ndc(clipDepth, 0.05, 10000) - 20 > linearize_depth_ndc(textureLoad(depthTexture, vec2u(pos.x, textureSize.y - pos.y), 0), 0.05, 10000)  && !nearby) {
+      return;
+    }
     if (nearby) {
       if (clipX == 1|| clipX == -1) {
 

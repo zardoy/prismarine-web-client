@@ -14,7 +14,8 @@ export const rendererParamsGui = {
   MSAA: true,
   webgpuWorker: {
     qsReload: true
-  }
+  },
+  godRays: true
 }
 
 export type RendererInitParams = GPURequestAdapterOptions & {}
