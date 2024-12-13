@@ -3,6 +3,7 @@
 import { subscribeKey } from 'valtio/utils'
 import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
 import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
+import { WorldRendererWebgpu } from 'prismarine-viewer/viewer/lib/worldrendererWebgpu'
 import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
 import { miscUiState } from './globalState'
@@ -96,6 +97,15 @@ export const watchOptionsAfterViewerInit = () => {
   watchValue(options, o => {
     viewer.powerPreference = o.gpuPreference
   })
+
+  if (viewer.world instanceof WorldRendererWebgpu) {
+    Object.assign(viewer.world.rendererParams, options.webgpuRendererParams)
+    const oldUpdateRendererParams = viewer.world.updateRendererParams.bind(viewer.world)
+    viewer.world.updateRendererParams = (...args) => {
+      oldUpdateRendererParams(...args)
+      Object.assign(options.webgpuRendererParams, viewer.world.rendererParams)
+    }
+  }
 }
 
 let viewWatched = false
