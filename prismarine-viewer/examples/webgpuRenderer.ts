@@ -96,6 +96,7 @@ export class WebgpuRenderer {
   rotationsUniform: GPUBuffer
   earlyZRejectUniform: GPUBuffer
   tileSizeUniform: GPUBuffer
+  clearColorBuffer: GPUBuffer
 
 
   // eslint-disable-next-line max-params
@@ -110,6 +111,11 @@ export class WebgpuRenderer {
   changeBackgroundColor (color: [number, number, number]) {
     const colorRgba = [color[0], color[1], color[2], 1]
     this.renderPassDescriptor.colorAttachments[0].clearValue = colorRgba
+    this.device.queue.writeBuffer(
+      this.clearColorBuffer,
+      0,
+      new Float32Array(colorRgba)
+    )
   }
 
   updateConfig (newParams: RendererParams) {
@@ -346,6 +352,11 @@ export class WebgpuRenderer {
 
     this.cameraComputeUniform = device.createBuffer({
       size: Mat4x4BufferSize,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
+    this.clearColorBuffer = device.createBuffer({
+      size: 4 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
@@ -716,6 +727,10 @@ export class WebgpuRenderer {
           binding: 2,
           resource: this.tempTexture.createView(),
         },
+        {
+          binding: 3,
+          resource: { buffer: this.clearColorBuffer },
+        }
       ]
     })
 
