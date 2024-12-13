@@ -58,7 +58,7 @@ export class Viewer {
   setWorld (worldConfig: typeof defaultWorldRendererConfig = this.world.config) {
     const { version, texturesVersion } = this.world ?? {}
     if (this.world) this.world.destroy()
-    this.webgpuWorld = new WorldRendererWebgpu(worldConfig, { powerPreference: this.powerPreference })
+    this.webgpuWorld = new WorldRendererWebgpu(worldConfig, this.renderer, { powerPreference: this.powerPreference })
     this.world = this.webgpuWorld
     if (version) {
       void this.setVersion(version, texturesVersion)

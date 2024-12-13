@@ -92,16 +92,16 @@ export class ViewerWrapper {
       }
     }
     this.preRender()
-    statsStart()
-    // ios bug: viewport dimensions are updated after the resize event
-    if (this.previousWindowWidth !== window.innerWidth || this.previousWindowHeight !== window.innerHeight) {
-      this.resizeHandler()
-      this.previousWindowWidth = window.innerWidth
-      this.previousWindowHeight = window.innerHeight
-    }
-    viewer.render()
-    this.renderedFps++
-    statsEnd()
+    // statsStart()
+    // // ios bug: viewport dimensions are updated after the resize event
+    // if (this.previousWindowWidth !== window.innerWidth || this.previousWindowHeight !== window.innerHeight) {
+    //   this.resizeHandler()
+    //   this.previousWindowWidth = window.innerWidth
+    //   this.previousWindowHeight = window.innerHeight
+    // }
+    // viewer.render()
+    // this.renderedFps++
+    // statsEnd()
     this.postRender()
   }
 

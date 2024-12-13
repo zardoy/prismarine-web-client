@@ -12,6 +12,7 @@ import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import { MesherGeometryOutput } from './mesher/shared'
 import { addNewStat, addNewStat2, updateStatText } from './ui/newStats'
 import { isMobile } from './simpleUtils'
+import { WorldRendererThree } from './worldrendererThree'
 
 export class WorldRendererWebgpu extends WorldRendererCommon {
   outputFormat = 'webgpu' as const
@@ -34,7 +35,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   rendererDevice = '...'
   powerPreference: string | undefined
 
-  constructor (config: WorldRendererConfig, { powerPreference } = {} as any) {
+  constructor (config: WorldRendererConfig, public webglRenderer: THREE.WebGLRenderer, { powerPreference } = {} as any) {
     super(config)
     this.powerPreference = powerPreference
 
@@ -242,7 +243,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       messageChannel.port2.start()
       await import('../../examples/webgpuRendererWorker')
     }
-    addWebgpuDebugUi(this.worker, playground)
+    addWebgpuDebugUi(this.worker, playground, this.webglRenderer)
     this.webgpuChannel = useWorkerProxy<typeof workerProxyType>(this.worker, true)
     this._readyWorkerPromise.resolve(undefined)
     this.webgpuChannel.canvas(
@@ -342,7 +343,7 @@ class RendererProblemReporter {
   }
 }
 
-const addWebgpuDebugUi = (worker, isPlayground) => {
+const addWebgpuDebugUi = (worker, isPlayground, renderer) => {
   // todo destroy
   const mobile = isMobile()
   const { updateText } = addNewStat('fps', 200, undefined, 0)
@@ -357,7 +358,7 @@ const addWebgpuDebugUi = (worker, isPlayground) => {
     }
     if (e.data.type === 'stats') {
       updateTextGpuStats(e.data.stats)
-      viewer.world.rendererDevice = e.data.device
+      viewer.world.rendererDevice = `${e.data.device} WebGL data: ${WorldRendererThree.getRendererInfo(renderer)}`
     }
   })
 
