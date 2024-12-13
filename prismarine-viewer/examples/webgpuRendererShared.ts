@@ -8,6 +8,7 @@ export const defaultWebgpuRendererParams = {
   webgpuWorker: workerParam ? workerParam === 'true' : !isSafari,
   godRays: false,
   occlusionActive: true,
+  earlyZRejection: false
 }
 
 export const rendererParamsGui = {
@@ -18,6 +19,7 @@ export const rendererParamsGui = {
   },
   godRays: true,
   occlusionActive: true,
+  earlyZRejection: true
 }
 
 export type RendererInitParams = GPURequestAdapterOptions & {}

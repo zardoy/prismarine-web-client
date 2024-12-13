@@ -94,6 +94,7 @@ export class WebgpuRenderer {
   volumetricRenderPassDescriptor: GPURenderPassDescriptor
   tempTexture: GPUTexture
   rotationsUniform: GPUBuffer
+  earlyZRejectUniform: GPUBuffer
 
 
   // eslint-disable-next-line max-params
@@ -312,6 +313,11 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
+    this.earlyZRejectUniform = device.createBuffer({
+      size: 4,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
     this.rotationsUniform = device.createBuffer({
       size: Mat4x4BufferSize * 6,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -416,6 +422,7 @@ export class WebgpuRenderer {
         { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 5, visibility: GPUShaderStage.COMPUTE, texture: { sampleType: 'depth' } },
+        { binding: 6, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
       ],
     })
 
@@ -720,6 +727,10 @@ export class WebgpuRenderer {
           binding: 5,
           resource: this.depthTexture.createView(),
         },
+        {
+          binding: 6,
+          resource: { buffer: this.earlyZRejectUniform },
+        },
       ],
     })
 
@@ -948,7 +959,14 @@ export class WebgpuRenderer {
       ViewProjection
     )
 
+    device.queue.writeBuffer(
+      this.earlyZRejectUniform,
+      0,
+      new Uint32Array([this.rendererParams.earlyZRejection ? 1 : 0])
+    )
+
     const origFov = this.camera.fov
+    if (!this.rendererParams.earlyZRejection) 
     this.camera.fov *= oversize
     this.camera.updateProjectionMatrix()
 

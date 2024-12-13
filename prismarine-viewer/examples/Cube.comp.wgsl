@@ -28,6 +28,7 @@ struct CameraPosition {
 @group(2) @binding(0) var<uniform> uniforms: Uniforms;
 @group(1) @binding(4) var<uniform> cameraPosition: CameraPosition;
 @group(0) @binding(5) var depthTexture: texture_depth_2d;
+@group(0) @binding(6) var<uniform> rejectZ: u32;
 
 fn linearize_depth_ndc(ndc_z: f32, z_near: f32, z_far: f32) -> f32 {
     return z_near * z_far / (z_far - ndc_z * (z_far - z_near));
@@ -71,7 +72,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     }
     var pos : vec2u = vec2u(u32((clipX * 0.5 + 0.5) * f32(textureSize.x)),u32((clipY * 0.5 + 0.5) * f32(textureSize.y)));
     let k = linearize_depth_ndc(clipDepth, 0.05, 10000) ;
-    if (k- 20 > linearize_depth_ndc(textureLoad(depthTexture, vec2u(pos.x, textureSize.y - pos.y), 0), 0.05, 10000)) {
+    if (rejectZ == 1 && k - 20 > linearize_depth_ndc(textureLoad(depthTexture, vec2u(pos.x, textureSize.y - pos.y), 0), 0.05, 10000)) {
       return;
     }
     if (nearby) {
