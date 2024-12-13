@@ -65,7 +65,7 @@ fn main(
     }
 
 
-    col *= (1. - dot(tuv, tuv)*.75);
+    //col *= (1. - dot(tuv, tuv)*.75);
 
     if (temp == 1.0) {
         return clearColor * sqrt(smoothstep(0.0, 1.0, col));
