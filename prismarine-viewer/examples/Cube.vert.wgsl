@@ -6,6 +6,7 @@ struct Cube {
 struct Chunk{
   x : i32,
   z : i32,
+  opacity: i32
 }
 
 
@@ -22,7 +23,8 @@ struct VertexOutput {
   @builtin(position) Position: vec4f,
   @location(0) fragUV: vec2f,
   @location(1) @interpolate(flat) TextureIndex: f32,
-  @location(2) @interpolate(flat) ColorBlend: vec3f
+  @location(2) @interpolate(flat) ColorBlend: vec3f,
+  @location(3) @interpolate(flat) ChunkOpacity: f32
 }
 @group(1) @binding(0) var<storage, read> cubes: array<Cube>;
 @group(0) @binding(0) var<uniform> ViewProjectionMatrix: mat4x4<f32>;
@@ -94,6 +96,7 @@ fn main(
   var output: VertexOutput;
   output.Position = ViewProjectionMatrix * (position * normal + cube_position);
   output.fragUV = Uv;
+  output.ChunkOpacity = f32(chunk.opacity) / 255;
   output.TextureIndex = f32(textureIndex);
   output.ColorBlend = colorBlend;
   return output;

@@ -6,13 +6,14 @@
 fn main(
   @location(0) fragUV: vec2f,
   @location(1) @interpolate(flat) TextureIndex: f32,
-  @location(2) @interpolate(flat) ColorBlend: vec3f
+  @location(2) @interpolate(flat) ColorBlend: vec3f,
+   @location(3) @interpolate(flat) ChunkOpacity: f32
 ) -> @location(0) vec4f {
   let textureSize: vec2<f32> = vec2<f32>(textureDimensions(myTexture));
   let tilesPerTexture: vec2<f32> = textureSize / tileSize;
   let pixelColor = textureSample(myTexture, mySampler, fragUV / tilesPerTexture + vec2f(trunc(TextureIndex % tilesPerTexture.y), trunc(TextureIndex / tilesPerTexture.x)) / tilesPerTexture);
   // return vec4f(pixelColor.rgb * ColorBlend / 255, pixelColor.a); // Set alpha to 1.0 for full opacity
-  return vec4f(pixelColor.rgb * ColorBlend / 255, 1.0); // Set alpha to 1.0 for full opacity
+  return vec4f(pixelColor.rgb * ColorBlend / 255, 1.0 * ChunkOpacity); // Set alpha to 1.0 for full opacity
 //   only gray:
 //   let t = textureSample(myTexture, mySampler, fragUV / tilesPerTexture + vec2f(trunc(TextureIndex % tilesPerTexture.y), trunc(TextureIndex / tilesPerTexture.x)) / tilesPerTexture);
 //   // return vec4f(pixelColor.rgb * ColorBlend / 255, pixelColor.a); // Set alpha to 1.0 for full opacity

@@ -5,6 +5,7 @@ struct Cube {
 struct Chunk {
   x: i32,
   z: i32,
+  opacity: i32,
 }
 
 

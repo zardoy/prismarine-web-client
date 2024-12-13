@@ -902,13 +902,14 @@ export class WebgpuRenderer {
     }
     const chunksCount = chunks.length
 
-    const chunksBuffer = new Int32Array(chunksCount * 2)
+    const chunksBuffer = new Int32Array(chunksCount * 3)
     let totalFromChunks = 0
     for (let i = 0; i < chunksCount; i++) {
-      const offset = i * 2
+      const offset = i * 3
       const { x, z, length } = chunks[i]!
       chunksBuffer[offset] = x
       chunksBuffer[offset + 1] = z
+      chunksBuffer[offset + 2] = 255
       const cubesCount = length
       totalFromChunks += cubesCount
     }
