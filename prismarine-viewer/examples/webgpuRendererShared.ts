@@ -22,6 +22,9 @@ export const rendererParamsGui = {
   earlyZRejection: true
 }
 
+export const WEBGPU_FULL_TEXTURES_LIMIT = 1024
+export const WEBGPU_HEIGHT_LIMIT = 1024
+
 export type RendererInitParams = GPURequestAdapterOptions & {}
 
 export type RendererParams = typeof defaultWebgpuRendererParams

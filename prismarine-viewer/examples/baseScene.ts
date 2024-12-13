@@ -210,7 +210,7 @@ export class BasePlaygroundScene {
     renderer.setSize(window.innerWidth, window.innerHeight)
 
     // Create viewer
-    const viewer = new Viewer(renderer, { numWorkers: 6, showChunkBorders: false, })
+    const viewer = new Viewer(renderer, { numWorkers: 6, showChunkBorders: false, isPlayground: true })
     viewer.setFirstPersonCamera(null, viewer.camera.rotation.y, viewer.camera.rotation.x)
     window.viewer = viewer
     viewer.world.blockstatesModels = blockstatesModels
