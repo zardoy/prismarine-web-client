@@ -50,14 +50,14 @@ export class WorldRendererThree extends WorldRendererCommon {
   }
 
   onHandItemSwitch (item: HandItemBlock | undefined) {
+    item ??= {
+      type: 'hand',
+    }
     if (!this.currentTextureImage) {
       this.holdingBlock.toBeRenderedItem = item
       return
     }
-    void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, {
-      name: 'furnace',
-      properties: {},
-    })
+    void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
   }
 
   changeHandSwingingState (isAnimationPlaying: boolean) {

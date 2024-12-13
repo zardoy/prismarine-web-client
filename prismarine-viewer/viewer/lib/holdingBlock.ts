@@ -1,14 +1,15 @@
 import * as THREE from 'three'
 import * as tweenJs from '@tweenjs/tween.js'
 import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
-import GUI from 'lil-gui'
+import { GUI } from 'lil-gui'
 import { getThreeBlockModelGroup, renderBlockThree, setBlockPosition } from './mesher/standaloneRenderer'
 import { getMyHand } from './hand'
 
 export type HandItemBlock = {
-  name
-  properties
+  name?
+  properties?
   type: 'block' | 'item' | 'hand'
+  id?: number
 }
 
 export default class HoldingBlock {
@@ -29,6 +30,9 @@ export default class HoldingBlock {
   toBeRenderedItem: HandItemBlock | undefined
   isSwinging = false
   nextIterStopCallbacks: Array<() => void> | undefined
+  rightSide = true
+
+  debug = {} as Record<string, any>
 
   constructor () {
     this.initCameraGroup()
@@ -116,14 +120,14 @@ export default class HoldingBlock {
       origPosition ??= object.position
       return {
         position: {
-          y: origPosition.y - window.yFinal,
+          y: origPosition.y - (window.yFinal ?? 0.15),
           z: origPosition.z - window.zFinal,
           x: origPosition.x - window.xFinal,
         },
         rotation: {
-          x: THREE.MathUtils.degToRad(window.xRotationFinal || -10),
-          y: THREE.MathUtils.degToRad(window.yRotationFinal || 30),
-          z: THREE.MathUtils.degToRad(window.zRotationFinal || -36),
+          x: THREE.MathUtils.degToRad(window.xRotationFinal || -14.7),
+          y: THREE.MathUtils.degToRad(window.yRotationFinal || 33.95),
+          z: THREE.MathUtils.degToRad(window.zRotationFinal || -28),
         },
         object
       }
@@ -153,7 +157,6 @@ export default class HoldingBlock {
 
     const scene = new THREE.Scene()
     scene.add(this.cameraGroup)
-    this.cameraGroup.renderOrder = 10_000
     // if (this.camera.aspect !== originalCamera.aspect) {
     //   this.camera.aspect = originalCamera.aspect
     //   this.camera.updateProjectionMatrix()
@@ -161,9 +164,21 @@ export default class HoldingBlock {
     this.updateCameraGroup()
     scene.add(ambientLight.clone())
     scene.add(directionalLight.clone())
+
+    const viewerSize = renderer.getSize(new THREE.Vector2())
+    const minSize = Math.min(viewerSize.width, viewerSize.height)
+
     renderer.autoClear = false
     renderer.clearDepth()
+    if (this.rightSide) {
+      const x = viewerSize.width - minSize
+      // if (x) x -= x / 4
+      renderer.setViewport(x, 0, minSize, minSize)
+    } else {
+      renderer.setViewport(0, 0, minSize, minSize)
+    }
     renderer.render(scene, this.camera)
+    renderer.setViewport(0, 0, viewerSize.width, viewerSize.height)
   }
 
   // worldTest () {
@@ -212,15 +227,17 @@ export default class HoldingBlock {
     this.cameraGroup.position.copy(camera.position)
     this.cameraGroup.rotation.copy(camera.rotation)
 
-    const viewerSize = viewer.renderer.getSize(new THREE.Vector2())
-    const aspect = viewerSize.width / viewerSize.height
+    // const viewerSize = viewer.renderer.getSize(new THREE.Vector2())
+    // const aspect = viewerSize.width / viewerSize.height
+    const aspect = 1
 
 
     // Adjust the position based on the aspect ratio
-    const { position, scale: scaleData } = getHandHeld3d(this.lastHeldItem?.type ?? 'hand')
+    const { position, scale: scaleData } = this.getHandHeld3d()
     const distance = -position.z
+    const side = this.rightSide ? 1 : -1
     this.objectOuterGroup.position.set(
-      distance * position.x * aspect,
+      distance * position.x * aspect * side,
       distance * position.y,
       -distance
     )
@@ -230,16 +247,16 @@ export default class HoldingBlock {
     this.objectOuterGroup.scale.set(scale, scale, scale)
   }
 
-  async initHandObject (material: THREE.Material, blockstatesModels: any, blocksAtlases: any, block?: HandItemBlock) {
+  async initHandObject (material: THREE.Material, blockstatesModels: any, blocksAtlases: any, handItem?: HandItemBlock) {
     let animatingCurrent = false
-    if (!this.swingAnimation && !this.blockSwapAnimation && this.isDifferentItem(block)) {
+    if (!this.swingAnimation && !this.blockSwapAnimation && this.isDifferentItem(handItem)) {
       animatingCurrent = true
       await this.playBlockSwapAnimation()
       this.holdingBlock?.removeFromParent()
       this.holdingBlock = undefined
     }
-    this.lastHeldItem = block
-    if (!block) {
+    this.lastHeldItem = handItem
+    if (!handItem) {
       this.holdingBlock?.removeFromParent()
       this.holdingBlock = undefined
       this.swingAnimation = undefined
@@ -247,18 +264,22 @@ export default class HoldingBlock {
       return
     }
     const blockProvider = worldBlockProvider(blockstatesModels, blocksAtlases, 'latest')
-    const models = blockProvider.getAllResolvedModels0_1(block, true)
-    // const type: 'block' | 'item' | 'hand' = 'block'
-    // const blockInner = getThreeBlockModelGroup(material, models, undefined, 'plains', loadedData)
-    // const type: 'block' | 'item' | 'hand' = 'item'
-    // const { mesh: itemMesh } = viewer.entities.getItemMesh({
-    //   itemId: 532,
-    // })!
-    // itemMesh.position.set(0.5, 0.5, 0.5)
-    // const blockInner = itemMesh
-    const blockInner = await getMyHand()
-    const type = 'hand'
-    this.lastHeldItem!.type = type
+    let blockInner
+    if (handItem.type === 'block') {
+      const models = blockProvider.getAllResolvedModels0_1({
+        name: handItem.name,
+        properties: handItem.properties ?? {}
+      }, true)
+      blockInner = getThreeBlockModelGroup(material, models, undefined, 'plains', loadedData)
+    } else if (handItem.type === 'item') {
+      const { mesh: itemMesh } = viewer.entities.getItemMesh({
+        itemId: handItem.id,
+      })!
+      itemMesh.position.set(0.5, 0.5, 0.5)
+      blockInner = itemMesh
+    } else {
+      blockInner = await getMyHand()
+    }
     blockInner.name = 'holdingBlock'
     const blockOuterGroup = new THREE.Group()
     this.holdingBlockInnerGroup.removeFromParent()
@@ -279,107 +300,113 @@ export default class HoldingBlock {
     this.objectOuterGroup.add(this.objectInnerGroup)
 
     this.cameraGroup.add(this.objectOuterGroup)
-    const rotationDeg = getHandHeld3d(type).rotation
+    const rotationDeg = this.getHandHeld3d().rotation
     let origPosition
     const setRotation = () => {
-      // const final = this.getFinalSwingPositionRotation(origPosition)
-      // origPosition ??= final.object.position.clone()
-      // if (window.displayFinal) {
-      //   Object.assign(final.object.position, final.position)
-      //   Object.assign(final.object.rotation, final.rotation)
-      // }
+      const final = this.getFinalSwingPositionRotation(origPosition)
+      origPosition ??= final.object.position.clone()
+      if (this.debug.displayFinal) {
+        Object.assign(final.object.position, final.position)
+        Object.assign(final.object.rotation, final.rotation)
+      } else if (this.debug.displayFinal === false) {
+        final.object.rotation.set(0, 0, 0)
+      }
 
       this.holdingBlock!.rotation.x = THREE.MathUtils.degToRad(rotationDeg.x)
       this.holdingBlock!.rotation.y = THREE.MathUtils.degToRad(rotationDeg.y)
       this.holdingBlock!.rotation.z = THREE.MathUtils.degToRad(rotationDeg.z)
       this.objectOuterGroup.rotation.y = THREE.MathUtils.degToRad(rotationDeg.yOuter)
     }
-    const gui = new GUI()
-    gui.add(rotationDeg, 'x', -180, 180, 0.1)
-    gui.add(rotationDeg, 'y', -180, 180, 0.1)
-    gui.add(rotationDeg, 'z', -180, 180, 0.1)
-    gui.add(rotationDeg, 'yOuter', -180, 180, 0.1)
-    Object.assign(window, { xFinal: 0, yFinal: 0, zFinal: 0, xRotationFinal: 0, yRotationFinal: 0, zRotationFinal: 0, displayFinal: true })
-    gui.add(window, 'xFinal', -10, 10, 0.05)
-    gui.add(window, 'yFinal', -10, 10, 0.05)
-    gui.add(window, 'zFinal', -10, 10, 0.05)
-    gui.add(window, 'xRotationFinal', -180, 180, 0.05)
-    gui.add(window, 'yRotationFinal', -180, 180, 0.05)
-    gui.add(window, 'zRotationFinal', -180, 180, 0.05)
-    gui.add(window, 'displayFinal')
-    gui.onChange(setRotation)
+    // const gui = new GUI()
+    // gui.add(rotationDeg, 'x', -180, 180, 0.1)
+    // gui.add(rotationDeg, 'y', -180, 180, 0.1)
+    // gui.add(rotationDeg, 'z', -180, 180, 0.1)
+    // gui.add(rotationDeg, 'yOuter', -180, 180, 0.1)
+    // Object.assign(window, { xFinal: 0, yFinal: 0, zFinal: 0, xRotationFinal: 0, yRotationFinal: 0, zRotationFinal: 0, displayFinal: true })
+    // gui.add(window, 'xFinal', -10, 10, 0.05)
+    // gui.add(window, 'yFinal', -10, 10, 0.05)
+    // gui.add(window, 'zFinal', -10, 10, 0.05)
+    // gui.add(window, 'xRotationFinal', -180, 180, 0.05)
+    // gui.add(window, 'yRotationFinal', -180, 180, 0.05)
+    // gui.add(window, 'zRotationFinal', -180, 180, 0.05)
+    // gui.add(window, 'displayFinal')
+    // gui.onChange(setRotation)
     setRotation()
 
     if (animatingCurrent) {
       await this.playBlockSwapAnimation()
     }
   }
-}
 
-const getHandHeld3d = (type: 'block' | 'item' | 'hand') => {
-  let scale = type === 'item' ? 0.68 : 0.45
+  getHandHeld3d () {
+    const type = this.lastHeldItem?.type ?? 'hand'
+    const { debug } = this
 
-  const position = {
-    x: window.x ?? 0.4,
-    y: window.y ?? -0.7,
-    z: -0.45
-  }
+    let scale = type === 'item' ? 0.68 : 0.45
 
-  if (type === 'item') {
-    position.x = 0.1
-    // position.y -= 3.2 / 10
-    // position.z += 1.13 / 10
-  }
-
-  if (type === 'hand') {
-    // position.x = viewer.camera.aspect > 1 ? 0.7 : 1.1
-    scale = 0.8
-  }
-
-  const rotations = {
-    block: {
-      x: 0,
-      y: -45 + 90,
-      z: 0,
-      yOuter: 0
-    },
-    // hand: {
-    //   x: 166.7,
-    //   // y: -180,
-    //   y: -165.2,
-    //   // z: -156.3,
-    //   z: -134.2,
-    //   yOuter: -81.1
-    // },
-    hand: {
-      x: -36.8,
-      // y: 25.1
-      y: 40,
-      z: -36.8,
-      yOuter: 0
-    },
-    // item: {
-    //   x: -174,
-    //   y: 47.3,
-    //   z: -134.2,
-    //   yOuter: -41.2
-    // }
-    item: {
-      // x: -174,
-      // y: 47.3,
-      // z: -134.2,
-      // yOuter: -41.2
-      x: 0,
-      // y: -90, // todo thats the correct one but we don't make it look too cheap because of no depth
-      y: -70,
-      z: window.z ?? 25,
-      yOuter: 0
+    const position = {
+      x: debug.x ?? 0.4,
+      y: debug.y ?? -0.7,
+      z: -0.45
     }
-  }
 
-  return {
-    rotation: rotations[type],
-    position,
-    scale
+    if (type === 'item') {
+      position.x = -0.05
+      // position.y -= 3.2 / 10
+      // position.z += 1.13 / 10
+    }
+
+    if (type === 'hand') {
+      // position.x = viewer.camera.aspect > 1 ? 0.7 : 1.1
+      position.y = -0.8
+      scale = 0.8
+    }
+
+    const rotations = {
+      block: {
+        x: 0,
+        y: -45 + 90,
+        z: 0,
+        yOuter: 0
+      },
+      // hand: {
+      //   x: 166.7,
+      //   // y: -180,
+      //   y: -165.2,
+      //   // z: -156.3,
+      //   z: -134.2,
+      //   yOuter: -81.1
+      // },
+      hand: {
+        x: -32.4,
+        // y: 25.1
+        y: 42.8,
+        z: -41.3,
+        yOuter: 0
+      },
+      // item: {
+      //   x: -174,
+      //   y: 47.3,
+      //   z: -134.2,
+      //   yOuter: -41.2
+      // }
+      item: {
+        // x: -174,
+        // y: 47.3,
+        // z: -134.2,
+        // yOuter: -41.2
+        x: 0,
+        // y: -90, // todo thats the correct one but we don't make it look too cheap because of no depth
+        y: -70,
+        z: window.z ?? 25,
+        yOuter: 0
+      }
+    }
+
+    return {
+      rotation: rotations[type],
+      position,
+      scale
+    }
   }
 }

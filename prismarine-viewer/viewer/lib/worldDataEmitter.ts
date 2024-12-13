@@ -120,7 +120,8 @@ export class WorldDataEmitter extends EventEmitter {
         const block = loadedData.blocksByName[newItem.name]
         // todo clean types
         const blockProperties = block ? new window.PrismarineBlock(block.id, 'void', newItem.metadata).getProperties() : {}
-        viewer.world.onHandItemSwitch({ name: newItem.name, properties: blockProperties })
+        // todo item props
+        viewer.world.onHandItemSwitch({ name: newItem.name, properties: blockProperties, id: newItem.type, type: block ? 'block' : 'item', })
       },
     } satisfies Partial<BotEvents>
     this.eventListeners.heldItemChanged()
