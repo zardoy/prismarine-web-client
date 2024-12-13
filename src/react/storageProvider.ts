@@ -2,6 +2,7 @@ import { CustomCommand } from './KeybindingsCustom'
 
 type StorageData = {
   customCommands: Record<string, CustomCommand>
+  modsAutoUpdateLastCheck: number
   // ...
 }
 

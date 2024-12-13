@@ -49,6 +49,9 @@ const defaultOptions = {
   useVersionsTextures: 'latest',
   serverResourcePacks: 'prompt' as 'prompt' | 'always' | 'never',
   handDisplay: false,
+  modsSupport: false,
+  modsAutoUpdate: 'check' as 'check' | 'never' | 'always',
+  modsUpdatePeriodCheck: 24, // hours
 
   // antiAliasing: false,
 

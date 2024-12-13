@@ -45,6 +45,7 @@ import SignInMessageProvider from './react/SignInMessageProvider'
 import BookProvider from './react/BookProvider'
 import { options } from './optionsStorage'
 import BossBarOverlayProvider from './react/BossBarOverlayProvider'
+import ModsPage from './react/ModsPage'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -188,6 +189,7 @@ const App = () => {
         <NotificationProvider />
         <TouchAreasControlsProvider />
         <SignInMessageProvider />
+        <ModsPage />
         <NoModalFoundProvider />
         {/* <GameHud>
         </GameHud> */}

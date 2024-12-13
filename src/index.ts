@@ -103,6 +103,7 @@ import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
+import { appStartup } from './clientMods'
 
 window.debug = debug
 window.THREE = THREE
@@ -1068,3 +1069,4 @@ if (initialLoader) {
 window.pageLoaded = true
 
 void possiblyHandleStateVariable()
+void appStartup()

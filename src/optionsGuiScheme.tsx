@@ -12,6 +12,7 @@ import { openFilePicker, resetLocalStorageWithoutWorld } from './browserfs'
 import { completeTexturePackInstall, getResourcePackNames, resourcePackState, uninstallTexturePack } from './resourcePack'
 import { downloadPacketsReplay, packetsReplaceSessionState } from './packetsReplay'
 import { showOptionsModal } from './react/SelectOption'
+import { modsUpdateStatus } from './clientMods'
 
 export const guiOptionsScheme: {
   [t in OptionsGroupType]: Array<{ [K in keyof AppOptions]?: Partial<OptionMeta<AppOptions[K]>> } & { custom? }>
@@ -199,6 +200,12 @@ export const guiOptionsScheme: {
     {
       custom () {
         return <Button label='Advanced...' onClick={() => openOptionsMenu('advanced')} inScreen />
+      },
+    },
+    {
+      custom () {
+        const modsUpdateSnapshot = useSnapshot(modsUpdateStatus)
+        return <Button label={`Client Mods: ${Object.keys(window.loadedMods ?? {}).length} (${Object.keys(modsUpdateSnapshot).length})}`} onClick={() => showModal({ reactType: 'mods' })} inScreen />
       },
     },
     {
