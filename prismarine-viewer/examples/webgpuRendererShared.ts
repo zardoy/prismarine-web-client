@@ -7,7 +7,7 @@ export const defaultWebgpuRendererParams = {
   cameraOffset: [0, 0, 0] as [number, number, number],
   webgpuWorker: workerParam ? workerParam === 'true' : !isSafari,
   godRays: false,
-  occlusion: true
+  occlusionActive: true,
 }
 
 export const rendererParamsGui = {
@@ -17,7 +17,7 @@ export const rendererParamsGui = {
     qsReload: true
   },
   godRays: true,
-  occlusion: true
+  occlusionActive: true,
 }
 
 export type RendererInitParams = GPURequestAdapterOptions & {}

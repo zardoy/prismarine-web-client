@@ -29,28 +29,7 @@ struct VertexOutput {
 @group(0) @binding(3) var<storage, read> models: array<CubeModel>;
 @group(1) @binding(1) var<storage, read> visibleCubes: array<CubePointer>;
 @group(1) @binding(2) var<storage, read> chunks : array<Chunk>;
-
-fn rotationX(angle: f32) -> mat4x4<f32> {
-    let c = cos(angle);
-    let s = sin(angle);
-    return mat4x4<f32>(
-        vec4<f32>(1.0, 0.0, 0.0, 0.0),
-        vec4<f32>(0.0, c, -s, 0.0),
-        vec4<f32>(0.0, s, c, 0.0),
-        vec4<f32>(0.0, 0.0, 0.0, 1.0),
-    );
-}
-
-fn rotationY(angle: f32) -> mat4x4<f32> {
-    let c = cos(angle);
-    let s = sin(angle);
-    return mat4x4<f32>(
-        vec4<f32>(c, 0.0, s, 0.0),
-        vec4<f32>(0.0, 1.0, 0.0, 0.0),
-        vec4<f32>(-s, 0.0, c, 0.0),
-        vec4<f32>(0.0, 0.0, 0.0, 1.0),
-    );
-}
+@group(0) @binding(4) var<uniform> rotatations: array<mat4x4<f32>, 6>;
 
 @vertex
 fn main(
@@ -82,37 +61,32 @@ fn main(
 
   var normal : mat4x4<f32>;
   var Uv = vec2(uv.x, (1.0 - uv.y));
+  normal = rotatations[normalIndex];
   switch (normalIndex) {
     case 0:
     {
        Uv = vec2((1.0f-uv.x), (1.0 - uv.y));
-       normal = rotationX(radians(-90f));
        textureIndex = models[modelIndex].textureIndex123 & 1023;
     }
     case 1:
     {
-      normal = rotationX(radians(90f));
       textureIndex = (models[modelIndex].textureIndex123 >> 10) & 1023;
     }
     case 2:
     {
-      normal = rotationX(radians(0f));
       textureIndex = (models[modelIndex].textureIndex123 >> 20) & 1023;
     }
     case 3:
     {
       Uv = uv;
-      normal = rotationX(radians(180f));
       textureIndex = models[modelIndex].textureIndex456 & 1023;
     }
     case 4:
     {
-      normal = rotationY(radians(90f));
       textureIndex = (models[modelIndex].textureIndex456 >> 10) & 1023;
     }
     case 5, default:
     {
-     normal = rotationY(radians(-90f));
      textureIndex = (models[modelIndex].textureIndex456 >> 20) & 1023;
     }
   }

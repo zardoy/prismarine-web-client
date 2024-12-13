@@ -93,6 +93,7 @@ export class WebgpuRenderer {
   depthTextureAnother: GPUTexture
   volumetricRenderPassDescriptor: GPURenderPassDescriptor
   tempTexture: GPUTexture
+  rotationsUniform: GPUBuffer
 
 
   // eslint-disable-next-line max-params
@@ -310,6 +311,26 @@ export class WebgpuRenderer {
       size: Mat4x4BufferSize,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
+
+    this.rotationsUniform = device.createBuffer({
+      size: Mat4x4BufferSize * 6,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
+    const matrixData = new Float32Array([
+      ...new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(90)).toArray(),
+      ...new THREE.Matrix4().makeRotationX(THREE.MathUtils.degToRad(-90)).toArray(),
+      ...new THREE.Matrix4().makeRotationY(THREE.MathUtils.degToRad(0)).toArray(),
+      ...new THREE.Matrix4().makeRotationY(THREE.MathUtils.degToRad(180)).toArray(),
+      ...new THREE.Matrix4().makeRotationY(THREE.MathUtils.degToRad(-90)).toArray(),
+      ...new THREE.Matrix4().makeRotationY(THREE.MathUtils.degToRad(90)).toArray(),
+    ])
+
+    device.queue.writeBuffer(
+      this.rotationsUniform,
+      0,
+      matrixData
+    )
 
     this.cameraComputeUniform = device.createBuffer({
       size: Mat4x4BufferSize,
@@ -588,6 +609,12 @@ export class WebgpuRenderer {
           resource: {
             buffer: this.modelsBuffer
           },
+        },
+        {
+          binding: 4,
+          resource: {
+            buffer: this.rotationsUniform
+          }
         }
       ],
     })
@@ -634,6 +661,12 @@ export class WebgpuRenderer {
           resource: {
             buffer: this.modelsBuffer
           },
+        },
+        {
+          binding: 4,
+          resource: {
+            buffer: this.rotationsUniform
+          }
         }
       ],
     })
@@ -962,7 +995,7 @@ export class WebgpuRenderer {
     //   this.multisampleTexture = multisampleTexture
     // }
 
-    
+
 
     // TODO!
     if (this.rendererParams.godRays) {
@@ -987,9 +1020,9 @@ export class WebgpuRenderer {
 
     this.commandEncoder = device.createCommandEncoder()
     //this.commandEncoder.clearBuffer(this.occlusionTexture)
-    
+
     //this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
-    if (this.rendererParams.occlusion) {
+    if (this.rendererParams.occlusionActive) {
       this.commandEncoder.clearBuffer(this.occlusionTexture)
       this.commandEncoder.clearBuffer(this.visibleCubesBuffer)
       device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams)
@@ -999,7 +1032,7 @@ export class WebgpuRenderer {
     device.queue.writeBuffer(this.textureSizeBuffer, 0, textureSize)
 
     if (this.realNumberOfCubes) {
-      if (this.rendererParams.occlusion) {
+      if (this.rendererParams.occlusionActive) {
         {
           const computePass = this.commandEncoder.beginComputePass()
           computePass.label = 'Frustrum/Occluision Culling'
@@ -1021,6 +1054,9 @@ export class WebgpuRenderer {
           computePass.setBindGroup(2, this.textureSizeBindGroup)
           computePass.dispatchWorkgroups(Math.ceil(this.canvas.width / 16), Math.ceil(this.canvas.height / 16))
           computePass.end()
+          if (!this.indirectDrawBufferMapBeingUsed) {
+            this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
+          }
           device.queue.submit([this.commandEncoder.finish()])
         }
       }
@@ -1041,9 +1077,6 @@ export class WebgpuRenderer {
         }
         renderPass.end()
 
-        if (!this.indirectDrawBufferMapBeingUsed) {
-          this.commandEncoder.copyBufferToBuffer(this.indirectDrawBuffer, 0, this.indirectDrawBufferMap, 0, 16)
-        }
 
         device.queue.submit([this.commandEncoder.finish()])
       }
