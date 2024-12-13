@@ -56,6 +56,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   active = false
 
   version = undefined as string | undefined
+  // #region CHUNK & SECTIONS TRACKING
   @worldCleanup()
   loadedChunks = {} as Record<string, boolean> // data is added for these chunks and they might be still processing
 
@@ -63,11 +64,15 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   finishedChunks = {} as Record<string, boolean> // these chunks are fully loaded into the world (scene)
 
   @worldCleanup()
+  finishedSections = {} as Record<string, boolean> // these sections are fully loaded into the world (scene)
+
+  @worldCleanup()
   // loading sections (chunks)
   sectionsWaiting = new Map<string, number>()
 
   @worldCleanup()
   queuedChunks = new Set<string>()
+  // #endregion
 
   @worldCleanup()
   renderUpdateEmitter = new EventEmitter() as unknown as TypedEmitter<{
@@ -183,6 +188,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           if (!this.sectionsWaiting.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
           this.sectionsWaiting.set(data.key, this.sectionsWaiting.get(data.key)! - 1)
           if (this.sectionsWaiting.get(data.key) === 0) this.sectionsWaiting.delete(data.key)
+          this.finishedSections[data.key] = true
 
           const chunkCoords = data.key.split(',').map(Number)
           if (this.loadedChunks[`${chunkCoords[0]},${chunkCoords[2]}`]) { // ensure chunk data was added, not a neighbor chunk update
@@ -412,6 +418,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
       this.setSectionDirty(new Vec3(x, y, z), false)
+      this.finishedSections[`${x},${y},${z}`] = false
     }
     // remove from highestBlocks
     const startX = Math.floor(x / 16) * 16
@@ -426,26 +433,30 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
-    const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
-    const useChangeWorker = !this.sectionsWaiting[key]
     for (const worker of this.workers) {
       worker.postMessage({ type: 'blockUpdate', pos, stateId })
     }
-    this.setSectionDirty(pos, true, useChangeWorker)
+    this.setSectionDirty(pos, true, true)
     if (this.neighborChunkUpdates) {
-      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0), true, useChangeWorker)
-      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0), true, useChangeWorker)
-      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0), true, useChangeWorker)
-      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0), true, useChangeWorker)
-      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16), true, useChangeWorker)
-      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16), true, useChangeWorker)
+      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0), true, true)
+      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0), true, true)
+      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0), true, true)
+      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0), true, true)
+      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16), true, true)
+      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16), true, true)
     }
   }
 
   queueAwaited = false
   messagesQueue = {} as { [workerIndex: string]: any[] }
 
-  getWorkerNumber (pos: Vec3) {
+  getWorkerNumber (pos: Vec3, updateAction = false) {
+    if (updateAction) {
+      const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
+      const useChangeWorker = !this.sectionsWaiting[key]
+      if (useChangeWorker) return 0
+    }
+
     const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length - 1)
     return hash + 1
   }
@@ -461,7 +472,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // Dispatch sections to workers based on position
     // This guarantees uniformity accross workers and that a given section
     // is always dispatched to the same worker
-    const hash = useChangeWorker ? 0 : this.getWorkerNumber(pos)
+    const hash = this.getWorkerNumber(pos, useChangeWorker)
     this.sectionsWaiting.set(key, (this.sectionsWaiting.get(key) ?? 0) + 1)
     this.messagesQueue[hash] ??= []
     this.messagesQueue[hash].push({

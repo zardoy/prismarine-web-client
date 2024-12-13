@@ -21,10 +21,8 @@ export class WorldDataEmitter extends EventEmitter {
   private readonly lastPos: Vec3
   private eventListeners: Record<string, any> = {}
   private readonly emitter: WorldDataEmitter
-  keepChunksDistance = 0
   addWaitTime = 1
   _handDisplay = false
-  isPlayground = false
   get handDisplay () {
     return this._handDisplay
   }
@@ -32,6 +30,10 @@ export class WorldDataEmitter extends EventEmitter {
     this._handDisplay = newVal
     this.eventListeners.heldItemChanged?.()
   }
+
+  /* config */ keepChunksDistance = 0
+  /* config */ isPlayground = false
+  /* config */ allowPositionUpdate = true
 
   constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
@@ -236,7 +238,7 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async updatePosition (pos: Vec3, force = false) {
-    return
+    if (!this.allowPositionUpdate) return
     const [lastX, lastZ] = chunkPos(this.lastPos)
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {

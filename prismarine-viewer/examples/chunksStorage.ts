@@ -223,6 +223,7 @@ export class ChunksStorage {
 
     this.replaceBlocksData(start, newData)
     this.requestRangeUpdate(start, start + newData.length)
+    return chunkIndex
   }
 
   requestRangeUpdate (start: number, end: number) {

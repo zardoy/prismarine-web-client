@@ -185,8 +185,11 @@ export const workerProxyType = createWorkerProxy({
       this.addBlocksSection(value, key)
     }
   },
-  addBlocksSection (tiles: Record<string, BlockType>, key: string, updateData = true) {
-    chunksStorage.addChunk(tiles, key)
+  addBlocksSection (tiles: Record<string, BlockType>, key: string, animate = true) {
+    const index = chunksStorage.addChunk(tiles, key)
+    if (animate && webgpuRenderer) {
+      webgpuRenderer.chunksFadeAnimationController.addIndex(`${index}`)
+    }
   },
   addBlocksSectionDone () {
   },
@@ -195,7 +198,11 @@ export const workerProxyType = createWorkerProxy({
     void webgpuRenderer.updateTexture(imageBlob)
   },
   removeBlocksSection (key) {
-    // chunksStorage.removeChunk(key)
+    if (webgpuRenderer) {
+      webgpuRenderer.chunksFadeAnimationController.removeIndex(key, () => {
+        chunksStorage.removeChunk(key)
+      })
+    }
   },
   debugCameraMove ({ x = 0, y = 0, z = 0 }) {
     webgpuRenderer!.debugCameraMove = { x, y, z }

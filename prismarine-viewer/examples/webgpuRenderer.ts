@@ -18,6 +18,7 @@ export class WebgpuRenderer {
   rendering = true
   renderedFrames = 0
   rendererParams = { ...defaultWebgpuRendererParams }
+  chunksFadeAnimationController = new IndexedInOutAnimationController(() => {})
 
   ready = false
 
@@ -915,19 +916,9 @@ export class WebgpuRenderer {
         debugCheckDuplicate(first, second, third)
       }
     }
-    const chunksCount = chunks.length
 
-    const chunksBuffer = new Int32Array(chunksCount * 3)
-    let totalFromChunks = 0
-    for (let i = 0; i < chunksCount; i++) {
-      const offset = i * 3
-      const { x, z, length } = chunks[i]!
-      chunksBuffer[offset] = x
-      chunksBuffer[offset + 1] = z
-      chunksBuffer[offset + 2] = 255
-      const cubesCount = length
-      totalFromChunks += cubesCount
-    }
+    const { totalFromChunks } = this.updateChunks(chunks)
+
     if (DEBUG_DATA) {
       const actualCount = allBlocks.length
       if (totalFromChunks !== actualCount) {
@@ -936,10 +927,27 @@ export class WebgpuRenderer {
     }
 
     this.device.queue.writeBuffer(this.cubesBuffer, updateOffset * cubeByteLength, cubeFlatData)
-    this.device.queue.writeBuffer(this.chunksBuffer, 0, chunksBuffer)
 
     this.notRenderedBlockChanges++
     this.realNumberOfCubes = allBlocks.length
+  }
+
+  updateChunks (chunks: Array<{ x: number, z: number, length: number }>, offset = 0) {
+    const chunksCount = chunks.length
+    const chunksBuffer = new Int32Array(chunksCount * 3)
+    let totalFromChunks = 0
+    for (let i = 0; i < chunksCount; i++) {
+      const offset = i * 3
+      const { x, z, length } = chunks[i]!
+      const chunkProgress = this.chunksFadeAnimationController.indexes[i]?.progress ?? 1
+      chunksBuffer[offset] = x
+      chunksBuffer[offset + 1] = z
+      chunksBuffer[offset + 2] = chunkProgress * 255
+      const cubesCount = length
+      totalFromChunks += cubesCount
+    }
+    this.device.queue.writeBuffer(this.chunksBuffer, offset, chunksBuffer)
+    return { totalFromChunks }
   }
 
   lastCall = performance.now()
@@ -975,6 +983,7 @@ export class WebgpuRenderer {
 
     const { device, cameraUniform: uniformBuffer, cameraComputeUniform: computeUniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
 
+    this.chunksFadeAnimationController.update(time)
     // #region update camera
     tweenJs.update()
     this.camera.near = 0.05
@@ -1004,8 +1013,7 @@ export class WebgpuRenderer {
     )
 
     const origFov = this.camera.fov
-    if (!this.rendererParams.earlyZRejection) 
-    this.camera.fov *= oversize
+    if (!this.rendererParams.earlyZRejection) this.camera.fov *= oversize
     this.camera.updateProjectionMatrix()
 
     const ViewProjectionMatCompute = new THREE.Matrix4()
@@ -1159,6 +1167,8 @@ export class WebgpuRenderer {
         chunksStorage.clearRange(start, end)
       }
       // console.timeEnd('updateBlocks')
+    } else if (Object.keys(this.chunksFadeAnimationController.indexes).length) {
+      this.updateChunks(chunksStorage.chunks)
     }
 
     if (!this.indirectDrawBufferMapBeingUsed && (!this.renderingStatsRequestTime || time - this.renderingStatsRequestTime > 500)) {
@@ -1236,5 +1246,50 @@ const debugCheckDuplicates = (arr: any[]) => {
   for (const item of arr) {
     if (seen.has(item)) throw new Error(`Duplicate: ${item}`)
     seen.add(item)
+  }
+}
+
+class IndexedInOutAnimationController {
+  lastUpdateTime?: number
+  indexes: Record<string, { progress: number, isAdding: boolean, onRemoved?: () => void }> = {}
+
+  constructor (public updateIndex: (key: string, progress: number, removed: boolean) => void, public DURATION = 500) { }
+
+  update (time: number) {
+    this.lastUpdateTime ??= time
+    // eslint-disable-next-line guard-for-in
+    for (const key in this.indexes) {
+      const data = this.indexes[key]
+      const timeDelta = (time - this.lastUpdateTime) / this.DURATION
+      let removed = false
+      if (data.isAdding) {
+        data.progress += timeDelta
+        if (data.progress >= 1) {
+          delete this.indexes[key]
+        }
+      } else {
+        data.progress -= timeDelta
+        if (data.progress <= 0) {
+          delete this.indexes[key]
+          removed = true
+          data.onRemoved?.()
+        }
+      }
+      this.updateIndex(key, data.progress, removed)
+    }
+    this.lastUpdateTime = time
+  }
+
+  addIndex (key: string) {
+    this.indexes[key] = { progress: 0, isAdding: true }
+  }
+
+  removeIndex (key: string, onRemoved?: () => void) {
+    if (this.indexes[key]) {
+      this.indexes[key].isAdding = false
+      this.indexes[key].onRemoved = onRemoved
+    } else {
+      this.indexes[key] = { progress: 1, isAdding: false, onRemoved }
+    }
   }
 }

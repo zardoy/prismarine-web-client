@@ -13,6 +13,11 @@ console.log('install')
 browserfs.install(window)
 window.fs = fs
 
+export interface ReadChunksRequest {
+  version: string,
+
+}
+
 onmessage = (msg) => {
   globalThis.readSkylight = false
   if (msg.data.type === 'readChunks') {

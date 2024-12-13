@@ -6,9 +6,10 @@ export const defaultWebgpuRendererParams = {
   MSAA: false,
   cameraOffset: [0, 0, 0] as [number, number, number],
   webgpuWorker: workerParam ? workerParam === 'true' : !isSafari,
-  godRays: false,
+  godRays: true,
   occlusionActive: true,
-  earlyZRejection: false
+  earlyZRejection: false,
+  allowChunksViewUpdate: false
 }
 
 export const rendererParamsGui = {
@@ -19,7 +20,8 @@ export const rendererParamsGui = {
   },
   godRays: true,
   occlusionActive: true,
-  earlyZRejection: true
+  earlyZRejection: true,
+  allowChunksViewUpdate: true
 }
 
 export const WEBGPU_FULL_TEXTURES_LIMIT = 1024

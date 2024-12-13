@@ -15,7 +15,7 @@ export default () => {
   })
 
   localServer!.on('newPlayer', (player) => {
-    player.stopChunkUpdates = true
+    player.stopChunkUpdates = !viewer.world.rendererParams.allowChunksViewUpdate
   })
 
   if (options.singleplayerAutoSave) {

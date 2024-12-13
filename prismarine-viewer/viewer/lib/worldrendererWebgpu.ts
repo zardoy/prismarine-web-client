@@ -142,7 +142,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     // const chunkCoords = key.split(',').map(Number) as [number, number, number]
     if (/* !this.loadedChunks[chunkCoords[0] + ',' + chunkCoords[2]] ||  */ !this.active) return
 
-    this.webgpuChannel.addBlocksSection(geometry.tiles, key)
+    this.webgpuChannel.addBlocksSection(geometry.tiles, key, !this.finishedSections[key])
   }
 
   updateCamera (pos: Vec3 | null, yaw: number, pitch: number): void {
@@ -184,17 +184,18 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   }
 
   setHighlightCursorBlock (position: typeof this.cursorBlock): void {
+    const useChangeWorker = true
     if (this.cursorBlock) {
-      const worker = this.workers[this.getWorkerNumber(this.cursorBlock)]
+      const worker = this.workers[this.getWorkerNumber(this.cursorBlock, useChangeWorker)]
       worker.postMessage({ type: 'specialBlockState', data: { value: null, position: this.cursorBlock } })
-      this.setSectionDirty(this.cursorBlock)
+      this.setSectionDirty(this.cursorBlock, true, useChangeWorker)
     }
 
     this.cursorBlock = position
     if (this.cursorBlock) {
-      const worker = this.workers[this.getWorkerNumber(this.cursorBlock)]
+      const worker = this.workers[this.getWorkerNumber(this.cursorBlock, useChangeWorker)]
       worker.postMessage({ type: 'specialBlockState', data: { value: 'highlight', position: this.cursorBlock } })
-      this.setSectionDirty(this.cursorBlock)
+      this.setSectionDirty(this.cursorBlock, true, useChangeWorker)
     }
   }
 

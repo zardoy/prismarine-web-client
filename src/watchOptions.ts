@@ -4,6 +4,7 @@ import { subscribeKey } from 'valtio/utils'
 import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
 import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import { WorldRendererWebgpu } from 'prismarine-viewer/viewer/lib/worldrendererWebgpu'
+import { defaultWebgpuRendererParams } from 'prismarine-viewer/examples/webgpuRendererShared'
 import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
 import { miscUiState } from './globalState'
@@ -98,23 +99,38 @@ export const watchOptionsAfterViewerInit = () => {
     viewer.powerPreference = o.gpuPreference
   })
 
+  onRendererParamsUpdate()
+
   if (viewer.world instanceof WorldRendererWebgpu) {
     Object.assign(viewer.world.rendererParams, options.webgpuRendererParams)
     const oldUpdateRendererParams = viewer.world.updateRendererParams.bind(viewer.world)
     viewer.world.updateRendererParams = (...args) => {
       oldUpdateRendererParams(...args)
       Object.assign(options.webgpuRendererParams, viewer.world.rendererParams)
+      onRendererParamsUpdate()
     }
+  }
+}
+
+const onRendererParamsUpdate = () => {
+  if (worldView) {
+    worldView.allowPositionUpdate = viewer.world.rendererParams.allowChunksViewUpdate
+  }
+  if (localServer?.players?.[0]) {
+    localServer.players[0].stopChunkUpdates = !viewer.world.rendererParams.allowChunksViewUpdate
   }
 }
 
 let viewWatched = false
 export const watchOptionsAfterWorldViewInit = () => {
+  onRendererParamsUpdate()
   if (viewWatched) return
   viewWatched = true
   watchValue(options, o => {
     if (!worldView) return
     worldView.keepChunksDistance = o.keepChunksDistance
     worldView.handDisplay = o.handDisplay
+
+    // worldView.allowPositionUpdate = o.webgpuRendererParams.allowChunksViewUpdate
   })
 }
