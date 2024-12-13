@@ -95,6 +95,7 @@ export class WebgpuRenderer {
   tempTexture: GPUTexture
   rotationsUniform: GPUBuffer
   earlyZRejectUniform: GPUBuffer
+  tileSizeUniform: GPUBuffer
 
 
   // eslint-disable-next-line max-params
@@ -318,6 +319,11 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     })
 
+    this.tileSizeUniform = device.createBuffer({
+      size: 8,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    })
+
     this.rotationsUniform = device.createBuffer({
       size: Mat4x4BufferSize * 6,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -538,6 +544,7 @@ export class WebgpuRenderer {
 
   async updateTexture (imageBlob: ImageBitmapSource, isInitial = false) {
     const textureBitmap = await createImageBitmap(imageBlob)
+    this.AtlasTexture?.destroy()
     this.AtlasTexture = this.device.createTexture({
       size: [textureBitmap.width, textureBitmap.height, 1],
       format: 'rgba8unorm',
@@ -548,6 +555,12 @@ export class WebgpuRenderer {
       { source: textureBitmap },
       { texture: this.AtlasTexture },
       [textureBitmap.width, textureBitmap.height]
+    )
+
+    this.device.queue.writeBuffer(
+      this.tileSizeUniform,
+      0,
+      new Float32Array([16, 16])
     )
 
     if (!isInitial) {
@@ -622,6 +635,10 @@ export class WebgpuRenderer {
           resource: {
             buffer: this.rotationsUniform
           }
+        },
+        {
+          binding: 5,
+          resource: { buffer: this.tileSizeUniform },
         }
       ],
     })
@@ -674,6 +691,10 @@ export class WebgpuRenderer {
           resource: {
             buffer: this.rotationsUniform
           }
+        },
+        {
+          binding: 5,
+          resource: { buffer: this.tileSizeUniform },
         }
       ],
     })
