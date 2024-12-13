@@ -49,7 +49,7 @@ export class WebgpuRenderer {
   maxBufferSize: number
   commandEncoder: GPUCommandEncoder
   AtlasTexture: GPUTexture
-  secondCameraUiformBindGroup: GPUBindGroup
+  secondCameraUniformBindGroup: GPUBindGroup
   secondCameraUniform: GPUBuffer
 
   multisampleTexture: GPUTexture | undefined
@@ -88,7 +88,7 @@ export class WebgpuRenderer {
   }
   renderMs = 0
   renderMsCount = 0
-  volumtetricPipeline: GPURenderPipeline
+  volumetricPipeline: GPURenderPipeline
   VolumetricBindGroup: GPUBindGroup
   depthTextureAnother: GPUTexture
   volumetricRenderPassDescriptor: GPURenderPassDescriptor
@@ -225,7 +225,7 @@ export class WebgpuRenderer {
     })
     this.pipeline = pipeline
 
-    this.volumtetricPipeline = device.createRenderPipeline({
+    this.volumetricPipeline = device.createRenderPipeline({
       label: 'volumtetricPipeline',
       layout: 'auto',
       vertex: {
@@ -611,7 +611,7 @@ export class WebgpuRenderer {
       ],
     })
 
-    this.secondCameraUiformBindGroup = device.createBindGroup({
+    this.secondCameraUniformBindGroup = device.createBindGroup({
       label: 'uniformBindGroupsCamera',
       layout: pipeline.getBindGroupLayout(0),
       entries: [
@@ -639,7 +639,7 @@ export class WebgpuRenderer {
     })
 
     this.VolumetricBindGroup = device.createBindGroup({
-      layout: this.volumtetricPipeline.getBindGroupLayout(0),
+      layout: this.volumetricPipeline.getBindGroupLayout(0),
       label: 'volumtetricBindGroup',
       entries: [
         {
@@ -962,7 +962,7 @@ export class WebgpuRenderer {
     //   this.multisampleTexture = multisampleTexture
     // }
 
-    device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams)
+    
 
     // TODO!
     if (this.rendererParams.godRays) {
@@ -987,37 +987,42 @@ export class WebgpuRenderer {
 
     this.commandEncoder = device.createCommandEncoder()
     //this.commandEncoder.clearBuffer(this.occlusionTexture)
-
+    
     //this.commandEncoder.clearBuffer(this.DepthTextureBuffer);
-    this.commandEncoder.clearBuffer(this.occlusionTexture)
-    this.commandEncoder.clearBuffer(this.visibleCubesBuffer)
+    if (this.rendererParams.occlusion) {
+      this.commandEncoder.clearBuffer(this.occlusionTexture)
+      this.commandEncoder.clearBuffer(this.visibleCubesBuffer)
+      device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams)
+    }
     // Compute pass for occlusion culling
     const textureSize = new Uint32Array([this.canvas.width, this.canvas.height])
     device.queue.writeBuffer(this.textureSizeBuffer, 0, textureSize)
 
     if (this.realNumberOfCubes) {
-      {
-        const computePass = this.commandEncoder.beginComputePass()
-        computePass.label = 'Frustrum/Occluision Culling'
-        computePass.setPipeline(this.computePipeline)
-        computePass.setBindGroup(0, this.computeBindGroup)
-        computePass.setBindGroup(1, this.chunkBindGroup)
-        computePass.setBindGroup(2, this.textureSizeBindGroup)
-        computePass.dispatchWorkgroups(Math.max(Math.ceil(this.realNumberOfCubes / 256), 65_535))
-        computePass.end()
-        device.queue.submit([this.commandEncoder.finish()])
-      }
-      {
-        this.commandEncoder = device.createCommandEncoder()
-        const computePass = this.commandEncoder.beginComputePass()
-        computePass.label = 'Texture Index Sorting'
-        computePass.setPipeline(this.computeSortPipeline)
-        computePass.setBindGroup(0, this.computeBindGroup)
-        computePass.setBindGroup(1, this.chunkBindGroup)
-        computePass.setBindGroup(2, this.textureSizeBindGroup)
-        computePass.dispatchWorkgroups(Math.ceil(this.canvas.width / 16), Math.ceil(this.canvas.height / 16))
-        computePass.end()
-        device.queue.submit([this.commandEncoder.finish()])
+      if (this.rendererParams.occlusion) {
+        {
+          const computePass = this.commandEncoder.beginComputePass()
+          computePass.label = 'Frustrum/Occluision Culling'
+          computePass.setPipeline(this.computePipeline)
+          computePass.setBindGroup(0, this.computeBindGroup)
+          computePass.setBindGroup(1, this.chunkBindGroup)
+          computePass.setBindGroup(2, this.textureSizeBindGroup)
+          computePass.dispatchWorkgroups(Math.max(Math.ceil(this.realNumberOfCubes / 256), 65_535))
+          computePass.end()
+          device.queue.submit([this.commandEncoder.finish()])
+        }
+        {
+          this.commandEncoder = device.createCommandEncoder()
+          const computePass = this.commandEncoder.beginComputePass()
+          computePass.label = 'Texture Index Sorting'
+          computePass.setPipeline(this.computeSortPipeline)
+          computePass.setBindGroup(0, this.computeBindGroup)
+          computePass.setBindGroup(1, this.chunkBindGroup)
+          computePass.setBindGroup(2, this.textureSizeBindGroup)
+          computePass.dispatchWorkgroups(Math.ceil(this.canvas.width / 16), Math.ceil(this.canvas.height / 16))
+          computePass.end()
+          device.queue.submit([this.commandEncoder.finish()])
+        }
       }
       {
         this.commandEncoder = device.createCommandEncoder()
@@ -1030,7 +1035,7 @@ export class WebgpuRenderer {
         // Use indirect drawing
         renderPass.drawIndirect(this.indirectDrawBuffer, 0)
         if (this.rendererParams.secondCamera) {
-          renderPass.setBindGroup(0, this.secondCameraUiformBindGroup)
+          renderPass.setBindGroup(0, this.secondCameraUniformBindGroup)
           renderPass.setViewport(this.canvas.width / 2, this.canvas.height / 2, this.canvas.width / 2, this.canvas.height / 2, 0, 0)
           renderPass.drawIndirect(this.indirectDrawBuffer, 0)
         }
@@ -1047,7 +1052,7 @@ export class WebgpuRenderer {
         this.commandEncoder = device.createCommandEncoder()
         const volumtetricRenderPass = this.commandEncoder.beginRenderPass(this.volumetricRenderPassDescriptor)
         volumtetricRenderPass.label = 'Volumetric Render Pass'
-        volumtetricRenderPass.setPipeline(this.volumtetricPipeline)
+        volumtetricRenderPass.setPipeline(this.volumetricPipeline)
         volumtetricRenderPass.setVertexBuffer(0, verticesBuffer)
         volumtetricRenderPass.setBindGroup(0, this.VolumetricBindGroup)
         volumtetricRenderPass.draw(6)
