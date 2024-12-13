@@ -154,10 +154,10 @@ export default class HoldingBlock {
     const scene = new THREE.Scene()
     scene.add(this.cameraGroup)
     this.cameraGroup.renderOrder = 10_000
-    if (this.camera.aspect !== originalCamera.aspect) {
-      this.camera.aspect = originalCamera.aspect
-      this.camera.updateProjectionMatrix()
-    }
+    // if (this.camera.aspect !== originalCamera.aspect) {
+    //   this.camera.aspect = originalCamera.aspect
+    //   this.camera.updateProjectionMatrix()
+    // }
     this.updateCameraGroup()
     scene.add(ambientLight.clone())
     scene.add(directionalLight.clone())
