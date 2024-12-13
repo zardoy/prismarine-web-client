@@ -820,17 +820,19 @@ export class WebgpuRenderer {
 
   createNewDataBuffers () {
     const oldCubesBuffer = this.cubesBuffer
+    const oldVisibleCubesBuffer = this.visibleCubesBuffer
     this.commandEncoder = this.device.createCommandEncoder()
 
     this.cubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * cubeByteLength, 'cubesBuffer')
 
-    this.visibleCubesBuffer?.destroy()
     this.visibleCubesBuffer = this.createVertexStorage(this.NUMBER_OF_CUBES * cubeByteLength, 'visibleCubesBuffer')
 
     if (oldCubesBuffer) {
       this.commandEncoder.copyBufferToBuffer(oldCubesBuffer, 0, this.cubesBuffer, 0, oldCubesBuffer.size)
+      this.commandEncoder.copyBufferToBuffer(oldVisibleCubesBuffer, 0, this.visibleCubesBuffer, 0, oldVisibleCubesBuffer.size)
       this.device.queue.submit([this.commandEncoder.finish()])
       oldCubesBuffer.destroy()
+      oldVisibleCubesBuffer.destroy()
 
     }
 
