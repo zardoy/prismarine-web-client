@@ -107,24 +107,33 @@ export class WorldDataEmitter extends EventEmitter {
       time: () => {
         this.emitter.emit('time', bot.time.timeOfDay)
       },
-      heldItemChanged: () => {
-        if (!this.handDisplay) {
-          viewer.world.onHandItemSwitch(undefined)
-          return
-        }
-        const newItem = bot.heldItem
-        if (!newItem) {
-          viewer.world.onHandItemSwitch(undefined)
-          return
-        }
-        const block = loadedData.blocksByName[newItem.name]
-        // todo clean types
-        const blockProperties = block ? new window.PrismarineBlock(block.id, 'void', newItem.metadata).getProperties() : {}
-        // todo item props
-        viewer.world.onHandItemSwitch({ name: newItem.name, properties: blockProperties, id: newItem.type, type: block ? 'block' : 'item', })
+      heldItemChanged () {
+        handChanged(false)
       },
     } satisfies Partial<BotEvents>
-    this.eventListeners.heldItemChanged()
+    const handChanged = (isLeftHand: boolean) => {
+      if (!this.handDisplay) {
+        viewer.world.onHandItemSwitch(undefined, isLeftHand)
+        return
+      }
+      const newItem = isLeftHand ? bot.inventory.slots[45] : bot.heldItem
+      if (!newItem) {
+        viewer.world.onHandItemSwitch(undefined, isLeftHand)
+        return
+      }
+      const block = loadedData.blocksByName[newItem.name]
+      // todo clean types
+      const blockProperties = block ? new window.PrismarineBlock(block.id, 'void', newItem.metadata).getProperties() : {}
+      // todo item props
+      viewer.world.onHandItemSwitch({ name: newItem.name, properties: blockProperties, id: newItem.type, type: block ? 'block' : 'item', }, isLeftHand)
+    }
+    bot.inventory.on('updateSlot', (index) => {
+      if (index === 45) {
+        handChanged(true)
+      }
+    })
+    handChanged(false)
+    handChanged(true)
 
 
     bot._client.on('update_light', ({ chunkX, chunkZ }) => {

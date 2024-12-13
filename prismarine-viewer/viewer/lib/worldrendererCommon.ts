@@ -217,8 +217,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
-  onHandItemSwitch (item: HandItemBlock | undefined): void { }
-  changeHandSwingingState (isAnimationPlaying: boolean): void { }
+  onHandItemSwitch (item: HandItemBlock | undefined, isLeftHand: boolean): void { }
+  changeHandSwingingState (isAnimationPlaying: boolean, isLeftHand: boolean): void { }
 
   abstract handleWorkerMessage (data: WorkerReceive): void
 

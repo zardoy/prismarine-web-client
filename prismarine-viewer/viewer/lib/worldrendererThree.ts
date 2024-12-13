@@ -23,6 +23,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   starField: StarField
   cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
   holdingBlock: HoldingBlock
+  holdingBlockLeft: HoldingBlock
   rendererDevice = '...'
 
   get tilesRendered () {
@@ -38,33 +39,43 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.rendererDevice = String(WorldRendererThree.getRendererInfo(this.renderer))
     this.starField = new StarField(scene)
     this.holdingBlock = new HoldingBlock()
+    this.holdingBlockLeft = new HoldingBlock()
+    this.holdingBlockLeft.rightSide = false
 
     this.renderUpdateEmitter.on('itemsTextureDownloaded', () => {
-      if (this.holdingBlock.toBeRenderedItem || true) {
+      if (this.holdingBlock.toBeRenderedItem) {
         this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem)
         this.holdingBlock.toBeRenderedItem = undefined
+      }
+      if (this.holdingBlockLeft.toBeRenderedItem) {
+        this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem, true)
+        this.holdingBlockLeft.toBeRenderedItem = undefined
       }
     })
 
     this.addDebugOverlay()
   }
 
-  onHandItemSwitch (item: HandItemBlock | undefined) {
-    item ??= {
-      type: 'hand',
+  onHandItemSwitch (item: HandItemBlock | undefined, isLeft = false) {
+    if (!isLeft) {
+      item ??= {
+        type: 'hand',
+      }
     }
+    const holdingBlock = isLeft ? this.holdingBlockLeft : this.holdingBlock
     if (!this.currentTextureImage) {
-      this.holdingBlock.toBeRenderedItem = item
+      holdingBlock.toBeRenderedItem = item
       return
     }
-    void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
+    void holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
   }
 
-  changeHandSwingingState (isAnimationPlaying: boolean) {
+  changeHandSwingingState (isAnimationPlaying: boolean, isLeft = false) {
+    const holdingBlock = isLeft ? this.holdingBlockLeft : this.holdingBlock
     if (isAnimationPlaying) {
-      this.holdingBlock.startSwing()
+      holdingBlock.startSwing()
     } else {
-      void this.holdingBlock.stopSwing()
+      void holdingBlock.stopSwing()
     }
   }
 
@@ -230,6 +241,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
     this.renderer.render(this.scene, cam)
     this.holdingBlock.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
+    this.holdingBlockLeft.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
   }
 
   renderSign (position: Vec3, rotation: number, isWall: boolean, isHanging: boolean, blockEntity) {
