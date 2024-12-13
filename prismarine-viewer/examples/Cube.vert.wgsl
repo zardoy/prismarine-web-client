@@ -80,7 +80,6 @@ fn main(
     }
     case 3:
     {
-      Uv = uv;
       textureIndex = models[modelIndex].textureIndex456 & 1023;
     }
     case 4:
