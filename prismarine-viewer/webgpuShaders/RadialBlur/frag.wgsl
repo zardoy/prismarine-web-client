@@ -66,11 +66,11 @@ fn main(
 
 
     //col *= (1. - dot(tuv, tuv)*.75);
-
+    let t = clearColor.xyz * sqrt(smoothstep(0.0, 1.0, col));
     if (temp == 1.0) {
-        return clearColor * sqrt(smoothstep(0.0, 1.0, col));
+        return vec4(t, 1.0);
     }
 
 
-    return outTex + clearColor * sqrt(smoothstep(0.0, 1.0, col));
+    return outTex + vec4(t, 1.0);
 }
