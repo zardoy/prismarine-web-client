@@ -162,6 +162,10 @@ export const workerProxyType = createWorkerProxy({
   updateMaxFps (fps) {
     maxFps = fps
   },
+  updateModels (blocksDataModel: WebgpuRenderer['blocksDataModel']) {
+    webgpuRenderer!.blocksDataModel = blocksDataModel
+    webgpuRenderer!.updateBlocksModelData()
+  },
   addAddBlocksFlat (positions: number[]) {
     const chunks = new Map<string, any>()
     for (let i = 0; i < positions.length; i += 3) {

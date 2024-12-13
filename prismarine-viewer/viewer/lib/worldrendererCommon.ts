@@ -29,7 +29,8 @@ export const worldCleanup = buildCleanupDecorator('resetWorld')
 
 export const defaultWorldRendererConfig = {
   showChunkBorders: false,
-  numWorkers: 4
+  numWorkers: 4,
+  isPlayground: false
 }
 
 export type WorldRendererConfig = typeof defaultWorldRendererConfig
@@ -45,7 +46,6 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   threejsCursorLineMaterial: LineMaterial
   @worldCleanup()
   cursorBlock = null as Vec3 | null
-  isPlayground = false
   displayStats = true
   @worldCleanup()
   worldConfig = { minY: 0, worldHeight: 256 }
@@ -312,14 +312,15 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
-  async updateTexturesData (resourcePackUpdate = false) {
+  async updateTexturesData (resourcePackUpdate = false, prioritizeBlockTextures?: string[]) {
     const blocksAssetsParser = new AtlasParser(this.blocksAtlases, blocksAtlasLatest, blocksAtlasLegacy)
     const itemsAssetsParser = new AtlasParser(this.itemsAtlases, itemsAtlasLatest, itemsAtlasLegacy)
+    const customBlockTextures = Object.keys(this.customTextures.blocks?.textures ?? {}).filter(x => x.includes('/'))
     const { atlas: blocksAtlas, canvas: blocksCanvas } = await blocksAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
       const texture = this.customTextures?.blocks?.textures[textureName]
       if (!texture) return
       return texture
-    }, this.customTextures?.blocks?.tileSize)
+    }, /* this.customTextures?.blocks?.tileSize */undefined, prioritizeBlockTextures, customBlockTextures)
     const { atlas: itemsAtlas, canvas: itemsCanvas } = await itemsAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
       const texture = this.customTextures?.items?.textures[textureName]
       if (!texture) return

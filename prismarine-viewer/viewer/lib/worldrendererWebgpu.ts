@@ -8,7 +8,7 @@ import type { workerProxyType } from '../../examples/webgpuRendererWorker'
 import { useWorkerProxy } from '../../examples/workerProxy'
 import { defaultWebgpuRendererParams, rendererParamsGui } from '../../examples/webgpuRendererShared'
 import { loadJSON } from './utils.web'
-import { WorldRendererCommon } from './worldrendererCommon'
+import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
 import { MesherGeometryOutput } from './mesher/shared'
 import { addNewStat, addNewStat2, updateStatText } from './ui/newStats'
 import { isMobile } from './simpleUtils'
@@ -28,16 +28,16 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   postRender = () => {}
   preRender = () => {}
   rendererParams = defaultWebgpuRendererParams
+  initCalled = false
 
   webgpuChannel: typeof workerProxyType['__workerProxy'] = this.getPlaceholderChannel()
   rendererDevice = '...'
   powerPreference: string | undefined
 
-  constructor (config, { powerPreference } = {} as any) {
+  constructor (config: WorldRendererConfig, { powerPreference } = {} as any) {
     super(config)
     this.powerPreference = powerPreference
 
-    void this.initWebgpu()
     void this.readyWorkerPromise.then(() => {
       this.addWebgpuListener('rendererProblem', (data) => {
         this.issueReporter.reportProblem(data.isContextLost, data.message)
@@ -163,7 +163,12 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
   }
 
   async updateTexturesData (resourcePackUpdate = false): Promise<void> {
-    await super.updateTexturesData()
+    const { blocksDataModelDebug: blocksDataModelBefore, interestedTextureTiles } = prepareCreateWebgpuBlocksModelsData()
+    await super.updateTexturesData(undefined, [...interestedTextureTiles].map(x => x.replace('block/', '')))
+    const { blocksDataModel, blocksDataModelDebug, allBlocksStateIdToModelIdMap } = prepareCreateWebgpuBlocksModelsData()
+    // this.webgpuChannel.updateModels(blocksDataModel)
+    this.sendDataForWebgpuRenderer({ allBlocksStateIdToModelIdMap })
+    void this.initWebgpu(blocksDataModel)
     if (resourcePackUpdate) {
       const blob = await fetch(this.material.map!.image.src).then(async (res) => res.blob())
       this.webgpuChannel.updateTexture(blob)
@@ -203,23 +208,15 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
     }
   }
 
-  async initWebgpu () {
+  async initWebgpu (blocksDataModel) {
+    if (this.initCalled) return
+    this.initCalled = true
     // do not use worker in safari, it is bugged
     const USE_WORKER = defaultWebgpuRendererParams.webgpuWorker
 
-    const playground = this.isPlayground
-    if (!this.material.map) {
-      await new Promise<void>(resolve => {
-        // this.material.map!.image.onload = () => {
-        //   resolve()
-        // }
-        this.renderUpdateEmitter.once('textureDownloaded', resolve)
-      })
-    }
+    const playground = this.config.isPlayground
     const { image } = (this.material.map!)
     const imageBlob = await fetch(image.src).then(async (res) => res.blob())
-    const { blocksDataModel: modelsData, allBlocksStateIdToModelIdMap } = prepareCreateWebgpuBlocksModelsData()
-    this.sendDataForWebgpuRenderer({ allBlocksStateIdToModelIdMap })
 
     const existingCanvas = document.getElementById('viewer-canvas')
     existingCanvas?.remove()
@@ -252,7 +249,7 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
       imageBlob,
       playground,
       pickObj(localStorage, 'vertShader', 'fragShader', 'computeShader'),
-      modelsData,
+      blocksDataModel,
       { powerPreference: this.powerPreference as GPUPowerPreference }
     )
 

@@ -525,7 +525,7 @@ export class WebgpuRenderer {
       postMessage({ type: 'rendererProblem', isContextLost: true, message: info.message })
     })
 
-    this.setBlocksModelData()
+    this.updateBlocksModelData()
     this.createNewDataBuffers()
 
     this.indirectDrawParams = new Uint32Array([quadVertexCount, 0, 0, 0])
@@ -564,7 +564,7 @@ export class WebgpuRenderer {
     }
   }
 
-  private setBlocksModelData () {
+  public updateBlocksModelData () {
     const keys = Object.keys(this.blocksDataModel)
     // const modelsDataLength = keys.length
     const modelsDataLength = +keys.at(-1)!
@@ -581,6 +581,7 @@ export class WebgpuRenderer {
       modelsBuffer[+i * 2 + 1] = tempBuffer2
     }
 
+    this.modelsBuffer?.destroy()
     this.modelsBuffer = this.createVertexStorage(modelsDataLength * cubeByteLength, 'modelsBuffer')
     this.device.queue.writeBuffer(this.modelsBuffer, 0, modelsBuffer)
   }
