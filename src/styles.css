@@ -181,6 +181,10 @@ body::xr-overlay #viewer-canvas {
   color: #999;
 }
 
+.text-select {
+  user-select: text;
+}
+
 @media screen and (min-width: 430px) {
   .span-2 {
     grid-column: span 2;
