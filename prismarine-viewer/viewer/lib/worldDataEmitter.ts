@@ -23,15 +23,7 @@ export class WorldDataEmitter extends EventEmitter {
   private readonly emitter: WorldDataEmitter
   keepChunksDistance = 0
   addWaitTime = 1
-  _handDisplay = false
   isPlayground = false
-  get handDisplay () {
-    return this._handDisplay
-  }
-  set handDisplay (newVal) {
-    this._handDisplay = newVal
-    this.eventListeners.heldItemChanged?.()
-  }
 
   constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
@@ -112,10 +104,6 @@ export class WorldDataEmitter extends EventEmitter {
       },
     } satisfies Partial<BotEvents>
     const handChanged = (isLeftHand: boolean) => {
-      if (!this.handDisplay) {
-        viewer.world.onHandItemSwitch(undefined, isLeftHand)
-        return
-      }
       const newItem = isLeftHand ? bot.inventory.slots[45] : bot.heldItem
       if (!newItem) {
         viewer.world.onHandItemSwitch(undefined, isLeftHand)

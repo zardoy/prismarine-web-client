@@ -29,7 +29,9 @@ export const worldCleanup = buildCleanupDecorator('resetWorld')
 
 export const defaultWorldRendererConfig = {
   showChunkBorders: false,
-  numWorkers: 4
+  numWorkers: 4,
+  // game renderer setting actually
+  displayHand: false
 }
 
 export type WorldRendererConfig = typeof defaultWorldRendererConfig

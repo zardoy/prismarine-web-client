@@ -240,8 +240,10 @@ export class WorldRendererThree extends WorldRendererCommon {
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
     this.renderer.render(this.scene, cam)
-    this.holdingBlock.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
-    this.holdingBlockLeft.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
+    if (this.config.displayHand) {
+      this.holdingBlock.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
+      this.holdingBlockLeft.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
+    }
   }
 
   renderSign (position: Vec3, rotation: number, isWall: boolean, isHanging: boolean, blockEntity) {
