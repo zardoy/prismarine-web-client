@@ -17,6 +17,7 @@ import { WorldDataEmitter } from '../viewer'
 import { Viewer } from '../viewer/lib/viewer'
 import { BlockNames } from '../../src/mcDataTypes'
 import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
+import { defaultWorldRendererConfig } from '../viewer/lib/worldrendererCommon'
 import { getSyncWorld } from './shared'
 
 window.THREE = THREE
@@ -158,7 +159,7 @@ export class BasePlaygroundScene {
     renderer.setSize(window.innerWidth, window.innerHeight)
 
     // Create viewer
-    const viewer = new Viewer(renderer, { numWorkers: 6, showChunkBorders: false, })
+    const viewer = new Viewer(renderer, { ...defaultWorldRendererConfig, numWorkers: 6 })
     window.viewer = viewer
     const isWebgpu = false
     const promises = [] as Array<Promise<void>>

@@ -80,6 +80,7 @@ const defaultOptions = {
   autoParkour: false,
   vrSupport: true, // doesn't directly affect the VR mode, should only disable the button which is annoying to android users
   renderDebug: (isDev ? 'advanced' : 'basic') as 'none' | 'advanced' | 'basic',
+  autoVersionSelect: '1.20.4',
 
   // advanced bot options
   autoRespawn: false,
@@ -88,6 +89,8 @@ const defaultOptions = {
   /** Wether to popup sign editor on server action */
   autoSignEditor: true,
   wysiwygSignEditor: 'auto' as 'auto' | 'always' | 'never',
+  showMinimap: 'never' as 'always' | 'singleplayer' | 'never',
+  minimapOptimizations: true,
   displayBossBars: false, // boss bar overlay was removed for some reason, enable safely
   disabledUiParts: [] as string[],
   neighborChunkUpdates: true

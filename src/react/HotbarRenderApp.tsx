@@ -73,7 +73,7 @@ const ItemName = ({ itemKey }: { itemKey: string }) => {
   </Transition>
 }
 
-export default () => {
+const Inner = () => {
   const container = useRef<HTMLDivElement>(null!)
   const [itemKey, setItemKey] = useState('')
   const hasModals = useSnapshot(activeModalStack).length
@@ -219,6 +219,17 @@ export default () => {
       />
     </Portal>
   </SharedHudVars>
+}
+
+export default () => {
+  const [gameMode, setGameMode] = useState(bot.game?.gameMode ?? 'creative')
+  useEffect(() => {
+    bot.on('game', () => {
+      setGameMode(bot.game.gameMode)
+    })
+  }, [])
+
+  return gameMode === 'spectator' ? null : <Inner />
 }
 
 const Portal = ({ children, to = document.body }) => {

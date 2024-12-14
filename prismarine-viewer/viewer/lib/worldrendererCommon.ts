@@ -11,13 +11,15 @@ import itemsAtlasLatest from 'mc-assets/dist/itemsAtlasLatest.png'
 import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
 import { AtlasParser } from 'mc-assets'
 import TypedEmitter from 'typed-emitter'
+import { LineMaterial } from 'three-stdlib'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
-import { MesherGeometryOutput, defaultMesherConfig } from './mesher/shared'
+import { defaultMesherConfig, HighestBlockInfo, MesherGeometryOutput } from './mesher/shared'
 import { chunkPos } from './simpleUtils'
 import { HandItemBlock } from './holdingBlock'
 import { updateStatText } from './ui/newStats'
+import { WorldRendererThree } from './worldrendererThree'
 
 function mod (x, n) {
   return ((x % n) + n) % n
@@ -27,7 +29,9 @@ export const worldCleanup = buildCleanupDecorator('resetWorld')
 
 export const defaultWorldRendererConfig = {
   showChunkBorders: false,
-  numWorkers: 4
+  numWorkers: 4,
+  // game renderer setting actually
+  displayHand: false
 }
 
 export type WorldRendererConfig = typeof defaultWorldRendererConfig
@@ -38,8 +42,14 @@ type CustomTexturesData = {
 }
 
 export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any> {
+  // todo
+  @worldCleanup()
+  threejsCursorLineMaterial: LineMaterial
+  @worldCleanup()
+  cursorBlock = null as Vec3 | null
   isPlayground = false
   displayStats = true
+  @worldCleanup()
   worldConfig = { minY: 0, worldHeight: 256 }
   // todo need to cleanup
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
@@ -49,27 +59,37 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   version = undefined as string | undefined
   @worldCleanup()
-  loadedChunks = {} as Record<string, boolean>
+  loadedChunks = {} as Record<string, boolean> // data is added for these chunks and they might be still processing
 
   @worldCleanup()
-  finishedChunks = {} as Record<string, boolean>
+  finishedChunks = {} as Record<string, boolean> // these chunks are fully loaded into the world (scene)
 
   @worldCleanup()
-  sectionsOutstanding = new Map<string, number>()
+  // loading sections (chunks)
+  sectionsWaiting = new Map<string, number>()
+
+  @worldCleanup()
+  queuedChunks = new Set<string>()
 
   @worldCleanup()
   renderUpdateEmitter = new EventEmitter() as unknown as TypedEmitter<{
     dirty (pos: Vec3, value: boolean): void
     update (/* pos: Vec3, value: boolean */): void
     textureDownloaded (): void
+    itemsTextureDownloaded (): void
+    chunkFinished (key: string): void
   }>
   customTexturesDataUrl = undefined as string | undefined
   @worldCleanup()
   currentTextureImage = undefined as any
   workers: any[] = []
+  @worldCleanup()
   viewerPosition?: Vec3
   lastCamUpdate = 0
   droppedFpsPercentage = 0
+  @worldCleanup()
+  initialChunkLoadWasStartedIn: number | undefined
+  @worldCleanup()
   initialChunksLoad = true
   enableChunksLoadDelay = false
   texturesVersion?: string
@@ -81,7 +101,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   handleResize = () => { }
   mesherConfig = defaultMesherConfig
   camera: THREE.PerspectiveCamera
-  highestBlocks: Record<string, { y: number, name: string }> = {}
+  highestBlocks = new Map<string, HighestBlockInfo>()
   blockstatesModels: any
   customBlockStates: Record<string, any> | undefined
   customModels: Record<string, any> | undefined
@@ -97,6 +117,10 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   workersProcessAverageTime = 0
   workersProcessAverageTimeCount = 0
   maxWorkersProcessTime = 0
+  geometryReceiveCount = {}
+  allLoadedIn: undefined | number
+  rendererDevice = '...'
+
   edgeChunks = {} as Record<string, boolean>
   lastAddChunk = null as null | {
     timeout: any
@@ -108,13 +132,15 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   abstract outputFormat: 'threeJs' | 'webgpu'
 
+  abstract changeBackgroundColor (color: [number, number, number]): void
+
   constructor (public config: WorldRendererConfig) {
     // this.initWorkers(1) // preload script on page load
     this.snapshotInitialValues()
 
     this.renderUpdateEmitter.on('update', () => {
       const loadedChunks = Object.keys(this.finishedChunks).length
-      updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance})`)
+      updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance}/${this.viewDistance})`)
     })
   }
 
@@ -122,7 +148,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
 
   initWorkers (numWorkers = this.config.numWorkers) {
     // init workers
-    for (let i = 0; i < numWorkers; i++) {
+    for (let i = 0; i < numWorkers + 1; i++) {
       // Node environment needs an absolute path, but browser needs the url of the file
       const workerName = 'mesher.js'
       // eslint-disable-next-line node/no-path-concat
@@ -133,6 +159,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
         if (!this.active) return
         this.handleWorkerMessage(data)
         if (data.type === 'geometry') {
+          this.geometryReceiveCount[data.workerIndex] ??= 0
+          this.geometryReceiveCount[data.workerIndex]++
           const geometry = data.geometry as MesherGeometryOutput
           for (const key in geometry.highestBlocks) {
             const highest = geometry.highestBlocks[key]
@@ -144,13 +172,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
         }
         if (data.type === 'sectionFinished') { // on after load & unload section
-          if (!this.sectionsOutstanding.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
-          this.sectionsOutstanding.set(data.key, this.sectionsOutstanding.get(data.key)! - 1)
-          if (this.sectionsOutstanding.get(data.key) === 0) this.sectionsOutstanding.delete(data.key)
+          if (!this.sectionsWaiting.get(data.key)) throw new Error(`sectionFinished event for non-outstanding section ${data.key}`)
+          this.sectionsWaiting.set(data.key, this.sectionsWaiting.get(data.key)! - 1)
+          if (this.sectionsWaiting.get(data.key) === 0) this.sectionsWaiting.delete(data.key)
 
           const chunkCoords = data.key.split(',').map(Number)
           if (this.loadedChunks[`${chunkCoords[0]},${chunkCoords[2]}`]) { // ensure chunk data was added, not a neighbor chunk update
-            const loadingKeys = [...this.sectionsOutstanding.keys()]
+            const loadingKeys = [...this.sectionsWaiting.keys()]
             if (!loadingKeys.some(key => {
               const [x, y, z] = key.split(',').map(Number)
               return x === chunkCoords[0] && z === chunkCoords[2]
@@ -158,13 +186,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
               this.finishedChunks[`${chunkCoords[0]},${chunkCoords[2]}`] = true
             }
           }
-          if (this.sectionsOutstanding.size === 0) {
-            const allFinished = Object.keys(this.finishedChunks).length === this.chunksLength
-            if (allFinished) {
-              this.allChunksLoaded?.()
-              this.allChunksFinished = true
-            }
-          }
+          this.checkAllFinished()
 
           this.renderUpdateEmitter.emit('update')
           if (data.processTime) {
@@ -187,8 +209,18 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
-  onHandItemSwitch (item: HandItemBlock | undefined): void { }
-  changeHandSwingingState (isAnimationPlaying: boolean): void { }
+  checkAllFinished () {
+    if (this.sectionsWaiting.size === 0) {
+      const allFinished = Object.keys(this.finishedChunks).length === this.chunksLength
+      if (allFinished) {
+        this.allChunksLoaded?.()
+        this.allChunksFinished = true
+      }
+    }
+  }
+
+  onHandItemSwitch (item: HandItemBlock | undefined, isLeftHand: boolean): void { }
+  changeHandSwingingState (isAnimationPlaying: boolean, isLeftHand: boolean): void { }
 
   abstract handleWorkerMessage (data: WorkerReceive): void
 
@@ -268,7 +300,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
-  async updateTexturesData () {
+  async updateTexturesData (resourcePackUpdate = false) {
     const blocksAssetsParser = new AtlasParser(this.blocksAtlases, blocksAtlasLatest, blocksAtlasLegacy)
     const itemsAssetsParser = new AtlasParser(this.itemsAtlases, itemsAtlasLatest, itemsAtlasLegacy)
     const { atlas: blocksAtlas, canvas: blocksCanvas } = await blocksAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
@@ -325,11 +357,17 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     return Math.floor(Math.max(this.worldConfig.minY, this.mesherConfig.clipWorldBelowY ?? -Infinity) / 16) * 16
   }
 
+  updateChunksStatsText () {
+    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D (${this.workers.length}:${this.workersProcessAverageTime.toFixed(0)}ms/${this.allLoadedIn?.toFixed(1) ?? '-'}s)`)
+  }
+
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
     if (!this.active) return
     if (this.workers.length === 0) throw new Error('workers not initialized yet')
     this.initialChunksLoad = false
+    this.initialChunkLoadWasStartedIn ??= Date.now()
     this.loadedChunks[`${x},${z}`] = true
+    this.updateChunksStatsText()
     for (const worker of this.workers) {
       // todo optimize
       worker.postMessage({ type: 'chunk', x, z, chunk })
@@ -346,13 +384,19 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     }
   }
 
+  markAsLoaded (x, z) {
+    this.loadedChunks[`${x},${z}`] = true
+    this.finishedChunks[`${x},${z}`] = true
+    this.checkAllFinished()
+  }
+
   removeColumn (x, z) {
     delete this.loadedChunks[`${x},${z}`]
     for (const worker of this.workers) {
       worker.postMessage({ type: 'unloadChunk', x, z })
     }
-    this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     delete this.finishedChunks[`${x},${z}`]
+    this.allChunksFinished = Object.keys(this.finishedChunks).length === this.chunksLength
     for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
       this.setSectionDirty(new Vec3(x, y, z), false)
     }
@@ -369,24 +413,31 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
+    const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.y / 16) * 16},${Math.floor(pos.z / 16) * 16}`
+    const useChangeWorker = !this.sectionsWaiting[key]
     for (const worker of this.workers) {
       worker.postMessage({ type: 'blockUpdate', pos, stateId })
     }
-    this.setSectionDirty(pos)
+    this.setSectionDirty(pos, true, useChangeWorker)
     if (this.neighborChunkUpdates) {
-      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0))
-      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0))
-      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0))
-      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0))
-      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16))
-      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16))
+      if ((pos.x & 15) === 0) this.setSectionDirty(pos.offset(-16, 0, 0), true, useChangeWorker)
+      if ((pos.x & 15) === 15) this.setSectionDirty(pos.offset(16, 0, 0), true, useChangeWorker)
+      if ((pos.y & 15) === 0) this.setSectionDirty(pos.offset(0, -16, 0), true, useChangeWorker)
+      if ((pos.y & 15) === 15) this.setSectionDirty(pos.offset(0, 16, 0), true, useChangeWorker)
+      if ((pos.z & 15) === 0) this.setSectionDirty(pos.offset(0, 0, -16), true, useChangeWorker)
+      if ((pos.z & 15) === 15) this.setSectionDirty(pos.offset(0, 0, 16), true, useChangeWorker)
     }
   }
 
   queueAwaited = false
   messagesQueue = {} as { [workerIndex: string]: any[] }
 
-  setSectionDirty (pos: Vec3, value = true) { // value false is used for unloading chunks
+  getWorkerNumber (pos: Vec3) {
+    const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length - 1)
+    return hash + 1
+  }
+
+  setSectionDirty (pos: Vec3, value = true, useChangeWorker = false) { // value false is used for unloading chunks
     if (this.viewDistance === -1) throw new Error('viewDistance not set')
     this.allChunksFinished = false
     const distance = this.getDistance(pos)
@@ -397,8 +448,8 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
     // Dispatch sections to workers based on position
     // This guarantees uniformity accross workers and that a given section
     // is always dispatched to the same worker
-    const hash = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), this.workers.length)
-    this.sectionsOutstanding.set(key, (this.sectionsOutstanding.get(key) ?? 0) + 1)
+    const hash = useChangeWorker ? 0 : this.getWorkerNumber(pos)
+    this.sectionsWaiting.set(key, (this.sectionsWaiting.get(key) ?? 0) + 1)
     this.messagesQueue[hash] ??= []
     this.messagesQueue[hash].push({
       // this.workers[hash].postMessage({
@@ -430,13 +481,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   // of sections not rendered are 0
   async waitForChunksToRender () {
     return new Promise<void>((resolve, reject) => {
-      if ([...this.sectionsOutstanding].length === 0) {
+      if ([...this.sectionsWaiting].length === 0) {
         resolve()
         return
       }
 
       const updateHandler = () => {
-        if (this.sectionsOutstanding.size === 0) {
+        if (this.sectionsWaiting.size === 0) {
           this.renderUpdateEmitter.removeListener('update', updateHandler)
           resolve()
         }
@@ -444,4 +495,27 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       this.renderUpdateEmitter.on('update', updateHandler)
     })
   }
+
+  async waitForChunkToLoad (pos: Vec3) {
+    return new Promise<void>((resolve, reject) => {
+      const key = `${Math.floor(pos.x / 16) * 16},${Math.floor(pos.z / 16) * 16}`
+      if (this.loadedChunks[key]) {
+        resolve()
+        return
+      }
+      const updateHandler = () => {
+        if (this.loadedChunks[key]) {
+          this.renderUpdateEmitter.removeListener('update', updateHandler)
+          resolve()
+        }
+      }
+      this.renderUpdateEmitter.on('update', updateHandler)
+    })
+  }
+
+  destroy () {
+    console.warn('world destroy is not implemented')
+  }
+
+  abstract setHighlightCursorBlock (block: typeof this.cursorBlock, shapePositions?: Array<{ position; width; height; depth }>): void
 }

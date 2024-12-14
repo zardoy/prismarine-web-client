@@ -22,7 +22,7 @@ import PrismarineItem from 'prismarine-item'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi'
-import { contro, onBotCreate } from './controls'
+import { contro, lockUrl, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
 import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
@@ -157,6 +157,7 @@ if (isIphone) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
+viewer.getMineflayerBot = () => bot
 // todo unify
 viewer.entities.getItemUv = (idOrName: number | string) => {
   try {
@@ -420,7 +421,7 @@ async function connect (connectOptions: ConnectOptions) {
         }
       }
       viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
-      viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      void viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
     }
 
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
@@ -692,6 +693,9 @@ async function connect (connectOptions: ConnectOptions) {
     setLoadingScreenStatus('Placing blocks (starting viewer)')
     localStorage.lastConnectOptions = JSON.stringify(connectOptions)
     connectOptions.onSuccessfulPlay?.()
+    if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && new URLSearchParams(location.search).size === 0) {
+      lockUrl()
+    }
     updateDataAfterJoin()
     if (connectOptions.autoLoginPassword) {
       bot.chat(`/login ${connectOptions.autoLoginPassword}`)
@@ -1046,6 +1050,10 @@ downloadAndOpenFile().then((downloadAction) => {
       })
     }
   })
+
+  if (qs.get('serversList')) {
+    showModal({ reactType: 'serversList' })
+  }
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)

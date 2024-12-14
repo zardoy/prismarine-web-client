@@ -45,7 +45,7 @@
     display: block;
     position: absolute;
     top: 37px;
-    left: calc(88px + 5px);
+    left: calc((512px / 2 - 176px / 2) / 2);
     background-image: url('../../assets/edition.png');
     background-size: 128px;
     width: 88px;

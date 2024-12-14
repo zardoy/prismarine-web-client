@@ -1,5 +1,6 @@
 //@ts-check
 import EventEmitter from 'events'
+import { UnionToIntersection } from 'type-fest'
 import nbt from 'prismarine-nbt'
 import * as TWEEN from '@tweenjs/tween.js'
 import * as THREE from 'three'
@@ -11,6 +12,7 @@ import { NameTagObject } from 'skinview3d/libs/nametag'
 import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
 import { snakeCase } from 'change-case'
+import { EntityMetadataVersions } from '../../../src/mcDataTypes'
 import * as Entity from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
 import externalTexturesJson from './entity/externalTextures.json'
@@ -20,12 +22,51 @@ export const TWEEN_DURATION = 120
 
 type PlayerObjectType = PlayerObject & { animation?: PlayerAnimation }
 
-function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: any) {
+function convert2sComplementToHex (complement: number) {
+  if (complement < 0) {
+    complement = (0xFF_FF_FF_FF + complement + 1) >>> 0
+  }
+  return complement.toString(16)
+}
+
+function toRgba (color: string | undefined) {
+  if (color === undefined) {
+    return undefined
+  }
+  if (parseInt(color, 10) === 0) {
+    return 'rgba(0, 0, 0, 0)'
+  }
+  const hex = convert2sComplementToHex(parseInt(color, 10))
+  if (hex.length === 8) {
+    return `#${hex.slice(2, 8)}${hex.slice(0, 2)}`
+  } else {
+    return `#${hex}`
+  }
+}
+
+function toQuaternion (quaternion: any, defaultValue?: THREE.Quaternion) {
+  if (quaternion === undefined) {
+    return defaultValue
+  }
+  if (quaternion instanceof THREE.Quaternion) {
+    return quaternion
+  }
+  if (Array.isArray(quaternion)) {
+    return new THREE.Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3])
+  }
+  return new THREE.Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+}
+
+function getUsernameTexture ({
+  username,
+  nameTagBackgroundColor = 'rgba(0, 0, 0, 0.3)',
+  nameTagTextOpacity = 255
+}: any, { fontFamily = 'sans-serif' }: any) {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2d context')
 
-  const fontSize = 50
+  const fontSize = 48
   const padding = 5
   ctx.font = `${fontSize}px ${fontFamily}`
 
@@ -38,17 +79,17 @@ function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: an
   }
 
   canvas.width = textWidth
-  canvas.height = (fontSize + padding * 2) * lines.length
+  canvas.height = (fontSize + padding) * lines.length
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+  ctx.fillStyle = nameTagBackgroundColor
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   ctx.font = `${fontSize}px ${fontFamily}`
-  ctx.fillStyle = 'white'
+  ctx.fillStyle = `rgba(255, 255, 255, ${nameTagTextOpacity / 255})`
   let i = 0
   for (const line of lines) {
     i++
-    ctx.fillText(line, padding + (textWidth - ctx.measureText(line).width) / 2, fontSize * i)
+    ctx.fillText(line, (textWidth - ctx.measureText(line).width) / 2, -padding + fontSize * i)
   }
 
   return canvas
@@ -57,17 +98,39 @@ function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: an
 const addNametag = (entity, options, mesh) => {
   if (entity.username !== undefined) {
     if (mesh.children.some(c => c.name === 'nametag')) return // todo update
-    const canvas = getUsernameTexture(entity.username, options)
+    const canvas = getUsernameTexture(entity, options)
     const tex = new THREE.Texture(canvas)
     tex.needsUpdate = true
-    const spriteMat = new THREE.SpriteMaterial({ map: tex })
-    const sprite = new THREE.Sprite(spriteMat)
-    sprite.renderOrder = 1000
-    sprite.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
-    sprite.position.y += entity.height + 0.6
-    sprite.name = 'nametag'
+    let nameTag
+    if (entity.nameTagFixed) {
+      const geometry = new THREE.PlaneGeometry()
+      const material = new THREE.MeshBasicMaterial({ map: tex })
+      material.transparent = true
+      nameTag = new THREE.Mesh(geometry, material)
+      nameTag.rotation.set(entity.pitch, THREE.MathUtils.degToRad(entity.yaw + 180), 0)
+      nameTag.position.y += entity.height + 0.3
+    } else {
+      const spriteMat = new THREE.SpriteMaterial({ map: tex })
+      nameTag = new THREE.Sprite(spriteMat)
+      nameTag.position.y += entity.height + 0.6
+    }
+    nameTag.renderOrder = 1000
+    nameTag.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
+    if (entity.nameTagRotationRight) {
+      nameTag.applyQuaternion(entity.nameTagRotationRight)
+    }
+    if (entity.nameTagScale) {
+      nameTag.scale.multiply(entity.nameTagScale)
+    }
+    if (entity.nameTagRotationLeft) {
+      nameTag.applyQuaternion(entity.nameTagRotationLeft)
+    }
+    if (entity.nameTagTranslation) {
+      nameTag.position.add(entity.nameTagTranslation)
+    }
+    nameTag.name = 'nametag'
 
-    mesh.add(sprite)
+    mesh.add(nameTag)
   }
 }
 
@@ -302,6 +365,9 @@ export class Entities extends EventEmitter {
   parseEntityLabel (jsonLike) {
     if (!jsonLike) return
     try {
+      if (jsonLike.type === 'string') {
+        return jsonLike.value
+      }
       const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
       const text = flat(parsed).map(x => x.text)
       return text.join('')
@@ -352,7 +418,7 @@ export class Entities extends EventEmitter {
     }
   }
 
-  update (entity: import('prismarine-entity').Entity & { delete?; pos }, overrides) {
+  update (entity: import('prismarine-entity').Entity & { delete?; pos, name }, overrides) {
     const isPlayerModel = entity.name === 'player'
     if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
       overrides.texture = `textures/1.16.4/entity/${entity.name === 'zombie_villager' ? 'zombie_villager/zombie_villager.png' : `zombie/${entity.name}.png`}`
@@ -453,6 +519,8 @@ export class Entities extends EventEmitter {
       this.setRendering(this.rendering, group)
     }
 
+    const meta = getGeneralEntitiesMetadata(entity)
+
     //@ts-expect-error
     // set visibility
     const isInvisible = entity.metadata?.[0] & 0x20
@@ -463,10 +531,24 @@ export class Entities extends EventEmitter {
     }
     // ---
     // not player
-    const displayText = entity.metadata?.[3] && this.parseEntityLabel(entity.metadata[2])
-      || entity.metadata?.[23] && this.parseEntityLabel(entity.metadata[23]) // text displays
+    const textDisplayMeta = getSpecificEntityMetadata('text_display', entity)
+    const displayTextRaw = textDisplayMeta?.text || meta.custom_name_visible && meta.custom_name
+    const displayText = this.parseEntityLabel(displayTextRaw)
     if (entity.name !== 'player' && displayText) {
-      addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
+      const nameTagFixed = textDisplayMeta && (textDisplayMeta.billboard_render_constraints === 'fixed' || !textDisplayMeta.billboard_render_constraints)
+      const nameTagBackgroundColor = textDisplayMeta && toRgba(textDisplayMeta.background_color)
+      let nameTagTextOpacity: any
+      if (textDisplayMeta?.text_opacity) {
+        const rawOpacity = parseInt(textDisplayMeta?.text_opacity, 10)
+        nameTagTextOpacity = rawOpacity > 0 ? rawOpacity : 256 - rawOpacity
+      }
+      addNametag(
+        { ...entity, username: displayText, nameTagBackgroundColor, nameTagTextOpacity, nameTagFixed,
+          nameTagScale: textDisplayMeta?.scale, nameTagTranslation: textDisplayMeta && (textDisplayMeta.translation || new THREE.Vector3(0, 0, 0)),
+          nameTagRotationLeft: toQuaternion(textDisplayMeta?.left_rotation), nameTagRotationRight: toQuaternion(textDisplayMeta?.right_rotation) },
+        this.entitiesOptions,
+        this.entities[entity.id].children.find(c => c.name === 'mesh')
+      )
     }
 
     // todo handle map, map_chunks events
@@ -546,4 +628,20 @@ export class Entities extends EventEmitter {
       })
     }
   }
+}
+
+function getGeneralEntitiesMetadata (entity: { name; metadata }): Partial<UnionToIntersection<EntityMetadataVersions[keyof EntityMetadataVersions]>> {
+  const entityData = loadedData.entitiesByName[entity.name]
+  return new Proxy({}, {
+    get (target, p, receiver) {
+      if (typeof p !== 'string' || !entityData) return
+      const index = entityData.metadataKeys?.indexOf(p)
+      return entity.metadata[index ?? -1]
+    },
+  })
+}
+
+function getSpecificEntityMetadata<T extends keyof EntityMetadataVersions> (name: T, entity): EntityMetadataVersions[T] | undefined {
+  if (entity.name !== name) return
+  return getGeneralEntitiesMetadata(entity) as any
 }

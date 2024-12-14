@@ -7,7 +7,7 @@ import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { UserOverrideCommand, UserOverridesConfig } from 'contro-max/build/types/store'
-import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState, loadedGameState } from './globalState'
+import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState, loadedGameState, hideModal } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './inventoryWindows'
@@ -54,6 +54,7 @@ export const contro = new ControMax({
     ui: {
       toggleFullscreen: ['F11'],
       back: [null/* 'Escape' */, 'B'],
+      toggleMap: ['KeyM'],
       leftClick: [null, 'A'],
       rightClick: [null, 'Y'],
       speedupCursor: [null, 'Left Stick'],
@@ -299,7 +300,7 @@ const alwaysPressedHandledCommand = (command: Command) => {
   }
 }
 
-function lockUrl () {
+export function lockUrl () {
   let newQs = ''
   if (fsState.saveLoaded) {
     const save = localServer!.options.worldFolder.split('/').at(-1)
@@ -424,6 +425,14 @@ contro.on('trigger', ({ command }) => {
   if (command === 'ui.toggleFullscreen') {
     void goFullscreen(true)
   }
+
+  if (command === 'ui.toggleMap') {
+    if (activeModalStack.at(-1)?.reactType === 'full-map') {
+      hideModal({ reactType: 'full-map' })
+    } else {
+      showModal({ reactType: 'full-map' })
+    }
+  }
 })
 
 contro.on('release', ({ command }) => {
@@ -514,6 +523,15 @@ export const f3Keybinds = [
       }
     },
     mobileTitle: 'Cycle Game Mode'
+  },
+  {
+    key: 'KeyP',
+    async action () {
+      const { uuid, ping: playerPing, username } = bot.player
+      const proxyPing = await bot['pingProxy']()
+      void showOptionsModal(`${username}: last known total latency (ping): ${playerPing}. Connected to ${lastConnectOptions.value?.proxy} with current ping ${proxyPing}. Player UUID: ${uuid}`, [])
+    },
+    mobileTitle: 'Show Proxy & Ping Details'
   }
 ]
 

@@ -94,6 +94,7 @@ interface Props {
   listStyle?: React.CSSProperties
   setListHovered?: (hovered: boolean) => void
   secondRowStyles?: React.CSSProperties
+  lockedEditing?: boolean
 }
 
 export default ({
@@ -116,7 +117,8 @@ export default ({
   defaultSelectedRow,
   listStyle,
   setListHovered,
-  secondRowStyles
+  secondRowStyles,
+  lockedEditing
 }: Props) => {
   const containerRef = useRef<any>()
   const firstButton = useRef<HTMLButtonElement>(null)
@@ -213,10 +215,10 @@ export default ({
           <Button onClick={() => onGeneralAction('create')} disabled={isReadonly}>Create New World</Button>
         </div>}
         <div style={{ ...secondRowStyles }}>
-          {serversLayout ? <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('edit', focusedWorld)}>Edit</Button> : <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('export', focusedWorld)}>Export</Button>}
-          <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('delete', focusedWorld)}>Delete</Button>
+          {serversLayout ? <Button style={{ width: 100 }} disabled={!focusedWorld || lockedEditing} onClick={() => onWorldAction('edit', focusedWorld)}>Edit</Button> : <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('export', focusedWorld)}>Export</Button>}
+          <Button style={{ width: 100 }} disabled={!focusedWorld || lockedEditing} onClick={() => onWorldAction('delete', focusedWorld)}>Delete</Button>
           {serversLayout ?
-            <Button style={{ width: 100 }} onClick={() => onGeneralAction('create')}>Add</Button> :
+            <Button style={{ width: 100 }} onClick={() => onGeneralAction('create')} disabled={lockedEditing}>Add</Button> :
             <Button style={{ width: 100 }} onClick={() => onWorldAction('edit', focusedWorld)} disabled>Edit</Button>}
           <Button style={{ width: 100 }} onClick={() => onGeneralAction('cancel')}>Cancel</Button>
         </div>

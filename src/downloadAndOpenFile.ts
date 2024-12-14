@@ -9,10 +9,10 @@ export const getFixedFilesize = (bytes: number) => {
 
 const inner = async () => {
   const qs = new URLSearchParams(window.location.search)
-  const mapUrlDir = qs.get('mapDir')
+  const mapUrlDir = qs.getAll('mapDir')
   const mapUrlDirGuess = qs.get('mapDirGuess')
   const mapUrlDirBaseUrl = qs.get('mapDirBaseUrl')
-  if (mapUrlDir) {
+  if (mapUrlDir.length) {
     await openWorldFromHttpDir(mapUrlDir, mapUrlDirBaseUrl ?? undefined)
     return true
   }

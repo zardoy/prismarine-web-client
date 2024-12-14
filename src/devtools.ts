@@ -46,7 +46,7 @@ customEvents.on('gameLoaded', () => {
 window.inspectPacket = (packetName, full = false) => {
   const listener = (...args) => console.log('packet', packetName, full ? args : args[0])
   const attach = () => {
-    bot?._client.on(packetName, listener)
+    bot?._client.prependListener(packetName, listener)
   }
   attach()
   customEvents.on('mineflayerBotCreated', attach)
