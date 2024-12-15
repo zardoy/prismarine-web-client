@@ -2,18 +2,20 @@
 
 ![banner](./docs-assets/banner.jpg)
 
-A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using the best modern web technologies.
+Minecraft **clone** rewritten in TypeScript using the best modern web technologies. Minecraft vanilla-compatible client and integrated server packaged into a single web app.
 
-You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
+You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link), [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the default (`develop`) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) and [s.pcm.gg](https://s.pcm.gg/) - so it's usually newer, but might be less stable.
 
-For building the project yourself / contributing, see [Development, Debugging & Contributing](#development-debugging--contributing). If you encounter any bugs or usability issues, please report them!
+Don't confuse with [Eaglercraft](https://git.eaglercraft.rip/eaglercraft/eaglercraft-1.8) that is a REAL vanilla Minecraft Java edition port to the web. Eaglercraft is a fully playable solution, but this project is more in position of a "technical demo" to show how it's possible to build games for web at scale entirely in JS ecosystem.
+
+For building the project yourself / contributing, see [Development, Debugging & Contributing](#development-debugging--contributing). For reference at what and how web technologies / frameworks are used, see [TECH.md](./TECH.md).
 
 ### Big Features
 
 - Open any zip world file or even folder in read-write mode!
 - Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
 - Singleplayer mode with simple world generations!
-- Google Drive support for reading / saving worlds
+- Google Drive support for reading / saving worlds back to the cloud
 - Works offline
 - Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
