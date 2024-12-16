@@ -16,7 +16,9 @@ struct Cube {
 struct Chunk {
   x: i32,
   z: i32,
-  opacity: i32
+  opacity: i32,
+  offset: i32,
+  length: i32
 }
 
 struct Depth {
@@ -38,15 +40,13 @@ struct CameraPosition {
 @group(0) @binding(1) var<storage, read_write> cubes: array<Cube>;
 @group(1) @binding(0) var<storage, read> chunks: array<Chunk>;
 @group(2) @binding(0) var<uniform> uniforms: Uniforms;
-@group(1) @binding(4) var<uniform> cameraPosition: CameraPosition;
+@group(1) @binding(3) var<uniform> cameraPosition: CameraPosition;
 
 @compute @workgroup_size(16, 16)
 fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   let position = global_id.xy;
-  storageBarrier();
-  depthAtomic.locks[position.x][position.y] = 4294967295;
   let textureSize = uniforms.textureSize;
-  if (position.x >= textureSize.x + 2 || position.y >= textureSize.y) {
+  if (position.x >= textureSize.x || position.y >= textureSize.y) {
     return;
   }
 

@@ -64,7 +64,6 @@ export class WebgpuRenderer {
   depthTextureBuffer: GPUBuffer
   textureSizeBuffer: any
   textureSizeBindGroup: GPUBindGroup
-  cameraComputeUniform: GPUBuffer
   modelsBuffer: GPUBuffer
   indirectDrawBufferMap: GPUBuffer
   indirectDrawBufferMapBeingUsed = false
@@ -98,6 +97,7 @@ export class WebgpuRenderer {
   earlyZRejectUniform: GPUBuffer
   tileSizeUniform: GPUBuffer
   clearColorBuffer: GPUBuffer
+  chunksCount: number
 
 
   // eslint-disable-next-line max-params
@@ -125,7 +125,7 @@ export class WebgpuRenderer {
 
   async init () {
     const { canvas, imageBlob, isPlayground, localStorage } = this
-
+    this.camera.near = 0.05
     updateSize(canvas.width, canvas.height)
 
     if (!navigator.gpu) throw new Error('WebGPU not supported (probably can be enabled in settings)')
@@ -351,11 +351,6 @@ export class WebgpuRenderer {
       matrixData
     )
 
-    this.cameraComputeUniform = device.createBuffer({
-      size: Mat4x4BufferSize,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    })
-
     this.clearColorBuffer = device.createBuffer({
       size: 4 * 4,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
@@ -451,7 +446,6 @@ export class WebgpuRenderer {
         { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 2, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'storage' } },
         { binding: 3, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
-        { binding: 4, visibility: GPUShaderStage.COMPUTE, buffer: { type: 'uniform' } },
       ],
     })
 
@@ -526,7 +520,7 @@ export class WebgpuRenderer {
       usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
     })
 
-    this.chunksBuffer = this.createVertexStorage(65_535 * 12, 'chunksBuffer')
+    this.chunksBuffer = this.createVertexStorage(202_535 * 20, 'chunksBuffer')
     this.occlusionTexture = this.createVertexStorage(4096 * 4096 * 4, 'occlusionTexture')
     this.depthTextureBuffer = this.createVertexStorage(4096 * 4096 * 4, 'depthTextureBuffer')
 
@@ -790,10 +784,6 @@ export class WebgpuRenderer {
         },
         {
           binding: 3,
-          resource: { buffer: this.cameraComputeUniform },
-        },
-        {
-          binding: 4,
           resource: { buffer: this.cameraComputePositionUniform },
         }
       ],
@@ -935,16 +925,21 @@ export class WebgpuRenderer {
   }
 
   updateChunks (chunks: Array<{ x: number, z: number, length: number }>, offset = 0) {
-    const chunksCount = chunks.length
-    const chunksBuffer = new Int32Array(chunksCount * 3)
+    this.chunksCount = chunks.length
+    // this.commandEncoder = this.device.createCommandEncoder()
+    // this.chunksBuffer = this.createVertexStorage(chunks.length * 20, 'chunksBuffer')
+    // this.device.queue.submit([this.commandEncoder.finish()])
+    const chunksBuffer = new Int32Array(this.chunksCount * 5)
     let totalFromChunks = 0
-    for (let i = 0; i < chunksCount; i++) {
-      const offset = i * 3
+    for (let i = 0; i < this.chunksCount; i++) {
+      const offset = i * 5
       const { x, z, length } = chunks[i]!
       const chunkProgress = this.chunksFadeAnimationController.indexes[i]?.progress ?? 1
       chunksBuffer[offset] = x
       chunksBuffer[offset + 1] = z
       chunksBuffer[offset + 2] = chunkProgress * 255
+      chunksBuffer[offset + 3] = totalFromChunks
+      chunksBuffer[offset + 4] = length
       const cubesCount = length
       totalFromChunks += cubesCount
     }
@@ -983,17 +978,15 @@ export class WebgpuRenderer {
     const timeDiff = time - this.lastLoopTime
     this.loopPre(timeDiff)
 
-    const { device, cameraUniform: uniformBuffer, cameraComputeUniform: computeUniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
+    const { device, cameraUniform: uniformBuffer, renderPassDescriptor, uniformBindGroup, pipeline, ctx, verticesBuffer } = this
 
     this.chunksFadeAnimationController.update(time)
     // #region update camera
     tweenJs.update()
-    this.camera.near = 0.05
     const oldPos = this.camera.position.clone()
     this.camera.position.x += this.rendererParams.cameraOffset[0]
     this.camera.position.y += this.rendererParams.cameraOffset[1]
     this.camera.position.z += this.rendererParams.cameraOffset[2]
-    const oversize = 1.1
 
     this.camera.updateProjectionMatrix()
     this.camera.updateMatrix()
@@ -1014,18 +1007,6 @@ export class WebgpuRenderer {
       new Uint32Array([this.rendererParams.earlyZRejection ? 1 : 0])
     )
 
-    const origFov = this.camera.fov
-    if (!this.rendererParams.earlyZRejection) this.camera.fov *= oversize
-    this.camera.updateProjectionMatrix()
-
-    const ViewProjectionMatCompute = new THREE.Matrix4()
-    ViewProjectionMatCompute.multiplyMatrices(this.camera.projectionMatrix, this.camera.matrix)
-    ViewProjection = new Float32Array(ViewProjectionMatCompute.elements)
-    device.queue.writeBuffer(
-      this.cameraComputeUniform,
-      0,
-      ViewProjection
-    )
 
     const cameraPosition = new Float32Array([this.camera.position.x, this.camera.position.y, this.camera.position.z])
     device.queue.writeBuffer(
@@ -1035,7 +1016,6 @@ export class WebgpuRenderer {
     )
 
     this.camera.position.set(oldPos.x, oldPos.y, oldPos.z)
-    this.camera.fov = origFov
     // #endregion
 
     // let { multisampleTexture } = this;
@@ -1091,6 +1071,7 @@ export class WebgpuRenderer {
     if (this.rendererParams.occlusionActive) {
       this.commandEncoder.clearBuffer(this.occlusionTexture)
       this.commandEncoder.clearBuffer(this.visibleCubesBuffer)
+      this.commandEncoder.clearBuffer(this.depthTextureBuffer)
       device.queue.writeBuffer(this.indirectDrawBuffer, 0, this.indirectDrawParams)
     }
     // Compute pass for occlusion culling
@@ -1106,7 +1087,7 @@ export class WebgpuRenderer {
           computePass.setBindGroup(0, this.computeBindGroup)
           computePass.setBindGroup(1, this.chunkBindGroup)
           computePass.setBindGroup(2, this.textureSizeBindGroup)
-          computePass.dispatchWorkgroups(Math.max(Math.ceil(this.realNumberOfCubes / 256), 65_535))
+          computePass.dispatchWorkgroups(Math.max(Math.ceil(this.chunksCount / 64), 65_535))
           computePass.end()
           device.queue.submit([this.commandEncoder.finish()])
         }
@@ -1206,11 +1187,6 @@ export class WebgpuRenderer {
       }
     }
 
-    // this.updateCameraPos({
-    //   x: this.camera.position.x + this.debugCameraMove.x,
-    //   y: this.camera.position.y + this.debugCameraMove.y,
-    //   z: this.camera.position.z + this.debugCameraMove.z
-    // })
   }
 
   loopPost () {

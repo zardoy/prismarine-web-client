@@ -6,7 +6,9 @@ struct Cube {
 struct Chunk{
   x : i32,
   z : i32,
-  opacity: i32
+  opacity: i32,
+  offset: i32,
+  length: i32
 }
 
 
