@@ -994,11 +994,11 @@ export class WebgpuRenderer {
     const { projectionMatrix, matrix } = this.camera
     const ViewProjectionMat4 = new THREE.Matrix4()
     ViewProjectionMat4.multiplyMatrices(projectionMatrix, matrix.invert())
-    let ViewProjection = new Float32Array(ViewProjectionMat4.elements)
+    const viewProjection = new Float32Array(ViewProjectionMat4.elements)
     device.queue.writeBuffer(
       uniformBuffer,
       0,
-      ViewProjection
+      viewProjection
     )
 
     device.queue.writeBuffer(
@@ -1142,6 +1142,7 @@ export class WebgpuRenderer {
     }
     if (chunksStorage.updateQueue.length) {
       // console.time('updateBlocks')
+      // eslint-disable-next-line unicorn/no-useless-spread
       const queue = [...chunksStorage.updateQueue.slice(0, 0)]
       let updateCount = 0
       for (const q of chunksStorage.updateQueue) {
