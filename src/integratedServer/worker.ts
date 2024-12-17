@@ -2,6 +2,8 @@ import { createWorkerProxy } from 'prismarine-viewer/examples/workerProxy'
 import { startLocalServer } from '../createLocalServer'
 import defaultServerOptions from '../defaultLocalServerOptions'
 import { createCustomServerImpl } from './customServer'
+import { localFsState } from './browserfsShared'
+import { mountFsBackend, onWorldOpened } from './browserfsServer'
 
 let server: import('flying-squid/dist/index').FullServer & { options }
 
@@ -58,7 +60,7 @@ const collectTransferables = (data, collected) => {
   }
 }
 
-const startServer = async (serverOptions = defaultServerOptions) => {
+const startServer = async (serverOptions) => {
   const LocalServer = createCustomServerImpl((data) => {
     const transferrables = []
     collectTransferables(data, transferrables)
@@ -111,10 +113,14 @@ const updateSettings = (initial = true) => {
 }
 
 export const workerProxyType = createWorkerProxy({
-  start ({ options, mcData, settings }: { options: any, mcData: any, settings: CustomAppSettings }) {
+  async start ({ options, mcData, settings, fsState }: { options: any, mcData: any, settings: CustomAppSettings, fsState: typeof localFsState }) {
     globalSettings = settings
     //@ts-expect-error
     globalThis.mcData = mcData
+    Object.assign(localFsState, fsState)
+    await mountFsBackend()
+    // onWorldOpened(username, root)
+
     void startServer(options)
   },
   packet (data) {

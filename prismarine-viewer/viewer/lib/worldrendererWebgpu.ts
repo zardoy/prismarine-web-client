@@ -202,7 +202,6 @@ export class WorldRendererWebgpu extends WorldRendererCommon {
 
 
   removeColumn (x, z) {
-    console.log('removeColumn', x, z)
     super.removeColumn(x, z)
 
     for (let y = this.worldConfig.minY; y < this.worldConfig.worldHeight; y += 16) {
