@@ -64,7 +64,8 @@ export const startLocalServerMain = async (serverOptions: { version: any }) => {
 
   serverChannel.start({
     options: serverOptions,
-    mcData: await getMcDataForWorker(serverOptions.version)
+    mcData: await getMcDataForWorker(serverOptions.version),
+    settings: lastCustomSettings
   })
 
   await readyPromise

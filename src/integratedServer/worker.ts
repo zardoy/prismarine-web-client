@@ -111,7 +111,7 @@ const updateSettings = (initial = true) => {
 }
 
 export const workerProxyType = createWorkerProxy({
-  start ({ options, mcData, settings }) {
+  start ({ options, mcData, settings }: { options: any, mcData: any, settings: CustomAppSettings }) {
     globalSettings = settings
     //@ts-expect-error
     globalThis.mcData = mcData
