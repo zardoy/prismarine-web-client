@@ -94,7 +94,7 @@ import { saveToBrowserMemory } from './react/PauseScreen'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 import './water'
-import { ConnectOptions } from './connect'
+import { ConnectOptions, downloadNeededDataOnConnect } from './connect'
 import { ref, subscribe } from 'valtio'
 import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
@@ -412,22 +412,7 @@ async function connect (connectOptions: ConnectOptions) {
         throw new Error('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
       }
 
-      // todo expose cache
-      const lastVersion = supportedVersions.at(-1)
-      if (version === lastVersion) {
-        // ignore cache hit
-        versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
-      }
-      setLoadingScreenStatus(`Loading data for ${version}`)
-      if (!document.fonts.check('1em mojangles')) {
-        // todo instead re-render signs on load
-        await document.fonts.load('1em mojangles').catch(() => {
-          console.error('Failed to load font, signs wont be rendered correctly')
-        })
-      }
-      await window._MC_DATA_RESOLVER.promise // ensure data is loaded
-      await downloadSoundsIfNeeded()
-      miscUiState.loadedDataVersion = version
+      await downloadNeededDataOnConnect(version)
       try {
         await resourcepackReload(version)
       } catch (err) {
