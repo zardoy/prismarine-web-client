@@ -9,6 +9,7 @@ import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
 import { miscUiState } from './globalState'
 import { toggleStatsVisibility } from './topRightStats'
+import { updateLocalServerSettings } from './integratedServer/main'
 
 subscribeKey(options, 'renderDistance', reloadChunks)
 subscribeKey(options, 'multiplayerRenderDistance', reloadChunks)
@@ -70,6 +71,12 @@ export const watchOptionsAfterViewerInit = () => {
     }
   })
 
+  watchValue(options, o => {
+    updateLocalServerSettings({
+      autoSave: o.singleplayerAutoSave
+    })
+  })
+
   viewer.world.mesherConfig.smoothLighting = options.smoothLighting
   subscribeKey(options, 'smoothLighting', () => {
     viewer.world.mesherConfig.smoothLighting = options.smoothLighting
@@ -116,9 +123,9 @@ const onRendererParamsUpdate = () => {
   if (worldView) {
     worldView.allowPositionUpdate = viewer.world.rendererParams.allowChunksViewUpdate
   }
-  if (localServer?.players?.[0]) {
-    localServer.players[0].stopChunkUpdates = !viewer.world.rendererParams.allowChunksViewUpdate
-  }
+  updateLocalServerSettings({
+    stopLoad: !viewer.world.rendererParams.allowChunksViewUpdate
+  })
 }
 
 let viewWatched = false

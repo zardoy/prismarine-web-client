@@ -75,7 +75,6 @@ import dayCycle from './dayCycle'
 
 import { onAppLoad, resourcepackReload } from './resourcePack'
 import { ConnectPeerOptions, connectToPeer } from './localServerMultiplayer'
-import CustomChannelClient from './customClient'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
 import { appStatusState, lastConnectOptions } from './react/AppStatusProvider'
@@ -106,6 +105,7 @@ import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
 import { addNewStat } from 'prismarine-viewer/viewer/lib/ui/newStats'
+import { destroyLocalServerMain, startLocalServerMain } from './integratedServer/main'
 
 window.debug = debug
 window.THREE = THREE
@@ -327,7 +327,7 @@ async function connect (connectOptions: ConnectOptions) {
     if (ended) return
     ended = true
     viewer.resetAll()
-    localServer = window.localServer = window.server = undefined
+    void destroyLocalServerMain(false)
 
     renderWrapper.postRender = () => { }
     if (bot) {
@@ -459,6 +459,7 @@ async function connect (connectOptions: ConnectOptions) {
       await downloadMcData(downloadVersion)
     }
 
+    let CustomClient
     if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:
       // Note 1: here we have custom sync communication between server Client (flying-squid) and game client (mineflayer)
@@ -472,23 +473,9 @@ async function connect (connectOptions: ConnectOptions) {
       // flying-squid: 'login' -> player.login -> now sends 'login' event to the client (handled in many plugins in mineflayer) -> then 'update_health' is sent which emits 'spawn' in mineflayer
 
       setLoadingScreenStatus('Starting local server')
-      localServer = window.localServer = window.server = startLocalServer(serverOptions)
-      // todo need just to call quit if started
-      // loadingScreen.maybeRecoverable = false
-      // init world, todo: do it for any async plugins
-      if (!localServer.pluginsReady) {
-        await new Promise(resolve => {
-          localServer.once('pluginsReady', resolve)
-        })
-      }
+      CustomClient = (await startLocalServerMain(serverOptions)).CustomClient
 
-      localServer.on('newPlayer', (player) => {
-        // it's you!
-        player.on('loadingStatus', (newStatus) => {
-          setLoadingScreenStatus(newStatus, false, false, true)
-        })
-      })
-      flyingSquidEvents()
+      // flyingSquidEvents()
     }
 
     if (connectOptions.authenticatedAccount) username = 'you'
@@ -529,7 +516,7 @@ async function connect (connectOptions: ConnectOptions) {
       ...singleplayer ? {
         version: serverOptions.version,
         connect () { },
-        Client: CustomChannelClient as any,
+        Client: CustomClient,
       } : {},
       onMsaCode (data) {
         signInMessageState.code = data.user_code
