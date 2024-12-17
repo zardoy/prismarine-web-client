@@ -56,9 +56,12 @@ export const updateLocalServerSettings = (settings: Partial<CustomAppSettings>) 
 export const startLocalServerMain = async (serverOptions: { version: any }) => {
   worker = new Worker('./integratedServer.js')
   serverChannel = useWorkerProxy<typeof workerProxyType>(worker, true)
-  const readyPromise = new Promise<void>(resolve => {
+  const readyPromise = new Promise<void>((resolve, reject) => {
     addEventListener('ready', () => {
       resolve()
+    })
+    worker!.addEventListener('error', (err) => {
+      reject(err.error ?? 'Unknown error with the worker, check that integratedServer.js could be loaded from the server')
     })
   })
 
@@ -77,6 +80,9 @@ export const startLocalServerMain = async (serverOptions: { version: any }) => {
     addEventListener('packet', (data) => {
       restorePatchedDataDeep(data)
       processData(data)
+      if (data.name === 'map_chunk') {
+        addStatPerSec('map_chunk')
+      }
     })
   }, options.excludeCommunicationDebugEvents)
   setupEvents()

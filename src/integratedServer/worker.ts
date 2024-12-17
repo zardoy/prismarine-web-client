@@ -13,7 +13,7 @@ export interface CustomAppSettings {
 export interface BackEvents {
   ready: {}
   quit: {}
-  packet: {}
+  packet: any
   otherPlayerPacket: {
     player: string
     packet: any
