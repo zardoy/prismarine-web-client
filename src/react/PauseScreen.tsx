@@ -18,7 +18,7 @@ import { fsState } from '../loadSave'
 import { disconnect } from '../flyingSquidUtils'
 import { pointerLock, setLoadingScreenStatus } from '../utils'
 import { closeWan, openToWanAndCopyJoinLink, getJoinLink } from '../localServerMultiplayer'
-import { collectFilesToCopy, fileExistsAsyncOptimized, mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'
+import { collectFilesToCopy, fileExistsAsyncOptimized, mkdirRecursive, uniqueFileNameFromWorldName } from '../integratedServer/browserfsShared'
 import { useIsModalActive } from './utilsApp'
 import { showOptionsModal } from './SelectOption'
 import Button from './Button'
@@ -44,9 +44,8 @@ export const saveToBrowserMemory = async () => {
         }
       })
     })
-    //@ts-expect-error
-    const { worldFolder } = localServer.options
-    const saveRootPath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop(), `/data/worlds`)
+    const worldFolder = fsState.inMemorySavePath
+    const saveRootPath = await uniqueFileNameFromWorldName(worldFolder.split('/').pop()!, `/data/worlds`)
     await mkdirRecursive(saveRootPath)
     console.log('made world folder', saveRootPath)
     const allRootPaths = [...usedServerPathsV1]
@@ -86,7 +85,7 @@ export const saveToBrowserMemory = async () => {
           const srcPath = join(worldFolder, copyPath)
           const savePath = join(saveRootPath, copyPath)
           await mkdirRecursive(savePath)
-          await fs.promises.writeFile(savePath, await fs.promises.readFile(srcPath))
+          await fs.promises.writeFile(savePath, await fs.promises.readFile(srcPath) as any)
           upProgress(totalSIze)
           if (isRegionFiles) {
             const regionFile = copyPath.split('/').at(-1)!
@@ -261,7 +260,7 @@ export default () => {
       ) : null}
       {!lockConnect && <>
         <Button className="button" style={{ width: '204px' }} onClick={disconnect}>
-          {localServer && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect & Reset'}
+          {fsState.inMemorySave && !fsState.syncFs && !fsState.isReadonly ? 'Save & Quit' : 'Disconnect & Reset'}
         </Button>
       </>}
     </div>

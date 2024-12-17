@@ -4,6 +4,7 @@ import { setLoadingScreenStatus } from '../utils'
 import { chatInputValueGlobal } from '../react/Chat'
 import { showModal } from '../globalState'
 import { showNotification } from '../react/NotificationProvider'
+import { fsState } from '../loadSave'
 import type { workerProxyType, BackEvents, CustomAppSettings } from './worker'
 import { createLocalServerClientImpl } from './customClient'
 import { getMcDataForWorker } from './workerMcData.mjs'
@@ -53,7 +54,7 @@ export const updateLocalServerSettings = (settings: Partial<CustomAppSettings>) 
   serverChannel?.updateSettings(settings)
 }
 
-export const startLocalServerMain = async (serverOptions: { version: any }) => {
+export const startLocalServerMain = async (serverOptions: { version: any, worldFolder? }) => {
   worker = new Worker('./integratedServer.js')
   serverChannel = useWorkerProxy<typeof workerProxyType>(worker, true)
   const readyPromise = new Promise<void>(resolve => {
@@ -62,10 +63,12 @@ export const startLocalServerMain = async (serverOptions: { version: any }) => {
     })
   })
 
-  serverChannel.start({
+  fsState.inMemorySavePath = serverOptions.worldFolder ?? ''
+  void serverChannel.start({
     options: serverOptions,
     mcData: await getMcDataForWorker(serverOptions.version),
-    settings: lastCustomSettings
+    settings: lastCustomSettings,
+    fsState: structuredClone(fsState)
   })
 
   await readyPromise

@@ -1,12 +1,12 @@
 import fs from 'fs'
 import { join } from 'path'
 import JSZip from 'jszip'
-import { readLevelDat } from './loadSave'
+import { fsState, readLevelDat } from './loadSave'
 import { closeWan, openToWanAndCopyJoinLink } from './localServerMultiplayer'
-import { copyFilesAsync, uniqueFileNameFromWorldName } from './browserfs'
 import { saveServer } from './flyingSquidUtils'
 import { setLoadingScreenStatus } from './utils'
 import { displayClientChat } from './botUtils'
+import { copyFilesAsync, uniqueFileNameFromWorldName } from './integratedServer/browserfsShared'
 
 const notImplemented = () => {
   return 'Not implemented yet'
@@ -68,7 +68,7 @@ export const exportWorld = async (path: string, type: 'zip' | 'folder', zipName 
 // todo include in help
 const exportLoadedWorld = async () => {
   await saveServer()
-  let { worldFolder } = localServer!.options
+  let worldFolder = fsState.inMemorySavePath
   if (!worldFolder.startsWith('/')) worldFolder = `/${worldFolder}`
   await exportWorld(worldFolder, 'zip')
 }

@@ -4,8 +4,9 @@ import { proxy, subscribe, useSnapshot } from 'valtio'
 import { useEffect, useState } from 'react'
 import { activeModalStack, miscUiState, openOptionsMenu, showModal } from '../globalState'
 import { openGithub, setLoadingScreenStatus } from '../utils'
-import { openFilePicker, copyFilesAsync, mkdirRecursive, openWorldDirectory, removeFileRecursiveAsync } from '../browserfs'
 
+import { openWorldDirectory, openFilePicker } from '../browserfs'
+import { mkdirRecursive, copyFilesAsync, removeFileRecursiveAsync } from '../integratedServer/browserfsShared'
 import MainMenu from './MainMenu'
 import { DiscordButton } from './DiscordButton'
 

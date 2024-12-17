@@ -24,7 +24,7 @@ import { options, watchValue } from './optionsStorage'
 import './reactUi'
 import { contro, lockUrl, onBotCreate } from './controls'
 import './dragndrop'
-import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
+import { resetStateAfterDisconnect } from './browserfs'
 import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
@@ -87,7 +87,6 @@ import { downloadSoundsIfNeeded } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
-import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy, showNotification } from './react/NotificationProvider'
 import { saveToBrowserMemory } from './react/PauseScreen'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
@@ -347,9 +346,9 @@ async function connect (connectOptions: ConnectOptions) {
   }
   const cleanFs = () => {
     if (singleplayer && !fsState.inMemorySave) {
-      possiblyCleanHandle(() => {
-        // todo: this is not enough, we need to wait for all async operations to finish
-      })
+      // possiblyCleanHandle(() => {
+      //   // todo: this is not enough, we need to wait for all async operations to finish
+      // })
     }
   }
   let lastPacket = undefined as string | undefined
