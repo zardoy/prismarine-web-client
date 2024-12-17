@@ -1178,7 +1178,7 @@ export class WebgpuRenderer {
     const took = performance.now() - start
     this.renderMs += took
     this.renderMsCount++
-    if (took > 100) {
+    if (took > 55) {
       console.log('One frame render loop took', took)
     }
   }
