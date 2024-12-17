@@ -1142,7 +1142,15 @@ export class WebgpuRenderer {
     }
     if (chunksStorage.updateQueue.length) {
       // console.time('updateBlocks')
-      const queue = [...chunksStorage.updateQueue]
+      const queue = [...chunksStorage.updateQueue.slice(0, 0)]
+      let updateCount = 0
+      for (const q of chunksStorage.updateQueue) {
+        queue.push(q)
+        updateCount += q.end - q.start
+        if (updateCount > chunksStorage.maxDataUpdate) {
+          break // to next frame
+        }
+      }
       while (chunksStorage.updateQueue.length) {
         this.updateCubesBuffersDataFromLoop()
       }
