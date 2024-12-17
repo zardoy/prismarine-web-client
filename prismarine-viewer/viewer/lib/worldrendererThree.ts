@@ -36,7 +36,7 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
-    this.rendererDevice = String(WorldRendererThree.getRendererInfo(this.renderer))
+    this.rendererDevice = `${WorldRendererThree.getRendererInfo(this.renderer)} powered by three.js r${THREE.REVISION}`
     this.starField = new StarField(scene)
     this.holdingBlock = new HoldingBlock()
     this.holdingBlockLeft = new HoldingBlock()
@@ -422,7 +422,7 @@ export class WorldRendererThree extends WorldRendererCommon {
   static getRendererInfo (renderer: THREE.WebGLRenderer) {
     try {
       const gl = renderer.getContext()
-      return `${gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)} powered by three.js r{THREE.REVISION}`
+      return `${gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)}`
     } catch (err) {
       console.warn('Failed to get renderer info', err)
     }
