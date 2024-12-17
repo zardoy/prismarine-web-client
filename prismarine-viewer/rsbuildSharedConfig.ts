@@ -3,6 +3,16 @@ import { pluginNodePolyfill } from '@rsbuild/plugin-node-polyfill';
 import { pluginReact } from '@rsbuild/plugin-react';
 import { pluginBasicSsl } from '@rsbuild/plugin-basic-ssl'
 import path from 'path'
+import fs from 'fs'
+
+let releaseTag
+let releaseChangelog
+
+if (fs.existsSync('./assets/release.json')) {
+    const releaseJson = JSON.parse(fs.readFileSync('./assets/release.json', 'utf8'))
+    releaseTag = releaseJson.latestTag
+    releaseChangelog = releaseJson.changelog?.replace(/<!-- bump-type:[\w]+ -->/, '')
+}
 
 export const appAndRendererSharedConfig = () => defineConfig({
     dev: {
@@ -40,6 +50,10 @@ export const appAndRendererSharedConfig = () => defineConfig({
         },
         define: {
             'process.platform': '"browser"',
+            'process.env.GITHUB_URL':
+                JSON.stringify(`https://github.com/${process.env.GITHUB_REPOSITORY || `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`}`),
+            'process.env.RELEASE_TAG': JSON.stringify(releaseTag),
+            'process.env.RELEASE_CHANGELOG': JSON.stringify(releaseChangelog),
         },
         decorators: {
             version: 'legacy', // default is a lie
