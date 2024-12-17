@@ -1150,7 +1150,7 @@ export class WebgpuRenderer {
         chunksStorage.clearRange(start, end)
       }
       // console.timeEnd('updateBlocks')
-    } else if (Object.keys(this.chunksFadeAnimationController.indexes).length) {
+    } else if (this.chunksFadeAnimationController.updateWasMade) {
       this.updateChunks(chunksStorage.chunks)
     }
 
@@ -1230,10 +1230,12 @@ const debugCheckDuplicates = (arr: any[]) => {
 class IndexedInOutAnimationController {
   lastUpdateTime?: number
   indexes: Record<string, { progress: number, isAdding: boolean, onRemoved?: () => void }> = {}
+  updateWasMade = false
 
   constructor (public updateIndex: (key: string, progress: number, removed: boolean) => void, public DURATION = 500) { }
 
   update (time: number) {
+    this.updateWasMade = false
     this.lastUpdateTime ??= time
     // eslint-disable-next-line guard-for-in
     for (const key in this.indexes) {
@@ -1254,6 +1256,7 @@ class IndexedInOutAnimationController {
         }
       }
       this.updateIndex(key, data.progress, removed)
+      this.updateWasMade = true
     }
     this.lastUpdateTime = time
   }
