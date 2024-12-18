@@ -5,7 +5,7 @@ import { options } from './optionsStorage'
 export const watchFov = () => {
   const updateFov = () => {
     if (!bot) return
-    let fovSetting = options.fov
+    let fovSetting = gameAdditionalState.isZooming ? 30 : options.fov
     // todo check values and add transition
     if (bot.controlState.sprint && !bot.controlState.sneak) {
       fovSetting += 5
@@ -20,6 +20,7 @@ export const watchFov = () => {
   subscribeKey(options, 'fov', updateFov)
   subscribeKey(gameAdditionalState, 'isFlying', updateFov)
   subscribeKey(gameAdditionalState, 'isSprinting', updateFov)
+  subscribeKey(gameAdditionalState, 'isZooming', updateFov)
   subscribeKey(gameAdditionalState, 'isSneaking', () => {
     viewer.isSneaking = gameAdditionalState.isSneaking
     viewer.setFirstPersonCamera(bot.entity.position, bot.entity.yaw, bot.entity.pitch)

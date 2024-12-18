@@ -49,6 +49,7 @@ export const contro = new ControMax({
       chat: [['KeyT', 'Enter']],
       command: ['Slash'],
       swapHands: ['KeyF'],
+      zoom: ['KeyC'],
       selectItem: ['KeyH'] // default will be removed
     },
     ui: {
@@ -282,6 +283,9 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
       case 'general.interactPlace':
         document.dispatchEvent(new MouseEvent(pressed ? 'mousedown' : 'mouseup', { button: 2 }))
         break
+      case 'general.zoom':
+        gameAdditionalState.isZooming = pressed
+        break
     }
   }
 }
@@ -414,6 +418,8 @@ contro.on('trigger', ({ command }) => {
         break
       case 'general.prevHotbarSlot':
         cycleHotbarSlot(-1)
+        break
+      case 'general.zoom':
         break
     }
   }
