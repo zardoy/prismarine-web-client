@@ -22,8 +22,8 @@ export const getWsProtocolStream = async (url: string) => {
   const ws = new WebSocket(url)
   await new Promise<void>((resolve, reject) => {
     ws.onopen = () => resolve()
-    ws.onerror = reject
-    ws.onclose = reject
+    ws.onerror = (err) => reject(new Error(`Failed to connect to websocket ${url}`))
+    ws.onclose = (ev) => reject(ev.reason)
   })
   const clientDuplex = new CustomDuplex(undefined, data => {
     // console.log('send', Buffer.from(data).toString('hex'))
