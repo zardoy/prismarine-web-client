@@ -43,8 +43,8 @@ customEvents.on('gameLoaded', () => {
   })
 })
 
-window.inspectPacket = (packetName, full = false) => {
-  const listener = (...args) => console.log('packet', packetName, full ? args : args[0])
+window.inspectPacket = (packetName, fullOrListener: boolean | ((...args) => void) = false) => {
+  const listener = typeof fullOrListener === 'function' ? fullOrListener : (...args) => console.log('packet', packetName, fullOrListener ? args : args[0])
   const attach = () => {
     bot?._client.prependListener(packetName, listener)
   }
