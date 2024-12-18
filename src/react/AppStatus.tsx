@@ -38,10 +38,10 @@ export default ({
   return (
     <Screen
       className='small-content'
+      titleSelectable={isError}
       title={
         <>
           <span style={{
-            userSelect: isError ? 'text' : undefined,
             wordBreak: 'break-word',
           }}
           >

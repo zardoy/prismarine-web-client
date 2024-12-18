@@ -21,6 +21,7 @@ export type ConnectOptions = {
   /** If true, will show a UI to authenticate with a new account */
   authenticatedAccount?: AuthenticatedAccount | true
   peerOptions?: any
+  viewerWsConnect?: string
 }
 
 export const downloadNeededDataOnConnect = async (version: string) => {

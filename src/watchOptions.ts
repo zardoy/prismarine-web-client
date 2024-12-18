@@ -129,8 +129,6 @@ export const watchOptionsAfterWorldViewInit = () => {
   watchValue(options, o => {
     if (!worldView) return
     worldView.keepChunksDistance = o.keepChunksDistance
-    worldView.handDisplay = o.handDisplay
-
-    // worldView.allowPositionUpdate = o.webgpuRendererParams.allowChunksViewUpdate
+    viewer.world.config.displayHand = o.handDisplay
   })
 }

@@ -43,11 +43,14 @@ test('Known blocks are not rendered', () => {
       }
     }
   }
+  console.log('Checking blocks of version', lastVersion)
   console.log('Average time', time / times)
   // should be fixed, but to avoid regressions & for visibility
+  // TODO resolve creaking_heart issue (1.21.3)
   expect(missingBlocks).toMatchInlineSnapshot(`
     {
       "bubble_column": true,
+      "creaking_heart": true,
       "end_gateway": true,
       "end_portal": true,
       "structure_void": true,

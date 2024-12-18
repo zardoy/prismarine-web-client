@@ -17,6 +17,7 @@ import { WorldDataEmitter } from '../viewer'
 import { Viewer } from '../viewer/lib/viewer'
 import { BlockNames } from '../../src/mcDataTypes'
 import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
+import { defaultWorldRendererConfig } from '../viewer/lib/worldrendererCommon'
 import { getSyncWorld } from './shared'
 import { defaultWebgpuRendererParams, rendererParamsGui } from './webgpuRendererShared'
 
@@ -25,6 +26,7 @@ window.THREE = THREE
 export class BasePlaygroundScene {
   webgpuRendererParams = false
   continuousRender = false
+  stopRender = false
   guiParams = {}
   viewDistance = 0
   targetPos = new Vec3(2, 90, 2)
@@ -51,6 +53,15 @@ export class BasePlaygroundScene {
   windowHidden = false
   world: ReturnType<typeof getSyncWorld>
 
+  _worldConfig = defaultWorldRendererConfig
+  get worldConfig () {
+    return this._worldConfig
+  }
+  set worldConfig (value) {
+    this._worldConfig = value
+    viewer.world.config = value
+  }
+
   constructor () {
     void this.initData().then(() => {
       this.addKeyboardShortcuts()
@@ -58,16 +69,19 @@ export class BasePlaygroundScene {
   }
 
   onParamsUpdate (paramName: string, object: any) {}
-  updateQs () {
+  updateQs (paramName: string, valueSet: any) {
     if (this.skipUpdateQs) return
-    const oldQs = new URLSearchParams(window.location.search)
-    const newQs = new URLSearchParams()
-    if (oldQs.get('scene')) {
-      newQs.set('scene', oldQs.get('scene')!)
-    }
-    for (const [key, value] of Object.entries(this.params)) {
-      if (!value || typeof value === 'function' || this.params.skipQs?.includes(key) || this.alwaysIgnoreQs.includes(key)) continue
-      newQs.set(key, value)
+    const newQs = new URLSearchParams(window.location.search)
+    // if (oldQs.get('scene')) {
+    //   newQs.set('scene', oldQs.get('scene')!)
+    // }
+    for (const [key, value] of Object.entries({ [paramName]: valueSet })) {
+      if (typeof value === 'function' || this.params.skipQs?.includes(key) || this.alwaysIgnoreQs.includes(key)) continue
+      if (value) {
+        newQs.set(key, value)
+      } else {
+        newQs.delete(key)
+      }
     }
     window.history.replaceState({}, '', `${window.location.pathname}?${newQs.toString()}`)
   }
@@ -112,7 +126,9 @@ export class BasePlaygroundScene {
       if (option?.hide) continue
       this.gui.add(this.params, param, option?.options ?? option?.min, option?.max)
     }
-    this.gui.open(false)
+    if (window.innerHeight < 700) {
+      this.gui.open(false)
+    }
 
     this.gui.onChange(({ property, object }) => {
       if (object === this.params) {
@@ -124,10 +140,10 @@ export class BasePlaygroundScene {
             window.location.reload()
           })
         }
+        this.updateQs(property, value)
       } else {
         this.onParamsUpdate(property, object)
       }
-      this.updateQs()
     })
 
     if (this.webgpuRendererParams) {
@@ -145,7 +161,9 @@ export class BasePlaygroundScene {
 
   // mainChunk: import('prismarine-chunk/types/index').PCChunk
 
+  // overridables
   setupWorld () { }
+  sceneReset () {}
 
   // eslint-disable-next-line max-params
   addWorldBlock (xOffset: number, yOffset: number, zOffset: number, blockName: BlockNames, properties?: Record<string, any>) {
@@ -159,7 +177,7 @@ export class BasePlaygroundScene {
 
   lockCameraInUrl () {
     this.params.camera = this.getCameraStateString()
-    this.updateQs()
+    this.updateQs('camera', this.params.camera)
   }
 
   resetCamera () {
@@ -210,9 +228,10 @@ export class BasePlaygroundScene {
     renderer.setSize(window.innerWidth, window.innerHeight)
 
     // Create viewer
-    const viewer = new Viewer(renderer, { numWorkers: 6, showChunkBorders: false, isPlayground: true })
+    const viewer = new Viewer(renderer, this.worldConfig)
     viewer.setFirstPersonCamera(null, viewer.camera.rotation.y, viewer.camera.rotation.x)
     window.viewer = viewer
+    window.world = window.viewer.world
     viewer.world.blockstatesModels = blockstatesModels
     viewer.addChunksBatchWaitTime = 0
     viewer.entities.setDebugMode('basic')
@@ -220,7 +239,6 @@ export class BasePlaygroundScene {
     viewer.world.allowUpdates = true
     this.initGui()
     await viewer.setVersion(this.version)
-
     const isWebgpu = true
     const promises = [] as Array<Promise<void>>
     if (isWebgpu) {
@@ -318,12 +336,14 @@ export class BasePlaygroundScene {
 
   loop () {
     if (this.continuousRender && !this.windowHidden) {
-      this.render()
+      this.render(true)
       requestAnimationFrame(() => this.loop())
     }
   }
 
-  render () {
+  render (fromLoop = false) {
+    if (!fromLoop && this.continuousRender) return
+    if (this.stopRender) return
     statsStart()
     viewer.render()
     statsEnd()
@@ -335,8 +355,13 @@ export class BasePlaygroundScene {
         if (e.code === 'KeyR') {
           this.resetCamera()
         }
-        if (e.code === 'KeyE') {
-          worldView?.setBlockStateId(this.targetPos, this.world.getBlockStateId(this.targetPos))
+        if (e.code === 'KeyE') { // refresh block (main)
+          worldView!.setBlockStateId(this.targetPos, this.world.getBlockStateId(this.targetPos))
+        }
+        if (e.code === 'KeyF') { // reload all chunks
+          this.sceneReset()
+          worldView!.unloadAllChunks()
+          void worldView!.init(this.targetPos)
         }
       }
       if (e.code === 'KeyT') {

@@ -119,7 +119,7 @@ body {
 
 @font-face {
   font-family: mojangles;
-  src: url(../assets/mojangles.ttf);
+  src: url(../assets/mojangles.ttf?inline);
 }
 
 #ui-root {
@@ -188,6 +188,9 @@ body::xr-overlay #viewer-canvas {
 
 .webgpu-debug-ui .title {
   background: transparent !important;
+}
+.text-select {
+  user-select: text;
 }
 
 @media screen and (min-width: 430px) {

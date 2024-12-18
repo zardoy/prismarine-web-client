@@ -88,13 +88,42 @@ export const statsEnd = () => {
 
 // for advanced debugging, use with watch expression
 
-window.statsPerSec = {}
-let statsPerSec = {}
-window.addStatPerSec = (name) => {
-  statsPerSec[name] ??= 0
-  statsPerSec[name]++
+window.statsPerSecAvg = {}
+let currentStatsPerSec = {} as Record<string, number[]>
+const waitingStatsPerSec = {}
+window.markStart = (label) => {
+  waitingStatsPerSec[label] ??= []
+  waitingStatsPerSec[label][0] = performance.now()
 }
+window.markEnd = (label) => {
+  if (!waitingStatsPerSec[label]?.[0]) return
+  currentStatsPerSec[label] ??= []
+  currentStatsPerSec[label].push(performance.now() - waitingStatsPerSec[label][0])
+  delete waitingStatsPerSec[label]
+}
+const updateStatsPerSecAvg = () => {
+  window.statsPerSecAvg = Object.fromEntries(Object.entries(currentStatsPerSec).map(([key, value]) => {
+    return [key, {
+      avg: value.reduce((a, b) => a + b, 0) / value.length,
+      count: value.length
+    }]
+  }))
+  currentStatsPerSec = {}
+}
+
+
+window.statsPerSec = {}
+let statsPerSecCurrent = {}
+let lastReset = performance.now()
+window.addStatPerSec = (name) => {
+  statsPerSecCurrent[name] ??= 0
+  statsPerSecCurrent[name]++
+}
+window.statsPerSecCurrent = statsPerSecCurrent
 setInterval(() => {
-  window.statsPerSec = statsPerSec
-  statsPerSec = {}
+  window.statsPerSec = { duration: Math.floor(performance.now() - lastReset), ...statsPerSecCurrent, }
+  statsPerSecCurrent = {}
+  window.statsPerSecCurrent = statsPerSecCurrent
+  updateStatsPerSecAvg()
+  lastReset = performance.now()
 }, 1000)

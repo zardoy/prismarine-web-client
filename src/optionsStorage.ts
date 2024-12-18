@@ -82,6 +82,7 @@ const defaultOptions = {
   vrSupport: true, // doesn't directly affect the VR mode, should only disable the button which is annoying to android users
   renderDebug: (isDev ? 'advanced' : 'basic') as 'none' | 'advanced' | 'basic',
   externalLoggingService: true,
+  autoVersionSelect: '1.20.4',
 
   // advanced bot options
   autoRespawn: false,

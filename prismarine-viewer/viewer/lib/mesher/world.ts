@@ -6,6 +6,7 @@ import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
 import type { AllBlocksStateIdToModelIdMap } from '../../../examples/webgpuBlockModels'
 import { defaultMesherConfig, MesherGeometryOutput } from './shared'
+import { INVISIBLE_BLOCKS } from './worldConstants'
 import { getPreflatBlock } from './getPreflatBlock'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
@@ -173,7 +174,9 @@ export class World {
           properties: props,
         }, this.preflat)! // fixme! this is a hack (also need a setting for all versions)
         if (!block.models!.length) {
-          console.debug('[mesher] block to render not found', block.name, props)
+          if (block.name !== 'water' && block.name !== 'lava' && !INVISIBLE_BLOCKS.has(block.name)) {
+            console.debug('[mesher] block to render not found', block.name, props)
+          }
           block.models = null
         }
       } catch (err) {

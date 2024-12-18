@@ -33,6 +33,6 @@ module.exports = {
   keepAlive: false,
   'everybody-op': true,
   'max-entities': 100,
-  'version': '1.14.4',
-  versionMajor: '1.14'
+  'version': '1.18.2',
+  versionMajor: '1.18'
 }
