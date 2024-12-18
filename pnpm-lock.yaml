@@ -55,6 +55,9 @@ importers:
       '@react-oauth/google':
         specifier: ^0.12.1
         version: 0.12.1(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@rsbuild/plugin-basic-ssl':
+        specifier: ^1.1.1
+        version: 1.1.1(@rsbuild/core@1.0.1-beta.9)
       '@stylistic/eslint-plugin':
         specifier: ^2.6.1
         version: 2.6.1(eslint@8.50.0)(typescript@5.5.4)
@@ -70,6 +73,9 @@ importers:
       '@types/wicg-file-system-access':
         specifier: ^2023.10.2
         version: 2023.10.2
+      '@webgpu/types':
+        specifier: ^0.1.44
+        version: 0.1.49
       '@xmcl/text-component':
         specifier: ^2.1.3
         version: 2.1.3
@@ -220,6 +226,9 @@ importers:
       title-case:
         specifier: 3.x
         version: 3.0.3
+      twgl.js:
+        specifier: ^5.5.4
+        version: 5.5.4
       ua-parser-js:
         specifier: ^1.0.37
         version: 1.0.37
@@ -353,7 +362,7 @@ importers:
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/75e940a4cd50d89e0ba03db3733d5d704917a3c8(@types/react@18.2.20)(react@18.2.0)
       mineflayer:
         specifier: github:zardoy/mineflayer
-        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/390ce12c1e1f25e440a94ba422e45c874f8bbd2b(encoding@0.1.13)
+        version: https://codeload.github.com/zardoy/mineflayer/tar.gz/fd2280a5ed1eff5078a6224e0c6712ba0d5afc0d(encoding@0.1.13)
       mineflayer-pathfinder:
         specifier: ^2.4.4
         version: 2.4.4
@@ -420,6 +429,9 @@ importers:
       lil-gui:
         specifier: ^0.18.2
         version: 0.18.2
+      live-server:
+        specifier: ^1.2.2
+        version: 1.2.2
       minecraft-wrap:
         specifier: ^1.3.0
         version: 1.5.1(encoding@0.1.13)
@@ -466,10 +478,6 @@ importers:
       node-canvas-webgl:
         specifier: ^0.3.0
         version: 0.3.0(encoding@0.1.13)
-    devDependencies:
-      live-server:
-        specifier: ^1.2.2
-        version: 1.2.2
 
   prismarine-viewer/viewer/sign-renderer:
     dependencies:
@@ -2493,6 +2501,14 @@ packages:
     engines: {node: '>=16.7.0'}
     hasBin: true
 
+  '@rsbuild/plugin-basic-ssl@1.1.1':
+    resolution: {integrity: sha512-q4u7H8yh/S/DHwxG85bWbGXFiVV9RMDJDupOBHJVPtevU9mLCB4n5Qbrxu/l8CCdmZcBlvfWGjkDA/YoY61dig==}
+    peerDependencies:
+      '@rsbuild/core': 0.x || 1.x || ^1.0.1-beta.0
+    peerDependenciesMeta:
+      '@rsbuild/core':
+        optional: true
+
   '@rsbuild/plugin-node-polyfill@1.0.3':
     resolution: {integrity: sha512-AoPIOV1pyInIz08K1ECwUjFemLLSa5OUq8sfJN1ShXrGR2qc14b1wzwZKwF4vgKnBromqfMLagVbk6KT/nLIvQ==}
     peerDependencies:
@@ -3044,6 +3060,9 @@ packages:
   '@types/node-fetch@2.6.6':
     resolution: {integrity: sha512-95X8guJYhfqiuVVhRFxVQcf4hW/2bCuoPwDasMf/531STFoNoWTT7YDnWdXHEZKqAGUigmpG31r2FE70LwnzJw==}
 
+  '@types/node-forge@1.3.11':
+    resolution: {integrity: sha512-FQx220y22OKNTqaByeBGqHWYz4cl94tpcxeFdvBo3wjG6XPBuZ0BNgNZRV5J5TFmmcsJ4IzsLkmGRiQbnYsBEQ==}
+
   '@types/node-rsa@1.1.4':
     resolution: {integrity: sha512-dB0ECel6JpMnq5ULvpUTunx3yNm8e/dIkv8Zu9p2c8me70xIRUUG3q+qXRwcSf9rN3oqamv4116iHy90dJGRpA==}
 
@@ -3338,6 +3357,9 @@ packages:
 
   '@webassemblyjs/wast-printer@1.12.1':
     resolution: {integrity: sha512-+X4WAlOisVWQMikjbcvY2e0rwPsKQ9F688lksZhBcPycBBuii3O7m8FACbDMWDojpAqvjIncrG8J0XHKyQfVeA==}
+
+  '@webgpu/types@0.1.49':
+    resolution: {integrity: sha512-NMmS8/DofhH/IFeW+876XrHVWel+J/vdcFCHLDqeJgkH9x0DeiwjVd8LcBdaxdG/T7Rf8VUAYsA8X1efMzLjRQ==}
 
   '@xboxreplay/errors@0.1.0':
     resolution: {integrity: sha512-Tgz1d/OIPDWPeyOvuL5+aai5VCcqObhPnlI3skQuf80GVF3k1I0lPCnGC+8Cm5PV9aLBT5m8qPcJoIUQ2U4y9g==}
@@ -6805,8 +6827,8 @@ packages:
     resolution: {integrity: sha512-wSchhS59hK+oPs8tFg847H82YEvxU7zYKdDKj4e5FVo3CxJ74eXJVT+JcFwEvoqFO7kXiQlhJITxEvO13GOSKA==}
     engines: {node: '>=18'}
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/390ce12c1e1f25e440a94ba422e45c874f8bbd2b:
-    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/390ce12c1e1f25e440a94ba422e45c874f8bbd2b}
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/fd2280a5ed1eff5078a6224e0c6712ba0d5afc0d:
+    resolution: {tarball: https://codeload.github.com/zardoy/mineflayer/tar.gz/fd2280a5ed1eff5078a6224e0c6712ba0d5afc0d}
     version: 4.23.0
     engines: {node: '>=18'}
 
@@ -7009,6 +7031,10 @@ packages:
     peerDependenciesMeta:
       encoding:
         optional: true
+
+  node-forge@1.3.1:
+    resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
+    engines: {node: '>= 6.13.0'}
 
   node-gyp-build-optional-packages@5.1.1:
     resolution: {integrity: sha512-+P72GAjVAbTxjjwUmwjVrqrdZROD4nf8KgpBoDxqXXTiYZZt/ud60dE5yvCSr9lRO8e8yv6kgJIC0K0PfZFVQw==}
@@ -8245,6 +8271,10 @@ packages:
   secure-compare@3.0.1:
     resolution: {integrity: sha512-AckIIV90rPDcBcglUwXPF3kg0P0qmPsPXAj6BBEENQE1p5yA1xfmDJzfi1Tappj37Pv2mVbKpL3Z1T+Nn7k1Qw==}
 
+  selfsigned@2.4.1:
+    resolution: {integrity: sha512-th5B4L2U+eGLq1TVh7zNRGBapioSORUeymIydxgFpwww9d2qyKvtuPU2jJuHvYAwwqi2Y596QBL3eEqcPEYL8Q==}
+    engines: {node: '>=10'}
+
   semver@5.7.2:
     resolution: {integrity: sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==}
     hasBin: true
@@ -8950,6 +8980,9 @@ packages:
 
   tweetnacl@0.14.5:
     resolution: {integrity: sha512-KXXFFdAbFXY4geFIwoyNK+f5Z1b7swfXABfL7HXCmoIWMKU3dmS26672A4EeQtDzLKy7SXmfBu51JolvEKwtGA==}
+
+  twgl.js@5.5.4:
+    resolution: {integrity: sha512-6kFOmijOpmblTN9CCwOTCxK4lPg7rCyQjLuub6EMOlEp89Ex6yUcsMjsmH7andNPL2NE3XmHdqHeP5gVKKPhxw==}
 
   type-check@0.4.0:
     resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
@@ -11960,6 +11993,12 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
+  '@rsbuild/plugin-basic-ssl@1.1.1(@rsbuild/core@1.0.1-beta.9)':
+    dependencies:
+      selfsigned: 2.4.1
+    optionalDependencies:
+      '@rsbuild/core': 1.0.1-beta.9
+
   '@rsbuild/plugin-node-polyfill@1.0.3(@rsbuild/core@1.0.1-beta.9)':
     dependencies:
       assert: 2.1.0
@@ -12966,6 +13005,10 @@ snapshots:
       '@types/node': 22.8.1
       form-data: 4.0.0
 
+  '@types/node-forge@1.3.11':
+    dependencies:
+      '@types/node': 22.8.1
+
   '@types/node-rsa@1.1.4':
     dependencies:
       '@types/node': 22.8.1
@@ -13019,7 +13062,7 @@ snapshots:
 
   '@types/readable-stream@4.0.12':
     dependencies:
-      '@types/node': 20.12.8
+      '@types/node': 22.8.1
       safe-buffer: 5.1.2
 
   '@types/resolve@1.17.1':
@@ -13362,6 +13405,8 @@ snapshots:
     dependencies:
       '@webassemblyjs/ast': 1.12.1
       '@xtuc/long': 4.2.2
+
+  '@webgpu/types@0.1.49': {}
 
   '@xboxreplay/errors@0.1.0': {}
 
@@ -17754,7 +17799,7 @@ snapshots:
       '@types/readable-stream': 4.0.12
       aes-js: 3.1.2
       buffer-equal: 1.0.1
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7
       endian-toggle: 0.0.0
       lodash.get: 4.4.2
       lodash.merge: 4.6.2
@@ -17838,7 +17883,7 @@ snapshots:
       - encoding
       - supports-color
 
-  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/390ce12c1e1f25e440a94ba422e45c874f8bbd2b(encoding@0.1.13):
+  mineflayer@https://codeload.github.com/zardoy/mineflayer/tar.gz/fd2280a5ed1eff5078a6224e0c6712ba0d5afc0d(encoding@0.1.13):
     dependencies:
       minecraft-data: 3.80.0
       minecraft-protocol: https://codeload.github.com/PrismarineJS/node-minecraft-protocol/tar.gz/f258c76b3a15badd902e82cd892168849444d79d(patch_hash=7sh5krubuk2vjuogjioaktvwzi)(encoding@0.1.13)
@@ -18085,6 +18130,8 @@ snapshots:
       whatwg-url: 5.0.0
     optionalDependencies:
       encoding: 0.1.13
+
+  node-forge@1.3.1: {}
 
   node-gyp-build-optional-packages@5.1.1:
     dependencies:
@@ -19571,6 +19618,11 @@ snapshots:
 
   secure-compare@3.0.1: {}
 
+  selfsigned@2.4.1:
+    dependencies:
+      '@types/node-forge': 1.3.11
+      node-forge: 1.3.1
+
   semver@5.7.2: {}
 
   semver@6.3.1: {}
@@ -20477,6 +20529,8 @@ snapshots:
 
   tweetnacl@0.14.5:
     optional: true
+
+  twgl.js@5.5.4: {}
 
   type-check@0.4.0:
     dependencies:

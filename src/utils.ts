@@ -65,6 +65,16 @@ export const pointerLock = {
   }
 }
 
+export const logAction = (category: string, action: string, value?: string, label?: string) => {
+  if (!options.externalLoggingService) return
+  window.loggingServiceChannel?.({
+    category,
+    action,
+    value,
+    label
+  })
+}
+
 window.getScreenRefreshRate = getScreenRefreshRate
 
 /**
@@ -174,7 +184,8 @@ export const setRenderDistance = () => {
     viewDistance: renderDistance
   })
   if (zeroRenderDistance) {
-    localServer!.players[0].view = 0
+    // TODO!!
+    // localServer!.players[0].view = 0
     renderDistance = 0
   }
   worldView.updateViewDistance(renderDistance)

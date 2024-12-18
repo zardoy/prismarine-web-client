@@ -4,9 +4,10 @@ import { Block } from 'prismarine-block'
 import { Vec3 } from 'vec3'
 import { WorldBlockProvider } from 'mc-assets/dist/worldBlockProvider'
 import moreBlockDataGeneratedJson from '../moreBlockDataGenerated.json'
-import legacyJson from '../../../../src/preflatMap.json'
-import { defaultMesherConfig } from './shared'
+import type { AllBlocksStateIdToModelIdMap } from '../../../examples/webgpuBlockModels'
+import { defaultMesherConfig, MesherGeometryOutput } from './shared'
 import { INVISIBLE_BLOCKS } from './worldConstants'
+import { getPreflatBlock } from './getPreflatBlock'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
@@ -27,6 +28,7 @@ export type WorldBlock = Omit<Block, 'position'> & {
   isCube: boolean
   /** cache */
   models?: BlockModelPartsResolved | null
+  patchedModels: Record<string, BlockModelPartsResolved>
   _originalProperties?: Record<string, any>
   _properties?: Record<string, any>
 }
@@ -40,6 +42,7 @@ export class World {
   biomeCache: { [id: number]: mcData.Biome }
   preflat: boolean
   erroredBlockModel?: BlockModelPartsResolved
+  webgpuModelsMapping: AllBlocksStateIdToModelIdMap
 
   constructor (version) {
     this.Chunk = Chunks(version) as any
@@ -114,7 +117,7 @@ export class World {
     return this.getColumn(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
   }
 
-  getBlock (pos: Vec3, blockProvider?, attr?): WorldBlock | null {
+  getBlock (pos: Vec3, blockProvider?, attr?: Partial<MesherGeometryOutput>): WorldBlock | null {
     // for easier testing
     if (!(pos instanceof Vec3)) pos = new Vec3(...pos as [number, number, number])
     const key = columnKey(Math.floor(pos.x / 16) * 16, Math.floor(pos.z / 16) * 16)
@@ -129,6 +132,7 @@ export class World {
 
     if (!this.blockCache[stateId]) {
       const b = column.getBlock(locInChunk) as unknown as WorldBlock
+      b.patchedModels = {}
       b.isCube = isCube(b.shapes)
       this.blockCache[stateId] = b
       Object.defineProperty(b, 'position', {
@@ -137,21 +141,12 @@ export class World {
         }
       })
       if (this.preflat) {
-        b._properties = {}
-
-        const namePropsStr = legacyJson.blocks[b.type + ':' + b.metadata] || findClosestLegacyBlockFallback(b.type, b.metadata, pos)
-        if (namePropsStr) {
-          b.name = namePropsStr.split('[')[0]
-          const propsStr = namePropsStr.split('[')?.[1]?.split(']')
-          if (propsStr) {
-            const newProperties = Object.fromEntries(propsStr.join('').split(',').map(x => {
-              let [key, val] = x.split('=')
-              if (!isNaN(val)) val = parseInt(val, 10)
-              return [key, val]
-            }))
-            b._properties = newProperties
-          }
-        }
+        // patch block
+        getPreflatBlock(b, () => {
+          const id = b.type
+          const { metadata } = b
+          console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos.toString()}, falling back`) // todo has known issues
+        })
       }
     }
 
@@ -203,15 +198,10 @@ export class World {
   shouldMakeAo (block: WorldBlock | null) {
     return block?.isCube && !ignoreAoBlocks.includes(block.name)
   }
-}
 
-const findClosestLegacyBlockFallback = (id, metadata, pos) => {
-  console.warn(`[mesher] Unknown block with ${id}:${metadata} at ${pos}, falling back`) // todo has known issues
-  for (const [key, value] of Object.entries(legacyJson.blocks)) {
-    const [idKey, meta] = key.split(':')
-    if (idKey === id) return value
+  setDataForWebgpuRenderer (data: { allBlocksStateIdToModelIdMap: AllBlocksStateIdToModelIdMap }) {
+    this.webgpuModelsMapping = data.allBlocksStateIdToModelIdMap
   }
-  return null
 }
 
 // todo export in chunk instead

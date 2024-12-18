@@ -26,7 +26,7 @@ const defaultOptions = {
   messagesLimit: 200,
   volume: 50,
   // fov: 70,
-  fov: 75,
+  fov: 90,
   guiScale: 3,
   autoRequestCompletions: true,
   touchButtonsSize: 40,
@@ -52,6 +52,7 @@ const defaultOptions = {
 
   // antiAliasing: false,
 
+  webgpuRendererParams: {} as Record<string, any>,
   clipWorldBelowY: undefined as undefined | number, // will be removed
   disableSignsMapsSupport: false,
   singleplayerAutoSave: false,
@@ -80,6 +81,7 @@ const defaultOptions = {
   autoParkour: false,
   vrSupport: true, // doesn't directly affect the VR mode, should only disable the button which is annoying to android users
   renderDebug: (isDev ? 'advanced' : 'basic') as 'none' | 'advanced' | 'basic',
+  externalLoggingService: true,
   autoVersionSelect: '1.20.4',
 
   // advanced bot options
@@ -93,7 +95,7 @@ const defaultOptions = {
   minimapOptimizations: true,
   displayBossBars: false, // boss bar overlay was removed for some reason, enable safely
   disabledUiParts: [] as string[],
-  neighborChunkUpdates: true
+  neighborChunkUpdates: false
 }
 
 function getDefaultTouchControlsPositions () {

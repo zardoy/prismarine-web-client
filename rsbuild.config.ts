@@ -21,14 +21,8 @@ const buildingVersion = new Date().toISOString().split(':')[0]
 
 const dev = process.env.NODE_ENV === 'development'
 
-let releaseTag
-let releaseChangelog
-
-if (fs.existsSync('./assets/release.json')) {
-    const releaseJson = JSON.parse(fs.readFileSync('./assets/release.json', 'utf8'))
-    releaseTag = releaseJson.latestTag
-    releaseChangelog = releaseJson.changelog?.replace(/<!-- bump-type:[\w]+ -->/, '')
-}
+// clean dist folder
+// fs.rmSync('./dist', { recursive: true, force: true })
 
 // base options are in ./prismarine-viewer/rsbuildSharedConfig.ts
 const appConfig = defineConfig({
@@ -43,6 +37,7 @@ const appConfig = defineConfig({
             js: 'source-map',
             css: true,
         },
+        cleanDistPath: false,
     },
     source: {
         entry: {
@@ -54,11 +49,7 @@ const appConfig = defineConfig({
         define: {
             'process.env.BUILD_VERSION': JSON.stringify(!dev ? buildingVersion : 'undefined'),
             'process.env.MAIN_MENU_LINKS': JSON.stringify(process.env.MAIN_MENU_LINKS),
-            'process.env.GITHUB_URL':
-                JSON.stringify(`https://github.com/${process.env.GITHUB_REPOSITORY || `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`}`),
             'process.env.DEPS_VERSIONS': JSON.stringify({}),
-            'process.env.RELEASE_TAG': JSON.stringify(releaseTag),
-            'process.env.RELEASE_CHANGELOG': JSON.stringify(releaseChangelog),
         },
     },
     server: {
@@ -108,6 +99,12 @@ const appConfig = defineConfig({
                         fs.copyFileSync('./prismarine-viewer/dist/mesher.js.map', './dist/mesher.js.map')
                     } else if (!dev) {
                         await execAsync('pnpm run build-mesher')
+                    }
+                    if (fs.existsSync('./prismarine-viewer/dist/webgpuRendererWorker.js')) {
+                        // copy worker
+                        fs.copyFileSync('./prismarine-viewer/dist/webgpuRendererWorker.js', './dist/webgpuRendererWorker.js')
+                    } else {
+                        await execAsync('pnpm run build-other-workers')
                     }
                     fs.writeFileSync('./dist/version.txt', buildingVersion, 'utf-8')
                     console.timeEnd('total-prep')

@@ -19,16 +19,19 @@ import { BlockNames } from '../../src/mcDataTypes'
 import { initWithRenderer, statsEnd, statsStart } from '../../src/topRightStats'
 import { defaultWorldRendererConfig } from '../viewer/lib/worldrendererCommon'
 import { getSyncWorld } from './shared'
+import { defaultWebgpuRendererParams, rendererParamsGui } from './webgpuRendererShared'
 
 window.THREE = THREE
 
 export class BasePlaygroundScene {
+  webgpuRendererParams = false
   continuousRender = false
   stopRender = false
   guiParams = {}
   viewDistance = 0
   targetPos = new Vec3(2, 90, 2)
   params = {} as Record<string, any>
+  allParamsValuesInit = {} as Record<string, any>
   paramOptions = {} as Partial<Record<keyof typeof this.params, {
     hide?: boolean
     options?: string[]
@@ -89,12 +92,33 @@ export class BasePlaygroundScene {
   }
 
   initGui () {
+    if (this.enableCameraControls) {
+      Object.assign(this.params, {
+        orbit: false,
+        ...Object.fromEntries(Object.entries(defaultWebgpuRendererParams).filter(([key]) => rendererParamsGui[key])),
+      })
+
+      Object.assign(this.paramOptions, {
+        orbit: {
+          reloadOnChange: true,
+        },
+        webgpuWorker: {
+          reloadOnChange: true,
+        },
+        // ...Object.fromEntries(Object.entries(rendererParamsGui))
+      })
+    }
+
     const qs = new URLSearchParams(window.location.search)
-    for (const key of Object.keys(this.params)) {
+    for (const key of qs.keys()) {
       const value = qs.get(key)
       if (!value) continue
       const parsed = /^-?\d+$/.test(value) ? Number(value) : value === 'true' ? true : value === 'false' ? false : value
-      this.params[key] = parsed
+      this.allParamsValuesInit[key] = parsed
+    }
+    for (const key of Object.keys(this.allParamsValuesInit)) {
+      if (this.params[key] === undefined) continue
+      this.params[key] = this.allParamsValuesInit[key]
     }
 
     for (const param of Object.keys(this.params)) {
@@ -121,6 +145,18 @@ export class BasePlaygroundScene {
         this.onParamsUpdate(property, object)
       }
     })
+
+    if (this.webgpuRendererParams) {
+      for (const key of Object.keys(defaultWebgpuRendererParams)) {
+        // eslint-disable-next-line @typescript-eslint/no-loop-func
+        this.onParamUpdate[key] = () => {
+          viewer.world.updateRendererParams(this.params)
+        }
+      }
+
+      this.enableCameraOrbitControl = this.params.orbit
+      viewer.world.updateRendererParams(this.params)
+    }
   }
 
   // mainChunk: import('prismarine-chunk/types/index').PCChunk
@@ -139,17 +175,34 @@ export class BasePlaygroundScene {
     this.world.setBlock(this.targetPos.offset(xOffset, yOffset, zOffset), block)
   }
 
+  lockCameraInUrl () {
+    this.params.camera = this.getCameraStateString()
+    this.updateQs('camera', this.params.camera)
+  }
+
   resetCamera () {
+    this.controls?.reset()
     const { targetPos } = this
     this.controls?.target.set(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
 
     const cameraPos = targetPos.offset(2, 2, 2)
     const pitch = THREE.MathUtils.degToRad(-45)
     const yaw = THREE.MathUtils.degToRad(45)
-    viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
-    viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
     viewer.camera.position.set(cameraPos.x + 0.5, cameraPos.y + 0.5, cameraPos.z + 0.5)
+    // viewer.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+    viewer.camera.lookAt(targetPos.x + 0.5, targetPos.y + 0.5, targetPos.z + 0.5)
     this.controls?.update()
+  }
+
+  getCameraStateString () {
+    const { camera } = viewer
+    return [
+      camera.position.x.toFixed(2),
+      camera.position.y.toFixed(2),
+      camera.position.z.toFixed(2),
+      camera.rotation.x.toFixed(2),
+      camera.rotation.y.toFixed(2),
+    ].join(',')
   }
 
   async initData () {
@@ -164,9 +217,8 @@ export class BasePlaygroundScene {
     world.setBlockStateId(this.targetPos, 0)
     this.world = world
 
-    this.initGui()
-
     const worldView = new WorldDataEmitter(world, this.viewDistance, this.targetPos)
+    worldView.isPlayground = true
     worldView.addWaitTime = 0
     window.worldView = worldView
 
@@ -177,9 +229,17 @@ export class BasePlaygroundScene {
 
     // Create viewer
     const viewer = new Viewer(renderer, this.worldConfig)
+    viewer.setFirstPersonCamera(null, viewer.camera.rotation.y, viewer.camera.rotation.x)
     window.viewer = viewer
     window.world = window.viewer.world
-    const isWebgpu = false
+    viewer.world.blockstatesModels = blockstatesModels
+    viewer.addChunksBatchWaitTime = 0
+    viewer.entities.setDebugMode('basic')
+    viewer.world.mesherConfig.enableLighting = false
+    viewer.world.allowUpdates = true
+    this.initGui()
+    await viewer.setVersion(this.version)
+    const isWebgpu = true
     const promises = [] as Array<Promise<void>>
     if (isWebgpu) {
       // promises.push(initWebgpuRenderer(() => { }, true, true)) // todo
@@ -188,14 +248,9 @@ export class BasePlaygroundScene {
       renderer.domElement.id = 'viewer-canvas'
       document.body.appendChild(renderer.domElement)
     }
-    viewer.addChunksBatchWaitTime = 0
-    viewer.world.blockstatesModels = blockstatesModels
-    viewer.entities.setDebugMode('basic')
-    viewer.setVersion(this.version)
     viewer.entities.onSkinUpdate = () => {
       viewer.render()
     }
-    viewer.world.mesherConfig.enableLighting = false
     await Promise.all(promises)
     this.setupWorld()
 
@@ -212,7 +267,7 @@ export class BasePlaygroundScene {
       this.resetCamera()
 
       // #region camera rotation param
-      const cameraSet = this.params.camera || localStorage.camera
+      const cameraSet = this.allParamsValuesInit.camera || localStorage.camera
       if (cameraSet) {
         const [x, y, z, rx, ry] = cameraSet.split(',').map(Number)
         viewer.camera.position.set(x, y, z)
@@ -223,13 +278,7 @@ export class BasePlaygroundScene {
         const { camera } = viewer
         // params.camera = `${camera.rotation.x.toFixed(2)},${camera.rotation.y.toFixed(2)}`
         // this.updateQs()
-        localStorage.camera = [
-          camera.position.x.toFixed(2),
-          camera.position.y.toFixed(2),
-          camera.position.z.toFixed(2),
-          camera.rotation.x.toFixed(2),
-          camera.rotation.y.toFixed(2),
-        ].join(',')
+        localStorage.camera = this.getCameraStateString()
       }, 200)
       if (this.controls) {
         this.controls.addEventListener('change', () => {
@@ -304,7 +353,6 @@ export class BasePlaygroundScene {
     document.addEventListener('keydown', (e) => {
       if (!e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
         if (e.code === 'KeyR') {
-          this.controls?.reset()
           this.resetCamera()
         }
         if (e.code === 'KeyE') { // refresh block (main)
@@ -315,6 +363,9 @@ export class BasePlaygroundScene {
           worldView!.unloadAllChunks()
           void worldView!.init(this.targetPos)
         }
+      }
+      if (e.code === 'KeyT') {
+        viewer.camera.position.y += 100 * (e.shiftKey ? -1 : 1)
       }
     })
     document.addEventListener('visibilitychange', () => {
@@ -357,13 +408,9 @@ export class BasePlaygroundScene {
       direction.applyQuaternion(viewer.camera.quaternion)
       direction.y = 0
 
-      if (pressedKeys.has('ShiftLeft')) {
-        direction.y *= 2
-        direction.x *= 2
-        direction.z *= 2
-      }
+      const scalar = pressedKeys.has('AltLeft') ? 4 : 1
       // Add the vector to the camera's position to move the camera
-      viewer.camera.position.add(direction.normalize())
+      viewer.camera.position.add(direction.normalize().multiplyScalar(scalar))
       this.controls?.update()
       this.render()
     }

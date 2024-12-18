@@ -24,7 +24,7 @@ import { options, watchValue } from './optionsStorage'
 import './reactUi'
 import { contro, lockUrl, onBotCreate } from './controls'
 import './dragndrop'
-import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
+import { resetStateAfterDisconnect } from './browserfs'
 import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
 import downloadAndOpenFile from './downloadAndOpenFile'
 
@@ -60,7 +60,8 @@ import {
 import {
   pointerLock,
   toMajorVersion,
-  setLoadingScreenStatus
+  setLoadingScreenStatus,
+  logAction
 } from './utils'
 import { isCypress } from './standaloneUtils'
 
@@ -74,7 +75,6 @@ import dayCycle from './dayCycle'
 
 import { onAppLoad, resourcepackReload } from './resourcePack'
 import { ConnectPeerOptions, connectToPeer } from './localServerMultiplayer'
-import CustomChannelClient from './customClient'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { registerServiceWorker } from './serviceWorker'
 import { appStatusState, lastConnectOptions } from './react/AppStatusProvider'
@@ -87,7 +87,6 @@ import { downloadSoundsIfNeeded } from './soundSystem'
 import { ua } from './react/utils'
 import { handleMovementStickDelta, joystickPointer } from './react/TouchAreasControls'
 import { possiblyHandleStateVariable } from './googledrive'
-import flyingSquidEvents from './flyingSquidEvents'
 import { hideNotification, notificationProxy, showNotification } from './react/NotificationProvider'
 import { saveToBrowserMemory } from './react/PauseScreen'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
@@ -99,10 +98,13 @@ import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
 import packetsPatcher from './packetsPatcher'
+// import { ViewerBase } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
+import { addNewStat } from 'prismarine-viewer/viewer/lib/ui/newStats'
+import { destroyLocalServerMain, startLocalServerMain } from './integratedServer/main'
 import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
 
 window.debug = debug
@@ -204,6 +206,7 @@ let lastMouseMove: number
 const updateCursor = () => {
   worldInteractions.update()
 }
+let mouseEvents = 0
 function onCameraMove (e) {
   if (e.type !== 'touchmove' && !pointerLock.hasPointerLock) return
   e.stopPropagation?.()
@@ -218,8 +221,14 @@ function onCameraMove (e) {
     y: e.movementY * mouseSensY * 0.0001
   })
   updateCursor()
+  mouseEvents++
+  viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
 }
-window.addEventListener('mousemove', onCameraMove, { capture: true })
+setInterval(() => {
+  // console.log('mouseEvents', mouseEvents)
+  mouseEvents = 0
+}, 1000)
+window.addEventListener('mousemove', onCameraMove, { capture: true, passive: false })
 contro.on('stickMovement', ({ stick, vector }) => {
   if (!isGameActive(true)) return
   if (stick !== 'right') return
@@ -304,6 +313,11 @@ async function connect (connectOptions: ConnectOptions) {
 
   console.log(`connecting to ${server.host}:${server.port} with ${username}`)
 
+  const playType = connectOptions.server ? 'Server' : connectOptions.singleplayer ? 'Singleplayer' : 'P2P Multiplayer'
+  const info = connectOptions.server ? `${server.host}:${server.port}` : connectOptions.singleplayer ?
+    (fsState.usingIndexFileUrl || fsState.remoteBackend ? 'remote' : fsState.inMemorySave ? 'IndexedDB' : fsState.syncFs ? 'ZIP' : 'Folder') : '-'
+  logAction('Play', playType, `v${connectOptions.botVersion} : ${info}`)
+  const startDisplayViewer = Date.now()
   hideCurrentScreens()
   setLoadingScreenStatus('Logging in')
 
@@ -313,7 +327,7 @@ async function connect (connectOptions: ConnectOptions) {
     if (ended) return
     ended = true
     viewer.resetAll()
-    localServer = window.localServer = window.server = undefined
+    void destroyLocalServerMain(false)
 
     renderWrapper.postRender = () => { }
     if (bot) {
@@ -333,9 +347,9 @@ async function connect (connectOptions: ConnectOptions) {
   }
   const cleanFs = () => {
     if (singleplayer && !fsState.inMemorySave) {
-      possiblyCleanHandle(() => {
-        // todo: this is not enough, we need to wait for all async operations to finish
-      })
+      // possiblyCleanHandle(() => {
+      //   // todo: this is not enough, we need to wait for all async operations to finish
+      // })
     }
   }
   let lastPacket = undefined as string | undefined
@@ -390,6 +404,8 @@ async function connect (connectOptions: ConnectOptions) {
     const serverOptions = defaultsDeep({}, connectOptions.serverOverrides ?? {}, options.localServerOptions, defaultServerOptions)
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     window._LOAD_MC_DATA() // start loading data (if not loaded yet)
+    addNewStat('loaded-chunks', undefined, 220, 0)
+    addNewStat('downloaded-chunks', 90, 200, 20)
     const downloadMcData = async (version: string) => {
       if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
         // todo support it (just need to fix .export crash)
@@ -407,14 +423,28 @@ async function connect (connectOptions: ConnectOptions) {
         }
       }
       viewer.world.blockstatesModels = await import('mc-assets/dist/blockStatesModels.json')
-      void viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      const mcData = MinecraftData(version)
+      window.loadedData = mcData
+      const promise = viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      const isWebgpu = true
+      if (isWebgpu) {
+        await promise
+      }
+      viewer.world.postRender = () => {
+        renderWrapper.postRender()
+      }
+      viewer.world.preRender = () => {
+        renderWrapper.preRender()
+      }
     }
 
+    // serverOptions.version = '1.18.1'
     const downloadVersion = connectOptions.botVersion || (singleplayer ? serverOptions.version : undefined)
     if (downloadVersion) {
       await downloadMcData(downloadVersion)
     }
 
+    let CustomClient
     if (singleplayer) {
       // SINGLEPLAYER EXPLAINER:
       // Note 1: here we have custom sync communication between server Client (flying-squid) and game client (mineflayer)
@@ -428,23 +458,9 @@ async function connect (connectOptions: ConnectOptions) {
       // flying-squid: 'login' -> player.login -> now sends 'login' event to the client (handled in many plugins in mineflayer) -> then 'update_health' is sent which emits 'spawn' in mineflayer
 
       setLoadingScreenStatus('Starting local server')
-      localServer = window.localServer = window.server = startLocalServer(serverOptions)
-      // todo need just to call quit if started
-      // loadingScreen.maybeRecoverable = false
-      // init world, todo: do it for any async plugins
-      if (!localServer.pluginsReady) {
-        await new Promise(resolve => {
-          localServer.once('pluginsReady', resolve)
-        })
-      }
+      CustomClient = (await startLocalServerMain(serverOptions)).CustomClient
 
-      localServer.on('newPlayer', (player) => {
-        // it's you!
-        player.on('loadingStatus', (newStatus) => {
-          setLoadingScreenStatus(newStatus, false, false, true)
-        })
-      })
-      flyingSquidEvents()
+      // flyingSquidEvents()
     }
 
     if (connectOptions.authenticatedAccount) username = 'you'
@@ -499,7 +515,7 @@ async function connect (connectOptions: ConnectOptions) {
       ...singleplayer ? {
         version: serverOptions.version,
         connect () { },
-        Client: CustomChannelClient as any,
+        Client: CustomClient,
       } : {},
       onMsaCode (data) {
         signInMessageState.code = data.user_code
@@ -681,10 +697,8 @@ async function connect (connectOptions: ConnectOptions) {
   // don't use spawn event, player can be dead
   bot.once(spawnEarlier ? 'forcedMove' : 'health', () => {
     errorAbortController.abort()
-    const mcData = MinecraftData(bot.version)
-    window.PrismarineBlock = PrismarineBlock(mcData.version.minecraftVersion!)
-    window.PrismarineItem = PrismarineItem(mcData.version.minecraftVersion!)
-    window.loadedData = mcData
+    window.PrismarineBlock = PrismarineBlock(loadedData.version.minecraftVersion!)
+    window.PrismarineItem = PrismarineItem(loadedData.version.minecraftVersion!)
     window.Vec3 = Vec3
     window.pathfinder = pathfinder
 
@@ -698,6 +712,11 @@ async function connect (connectOptions: ConnectOptions) {
     connectOptions.onSuccessfulPlay?.()
     if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && new URLSearchParams(location.search).size === 0) {
       lockUrl()
+    }
+    logAction('Joined', playType, `Time: ${Date.now() - startDisplayViewer}ms`)
+    if (connectOptions.server) {
+      logAction('Server Version', bot.version)
+      logAction('Auth', connectOptions.authenticatedAccount ? 'Authenticated' : 'Offline')
     }
     updateDataAfterJoin()
     if (connectOptions.autoLoginPassword) {
@@ -716,8 +735,9 @@ async function connect (connectOptions: ConnectOptions) {
 
     void initVR()
 
-    renderWrapper.postRender = () => {
-      viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
+    renderWrapper.preRender = () => {
+      // viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
+      bot['doPhysics']()
     }
 
 
@@ -901,13 +921,14 @@ async function connect (connectOptions: ConnectOptions) {
     }, 600)
 
     setLoadingScreenStatus(undefined)
-    const start = Date.now()
+    const startLoadingChunks = Date.now()
     let done = false
     void viewer.world.renderUpdateEmitter.on('update', () => {
       // todo might not emit as servers simply don't send chunk if it's empty
       if (!viewer.world.allChunksFinished || done) return
       done = true
-      console.log('All done and ready! In', (Date.now() - start) / 1000, 's')
+      console.log('All done and ready! In', (Date.now() - startLoadingChunks) / 1000, 's')
+      logAction('Chunks Loaded', 'All', `Distance: ${viewer.world.viewDistance} Time: ${(Date.now() - startLoadingChunks) / 1000}s`)
       viewer.render() // ensure the last state is rendered
       document.dispatchEvent(new Event('cypress-world-ready'))
     })

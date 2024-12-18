@@ -2,27 +2,21 @@ import fs from 'fs'
 import path from 'path'
 import * as nbt from 'prismarine-nbt'
 import { proxy } from 'valtio'
-import { gzip } from 'node-gzip'
 import { versionToNumber } from 'prismarine-viewer/viewer/prepare/utils'
+import { gzip } from 'node-gzip'
 import { options } from './optionsStorage'
 import { nameToMcOfflineUUID, disconnect } from './flyingSquidUtils'
-import { existsViaStats, forceCachedDataPaths, forceRedirectPaths, mkdirRecursive } from './browserfs'
 import { isMajorVersionGreater } from './utils'
 
 import { activeModalStacks, insertActiveModalStack, miscUiState } from './globalState'
 import supportedVersions from './supportedVersions.mjs'
+import { existsViaStats, initialFsState, mkdirRecursive } from './integratedServer/browserfsShared'
 
 // todo include name of opened handle (zip)!
 // additional fs metadata
-export const fsState = proxy({
-  isReadonly: false,
-  syncFs: false,
-  inMemorySave: false,
-  saveLoaded: false,
-  openReadOperations: 0,
-  openWriteOperations: 0,
-  remoteBackend: false
-})
+
+export const fsState = proxy(structuredClone(initialFsState))
+globalThis.fsState = fsState
 
 const PROPOSE_BACKUP = true
 
@@ -57,19 +51,6 @@ export const loadSave = async (root = '/world') => {
   }
 
   const disablePrompts = options.disableLoadPrompts
-
-  // todo do it in singleplayer as well
-  // eslint-disable-next-line guard-for-in
-  for (const key in forceCachedDataPaths) {
-
-    delete forceCachedDataPaths[key]
-  }
-  // eslint-disable-next-line guard-for-in
-  for (const key in forceRedirectPaths) {
-
-    delete forceRedirectPaths[key]
-  }
-  // todo check jsHeapSizeLimit
 
   const warnings: string[] = []
   const { levelDat, dataRaw } = (await readLevelDat(root))!
@@ -123,7 +104,7 @@ export const loadSave = async (root = '/world') => {
     if (playerDataOverride) {
       const playerDat = await gzip(nbt.writeUncompressed({ name: '', ...playerDataOverride }))
       if (fsState.isReadonly) {
-        forceCachedDataPaths[playerDatPath] = playerDat
+        fsState.forceCachedDataPaths[playerDatPath] = playerDat
       } else {
         await mkdirRecursive(path.dirname(playerDatPath))
         await fs.promises.writeFile(playerDatPath, playerDat)
@@ -162,7 +143,7 @@ export const loadSave = async (root = '/world') => {
   for (const rootRemapFile of rootRemapFiles) {
     // eslint-disable-next-line no-await-in-loop
     if (await existsViaStats(path.join(root, '..', rootRemapFile))) {
-      forceRedirectPaths[path.join(root, rootRemapFile)] = path.join(root, '..', rootRemapFile)
+      fsState.forceRedirectPaths[path.join(root, rootRemapFile)] = path.join(root, '..', rootRemapFile)
     }
   }
 

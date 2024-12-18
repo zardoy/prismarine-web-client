@@ -3,7 +3,8 @@ import ChunkLoader from 'prismarine-chunk'
 
 export type BlockFaceType = {
   side: number
-  textureIndex: number
+  // textureIndex: number
+  modelId: number
   tint?: [number, number, number]
   isTransparent?: boolean
 
@@ -14,9 +15,13 @@ export type BlockFaceType = {
 }
 
 export type BlockType = {
-  faces: BlockFaceType[]
+  // faces: BlockFaceType[]
+  visibleFaces: number[]
+  modelId: number
+  tint?: [number, number, number]
 
   // for testing
+  chunk?: number
   block: string
 }
 

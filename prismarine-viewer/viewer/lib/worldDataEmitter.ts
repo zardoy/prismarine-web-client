@@ -21,9 +21,10 @@ export class WorldDataEmitter extends EventEmitter {
   private readonly lastPos: Vec3
   private eventListeners: Record<string, any> = {}
   private readonly emitter: WorldDataEmitter
-  keepChunksDistance = 0
   addWaitTime = 1
-  isPlayground = false
+  /* config */ keepChunksDistance = 0
+  /* config */ isPlayground = false
+  /* config */ allowPositionUpdate = true
 
   constructor (public world: typeof __type_bot['world'], public viewDistance: number, position: Vec3 = new Vec3(0, 0, 0)) {
     super()
@@ -203,15 +204,11 @@ export class WorldDataEmitter extends EventEmitter {
         // const latency = Math.floor(performance.now() - this.lastTime)
         // this.debugGotChunkLatency.push(latency)
         // this.lastTime = performance.now()
-        // todo optimize toJson data, make it clear why it is used
-        const chunk = column.toJson()
-        // TODO: blockEntities
         const worldConfig = {
           minY: column['minY'] ?? 0,
           worldHeight: column['worldHeight'] ?? 256,
         }
-        //@ts-expect-error
-        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
+        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, column, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       } else if (this.isPlayground) { // don't allow in real worlds pre-flag chunks as loaded to avoid race condition when the chunk might still be loading. In playground it's assumed we always pre-load all chunks first
         this.emitter.emit('markAsLoaded', { x: pos.x, z: pos.z })
@@ -234,6 +231,7 @@ export class WorldDataEmitter extends EventEmitter {
   }
 
   async updatePosition (pos: Vec3, force = false) {
+    if (!this.allowPositionUpdate) return
     const [lastX, lastZ] = chunkPos(this.lastPos)
     const [botX, botZ] = chunkPos(pos)
     if (lastX !== botX || lastZ !== botZ || force) {

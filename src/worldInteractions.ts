@@ -6,6 +6,7 @@ import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import { LineMaterial } from 'three-stdlib'
 import { Entity } from 'prismarine-entity'
+import { WorldRendererCommon } from 'prismarine-viewer/viewer/lib/worldrendererCommon'
 import destroyStage0 from '../assets/destroy_stage_0.png'
 import destroyStage1 from '../assets/destroy_stage_1.png'
 import destroyStage2 from '../assets/destroy_stage_2.png'
@@ -372,7 +373,7 @@ class WorldInteraction {
 
     // Update state
     if (cursorChanged) {
-      viewer.world.setHighlightCursorBlock(cursorBlock?.position ?? null, allShapes.map(shape => {
+      (viewer.world as WorldRendererCommon).setHighlightCursorBlock(cursorBlock?.position ?? null, allShapes.map(shape => {
         return getDataFromShape(shape)
       }))
     }

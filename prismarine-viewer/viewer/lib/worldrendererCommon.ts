@@ -123,8 +123,13 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   workersProcessAverageTime = 0
   workersProcessAverageTimeCount = 0
   maxWorkersProcessTime = 0
-  geometryReceiveCount = {}
+  geometryReceiveCount = 0
+  geometryReceiveCountPerSec = 0
   allLoadedIn: undefined | number
+  messagesDelay = 0
+  messageDelayCount = 0
+
+  // geometryReceiveCount = {}
   rendererDevice = '...'
 
   edgeChunks = {} as Record<string, boolean>
@@ -149,6 +154,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       const loadedChunks = Object.keys(this.finishedChunks).length
       updateStatText('loaded-chunks', `${loadedChunks}/${this.chunksLength} chunks (${this.lastChunkDistance}/${this.viewDistance})`)
     })
+
+    setInterval(() => {
+      this.geometryReceiveCountPerSec = this.geometryReceiveCount
+      this.geometryReceiveCount = 0
+      this.updateChunksStatsText()
+    }, 1000)
   }
 
   snapshotInitialValues () { }
@@ -168,8 +179,9 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           this.handleWorkerMessage(data)
         }
         if (data.type === 'geometry') {
-          this.geometryReceiveCount[data.workerIndex] ??= 0
-          this.geometryReceiveCount[data.workerIndex]++
+          // this.geometryReceiveCount[data.workerIndex] ??= 0
+          // this.geometryReceiveCount[data.workerIndex]++
+          this.geometryReceiveCount++
           const geometry = data.geometry as MesherGeometryOutput
           for (const key in geometry.highestBlocks) {
             const highest = geometry.highestBlocks[key]
@@ -210,8 +222,12 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       }
       worker.onmessage = ({ data }) => {
         if (Array.isArray(data)) {
+          // const time = data[0]
+          // this.messagesDelay += Date.now() - time
+          // this.messageDelayCount++
           // eslint-disable-next-line unicorn/no-array-for-each
           data.forEach(handleMessage)
+          // data.slice(1).forEach(handleMessage)
           return
         }
         handleMessage(data)
@@ -372,7 +388,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   updateChunksStatsText () {
-    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D (${this.workers.length}:${this.workersProcessAverageTime.toFixed(0)}ms/${this.allLoadedIn?.toFixed(1) ?? '-'}s)`)
+    updateStatText('downloaded-chunks', `${Object.keys(this.loadedChunks).length}/${this.chunksLength} chunks D (${this.workers.length}:${this.workersProcessAverageTime.toFixed(0)}ms/${this.geometryReceiveCountPerSec}ss/${this.allLoadedIn?.toFixed(1) ?? '-'}s)`)
   }
 
   addColumn (x: number, z: number, chunk: any, isLightUpdate: boolean) {
@@ -433,7 +449,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   }
 
   setBlockStateId (pos: Vec3, stateId: number) {
-    const needAoRecalculation = true
+    const needAoRecalculation = false
     for (const worker of this.workers) {
       worker.postMessage({ type: 'blockUpdate', pos, stateId })
     }

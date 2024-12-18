@@ -23,6 +23,16 @@ for (const key of Object.keys(tintsData)) {
   tints[key] = prepareTints(tintsData[key])
 }
 
+let specialBlockState: undefined | Record<string, any>
+export const setSpecialBlockState = (blockState) => {
+  specialBlockState = blockState
+}
+// eslint-disable-next-line import/no-mutable-exports
+export let world: World
+export const setWorld = (_world) => {
+  world = _world
+}
+
 type Tiles = {
   [blockPos: string]: BlockType
 }
@@ -74,13 +84,13 @@ export function preflatBlockCalculation (block: Block, world: World, position: V
     }
     // case 'gate_in_wall': {}
     case 'block_snowy': {
-      const aboveIsSnow = world.getBlock(position.offset(0, 1, 0))?.name === 'snow'
-      if (aboveIsSnow) {
-        return {
-          snowy: `${aboveIsSnow}`
-        }
-      } else {
+      const aboveIsSnow = `${world.getBlock(position.offset(0, 1, 0))?.name === 'snow'}`
+      if (aboveIsSnow === block.getProperties().snowy) {
         return
+      } else {
+        return {
+          snowy: aboveIsSnow
+        }
       }
     }
     case 'door': {
@@ -121,14 +131,18 @@ function getLiquidRenderHeight (world, block, type, pos) {
 const isCube = (block: Block) => {
   if (!block || block.transparent) return false
   if (block.isCube) return true
-  if (!block.models?.length || block.models.length !== 1) return false
+  if (!block.models?.length || block.models.length !== 1 || !block.models[0]) return false
   // all variants
-  return block.models[0].every(v => v.elements!.every(e => {
+  return block.models[0]?.every(v => v.elements!?.every(e => {
     return e.from[0] === 0 && e.from[1] === 0 && e.from[2] === 0 && e.to[0] === 16 && e.to[1] === 16 && e.to[2] === 16
   }))
 }
 
-function renderLiquid (world: World, cursor: Vec3, texture: any | undefined, type: number, biome: string, water: boolean, attr: Record<string, any>) {
+const addPossibleTileCheck = (attr, pos, side) => {
+
+}
+
+function renderLiquid (world, cursor, texture, type, biome, water, attr, stateId) {
   const heights: number[] = []
   for (let z = -1; z <= 1; z++) {
     for (let x = -1; x <= 1; x++) {
@@ -145,17 +159,17 @@ function renderLiquid (world: World, cursor: Vec3, texture: any | undefined, typ
 
   // eslint-disable-next-line guard-for-in
   for (const face in elemFaces) {
-    const { dir, corners } = elemFaces[face]
+    const { dir, corners, webgpuSide } = elemFaces[face]
     const isUp = dir[1] === 1
 
-    const neighborPos = cursor.offset(...dir as [number, number, number])
+    const neighborPos = cursor.offset(...dir)
     const neighbor = world.getBlock(neighborPos)
     if (!neighbor) continue
     if (neighbor.type === type) continue
     const isGlass = neighbor.name.includes('glass')
     if ((isCube(neighbor) && !isUp) || neighbor.material === 'plant' || neighbor.getProperties().waterlogged) continue
 
-    let tint = [1, 1, 1]
+    let tint = [1, 1, 1] as [number, number, number]
     if (water) {
       let m = 1 // Fake lighting to improve lisibility
       if (Math.abs(dir[0]) > 0) m = 0.6
@@ -166,17 +180,24 @@ function renderLiquid (world: World, cursor: Vec3, texture: any | undefined, typ
 
     if (needTiles) {
       const tiles = attr.tiles as Tiles
-      tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
-        block: 'water',
-        faces: [],
+      const model = world.webgpuModelsMapping[stateId]
+      // TODO height
+      if (model) {
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+          block: 'water',
+          visibleFaces: [],
+          modelId: model,
+          tint,
+        }
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
       }
-      tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
-        face,
-        neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
-        side: 0, // todo
-        textureIndex: 0,
-        // texture: eFace.texture.name,
-      })
+      // tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+      //   face,
+      //   neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+      //   side: 0, // todo
+      //   textureIndex: 0,
+      //   // texture: eFace.texture.name,
+      // })
     }
 
     const { u } = texture
@@ -184,16 +205,18 @@ function renderLiquid (world: World, cursor: Vec3, texture: any | undefined, typ
     const { su } = texture
     const { sv } = texture
 
-    for (const pos of corners) {
-      const height = cornerHeights[pos[2] * 2 + pos[0]]
-      attr.t_positions.push(
-        (pos[0] ? 0.999 : 0.001) + (cursor.x & 15) - 8,
-        (pos[1] ? height - 0.001 : 0.001) + (cursor.y & 15) - 8,
-        (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8
-      )
-      attr.t_normals.push(...dir)
-      attr.t_uvs.push(pos[3] * su + u, pos[4] * sv * (pos[1] ? 1 : height) + v)
-      attr.t_colors.push(tint[0], tint[1], tint[2])
+    if (!needTiles) {
+      for (const pos of corners) {
+        const height = cornerHeights[pos[2] * 2 + pos[0]]
+        attr.t_positions.push(
+          (pos[0] ? 0.999 : 0.001) + (cursor.x & 15) - 8,
+          (pos[1] ? height - 0.001 : 0.001) + (cursor.y & 15) - 8,
+          (pos[2] ? 0.999 : 0.001) + (cursor.z & 15) - 8
+        )
+        attr.t_normals.push(...dir)
+        attr.t_uvs.push(pos[3] * su + u, pos[4] * sv * (pos[1] ? 1 : height) + v)
+        attr.t_colors.push(tint[0], tint[1], tint[2])
+      }
     }
   }
 }
@@ -238,6 +261,11 @@ const identicalCull = (currentElement: BlockElement, neighbor: Block, direction:
 
 let needSectionRecomputeOnChange = false
 
+// todo remove
+const hasModelForNeighbor = (world: World, block: Block) => {
+  return !!world.webgpuModelsMapping[block.stateId!]/*  ?? world.webgpuModelsMapping[-1] */
+}
+
 function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO: boolean, attr: MesherGeometryOutput, globalMatrix: any, globalShift: any, block: Block, biome: string) {
   const position = cursor
   // const key = `${position.x},${position.y},${position.z}`
@@ -247,16 +275,19 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
   // eslint-disable-next-line guard-for-in
   for (const face in element.faces) {
     const eFace = element.faces[face]
-    const { corners, mask1, mask2, side } = elemFaces[face]
+    const { corners, mask1, mask2, webgpuSide } = elemFaces[face]
     const dir = matmul3(globalMatrix, elemFaces[face].dir)
 
     if (eFace.cullface) {
       const neighbor = world.getBlock(cursor.plus(new Vec3(...dir)), blockProvider, {})
       if (neighbor) {
-        if (cullIfIdentical && neighbor.stateId === block.stateId) continue
-        if (!neighbor.transparent && (isCube(neighbor) || identicalCull(element, neighbor, new Vec3(...dir)))) continue
+        if (hasModelForNeighbor(world, block)) {
+          if (cullIfIdentical && neighbor.stateId === block.stateId) continue
+          if (!neighbor.transparent && (isCube(neighbor) || identicalCull(element, neighbor, new Vec3(...dir)))) continue
+        }
       } else {
         needSectionRecomputeOnChange = true
+        // TODO support sync worlds
         continue
       }
     }
@@ -298,8 +329,6 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
     if (face === 'down') {
       r += 180
     }
-    const uvcs = Math.cos(r * Math.PI / 180)
-    const uvsn = -Math.sin(r * Math.PI / 180)
 
     let localMatrix = null as any
     let localShift = null as any
@@ -332,6 +361,8 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       ]
 
       if (!needTiles) { // 10%
+        const uvcs = Math.cos(r * Math.PI / 180)
+        const uvsn = -Math.sin(r * Math.PI / 180)
         vertex = vecadd3(matmul3(localMatrix, vertex), localShift)
         vertex = vecadd3(matmul3(globalMatrix, vertex), globalShift)
         vertex = vertex.map(v => v / 16)
@@ -350,8 +381,9 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
       }
 
       let light = 1
-      const { smoothLighting } = world.config
-      // const smoothLighting = true
+      // const { smoothLighting } = world.config
+      const smoothLighting = false
+      doAO = false
       if (doAO) {
         const dx = pos[0] * 2 - 1
         const dy = pos[1] * 2 - 1
@@ -405,24 +437,30 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
 
     if (needTiles) {
       const tiles = attr.tiles as Tiles
-      tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
-        block: block.name,
-        faces: [],
+      const model = world.webgpuModelsMapping[block.stateId!]/*  ?? world.webgpuModelsMapping[-1] */
+      if (model !== undefined) {
+        if (specialBlockState?.value === 'highlight' && specialBlockState.position.x === cursor.x && specialBlockState.position.y === cursor.y && specialBlockState.position.z === cursor.z) {
+          lightWithColor[0] *= 0.5
+          lightWithColor[1] *= 0.5
+          lightWithColor[2] *= 0.5
+        }
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`] ??= {
+          block: block.name,
+          visibleFaces: [],
+          modelId: model,
+          tint: lightWithColor[0] === 1 && lightWithColor[1] === 1 && lightWithColor[2] === 1 ? undefined : lightWithColor,
+        }
+        tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
       }
-      const needsOnlyOneFace = false
-      const isTilesEmpty = tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.length < 1
-      if (isTilesEmpty || !needsOnlyOneFace) {
-        tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
-          face,
-          side,
-          textureIndex: eFace.texture.tileIndex,
-          neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
-          light: baseLight,
-          tint: lightWithColor,
-          //@ts-expect-error debug prop
-          texture: eFace.texture.debugName || block.name,
-        } satisfies BlockType['faces'][number])
-      }
+      // tiles[`${cursor.x},${cursor.y},${cursor.z}`].faces.push({
+      //   face,
+      //   side,
+      //   modelId: eFace,
+      //   // textureIndex: eFace.texture.tileIndex,
+      //   neighbor: `${neighborPos.x},${neighborPos.y},${neighborPos.z}`,
+      //   //@ts-expect-error debug prop
+      //   texture: eFace.texture.debugName || block.name,
+      // } satisfies BlockType['faces'][number])
     }
 
     if (!needTiles) {
@@ -472,13 +510,13 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         let block = world.getBlock(cursor, blockProvider, attr)!
-        if (!INVISIBLE_BLOCKS.has(block.name)) {
-          const highest = attr.highestBlocks.get(`${cursor.x},${cursor.z}`)
-          if (!highest || highest.y < cursor.y) {
-            attr.highestBlocks.set(`${cursor.x},${cursor.z}`, { y: cursor.y, stateId: block.stateId, biomeId: block.biome.id })
-          }
-        }
-        if (INVISIBLE_BLOCKS.has(block.name)) continue
+        // if (!INVISIBLE_BLOCKS.has(block.name)) {
+        //   const highest = attr.highestBlocks.get(`${cursor.x},${cursor.z}`)
+        //   if (!highest || highest.y < cursor.y) {
+        //     attr.highestBlocks.set(`${cursor.x},${cursor.z}`, { y: cursor.y, stateId: block.stateId, biomeId: block.biome.id })
+        //   }
+        // }
+        // if (INVISIBLE_BLOCKS.has(block.name)) continue
         if ((block.name.includes('_sign') || block.name === 'sign') && !world.config.disableSignsMapsSupport) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
@@ -503,27 +541,30 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           if (patchProperties) {
             block._originalProperties ??= block._properties
             block._properties = { ...block._originalProperties, ...patchProperties }
-            if (block.models && JSON.stringify(block._originalProperties) !== JSON.stringify(block._properties)) {
-              // recompute models
-              block.models = undefined
+            const patched = JSON.stringify(block._properties)
+            block.patchedModels[''] ??= block.models!
+            block.models = block.patchedModels[patched]
+            if (!block.models) {
+              // need to recompute models
               block = world.getBlock(cursor, blockProvider, attr)!
             }
+            block.patchedModels[patched] = block.models!
           } else {
             block._properties = block._originalProperties ?? block._properties
             block._originalProperties = undefined
+            block.models = block.patchedModels[''] ?? block.models
           }
         }
 
         const isWaterlogged = isBlockWaterlogged(block)
         if (block.name === 'water' || isWaterlogged) {
           const pos = cursor.clone()
-          // eslint-disable-next-line @typescript-eslint/no-loop-func
-          delayedRender.push(() => {
-            renderLiquid(world, pos, blockProvider.getTextureInfo('water_still'), block.type, biome, true, attr)
-          })
+          // delayedRender.push(() => {
+          renderLiquid(world, pos, blockProvider.getTextureInfo('water_still'), block.type, biome, true, attr, block.stateId)
+          // })
           attr.blocksCount++
         } else if (block.name === 'lava') {
-          renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr)
+          renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr, block.stateId)
           attr.blocksCount++
         }
         if (block.name !== 'water' && block.name !== 'lava' && !INVISIBLE_BLOCKS.has(block.name)) {
@@ -535,6 +576,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           const firstForceVar = world.config.debugModelVariant?.[0]
           let part = 0
           for (const modelVars of models ?? []) {
+            if (part > 0) continue // todo only webgpu
             const pos = cursor.clone()
             // const variantRuntime = mod(Math.floor(pos.x / 16) + Math.floor(pos.y / 16) + Math.floor(pos.z / 16), modelVars.length)
             const variantRuntime = 0
@@ -544,32 +586,32 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
             if (!model) continue
 
             // #region 10%
-            let globalMatrix = null as any
-            let globalShift = null as any
-            for (const axis of ['x', 'y', 'z'] as const) {
-              if (axis in model) {
-                globalMatrix = globalMatrix ?
-                  matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0))) :
-                  buildRotationMatrix(axis, -(model[axis] ?? 0))
-              }
-            }
-            if (globalMatrix) {
-              globalShift = [8, 8, 8]
-              globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
-            }
+            const globalMatrix = null as any
+            const globalShift = null as any
+            // for (const axis of ['x', 'y', 'z'] as const) {
+            //   if (axis in model) {
+            //     globalMatrix = globalMatrix ?
+            //       matmulmat3(globalMatrix, buildRotationMatrix(axis, -(model[axis] ?? 0))) :
+            //       buildRotationMatrix(axis, -(model[axis] ?? 0))
+            //   }
+            // }
+            // if (globalMatrix) {
+            //   globalShift = [8, 8, 8]
+            //   globalShift = vecsub3(globalShift, matmul3(globalMatrix, globalShift))
+            // }
             // #endregion
 
             for (const element of model.elements ?? []) {
               const ao = model.ao ?? true
-              if (block.transparent) {
-                const pos = cursor.clone()
-                delayedRender.push(() => {
-                  renderElement(world, pos, element, ao, attr, globalMatrix, globalShift, block, biome)
-                })
-              } else {
-                // 60%
-                renderElement(world, cursor, element, ao, attr, globalMatrix, globalShift, block, biome)
-              }
+              // if (block.transparent) {
+              //   const pos = cursor.clone()
+              //   delayedRender.push(() => {
+              //     renderElement(world, pos, element, ao, attr, globalMatrix, globalShift, block, biome)
+              //   })
+              // } else {
+              // 60%
+              renderElement(world, cursor, element, ao, attr, globalMatrix, globalShift, block, biome)
+              // }
             }
           }
           if (part > 0) attr.blocksCount++
@@ -621,6 +663,9 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
 
 export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false, useUnknownBlockModel = true, version = 'latest') => {
   blockProvider = worldBlockProvider(blockstatesModels, blocksAtlas, version)
+  if (world) {
+    world.blockCache = {}
+  }
   globalThis.blockProvider = blockProvider
   if (useUnknownBlockModel) {
     unknownBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'unknown', properties: {} })

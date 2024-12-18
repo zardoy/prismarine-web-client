@@ -14,7 +14,6 @@ declare const __type_bot: typeof bot
 declare const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer
 declare const worldView: import('prismarine-viewer/viewer/lib/worldDataEmitter').WorldDataEmitter | undefined
 declare const addStatPerSec: (name: string) => void
-declare const localServer: import('flying-squid/dist/index').FullServer & { options } | undefined
 /** all currently loaded mc data */
 declare const mcData: Record<string, any>
 declare const loadedData: import('minecraft-data').IndexedData & { sounds: Record<string, { id, name }> }
@@ -31,6 +30,19 @@ declare const beforeRenderFrame: Array<() => void>
 
 declare interface Document {
   exitPointerLock?(): void
+}
+
+declare module '*.frag' {
+  const png: string
+  export default png
+}
+declare module '*.vert' {
+  const png: string
+  export default png
+}
+declare module '*.wgsl' {
+  const png: string
+  export default png
 }
 
 declare interface Window extends Record<string, any> { }

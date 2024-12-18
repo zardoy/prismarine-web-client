@@ -3,10 +3,13 @@
 import { subscribeKey } from 'valtio/utils'
 import { WorldRendererThree } from 'prismarine-viewer/viewer/lib/worldrendererThree'
 import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
+import { WorldRendererWebgpu } from 'prismarine-viewer/viewer/lib/worldrendererWebgpu'
+import { defaultWebgpuRendererParams } from 'prismarine-viewer/examples/webgpuRendererShared'
 import { options, watchValue } from './optionsStorage'
 import { reloadChunks } from './utils'
 import { miscUiState } from './globalState'
 import { toggleStatsVisibility } from './topRightStats'
+import { updateLocalServerSettings } from './integratedServer/main'
 
 subscribeKey(options, 'renderDistance', reloadChunks)
 subscribeKey(options, 'multiplayerRenderDistance', reloadChunks)
@@ -62,18 +65,30 @@ export const watchOptionsAfterViewerInit = () => {
     viewer.world.mesherConfig.clipWorldBelowY = o.clipWorldBelowY
     viewer.world.mesherConfig.disableSignsMapsSupport = o.disableSignsMapsSupport
     if (isChanged) {
-      (viewer.world as WorldRendererThree).rerenderAllChunks()
+      if (viewer.world instanceof WorldRendererThree) {
+        (viewer.world as WorldRendererThree).rerenderAllChunks()
+      }
     }
+  })
+
+  watchValue(options, o => {
+    updateLocalServerSettings({
+      autoSave: o.singleplayerAutoSave
+    })
   })
 
   viewer.world.mesherConfig.smoothLighting = options.smoothLighting
   subscribeKey(options, 'smoothLighting', () => {
-    viewer.world.mesherConfig.smoothLighting = options.smoothLighting;
-    (viewer.world as WorldRendererThree).rerenderAllChunks()
+    viewer.world.mesherConfig.smoothLighting = options.smoothLighting
+    if (viewer.world instanceof WorldRendererThree) {
+      (viewer.world as WorldRendererThree).rerenderAllChunks()
+    }
   })
   subscribeKey(options, 'newVersionsLighting', () => {
-    viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting;
-    (viewer.world as WorldRendererThree).rerenderAllChunks()
+    viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
+    if (viewer.world instanceof WorldRendererThree) {
+      (viewer.world as WorldRendererThree).rerenderAllChunks()
+    }
   })
   customEvents.on('gameLoaded', () => {
     viewer.world.mesherConfig.enableLighting = !bot.supportFeature('blockStateId') || options.newVersionsLighting
@@ -81,16 +96,41 @@ export const watchOptionsAfterViewerInit = () => {
 
   watchValue(options, o => {
     if (!(viewer.world instanceof WorldRendererThree)) return
-    viewer.world.starField.enabled = o.starfieldRendering
+    (viewer.world as WorldRendererThree).starField.enabled = o.starfieldRendering
   })
 
   watchValue(options, o => {
     viewer.world.neighborChunkUpdates = o.neighborChunkUpdates
   })
+  watchValue(options, o => {
+    viewer.powerPreference = o.gpuPreference
+  })
+
+  onRendererParamsUpdate()
+
+  if (viewer.world instanceof WorldRendererWebgpu) {
+    Object.assign(viewer.world.rendererParams, options.webgpuRendererParams)
+    const oldUpdateRendererParams = viewer.world.updateRendererParams.bind(viewer.world)
+    viewer.world.updateRendererParams = (...args) => {
+      oldUpdateRendererParams(...args)
+      Object.assign(options.webgpuRendererParams, viewer.world.rendererParams)
+      onRendererParamsUpdate()
+    }
+  }
+}
+
+const onRendererParamsUpdate = () => {
+  if (worldView) {
+    worldView.allowPositionUpdate = viewer.world.rendererParams.allowChunksViewUpdate
+  }
+  updateLocalServerSettings({
+    stopLoad: !viewer.world.rendererParams.allowChunksViewUpdate
+  })
 }
 
 let viewWatched = false
 export const watchOptionsAfterWorldViewInit = () => {
+  onRendererParamsUpdate()
   if (viewWatched) return
   viewWatched = true
   watchValue(options, o => {

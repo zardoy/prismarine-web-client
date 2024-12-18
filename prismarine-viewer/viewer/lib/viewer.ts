@@ -3,7 +3,7 @@ import * as THREE from 'three'
 import { Vec3 } from 'vec3'
 import { generateSpiralMatrix } from 'flying-squid/dist/utils'
 import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
-import stevePng from 'mc-assets/dist/other-textures/latest/entity/player/wide/steve.png'
+import { WorldRendererWebgpu } from './worldrendererWebgpu'
 import { Entities } from './entities'
 import { Primitives } from './primitives'
 import { WorldRendererThree } from './worldrendererThree'
@@ -16,17 +16,19 @@ export class Viewer {
   scene: THREE.Scene
   ambientLight: THREE.AmbientLight
   directionalLight: THREE.DirectionalLight
-  world: WorldRendererCommon
+  world: WorldRendererWebgpu/*  | WorldRendererThree */
   entities: Entities
   // primitives: Primitives
   domElement: HTMLCanvasElement
   playerHeight = 1.62
   isSneaking = false
-  threeJsWorld: WorldRendererThree
+  // threeJsWorld: WorldRendererThree
   cameraObjectOverride?: THREE.Object3D // for xr
   audioListener: THREE.AudioListener
   renderingUntilNoUpdates = false
   processEntityOverrides = (e, overrides) => overrides
+  webgpuWorld: WorldRendererWebgpu
+  powerPreference: string | undefined
 
   getMineflayerBot (): void | Record<string, any> {} // to be overridden
 
@@ -45,8 +47,8 @@ export class Viewer {
 
     this.scene = new THREE.Scene()
     this.scene.matrixAutoUpdate = false // for perf
-    this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, worldConfig)
-    this.setWorld()
+    // this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, worldConfig)
+    this.setWorld(worldConfig)
     this.resetScene()
     this.entities = new Entities(this.scene)
     // this.primitives = new Primitives(this.scene, this.camera)
@@ -54,8 +56,14 @@ export class Viewer {
     this.domElement = renderer.domElement
   }
 
-  setWorld () {
-    this.world = this.threeJsWorld
+  setWorld (worldConfig: typeof defaultWorldRendererConfig = this.world.config) {
+    const { version, texturesVersion } = this.world ?? {}
+    if (this.world) this.world.destroy()
+    this.webgpuWorld = new WorldRendererWebgpu(worldConfig, this.renderer, { powerPreference: this.powerPreference })
+    this.world = this.webgpuWorld
+    if (version) {
+      void this.setVersion(version, texturesVersion)
+    }
   }
 
   resetScene () {
@@ -94,10 +102,6 @@ export class Viewer {
     })
   }
 
-  addColumn (x, z, chunk, isLightUpdate = false) {
-    this.world.addColumn(x, z, chunk, isLightUpdate)
-  }
-
   removeColumn (x: string, z: string) {
     this.world.removeColumn(x, z)
   }
@@ -114,7 +118,7 @@ export class Viewer {
         })
       }
       if (!this.world.loadedChunks[`${sectionX},${sectionZ}`]) {
-        console.debug('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
+        console.warn('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
       }
       this.world.setBlockStateId(pos, stateId)
     }
@@ -213,9 +217,10 @@ export class Viewer {
       timeout
       data
     } | null
-    worldEmitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
+    worldEmitter.on('loadChunk', ({ x, z, column, worldConfig, isLightUpdate }) => {
       this.world.worldConfig = worldConfig
       this.world.queuedChunks.add(`${x},${z}`)
+      const chunk = column.toJson() // todo use export
       const args = [x, z, chunk, isLightUpdate]
       if (!currentLoadChunkBatch) {
         // add a setting to use debounce instead
@@ -224,7 +229,7 @@ export class Viewer {
           timeout: setTimeout(() => {
             for (const args of currentLoadChunkBatch!.data) {
               this.world.queuedChunks.delete(`${args[0]},${args[1]}`)
-              this.addColumn(...args as Parameters<typeof this.addColumn>)
+              this.world.addColumn(...args as Parameters<typeof this.world.addColumn>)
             }
             for (const fn of this.world.queuedFunctions) {
               fn()
@@ -238,7 +243,7 @@ export class Viewer {
     })
     // todo remove and use other architecture instead so data flow is clear
     worldEmitter.on('blockEntities', (blockEntities) => {
-      if (this.world instanceof WorldRendererThree) (this.world).blockEntities = blockEntities
+      if (this.world instanceof WorldRendererThree) (this.world as WorldRendererThree).blockEntities = blockEntities
     })
 
     worldEmitter.on('unloadChunk', ({ x, z }) => {
@@ -270,7 +275,7 @@ export class Viewer {
     })
 
     worldEmitter.on('updateLight', ({ pos }) => {
-      if (this.world instanceof WorldRendererThree) (this.world).updateLight(pos.x, pos.z)
+      if (this.world instanceof WorldRendererThree) (this.world as WorldRendererThree).updateLight(pos.x, pos.z)
     })
 
     worldEmitter.on('time', (timeOfDay) => {
@@ -292,7 +297,7 @@ export class Viewer {
       if (this.world.mesherConfig.skyLight === skyLight) return
       this.world.mesherConfig.skyLight = skyLight
       if (this.world instanceof WorldRendererThree) {
-        (this.world).rerenderAllChunks?.()
+        (this.world as WorldRendererThree).rerenderAllChunks?.()
       }
     })
 
@@ -301,7 +306,7 @@ export class Viewer {
 
   render () {
     if (this.world instanceof WorldRendererThree) {
-      (this.world).render()
+      (this.world as WorldRendererThree).render()
       this.entities.render()
     }
   }

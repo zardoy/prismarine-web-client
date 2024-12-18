@@ -2,7 +2,6 @@ import { join, dirname, basename } from 'path'
 import fs from 'fs'
 import JSZip from 'jszip'
 import { proxy, subscribe } from 'valtio'
-import { mkdirRecursive, removeFileRecursiveAsync } from './browserfs'
 import { setLoadingScreenStatus } from './utils'
 import { showNotification } from './react/NotificationProvider'
 import { options } from './optionsStorage'
@@ -10,6 +9,7 @@ import { showOptionsModal } from './react/SelectOption'
 import { appStatusState } from './react/AppStatusProvider'
 import { appReplacableResources, resourcesContentOriginal } from './generated/resources'
 import { loadedGameState } from './globalState'
+import { mkdirRecursive, removeFileRecursiveAsync } from './integratedServer/browserfsShared'
 
 export const resourcePackState = proxy({
   resourcePackInstalled: false,
@@ -381,7 +381,7 @@ const updateTextures = async () => {
     }
   }
   if (viewer.world.active) {
-    await viewer.world.updateTexturesData()
+    await viewer.world.updateTexturesData(true)
   }
 }
 

@@ -4,8 +4,9 @@ import { proxy, subscribe, useSnapshot } from 'valtio'
 import { useEffect, useState } from 'react'
 import { activeModalStack, miscUiState, openOptionsMenu, showModal } from '../globalState'
 import { openGithub, setLoadingScreenStatus } from '../utils'
-import { openFilePicker, copyFilesAsync, mkdirRecursive, openWorldDirectory, removeFileRecursiveAsync } from '../browserfs'
 
+import { openWorldDirectory, openFilePicker } from '../browserfs'
+import { mkdirRecursive, copyFilesAsync, removeFileRecursiveAsync } from '../integratedServer/browserfsShared'
 import MainMenu from './MainMenu'
 import { DiscordButton } from './DiscordButton'
 
@@ -73,8 +74,10 @@ export default () => {
     }
   }, [])
 
-  let mapsProviderUrl = appConfig?.mapsProvider
-  if (mapsProviderUrl && location.origin !== 'https://mcraft.fun') mapsProviderUrl = mapsProviderUrl + '?to=' + encodeURIComponent(location.href)
+  const mapsProviderUrl = appConfig?.mapsProvider && new URL(appConfig?.mapsProvider)
+  if (mapsProviderUrl && location.origin !== 'https://mcraft.fun') {
+    mapsProviderUrl.searchParams.set('to', location.href)
+  }
 
   // todo clean, use custom csstransition
   return <Transition in={!noDisplay} timeout={disableAnimation ? 0 : 100} mountOnEnter unmountOnExit>
@@ -113,7 +116,7 @@ export default () => {
             openFilePicker()
           }
         }}
-        mapsProvider={mapsProviderUrl}
+        mapsProvider={mapsProviderUrl?.toString()}
         versionStatus={versionStatus}
         versionTitle={versionTitle}
         onVersionStatusClick={async () => {

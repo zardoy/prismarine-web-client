@@ -181,6 +181,14 @@ body::xr-overlay #viewer-canvas {
   color: #999;
 }
 
+.webgpu-debug-ui {
+  top: 68px !important;
+  background: transparent;
+}
+
+.webgpu-debug-ui .title {
+  background: transparent !important;
+}
 .text-select {
   user-select: text;
 }

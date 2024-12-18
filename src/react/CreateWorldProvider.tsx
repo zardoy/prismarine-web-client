@@ -1,7 +1,7 @@
 import { hideCurrentModal, showModal } from '../globalState'
 import defaultLocalServerOptions from '../defaultLocalServerOptions'
-import { mkdirRecursive, uniqueFileNameFromWorldName } from '../browserfs'
 import supportedVersions from '../supportedVersions.mjs'
+import { mkdirRecursive, uniqueFileNameFromWorldName } from '../integratedServer/browserfsShared'
 import CreateWorld, { WorldCustomize, creatingWorldState } from './CreateWorld'
 import { getWorldsPath } from './SingleplayerProvider'
 import { useIsModalActive } from './utilsApp'

@@ -1,5 +1,6 @@
-export function createWorkerProxy<T extends Record<string, (...args: any[]) => void>> (handlers: T): { __workerProxy: T } {
-  addEventListener('message', (event) => {
+export function createWorkerProxy<T extends Record<string, (...args: any[]) => void>> (handlers: T, channel?: MessagePort): { __workerProxy: T } {
+  const target = channel ?? globalThis
+  target.addEventListener('message', (event: any) => {
     const { type, args } = event.data
     if (handlers[type]) {
       handlers[type](...args)
@@ -19,7 +20,7 @@ export function createWorkerProxy<T extends Record<string, (...args: any[]) => v
  * const workerChannel = useWorkerProxy<typeof importedTypeWorkerProxy>(worker)
  * ```
  */
-export const useWorkerProxy = <T extends { __workerProxy: Record<string, (...args: any[]) => void> }> (worker: Worker, autoTransfer = true): T['__workerProxy'] & {
+export const useWorkerProxy = <T extends { __workerProxy: Record<string, (...args: any[]) => void> }> (worker: Worker | MessagePort, autoTransfer = true): T['__workerProxy'] & {
   transfer: (...args: Transferable[]) => T['__workerProxy']
 } => {
   // in main thread
@@ -40,11 +41,11 @@ export const useWorkerProxy = <T extends { __workerProxy: Record<string, (...arg
         }
       }
       return (...args: any[]) => {
-        const transfer = autoTransfer ? args.filter(arg => arg instanceof ArrayBuffer || arg instanceof MessagePort || arg instanceof ImageBitmap || arg instanceof OffscreenCanvas) : []
+        const transfer = autoTransfer ? args.filter(arg => arg instanceof ArrayBuffer || arg instanceof MessagePort || arg instanceof ImageBitmap || arg instanceof OffscreenCanvas || arg instanceof ImageData) : []
         worker.postMessage({
           type: prop,
           args,
-        }, transfer)
+        }, transfer as any[])
       }
     }
   })

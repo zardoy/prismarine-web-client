@@ -1,1 +1,1 @@
-module.exports.performance = window.performance
+module.exports.performance = globalThis.performance

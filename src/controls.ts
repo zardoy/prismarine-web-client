@@ -306,8 +306,9 @@ const alwaysPressedHandledCommand = (command: Command) => {
 
 export function lockUrl () {
   let newQs = ''
-  if (fsState.saveLoaded) {
-    const save = localServer!.options.worldFolder.split('/').at(-1)
+  if (fsState.saveLoaded && fsState.inMemorySave) {
+    const worldFolder = fsState.inMemorySavePath
+    const save = worldFolder.split('/').at(-1)
     newQs = `loadSave=${save}`
   } else if (process.env.NODE_ENV === 'development') {
     newQs = `reconnect=1`
@@ -463,10 +464,14 @@ export const f3Keybinds = [
           console.warn('forcefully removed chunk from scene')
         }
       }
-      if (localServer) {
-        //@ts-expect-error not sure why it is private... maybe revisit api?
-        localServer.players[0].world.columns = {}
-      }
+
+      viewer.world.chunksReset() // todo
+
+      // TODO!
+      // if (localServer) {
+      //   //@ts-expect-error not sure why it is private... maybe revisit api?
+      //   localServer.players[0].world.columns = {}
+      // }
       void reloadChunks()
     },
     mobileTitle: 'Reload chunks',
@@ -537,8 +542,20 @@ export const f3Keybinds = [
       const proxyPing = await bot['pingProxy']()
       void showOptionsModal(`${username}: last known total latency (ping): ${playerPing}. Connected to ${lastConnectOptions.value?.proxy} with current ping ${proxyPing}. Player UUID: ${uuid}`, [])
     },
-    mobileTitle: 'Show Proxy & Ping Details'
-  }
+    mobileTitle: 'Show Proxy & Ping Details',
+    show: () => !miscUiState.singleplayer
+  },
+  {
+    key: 'KeyL',
+    async action () {
+      if (viewer.world.rendering) {
+        viewer.world.webgpuChannel.stopRender()
+      } else {
+        viewer.world.webgpuChannel.startRender()
+      }
+    },
+    mobileTitle: 'Toggle rendering'
+  },
 ]
 
 const hardcodedPressedKeys = new Set<string>()
@@ -547,7 +564,7 @@ document.addEventListener('keydown', (e) => {
   if (hardcodedPressedKeys.has('F3')) {
     const keybind = f3Keybinds.find((v) => v.key === e.code)
     if (keybind) {
-      keybind.action()
+      void keybind.action()
       e.stopPropagation()
     }
     return
@@ -773,6 +790,10 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyL' && e.altKey) {
     console.clear()
+  }
+  if (e.code === 'KeyK' && e.altKey) {
+    // eslint-disable-next-line no-debugger
+    debugger
   }
 })
 // #endregion
