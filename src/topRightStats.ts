@@ -114,14 +114,16 @@ const updateStatsPerSecAvg = () => {
 
 window.statsPerSec = {}
 let statsPerSecCurrent = {}
+let lastReset = performance.now()
 window.addStatPerSec = (name) => {
   statsPerSecCurrent[name] ??= 0
   statsPerSecCurrent[name]++
 }
 window.statsPerSecCurrent = statsPerSecCurrent
 setInterval(() => {
-  window.statsPerSec = statsPerSecCurrent
+  window.statsPerSec = { duration: Math.floor(performance.now() - lastReset), ...statsPerSecCurrent, }
   statsPerSecCurrent = {}
   window.statsPerSecCurrent = statsPerSecCurrent
   updateStatsPerSecAvg()
+  lastReset = performance.now()
 }, 1000)
