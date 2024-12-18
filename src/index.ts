@@ -103,7 +103,7 @@ import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
-import { getWsProtocolStream } from './viewerConnector'
+import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
 
 window.debug = debug
 window.THREE = THREE
@@ -377,7 +377,7 @@ async function connect (connectOptions: ConnectOptions) {
     signal: errorAbortController.signal
   })
 
-  if (proxy) {
+  if (proxy && !connectOptions.viewerWsConnect) {
     console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
 
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
@@ -477,6 +477,12 @@ async function connect (connectOptions: ConnectOptions) {
       clientDataStream = await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions)
     }
     if (connectOptions.viewerWsConnect) {
+      const { version, time } = await getViewerVersionData(connectOptions.viewerWsConnect)
+      console.log('Latency:', Date.now() - time, 'ms')
+      // const version = '1.21.1'
+      connectOptions.botVersion = version
+      await downloadMcData(version)
+      setLoadingScreenStatus(`Connecting to WebSocket server ${connectOptions.viewerWsConnect}`)
       clientDataStream = await getWsProtocolStream(connectOptions.viewerWsConnect)
     }
 
@@ -571,7 +577,7 @@ async function connect (connectOptions: ConnectOptions) {
       bot.emit('inject_allowed')
       bot._client.emit('connect')
     } else if (connectOptions.viewerWsConnect) {
-      bot.emit('inject_allowed')
+      // bot.emit('inject_allowed')
       bot._client.emit('connect')
     } else {
       const setupConnectHandlers = () => {
@@ -1056,7 +1062,6 @@ downloadAndOpenFile().then((downloadAction) => {
   if (viewerWsConnect) {
     void connect({
       username: `viewer-${Math.random().toString(36).slice(2, 10)}`,
-      botVersion: '1.21.1',
       viewerWsConnect,
     })
   }

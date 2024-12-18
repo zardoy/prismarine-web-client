@@ -16,15 +16,49 @@ class CustomDuplex extends Duplex {
   }
 }
 
-export const getWsProtocolStream = async (url: string) => {
+export const getViewerVersionData = async (url: string) => {
+  const ws = await openWebsocket(url)
+  ws.send('version')
+  return new Promise<{
+    version: string
+    time: number,
+    clientIgnoredPackets?: string[]
+  }>((resolve, reject) => {
+    ws.addEventListener('message', async (message) => {
+      const { data } = message
+      const parsed = JSON.parse(data.toString())
+      resolve(parsed)
+      ws.close()
+      // todo
+      customEvents.on('mineflayerBotCreated', () => {
+        const client = bot._client as any
+        const oldWrite = client.write.bind(client)
+        client.write = (...args) => {
+          const [name] = args
+          if (parsed?.clientIgnoredPackets?.includes(name)) {
+            return
+          }
+          oldWrite(...args)
+        }
+      })
+    })
+  })
+}
+
+const openWebsocket = async (url: string) => {
   if (url.startsWith(':')) url = `ws://localhost${url}`
   if (!url.startsWith('ws')) url = `ws://${url}`
   const ws = new WebSocket(url)
   await new Promise<void>((resolve, reject) => {
     ws.onopen = () => resolve()
-    ws.onerror = (err) => reject(new Error(`Failed to connect to websocket ${url}`))
+    ws.onerror = (err) => reject(new Error(`[websocket] Failed to connect to ${url}`))
     ws.onclose = (ev) => reject(ev.reason)
   })
+  return ws
+}
+
+export const getWsProtocolStream = async (url: string) => {
+  const ws = await openWebsocket(url)
   const clientDuplex = new CustomDuplex(undefined, data => {
     // console.log('send', Buffer.from(data).toString('hex'))
     ws.send(data)
@@ -40,10 +74,11 @@ export const getWsProtocolStream = async (url: string) => {
     lastMessageTime = performance.now()
   })
   setInterval(() => {
-    if (performance.now() - lastMessageTime > 10_000) {
-      console.log('no packats received in 10s!')
-      clientDuplex.end()
-    }
+    // if (clientDuplex.destroyed) return
+    // if (performance.now() - lastMessageTime > 10_000) {
+    //   console.log('no packats received in 10s!')
+    //   clientDuplex.end()
+    // }
   }, 5000)
 
   ws.addEventListener('close', () => {
