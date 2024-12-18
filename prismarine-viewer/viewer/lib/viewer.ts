@@ -107,7 +107,11 @@ export class Viewer {
       const sectionX = Math.floor(pos.x / 16) * 16
       const sectionZ = Math.floor(pos.z / 16) * 16
       if (this.world.queuedChunks.has(`${sectionX},${sectionZ}`)) {
-        await this.world.waitForChunkToLoad(pos)
+        await new Promise<void>(resolve => {
+          this.world.queuedFunctions.push(() => {
+            resolve()
+          })
+        })
       }
       if (!this.world.loadedChunks[`${sectionX},${sectionZ}`]) {
         console.debug('[should be unreachable] setBlockStateId called for unloaded chunk', pos)
@@ -222,6 +226,10 @@ export class Viewer {
               this.world.queuedChunks.delete(`${args[0]},${args[1]}`)
               this.addColumn(...args as Parameters<typeof this.addColumn>)
             }
+            for (const fn of this.world.queuedFunctions) {
+              fn()
+            }
+            this.world.queuedFunctions = []
             currentLoadChunkBatch = null
           }, this.addChunksBatchWaitTime)
         }
