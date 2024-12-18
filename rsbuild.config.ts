@@ -21,6 +21,9 @@ const buildingVersion = new Date().toISOString().split(':')[0]
 
 const dev = process.env.NODE_ENV === 'development'
 
+// clean dist folder
+// fs.rmSync('./dist', { recursive: true, force: true })
+
 // base options are in ./prismarine-viewer/rsbuildSharedConfig.ts
 const appConfig = defineConfig({
     html: {
@@ -34,6 +37,7 @@ const appConfig = defineConfig({
             js: 'source-map',
             css: true,
         },
+        cleanDistPath: false,
     },
     source: {
         entry: {
