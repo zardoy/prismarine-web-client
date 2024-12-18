@@ -306,8 +306,9 @@ const alwaysPressedHandledCommand = (command: Command) => {
 
 export function lockUrl () {
   let newQs = ''
-  if (fsState.saveLoaded) {
-    const save = localServer!.options.worldFolder.split('/').at(-1)
+  if (fsState.saveLoaded && fsState.inMemorySave) {
+    const worldFolder = fsState.inMemorySavePath
+    const save = worldFolder.split('/').at(-1)
     newQs = `loadSave=${save}`
   } else if (process.env.NODE_ENV === 'development') {
     newQs = `reconnect=1`
@@ -466,10 +467,11 @@ export const f3Keybinds = [
 
       viewer.world.chunksReset() // todo
 
-      if (localServer) {
-        //@ts-expect-error not sure why it is private... maybe revisit api?
-        localServer.players[0].world.columns = {}
-      }
+      // TODO!
+      // if (localServer) {
+      //   //@ts-expect-error not sure why it is private... maybe revisit api?
+      //   localServer.players[0].world.columns = {}
+      // }
       void reloadChunks()
     },
     mobileTitle: 'Reload chunks',
@@ -562,7 +564,7 @@ document.addEventListener('keydown', (e) => {
   if (hardcodedPressedKeys.has('F3')) {
     const keybind = f3Keybinds.find((v) => v.key === e.code)
     if (keybind) {
-      keybind.action()
+      void keybind.action()
       e.stopPropagation()
     }
     return

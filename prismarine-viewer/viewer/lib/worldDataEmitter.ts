@@ -204,15 +204,11 @@ export class WorldDataEmitter extends EventEmitter {
         // const latency = Math.floor(performance.now() - this.lastTime)
         // this.debugGotChunkLatency.push(latency)
         // this.lastTime = performance.now()
-        // todo optimize toJson data, make it clear why it is used
-        const chunk = column.toJson()
-        // TODO: blockEntities
         const worldConfig = {
           minY: column['minY'] ?? 0,
           worldHeight: column['worldHeight'] ?? 256,
         }
-        //@ts-expect-error
-        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, chunk, blockEntities: column.blockEntities, worldConfig, isLightUpdate })
+        this.emitter.emit('loadChunk', { x: pos.x, z: pos.z, column, worldConfig, isLightUpdate })
         this.loadedChunks[`${pos.x},${pos.z}`] = true
       } else if (this.isPlayground) { // don't allow in real worlds pre-flag chunks as loaded to avoid race condition when the chunk might still be loading. In playground it's assumed we always pre-load all chunks first
         this.emitter.emit('markAsLoaded', { x: pos.x, z: pos.z })

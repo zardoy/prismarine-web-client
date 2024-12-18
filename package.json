@@ -7,7 +7,7 @@
     "dev-proxy": "node server.js",
     "start": "run-p dev-rsbuild dev-proxy watch-mesher watch-other-workers",
     "start2": "run-p dev-rsbuild watch-mesher watch-other-workers",
-    "build": "pnpm build-other-workers && rsbuild build",
+    "build": "rsbuild build && pnpm build-other-workers",
     "build-analyze": "BUNDLE_ANALYZE=true rsbuild build && pnpm build-other-workers",
     "check-build": "tsx scripts/genShims.ts && tsc && pnpm build",
     "test:cypress": "cypress run",

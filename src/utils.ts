@@ -184,7 +184,8 @@ export const setRenderDistance = () => {
     viewDistance: renderDistance
   })
   if (zeroRenderDistance) {
-    localServer!.players[0].view = 0
+    // TODO!!
+    // localServer!.players[0].view = 0
     renderDistance = 0
   }
   worldView.updateViewDistance(renderDistance)

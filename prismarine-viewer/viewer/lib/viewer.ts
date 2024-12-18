@@ -102,10 +102,6 @@ export class Viewer {
     })
   }
 
-  addColumn (x, z, chunk, isLightUpdate = false) {
-    this.world.addColumn(x, z, chunk, isLightUpdate)
-  }
-
   removeColumn (x: string, z: string) {
     this.world.removeColumn(x, z)
   }
@@ -221,9 +217,10 @@ export class Viewer {
       timeout
       data
     } | null
-    worldEmitter.on('loadChunk', ({ x, z, chunk, worldConfig, isLightUpdate }) => {
+    worldEmitter.on('loadChunk', ({ x, z, column, worldConfig, isLightUpdate }) => {
       this.world.worldConfig = worldConfig
       this.world.queuedChunks.add(`${x},${z}`)
+      const chunk = column.toJson() // todo use export
       const args = [x, z, chunk, isLightUpdate]
       if (!currentLoadChunkBatch) {
         // add a setting to use debounce instead
@@ -232,7 +229,7 @@ export class Viewer {
           timeout: setTimeout(() => {
             for (const args of currentLoadChunkBatch!.data) {
               this.world.queuedChunks.delete(`${args[0]},${args[1]}`)
-              this.addColumn(...args as Parameters<typeof this.addColumn>)
+              this.world.addColumn(...args as Parameters<typeof this.world.addColumn>)
             }
             for (const fn of this.world.queuedFunctions) {
               fn()

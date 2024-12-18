@@ -4,7 +4,6 @@ import React from 'react'
 import { loadScript } from 'prismarine-viewer/viewer/lib/utils'
 import { loadGoogleDriveApi, loadInMemorySave } from './react/SingleplayerProvider'
 import { setLoadingScreenStatus } from './utils'
-import { mountGoogleDriveFolder } from './browserfs'
 import { showOptionsModal } from './react/SelectOption'
 
 const CLIENT_ID = '137156026346-igv2gkjsj2hlid92rs3q7cjjnc77s132.apps.googleusercontent.com'

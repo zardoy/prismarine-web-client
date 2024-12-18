@@ -22,6 +22,7 @@ export const appAndRendererSharedConfig = () => defineConfig({
             paths: [
                 path.join(__dirname, './dist/webgpuRendererWorker.js'),
                 path.join(__dirname, './dist/mesher.js'),
+                path.join(__dirname, './dist/integratedServer.js'),
             ]
         },
     },
