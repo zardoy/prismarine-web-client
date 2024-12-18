@@ -1,11 +1,10 @@
-import { LocalServer } from './customServer'
+import { createMCServer } from 'flying-squid/dist'
 
-const { createMCServer } = require('flying-squid/dist')
-
-export const startLocalServer = (serverOptions) => {
+export const startLocalServer = (serverOptions, LocalServer) => {
   const passOptions = { ...serverOptions, Server: LocalServer }
-  const server: NonNullable<typeof localServer> = createMCServer(passOptions)
+  const server = createMCServer(passOptions)
   server.formatMessage = (message) => `[server] ${message}`
+  //@ts-expect-error
   server.options = passOptions
   //@ts-expect-error todo remove
   server.looseProtocolMode = true

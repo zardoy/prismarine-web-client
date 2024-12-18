@@ -3,6 +3,7 @@ import Peer, { DataConnection } from 'peerjs'
 import Client from 'minecraft-protocol/src/client'
 import { resolveTimeout, setLoadingScreenStatus } from './utils'
 import { miscUiState } from './globalState'
+import { getLocalServerOptions } from './integratedServer/main'
 
 class CustomDuplex extends Duplex {
   constructor (options, public writeAction) {
@@ -28,7 +29,7 @@ export const getJoinLink = () => {
     url.searchParams.delete(key)
   }
   url.searchParams.set('connectPeer', peerInstance.id)
-  url.searchParams.set('peerVersion', localServer!.options.version)
+  url.searchParams.set('peerVersion', getLocalServerOptions().version)
   const host = (overridePeerJsServer ?? miscUiState.appConfig?.peerJsServer) ?? undefined
   if (host) {
     // TODO! use miscUiState.appConfig.peerJsServer
@@ -48,7 +49,7 @@ const copyJoinLink = async () => {
 }
 
 export const openToWanAndCopyJoinLink = async (writeText: (text) => void, doCopy = true) => {
-  if (!localServer) return
+  if (!getLocalServerOptions()) return
   if (peerInstance) {
     if (doCopy) await copyJoinLink()
     return 'Already opened to wan. Join link copied'
@@ -64,7 +65,7 @@ export const openToWanAndCopyJoinLink = async (writeText: (text) => void, doCopy
   peer.on('connection', (connection) => {
     console.log('connection')
     const serverDuplex = new CustomDuplex({}, async (data) => connection.send(data))
-    const client = new Client(true, localServer.options.version, undefined)
+    const client = new Client(true, getLocalServerOptions().version, undefined)
     client.setSocket(serverDuplex)
     localServer._server.emit('connection', client)
 
