@@ -103,6 +103,7 @@ import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
+import { getWsProtocolStream } from './viewerConnector'
 
 window.debug = debug
 window.THREE = THREE
@@ -471,12 +472,20 @@ async function connect (connectOptions: ConnectOptions) {
       connectingServer: server.host
     }) : undefined
 
+    let clientDataStream
+    if (p2pMultiplayer) {
+      clientDataStream = await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions)
+    }
+    if (connectOptions.viewerWsConnect) {
+      clientDataStream = await getWsProtocolStream(connectOptions.viewerWsConnect)
+    }
+
     bot = mineflayer.createBot({
       host: server.host,
       port: server.port ? +server.port : undefined,
       version: connectOptions.botVersion || false,
-      ...p2pMultiplayer ? {
-        stream: await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions),
+      ...clientDataStream ? {
+        stream: clientDataStream,
       } : {},
       ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
@@ -561,10 +570,13 @@ async function connect (connectOptions: ConnectOptions) {
 
       bot.emit('inject_allowed')
       bot._client.emit('connect')
+    } else if (connectOptions.viewerWsConnect) {
+      bot.emit('inject_allowed')
+      bot._client.emit('connect')
     } else {
       const setupConnectHandlers = () => {
         bot._client.socket.on('connect', () => {
-          console.log('WebSocket connection established')
+          console.log('Proxy WebSocket connection established')
           //@ts-expect-error
           bot._client.socket._ws.addEventListener('close', () => {
             console.log('WebSocket connection closed')
@@ -1038,6 +1050,15 @@ downloadAndOpenFile().then((downloadAction) => {
 
   if (qs.get('serversList')) {
     showModal({ reactType: 'serversList' })
+  }
+
+  const viewerWsConnect = qs.get('viewerConnect')
+  if (viewerWsConnect) {
+    void connect({
+      username: `viewer-${Math.random().toString(36).slice(2, 10)}`,
+      botVersion: '1.21.1',
+      viewerWsConnect,
+    })
   }
 }, (err) => {
   console.error(err)
