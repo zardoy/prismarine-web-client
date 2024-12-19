@@ -737,7 +737,8 @@ async function connect (connectOptions: ConnectOptions) {
 
     renderWrapper.preRender = () => {
       // viewer.setFirstPersonCamera(null, bot.entity.yaw, bot.entity.pitch)
-      bot['doPhysics']()
+      //@ts-expect-error
+      bot?.doPhysics()
     }
 
 

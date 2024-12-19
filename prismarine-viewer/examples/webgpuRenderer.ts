@@ -155,7 +155,7 @@ export class WebgpuRenderer {
 
     const ctx = this.ctx = canvas.getContext('webgpu')!
 
-    const presentationFormat = navigator.gpu.getPreferredCanvasFormat()
+    const presentationFormat = navigator.gpu.getPreferredCanvasFormat()!
 
     ctx.configure({
       device,
@@ -309,7 +309,7 @@ export class WebgpuRenderer {
 
     this.tempTexture = device.createTexture({
       size: [canvas.width, canvas.height],
-      format: 'bgra8unorm',
+      format: presentationFormat,
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
       //sampleCount: 4,
     })
