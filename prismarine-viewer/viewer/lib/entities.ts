@@ -802,7 +802,7 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
     material.side = THREE.DoubleSide
   }
   if (armorMaterial === 'leather' && !overlay) {
-    const color = item.nbt?.value?.display?.value?.color?.value
+    const color = (item.nbt?.value as any)?.display?.value?.color?.value
     if (color) {
       const r = color >> 16 & 0xff
       const g = color >> 8 & 0xff
