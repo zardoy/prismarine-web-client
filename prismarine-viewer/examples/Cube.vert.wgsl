@@ -11,7 +11,6 @@ struct Chunk{
   length: i32
 }
 
-
 struct CubePointer {
   ptr: u32
 }
@@ -43,27 +42,25 @@ fn main(
 ) -> VertexOutput {
   let normalIndex = visibleCubes[instanceIndex].ptr & 7;
   let cube = cubes[visibleCubes[instanceIndex].ptr >> 3];
-  //let chunkIndex = (cube.cube[1] >> 24)  + ((cube.cube[0] >> 27) << 8);
+
   let chunk = chunks[cube.cube[2]];
 
-  var positionX : f32 = f32(i32(cube.cube[0] & 15) + chunk.x * 16); //4 bytes
-  var positionY : f32 = f32((cube.cube[0] >> 4) & 1023); //10 bytes
-  var positionZ : f32 = f32(i32((cube.cube[0] >> 14) & 15) + chunk.z * 16); // 4 bytes
-  let modelIndex : u32 = ((cube.cube[0] >> 18) & 16383); ///14 bits
-  var textureIndex : u32;
+  let modelIndex : u32 = extractBits(cube.cube[0], 18, 14); ///14 bits
 
-  positionX += 0.5;
-  positionZ += 0.5;
-  positionY += 0.5;
+  var cube_position = vec3f(f32(i32(extractBits(cube.cube[0], 0, 4)) + chunk.x * 16), 
+                            f32(extractBits(cube.cube[0], 4, 10)), 
+                            f32(i32(extractBits(cube.cube[0], 14, 4)) + chunk.z * 16));
 
-  let cube_position = vec4f(positionX, positionY, positionZ, 0.0);
+  cube_position += 0.5;
 
   var colorBlend = vec4f(unpack4xU8(cube.cube[1]));
   colorBlend.a = f32(chunk.opacity);
   colorBlend /= 255;
-  var normal : mat4x4<f32>;
+
+  var textureIndex : u32;
   var Uv = vec2(uv.x, (1.0 - uv.y));
-  normal = rotatations[normalIndex];
+  let normal = rotatations[normalIndex];
+
   switch (normalIndex) {
     case 0:
     {
@@ -97,7 +94,7 @@ fn main(
   Uv = vec2(Uv / tilesPerTexture + vec2f(trunc(f32(textureIndex) % tilesPerTexture.y), trunc(f32(textureIndex) / tilesPerTexture.x)) / tilesPerTexture);
 
   var output: VertexOutput;
-  output.Position = ViewProjectionMatrix * (position * normal + cube_position);
+  output.Position = ViewProjectionMatrix * (position * normal + vec4(cube_position, 0.0));
   output.fragUV = Uv;
   output.ColorBlend = colorBlend;
   return output;

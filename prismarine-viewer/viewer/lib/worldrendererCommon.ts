@@ -201,15 +201,15 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           }
 
           const chunkCoords = data.key.split(',').map(Number)
-          if (this.loadedChunks[`${chunkCoords[0]},${chunkCoords[2]}`]) { // ensure chunk data was added, not a neighbor chunk update
-            const loadingKeys = [...this.sectionsWaiting.keys()]
-            if (!loadingKeys.some(key => {
-              const [x, y, z] = key.split(',').map(Number)
-              return x === chunkCoords[0] && z === chunkCoords[2]
-            })) {
-              this.finishedChunks[`${chunkCoords[0]},${chunkCoords[2]}`] = true
-            }
-          }
+          // if (this.loadedChunks[`${chunkCoords[0]},${chunkCoords[2]}`]) { // ensure chunk data was added, not a neighbor chunk update
+          //   const loadingKeys = [...this.sectionsWaiting.keys()]
+          //   if (!loadingKeys.some(key => {
+          //     const [x, y, z] = key.split(',').map(Number)
+          //     return x === chunkCoords[0] && z === chunkCoords[2]
+          //   })) {
+          //     this.finishedChunks[`${chunkCoords[0]},${chunkCoords[2]}`] = true
+          //   }
+          // }
           this.checkAllFinished()
 
           this.renderUpdateEmitter.emit('update')
