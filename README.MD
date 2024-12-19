@@ -133,6 +133,7 @@ There are some parameters you can set in the url to archive some specific behavi
 General:
 
 - **`?setting=<setting_name>:<setting_value>`** - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
+- `?modal=<modal>` - Open specific modal on page load eg `keybindings`. Very useful on UI changes testing during dev. For path use `,` as separator. To get currently opened modal type this in the console: `activeModalStack.at(-1).reactType`
 
 Server specific:
 
@@ -142,7 +143,6 @@ Server specific:
 - `?proxy=<proxy_address>` - Set the proxy server address to use for  the server
 - `?username=<username>` - Set the username for the server
 - `?lockConnect=true` - Only works then `ip` parameter is set. Disables cancel/save buttons and all inputs in the connect screen already set as parameters. Useful for integrates iframes.
-- `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
 - `?serversList=<list_or_url>` - `<list_or_url>` can be a list of servers in the format `ip:version,ip` or a url to a json file with the same format (array) or a txt file with line-delimited list of server IPs.
 
 Single player specific:
@@ -175,6 +175,10 @@ Note that `mapDir` also accepts base64 encoded JSON like so:
 In this case you must use `?mapDirBaseUrl` to specify the base URL to fetch the files from index.
 
 - `?mapDirBaseUrl` - See above.
+
+Only during development:
+
+- `?reconnect=true` - Reconnect to the server on page reloads. Very useful on server testing.
 
 <!-- - `?mapDirGuess=<base_url>` - Load the map from the provided URL and paths will be guessed with a few additional fetch requests. -->
 

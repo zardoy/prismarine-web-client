@@ -1065,6 +1065,13 @@ downloadAndOpenFile().then((downloadAction) => {
       viewerWsConnect,
     })
   }
+
+  if (qs.get('modal')) {
+    const modals = qs.get('modal')!.split(',')
+    for (const modal of modals) {
+      showModal({ reactType: modal })
+    }
+  }
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)
