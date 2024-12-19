@@ -1,0 +1,158 @@
+{
+  "head": {
+    "bones": [
+      {"name": "armor", "pivot": [0, 12, 0]},
+      {
+        "name": "head",
+        "parent": "armor",
+        "pivot": [0, 12, 0],
+        "cubes": [
+          {
+            "origin": [-4, 23, -4],
+            "size": [8, 8, 8],
+            "uv": [0, 0],
+            "inflate": 1
+          }
+        ]
+      }
+    ],
+    "visible_bounds_width": 1.5,
+    "visible_bounds_offset": [0, 0.5, 0],
+    "texturewidth": 64,
+    "textureheight": 32
+  },
+  "chest": {
+    "bones": [
+      {"name": "armor", "pivot": [0, 12, 0]},
+      {
+        "name": "body",
+        "parent": "armor",
+        "pivot": [0, 13, 0],
+        "cubes": [
+          {
+            "origin": [-4, 12, -2],
+            "size": [8, 12, 4],
+            "uv": [16, 16],
+            "inflate": 1
+          }
+        ]
+      },
+      {
+        "name": "rightarm",
+        "parent": "armor",
+        "pivot": [5, 10, 0],
+        "cubes": [
+          {
+            "origin": [4, 12, -2],
+            "size": [4, 12, 4],
+            "uv": [40, 16],
+            "inflate": 0.75
+          }
+        ]
+      },
+      {
+        "name": "leftarm",
+        "parent": "armor",
+        "pivot": [-5, 10, 0],
+        "cubes": [
+          {
+            "origin": [-8, 12, -2],
+            "size": [4, 12, 4],
+            "uv": [40, 16],
+            "inflate": 0.75
+          }
+        ],
+        "mirror": true
+      }
+    ],
+    "visible_bounds_width": 1.5,
+    "visible_bounds_offset": [0, 0.5, 0],
+    "texturewidth": 64,
+    "textureheight": 32
+  },
+  "legs": {
+    "bones": [
+      {"name": "armor", "pivot": [0, 12, 0]},
+      {
+        "name": "body",
+        "parent": "armor",
+        "pivot": [0, 13, 0],
+        "cubes": [
+          {
+            "origin": [-4, 12, -2],
+            "size": [8, 12, 4],
+            "uv": [16, 16],
+            "inflate": 0.75
+          }
+        ]
+      },
+      {
+        "name": "rightleg",
+        "parent": "armor",
+        "pivot": [1.9, 1, 0],
+        "cubes": [
+          {
+            "origin": [-0.1, 0, -2],
+            "size": [4, 12, 4],
+            "uv": [0, 16],
+            "inflate": 0.5
+          }
+        ]
+      },
+      {
+        "name": "leftleg",
+        "parent": "armor",
+        "pivot": [-1.9, 1, 0],
+        "cubes": [
+          {
+            "origin": [-3.9, 0, -2],
+            "size": [4, 12, 4],
+            "uv": [0, 16],
+            "inflate": 0.5
+          }
+        ],
+        "mirror": true
+      }
+    ],
+    "visible_bounds_width": 1.5,
+    "visible_bounds_offset": [0, 0.5, 0],
+    "texturewidth": 64,
+    "textureheight": 32
+  },
+  "feet": {
+    "bones": [
+      {"name": "armor", "pivot": [0, 12, 0]},
+      {
+        "name": "rightleg",
+        "parent": "armor",
+        "pivot": [1.9, 1, 0],
+        "cubes": [
+          {
+            "origin": [-0.1, 0, -2],
+            "size": [4, 12, 4],
+            "uv": [0, 16],
+            "inflate": 0.75
+          }
+        ]
+      },
+      {
+        "name": "leftleg",
+        "parent": "armor",
+        "pivot": [-1.9, 1, 0],
+        "cubes": [
+          {
+            "origin": [-3.9, 0, -2],
+            "size": [4, 12, 4],
+            "uv": [0, 16],
+            "inflate": 0.75
+          }
+        ],
+        "mirror": true
+      }
+    ],
+    "visible_bounds_width": 1.5,
+    "visible_bounds_offset": [0, 0.5, 0],
+    "texturewidth": 64,
+    "textureheight": 32
+  }
+}
