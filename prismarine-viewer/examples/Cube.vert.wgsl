@@ -24,7 +24,6 @@ struct CubeModel {
 struct VertexOutput {
   @builtin(position) Position: vec4f,
   @location(0) fragUV: vec2f,
-  @location(1) @interpolate(flat) TextureIndex: f32,
   @location(2) @interpolate(flat) ColorBlend: vec3f,
   @location(3) @interpolate(flat) ChunkOpacity: f32
 }
@@ -34,6 +33,8 @@ struct VertexOutput {
 @group(1) @binding(1) var<storage, read> visibleCubes: array<CubePointer>;
 @group(1) @binding(2) var<storage, read> chunks : array<Chunk>;
 @group(0) @binding(4) var<uniform> rotatations: array<mat4x4<f32>, 6>;
+@group(0) @binding(2) var myTexture: texture_2d<f32>;
+@group(0) @binding(5) var<uniform> tileSize: vec2<f32>;
 
 @vertex
 fn main(
@@ -94,11 +95,13 @@ fn main(
     }
   }
 
+  let textureSize: vec2<f32> = vec2<f32>(textureDimensions(myTexture));
+  let tilesPerTexture: vec2<f32> = textureSize / tileSize;
+  Uv = vec2(Uv / tilesPerTexture + vec2f(trunc(f32(textureIndex) % tilesPerTexture.y), trunc(f32(textureIndex) / tilesPerTexture.x)) / tilesPerTexture);
   var output: VertexOutput;
   output.Position = ViewProjectionMatrix * (position * normal + cube_position);
   output.fragUV = Uv;
   output.ChunkOpacity = f32(chunk.opacity) / 255;
-  output.TextureIndex = f32(textureIndex);
   output.ColorBlend = colorBlend;
   return output;
 }
