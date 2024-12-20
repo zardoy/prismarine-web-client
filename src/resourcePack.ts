@@ -281,7 +281,14 @@ const prepareBlockstatesAndModels = async () => {
 
 const downloadAndUseResourcePack = async (url: string): Promise<void> => {
   console.log('Downloading server resource pack', url)
-  const response = await fetch(url)
+  let response
+  try {
+    response = await fetch(url)
+  } catch (err) {
+    // use fallback proxy (intended to be used as last resort on prod)
+    // response = await fetch(`https://cors-anywhere.herokuapp.com/${url.replace(/^https?:\/\//, '')}`)
+    response = await fetch(`https://mcraft-proxy.vercel.app/0/${url.replace(/^https?:\/\//, '')}`)
+  }
   const resourcePackData = await response.arrayBuffer()
   showNotification('Installing resource pack...')
   installTexturePack(resourcePackData, undefined, undefined, true).catch((err) => {
