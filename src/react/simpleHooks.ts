@@ -1,4 +1,5 @@
 import { useUtilsEffect } from '@zardoy/react-util'
+import { useEffect, useState } from 'react'
 import { useMedia } from 'react-use'
 
 const SMALL_SCREEN_MEDIA = '@media (max-width: 440px)'
@@ -24,4 +25,20 @@ export const useCopyKeybinding = (getCopyText: () => string | undefined) => {
       }
     }, { signal })
   }, [getCopyText])
+}
+
+export const useIsHashActive = (hash: `#${string}`) => {
+  const [isActive, setIsActive] = useState(false)
+
+  useEffect(() => {
+    const checkHash = () => {
+      setIsActive(location.hash === hash)
+    }
+    checkHash()
+    addEventListener('hashchange', checkHash)
+    return () => {
+      removeEventListener('hashchange', checkHash)
+    }
+  }, [])
+  return isActive
 }

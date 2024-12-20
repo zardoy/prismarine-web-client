@@ -93,7 +93,7 @@ import { saveToBrowserMemory } from './react/PauseScreen'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 import './water'
-import { ConnectOptions } from './connect'
+import { ConnectOptions, downloadNeededDataOnConnect } from './connect'
 import { ref, subscribe } from 'valtio'
 import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
@@ -103,6 +103,7 @@ import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { parseFormattedMessagePacket } from './botUtils'
+import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
 
 window.debug = debug
 window.THREE = THREE
@@ -376,7 +377,7 @@ async function connect (connectOptions: ConnectOptions) {
     signal: errorAbortController.signal
   })
 
-  if (proxy) {
+  if (proxy && !connectOptions.viewerWsConnect) {
     console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
 
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
@@ -395,22 +396,7 @@ async function connect (connectOptions: ConnectOptions) {
         throw new Error('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
       }
 
-      // todo expose cache
-      const lastVersion = supportedVersions.at(-1)
-      if (version === lastVersion) {
-        // ignore cache hit
-        versionsByMinecraftVersion.pc[lastVersion]!['dataVersion']!++
-      }
-      setLoadingScreenStatus(`Loading data for ${version}`)
-      if (!document.fonts.check('1em mojangles')) {
-        // todo instead re-render signs on load
-        await document.fonts.load('1em mojangles').catch(() => {
-          console.error('Failed to load font, signs wont be rendered correctly')
-        })
-      }
-      await window._MC_DATA_RESOLVER.promise // ensure data is loaded
-      await downloadSoundsIfNeeded()
-      miscUiState.loadedDataVersion = version
+      await downloadNeededDataOnConnect(version)
       try {
         await resourcepackReload(version)
       } catch (err) {
@@ -486,12 +472,26 @@ async function connect (connectOptions: ConnectOptions) {
       connectingServer: server.host
     }) : undefined
 
+    let clientDataStream
+    if (p2pMultiplayer) {
+      clientDataStream = await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions)
+    }
+    if (connectOptions.viewerWsConnect) {
+      const { version, time } = await getViewerVersionData(connectOptions.viewerWsConnect)
+      console.log('Latency:', Date.now() - time, 'ms')
+      // const version = '1.21.1'
+      connectOptions.botVersion = version
+      await downloadMcData(version)
+      setLoadingScreenStatus(`Connecting to WebSocket server ${connectOptions.viewerWsConnect}`)
+      clientDataStream = await getWsProtocolStream(connectOptions.viewerWsConnect)
+    }
+
     bot = mineflayer.createBot({
       host: server.host,
       port: server.port ? +server.port : undefined,
       version: connectOptions.botVersion || false,
-      ...p2pMultiplayer ? {
-        stream: await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions),
+      ...clientDataStream ? {
+        stream: clientDataStream,
       } : {},
       ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
@@ -576,10 +576,13 @@ async function connect (connectOptions: ConnectOptions) {
 
       bot.emit('inject_allowed')
       bot._client.emit('connect')
+    } else if (connectOptions.viewerWsConnect) {
+      // bot.emit('inject_allowed')
+      bot._client.emit('connect')
     } else {
       const setupConnectHandlers = () => {
         bot._client.socket.on('connect', () => {
-          console.log('WebSocket connection established')
+          console.log('Proxy WebSocket connection established')
           //@ts-expect-error
           bot._client.socket._ws.addEventListener('close', () => {
             console.log('WebSocket connection closed')
@@ -620,6 +623,7 @@ async function connect (connectOptions: ConnectOptions) {
       } else {
         const originalSetSocket = bot._client.setSocket.bind(bot._client)
         bot._client.setSocket = (socket) => {
+          if (!bot) return
           originalSetSocket(socket)
           setupConnectHandlers()
         }
@@ -1053,6 +1057,21 @@ downloadAndOpenFile().then((downloadAction) => {
 
   if (qs.get('serversList')) {
     showModal({ reactType: 'serversList' })
+  }
+
+  const viewerWsConnect = qs.get('viewerConnect')
+  if (viewerWsConnect) {
+    void connect({
+      username: `viewer-${Math.random().toString(36).slice(2, 10)}`,
+      viewerWsConnect,
+    })
+  }
+
+  if (qs.get('modal')) {
+    const modals = qs.get('modal')!.split(',')
+    for (const modal of modals) {
+      showModal({ reactType: modal })
+    }
   }
 }, (err) => {
   console.error(err)

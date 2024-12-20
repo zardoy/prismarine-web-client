@@ -17,7 +17,6 @@ function InnerSearch () {
   >
     <Input
       autoFocus={currentTouch === false}
-      width={50}
       placeholder='Search...'
       onChange={({ target: { value } }) => {
         customEvents.emit('search', value)

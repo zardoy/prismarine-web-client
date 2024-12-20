@@ -11,6 +11,7 @@ import Input from './Input'
 import Button from './Button'
 import Tabs from './Tabs'
 import MessageFormattedString from './MessageFormattedString'
+import { useIsSmallWidth } from './simpleHooks'
 
 export interface WorldProps {
   name: string
@@ -146,6 +147,8 @@ export default ({
     onRowSelect?.(name, index)
     setFocusedWorld(name)
   }
+  const isSmallWidth = useIsSmallWidth()
+
   return <div ref={containerRef} hidden={hidden}>
     <div className="dirt-bg" />
     <div className={classNames('fullscreen', styles.root)}>
@@ -209,12 +212,15 @@ export default ({
           }
         </div>
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 400, paddingBottom: 3 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', minWidth: 400, paddingBottom: 3, alignItems: 'center', }}>
         {firstRowChildrenOverride || <div>
           <Button rootRef={firstButton} disabled={!focusedWorld} onClick={() => onWorldAction('load', focusedWorld)}>Load World</Button>
           <Button onClick={() => onGeneralAction('create')} disabled={isReadonly}>Create New World</Button>
         </div>}
-        <div style={{ ...secondRowStyles }}>
+        <div style={{
+          ...secondRowStyles,
+          ...isSmallWidth ? { display: 'grid', gridTemplateColumns: '1fr 1fr' } : {}
+        }}>
           {serversLayout ? <Button style={{ width: 100 }} disabled={!focusedWorld || lockedEditing} onClick={() => onWorldAction('edit', focusedWorld)}>Edit</Button> : <Button style={{ width: 100 }} disabled={!focusedWorld} onClick={() => onWorldAction('export', focusedWorld)}>Export</Button>}
           <Button style={{ width: 100 }} disabled={!focusedWorld || lockedEditing} onClick={() => onWorldAction('delete', focusedWorld)}>Delete</Button>
           {serversLayout ?

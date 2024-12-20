@@ -119,8 +119,8 @@ importers:
         specifier: ^10.0.12
         version: 10.0.12
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.49
-        version: '@zardoy/flying-squid@0.0.49(encoding@0.1.13)'
+        specifier: npm:@zardoy/flying-squid@^0.0.51
+        version: '@zardoy/flying-squid@0.0.51(encoding@0.1.13)'
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -346,8 +346,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       mc-assets:
-        specifier: ^0.2.23
-        version: 0.2.23
+        specifier: ^0.2.26
+        version: 0.2.26
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/75e940a4cd50d89e0ba03db3733d5d704917a3c8(@types/react@18.2.20)(react@18.2.0)
@@ -3401,8 +3401,8 @@ packages:
     resolution: {integrity: sha512-6xm38yGVIa6mKm/DUCF2zFFJhERh/QWp1ufm4cNUvxsONBmfPg8uZ9pZBdOmF6qFGr/HlT6ABBkCSx/dlEtvWg==}
     engines: {node: '>=12 <14 || 14.2 - 14.9 || >14.10.0'}
 
-  '@zardoy/flying-squid@0.0.49':
-    resolution: {integrity: sha512-Kt4wr5/R+44tcLU9gjuNG2an9weWeKEpIoKXfsgJN2GGQqdnbd5nBpxfGDdgZ9aMdFugsVW8BsyPZNhj9vbMXA==}
+  '@zardoy/flying-squid@0.0.51':
+    resolution: {integrity: sha512-HHZ79H9NkS44lL9vk6gVEuJDJqj88gpiBt9Ihh5p4rHXTVbRid95riiNK5dD0kHI94P5/DXdtNalvmJDPU86oQ==}
     engines: {node: '>=8'}
     hasBin: true
 
@@ -6582,8 +6582,8 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
-  mc-assets@0.2.23:
-    resolution: {integrity: sha512-sLbPhsSOYdW8nYllIyPZbVPnLu7V3bZTgIO4mI4nlG525q17NIbUNEjItHKtdi60u0vI6qLgHKjf0CoNRqa/Nw==}
+  mc-assets@0.2.26:
+    resolution: {integrity: sha512-BDrdD/kAMuVvD18nnvukE9StddL1VokParxSlFSRQdAAQmqTuYZlC19rho/SjYb+dBGZSVxwC+e0hZnSuyP9hA==}
     engines: {node: '>=18.0.0'}
 
   md5-file@4.0.0:
@@ -13431,7 +13431,7 @@ snapshots:
       '@types/emscripten': 1.39.8
       tslib: 1.14.1
 
-  '@zardoy/flying-squid@0.0.49(encoding@0.1.13)':
+  '@zardoy/flying-squid@0.0.51(encoding@0.1.13)':
     dependencies:
       '@tootallnate/once': 2.0.0
       chalk: 5.3.0
@@ -17453,7 +17453,7 @@ snapshots:
     dependencies:
       react: 18.2.0
 
-  mc-assets@0.2.23: {}
+  mc-assets@0.2.26: {}
 
   md5-file@4.0.0: {}
 

@@ -71,7 +71,7 @@ export default ({
         </ButtonWithTooltip>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <ButtonWithTooltip
-            style={{ width: 170 }}
+            style={{ width: 150 }}
             onClick={singleplayerAction}
             data-test-id='singleplayer-button'
             initialTooltip={{
@@ -82,6 +82,14 @@ export default ({
           >
             Singleplayer
           </ButtonWithTooltip>
+
+          <ButtonWithTooltip
+            disabled={!mapsProvider}
+            // className={styles['maps-provider']}
+            icon={pixelartIcons.map}
+            initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'top-start' }}
+            onClick={() => mapsProvider && openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider, false)}
+          />
 
           <ButtonWithTooltip
             data-test-id='select-file-folder'
@@ -145,14 +153,6 @@ export default ({
           <span>A Minecraft client in the browser!</span>
         </span>
       </div>
-
-      {mapsProvider &&
-        <ButtonWithTooltip
-          className={styles['maps-provider']}
-          icon={pixelartIcons.map}
-          initialTooltip={{ content: 'Explore maps to play from provider!', placement: 'right' }}
-          onClick={() => openURL(httpsRegex.test(mapsProvider) ? mapsProvider : 'https://' + mapsProvider, false)}
-        />}
     </div>
   )
 }

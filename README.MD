@@ -2,23 +2,27 @@
 
 ![banner](./docs-assets/banner.jpg)
 
-A true Minecraft client running in your browser! A port of the original game to the web, written in JavaScript using the best modern web technologies.
+Minecraft **clone** rewritten in TypeScript using the best modern web technologies. Minecraft vanilla-compatible client and integrated server packaged into a single web app.
 
-You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link) [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the `develop` (default) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) - so it's usually newer, but might be less stable.
+You can try this out at [mcraft.fun](https://mcraft.fun/), [pcm.gg](https://pcm.gg) (short link), [mcon.vercel.app](https://mcon.vercel.app/) or the GitHub pages deploy. Every commit from the default (`develop`) branch is deployed to [s.mcraft.fun](https://s.mcraft.fun/) and [s.pcm.gg](https://s.pcm.gg/) - so it's usually newer, but might be less stable.
 
-For building the project yourself / contributing, see [Development, Debugging & Contributing](#development-debugging--contributing). If you encounter any bugs or usability issues, please report them!
+Don't confuse with [Eaglercraft](https://git.eaglercraft.rip/eaglercraft/eaglercraft-1.8) which is a REAL vanilla Minecraft Java edition port to the web (but with its own limitations). Eaglercraft is a fully playable solution, but this project is more in position of a "technical demo" to show how it's possible to build games for web at scale entirely with the JS ecosystem. Have fun!
+
+For building the project yourself / contributing, see [Development, Debugging & Contributing](#development-debugging--contributing). For reference at what and how web technologies / frameworks are used, see [TECH.md](./TECH.md).
 
 ### Big Features
 
 - Open any zip world file or even folder in read-write mode!
 - Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
+- Integrated JS server capable of opening Java world saves in any way (folders, zip, web streaming, etc)
 - Singleplayer mode with simple world generations!
-- Google Drive support for reading / saving worlds
 - Works offline
-- Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
+- First-class keybindings configuration
 - Basic Resource pack support: Custom GUI, all textures. Server resource packs are not supported yet.
-- Builtin JEI with recipes & guides for every item (also replaces creative inventory)
+- Builtin JEI with recipes & descriptions for every item (JEI is creative inventory replacement)
+- Play with friends over internet! (P2P is powered by Peer.js discovery servers)
+- ~~Google Drive support for reading / saving worlds back to the cloud~~
 - even even more!
 
 All components that are in [Storybook](https://mcraft.fun/storybook) are published as npm module and can be used in other projects: [`minecraft-react`](https://npmjs.com/minecraft-react)
@@ -131,6 +135,7 @@ There are some parameters you can set in the url to archive some specific behavi
 General:
 
 - **`?setting=<setting_name>:<setting_value>`** - Set and lock the setting on load. You can set multiple settings by separating them with `&` e.g. `?setting=autoParkour:true&setting=renderDistance:4`
+- `?modal=<modal>` - Open specific modal on page load eg `keybindings`. Very useful on UI changes testing during dev. For path use `,` as separator. To get currently opened modal type this in the console: `activeModalStack.at(-1).reactType`
 
 Server specific:
 
@@ -140,7 +145,6 @@ Server specific:
 - `?proxy=<proxy_address>` - Set the proxy server address to use for  the server
 - `?username=<username>` - Set the username for the server
 - `?lockConnect=true` - Only works then `ip` parameter is set. Disables cancel/save buttons and all inputs in the connect screen already set as parameters. Useful for integrates iframes.
-- `?reconnect=true` - Reconnect to the server on page reloads. Available in **dev mode only** and very useful on server testing.
 - `?serversList=<list_or_url>` - `<list_or_url>` can be a list of servers in the format `ip:version,ip` or a url to a json file with the same format (array) or a txt file with line-delimited list of server IPs.
 
 Single player specific:
@@ -173,6 +177,10 @@ Note that `mapDir` also accepts base64 encoded JSON like so:
 In this case you must use `?mapDirBaseUrl` to specify the base URL to fetch the files from index.
 
 - `?mapDirBaseUrl` - See above.
+
+Only during development:
+
+- `?reconnect=true` - Reconnect to the server on page reloads. Very useful on server testing.
 
 <!-- - `?mapDirGuess=<base_url>` - Load the map from the provided URL and paths will be guessed with a few additional fetch requests. -->
 

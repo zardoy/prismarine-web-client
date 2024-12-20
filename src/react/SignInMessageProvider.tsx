@@ -1,6 +1,7 @@
 import { proxy, ref, useSnapshot } from 'valtio'
 import SignInMessage from './SignInMessage'
 import { lastConnectOptions } from './AppStatusProvider'
+import { useIsModalActive } from './utilsApp'
 
 export const signInMessageState = proxy({
   code: '',
@@ -12,8 +13,9 @@ export const signInMessageState = proxy({
 
 export default () => {
   const { code, expiresOn, link, shouldSaveToken } = useSnapshot(signInMessageState)
+  const signInTestModal = useIsModalActive('sign-in-test')
 
-  if (!code) return null
+  if (!code && !signInTestModal) return null
 
   return <SignInMessage
     code={code}

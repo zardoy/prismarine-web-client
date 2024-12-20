@@ -45,6 +45,7 @@ import SignInMessageProvider from './react/SignInMessageProvider'
 import BookProvider from './react/BookProvider'
 import { options } from './optionsStorage'
 import BossBarOverlayProvider from './react/BossBarOverlayProvider'
+import DebugEdges from './react/DebugEdges'
 
 const RobustPortal = ({ children, to }) => {
   return createPortal(<PerComponentErrorBoundary>{children}</PerComponentErrorBoundary>, to)
@@ -198,6 +199,7 @@ const App = () => {
           <GamepadUiCursor />
         </div>
         <div />
+        <DebugEdges />
       </RobustPortal>
     </ButtonAppProvider>
   </div>
