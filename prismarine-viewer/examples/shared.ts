@@ -18,6 +18,7 @@ export type BlockType = {
   // faces: BlockFaceType[]
   visibleFaces: number[]
   modelId: number
+  transparent: boolean
   tint?: [number, number, number]
 
   // for testing

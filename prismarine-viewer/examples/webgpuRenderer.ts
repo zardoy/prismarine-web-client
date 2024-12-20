@@ -884,6 +884,7 @@ export class WebgpuRenderer {
         // }
         const positions = [x, y + this.rendererParams.cameraOffset[1], z]
         const visibility = Array.from({ length: 6 }, (_, i) => (block.visibleFaces.includes(i) ? 1 : 0))
+        const isTransparent = block.transparent
 
         const tint = block.tint ?? [1, 1, 1]
         const colors = tint.map(x => x * 255)

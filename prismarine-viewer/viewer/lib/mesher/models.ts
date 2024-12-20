@@ -133,7 +133,7 @@ const isCube = (block: Block) => {
   if (block.isCube) return true
   if (!block.models?.length || block.models.length !== 1 || !block.models[0]) return false
   // all variants
-  return block.models[0]?.every(v => v.elements!?.every(e => {
+  return block.models[0]?.every(v => v.elements?.every(e => {
     return e.from[0] === 0 && e.from[1] === 0 && e.from[2] === 0 && e.to[0] === 16 && e.to[1] === 16 && e.to[2] === 16
   }))
 }
@@ -188,6 +188,7 @@ function renderLiquid (world, cursor, texture, type, biome, water, attr, stateId
           visibleFaces: [],
           modelId: model,
           tint,
+          transparent: !!water
         }
         tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
       }
@@ -449,6 +450,7 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
           visibleFaces: [],
           modelId: model,
           tint: lightWithColor[0] === 1 && lightWithColor[1] === 1 && lightWithColor[2] === 1 ? undefined : lightWithColor,
+          transparent: block.transparent,
         }
         tiles[`${cursor.x},${cursor.y},${cursor.z}`].visibleFaces.push(webgpuSide)
       }
