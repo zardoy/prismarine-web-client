@@ -12,6 +12,7 @@ import itemsAtlasLegacy from 'mc-assets/dist/itemsAtlasLegacy.png'
 import { AtlasParser } from 'mc-assets'
 import TypedEmitter from 'typed-emitter'
 import { LineMaterial } from 'three-stdlib'
+import christmasPack from 'mc-assets/dist/textureReplacements/christmas'
 import { dynamicMcDataFiles } from '../../buildMesherConfig.mjs'
 import { toMajorVersion } from '../../../src/utils'
 import { buildCleanupDecorator } from './cleanupDecorator'
@@ -316,11 +317,17 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   async updateTexturesData (resourcePackUpdate = false, prioritizeBlockTextures?: string[]) {
     const blocksAssetsParser = new AtlasParser(this.blocksAtlases, blocksAtlasLatest, blocksAtlasLegacy)
     const itemsAssetsParser = new AtlasParser(this.itemsAtlases, itemsAtlasLatest, itemsAtlasLegacy)
+
+    const blockTexturesChanges = {} as Record<string, string>
+    const date = new Date()
+    if ((date.getMonth() === 11 && date.getDate() >= 24) || (date.getMonth() === 0 && date.getDate() <= 6)) {
+      Object.assign(blockTexturesChanges, christmasPack)
+    }
+
     const customBlockTextures = Object.keys(this.customTextures.blocks?.textures ?? {}).filter(x => x.includes('/'))
     const { atlas: blocksAtlas, canvas: blocksCanvas } = await blocksAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
       const texture = this.customTextures?.blocks?.textures[textureName]
-      if (!texture) return
-      return texture
+      return blockTexturesChanges[textureName] ?? texture
     }, /* this.customTextures?.blocks?.tileSize */undefined, prioritizeBlockTextures, customBlockTextures)
     const { atlas: itemsAtlas, canvas: itemsCanvas } = await itemsAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
       const texture = this.customTextures?.items?.textures[textureName]

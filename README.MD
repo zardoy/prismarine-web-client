@@ -14,13 +14,15 @@ For building the project yourself / contributing, see [Development, Debugging & 
 
 - Open any zip world file or even folder in read-write mode!
 - Connect to Java servers running in both offline (cracked) and online mode* (it's possible because of proxy servers, see below)
+- Integrated JS server capable of opening Java world saves in any way (folders, zip, web streaming, etc)
 - Singleplayer mode with simple world generations!
-- Google Drive support for reading / saving worlds back to the cloud
 - Works offline
-- Play with friends over internet! (P2P is powered by Peer.js discovery servers)
 - First-class touch (mobile) & controller support
+- First-class keybindings configuration
 - Basic Resource pack support: Custom GUI, all textures. Server resource packs are not supported yet.
-- Builtin JEI with recipes & guides for every item (also replaces creative inventory)
+- Builtin JEI with recipes & descriptions for every item (JEI is creative inventory replacement)
+- Play with friends over internet! (P2P is powered by Peer.js discovery servers)
+- ~~Google Drive support for reading / saving worlds back to the cloud~~
 - even even more!
 
 All components that are in [Storybook](https://mcraft.fun/storybook) are published as npm module and can be used in other projects: [`minecraft-react`](https://npmjs.com/minecraft-react)
