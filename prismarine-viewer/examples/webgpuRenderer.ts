@@ -3,7 +3,7 @@ import * as tweenJs from '@tweenjs/tween.js'
 import VolumtetricFragShader from '../webgpuShaders/RadialBlur/frag.wgsl'
 import VolumtetricVertShader from '../webgpuShaders/RadialBlur/vert.wgsl'
 import { BlockFaceType } from './shared'
-import { PositionOffset, UVOffset, quadVertexArray, quadVertexCount, cubeVertexSize } from './CubeDef'
+import { PositionOffset, UVOffset, cubeVertexSize, quadVertexArrayStrip, quadVertexCountStrip } from './CubeDef'
 import VertShader from './Cube.vert.wgsl'
 import FragShader from './Cube.frag.wgsl'
 import ComputeShader from './Cube.comp.wgsl'
@@ -164,13 +164,13 @@ export class WebgpuRenderer {
     })
 
     const verticesBuffer = device.createBuffer({
-      size: quadVertexArray.byteLength,
+      size: quadVertexArrayStrip.byteLength,
       usage: GPUBufferUsage.VERTEX,
       mappedAtCreation: true,
     })
 
     this.verticesBuffer = verticesBuffer
-    new Float32Array(verticesBuffer.getMappedRange()).set(quadVertexArray)
+    new Float32Array(verticesBuffer.getMappedRange()).set(quadVertexArrayStrip)
     verticesBuffer.unmap()
 
     const pipeline = device.createRenderPipeline({
@@ -224,7 +224,7 @@ export class WebgpuRenderer {
       //   count: 4,
       // },
       primitive: {
-        topology: 'triangle-list',
+        topology: 'triangle-strip',
         cullMode: 'none',
       },
       depthStencil: {
@@ -283,7 +283,7 @@ export class WebgpuRenderer {
         ],
       },
       primitive: {
-        topology: 'triangle-list',
+        topology: 'triangle-strip',
         cullMode: 'none',
       },
       depthStencil: {
@@ -525,8 +525,6 @@ export class WebgpuRenderer {
     this.depthTextureBuffer = this.createVertexStorage(4096 * 4096 * 4, 'depthTextureBuffer')
 
     // Initialize indirect draw parameters
-    const indirectDrawParams = new Uint32Array([quadVertexCount, 0, 0, 0])
-    device.queue.writeBuffer(this.indirectDrawBuffer, 0, indirectDrawParams)
 
     // initialize texture size
     const textureSize = new Uint32Array([this.canvas.width, this.canvas.height])
@@ -540,7 +538,7 @@ export class WebgpuRenderer {
     this.updateBlocksModelData()
     this.createNewDataBuffers()
 
-    this.indirectDrawParams = new Uint32Array([quadVertexCount, 0, 0, 0])
+    this.indirectDrawParams = new Uint32Array([quadVertexCountStrip, 0, 0, 0])
 
     // always last!
     this.loop(true) // start rendering
@@ -1135,7 +1133,7 @@ export class WebgpuRenderer {
         volumtetricRenderPass.setPipeline(this.volumetricPipeline)
         volumtetricRenderPass.setVertexBuffer(0, verticesBuffer)
         volumtetricRenderPass.setBindGroup(0, this.VolumetricBindGroup)
-        volumtetricRenderPass.draw(6)
+        volumtetricRenderPass.draw(quadVertexCountStrip)
         volumtetricRenderPass.end()
         device.queue.submit([this.commandEncoder.finish()])
       }
