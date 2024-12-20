@@ -46,6 +46,7 @@ export const appAndRendererSharedConfig = () => defineConfig({
             crypto: path.join(__dirname, `../src/shims/crypto.js`),
             dns: path.join(__dirname, `../src/shims/dns.js`),
             yggdrasil: path.join(__dirname, `../src/shims/yggdrasilReplacement.ts`),
+            'flying-squid/dist': 'flying-squid/src',
             'three$': 'three/src/Three.js',
             'stats.js$': 'stats.js/src/Stats.js',
         },

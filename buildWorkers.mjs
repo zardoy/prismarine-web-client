@@ -23,6 +23,7 @@ const sharedAliases = {
   assert: 'assert',
   dns: './src/shims/empty.ts',
   '@azure/msal-node': './src/shims/empty.ts',
+  'flying-squid/dist': 'flying-squid/src'
 }
 
 const result = await (watch ? context : build)({

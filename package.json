@@ -28,7 +28,8 @@
     "run-all": "run-p start run-playground",
     "run-all2": "run-p start2 run-playground",
     "build-playground": "rsbuild build --config prismarine-viewer/rsbuild.config.ts",
-    "watch-playground": "rsbuild dev --config prismarine-viewer/rsbuild.config.ts"
+    "watch-playground": "rsbuild dev --config prismarine-viewer/rsbuild.config.ts",
+    "postinstall": "cd node_modules/flying-squid && pnpm run gen-source-index"
   },
   "keywords": [
     "prismarine",
@@ -72,7 +73,7 @@
     "esbuild-plugin-polyfill-node": "^0.3.0",
     "express": "^4.18.2",
     "filesize": "^10.0.12",
-    "flying-squid": "npm:@zardoy/flying-squid@^0.0.49",
+    "flying-squid": "github:zardoy/space-squid#webgpu",
     "fs-extra": "^11.1.1",
     "google-drive-browserfs": "github:zardoy/browserfs#google-drive",
     "jszip": "^3.10.1",
@@ -190,6 +191,9 @@
     "updateConfig": {
       "ignoreDependencies": []
     },
+    "neverBuiltDependencies": [
+      "flying-squid"
+    ],
     "patchedDependencies": {
       "three@0.154.0": "patches/three@0.154.0.patch",
       "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch",
