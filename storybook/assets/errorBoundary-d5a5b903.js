@@ -1,0 +1,2 @@
+var o=Object.defineProperty;var a=(t,r,e)=>r in t?o(t,r,{enumerable:!0,configurable:!0,writable:!0,value:e}):t[r]=e;var s=(t,r,e)=>(a(t,typeof r!="symbol"?r+"":r,e),e);import{R as n}from"./index-f1f2c4b1.js";class d extends n.Component{constructor(){super(...arguments);s(this,"state",{error:void 0})}componentDidCatch(e){this.setState({error:e})}render(){return this.state.error?this.props.renderError?this.props.renderError(this.state.error):n.createElement("h1",null,"App Crashed!"):this.props.children}}
+//# sourceMappingURL=errorBoundary-d5a5b903.js.map
