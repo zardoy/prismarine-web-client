@@ -125,8 +125,8 @@ importers:
         specifier: ^10.0.12
         version: 10.0.12
       flying-squid:
-        specifier: npm:@zardoy/flying-squid@^0.0.49
-        version: '@zardoy/flying-squid@0.0.49(encoding@0.1.13)'
+        specifier: github:zardoy/space-squid#webgpu
+        version: '@zardoy/flying-squid@https://codeload.github.com/zardoy/space-squid/tar.gz/730ddb70221fc61de40f67c0039eea8977585ec2(encoding@0.1.13)'
       fs-extra:
         specifier: ^11.1.1
         version: 11.1.1
@@ -3423,10 +3423,10 @@ packages:
     resolution: {integrity: sha512-6xm38yGVIa6mKm/DUCF2zFFJhERh/QWp1ufm4cNUvxsONBmfPg8uZ9pZBdOmF6qFGr/HlT6ABBkCSx/dlEtvWg==}
     engines: {node: '>=12 <14 || 14.2 - 14.9 || >14.10.0'}
 
-  '@zardoy/flying-squid@0.0.49':
-    resolution: {integrity: sha512-Kt4wr5/R+44tcLU9gjuNG2an9weWeKEpIoKXfsgJN2GGQqdnbd5nBpxfGDdgZ9aMdFugsVW8BsyPZNhj9vbMXA==}
+  '@zardoy/flying-squid@https://codeload.github.com/zardoy/space-squid/tar.gz/730ddb70221fc61de40f67c0039eea8977585ec2':
+    resolution: {tarball: https://codeload.github.com/zardoy/space-squid/tar.gz/730ddb70221fc61de40f67c0039eea8977585ec2}
+    version: 0.0.0-dev
     engines: {node: '>=8'}
-    hasBin: true
 
   '@zardoy/react-util@0.2.4':
     resolution: {integrity: sha512-YRBbXi54QOgWGDSn3NLEMMGrWbfL/gn2khxO31HT0WPFB6IW2rSnB4hcy+S/nc+2D6PRNq4kQxGs4vTAe4a7Xg==}
@@ -13476,7 +13476,7 @@ snapshots:
       '@types/emscripten': 1.39.8
       tslib: 1.14.1
 
-  '@zardoy/flying-squid@0.0.49(encoding@0.1.13)':
+  '@zardoy/flying-squid@https://codeload.github.com/zardoy/space-squid/tar.gz/730ddb70221fc61de40f67c0039eea8977585ec2(encoding@0.1.13)':
     dependencies:
       '@tootallnate/once': 2.0.0
       chalk: 5.3.0
