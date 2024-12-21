@@ -286,11 +286,6 @@ export class WebgpuRenderer {
         topology: 'triangle-strip',
         cullMode: 'none',
       },
-      depthStencil: {
-        depthWriteEnabled: false,
-        depthCompare: 'less',
-        format: 'depth32float',
-      },
     })
 
     this.depthTexture = device.createTexture({
@@ -300,18 +295,11 @@ export class WebgpuRenderer {
       //sampleCount: 4,
     })
 
-    this.depthTextureAnother = device.createTexture({
-      size: [canvas.width, canvas.height],
-      format: 'depth32float',
-      usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-      //sampleCount: 4,
-    })
 
     this.tempTexture = device.createTexture({
       size: [canvas.width, canvas.height],
       format: presentationFormat,
       usage: GPUTextureUsage.RENDER_ATTACHMENT | GPUTextureUsage.TEXTURE_BINDING,
-      //sampleCount: 4,
     })
 
     const Mat4x4BufferSize = 4 * (4 * 4) // 4x4 matrix
@@ -389,12 +377,6 @@ export class WebgpuRenderer {
           storeOp: 'store',
         },
       ],
-      depthStencilAttachment: {
-        view: this.depthTextureAnother.createView(),
-        depthClearValue: 1,
-        depthLoadOp: 'clear',
-        depthStoreOp: 'store',
-      },
     }
 
     this.renderPassDescriptor = {
@@ -485,7 +467,6 @@ export class WebgpuRenderer {
     this.computePipeline = device.createComputePipeline({
       label: 'Culled Instance',
       layout: computePipelineLayout,
-      // layout: 'auto',
       compute: {
         module: computeShaderModule,
         entryPoint: 'main',
@@ -495,7 +476,6 @@ export class WebgpuRenderer {
     this.computeSortPipeline = device.createComputePipeline({
       label: 'Culled Instance',
       layout: computePipelineLayout,
-      // layout: 'auto',
       compute: {
         module: computeSortShaderModule,
         entryPoint: 'main',
