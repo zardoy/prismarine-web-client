@@ -74,7 +74,7 @@ fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
     var pos : vec2u = vec2u(u32((clipX * 0.5 + 0.5) * f32(textureSize.x)),u32((clipY * 0.5 + 0.5) * f32(textureSize.y)));
     let k = linearize_depth_ndc(clipDepth, 0.05, 10000);
-    if (rejectZ == 1 && k - 20 > linearize_depth_ndc(textureLoad(depthTexture, vec2u(pos.x, textureSize.y - pos.y), 0), 0.05, 10000)) {
+    if (rejectZ == 1 && k - 20 > textureLoad(depthTexture, vec2u(pos.x, textureSize.y - pos.y), 0) * 10000 ) {
       continue;
     }
 
