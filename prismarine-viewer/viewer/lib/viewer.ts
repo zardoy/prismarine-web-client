@@ -218,6 +218,8 @@ export class Viewer {
       data
     } | null
     worldEmitter.on('loadChunk', ({ x, z, column, worldConfig, isLightUpdate }) => {
+      // TODO check for prev latest
+
       this.world.worldConfig = worldConfig
       this.world.queuedChunks.add(`${x},${z}`)
       const chunk = column.toJson() // todo use export

@@ -15,26 +15,26 @@ window.fs = fs
 
 export interface ReadChunksRequest {
   version: string,
-
+  folder: string
 }
 
 onmessage = (msg) => {
   globalThis.readSkylight = false
   if (msg.data.type === 'readChunks') {
+    const data = msg.data as ReadChunksRequest
     browserfs.configure({
       fs: 'MountableFileSystem',
       options: {
         '/data': { fs: 'IndexedDB' },
       },
     }, async () => {
-      const version = '1.14.4'
+      const { version } = data
       const AnvilLoader = Anvil(version)
       const World = WorldLoader(version) as any
       // const folder = '/data/worlds/Greenfield v0.5.3-3/region'
-      const { folder } = msg.data
       const world = new World(() => {
         throw new Error('Not implemented')
-      }, new AnvilLoader(folder))
+      }, new AnvilLoader(data.folder))
       // const chunks = generateSpiralMatrix(20)
       const { chunks } = msg.data
       // const spawn = {
