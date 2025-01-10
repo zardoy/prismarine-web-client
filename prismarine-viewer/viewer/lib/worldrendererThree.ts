@@ -419,6 +419,14 @@ export class WorldRendererThree extends WorldRendererCommon {
     this.interactionLines = { blockPos, mesh: group }
   }
 
+  raycastThirdView () {
+    const { camera } = this
+    const raycaster = new THREE.Raycaster()
+    raycaster.setFromCamera(new THREE.Vector2(0, 0), camera)
+    const inter = raycaster.intersectObjects(this.scene.children.filter(c => c.name === 'chunk'))
+    // const chunk = inter.find(c => c.object.name === 'chunk')
+  }
+
   static getRendererInfo (renderer: THREE.WebGLRenderer) {
     try {
       const gl = renderer.getContext()
