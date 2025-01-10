@@ -5,6 +5,7 @@ import * as THREE from 'three'
 // wouldn't better to create atlas instead?
 import { Vec3 } from 'vec3'
 import { LineMaterial } from 'three-stdlib'
+import { mapDownloader } from 'mineflayer-item-map-downloader/'
 import { Entity } from 'prismarine-entity'
 import destroyStage0 from '../assets/destroy_stage_0.png'
 import destroyStage1 from '../assets/destroy_stage_1.png'
@@ -158,6 +159,11 @@ class WorldInteraction {
     upLineMaterial()
     // todo use gamemode update only
     bot.on('game', upLineMaterial)
+
+    bot.loadPlugin(mapDownloader)
+    bot.mapDownloader.on('new_map', ({ png, id }) => {
+      viewer.entities.updateMap(id, png)
+    })
   }
 
   activateEntity (entity: Entity) {
