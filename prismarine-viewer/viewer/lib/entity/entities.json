@@ -7838,6 +7838,53 @@
       }
     }
   },
+  "item_frame": {
+    "identifier": "minecraft:item_frame",
+    "materials": {"default": "item_frame"},
+    "textures": {
+      "background": "block:item_frame",
+      "frame": "block:oak_planks"
+    },
+    "geometry": {
+      "background": {
+        "bones": [
+          {
+            "name": "base"
+          },
+          {
+            "name": "background",
+            "parent": "base",
+            "rotation": [0, 180, 0],
+            "pivot": [0, 0, 0],
+            "cubes": [
+              {"origin": [-5, -5, -8], "size": [10, 10, 0.5], "uv": [3, 3]}
+            ]
+          }
+        ],
+        "texturewidth": 16,
+        "textureheight": 16
+      },
+      "frame": {
+        "bones": [
+          {
+            "name": "frame",
+            "parent": "base",
+            "rotation": [0, 180, 0],
+            "pivot": [0, 0, 0],
+            "cubes": [
+              {"origin": [-6, -6, -8], "size": [12, 1, 1], "uv": [2, 2]},
+              {"origin": [-6, 5, -8], "size": [12, 1, 1], "uv": [2, 13]},
+              {"origin": [-6, -5, -8], "size": [1, 10, 1], "uv": [2, 3]},
+              {"origin": [5, -5, -8], "size": [1, 10, 1], "uv": [13, 3]}
+            ]
+          }
+        ],
+        "texturewidth": 16,
+        "textureheight": 16
+      }
+    },
+    "render_controllers": ["controller.render.item_frame"]
+  },
   "leash_knot": {
     "identifier": "minecraft:leash_knot",
     "materials": {"default": "leash_knot"},
@@ -7847,7 +7894,8 @@
         "bones": [
           {
             "name": "knot",
-            "cubes": [{"origin": [-3, 2, -3], "size": [6, 8, 6]}]
+            "rotation": [0, 180, 0],
+            "cubes": [{"origin": [5, 6, 5], "size": [6, 8, 6], "uv": [0, 0]}]
           }
         ],
         "texturewidth": 32,

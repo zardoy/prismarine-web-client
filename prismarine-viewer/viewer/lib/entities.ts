@@ -20,6 +20,8 @@ import { getMesh } from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
 import { disposeObject } from './threeJsUtils'
 import { armorModels } from './entity/objModels'
+import { Viewer } from "./viewer";
+import { mapDownloader } from 'mineflayer-item-map-downloader/'
 const { loadTexture } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
 
 export const TWEEN_DURATION = 120
@@ -160,15 +162,16 @@ const addNametag = (entity, options, mesh) => {
 
 // todo cleanup
 const nametags = {}
+const itemFrameMaps = {}
 
 const isFirstUpperCase = (str) => str.charAt(0) === str.charAt(0).toUpperCase()
 
-function getEntityMesh (entity, scene, options, overrides) {
+function getEntityMesh (entity, world, options, overrides) {
   if (entity.name) {
     try {
       // https://github.com/PrismarineJS/prismarine-viewer/pull/410
       const entityName = (isFirstUpperCase(entity.name) ? snakeCase(entity.name) : entity.name).toLowerCase()
-      const e = new Entity.EntityMesh('1.16.4', entityName, scene, overrides)
+      const e = new Entity.EntityMesh('1.16.4', entityName, world, overrides)
 
       if (e.mesh) {
         addNametag(entity, options, e.mesh)
@@ -220,7 +223,7 @@ export class Entities extends EventEmitter {
     size?: number;
   })
 
-  constructor (public scene: THREE.Scene) {
+  constructor (public viewer: Viewer) {
     super()
     this.entitiesOptions = {}
     this.debugMode = 'none'
@@ -229,7 +232,7 @@ export class Entities extends EventEmitter {
 
   clear () {
     for (const mesh of Object.values(this.entities)) {
-      this.scene.remove(mesh)
+      this.viewer.scene.remove(mesh)
       disposeObject(mesh)
     }
     this.entities = {}
@@ -251,9 +254,9 @@ export class Entities extends EventEmitter {
     this.rendering = rendering
     for (const ent of entity ? [entity] : Object.values(this.entities)) {
       if (rendering) {
-        if (!this.scene.children.includes(ent)) this.scene.add(ent)
+        if (!this.viewer.scene.children.includes(ent)) this.viewer.scene.add(ent)
       } else {
-        this.scene.remove(ent)
+        this.viewer.scene.remove(ent)
       }
     }
   }
@@ -405,6 +408,7 @@ export class Entities extends EventEmitter {
   }
 
   getItemMesh (item) {
+    // TODO: Render proper model (especially for blocks) instead of flat texture
     const textureUv = this.getItemUv?.(item.itemId ?? item.blockId)
     if (textureUv) {
       // todo use geometry buffer uv instead!
@@ -458,8 +462,12 @@ export class Entities extends EventEmitter {
 
   update (entity: import('prismarine-entity').Entity & { delete?; pos, name }, overrides) {
     const isPlayerModel = entity.name === 'player'
-    if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
+    if (entity.name === 'zombie_villager' || entity.name === 'husk') {
       overrides.texture = `textures/1.16.4/entity/${entity.name === 'zombie_villager' ? 'zombie_villager/zombie_villager.png' : `zombie/${entity.name}.png`}`
+    }
+    if (entity.name === 'glow_item_frame') {
+      if (!overrides.textures) overrides.textures = []
+      overrides.textures['background'] = 'block:glow_item_frame'
     }
     // this can be undefined in case where packet entity_destroy was sent twice (so it was already deleted)
     let e = this.entities[entity.id]
@@ -468,7 +476,7 @@ export class Entities extends EventEmitter {
       if (!e) return
       if (e.additionalCleanup) e.additionalCleanup()
       this.emit('remove', entity)
-      this.scene.remove(e)
+      this.viewer.scene.remove(e)
       disposeObject(e)
       // todo dispose textures as well ?
       delete this.entities[entity.id]
@@ -539,7 +547,7 @@ export class Entities extends EventEmitter {
         //@ts-expect-error
         playerObject.animation.isMoving = false
       } else {
-        mesh = getEntityMesh(entity, this.scene, this.entitiesOptions, overrides)
+        mesh = getEntityMesh(entity, this.viewer.world, this.entitiesOptions, overrides)
       }
       if (!mesh) return
       mesh.name = 'mesh'
@@ -558,7 +566,7 @@ export class Entities extends EventEmitter {
       group.add(mesh)
       group.add(boxHelper)
       boxHelper.visible = false
-      this.scene.add(group)
+      this.viewer.scene.add(group)
 
       e = group
       this.entities[entity.id] = e
@@ -682,31 +690,38 @@ export class Entities extends EventEmitter {
     }
 
     // todo handle map, map_chunks events
-    // if (entity.name === 'item_frame' || entity.name === 'glow_item_frame') {
-    //   const example = {
-    //     "present": true,
-    //     "itemId": 847,
-    //     "itemCount": 1,
-    //     "nbtData": {
-    //         "type": "compound",
-    //         "name": "",
-    //         "value": {
-    //             "map": {
-    //                 "type": "int",
-    //                 "value": 2146483444
-    //             },
-    //             "interactiveboard": {
-    //                 "type": "byte",
-    //                 "value": 1
-    //             }
-    //         }
-    //     }
-    // }
-    //   const item = entity.metadata?.[8]
-    //   if (item.nbtData) {
-    //     const nbt = nbt.simplify(item.nbtData)
-    //   }
-    // }
+    let itemFrameMeta = getSpecificEntityMetadata('item_frame', entity)
+    if (!itemFrameMeta) {
+      itemFrameMeta = getSpecificEntityMetadata('glow_item_frame', entity)
+    }
+    if (itemFrameMeta) {
+      // TODO: Figure out why this doesn't match the Item mineflayer type
+      const item = itemFrameMeta?.item as any as { nbtData: { value: { map: { value: number } } } }
+      mesh.scale.set(1, 1, 1)
+      if (item) {
+        const rotation = (itemFrameMeta.rotation as any as number)
+        const mapNumber = item.nbtData?.value?.map?.value
+        if (mapNumber) {
+          // TODO: Use proper larger item frame model when a map exists
+          mesh.scale.set(16/12, 16/12, 1)
+          e.children.find(c => c.name === 'item')?.removeFromParent()
+          this.addMapModel(e, mapNumber, rotation)
+        } else {
+          e.children.find(c => c.name === 'item' || c.name.startsWith('map_'))?.removeFromParent()
+          const itemMesh = this.getItemMesh(item)
+          if (itemMesh) {
+            itemMesh.mesh.position.set(0, 0, 0.45)
+            itemMesh.mesh.scale.set(0.5, 0.5, 0.5)
+            itemMesh.mesh.rotateY(Math.PI)
+            itemMesh.mesh.rotateZ(rotation * Math.PI / 4)
+            itemMesh.mesh.name = 'item'
+            e.add(itemMesh.mesh)
+          }
+        }
+      } else {
+        e.children.find(c => c.name === 'item' || c.name.startsWith('map_'))?.removeFromParent()
+      }
+    }
 
     if (entity.username) {
       e.username = entity.username
@@ -727,6 +742,73 @@ export class Entities extends EventEmitter {
       const dy = 2 * da % (Math.PI * 2) - da
       new TWEEN.Tween(e.rotation).to({ y: e.rotation.y + dy }, TWEEN_DURATION).start()
     }
+  }
+
+  updateMap(mapNumber, data) {
+    let itemFrameMeshs = itemFrameMaps[mapNumber]
+    if (!itemFrameMeshs) return
+    itemFrameMeshs = itemFrameMeshs.filter(mesh => mesh.parent)
+    itemFrameMaps[mapNumber] = itemFrameMeshs
+    itemFrameMeshs?.forEach(mesh => {
+      mesh.material.map = this.loadMap(data)
+      mesh.material.needsUpdate = true
+      mesh.visible = true
+    })
+  }
+
+  addMapModel(entityMesh: THREE.Object3D, mapNumber: number, rotation: number) {
+    const material = new THREE.MeshLambertMaterial({
+      transparent: true,
+      alphaTest: 0.1,
+    })
+
+    let mapMesh
+    const exitingMapMesh = entityMesh.children.find(c => c.name.startsWith('map_')) as THREE.Mesh
+    if (exitingMapMesh) {
+      exitingMapMesh.material = material
+      mapMesh = exitingMapMesh
+      const existingMapNumber = parseInt(exitingMapMesh.name.split('_')[1])
+      itemFrameMaps[existingMapNumber] = itemFrameMaps[existingMapNumber]?.filter(mesh => mesh !== exitingMapMesh)
+    } else {
+      mapMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material)
+
+      mapMesh.rotation.set(0, Math.PI, 0)
+      entityMesh.add(mapMesh)
+    }
+    let isInvisible = true;
+    entityMesh.traverseVisible(c => {
+      if (c.name == 'geometry_frame') {
+        isInvisible = false
+      }
+    });
+    if (isInvisible) {
+      mapMesh.position.set(0, 0, 0.499)
+    } else {
+      mapMesh.position.set(0, 0, 0.437)
+    }
+    mapMesh.rotateZ(rotation * Math.PI / 2)
+    mapMesh.name = `map_${mapNumber}`
+
+    bot.loadPlugin(mapDownloader)
+    const imageData = bot.mapDownloader.maps?.[mapNumber] as any as string
+    if (imageData) {
+      material.map = this.loadMap(imageData)
+    } else {
+      mapMesh.visible = false
+    }
+
+    if (!itemFrameMaps[mapNumber]) {
+      itemFrameMaps[mapNumber] = []
+    }
+    itemFrameMaps[mapNumber].push(mapMesh)
+  }
+
+  loadMap(data: any) {
+    const texture = new THREE.TextureLoader().load(data)
+    texture.magFilter = THREE.NearestFilter
+    texture.minFilter = THREE.NearestFilter
+    texture.needsUpdate = true
+    return texture
   }
 
   handleDamageEvent (entityId, damageAmount) {
@@ -796,7 +878,7 @@ function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item
       material.map = texture
     })
   } else {
-    mesh = getMesh(texturePath, armorModels.armorModel[slotType])
+    mesh = getMesh(viewer.world, texturePath, armorModels.armorModel[slotType])
     mesh.name = meshName
     material = mesh.material
     material.side = THREE.DoubleSide
