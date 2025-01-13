@@ -74,7 +74,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const readX = chunkX % 32 < 0 ? 32 + chunkX % 32 : chunkX % 32
       const readZ = chunkZ % 32 < 0 ? 32 + chunkZ % 32 : chunkZ % 32
       console.log('heightmap check begun', readX, readZ)
-      void this.regions.get(regionKey)!.read(readX, readZ).then((rawChunk) => {
+      void this.regions.get(regionKey)?.read(readX, readZ).then((rawChunk) => {
         const chunk = simplify(rawChunk as any)
         const heightmap = findHeightMap(chunk)
         if (heightmap) {
@@ -298,7 +298,8 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       await region.initialize()
       this.regions.set(regionKey, region)
     }
-    const rawChunk = await this.regions.get(regionKey)!.read(chunkX % 32, chunkZ % 32)
+    const rawChunk = await this.regions.get(regionKey)?.read(chunkX % 32, chunkZ % 32)
+    if (!rawChunk) return null
     const chunk = simplify(rawChunk as any)
     console.log(`chunk ${chunkX}, ${chunkZ}:`, chunk)
     const heightmap = findHeightMap(chunk)
