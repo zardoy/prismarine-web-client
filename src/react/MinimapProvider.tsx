@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { versions } from 'minecraft-data'
 import { simplify } from 'prismarine-nbt'
 import RegionFile from 'prismarine-provider-anvil/src/region'
 import { Vec3 } from 'vec3'
@@ -21,10 +20,6 @@ import Minimap, { DisplayMode } from './Minimap'
 import { ChunkInfo, DrawerAdapter, MapUpdates, MinimapDrawer } from './MinimapDrawer'
 import { useIsModalActive } from './utilsApp'
 
-const getBlockKey = (x: number, z: number) => {
-  return `${x},${z}`
-}
-
 const findHeightMap = (obj: PCChunk): number[] | undefined => {
   function search (obj: any): any | undefined {
     for (const key in obj) {
@@ -42,96 +37,77 @@ const findHeightMap = (obj: PCChunk): number[] | undefined => {
 export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements DrawerAdapter {
   playerPosition: Vec3
   yaw: number
-  mapDrawer = new MinimapDrawer()
-  warps: WorldWarp[]
   world: string
+  warps: WorldWarp[] = gameAdditionalState.warps
   chunksStore = new Map<string, undefined | null | 'requested' | ChunkInfo >()
   loadingChunksQueue = new Set<string>()
+  loadChunk: (key: string) => Promise<void> = this.loadChunkMinimap
+  mapDrawer = new MinimapDrawer(this.loadChunk, this.warps, this.loadingChunksQueue, this.chunksStore)
   currChunk: PCChunk | undefined
   currChunkPos: { x: number, z: number } = { x: 0, z: 0 }
   isOldVersion: boolean
-  blockData: any
+  blockData: Map<string | string[], string>
   heightMap: Record<string, number> = {}
   regions = new Map<string, RegionFile>()
   chunksHeightmaps: Record<string, any> = {}
-  loadChunk: (key: string) => Promise<void>
-  loadChunkFullmap: ((key: string) => Promise<ChunkInfo | null | undefined>) | undefined
-  _full: boolean
+  loadChunkFullmap: (key: string) => Promise<ChunkInfo | null | undefined>
+  _full = false
   isBuiltinHeightmapAvailable = false
 
   constructor (pos?: Vec3) {
     super()
-    this.full = false
     this.playerPosition = pos ?? new Vec3(0, 0, 0)
-    this.warps = gameAdditionalState.warps
-    this.mapDrawer.warps = this.warps
-    this.mapDrawer.loadChunk = this.loadChunk
-    this.mapDrawer.loadingChunksQueue = this.loadingChunksQueue
-    this.mapDrawer.chunksStore = this.chunksStore
 
-    // check if should use heightmap
+    // check if should use heightmap.
+    // As there is no simple way to check if heightmap is present in region file, making an attempt to load one
     if (localServer) {
       const chunkX = Math.floor(this.playerPosition.x / 16)
       const chunkZ = Math.floor(this.playerPosition.z / 16)
       const regionX = Math.floor(chunkX / 32)
       const regionZ = Math.floor(chunkZ / 32)
       const regionKey = `${regionX},${regionZ}`
-      const worldFolder = this.getSingleplayerRootPath()
-      if (worldFolder && options.minimapOptimizations) {
-        const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
-        const region = new RegionFile(path)
-        void region.initialize()
-        this.regions.set(regionKey, region)
-        const readX = chunkX % 32
-        const readZ = chunkZ % 32
-        void this.regions.get(regionKey)!.read(readX, readZ).then((rawChunk) => {
-          const chunk = simplify(rawChunk as any)
-          const heightmap = findHeightMap(chunk)
-          if (heightmap) {
-            this.isBuiltinHeightmapAvailable = true
-            this.loadChunkFullmap = this.loadChunkFromRegion
-            console.log('using heightmap')
-          } else {
-            this.isBuiltinHeightmapAvailable = false
-            this.loadChunkFullmap = this.loadChunkNoRegion
-            console.log('[minimap] not using heightmap')
-          }
-        }).catch(err => {
-          console.error(err)
+      const { worldFolder } = localServer.options
+      const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
+      const region = new RegionFile(path)
+      void region.initialize()
+      this.regions.set(regionKey, region)
+      const readX = chunkX % 32 < 0 ? 32 + chunkX % 32 : chunkX % 32
+      const readZ = chunkZ % 32 < 0 ? 32 + chunkZ % 32 : chunkZ % 32
+      console.log('heightmap check begun', readX, readZ)
+      void this.regions.get(regionKey)!.read(readX, readZ).then((rawChunk) => {
+        const chunk = simplify(rawChunk as any)
+        const heightmap = findHeightMap(chunk)
+        if (heightmap) {
+          this.isBuiltinHeightmapAvailable = true
+          this.loadChunkFullmap = this.loadChunkFromRegion
+          console.log('using heightmap')
+        } else {
           this.isBuiltinHeightmapAvailable = false
-          this.loadChunkFullmap = this.loadChunkFromViewer
-        })
-      } else {
-        this.isBuiltinHeightmapAvailable = false
-        this.loadChunkFullmap = this.loadChunkFromViewer
-      }
+          this.loadChunkFullmap = this.loadChunkNoRegion
+          console.log('dont use heightmap')
+        }
+      })
     } else {
       this.isBuiltinHeightmapAvailable = false
       this.loadChunkFullmap = this.loadChunkFromViewer
     }
-    // if (localServer) {
-    //   this.overwriteWarps(localServer.warps)
-    //   this.on('cellReady', (key: string) => {
-    //     if (this.loadingChunksQueue.size === 0) return
-    //     const [x, z] = this.loadingChunksQueue.values().next().value.split(',').map(Number)
-    //     this.loadChunk(x, z)
-    //     this.loadingChunksQueue.delete(`${x},${z}`)
-    //   })
-    // } else {
-    //   const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp ?? ''}`)
-    //   this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
-    // }
+    if (localServer) {
+      this.overwriteWarps(localServer.warps)
+    } else {
+      const storageWarps = localStorage.getItem(`warps: ${loadedGameState.username} ${loadedGameState.serverIp ?? ''}`)
+      this.overwriteWarps(JSON.parse(storageWarps ?? '[]'))
+    }
     this.isOldVersion = versionToNumber(bot.version) < versionToNumber('1.13')
-    this.blockData = {}
+    this.blockData = new Map<string, string>()
     for (const blockKey of Object.keys(BlockData.colors)) {
       const renamedKey = getRenamedData('blocks', blockKey, '1.20.2', bot.version)
-      this.blockData[renamedKey as string] = BlockData.colors[blockKey]
+      this.blockData.set(renamedKey, BlockData.colors[blockKey])
     }
 
     viewer.world?.renderUpdateEmitter.on('chunkFinished', (key) => {
       if (!this.loadingChunksQueue.has(key)) return
-      void this.loadChunk(key)
       this.loadingChunksQueue.delete(key)
+      void this.loadChunk(key)
     })
   }
 
@@ -140,9 +116,11 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   set full (full: boolean) {
-    console.log('this is minimap')
-    this.loadChunk = this.loadChunkMinimap
-    this.mapDrawer.loadChunk = this.loadChunk
+    if (!full) {
+      console.log('this is minimap')
+      this.loadChunk = this.loadChunkMinimap
+      this.mapDrawer.loadChunk = this.loadChunk
+    }
     this._full = full
   }
 
@@ -156,7 +134,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   setWarp (warp: WorldWarp, remove?: boolean): void {
     this.world = bot.game.dimension
     const index = this.warps.findIndex(w => w.name === warp.name)
-    if (index === -1) {
+    if (!remove && index === -1) {
       this.warps.push(warp)
     } else if (remove && index !== -1) {
       this.warps.splice(index, 1)
@@ -206,29 +184,29 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     if (viewer.world.finishedChunks[`${chunkWorldX},${chunkWorldZ}`]) {
       const heightmap = new Uint8Array(256)
       const colors = Array.from({ length: 256 }).fill('') as string[]
+      // avoid creating new object every time
+      const blockPos = new Vec3(0, 0, 0)
+      // filling up colors and heightmap
       for (let z = 0; z < 16; z += 1) {
         for (let x = 0; x < 16; x += 1) {
           const blockX = chunkWorldX + x
           const blockZ = chunkWorldZ + z
           const hBlock = viewer.world.highestBlocks.get(`${blockX},${blockZ}`)
-          const block = bot.world.getBlock(new Vec3(blockX, hBlock?.y ?? 0, blockZ))
-          // const block = Block.fromStateId(hBlock?.stateId ?? -1, hBlock?.biomeId ?? -1)
+          blockPos.x = blockX; blockPos.z = blockZ; blockPos.y = hBlock?.y ?? 0
+          let block = bot.world.getBlock(blockPos)
+          while (block?.name.includes('air')) {
+            blockPos.y -= 1
+            block = bot.world.getBlock(blockPos)
+          }
           const index = z * 16 + x
+          // blocks which are not set are shown as half transparent
           if (!block || !hBlock) {
-            console.warn(`[loadChunk] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
             heightmap[index] = 0
             colors[index] = 'rgba(0, 0, 0, 0.5)'
             continue
           }
-          heightmap[index] = hBlock.y
-          let color: string
-          if (this.isOldVersion) {
-            color = BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')]
-            ?? 'rgb(0, 0, 255)'
-          } else {
-            color = this.blockData[block.name] ?? 'rgb(0, 255, 0)'
-          }
-          colors[index] = color
+          heightmap[index] = block.position.y
+          colors[index] = this.setColor(block)
         }
       }
       const chunk = { heightmap, colors }
@@ -254,15 +232,19 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         const blockX = chunkWorldX + x
         const blockZ = chunkWorldZ + z
         const blockY = this.getHighestBlockY(blockX, blockZ, chunkInfo)
-        const block = chunkInfo.getBlock(new Vec3(blockX & 15, blockY, blockZ & 15))
+        const blockPos = new Vec3(blockX & 15, blockY, blockZ & 15)
+        let block = chunkInfo.getBlock(blockPos)
+        while (block?.name.includes('air')) {
+          blockPos.y -= 1
+          block = chunkInfo.getBlock(blockPos)
+        }
         if (!block) {
           console.warn(`[cannot get the block] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
           return null
         }
         const index = z * 16 + x
-        heightmap[index] = blockY
-        const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
-        colors[index] = color
+        heightmap[index] = blockPos.y
+        colors[index] = this.setColor(block)
       }
     }
     const chunk: ChunkInfo = { heightmap, colors }
@@ -287,13 +269,17 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
         heightmap[index] -= 1
         if (heightmap[index] < 0) heightmap[index] = 0
         const blockY = heightmap[index]
-        const block = chunkInfo.getBlock(new Vec3(blockX & 15, blockY, blockZ & 15))
+        const blockPos = new Vec3(blockX & 15, blockY, blockZ & 15)
+        let block = chunkInfo.getBlock(blockPos)
+        while (block?.name.includes('air')) {
+          blockPos.y -= 1
+          block = chunkInfo.getBlock(blockPos)
+        }
         if (!block) {
           console.warn(`[cannot get the block] ${chunkX}, ${chunkZ}, ${chunkWorldX + x}, ${chunkWorldZ + z}`)
           return null
         }
-        const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
-        colors[index] = color
+        colors[index] = this.setColor(block)
       }
     }
     const chunk: ChunkInfo = { heightmap, colors }
@@ -301,17 +287,12 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     return chunk
   }
 
-  getSingleplayerRootPath (): string | undefined {
-    return localServer!.options.worldFolder
-  }
-
   async getChunkHeightMapFromRegion (chunkX: number, chunkZ: number, cb?: (hm: number[]) => void) {
     const regionX = Math.floor(chunkX / 32)
     const regionZ = Math.floor(chunkZ / 32)
     const regionKey = `${regionX},${regionZ}`
     if (!this.regions.has(regionKey)) {
-      const worldFolder = this.getSingleplayerRootPath()
-      if (!worldFolder) return
+      const { worldFolder } = localServer!.options
       const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
       const region = new RegionFile(path)
       await region.initialize()
@@ -349,8 +330,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
             continue
           }
           heightmap[index] = hBlock.y
-          const color = this.isOldVersion ? BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')] ?? 'rgb(0, 0, 255)' : this.blockData[block.name] ?? 'rgb(0, 255, 0)'
-          colors[index] = color
+          colors[index] = this.setColor(block)
         }
       }
       const chunk = { heightmap, colors }
@@ -455,6 +435,32 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     }
   }
 
+  setColor (block: Block) {
+    let color: string
+    if (this.isOldVersion) {
+      color = BlockData.colors[preflatMap.blocks[`${block.type}:${block.metadata}`]?.replaceAll(/\[.*?]/g, '')]
+      ?? 'rgb(0, 0, 255)'
+    } else {
+      color = this.blockData.get(block.name) ?? 'rgb(0, 255, 0)'
+    }
+    if (color === 'rgb(0, 255, 0)' || color === 'rgb(0, 0, 255)') {
+      // this should never happen
+      // console.warn('[MinimapProvider] did not find block name,', block.name)
+      // hack to find close color. Problem with colors should be fixed differently in the future
+      const blockNamePieces = block.name.split('_')
+      const keys = [...this.blockData.keys()]
+      for (const piece of blockNamePieces) {
+        const match = keys.find(x => x.includes(piece))
+        if (match) {
+          color = this.blockData.get(match) ?? 'rgb(255, 0, 0)'
+          break
+        }
+      }
+    }
+
+    return color
+  }
+
   quickTp (x: number, z: number) {
     const y = this.getHighestBlockY(x, z)
     bot.chat(`/tp ${x} ${y + 20} ${z}`)
@@ -466,25 +472,6 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
   }
 
   async drawChunkOnCanvas (key: string, canvas: HTMLCanvasElement) {
-    // console.log('chunk', key, 'on canvas')
-    if (!this.loadChunkFullmap) {
-      // wait for it to be available
-      await new Promise(resolve => {
-        const interval = setInterval(() => {
-          if (this.loadChunkFullmap) {
-            clearInterval(interval)
-            resolve(undefined)
-          }
-        }, 100)
-        setTimeout(() => {
-          clearInterval(interval)
-          resolve(undefined)
-        }, 10_000)
-      })
-      if (!this.loadChunkFullmap) {
-        throw new Error('loadChunkFullmap not available')
-      }
-    }
     const chunk = await this.loadChunkFullmap(key)
     const [worldX, worldZ] = key.split(',').map(x => Number(x) * 16)
     const center = new Vec3(worldX + 8, 0, worldZ + 8)
@@ -492,6 +479,10 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
     this.mapDrawer.canvas = canvas
     this.mapDrawer.full = true
     this.mapDrawer.drawChunk(key, chunk)
+    this.mapDrawer.drawWarps(center)
+    this.mapDrawer.lastBotPos = this.playerPosition
+    this.mapDrawer.yaw = this.yaw
+    this.mapDrawer.drawPlayerPos(worldX, worldZ)
   }
 }
 
@@ -549,46 +540,23 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
   const { showMinimap } = useSnapshot(options)
   const fullMapOpened = useIsModalActive('full-map')
 
-
-  const readChunksHeightMaps = async () => {
-    const { worldFolder } = localServer!.options
-    const path = `${worldFolder}/region/r.0.0.mca`
-    const region = new RegionFile(path)
-    await region.initialize()
-    const chunks: Record<string, any> = {}
-    console.log('Reading chunks...')
-    console.log(chunks)
-    let versionDetected = false
-    for (const [i, _] of Array.from({ length: 32 }).entries()) {
-      for (const [k, _] of Array.from({ length: 32 }).entries()) {
-        // todo, may use faster reading, but features is not commonly used
-        // eslint-disable-next-line no-await-in-loop
-        const nbt = await region.read(i, k)
-        chunks[`${i},${k}`] = nbt
-        if (nbt && !versionDetected) {
-          const simplified = simplify(nbt)
-          const version = versions.pc.find(x => x['dataVersion'] === simplified.DataVersion)?.minecraftVersion
-          console.log('Detected version', version ?? 'unknown')
-          versionDetected = true
-        }
+  const toggleFullMap = ({ command }: { command?: string }) => {
+    if (command === 'ui.toggleMap') {
+      if (activeModalStack.at(-1)?.reactType === 'full-map') {
+        hideModal({ reactType: 'full-map' })
+      } else {
+        showModal({ reactType: 'full-map' })
       }
     }
-    Object.defineProperty(chunks, 'simplified', {
-      get () {
-        const mapped = {}
-        for (const [i, _] of Array.from({ length: 32 }).entries()) {
-          for (const [k, _] of Array.from({ length: 32 }).entries()) {
-            const key = `${i},${k}`
-            const chunk = chunks[key]
-            if (!chunk) continue
-            mapped[key] = simplify(chunk)
-          }
-        }
-        return mapped
-      },
-    })
-    console.log('Done!', chunks)
   }
+
+  useEffect(() => {
+    if (displayMode !== 'fullmapOnly') return
+    contro?.on('trigger', toggleFullMap)
+    return () => {
+      contro?.off('trigger', toggleFullMap)
+    }
+  }, [])
 
   if (
     displayMode === 'minimapOnly'
@@ -596,14 +564,6 @@ export default ({ displayMode }: { displayMode?: DisplayMode }) => {
       : !fullMapOpened
   ) {
     return null
-  }
-
-  const toggleFullMap = () => {
-    if (activeModalStack.at(-1)?.reactType === 'full-map') {
-      hideModal({ reactType: 'full-map' })
-    } else {
-      showModal({ reactType: 'full-map' })
-    }
   }
 
   return <Inner adapter={adapter} displayMode={displayMode} toggleFullMap={toggleFullMap} />

@@ -432,13 +432,13 @@ contro.on('trigger', ({ command }) => {
     void goFullscreen(true)
   }
 
-  if (command === 'ui.toggleMap') {
-    if (activeModalStack.at(-1)?.reactType === 'full-map') {
-      hideModal({ reactType: 'full-map' })
-    } else {
-      showModal({ reactType: 'full-map' })
-    }
-  }
+  // if (command === 'ui.toggleMap') {
+  //   if (activeModalStack.at(-1)?.reactType === 'full-map') {
+  //     hideModal({ reactType: 'full-map' })
+  //   } else {
+  //     showModal({ reactType: 'full-map' })
+  //   }
+  // }
 })
 
 contro.on('release', ({ command }) => {

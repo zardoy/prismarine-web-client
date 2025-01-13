@@ -103,13 +103,9 @@ const InGameComponent = ({ children }) => {
 
 const InGameUi = () => {
   const { gameLoaded, showUI: showUIRaw } = useSnapshot(miscUiState)
-  const { disabledUiParts, displayBossBars, showMinimap } = useSnapshot(options)
-  const modalsSnapshot = useSnapshot(activeModalStack)
-  const hasModals = modalsSnapshot.length > 0
+  const { disabledUiParts, displayBossBars } = useSnapshot(options)
+  const hasModals = useSnapshot(activeModalStack).length > 0
   const showUI = showUIRaw || hasModals
-  const displayFullmap = modalsSnapshot.some(modal => modal.reactType === 'full-map')
-  // bot can't be used here
-
   if (!gameLoaded || !bot || disabledUiParts.includes('*')) return
 
   return <>
@@ -122,7 +118,7 @@ const InGameUi = () => {
         {!disabledUiParts.includes('players-list') && <PlayerListOverlayProvider />}
         {!disabledUiParts.includes('chat') && <ChatProvider />}
         <SoundMuffler />
-        {showMinimap !== 'never' && <MinimapProvider displayMode='minimapOnly' />}
+        <MinimapProvider displayMode='minimapOnly' />
         {!disabledUiParts.includes('title') && <TitleProvider />}
         {!disabledUiParts.includes('scoreboard') && <ScoreboardProvider />}
         {!disabledUiParts.includes('effects-indicators') && <IndicatorEffectsProvider />}
@@ -144,7 +140,7 @@ const InGameUi = () => {
       <DisplayQr />
     </PerComponentErrorBoundary>
     <RobustPortal to={document.body}>
-      {displayFullmap && <MinimapProvider displayMode='fullmapOnly' />}
+      <MinimapProvider displayMode='fullmapOnly' />
       {/* because of z-index */}
       {showUI && <TouchControls />}
       <GlobalSearchInput />
