@@ -1,0 +1,57 @@
+name: Bundle Stats
+on:
+  workflow_call:
+    inputs:
+      mode:
+        required: true
+        type: string
+        description: "'store' or 'compare'"
+      branch:
+        required: true
+        type: string
+    outputs:
+      stats:
+        description: "Bundle stats comparison"
+        value: ${{ jobs.bundle-stats.outputs.stats }}
+
+jobs:
+  bundle-stats:
+    runs-on: ubuntu-latest
+    outputs:
+      stats: ${{ steps.compare.outputs.stats }}
+    steps:
+      - uses: actions/github-script@v6
+        id: gist-ops
+        with:
+          script: |
+            const gistId = '${{ secrets.BUNDLE_STATS_GIST_ID }}';
+
+            async function getGistContent() {
+              const { data } = await github.rest.gists.get({ gist_id: gistId });
+              return JSON.parse(data.files['bundle-stats.json'].content || '{}');
+            }
+
+            async function updateGistContent(content) {
+              await github.rest.gists.update({
+                gist_id: gistId,
+                files: {
+                  'bundle-stats.json': {
+                    content: JSON.stringify(content, null, 2)
+                  }
+                }
+              });
+            }
+
+            if ('${{ inputs.mode }}' === 'store') {
+              const stats = require('/tmp/bundle-stats.json');
+              const content = await getGistContent();
+              content['${{ inputs.branch }}'] = stats;
+              await updateGistContent(content);
+            } else {
+              const content = await getGistContent();
+              const baseStats = content['${{ inputs.branch }}'];
+              const newStats = require('/tmp/bundle-stats.json');
+
+              const comparison = `${baseStats.total}MB (${baseStats.gzipped}MB compressed) -> ${newStats.total}MB (${newStats.gzipped}MB compressed)`;
+              core.setOutput('stats', comparison);
+            }

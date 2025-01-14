@@ -40,3 +40,53 @@ jobs:
       #   if: ${{ github.event.pull_request.base.ref == 'release' }}
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse Bundle Stats
+        run: |
+          SIZE=$(du -sh dist 2>/dev/null | cut -f1)
+          GZIP_SIZE=$(du -sh dist/**/*.gz 2>/dev/null | cut -f1)
+          echo "{\"total\": \"$SIZE\", \"gzipped\": \"$GZIP_SIZE\"}" > /tmp/bundle-stats.json
+
+      - name: Compare Bundle Stats
+        id: compare
+        uses: ./.github/workflows/bundle-stats
+        with:
+          mode: compare
+          branch: ${{ github.event.pull_request.base.ref }}
+
+      - name: Store Bundle Stats
+        if: github.event.pull_request.base.ref == github.event.pull_request.head.ref
+        uses: ./.github/workflows/bundle-stats
+        with:
+          mode: store
+          branch: ${{ github.event.pull_request.base.ref }}
+
+      - name: Update PR Description
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+
+            let body = pr.body || '';
+            const statsMarker = '### Bundle Size';
+            const comparison = '${{ steps.compare.outputs.stats }}';
+
+            if (body.includes(statsMarker)) {
+              body = body.replace(
+                new RegExp(`${statsMarker}[^\n]*\n[^\n]*`),
+                `${statsMarker}\n${comparison}`
+              );
+            } else {
+              body += `\n\n${statsMarker}\n${comparison}`;
+            }
+
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              body
+            });
