@@ -34,9 +34,10 @@ export default () => {
       updateHeldMap()
     })
 
-    bot.on('new_map', () => {
+    bot.on('new_map', ({ id }) => {
       // total maps: Object.keys(bot.mapDownloader.maps).length
       updateHeldMap()
+      viewer.entities.cachedMapsImages[id] = bot.mapDownloader.maps?.[id] as unknown as string
     })
   }, [])
 

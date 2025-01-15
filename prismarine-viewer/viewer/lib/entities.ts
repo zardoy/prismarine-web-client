@@ -20,8 +20,7 @@ import { getMesh } from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
 import { disposeObject } from './threeJsUtils'
 import { armorModels } from './entity/objModels'
-import { Viewer } from "./viewer";
-import { mapDownloader } from 'mineflayer-item-map-downloader/'
+import { Viewer } from './viewer'
 const { loadTexture } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
 
 export const TWEEN_DURATION = 120
@@ -214,6 +213,7 @@ export class Entities extends EventEmitter {
   clock = new THREE.Clock()
   rendering = true
   itemsTexture: THREE.Texture | null = null
+  cachedMapsImages = {} as Record<string, string>
   getItemUv: undefined | ((idOrName: number | string) => {
     texture: THREE.Texture;
     u: number;
@@ -703,7 +703,7 @@ export class Entities extends EventEmitter {
         const mapNumber = item.nbtData?.value?.map?.value
         if (mapNumber) {
           // TODO: Use proper larger item frame model when a map exists
-          mesh.scale.set(16/12, 16/12, 1)
+          mesh.scale.set(16 / 12, 16 / 12, 1)
           e.children.find(c => c.name === 'item')?.removeFromParent()
           this.addMapModel(e, mapNumber, rotation)
         } else {
@@ -744,19 +744,21 @@ export class Entities extends EventEmitter {
     }
   }
 
-  updateMap(mapNumber, data) {
+  updateMap (mapNumber, data) {
     let itemFrameMeshs = itemFrameMaps[mapNumber]
     if (!itemFrameMeshs) return
     itemFrameMeshs = itemFrameMeshs.filter(mesh => mesh.parent)
     itemFrameMaps[mapNumber] = itemFrameMeshs
-    itemFrameMeshs?.forEach(mesh => {
-      mesh.material.map = this.loadMap(data)
-      mesh.material.needsUpdate = true
-      mesh.visible = true
-    })
+    if (itemFrameMeshs) {
+      for (const mesh of itemFrameMeshs) {
+        mesh.material.map = this.loadMap(data)
+        mesh.material.needsUpdate = true
+        mesh.visible = true
+      }
+    }
   }
 
-  addMapModel(entityMesh: THREE.Object3D, mapNumber: number, rotation: number) {
+  addMapModel (entityMesh: THREE.Object3D, mapNumber: number, rotation: number) {
     const material = new THREE.MeshLambertMaterial({
       transparent: true,
       alphaTest: 0.1,
@@ -767,7 +769,7 @@ export class Entities extends EventEmitter {
     if (exitingMapMesh) {
       exitingMapMesh.material = material
       mapMesh = exitingMapMesh
-      const existingMapNumber = parseInt(exitingMapMesh.name.split('_')[1])
+      const existingMapNumber = Number(exitingMapMesh.name.split('_')[1])
       itemFrameMaps[existingMapNumber] = itemFrameMaps[existingMapNumber]?.filter(mesh => mesh !== exitingMapMesh)
     } else {
       mapMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material)
@@ -775,12 +777,12 @@ export class Entities extends EventEmitter {
       mapMesh.rotation.set(0, Math.PI, 0)
       entityMesh.add(mapMesh)
     }
-    let isInvisible = true;
+    let isInvisible = true
     entityMesh.traverseVisible(c => {
-      if (c.name == 'geometry_frame') {
+      if (c.name === 'geometry_frame') {
         isInvisible = false
       }
-    });
+    })
     if (isInvisible) {
       mapMesh.position.set(0, 0, 0.499)
     } else {
@@ -789,8 +791,7 @@ export class Entities extends EventEmitter {
     mapMesh.rotateZ(rotation * Math.PI / 2)
     mapMesh.name = `map_${mapNumber}`
 
-    bot.loadPlugin(mapDownloader)
-    const imageData = bot.mapDownloader.maps?.[mapNumber] as any as string
+    const imageData = this.cachedMapsImages?.[mapNumber]
     if (imageData) {
       material.map = this.loadMap(imageData)
     } else {
@@ -803,7 +804,7 @@ export class Entities extends EventEmitter {
     itemFrameMaps[mapNumber].push(mapMesh)
   }
 
-  loadMap(data: any) {
+  loadMap (data: any) {
     const texture = new THREE.TextureLoader().load(data)
     texture.magFilter = THREE.NearestFilter
     texture.minFilter = THREE.NearestFilter
