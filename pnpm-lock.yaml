@@ -426,6 +426,9 @@ importers:
       minecrafthawkeye:
         specifier: ^1.3.6
         version: 1.3.6
+      mineflayer-item-map-downloader:
+        specifier: github:zardoy/mineflayer-item-map-downloader
+        version: https://codeload.github.com/zardoy/mineflayer-item-map-downloader/tar.gz/642fd4f7023a98a96da4caf8f993f8e19361a1e7(patch_hash=bck55yjvd4wrgz46x7o4vfur5q)(encoding@0.1.13)
       prismarine-block:
         specifier: github:zardoy/prismarine-block#next-era
         version: https://codeload.github.com/zardoy/prismarine-block/tar.gz/23849d4d24af91f45a5bd38781a6f82d40316c05
@@ -441,6 +444,9 @@ importers:
       process:
         specifier: ^0.11.10
         version: 0.11.10
+      sharp:
+        specifier: ^0.29.1
+        version: 0.29.3
       socket.io:
         specifier: ^4.0.0
         version: 4.7.2
@@ -4582,6 +4588,11 @@ packages:
     resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}
     engines: {node: '>=8'}
 
+  detect-libc@1.0.3:
+    resolution: {integrity: sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg==}
+    engines: {node: '>=0.10'}
+    hasBin: true
+
   detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
@@ -6988,6 +6999,9 @@ packages:
   node-abort-controller@3.1.1:
     resolution: {integrity: sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==}
 
+  node-addon-api@4.3.0:
+    resolution: {integrity: sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==}
+
   node-addon-api@5.1.0:
     resolution: {integrity: sha512-eh0GgfEkpnoWDq+VY8OyvYhFEzBk6jIYbRKdIlyTiAXIVJ8PyBaKb0rp7oDtoddbdoHWhq8wwr+XZ81F1rpNdA==}
 
@@ -7533,11 +7547,16 @@ packages:
     version: 1.36.0
     engines: {node: '>=14'}
 
+  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/aba0d8e1efa49f4c75646cdb9635cfab41ad4ad9:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/aba0d8e1efa49f4c75646cdb9635cfab41ad4ad9}
+    version: 1.38.0
+    engines: {node: '>=14'}
+
   prismarine-entity@2.3.1:
     resolution: {integrity: sha512-HOv8l7IetHNf4hwZ7V/W4vM3GNl+e6VCtKDkH9h02TRq7jWngsggKtJV+VanCce/sNwtJUhJDjORGs728ep4MA==}
 
-  prismarine-item@1.15.0:
-    resolution: {integrity: sha512-DysyiCzaI8S7PpRLFylAZnQo2CppXiBbaUp+8rhK+EzvzmMdS+D1/oETQm9ysB5Jw9eCer6iWGMgzZXxJE5+/w==}
+  prismarine-item@1.16.0:
+    resolution: {integrity: sha512-88Tz+/6HquYIsDuseae5G3IbqLeMews2L+ba2gX+p6K6soU9nuFhCfbwN56QuB7d/jZFcWrCYAPE5+UhwWh67w==}
 
   prismarine-nbt@2.2.1:
     resolution: {integrity: sha512-Mb50c58CPnuZ+qvM31DBa08tf9UumlTq1LkvpMoUpKfCuN05GZHTqCUwER3lxTSHLL0GZKghIPbYR/JQkINijQ==}
@@ -8327,6 +8346,10 @@ packages:
   shallow-clone@3.0.1:
     resolution: {integrity: sha512-/6KqX+GVUdqPuPPd2LxDDxzX6CAbjJehAAOKlNpqqUpAqPM6HeL8f+o3a+JsyGjn2lv0WY8UsTgUJjU9Ok55NA==}
     engines: {node: '>=8'}
+
+  sharp@0.29.3:
+    resolution: {integrity: sha512-fKWUuOw77E4nhpyzCCJR1ayrttHoFHBT2U/kR/qEMRhvPEcluG4BKj324+SCO1e84+knXHwhJ1HHJGnUt4ElGA==}
+    engines: {node: '>=12.13.0'}
 
   sharp@0.30.7:
     resolution: {integrity: sha512-G+MY2YW33jgflKPTXXptVO28HvNOo9G3j0MybYAHeEmby+QuD2U98dT6ueht9cv/XDqZspSpIhoSW+BAKJ7Hig==}
@@ -9794,7 +9817,7 @@ snapshots:
       '@babel/traverse': 7.22.11
       '@babel/types': 7.23.0
       convert-source-map: 1.9.0
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7(supports-color@8.1.1)
       gensync: 1.0.0-beta.2
       json5: 2.2.3
       semver: 6.3.1
@@ -9862,7 +9885,7 @@ snapshots:
       '@babel/core': 7.22.11
       '@babel/helper-compilation-targets': 7.22.10
       '@babel/helper-plugin-utils': 7.22.5
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       lodash.debounce: 4.0.8
       resolve: 1.22.4
     transitivePeerDependencies:
@@ -10589,7 +10612,7 @@ snapshots:
       '@babel/helper-split-export-declaration': 7.22.6
       '@babel/parser': 7.22.13
       '@babel/types': 7.23.0
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -11482,7 +11505,7 @@ snapshots:
       nopt: 5.0.0
       npmlog: 5.0.1
       rimraf: 3.0.2
-      semver: 7.5.4
+      semver: 7.6.0
       tar: 6.2.0
     transitivePeerDependencies:
       - encoding
@@ -12421,7 +12444,7 @@ snapshots:
       prompts: 2.4.2
       puppeteer-core: 2.1.1
       read-pkg-up: 7.0.1
-      semver: 7.5.4
+      semver: 7.6.0
       simple-update-notifier: 2.0.0
       strip-json-comments: 3.1.1
       tempy: 1.0.1
@@ -12547,7 +12570,7 @@ snapshots:
       pretty-hrtime: 1.0.3
       prompts: 2.4.2
       read-pkg-up: 7.0.1
-      semver: 7.5.4
+      semver: 7.6.0
       telejson: 7.2.0
       tiny-invariant: 1.3.1
       ts-dedent: 2.2.0
@@ -13112,7 +13135,7 @@ snapshots:
       ignore: 5.2.4
       natural-compare: 1.4.0
       natural-compare-lite: 1.4.0
-      semver: 7.5.4
+      semver: 7.6.0
       ts-api-utils: 1.0.3(typescript@5.5.4)
     optionalDependencies:
       typescript: 5.5.4
@@ -13151,7 +13174,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/typescript-estree': 6.1.0(typescript@5.5.4)
       '@typescript-eslint/utils': 6.1.0(eslint@8.50.0)(typescript@5.5.4)
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       eslint: 8.50.0
       ts-api-utils: 1.0.3(typescript@5.5.4)
     optionalDependencies:
@@ -13169,7 +13192,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 6.1.0
       '@typescript-eslint/visitor-keys': 6.1.0
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.6.0
@@ -13183,7 +13206,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 6.7.3
       '@typescript-eslint/visitor-keys': 6.7.3
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       globby: 11.1.0
       is-glob: 4.0.3
       semver: 7.6.0
@@ -13197,7 +13220,7 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.0.0
       '@typescript-eslint/visitor-keys': 8.0.0
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       globby: 11.1.0
       is-glob: 4.0.3
       minimatch: 9.0.5
@@ -13448,7 +13471,7 @@ snapshots:
       node-rsa: 1.1.1
       prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/416dd49bec42f4cc9f50ccf79527e6e4c01cebcb(minecraft-data@3.80.0)
       prismarine-entity: 2.3.1
-      prismarine-item: 1.15.0
+      prismarine-item: 1.16.0
       prismarine-nbt: 2.5.0
       prismarine-provider-anvil: https://codeload.github.com/zardoy/prismarine-provider-anvil/tar.gz/d807fc339a3d95a7aef91468d4d64d367e7c682a(minecraft-data@3.80.0)
       prismarine-windows: 2.9.0
@@ -13534,14 +13557,14 @@ snapshots:
 
   agent-base@6.0.2:
     dependencies:
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
     optional: true
 
   agent-base@7.1.0:
     dependencies:
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -14790,9 +14813,11 @@ snapshots:
     optionalDependencies:
       supports-color: 8.1.1
 
-  debug@4.3.7:
+  debug@4.3.7(supports-color@8.1.1):
     dependencies:
       ms: 2.1.3
+    optionalDependencies:
+      supports-color: 8.1.1
 
   decamelize-keys@1.1.1:
     dependencies:
@@ -14913,6 +14938,8 @@ snapshots:
 
   detect-indent@6.1.0: {}
 
+  detect-libc@1.0.3: {}
+
   detect-libc@2.0.2: {}
 
   detect-node-es@1.1.0: {}
@@ -14924,7 +14951,7 @@ snapshots:
   detect-port@1.5.1:
     dependencies:
       address: 1.2.2
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -14935,7 +14962,7 @@ snapshots:
   diamond-square@https://codeload.github.com/zardoy/diamond-square/tar.gz/cfaad2d1d5909fdfa63c8cc7bc05fb5e87782d71:
     dependencies:
       minecraft-data: 3.80.0
-      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/416dd49bec42f4cc9f50ccf79527e6e4c01cebcb(minecraft-data@3.80.0)
+      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/aba0d8e1efa49f4c75646cdb9635cfab41ad4ad9(minecraft-data@3.80.0)
       prismarine-registry: 1.10.0
       random-seed: 0.3.0
       vec3: 0.1.8
@@ -15349,7 +15376,7 @@ snapshots:
 
   esbuild-register@3.5.0(esbuild@0.18.20):
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7(supports-color@8.1.1)
       esbuild: 0.18.20
     transitivePeerDependencies:
       - supports-color
@@ -15602,7 +15629,7 @@ snapshots:
       read-pkg-up: 7.0.1
       regexp-tree: 0.1.27
       regjsparser: 0.10.0
-      semver: 7.5.4
+      semver: 7.6.0
       strip-indent: 3.0.0
 
   eslint-scope@5.1.1:
@@ -15864,7 +15891,7 @@ snapshots:
 
   extract-zip@2.0.1(supports-color@8.1.1):
     dependencies:
-      debug: 4.3.4(supports-color@8.1.1)
+      debug: 4.3.7(supports-color@8.1.1)
       get-stream: 5.2.0
       yauzl: 2.10.0
     optionalDependencies:
@@ -16533,7 +16560,7 @@ snapshots:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -16577,14 +16604,14 @@ snapshots:
   https-proxy-agent@4.0.0:
     dependencies:
       agent-base: 5.1.1
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
   https-proxy-agent@5.0.1:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -16592,7 +16619,7 @@ snapshots:
   https-proxy-agent@7.0.2:
     dependencies:
       agent-base: 7.1.0
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -17666,7 +17693,7 @@ snapshots:
   micromark@4.0.0:
     dependencies:
       '@types/debug': 4.1.12
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       decode-named-character-reference: 1.0.2
       devlop: 1.1.0
       micromark-core-commonmark: 2.0.0
@@ -17810,7 +17837,7 @@ snapshots:
       minecraft-data: 3.80.0
       prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/23849d4d24af91f45a5bd38781a6f82d40316c05
       prismarine-entity: 2.3.1
-      prismarine-item: 1.15.0
+      prismarine-item: 1.16.0
       prismarine-nbt: 2.2.1
       prismarine-physics: https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b
       vec3: 0.1.8
@@ -17824,7 +17851,7 @@ snapshots:
       prismarine-chat: 1.10.1
       prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/416dd49bec42f4cc9f50ccf79527e6e4c01cebcb(minecraft-data@3.80.0)
       prismarine-entity: 2.3.1
-      prismarine-item: 1.15.0
+      prismarine-item: 1.16.0
       prismarine-nbt: 2.5.0
       prismarine-physics: https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b
       prismarine-recipe: 1.3.1(prismarine-registry@1.10.0)
@@ -17847,7 +17874,7 @@ snapshots:
       prismarine-chat: 1.10.1
       prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/416dd49bec42f4cc9f50ccf79527e6e4c01cebcb(minecraft-data@3.80.0)
       prismarine-entity: 2.3.1
-      prismarine-item: 1.15.0
+      prismarine-item: 1.16.0
       prismarine-nbt: 2.5.0
       prismarine-physics: https://codeload.github.com/zardoy/prismarine-physics/tar.gz/353e25b800149393f40539ec381218be44cbb03b
       prismarine-recipe: 1.3.1(prismarine-registry@1.10.0)
@@ -18061,6 +18088,8 @@ snapshots:
       semver: 7.6.0
 
   node-abort-controller@3.1.1: {}
+
+  node-addon-api@4.3.0: {}
 
   node-addon-api@5.1.0: {}
 
@@ -18656,7 +18685,7 @@ snapshots:
       minecraft-data: 3.80.0
       prismarine-biome: 1.3.0(minecraft-data@3.80.0)(prismarine-registry@1.7.0)
       prismarine-chat: 1.10.1
-      prismarine-item: 1.15.0
+      prismarine-item: 1.16.0
       prismarine-nbt: 2.5.0
       prismarine-registry: 1.7.0
 
@@ -18679,14 +18708,27 @@ snapshots:
     transitivePeerDependencies:
       - minecraft-data
 
+  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/aba0d8e1efa49f4c75646cdb9635cfab41ad4ad9(minecraft-data@3.80.0):
+    dependencies:
+      prismarine-biome: 1.3.0(minecraft-data@3.80.0)(prismarine-registry@1.10.0)
+      prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/23849d4d24af91f45a5bd38781a6f82d40316c05
+      prismarine-nbt: 2.5.0
+      prismarine-registry: 1.10.0
+      smart-buffer: 4.2.0
+      uint4: 0.1.2
+      vec3: 0.1.8
+      xxhash-wasm: 0.4.2
+    transitivePeerDependencies:
+      - minecraft-data
+
   prismarine-entity@2.3.1:
     dependencies:
       prismarine-chat: 1.10.1
-      prismarine-item: 1.15.0
+      prismarine-item: 1.16.0
       prismarine-registry: 1.10.0
       vec3: 0.1.8
 
-  prismarine-item@1.15.0:
+  prismarine-item@1.16.0:
     dependencies:
       prismarine-nbt: 2.5.0
       prismarine-registry: 1.10.0
@@ -18748,7 +18790,7 @@ snapshots:
 
   prismarine-windows@2.9.0:
     dependencies:
-      prismarine-item: 1.15.0
+      prismarine-item: 1.16.0
       prismarine-registry: 1.10.0
       typed-emitter: 2.1.0
 
@@ -18942,7 +18984,7 @@ snapshots:
   puppeteer-core@2.1.1:
     dependencies:
       '@types/mime-types': 2.1.2
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       extract-zip: 1.7.0
       https-proxy-agent: 4.0.0
       mime: 2.6.0
@@ -19603,7 +19645,7 @@ snapshots:
 
   send@1.1.0:
     dependencies:
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       destroy: 1.2.0
       encodeurl: 2.0.0
       escape-html: 1.0.3
@@ -19701,6 +19743,17 @@ snapshots:
   shallow-clone@3.0.1:
     dependencies:
       kind-of: 6.0.3
+
+  sharp@0.29.3:
+    dependencies:
+      color: 4.2.3
+      detect-libc: 1.0.3
+      node-addon-api: 4.3.0
+      prebuild-install: 7.1.1
+      semver: 7.6.0
+      simple-get: 4.0.1
+      tar-fs: 2.1.1
+      tunnel-agent: 0.6.0
 
   sharp@0.30.7:
     dependencies:
@@ -19929,7 +19982,7 @@ snapshots:
   socks-proxy-agent@7.0.0:
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.7
+      debug: 4.3.7(supports-color@8.1.1)
       socks: 2.7.1
     transitivePeerDependencies:
       - supports-color
