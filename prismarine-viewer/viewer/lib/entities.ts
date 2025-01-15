@@ -213,7 +213,7 @@ export class Entities extends EventEmitter {
   rendering = true
   itemsTexture: THREE.Texture | null = null
   cachedMapsImages = {} as Record<number, string>
-  itemFrameMaps = {} as Record<number, THREE.Mesh<THREE.PlaneGeometry,THREE.MeshLambertMaterial>[]>
+  itemFrameMaps = {} as Record<number, Array<THREE.Mesh<THREE.PlaneGeometry, THREE.MeshLambertMaterial>>>
   getItemUv: undefined | ((idOrName: number | string) => {
     texture: THREE.Texture;
     u: number;
@@ -701,7 +701,7 @@ export class Entities extends EventEmitter {
       e.children.find(c => {
         if (c.name.startsWith('map_')) {
           disposeObject(c)
-          const existingMapNumber = parseInt(c.name.split('_')[1])
+          const existingMapNumber = parseInt(c.name.split('_')[1], 10)
           this.itemFrameMaps[existingMapNumber] = this.itemFrameMaps[existingMapNumber]?.filter(mesh => mesh !== c)
           if (c instanceof THREE.Mesh) {
             c.material?.map?.dispose()
@@ -756,7 +756,7 @@ export class Entities extends EventEmitter {
   }
 
   updateMap (mapNumber, data) {
-    this.cachedMapsImages[mapNumber] = data; //bot.mapDownloader.maps?.[id] as unknown as string
+    this.cachedMapsImages[mapNumber] = data
     let itemFrameMeshs = this.itemFrameMaps[mapNumber]
     if (!itemFrameMeshs) return
     itemFrameMeshs = itemFrameMeshs.filter(mesh => mesh.parent)
@@ -772,24 +772,24 @@ export class Entities extends EventEmitter {
 
   addMapModel (entityMesh: THREE.Object3D, mapNumber: number, rotation: number) {
     const imageData = this.cachedMapsImages?.[mapNumber]
-    let texture : THREE.Texture | null = null
+    let texture: THREE.Texture | null = null
     if (imageData) {
-        texture = this.loadMap(imageData)
+      texture = this.loadMap(imageData)
     }
     const parameters = {
-        transparent: true,
-        alphaTest: 0.1,
+      transparent: true,
+      alphaTest: 0.1,
     }
     if (texture?.image) {
       parameters['map'] = texture
     }
     const material = new THREE.MeshLambertMaterial(parameters)
 
-    let mapMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material)
+    const mapMesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material)
 
     mapMesh.rotation.set(0, Math.PI, 0)
     entityMesh.add(mapMesh)
-    let isInvisible = false;
+    let isInvisible = false
     entityMesh.traverseVisible(c => {
       if (c.name === 'geometry_frame') {
         isInvisible = false
@@ -803,7 +803,7 @@ export class Entities extends EventEmitter {
     mapMesh.rotateZ(Math.PI * 2 - rotation * Math.PI / 2)
     mapMesh.name = `map_${mapNumber}`
 
-    if (!texture || !texture.image) {
+    if (!texture?.image) {
       mapMesh.visible = false
     }
 

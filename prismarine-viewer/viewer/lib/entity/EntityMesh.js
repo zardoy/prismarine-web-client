@@ -107,8 +107,8 @@ function addCube(attr, boneId, bone, cube, sameTextureForAllFaces = false, texWi
     const eastOrWest = dir[0] !== 0
     const faceUvs = []
     for (const pos of corners) {
-      let u;
-      let v;
+      let u
+      let v
       if (sameTextureForAllFaces) {
         u = (cube.uv[0] + pos[3] * cube.size[0]) / texWidth
         v = (cube.uv[1] + pos[4] * cube.size[1]) / texHeight
@@ -158,10 +158,10 @@ function addCube(attr, boneId, bone, cube, sameTextureForAllFaces = false, texWi
 export function getMesh(world, texture, jsonModel, overrides = {}) {
   let textureWidth = jsonModel.texturewidth ?? 64
   let textureHeight = jsonModel.textureheight ?? 64
-  let textureOffset = undefined
-  let useBlockTexture = texture.startsWith('block:');
+  let textureOffset
+  const useBlockTexture = texture.startsWith('block:')
   if (useBlockTexture) {
-    const blockName = texture.substring(6)
+    const blockName = texture.slice(6)
     const textureInfo = world.blocksAtlasParser.getTextureInfo(blockName)
     if (textureInfo) {
       textureWidth = world.material.map.image.width
