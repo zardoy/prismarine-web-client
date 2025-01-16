@@ -42,7 +42,7 @@ jobs:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   dedupe-check:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/next'
+    if: github.event.pull_request.head.ref == 'next'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
