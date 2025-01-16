@@ -155,17 +155,17 @@ function addCube(attr, boneId, bone, cube, sameTextureForAllFaces = false, texWi
   }
 }
 
-export function getMesh(world, texture, jsonModel, overrides = {}) {
+export function getMesh(worldRenderer, texture, jsonModel, overrides = {}) {
   let textureWidth = jsonModel.texturewidth ?? 64
   let textureHeight = jsonModel.textureheight ?? 64
   let textureOffset
   const useBlockTexture = texture.startsWith('block:')
   if (useBlockTexture) {
     const blockName = texture.slice(6)
-    const textureInfo = world.blocksAtlasParser.getTextureInfo(blockName)
+    const textureInfo = worldRenderer.blocksAtlasParser.getTextureInfo(blockName)
     if (textureInfo) {
-      textureWidth = world.material.map.image.width
-      textureHeight = world.material.map.image.height
+      textureWidth = worldRenderer.material.map.image.width
+      textureHeight = worldRenderer.material.map.image.height
       textureOffset = [textureInfo.u, textureInfo.v]
     } else {
       console.error(`Unknown block ${blockName}`)
@@ -239,7 +239,7 @@ export function getMesh(world, texture, jsonModel, overrides = {}) {
   mesh.scale.set(1 / 16, 1 / 16, 1 / 16)
 
   if (textureOffset) {
-    texture = world.material.map.clone()
+    texture = worldRenderer.material.map.clone()
     texture.offset.set(textureOffset[0], textureOffset[1])
     texture.needsUpdate = true
     material.map = texture
@@ -352,7 +352,7 @@ const offsetEntity = {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EntityMesh {
-  constructor(version, type, world, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
+  constructor(version, type, worldRenderer, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
     const originalType = type
     const mappedValue = temporaryMap[type]
     if (mappedValue) type = mappedValue
@@ -419,7 +419,7 @@ export class EntityMesh {
       const texture = overrides.textures?.[name] ?? e.textures[name]
       if (!texture) continue
       // console.log(JSON.stringify(jsonModel, null, 2))
-      const mesh = getMesh(world, texture, jsonModel, overrides)
+      const mesh = getMesh(worldRenderer, texture, jsonModel, overrides)
       mesh.name = `geometry_${name}`
       this.mesh.add(mesh)
 
