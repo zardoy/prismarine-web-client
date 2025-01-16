@@ -755,14 +755,14 @@ export class Entities extends EventEmitter {
     }
   }
 
-  updateMap (mapNumber, data) {
+  updateMap (mapNumber: string | number, data: string) {
     this.cachedMapsImages[mapNumber] = data
-    let itemFrameMeshs = this.itemFrameMaps[mapNumber]
-    if (!itemFrameMeshs) return
-    itemFrameMeshs = itemFrameMeshs.filter(mesh => mesh.parent)
-    this.itemFrameMaps[mapNumber] = itemFrameMeshs
-    if (itemFrameMeshs) {
-      for (const mesh of itemFrameMeshs) {
+    let itemFrameMeshes = this.itemFrameMaps[mapNumber]
+    if (!itemFrameMeshes) return
+    itemFrameMeshes = itemFrameMeshes.filter(mesh => mesh.parent)
+    this.itemFrameMaps[mapNumber] = itemFrameMeshes
+    if (itemFrameMeshes) {
+      for (const mesh of itemFrameMeshes) {
         mesh.material.map = this.loadMap(data)
         mesh.material.needsUpdate = true
         mesh.visible = true

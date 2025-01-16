@@ -6,8 +6,6 @@ export default () => {
   const [dataUrl, setDataUrl] = useState<string | null | true>(null) // true means loading
 
   useEffect(() => {
-    bot.loadPlugin(mapDownloader)
-
     setImageConverter((buf: Uint8Array) => {
       const canvas = document.createElement('canvas')
       const ctx = canvas.getContext('2d')!
