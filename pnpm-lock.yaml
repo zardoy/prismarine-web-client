@@ -426,9 +426,6 @@ importers:
       minecrafthawkeye:
         specifier: ^1.3.6
         version: 1.3.6
-      mineflayer-item-map-downloader:
-        specifier: github:zardoy/mineflayer-item-map-downloader
-        version: https://codeload.github.com/zardoy/mineflayer-item-map-downloader/tar.gz/642fd4f7023a98a96da4caf8f993f8e19361a1e7(patch_hash=bck55yjvd4wrgz46x7o4vfur5q)(encoding@0.1.13)
       prismarine-block:
         specifier: github:zardoy/prismarine-block#next-era
         version: https://codeload.github.com/zardoy/prismarine-block/tar.gz/23849d4d24af91f45a5bd38781a6f82d40316c05
@@ -444,9 +441,6 @@ importers:
       process:
         specifier: ^0.11.10
         version: 0.11.10
-      sharp:
-        specifier: ^0.29.1
-        version: 0.29.3
       socket.io:
         specifier: ^4.0.0
         version: 4.7.2
@@ -4588,11 +4582,6 @@ packages:
     resolution: {integrity: sha512-reYkTUJAZb9gUuZ2RvVCNhVHdg62RHnJ7WJl8ftMi4diZ6NWlciOzQN88pUhSELEwflJht4oQDv0F0BMlwaYtA==}
     engines: {node: '>=8'}
 
-  detect-libc@1.0.3:
-    resolution: {integrity: sha512-pGjwhsmsp4kL2RTz08wcOlGN83otlqHeD/Z5T8GXZB+/YcpQ/dgo+lbU8ZsGxV0HIvqqxo9l7mqYwyYMD9bKDg==}
-    engines: {node: '>=0.10'}
-    hasBin: true
-
   detect-libc@2.0.2:
     resolution: {integrity: sha512-UX6sGumvvqSaXgdKGUsgZWqcUyIXZ/vZTrlRT/iobiKhGL0zL4d3osHj3uqllWJK+i+sixDS/3COVEOFbupFyw==}
     engines: {node: '>=8'}
@@ -6999,9 +6988,6 @@ packages:
   node-abort-controller@3.1.1:
     resolution: {integrity: sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==}
 
-  node-addon-api@4.3.0:
-    resolution: {integrity: sha512-73sE9+3UaLYYFmDsFZnqCInzPyh3MqIwZO9cw58yIqAZhONrrabrYyYe3TuIqtIiOuTXVhsGau8hcrhhwSsDIQ==}
-
   node-addon-api@5.1.0:
     resolution: {integrity: sha512-eh0GgfEkpnoWDq+VY8OyvYhFEzBk6jIYbRKdIlyTiAXIVJ8PyBaKb0rp7oDtoddbdoHWhq8wwr+XZ81F1rpNdA==}
 
@@ -7547,8 +7533,8 @@ packages:
     version: 1.36.0
     engines: {node: '>=14'}
 
-  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/aba0d8e1efa49f4c75646cdb9635cfab41ad4ad9:
-    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/aba0d8e1efa49f4c75646cdb9635cfab41ad4ad9}
+  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cc4d8a232e33e946fa0929dceabe92df4d405734:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cc4d8a232e33e946fa0929dceabe92df4d405734}
     version: 1.38.0
     engines: {node: '>=14'}
 
@@ -8346,10 +8332,6 @@ packages:
   shallow-clone@3.0.1:
     resolution: {integrity: sha512-/6KqX+GVUdqPuPPd2LxDDxzX6CAbjJehAAOKlNpqqUpAqPM6HeL8f+o3a+JsyGjn2lv0WY8UsTgUJjU9Ok55NA==}
     engines: {node: '>=8'}
-
-  sharp@0.29.3:
-    resolution: {integrity: sha512-fKWUuOw77E4nhpyzCCJR1ayrttHoFHBT2U/kR/qEMRhvPEcluG4BKj324+SCO1e84+knXHwhJ1HHJGnUt4ElGA==}
-    engines: {node: '>=12.13.0'}
 
   sharp@0.30.7:
     resolution: {integrity: sha512-G+MY2YW33jgflKPTXXptVO28HvNOo9G3j0MybYAHeEmby+QuD2U98dT6ueht9cv/XDqZspSpIhoSW+BAKJ7Hig==}
@@ -14938,8 +14920,6 @@ snapshots:
 
   detect-indent@6.1.0: {}
 
-  detect-libc@1.0.3: {}
-
   detect-libc@2.0.2: {}
 
   detect-node-es@1.1.0: {}
@@ -14962,7 +14942,7 @@ snapshots:
   diamond-square@https://codeload.github.com/zardoy/diamond-square/tar.gz/cfaad2d1d5909fdfa63c8cc7bc05fb5e87782d71:
     dependencies:
       minecraft-data: 3.83.1
-      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/aba0d8e1efa49f4c75646cdb9635cfab41ad4ad9(minecraft-data@3.83.1)
+      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cc4d8a232e33e946fa0929dceabe92df4d405734(minecraft-data@3.83.1)
       prismarine-registry: 1.10.0
       random-seed: 0.3.0
       vec3: 0.1.8
@@ -18089,8 +18069,6 @@ snapshots:
 
   node-abort-controller@3.1.1: {}
 
-  node-addon-api@4.3.0: {}
-
   node-addon-api@5.1.0: {}
 
   node-canvas-webgl@0.3.0(encoding@0.1.13):
@@ -18708,7 +18686,7 @@ snapshots:
     transitivePeerDependencies:
       - minecraft-data
 
-  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/aba0d8e1efa49f4c75646cdb9635cfab41ad4ad9(minecraft-data@3.83.1):
+  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cc4d8a232e33e946fa0929dceabe92df4d405734(minecraft-data@3.83.1):
     dependencies:
       prismarine-biome: 1.3.0(minecraft-data@3.83.1)(prismarine-registry@1.10.0)
       prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/23849d4d24af91f45a5bd38781a6f82d40316c05
@@ -19743,17 +19721,6 @@ snapshots:
   shallow-clone@3.0.1:
     dependencies:
       kind-of: 6.0.3
-
-  sharp@0.29.3:
-    dependencies:
-      color: 4.2.3
-      detect-libc: 1.0.3
-      node-addon-api: 4.3.0
-      prebuild-install: 7.1.1
-      semver: 7.6.0
-      simple-get: 4.0.1
-      tar-fs: 2.1.1
-      tunnel-agent: 0.6.0
 
   sharp@0.30.7:
     dependencies:
