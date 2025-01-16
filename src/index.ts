@@ -623,6 +623,7 @@ async function connect (connectOptions: ConnectOptions) {
       } else {
         const originalSetSocket = bot._client.setSocket.bind(bot._client)
         bot._client.setSocket = (socket) => {
+          if (!bot) return
           originalSetSocket(socket)
           setupConnectHandlers()
         }

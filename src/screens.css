@@ -37,6 +37,8 @@
     /* todo I'm not sure about it */
     /* margin-top: calc(100% / 6 - 16px); */
     align-items: center;
+    /* apply safe area padding */
+    padding: 0 calc(env(safe-area-inset-left) / 2) 0 calc(env(safe-area-inset-right) / 2);
 
     gap: 10px;
 }

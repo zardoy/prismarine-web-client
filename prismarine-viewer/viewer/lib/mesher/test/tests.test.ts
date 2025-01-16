@@ -50,7 +50,6 @@ test('Known blocks are not rendered', () => {
   expect(missingBlocks).toMatchInlineSnapshot(`
     {
       "bubble_column": true,
-      "creaking_heart": true,
       "end_gateway": true,
       "end_portal": true,
       "structure_void": true,

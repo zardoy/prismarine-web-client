@@ -14,10 +14,8 @@ interface CssExports {
   minec: string;
   minecraft: string;
   'product-description': string;
-  'product-info': string;
   'product-link': string;
   productDescription: string;
-  productInfo: string;
   productLink: string;
   raft: string;
   root: string;

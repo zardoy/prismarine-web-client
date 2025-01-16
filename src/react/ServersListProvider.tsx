@@ -252,6 +252,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
   })
 
   const editModalJsx = isEditScreenModal ? <AddServerOrConnect
+    allowAutoConnect={miscUiState.appConfig?.allowAutoConnect}
     placeholders={{
       proxyOverride: selectedProxy,
       usernameOverride: defaultUsername,
