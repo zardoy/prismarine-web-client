@@ -714,7 +714,7 @@ export class Entities extends EventEmitter {
         return false
       })?.removeFromParent()
       if (item && (item.itemId ?? item.blockId ?? 0) !== 0) {
-        const rotation = (itemFrameMeta.rotation as any as number)
+        const rotation = (itemFrameMeta.rotation as any as number) ?? 0
         const mapNumber = item.nbtData?.value?.map?.value
         if (mapNumber) {
           // TODO: Use proper larger item frame model when a map exists
@@ -780,7 +780,7 @@ export class Entities extends EventEmitter {
       transparent: true,
       alphaTest: 0.1,
     }
-    if (texture?.image) {
+    if (texture) {
       parameters['map'] = texture
     }
     const material = new THREE.MeshLambertMaterial(parameters)
@@ -803,7 +803,7 @@ export class Entities extends EventEmitter {
     mapMesh.rotateZ(Math.PI * 2 - rotation * Math.PI / 2)
     mapMesh.name = `map_${mapNumber}`
 
-    if (!texture?.image) {
+    if (!texture) {
       mapMesh.visible = false
     }
 
