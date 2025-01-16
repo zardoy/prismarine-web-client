@@ -698,6 +698,7 @@ export class Entities extends EventEmitter {
       // TODO: Figure out why this doesn't match the Item mineflayer type
       const item = itemFrameMeta?.item as any as { itemId, blockId, nbtData: { value: { map: { value: number } } } }
       mesh.scale.set(1, 1, 1)
+      e.rotation.x = -entity.pitch
       e.children.find(c => {
         if (c.name.startsWith('map_')) {
           disposeObject(c)
@@ -723,7 +724,7 @@ export class Entities extends EventEmitter {
         } else {
           const itemMesh = this.getItemMesh(item)
           if (itemMesh) {
-            itemMesh.mesh.position.set(0, 0, 0.45)
+            itemMesh.mesh.position.set(0, 0, 0.43)
             itemMesh.mesh.scale.set(0.5, 0.5, 0.5)
             itemMesh.mesh.rotateY(Math.PI)
             itemMesh.mesh.rotateZ(rotation * Math.PI / 4)
