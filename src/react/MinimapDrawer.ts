@@ -43,11 +43,19 @@ export class MinimapDrawer {
   lastWarpPos: Vec3
   mapPixel: number
   yaw: number
-  chunksStore = new Map<string, undefined | null | 'requested' | ChunkInfo >()
-  loadingChunksQueue: undefined | Set<string>
-  warps: WorldWarp[]
-  loadChunk: undefined | ((key: string) => Promise<void>)
   _full = false
+
+  constructor (
+    public loadChunk: undefined | ((key: string) => Promise<void>),
+    public warps: WorldWarp[],
+    public loadingChunksQueue: undefined | Set<string>,
+    public chunksStore: Map<string, undefined | null | 'requested' | ChunkInfo >
+  ) {
+    this.loadChunk = loadChunk
+    this.warps = warps
+    this.loadingChunksQueue = loadingChunksQueue
+    this.chunksStore = chunksStore
+  }
 
   setMapPixel () {
     if (this.full) {
@@ -101,6 +109,7 @@ export class MinimapDrawer {
       if (!this.chunksStore.has(key) && !this.loadingChunksQueue?.has(key)) {
         void this.loadChunk?.(key)
       }
+      // case when chunk is not present is handled in drawChunk
       this.drawChunk(key)
     }
     if (!this.full) this.drawPartsOfWorld()
@@ -131,6 +140,7 @@ export class MinimapDrawer {
     const chunkCanvasX = Math.floor((chunkWorldX - this.lastBotPos.x) * this.mapPixel + this.canvasWidthCenterX)
     const chunkCanvasY = Math.floor((chunkWorldZ - this.lastBotPos.z) * this.mapPixel + this.canvasWidthCenterY)
     const chunk = chunkInfo ?? this.chunksStore.get(key)
+    // if chunk is not ready then draw waiting color (grey) or none (half transparent black)
     if (typeof chunk !== 'object') {
       const chunkSize = this.mapPixel * 16
       this.ctx.fillStyle = chunk === 'requested' ? 'rgb(200, 200, 200)' : 'rgba(0, 0, 0, 0.5)'
@@ -149,10 +159,10 @@ export class MinimapDrawer {
   }
 
   drawPixel (pixelX: number, pixelY: number, color: string) {
-    // if (!this.full && Math.hypot(pixelX - this.canvasWidthCenterX, pixelY - this.canvasWidthCenterY) > this.radius) {
-    //   this.ctx.clearRect(pixelX, pixelY, this.mapPixel, this.mapPixel)
-    //   return
-    // }
+    if (!this.full && Math.hypot(pixelX - this.canvasWidthCenterX, pixelY - this.canvasWidthCenterY) > this.radius) {
+      this.ctx.clearRect(pixelX, pixelY, this.mapPixel, this.mapPixel)
+      return
+    }
     this.ctx.fillStyle = color
     this.ctx.fillRect(
       pixelX,
@@ -177,15 +187,13 @@ export class MinimapDrawer {
 
   drawWarps (centerPos?: Vec3) {
     for (const warp of this.warps) {
-      // if (!full) {
-      //   const distance = this.getDistance(
-      //     centerPos?.x ?? this.adapter.playerPosition.x,
-      //     centerPos?.z ?? this.adapter.playerPosition.z,
-      //     warp.x,
-      //     warp.z
-      //   )
-      //   if (distance > this.mapSize) continue
-      // }
+      if (!this.full) {
+        const distance = Math.hypot(
+          centerPos?.x ?? this.lastBotPos.x - warp.x,
+          centerPos?.z ?? this.lastBotPos.z - warp.z
+        )
+        if (distance > this.mapSize) continue
+      }
       const offset = this.full ? 0 : this.radius * 0.1
       const z = Math.floor(
         (this.mapSize / 2 - (centerPos?.z ?? this.lastBotPos.z) + warp.z) * this.mapPixel
@@ -288,8 +296,8 @@ export class MinimapDrawer {
   drawPlayerPos (canvasWorldCenterX?: number, canvasWorldCenterZ?: number, disableTurn?: boolean) {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-    const x = (this.lastBotPos.x - (canvasWorldCenterX ?? this.lastBotPos.x)) * this.mapPixel
-    const z = (this.lastBotPos.z - (canvasWorldCenterZ ?? this.lastBotPos.z)) * this.mapPixel
+    const x = (this.lastBotPos.x - (canvasWorldCenterX ?? this.lastBotPos.x)) * this.mapPixel - (this.full ? 30 : 0)
+    const z = (this.lastBotPos.z - (canvasWorldCenterZ ?? this.lastBotPos.z)) * this.mapPixel - (this.full ? 30 : 0)
     const center = this.mapSize / 2 * this.mapPixel + (this.full ? 0 : this.radius * 0.1)
     this.ctx.translate(center + x, center + z)
     if (!disableTurn) this.ctx.rotate(-this.yaw)

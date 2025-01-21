@@ -172,12 +172,18 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
           this.geometryReceiveCount[data.workerIndex] ??= 0
           this.geometryReceiveCount[data.workerIndex]++
           const geometry = data.geometry as MesherGeometryOutput
-          for (const key in geometry.highestBlocks) {
-            const highest = geometry.highestBlocks[key]
-            if (!this.highestBlocks[key] || this.highestBlocks[key].y < highest.y) {
-              this.highestBlocks[key] = highest
+          for (const [key, highest] of geometry.highestBlocks.entries()) {
+            const currHighest = this.highestBlocks.get(key)
+            if (!currHighest || currHighest.y < highest.y) {
+              this.highestBlocks.set(key, highest)
             }
           }
+          // for (const key in geometry.highestBlocks) {
+          //   const highest = geometry.highestBlocks[key]
+          //   if (!this.highestBlocks[key] || this.highestBlocks[key].y < highest.y) {
+          //     this.highestBlocks[key] = highest
+          //   }
+          // }
           const chunkCoords = data.key.split(',').map(Number)
           this.lastChunkDistance = Math.max(...this.getDistance(new Vec3(chunkCoords[0], 0, chunkCoords[2])))
         }
@@ -197,6 +203,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
               return x === chunkCoords[0] && z === chunkCoords[2]
             })) {
               this.finishedChunks[`${chunkCoords[0]},${chunkCoords[2]}`] = true
+              this.renderUpdateEmitter.emit(`chunkFinished`, `${chunkCoords[0] / 16},${chunkCoords[2] / 16}`)
             }
           }
           this.checkAllFinished()

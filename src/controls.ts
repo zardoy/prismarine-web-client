@@ -431,13 +431,18 @@ contro.on('trigger', ({ command }) => {
   if (command === 'ui.toggleFullscreen') {
     void goFullscreen(true)
   }
+})
 
-  if (command === 'ui.toggleMap') {
-    if (activeModalStack.at(-1)?.reactType === 'full-map') {
-      hideModal({ reactType: 'full-map' })
-    } else {
-      showModal({ reactType: 'full-map' })
-    }
+// show-hide Fullmap
+contro.on('trigger', ({ command }) => {
+  if (command !== 'ui.toggleMap') return
+  const isActive = isGameActive(true)
+  if (activeModalStack.at(-1)?.reactType === 'full-map') {
+    miscUiState.displayFullmap = false
+    hideModal({ reactType: 'full-map' })
+  } else if (isActive && !activeModalStack.length) {
+    miscUiState.displayFullmap = true
+    showModal({ reactType: 'full-map' })
   }
 })
 

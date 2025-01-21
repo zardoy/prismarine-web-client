@@ -137,6 +137,7 @@ export const miscUiState = proxy({
   usingGamepadInput: false,
   appConfig: null as AppConfig | null,
   displaySearchInput: false,
+  displayFullmap: false
 })
 
 export const loadedGameState = proxy({

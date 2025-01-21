@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
-import { MinimapDrawer, DrawerAdapter, ChunkInfo } from './MinimapDrawer'
+import { miscUiState } from '../globalState'
+import { DrawerAdapter } from './MinimapDrawer'
 import Fullmap from './Fullmap'
 
 
@@ -13,36 +14,31 @@ export default (
     showFullmap: string,
     singleplayer: boolean,
     fullMap?: boolean,
-    toggleFullMap?: ({ command }: { command: string }) => void
+    toggleFullMap?: () => void
     displayMode?: DisplayMode
   }
 ) => {
   const full = useRef(false)
   const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const warpsAndPartsCanvasRef = useRef<HTMLCanvasElement>(null)
-  const playerPosCanvasRef = useRef<HTMLCanvasElement>(null)
-  const warpsDrawerRef = useRef<MinimapDrawer | null>(null)
-  const drawerRef = useRef<MinimapDrawer | null>(null)
-  const playerPosDrawerRef = useRef<MinimapDrawer | null>(null)
   const [position, setPosition] = useState({ x: 0, y: 0, z: 0 })
 
   const updateMap = () => {
     setPosition({ x: adapter.playerPosition.x, y: adapter.playerPosition.y, z: adapter.playerPosition.z })
-    if (drawerRef.current) {
+    if (adapter.mapDrawer) {
       if (!full.current) {
         rotateMap()
-        drawerRef.current.draw(adapter.playerPosition)
-        drawerRef.current.drawPlayerPos()
-        drawerRef.current.drawWarps()
+        adapter.mapDrawer.draw(adapter.playerPosition)
+        adapter.mapDrawer.drawPlayerPos()
+        adapter.mapDrawer.drawWarps()
       }
       if (canvasTick.current % 300 === 0 && !fullMap) {
         if ('requestIdleCallback' in window) {
           requestIdleCallback(() => {
-            drawerRef.current?.clearChunksStore()
+            adapter.mapDrawer?.clearChunksStore()
           })
         } else {
-          drawerRef.current.clearChunksStore()
+          adapter.mapDrawer.clearChunksStore()
         }
         canvasTick.current = 0
       }
@@ -53,42 +49,17 @@ export default (
   const updateWarps = () => { }
 
   const rotateMap = () => {
-    if (!drawerRef.current) return
-    drawerRef.current.canvas.style.transform = `rotate(${adapter.yaw}rad)`
-    if (!warpsDrawerRef.current) return
-    warpsDrawerRef.current.canvas.style.transform = `rotate(${adapter.yaw}rad)`
-  }
-
-  const updateChunkOnMap = (key: string, chunk: ChunkInfo) => {
-    adapter.chunksStore.set(key, chunk)
+    if (!adapter.mapDrawer) return
+    adapter.mapDrawer.canvas.style.transform = `rotate(${adapter.yaw}rad)`
+    adapter.mapDrawer.yaw = adapter.yaw
   }
 
   useEffect(() => {
-    if (canvasRef.current && !drawerRef.current) {
-      drawerRef.current = adapter.mapDrawer
-      drawerRef.current.canvas = canvasRef.current
-      // drawerRef.current.adapter.on('chunkReady', updateChunkOnMap)
-    } else if (canvasRef.current && drawerRef.current) {
-      drawerRef.current.canvas = canvasRef.current
+    if (canvasRef.current && adapter.mapDrawer && !miscUiState.displayFullmap) {
+      adapter.mapDrawer.canvas = canvasRef.current
+      adapter.mapDrawer.full = false
     }
-
-  }, [canvasRef.current])
-
-  // useEffect(() => {
-  //   if (warpsAndPartsCanvasRef.current && !warpsDrawerRef.current) {
-  //     warpsDrawerRef.current = new MinimapDrawer(warpsAndPartsCanvasRef.current, adapter)
-  //   } else if (warpsAndPartsCanvasRef.current && warpsDrawerRef.current) {
-  //     warpsDrawerRef.current.canvas = warpsAndPartsCanvasRef.current
-  //   }
-  // }, [warpsAndPartsCanvasRef.current])
-
-  // useEffect(() => {
-  //   if (playerPosCanvasRef.current && !playerPosDrawerRef.current) {
-  //     playerPosDrawerRef.current = new MinimapDrawer(playerPosCanvasRef.current, adapter)
-  //   } else if (playerPosCanvasRef.current && playerPosDrawerRef.current) {
-  //     playerPosDrawerRef.current.canvas = playerPosCanvasRef.current
-  //   }
-  // }, [playerPosCanvasRef.current])
+  }, [canvasRef.current, miscUiState.displayFullmap])
 
   useEffect(() => {
     adapter.on('updateMap', updateMap)
@@ -100,24 +71,12 @@ export default (
     }
   }, [adapter])
 
-  useEffect(() => {
-    return () => {
-      // if (drawerRef.current) drawerRef.current.adapter.off('chunkReady', updateChunkOnMap)
-    }
-  }, [])
-
-  const displayFullmap = fullMap && displayMode !== 'minimapOnly' && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
-  const displayMini = displayMode !== 'fullmapOnly' && (showMinimap === 'singleplayer' && singleplayer || showMinimap === 'always')
-  return displayFullmap
+  return fullMap && displayMode !== 'minimapOnly' && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
     ? <Fullmap
-      toggleFullMap={() => {
-        toggleFullMap?.({ command: 'ui.toggleMap' })
-      }}
+      toggleFullMap={toggleFullMap}
       adapter={adapter}
-      drawer={drawerRef.current}
-      canvasRef={canvasRef}
     />
-    : displayMini
+    : displayMode !== 'fullmapOnly' && (showMinimap === 'singleplayer' && singleplayer || showMinimap === 'always')
       ? <div
         className='minimap'
         style={{
@@ -128,7 +87,7 @@ export default (
           textAlign: 'center',
         }}
         onClick={() => {
-          toggleFullMap?.({ command: 'ui.toggleMap' })
+          toggleFullMap?.()
         }}
       >
         <canvas
@@ -140,28 +99,6 @@ export default (
           width={80}
           height={80}
           ref={canvasRef}
-        />
-        <canvas
-          style={{
-            transition: '0.5s',
-            transitionTimingFunction: 'ease-out',
-            position: 'absolute',
-            left: '0px'
-          }}
-          width={80}
-          height={80}
-          ref={warpsAndPartsCanvasRef}
-        />
-        <canvas
-          style={{
-            transition: '0.5s',
-            transitionTimingFunction: 'ease-out',
-            position: 'absolute',
-            left: '0px'
-          }}
-          width={80}
-          height={80}
-          ref={playerPosCanvasRef}
         />
         <div
           style={{

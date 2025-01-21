@@ -2,23 +2,21 @@ import { Vec3 } from 'vec3'
 import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
-import { MinimapDrawer, DrawerAdapter, ChunkInfo } from './MinimapDrawer'
+import { DrawerAdapter } from './MinimapDrawer'
 import Button from './Button'
 import Input from './Input'
 import './Fullmap.css'
 
 
 type FullmapProps = {
-  toggleFullMap: () => void,
   adapter: DrawerAdapter,
-  drawer: MinimapDrawer | null,
-  canvasRef: any
+  toggleFullMap?: () => void,
 }
 
-export default ({ toggleFullMap, adapter }: FullmapProps) => {
+export default ({ adapter, toggleFullMap }: FullmapProps) => {
   const [grid, setGrid] = useState(() => new Set<string>())
   const zoomRef = useRef<ReactZoomPanPinchRef>(null)
-  const redrawCell = useRef(false)
+  const [redraw, setRedraw] = useState<Set<string> | null>(null)
   const [lastWarpPos, setLastWarpPos] = useState({ x: 0, y: 0, z: 0 })
   const stateRef = useRef({ scale: 1, positionX: 0, positionY: 0 })
   const cells = useRef({ columns: 0, rows: 0 })
@@ -73,7 +71,7 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
         zIndex: '-1'
       }}
       onClick={toggleFullMap}
-    />
+    > </div>
       : <Button
         icon="close-box"
         onClick={toggleFullMap}
@@ -129,7 +127,7 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
             worldZ={playerChunkTop + y / 4 - offsetY}
             setIsWarpInfoOpened={setIsWarpInfoOpened}
             setLastWarpPos={setLastWarpPos}
-            redraw={redrawCell.current}
+            redraw={redraw}
             setInitWarp={setInitWarp}
             setWarpPreview={setWarpPreview}
           />
@@ -156,9 +154,7 @@ export default ({ toggleFullMap, adapter }: FullmapProps) => {
         adapter={adapter}
         warpPos={lastWarpPos}
         setIsWarpInfoOpened={setIsWarpInfoOpened}
-        afterWarpIsSet={() => {
-          redrawCell.current = !redrawCell.current
-        }}
+        setRedraw={setRedraw}
         initWarp={initWarp}
         setInitWarp={setInitWarp}
         toggleFullMap={toggleFullMap}
@@ -179,16 +175,14 @@ const MapChunk = (
     worldZ: number,
     setIsWarpInfoOpened: (x: boolean) => void,
     setLastWarpPos: (obj: { x: number, y: number, z: number }) => void,
-    redraw?: boolean
+    redraw?: Set<string> | null
     setInitWarp?: (warp: WorldWarp | undefined) => void
     setWarpPreview?: (warpInfo) => void
   }
 ) => {
   const containerRef = useRef(null)
-  const drawerRef = useRef<MinimapDrawer | null>(null)
   const touchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const [isCanvas, setIsCanvas] = useState(false)
 
   const longPress = (e) => {
     touchTimer.current = setTimeout(() => {
@@ -202,8 +196,8 @@ const MapChunk = (
   }
 
   const handleClick = (e: MouseEvent | TouchEvent) => {
-    // console.log('click:', e)
-    if (!drawerRef.current) return
+    if (!adapter.mapDrawer) return
+    console.log('click:', e)
     let clientX: number
     let clientY: number
     if ('buttons' in e && e.button === 2) {
@@ -217,9 +211,9 @@ const MapChunk = (
     const mapX = Math.floor(x + worldX)
     const mapZ = Math.floor(z + worldZ)
     const y = adapter.getHighestBlockY(mapX, mapZ)
-    drawerRef.current.setWarpPosOnClick(new Vec3(mapX, y, mapZ))
-    setLastWarpPos(drawerRef.current.lastWarpPos)
-    const { lastWarpPos } = drawerRef.current
+    adapter.mapDrawer.setWarpPosOnClick(new Vec3(mapX, y, mapZ))
+    setLastWarpPos(adapter.mapDrawer.lastWarpPos)
+    const { lastWarpPos } = adapter.mapDrawer
     const initWarp = adapter.warps.find(warp => Math.hypot(lastWarpPos.x - warp.x, lastWarpPos.z - warp.z) < 2)
     setInitWarp?.(initWarp)
     setIsWarpInfoOpened(true)
@@ -227,7 +221,7 @@ const MapChunk = (
 
   const getXZ = (clientX: number, clientY: number) => {
     const rect = canvasRef.current!.getBoundingClientRect()
-    const factor = scale * (drawerRef.current?.mapPixel ?? 1)
+    const factor = scale * (adapter.mapDrawer.mapPixel ?? 1)
     const x = (clientX - rect.left) / factor
     const y = (clientY - rect.top) / factor
     return [x, y]
@@ -241,34 +235,18 @@ const MapChunk = (
     )
   }
 
-  const handleRedraw = (key?: string, chunk?: ChunkInfo) => {
+  const handleRedraw = (key?: string) => {
     if (key !== `${worldX / 16},${worldZ / 16}`) return
     adapter.mapDrawer.canvas = canvasRef.current!
     adapter.mapDrawer.full = true
-    // console.log('handle redraw:', key)
-    // if (chunk) {
-    //   drawerRef.current?.chunksStore.set(key, chunk)
-    // }
-    if (!adapter.chunksStore.has(key)) {
-      adapter.chunksStore.set(key, 'requested')
-      void adapter.loadChunk(key)
-      return
-    }
+    console.log('[mapChunk] update', key, `${worldX / 16},${worldZ / 16}`)
     const timeout = setTimeout(() => {
-      const center = new Vec3(worldX + 8, 0, worldZ + 8)
-      drawerRef.current!.lastBotPos = center
-      drawerRef.current?.drawChunk(key)
-      // drawerRef.current?.drawWarps(center)
-      // drawerRef.current?.drawPlayerPos(center.x, center.z)
+      if (canvasRef.current) void adapter.drawChunkOnCanvas(`${worldX / 16},${worldZ / 16}`, canvasRef.current)
       clearTimeout(timeout)
     }, 100)
   }
 
   useEffect(() => {
-    // if (canvasRef.current && !drawerRef.current) {
-    //   drawerRef.current = adapter.mapDrawer
-    // } else if (canvasRef.current && drawerRef.current) {
-    // }
     if (canvasRef.current) void adapter.drawChunkOnCanvas(`${worldX / 16},${worldZ / 16}`, canvasRef.current)
   }, [canvasRef.current])
 
@@ -286,29 +264,15 @@ const MapChunk = (
       canvasRef.current?.removeEventListener('touchmove', cancel)
       canvasRef.current?.removeEventListener('mousemove', handleMouseMove)
     }
-  }, [canvasRef.current, scale])
+  }, [canvasRef.current])
 
   useEffect(() => {
-    // handleRedraw()
-  }, [drawerRef.current, redraw])
-
-  useEffect(() => {
-    const intersectionObserver = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) {
-          setIsCanvas(true)
-        }
+    if (redraw) {
+      for (const key of redraw) {
+        handleRedraw(key)
       }
-    })
-    intersectionObserver.observe(containerRef.current!)
-
-    // adapter.on('chunkReady', handleRedraw)
-
-    return () => {
-      intersectionObserver.disconnect()
-      // adapter.off('chunkReady', handleRedraw)
     }
-  }, [])
+  }, [redraw])
 
   return <div
     ref={containerRef}
@@ -334,7 +298,7 @@ const MapChunk = (
 }
 
 const WarpInfo = (
-  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp, toggleFullMap }:
+  { adapter, warpPos, setIsWarpInfoOpened, afterWarpIsSet, initWarp, toggleFullMap, setRedraw }:
   {
     adapter: DrawerAdapter,
     warpPos: { x: number, y: number, z: number },
@@ -342,7 +306,8 @@ const WarpInfo = (
     afterWarpIsSet?: () => void
     initWarp?: WorldWarp,
     setInitWarp?: React.Dispatch<React.SetStateAction<WorldWarp | undefined>>,
-    toggleFullMap?: ({ command }: { command: string }) => void
+    toggleFullMap?: () => void,
+    setRedraw?: React.Dispatch<React.SetStateAction<Set<string> | null>>
   }
 ) => {
   const [warp, setWarp] = useState<WorldWarp>(initWarp ?? {
@@ -365,14 +330,14 @@ const WarpInfo = (
   }
 
   const updateChunk = () => {
+    const redraw = new Set<string>()
     for (let i = -1; i < 2; i += 1) {
       for (let j = -1; j < 2; j += 1) {
-        adapter.emit(
-          'chunkReady',
-          `${Math.floor(warp.x / 16) + j},${Math.floor(warp.z / 16) + i}`
-        )
+        redraw.add(`${Math.floor(warp.x / 16) + j},${Math.floor(warp.z / 16) + i}`)
       }
     }
+    setRedraw?.(redraw)
+    console.log('[warpInfo] update', redraw)
   }
 
   const tpNow = () => {
@@ -380,7 +345,7 @@ const WarpInfo = (
   }
 
   const quickTp = () => {
-    toggleFullMap?.({ command: 'ui.toggleMap' })
+    toggleFullMap?.()
     adapter.quickTp?.(warp.x, warp.z)
   }
 
@@ -486,7 +451,8 @@ const WarpInfo = (
           }}
         >Cancel</Button>
         <Button
-          onClick={() => {
+          onClick={(e) => {
+            e.preventDefault()
             adapter.setWarp({ ...warp })
             console.log(adapter.warps)
             setIsWarpInfoOpened(false)
