@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { simplify } from 'prismarine-nbt'
 import RegionFile from 'prismarine-provider-anvil/src/region'
 import { Vec3 } from 'vec3'
@@ -14,7 +14,7 @@ import { useSnapshot } from 'valtio'
 import BlockData from '../../prismarine-viewer/viewer/lib/moreBlockDataGenerated.json'
 import preflatMap from '../preflatMap.json'
 import { contro } from '../controls'
-import { gameAdditionalState, showModal, hideModal, miscUiState, loadedGameState, activeModalStack } from '../globalState'
+import { gameAdditionalState, miscUiState, loadedGameState } from '../globalState'
 import { options } from '../optionsStorage'
 import Minimap, { DisplayMode } from './Minimap'
 import { ChunkInfo, DrawerAdapter, MapUpdates, MinimapDrawer } from './MinimapDrawer'
@@ -67,26 +67,32 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       const regionZ = Math.floor(chunkZ / 32)
       const regionKey = `${regionX},${regionZ}`
       const { worldFolder } = localServer.options
-      const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
-      const region = new RegionFile(path)
-      void region.initialize()
-      this.regions.set(regionKey, region)
-      const readX = chunkX % 32 < 0 ? 32 + chunkX % 32 : chunkX % 32
-      const readZ = chunkZ % 32 < 0 ? 32 + chunkZ % 32 : chunkZ % 32
-      console.log('heightmap check begun', readX, readZ)
-      void this.regions.get(regionKey)?.read(readX, readZ).then((rawChunk) => {
-        const chunk = simplify(rawChunk as any)
-        const heightmap = findHeightMap(chunk)
-        if (heightmap) {
-          this.isBuiltinHeightmapAvailable = true
-          this.loadChunkFullmap = this.loadChunkFromRegion
-          console.log('using heightmap')
-        } else {
-          this.isBuiltinHeightmapAvailable = false
-          this.loadChunkFullmap = this.loadChunkNoRegion
-          console.log('dont use heightmap')
-        }
-      })
+      if (worldFolder) {
+        const path = `${worldFolder}/region/r.${regionX}.${regionZ}.mca`
+        const region = new RegionFile(path)
+        void region.initialize()
+        this.regions.set(regionKey, region)
+        const readX = chunkX % 32 < 0 ? 32 + chunkX % 32 : chunkX % 32
+        const readZ = chunkZ % 32 < 0 ? 32 + chunkZ % 32 : chunkZ % 32
+        console.log('heightmap check begun', readX, readZ)
+        void this.regions.get(regionKey)?.read(readX, readZ)?.then((rawChunk) => {
+          const chunk = simplify(rawChunk as any)
+          const heightmap = findHeightMap(chunk)
+          if (heightmap) {
+            this.isBuiltinHeightmapAvailable = true
+            this.loadChunkFullmap = this.loadChunkFromRegion
+            console.log('using heightmap')
+          } else {
+            this.isBuiltinHeightmapAvailable = false
+            this.loadChunkFullmap = this.loadChunkNoRegion
+            console.log('dont use heightmap')
+          }
+        })
+      } else {
+        this.isBuiltinHeightmapAvailable = false
+        this.loadChunkFullmap = this.loadChunkNoRegion
+        console.log('dont use heightmap')
+      }
     } else {
       this.isBuiltinHeightmapAvailable = false
       this.loadChunkFullmap = this.loadChunkFromViewer
@@ -298,8 +304,7 @@ export class DrawerAdapterImpl extends TypedEventEmitter<MapUpdates> implements 
       await region.initialize()
       this.regions.set(regionKey, region)
     }
-    const rawChunk = await this.regions.get(regionKey)?.read(chunkX % 32, chunkZ % 32)
-    if (!rawChunk) return null
+    const rawChunk = await this.regions.get(regionKey)!.read(chunkX % 32, chunkZ % 32)
     const chunk = simplify(rawChunk as any)
     console.log(`chunk ${chunkX}, ${chunkZ}:`, chunk)
     const heightmap = findHeightMap(chunk)
@@ -492,7 +497,7 @@ const Inner = (
   {
     adapter: DrawerAdapterImpl
     displayMode?: DisplayMode,
-    toggleFullMap?: ({ command }: { command?: string }) => void
+    toggleFullMap?: () => void
   }
 ) => {
 
@@ -506,7 +511,7 @@ const Inner = (
   }
 
   const updateMap = () => {
-    if (!adapter) return
+    if (!adapter || miscUiState.displayFullmap) return
     adapter.playerPosition = bot.entity.position
     adapter.yaw = bot.entity.yaw
     adapter.emit('updateMap')
@@ -535,29 +540,14 @@ const Inner = (
   </div>
 }
 
-export default ({ displayMode }: { displayMode?: DisplayMode }) => {
-  const [adapter] = useState(() => new DrawerAdapterImpl(bot.entity.position))
+export default ({ adapter, displayMode }: { adapter: DrawerAdapterImpl, displayMode?: DisplayMode }) => {
 
   const { showMinimap } = useSnapshot(options)
   const fullMapOpened = useIsModalActive('full-map')
 
-  const toggleFullMap = ({ command }: { command?: string }) => {
-    if (command === 'ui.toggleMap') {
-      if (activeModalStack.at(-1)?.reactType === 'full-map') {
-        hideModal({ reactType: 'full-map' })
-      } else {
-        showModal({ reactType: 'full-map' })
-      }
-    }
+  const toggleFullMap = () => {
+    void contro.emit('trigger', { command: 'ui.toggleMap', schema: null as any })
   }
-
-  useEffect(() => {
-    if (displayMode !== 'fullmapOnly') return
-    contro?.on('trigger', toggleFullMap)
-    return () => {
-      contro?.off('trigger', toggleFullMap)
-    }
-  }, [])
 
   if (
     displayMode === 'minimapOnly'

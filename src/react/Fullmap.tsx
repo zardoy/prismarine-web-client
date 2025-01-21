@@ -2,20 +2,18 @@ import { Vec3 } from 'vec3'
 import { useRef, useEffect, useState, CSSProperties, Dispatch, SetStateAction } from 'react'
 import { WorldWarp } from 'flying-squid/dist/lib/modules/warps'
 import { TransformWrapper, TransformComponent, ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
-import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
+import { DrawerAdapter } from './MinimapDrawer'
 import Button from './Button'
 import Input from './Input'
 import './Fullmap.css'
 
 
 type FullmapProps = {
-  toggleFullMap: () => void,
   adapter: DrawerAdapter,
-  drawer: MinimapDrawer | null,
-  canvasRef: any
+  toggleFullMap?: () => void,
 }
 
-export default ({ toggleFullMap, adapter }: FullmapProps) => {
+export default ({ adapter, toggleFullMap }: FullmapProps) => {
   const [grid, setGrid] = useState(() => new Set<string>())
   const zoomRef = useRef<ReactZoomPanPinchRef>(null)
   const [redraw, setRedraw] = useState<Set<string> | null>(null)
@@ -308,7 +306,7 @@ const WarpInfo = (
     afterWarpIsSet?: () => void
     initWarp?: WorldWarp,
     setInitWarp?: React.Dispatch<React.SetStateAction<WorldWarp | undefined>>,
-    toggleFullMap?: ({ command }: { command: string }) => void,
+    toggleFullMap?: () => void,
     setRedraw?: React.Dispatch<React.SetStateAction<Set<string> | null>>
   }
 ) => {
@@ -347,7 +345,7 @@ const WarpInfo = (
   }
 
   const quickTp = () => {
-    toggleFullMap?.({ command: 'ui.toggleMap' })
+    toggleFullMap?.()
     adapter.quickTp?.(warp.x, warp.z)
   }
 

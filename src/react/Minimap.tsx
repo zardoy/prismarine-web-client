@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
-import { MinimapDrawer, DrawerAdapter } from './MinimapDrawer'
+import { miscUiState } from '../globalState'
+import { DrawerAdapter } from './MinimapDrawer'
 import Fullmap from './Fullmap'
 
 
@@ -13,32 +14,31 @@ export default (
     showFullmap: string,
     singleplayer: boolean,
     fullMap?: boolean,
-    toggleFullMap?: ({ command }: { command: string }) => void
+    toggleFullMap?: () => void
     displayMode?: DisplayMode
   }
 ) => {
   const full = useRef(false)
   const canvasTick = useRef(0)
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const drawerRef = useRef<MinimapDrawer | null>(null)
   const [position, setPosition] = useState({ x: 0, y: 0, z: 0 })
 
   const updateMap = () => {
     setPosition({ x: adapter.playerPosition.x, y: adapter.playerPosition.y, z: adapter.playerPosition.z })
-    if (drawerRef.current) {
+    if (adapter.mapDrawer) {
       if (!full.current) {
         rotateMap()
-        drawerRef.current.draw(adapter.playerPosition)
-        drawerRef.current.drawPlayerPos()
-        drawerRef.current.drawWarps()
+        adapter.mapDrawer.draw(adapter.playerPosition)
+        adapter.mapDrawer.drawPlayerPos()
+        adapter.mapDrawer.drawWarps()
       }
       if (canvasTick.current % 300 === 0 && !fullMap) {
         if ('requestIdleCallback' in window) {
           requestIdleCallback(() => {
-            drawerRef.current?.clearChunksStore()
+            adapter.mapDrawer?.clearChunksStore()
           })
         } else {
-          drawerRef.current.clearChunksStore()
+          adapter.mapDrawer.clearChunksStore()
         }
         canvasTick.current = 0
       }
@@ -49,20 +49,17 @@ export default (
   const updateWarps = () => { }
 
   const rotateMap = () => {
-    if (!drawerRef.current) return
-    drawerRef.current.canvas.style.transform = `rotate(${adapter.yaw}rad)`
-    drawerRef.current.yaw = adapter.yaw
+    if (!adapter.mapDrawer) return
+    adapter.mapDrawer.canvas.style.transform = `rotate(${adapter.yaw}rad)`
+    adapter.mapDrawer.yaw = adapter.yaw
   }
 
   useEffect(() => {
-    if (canvasRef.current && !drawerRef.current) {
-      drawerRef.current = adapter.mapDrawer
-      drawerRef.current.canvas = canvasRef.current
-      // drawerRef.current.adapter.on('chunkReady', updateChunkOnMap)
-    } else if (canvasRef.current && drawerRef.current) {
-      drawerRef.current.canvas = canvasRef.current
+    if (canvasRef.current && adapter.mapDrawer && !miscUiState.displayFullmap) {
+      adapter.mapDrawer.canvas = canvasRef.current
+      adapter.mapDrawer.full = false
     }
-  }, [canvasRef.current])
+  }, [canvasRef.current, miscUiState.displayFullmap])
 
   useEffect(() => {
     adapter.on('updateMap', updateMap)
@@ -74,20 +71,10 @@ export default (
     }
   }, [adapter])
 
-  useEffect(() => {
-    return () => {
-      // if (drawerRef.current) drawerRef.current.adapter.off('chunkReady', updateChunkOnMap)
-    }
-  }, [])
-
   return fullMap && displayMode !== 'minimapOnly' && (showFullmap === 'singleplayer' && singleplayer || showFullmap === 'always')
     ? <Fullmap
-      toggleFullMap={() => {
-        toggleFullMap?.({ command: 'ui.toggleMap' })
-      }}
+      toggleFullMap={toggleFullMap}
       adapter={adapter}
-      drawer={drawerRef.current}
-      canvasRef={canvasRef}
     />
     : displayMode !== 'fullmapOnly' && (showMinimap === 'singleplayer' && singleplayer || showMinimap === 'always')
       ? <div
@@ -100,7 +87,7 @@ export default (
           textAlign: 'center',
         }}
         onClick={() => {
-          toggleFullMap?.({ command: 'ui.toggleMap' })
+          toggleFullMap?.()
         }}
       >
         <canvas

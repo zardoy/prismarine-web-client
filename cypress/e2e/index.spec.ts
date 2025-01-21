@@ -24,9 +24,6 @@ const testWorldLoad = () => {
 }
 
 it('Loads & renders singleplayer', () => {
-  cy.on('uncaught:exception', (err, runnable, promise) => {
-    if (promise) return false
-  })
   cleanVisit('/?singleplayer=1')
   setOptions({
     localServerOptions: {

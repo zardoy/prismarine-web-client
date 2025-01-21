@@ -296,8 +296,8 @@ export class MinimapDrawer {
   drawPlayerPos (canvasWorldCenterX?: number, canvasWorldCenterZ?: number, disableTurn?: boolean) {
     this.ctx.setTransform(1, 0, 0, 1, 0, 0)
 
-    const x = (this.lastBotPos.x - (canvasWorldCenterX ?? this.lastBotPos.x)) * this.mapPixel
-    const z = (this.lastBotPos.z - (canvasWorldCenterZ ?? this.lastBotPos.z)) * this.mapPixel
+    const x = (this.lastBotPos.x - (canvasWorldCenterX ?? this.lastBotPos.x)) * this.mapPixel - (this.full ? 30 : 0)
+    const z = (this.lastBotPos.z - (canvasWorldCenterZ ?? this.lastBotPos.z)) * this.mapPixel - (this.full ? 30 : 0)
     const center = this.mapSize / 2 * this.mapPixel + (this.full ? 0 : this.radius * 0.1)
     this.ctx.translate(center + x, center + z)
     if (!disableTurn) this.ctx.rotate(-this.yaw)
