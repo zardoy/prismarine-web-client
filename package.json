@@ -142,7 +142,7 @@
     "http-browserify": "^1.7.0",
     "http-server": "^14.1.1",
     "https-browserify": "^1.0.0",
-    "mc-assets": "^0.2.26",
+    "mc-assets": "^0.2.27",
     "minecraft-inventory-gui": "github:zardoy/minecraft-inventory-gui#next",
     "mineflayer": "github:zardoy/mineflayer",
     "mineflayer-pathfinder": "^2.4.4",
@@ -189,7 +189,7 @@
       "three@0.154.0": "patches/three@0.154.0.patch",
       "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch",
       "mineflayer-item-map-downloader@1.2.0": "patches/mineflayer-item-map-downloader@1.2.0.patch",
-      "minecraft-protocol@1.51.0": "patches/minecraft-protocol@1.49.0.patch"
+      "minecraft-protocol@1.53.0": "patches/minecraft-protocol@1.49.0.patch"
     }
   },
   "packageManager": "pnpm@9.0.4"
