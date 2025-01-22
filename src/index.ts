@@ -1006,6 +1006,7 @@ downloadAndOpenFile().then((downloadAction) => {
     const ip = qs.get('ip')
     const lastConnect = JSON.parse(localStorage.lastConnectOptions ?? {})
     void connect({
+      botVersion: qs.get('version') ?? undefined,
       ...lastConnect, // todo mixing is not good idea
       ip: ip || undefined
     })
