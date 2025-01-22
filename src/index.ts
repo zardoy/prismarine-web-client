@@ -650,6 +650,8 @@ async function connect (connectOptions: ConnectOptions) {
     destroyAll()
   })
 
+  // bot.emit('kicked', '{"translate":"disconnect.genericReason","with":["Internal Exception: io.netty.handler.codec.EncoderException: com.viaversion.viaversion.exception.InformativeException: Please report this on the Via support Discord or open an issue on the relevant GitHub repository\\nPacket Type: SYSTEM_CHAT, Index: 1, Type: TagType, Data: [], Packet ID: 103, Source 0: com.viaversion.viabackwards.protocol.v1_20_3to1_20_2.Protocol1_20_3To1_20_2$$Lambda/0x00007f9930f63080"]}', false)
+
   const packetBeforePlay = (_, __, ___, fullBuffer) => {
     lastPacket = fullBuffer.toString()
   }
