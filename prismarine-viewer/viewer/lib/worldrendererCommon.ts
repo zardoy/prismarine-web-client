@@ -324,7 +324,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       Object.assign(blockTexturesChanges, christmasPack)
     }
 
-    const customBlockTextures = Object.keys(this.customTextures.blocks?.textures ?? {}).filter(x => x.includes('/'))
+    const customBlockTextures = Object.keys(this.customTextures.blocks?.textures ?? {})
     const { atlas: blocksAtlas, canvas: blocksCanvas } = await blocksAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
       const texture = this.customTextures?.blocks?.textures[textureName]
       return blockTexturesChanges[textureName] ?? texture

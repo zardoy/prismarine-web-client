@@ -346,8 +346,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       mc-assets:
-        specifier: ^0.2.26
-        version: 0.2.26
+        specifier: ^0.2.27
+        version: 0.2.27
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/75e940a4cd50d89e0ba03db3733d5d704917a3c8(@types/react@18.2.20)(react@18.2.0)
@@ -6220,8 +6220,8 @@ packages:
     peerDependencies:
       react: ^18.2.0
 
-  mc-assets@0.2.26:
-    resolution: {integrity: sha512-BDrdD/kAMuVvD18nnvukE9StddL1VokParxSlFSRQdAAQmqTuYZlC19rho/SjYb+dBGZSVxwC+e0hZnSuyP9hA==}
+  mc-assets@0.2.27:
+    resolution: {integrity: sha512-9VUM89lRIhclj/+CvSXeum6frA7UWXTQR2TUC/qtXJp7DJ6Jf4Mmo/vM/m6Ztev1jG5ZgKNwL6rrP9lwt0YybA==}
     engines: {node: '>=18.0.0'}
 
   md5-file@4.0.0:
@@ -7130,6 +7130,11 @@ packages:
   prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cc4d8a232e33e946fa0929dceabe92df4d405734:
     resolution: {tarball: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cc4d8a232e33e946fa0929dceabe92df4d405734}
     version: 1.38.0
+    engines: {node: '>=14'}
+
+  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/e68e9a423b5b1907535878fb636f12c28a1a9374:
+    resolution: {tarball: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/e68e9a423b5b1907535878fb636f12c28a1a9374}
+    version: 1.38.1
     engines: {node: '>=14'}
 
   prismarine-entity@2.3.1:
@@ -14148,7 +14153,7 @@ snapshots:
   diamond-square@https://codeload.github.com/zardoy/diamond-square/tar.gz/cfaad2d1d5909fdfa63c8cc7bc05fb5e87782d71:
     dependencies:
       minecraft-data: 3.83.1
-      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cc4d8a232e33e946fa0929dceabe92df4d405734(minecraft-data@3.83.1)
+      prismarine-chunk: https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/e68e9a423b5b1907535878fb636f12c28a1a9374(minecraft-data@3.83.1)
       prismarine-registry: 1.10.0
       random-seed: 0.3.0
       vec3: 0.1.8
@@ -16523,7 +16528,7 @@ snapshots:
     dependencies:
       react: 18.2.0
 
-  mc-assets@0.2.26: {}
+  mc-assets@0.2.27: {}
 
   md5-file@4.0.0: {}
 
@@ -17694,6 +17699,19 @@ snapshots:
       prismarine-registry: 1.10.0
 
   prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/cc4d8a232e33e946fa0929dceabe92df4d405734(minecraft-data@3.83.1):
+    dependencies:
+      prismarine-biome: 1.3.0(minecraft-data@3.83.1)(prismarine-registry@1.10.0)
+      prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/5fac7911d8b9a648f08466de3af4283b2de763c3
+      prismarine-nbt: 2.5.0
+      prismarine-registry: 1.10.0
+      smart-buffer: 4.2.0
+      uint4: 0.1.2
+      vec3: 0.1.8
+      xxhash-wasm: 0.4.2
+    transitivePeerDependencies:
+      - minecraft-data
+
+  prismarine-chunk@https://codeload.github.com/zardoy/prismarine-chunk/tar.gz/e68e9a423b5b1907535878fb636f12c28a1a9374(minecraft-data@3.83.1):
     dependencies:
       prismarine-biome: 1.3.0(minecraft-data@3.83.1)(prismarine-registry@1.10.0)
       prismarine-block: https://codeload.github.com/zardoy/prismarine-block/tar.gz/5fac7911d8b9a648f08466de3af4283b2de763c3
