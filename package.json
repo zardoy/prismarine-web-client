@@ -189,7 +189,7 @@
       "three@0.154.0": "patches/three@0.154.0.patch",
       "pixelarticons@1.8.1": "patches/pixelarticons@1.8.1.patch",
       "mineflayer-item-map-downloader@1.2.0": "patches/mineflayer-item-map-downloader@1.2.0.patch",
-      "minecraft-protocol@1.53.0": "patches/minecraft-protocol@1.49.0.patch"
+      "minecraft-protocol@1.53.0": "patches/minecraft-protocol@1.53.0.patch"
     }
   },
   "packageManager": "pnpm@9.0.4"
