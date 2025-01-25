@@ -313,9 +313,11 @@ export function lockUrl () {
     newQs = `reconnect=1`
   } else if (lastConnectOptions.value?.server) {
     const qs = new URLSearchParams()
-    const { server, botVersion } = lastConnectOptions.value
-    qs.set('server', server)
+    const { server, botVersion, proxy, username } = lastConnectOptions.value
+    qs.set('ip', server)
     if (botVersion) qs.set('version', botVersion)
+    if (proxy) qs.set('proxy', proxy)
+    if (username) qs.set('username', username)
     newQs = String(qs.toString())
   }
 
