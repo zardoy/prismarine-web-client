@@ -313,9 +313,11 @@ export function lockUrl () {
     newQs = `reconnect=1`
   } else if (lastConnectOptions.value?.server) {
     const qs = new URLSearchParams()
-    const { server, botVersion } = lastConnectOptions.value
-    qs.set('server', server)
+    const { server, botVersion, proxy, username } = lastConnectOptions.value
+    qs.set('ip', server)
     if (botVersion) qs.set('version', botVersion)
+    if (proxy) qs.set('proxy', proxy)
+    if (username) qs.set('username', username)
     newQs = String(qs.toString())
   }
 
@@ -736,11 +738,22 @@ addEventListener('mousedown', async (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.code !== 'Escape') return
   if (activeModalStack.length) {
-    hideCurrentModal(undefined, () => {
-      if (!activeModalStack.length) {
-        pointerLock.justHitEscape = true
+    const hideAll = e.ctrlKey || e.metaKey
+    if (hideAll) {
+      while (activeModalStack.length > 0) {
+        hideCurrentModal(undefined, () => {
+          if (!activeModalStack.length) {
+            pointerLock.justHitEscape = true
+          }
+        })
       }
-    })
+    } else {
+      hideCurrentModal(undefined, () => {
+        if (!activeModalStack.length) {
+          pointerLock.justHitEscape = true
+        }
+      })
+    }
   } else if (pointerLock.hasPointerLock) {
     document.exitPointerLock?.()
     if (options.autoExitFullscreen) {
