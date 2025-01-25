@@ -45,18 +45,35 @@ export const onGameLoad = (onLoad) => {
     if (!viewer.world.itemsAtlasParser) return
     itemsRenderer = new ItemsRenderer(bot.version, viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
     globalThis.itemsRenderer = itemsRenderer
-    if (allImagesLoadedState.value) return
-    onLoad?.()
-    allImagesLoadedState.value = true
+    if (!allImagesLoadedState.value) {
+      onLoad?.()
+    }
+    allImagesLoadedState.value = false
+    setTimeout(() => {
+      allImagesLoadedState.value = true
+    }, 0)
   }
   viewer.world.renderUpdateEmitter.on('textureDownloaded', checkIfLoaded)
   checkIfLoaded()
 
   PrismarineItem = PItem(version)
 
+  const mapWindowType = (type: string, inventoryStart: number) => {
+    if (type === 'minecraft:container') {
+      if (inventoryStart === 45 - 9 * 4) return 'minecraft:generic_9x1'
+      if (inventoryStart === 45 - 9 * 3) return 'minecraft:generic_9x2'
+      if (inventoryStart === 45 - 9 * 2) return 'minecraft:generic_9x3'
+      if (inventoryStart === 45 - 9) return 'minecraft:generic_9x4'
+      if (inventoryStart === 45) return 'minecraft:generic_9x5'
+      if (inventoryStart === 45 + 9) return 'minecraft:generic_9x6'
+    }
+    return type
+  }
+
   bot.on('windowOpen', (win) => {
-    if (implementedContainersGuiMap[win.type]) {
-      openWindow(implementedContainersGuiMap[win.type])
+    const implementedWindow = implementedContainersGuiMap[mapWindowType(win.type as string, win.inventoryStart)]
+    if (implementedWindow) {
+      openWindow(implementedWindow)
     } else if (options.unimplementedContainers) {
       openWindow('ChestWin')
     } else {
@@ -177,7 +194,7 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): {
     itemTexture = itemsRenderer.getItemTexture(itemName) ?? itemsRenderer.getItemTexture('item/missing_texture')!
   } catch (err) {
     itemTexture = itemsRenderer.getItemTexture('block/errored')!
-    inGameError(`Failed to render item ${itemName} on ${bot.version} (resourcepack: ${options.enabledResourcepack}): ${err.message}`)
+    inGameError(`Failed to render item ${itemName} on ${bot.version} (resourcepack: ${options.enabledResourcepack}): ${err.stack}`)
   }
   if ('type' in itemTexture) {
     // is item
@@ -205,7 +222,7 @@ export const getItemNameRaw = (item: Pick<import('prismarine-item').Item, 'nbt'>
   const customName = itemNbt.display?.Name
   if (!customName) return
   try {
-    const parsed = mojangson.simplify(mojangson.parse(customName))
+    const parsed = customName.startsWith('{') && customName.endsWith('}') ? mojangson.simplify(mojangson.parse(customName)) : fromFormattedString(customName)
     if (parsed.extra) {
       return parsed as Record<string, any>
     } else {

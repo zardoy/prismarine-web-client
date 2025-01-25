@@ -3,7 +3,7 @@ import { Vec3 } from 'vec3'
 import nbt from 'prismarine-nbt'
 import PrismarineChatLoader from 'prismarine-chat'
 import * as tweenJs from '@tweenjs/tween.js'
-import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass } from 'three-stdlib'
+import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass, LineSegmentsGeometry, Wireframe, LineMaterial } from 'three-stdlib'
 import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
 import { renderSign } from '../sign-renderer'
 import { chunkPos, sectionPos } from './simpleUtils'
@@ -14,6 +14,7 @@ import { addNewStat } from './ui/newStats'
 import { MesherGeometryOutput } from './mesher/shared'
 
 export class WorldRendererThree extends WorldRendererCommon {
+  interactionLines: null | { blockPos; mesh } = null
   outputFormat = 'threeJs' as const
   blockEntities = {}
   sectionObjects: Record<string, THREE.Object3D> = {}
@@ -22,6 +23,8 @@ export class WorldRendererThree extends WorldRendererCommon {
   starField: StarField
   cameraSectionPos: Vec3 = new Vec3(0, 0, 0)
   holdingBlock: HoldingBlock
+  holdingBlockLeft: HoldingBlock
+  rendererDevice = '...'
 
   get tilesRendered () {
     return Object.values(this.sectionObjects).reduce((acc, obj) => acc + (obj as any).tilesCount, 0)
@@ -33,33 +36,51 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   constructor (public scene: THREE.Scene, public renderer: THREE.WebGLRenderer, public config: WorldRendererConfig) {
     super(config)
+    this.rendererDevice = `${WorldRendererThree.getRendererInfo(this.renderer)} powered by three.js r${THREE.REVISION}`
     this.starField = new StarField(scene)
-    this.holdingBlock = new HoldingBlock(this.scene)
+    this.holdingBlock = new HoldingBlock()
+    this.holdingBlockLeft = new HoldingBlock()
+    this.holdingBlockLeft.rightSide = false
 
-    this.renderUpdateEmitter.on('textureDownloaded', () => {
+    this.renderUpdateEmitter.on('itemsTextureDownloaded', () => {
       if (this.holdingBlock.toBeRenderedItem) {
         this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem)
         this.holdingBlock.toBeRenderedItem = undefined
+      }
+      if (this.holdingBlockLeft.toBeRenderedItem) {
+        this.onHandItemSwitch(this.holdingBlock.toBeRenderedItem, true)
+        this.holdingBlockLeft.toBeRenderedItem = undefined
       }
     })
 
     this.addDebugOverlay()
   }
 
-  onHandItemSwitch (item: HandItemBlock | undefined) {
+  onHandItemSwitch (item: HandItemBlock | undefined, isLeft = false) {
+    if (!isLeft) {
+      item ??= {
+        type: 'hand',
+      }
+    }
+    const holdingBlock = isLeft ? this.holdingBlockLeft : this.holdingBlock
     if (!this.currentTextureImage) {
-      this.holdingBlock.toBeRenderedItem = item
+      holdingBlock.toBeRenderedItem = item
       return
     }
-    void this.holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
+    void holdingBlock.initHandObject(this.material, this.blockstatesModels, this.blocksAtlases, item)
   }
 
-  changeHandSwingingState (isAnimationPlaying: boolean) {
+  changeHandSwingingState (isAnimationPlaying: boolean, isLeft = false) {
+    const holdingBlock = isLeft ? this.holdingBlockLeft : this.holdingBlock
     if (isAnimationPlaying) {
-      this.holdingBlock.startSwing()
+      holdingBlock.startSwing()
     } else {
-      void this.holdingBlock.stopSwing()
+      void holdingBlock.stopSwing()
     }
+  }
+
+  changeBackgroundColor (color: [number, number, number]): void {
+    this.scene.background = new THREE.Color(color[0], color[1], color[2])
   }
 
   timeUpdated (newTime: number): void {
@@ -216,10 +237,13 @@ export class WorldRendererThree extends WorldRendererCommon {
 
   render () {
     tweenJs.update()
-    this.holdingBlock.update(this.camera)
     // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
     const cam = this.camera instanceof THREE.Group ? this.camera.children.find(child => child instanceof THREE.PerspectiveCamera) as THREE.PerspectiveCamera : this.camera
     this.renderer.render(this.scene, cam)
+    if (this.config.displayHand) {
+      this.holdingBlock.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
+      this.holdingBlockLeft.render(this.camera, this.renderer, viewer.ambientLight, viewer.directionalLight)
+    }
   }
 
   renderSign (position: Vec3, rotation: number, isWall: boolean, isHanging: boolean, blockEntity) {
@@ -361,9 +385,47 @@ export class WorldRendererThree extends WorldRendererCommon {
     }
   }
 
-  setSectionDirty (pos, value = true) {
+  setSectionDirty (...args: Parameters<WorldRendererCommon['setSectionDirty']>) {
+    const [pos] = args
     this.cleanChunkTextures(pos.x, pos.z) // todo don't do this!
-    super.setSectionDirty(pos, value)
+    super.setSectionDirty(...args)
+  }
+
+  setHighlightCursorBlock (blockPos: typeof this.cursorBlock, shapePositions?: Array<{ position: any; width: any; height: any; depth: any; }>): void {
+    this.cursorBlock = blockPos
+    if (blockPos && this.interactionLines && blockPos.equals(this.interactionLines.blockPos)) {
+      return
+    }
+    if (this.interactionLines !== null) {
+      this.scene.remove(this.interactionLines.mesh)
+      this.interactionLines = null
+    }
+    if (blockPos === null) {
+      return
+    }
+
+    const group = new THREE.Group()
+    for (const { position, width, height, depth } of shapePositions ?? []) {
+      const scale = [1.0001 * width, 1.0001 * height, 1.0001 * depth] as const
+      const geometry = new THREE.BoxGeometry(...scale)
+      const lines = new LineSegmentsGeometry().fromEdgesGeometry(new THREE.EdgesGeometry(geometry))
+      const wireframe = new Wireframe(lines, this.threejsCursorLineMaterial)
+      const pos = blockPos.plus(position)
+      wireframe.position.set(pos.x, pos.y, pos.z)
+      wireframe.computeLineDistances()
+      group.add(wireframe)
+    }
+    this.scene.add(group)
+    this.interactionLines = { blockPos, mesh: group }
+  }
+
+  static getRendererInfo (renderer: THREE.WebGLRenderer) {
+    try {
+      const gl = renderer.getContext()
+      return `${gl.getParameter(gl.getExtension('WEBGL_debug_renderer_info')!.UNMASKED_RENDERER_WEBGL)}`
+    } catch (err) {
+      console.warn('Failed to get renderer info', err)
+    }
   }
 }
 

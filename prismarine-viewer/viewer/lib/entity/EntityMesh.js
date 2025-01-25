@@ -94,7 +94,7 @@ function dot(a, b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
-function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
+function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64, mirror = false) {
   const cubeRotation = new THREE.Euler(0, 0, 0)
   if (cube.rotation) {
     cubeRotation.x = -cube.rotation[0] * Math.PI / 180
@@ -104,15 +104,20 @@ function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
   for (const { dir, corners, u0, v0, u1, v1 } of Object.values(elemFaces)) {
     const ndx = Math.floor(attr.positions.length / 3)
 
+    const eastOrWest = dir[0] !== 0
+    const faceUvs = []
     for (const pos of corners) {
       const u = (cube.uv[0] + dot(pos[3] ? u1 : u0, cube.size)) / texWidth
       const v = (cube.uv[1] + dot(pos[4] ? v1 : v0, cube.size)) / texHeight
 
+      const posX = eastOrWest && mirror ? pos[0] ^ 1 : pos[0]
+      const posY = pos[1]
+      const posZ = eastOrWest && mirror ? pos[2] ^ 1 : pos[2]
       const inflate = cube.inflate ?? 0
       let vecPos = new THREE.Vector3(
-        cube.origin[0] + pos[0] * cube.size[0] + (pos[0] ? inflate : -inflate),
-        cube.origin[1] + pos[1] * cube.size[1] + (pos[1] ? inflate : -inflate),
-        cube.origin[2] + pos[2] * cube.size[2] + (pos[2] ? inflate : -inflate)
+        cube.origin[0] + posX * cube.size[0] + (posX ? inflate : -inflate),
+        cube.origin[1] + posY * cube.size[1] + (posY ? inflate : -inflate),
+        cube.origin[2] + posZ * cube.size[2] + (posZ ? inflate : -inflate)
       )
 
       vecPos = vecPos.applyEuler(cubeRotation)
@@ -122,16 +127,28 @@ function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64) {
 
       attr.positions.push(vecPos.x, vecPos.y, vecPos.z)
       attr.normals.push(...dir)
-      attr.uvs.push(u, v)
+      faceUvs.push(u, v)
       attr.skinIndices.push(boneId, 0, 0, 0)
       attr.skinWeights.push(1, 0, 0, 0)
     }
+
+    if (mirror) {
+      for (let i = 0; i + 1 < corners.length; i += 2) {
+        const faceIndex = i * 2
+        const tempFaceUvs = faceUvs.slice(faceIndex, faceIndex + 4)
+        faceUvs[faceIndex] = tempFaceUvs[2]
+        faceUvs[faceIndex + 1] = tempFaceUvs[eastOrWest ? 1 : 3]
+        faceUvs[faceIndex + 2] = tempFaceUvs[0]
+        faceUvs[faceIndex + 3] = tempFaceUvs[eastOrWest ? 3 : 1]
+      }
+    }
+    attr.uvs.push(...faceUvs)
 
     attr.indices.push(ndx, ndx + 1, ndx + 2, ndx + 2, ndx + 1, ndx + 3)
   }
 }
 
-function getMesh(texture, jsonModel, overrides = {}) {
+export function getMesh(texture, jsonModel, overrides = {}) {
   const bones = {}
 
   const geoData = {
@@ -169,7 +186,7 @@ function getMesh(texture, jsonModel, overrides = {}) {
 
     if (jsonBone.cubes) {
       for (const cube of jsonBone.cubes) {
-        addCube(geoData, i, bone, cube, jsonModel.texturewidth, jsonModel.textureheight)
+        addCube(geoData, i, bone, cube, jsonModel.texturewidth, jsonModel.textureheight, jsonBone.mirror)
       }
     }
     i++
@@ -224,8 +241,8 @@ export const knownNotHandled = [
   'item_display', 'item_frame',
   'lightning_bolt', 'marker',
   'painting', 'spawner_minecart',
-  'spectral_arrow', 'text_display',
-  'tnt', 'trader_llama', 'zombie_horse'
+  'spectral_arrow', 'tnt',
+  'trader_llama', 'zombie_horse'
 ]
 
 export const temporaryMap = {

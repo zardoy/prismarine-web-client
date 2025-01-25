@@ -12,6 +12,7 @@ export const getProxyDetails = async (proxyBaseUrl: string) => {
 
 export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => { }, setCacheResult, connectingServer }) => {
   let onMsaCodeCallback
+  let connectingVersion = ''
   // const authEndpoint = 'http://localhost:3000/'
   // const sessionEndpoint = 'http://localhost:3000/session'
   let authEndpoint: URL | undefined
@@ -30,6 +31,7 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
   const authFlow = {
     async getMinecraftJavaToken () {
       setProgressText('Authenticating with Microsoft account')
+      if (!window.crypto && !isPageSecure()) throw new Error('Crypto API is available only in secure contexts. Be sure to use https!')
       let result = null
       await fetch(authEndpoint, {
         method: 'POST',
@@ -39,24 +41,32 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
         body: JSON.stringify({
           ...tokenCaches,
           // important to set this param and not fake it as auth server might reject the request otherwise
-          connectingServer
+          connectingServer,
+          connectingServerVersion: connectingVersion
         }),
-      }).then(async response => {
-        if (!response.ok) {
-          throw new Error(`Auth server error (${response.status}): ${await response.text()}`)
-        }
-
-        const reader = response.body!.getReader()
-        const decoder = new TextDecoder('utf8')
-
-        const processText = ({ done, value = undefined as Uint8Array | undefined }) => {
-          if (done) {
-            return
+      })
+        .catch(e => {
+          throw new Error(`Failed to connect to auth server (network error): ${e.message}`)
+        })
+        .then(async response => {
+          if (!response.ok) {
+            throw new Error(`Auth server error (${response.status}): ${await response.text()}`)
           }
 
-          const processChunk = (chunkStr) => {
-            try {
-              const json = JSON.parse(chunkStr)
+          const reader = response.body!.getReader()
+          const decoder = new TextDecoder('utf8')
+
+          const processText = ({ done, value = undefined as Uint8Array | undefined }) => {
+            if (done) {
+              return
+            }
+
+            const processChunk = (chunkStr) => {
+              let json: any
+              try {
+                json = JSON.parse(chunkStr)
+              } catch (err) {}
+              if (!json) return
               if (json.user_code) {
                 onMsaCodeCallback(json)
                 // this.codeCallback(json)
@@ -64,23 +74,22 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
               if (json.error) throw new Error(json.error)
               if (json.token) result = json
               if (json.newCache) setCacheResult(json.newCache)
-            } catch (err) {
             }
+
+            const strings = decoder.decode(value)
+
+            for (const chunk of strings.split('\n\n')) {
+              processChunk(chunk)
+            }
+
+            return reader.read().then(processText)
           }
-
-          const strings = decoder.decode(value)
-
-          for (const chunk of strings.split('\n\n')) {
-            processChunk(chunk)
-          }
-
           return reader.read().then(processText)
-        }
-        return reader.read().then(processText)
-      })
-      if (!window.crypto && !isPageSecure()) throw new Error('Crypto API is available only in secure contexts. Be sure to use https!')
+        })
       const restoredData = await restoreData(result)
-      restoredData.certificates.profileKeys.private = restoredData.certificates.profileKeys.privatePEM
+      if (restoredData?.certificates?.profileKeys?.privatePEM) {
+        restoredData.certificates.profileKeys.private = restoredData.certificates.profileKeys.privatePEM
+      }
       return restoredData
     }
   }
@@ -89,6 +98,9 @@ export default async ({ tokenCaches, proxyBaseUrl, setProgressText = (text) => {
     sessionEndpoint,
     setOnMsaCodeCallback (callback) {
       onMsaCodeCallback = callback
+    },
+    setConnectingVersion (version) {
+      connectingVersion = version
     }
   }
 }

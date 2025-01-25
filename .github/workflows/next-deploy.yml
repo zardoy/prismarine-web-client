@@ -40,9 +40,31 @@ jobs:
         with:
           run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
         id: deploy
-      - name: Set deployment alias
-        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ secrets.TEST_PREVIEW_DOMAIN }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
-      # - uses: mshick/add-pr-comment@v2
-      #   with:
-      #     message: |
-      #       Deployed to Vercel Preview: ${{ steps.deploy.outputs.stdout }}
+      - name: Set deployment aliases
+        run: |
+          for alias in $(echo ${{ secrets.TEST_PREVIEW_DOMAIN }} | tr "," "\n"); do
+            vercel alias set ${{ steps.deploy.outputs.stdout }} $alias --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
+          done
+
+      - name: Create Release Pull Request
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:next`,
+              base: 'release',
+              state: 'open'
+            });
+
+            if (pulls.length === 0) {
+              await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Release',
+                head: 'next',
+                base: 'release',
+                body: 'PR was created automatically by the release workflow, hope you release it as soon as possible!',
+              });
+            }

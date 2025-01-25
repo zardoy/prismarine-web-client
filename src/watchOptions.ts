@@ -58,6 +58,13 @@ export const watchOptionsAfterViewerInit = () => {
   watchValue(options, o => {
     viewer.world.displayStats = o.renderDebug === 'advanced'
   })
+  watchValue(options, (o, isChanged) => {
+    viewer.world.mesherConfig.clipWorldBelowY = o.clipWorldBelowY
+    viewer.world.mesherConfig.disableSignsMapsSupport = o.disableSignsMapsSupport
+    if (isChanged) {
+      (viewer.world as WorldRendererThree).rerenderAllChunks()
+    }
+  })
 
   viewer.world.mesherConfig.smoothLighting = options.smoothLighting
   subscribeKey(options, 'smoothLighting', () => {
@@ -89,6 +96,6 @@ export const watchOptionsAfterWorldViewInit = () => {
   watchValue(options, o => {
     if (!worldView) return
     worldView.keepChunksDistance = o.keepChunksDistance
-    worldView.handDisplay = o.handDisplay
+    viewer.world.config.displayHand = o.handDisplay
   })
 }

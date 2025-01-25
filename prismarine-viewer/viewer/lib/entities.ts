@@ -1,5 +1,6 @@
 //@ts-check
 import EventEmitter from 'events'
+import { UnionToIntersection } from 'type-fest'
 import nbt from 'prismarine-nbt'
 import * as TWEEN from '@tweenjs/tween.js'
 import * as THREE from 'three'
@@ -7,38 +8,113 @@ import { PlayerObject, PlayerAnimation } from 'skinview3d'
 import { loadSkinToCanvas, loadEarsToCanvasFromSkin, inferModelType, loadCapeToCanvas, loadImage } from 'skinview-utils'
 // todo replace with url
 import stevePng from 'mc-assets/dist/other-textures/latest/entity/player/wide/steve.png'
+import { degreesToRadians } from '@nxg-org/mineflayer-tracker/lib/mathUtils'
 import { NameTagObject } from 'skinview3d/libs/nametag'
 import { flat, fromFormattedString } from '@xmcl/text-component'
 import mojangson from 'mojangson'
+import { snakeCase } from 'change-case'
+import { Item } from 'prismarine-item'
+import { EntityMetadataVersions } from '../../../src/mcDataTypes'
 import * as Entity from './entity/EntityMesh'
+import { getMesh } from './entity/EntityMesh'
 import { WalkingGeneralSwing } from './entity/animations'
-import externalTexturesJson from './entity/externalTextures.json'
 import { disposeObject } from './threeJsUtils'
+import { armorModels } from './entity/objModels'
+const { loadTexture } = globalThis.isElectron ? require('./utils.electron.js') : require('./utils')
 
 export const TWEEN_DURATION = 120
 
 type PlayerObjectType = PlayerObject & { animation?: PlayerAnimation }
 
-function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: any) {
+function convert2sComplementToHex (complement: number) {
+  if (complement < 0) {
+    complement = (0xFF_FF_FF_FF + complement + 1) >>> 0
+  }
+  return complement.toString(16)
+}
+
+function toRgba (color: string | undefined) {
+  if (color === undefined) {
+    return undefined
+  }
+  if (parseInt(color, 10) === 0) {
+    return 'rgba(0, 0, 0, 0)'
+  }
+  const hex = convert2sComplementToHex(parseInt(color, 10))
+  if (hex.length === 8) {
+    return `#${hex.slice(2, 8)}${hex.slice(0, 2)}`
+  } else {
+    return `#${hex}`
+  }
+}
+
+function toQuaternion (quaternion: any, defaultValue?: THREE.Quaternion) {
+  if (quaternion === undefined) {
+    return defaultValue
+  }
+  if (quaternion instanceof THREE.Quaternion) {
+    return quaternion
+  }
+  if (Array.isArray(quaternion)) {
+    return new THREE.Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3])
+  }
+  return new THREE.Quaternion(quaternion.x, quaternion.y, quaternion.z, quaternion.w)
+}
+
+function poseToEuler (pose: any, defaultValue?: THREE.Euler) {
+  if (pose === undefined) {
+    return defaultValue ?? new THREE.Euler()
+  }
+  if (pose instanceof THREE.Euler) {
+    return pose
+  }
+  if (pose['yaw'] !== undefined && pose['pitch'] !== undefined && pose['roll'] !== undefined) {
+    // Convert Minecraft pitch, yaw, roll definitions to our angle system
+    return new THREE.Euler(-degreesToRadians(pose.pitch), -degreesToRadians(pose.yaw), degreesToRadians(pose.roll), 'ZYX')
+  }
+  if (pose['x'] !== undefined && pose['y'] !== undefined && pose['z'] !== undefined) {
+    return new THREE.Euler(pose.z, pose.y, pose.x, 'ZYX')
+  }
+  if (Array.isArray(pose)) {
+    return new THREE.Euler(pose[0], pose[1], pose[2])
+  }
+  return defaultValue ?? new THREE.Euler()
+}
+
+function getUsernameTexture ({
+  username,
+  nameTagBackgroundColor = 'rgba(0, 0, 0, 0.3)',
+  nameTagTextOpacity = 255
+}: any, { fontFamily = 'sans-serif' }: any) {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('Could not get 2d context')
 
-  const fontSize = 50
+  const fontSize = 48
   const padding = 5
   ctx.font = `${fontSize}px ${fontFamily}`
 
-  const textWidth = ctx.measureText(username).width + padding * 2
+  const lines = String(username).split('\n')
+
+  let textWidth = 0
+  for (const line of lines) {
+    const width = ctx.measureText(line).width + padding * 2
+    if (width > textWidth) textWidth = width
+  }
 
   canvas.width = textWidth
-  canvas.height = fontSize + padding * 2
+  canvas.height = (fontSize + padding) * lines.length
 
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'
+  ctx.fillStyle = nameTagBackgroundColor
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   ctx.font = `${fontSize}px ${fontFamily}`
-  ctx.fillStyle = 'white'
-  ctx.fillText(username, padding, fontSize)
+  ctx.fillStyle = `rgba(255, 255, 255, ${nameTagTextOpacity / 255})`
+  let i = 0
+  for (const line of lines) {
+    i++
+    ctx.fillText(line, (textWidth - ctx.measureText(line).width) / 2, -padding + fontSize * i)
+  }
 
   return canvas
 }
@@ -46,28 +122,52 @@ function getUsernameTexture (username: string, { fontFamily = 'sans-serif' }: an
 const addNametag = (entity, options, mesh) => {
   if (entity.username !== undefined) {
     if (mesh.children.some(c => c.name === 'nametag')) return // todo update
-    const canvas = getUsernameTexture(entity.username, options)
+    const canvas = getUsernameTexture(entity, options)
     const tex = new THREE.Texture(canvas)
     tex.needsUpdate = true
-    const spriteMat = new THREE.SpriteMaterial({ map: tex })
-    const sprite = new THREE.Sprite(spriteMat)
-    sprite.renderOrder = 1000
-    sprite.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
-    sprite.position.y += entity.height + 0.6
-    sprite.name = 'nametag'
+    let nameTag
+    if (entity.nameTagFixed) {
+      const geometry = new THREE.PlaneGeometry()
+      const material = new THREE.MeshBasicMaterial({ map: tex })
+      material.transparent = true
+      nameTag = new THREE.Mesh(geometry, material)
+      nameTag.rotation.set(entity.pitch, THREE.MathUtils.degToRad(entity.yaw + 180), 0)
+      nameTag.position.y += entity.height + 0.3
+    } else {
+      const spriteMat = new THREE.SpriteMaterial({ map: tex })
+      nameTag = new THREE.Sprite(spriteMat)
+      nameTag.position.y += entity.height + 0.6
+    }
+    nameTag.renderOrder = 1000
+    nameTag.scale.set(canvas.width * 0.005, canvas.height * 0.005, 1)
+    if (entity.nameTagRotationRight) {
+      nameTag.applyQuaternion(entity.nameTagRotationRight)
+    }
+    if (entity.nameTagScale) {
+      nameTag.scale.multiply(entity.nameTagScale)
+    }
+    if (entity.nameTagRotationLeft) {
+      nameTag.applyQuaternion(entity.nameTagRotationLeft)
+    }
+    if (entity.nameTagTranslation) {
+      nameTag.position.add(entity.nameTagTranslation)
+    }
+    nameTag.name = 'nametag'
 
-    mesh.add(sprite)
+    mesh.add(nameTag)
   }
 }
 
 // todo cleanup
 const nametags = {}
 
+const isFirstUpperCase = (str) => str.charAt(0) === str.charAt(0).toUpperCase()
+
 function getEntityMesh (entity, scene, options, overrides) {
   if (entity.name) {
     try {
       // https://github.com/PrismarineJS/prismarine-viewer/pull/410
-      const entityName = entity.name.toLowerCase()
+      const entityName = (isFirstUpperCase(entity.name) ? snakeCase(entity.name) : entity.name).toLowerCase()
       const e = new Entity.EntityMesh('1.16.4', entityName, scene, overrides)
 
       if (e.mesh) {
@@ -289,12 +389,19 @@ export class Entities extends EventEmitter {
   parseEntityLabel (jsonLike) {
     if (!jsonLike) return
     try {
+      if (jsonLike.type === 'string') {
+        return jsonLike.value
+      }
       const parsed = typeof jsonLike === 'string' ? mojangson.simplify(mojangson.parse(jsonLike)) : nbt.simplify(jsonLike)
-      const text = flat(parsed).map(x => x.text)
+      const text = flat(parsed).map(this.textFromComponent)
       return text.join('')
     } catch (err) {
       return jsonLike
     }
+  }
+
+  private textFromComponent (component) {
+    return typeof component === 'string' ? component : component.text ?? ''
   }
 
   getItemMesh (item) {
@@ -339,14 +446,38 @@ export class Entities extends EventEmitter {
     }
   }
 
-  update (entity: import('prismarine-entity').Entity & { delete?; pos }, overrides) {
+  setVisible (mesh: THREE.Object3D, visible: boolean) {
+    //mesh.visible = visible
+    //TODO: Fix workaround for visibility setting
+    if (visible) {
+      mesh.scale.set(1, 1, 1)
+    } else {
+      mesh.scale.set(0, 0, 0)
+    }
+  }
+
+  update (entity: import('prismarine-entity').Entity & { delete?; pos, name }, overrides) {
     const isPlayerModel = entity.name === 'player'
     if (entity.name === 'zombie' || entity.name === 'zombie_villager' || entity.name === 'husk') {
       overrides.texture = `textures/1.16.4/entity/${entity.name === 'zombie_villager' ? 'zombie_villager/zombie_villager.png' : `zombie/${entity.name}.png`}`
     }
-    if (!this.entities[entity.id] && !entity.delete) {
+    // this can be undefined in case where packet entity_destroy was sent twice (so it was already deleted)
+    let e = this.entities[entity.id]
+
+    if (entity.delete) {
+      if (!e) return
+      if (e.additionalCleanup) e.additionalCleanup()
+      this.emit('remove', entity)
+      this.scene.remove(e)
+      disposeObject(e)
+      // todo dispose textures as well ?
+      delete this.entities[entity.id]
+      return
+    }
+
+    let mesh
+    if (e === undefined) {
       const group = new THREE.Group()
-      let mesh
       if (entity.name === 'item') {
         const item = entity.metadata?.find((m: any) => typeof m === 'object' && m?.itemCount)
         if (item) {
@@ -429,7 +560,8 @@ export class Entities extends EventEmitter {
       boxHelper.visible = false
       this.scene.add(group)
 
-      this.entities[entity.id] = group
+      e = group
+      this.entities[entity.id] = e
 
       this.emit('add', entity)
 
@@ -438,21 +570,115 @@ export class Entities extends EventEmitter {
       }
       this.setDebugMode(this.debugMode, group)
       this.setRendering(this.rendering, group)
+    } else {
+      mesh = e.children.find(c => c.name === 'mesh')
     }
+
+    // check if entity has armor
+    if (entity.equipment) {
+      addArmorModel(e, 'feet', entity.equipment[2])
+      addArmorModel(e, 'legs', entity.equipment[3], 2)
+      addArmorModel(e, 'chest', entity.equipment[4])
+      addArmorModel(e, 'head', entity.equipment[5])
+    }
+
+    const meta = getGeneralEntitiesMetadata(entity)
 
     //@ts-expect-error
     // set visibility
     const isInvisible = entity.metadata?.[0] & 0x20
-    for (const child of this.entities[entity.id]?.children.find(c => c.name === 'mesh')?.children ?? []) {
+    for (const child of mesh.children ?? []) {
       if (child.name !== 'nametag') {
         child.visible = !isInvisible
       }
     }
     // ---
     // not player
-    const displayText = entity.metadata?.[3] && this.parseEntityLabel(entity.metadata[2])
+    const textDisplayMeta = getSpecificEntityMetadata('text_display', entity)
+    const displayTextRaw = textDisplayMeta?.text || meta.custom_name_visible && meta.custom_name
+    const displayText = this.parseEntityLabel(displayTextRaw)
     if (entity.name !== 'player' && displayText) {
-      addNametag({ ...entity, username: displayText }, this.entitiesOptions, this.entities[entity.id].children.find(c => c.name === 'mesh'))
+      const nameTagFixed = textDisplayMeta && (textDisplayMeta.billboard_render_constraints === 'fixed' || !textDisplayMeta.billboard_render_constraints)
+      const nameTagBackgroundColor = textDisplayMeta && toRgba(textDisplayMeta.background_color)
+      let nameTagTextOpacity: any
+      if (textDisplayMeta?.text_opacity) {
+        const rawOpacity = parseInt(textDisplayMeta?.text_opacity, 10)
+        nameTagTextOpacity = rawOpacity > 0 ? rawOpacity : 256 - rawOpacity
+      }
+      addNametag(
+        { ...entity, username: displayText, nameTagBackgroundColor, nameTagTextOpacity, nameTagFixed,
+          nameTagScale: textDisplayMeta?.scale, nameTagTranslation: textDisplayMeta && (textDisplayMeta.translation || new THREE.Vector3(0, 0, 0)),
+          nameTagRotationLeft: toQuaternion(textDisplayMeta?.left_rotation), nameTagRotationRight: toQuaternion(textDisplayMeta?.right_rotation) },
+        this.entitiesOptions,
+        mesh
+      )
+    }
+
+    const armorStandMeta = getSpecificEntityMetadata('armor_stand', entity)
+    if (armorStandMeta) {
+      const isSmall = (parseInt(armorStandMeta.client_flags, 10) & 0x01) !== 0
+      const hasArms = (parseInt(armorStandMeta.client_flags, 10) & 0x04) !== 0
+      const hasBasePlate = (parseInt(armorStandMeta.client_flags, 10) & 0x08) === 0
+      const isMarker = (parseInt(armorStandMeta.client_flags, 10) & 0x10) !== 0
+      mesh.castShadow = !isMarker
+      mesh.receiveShadow = !isMarker
+      if (isSmall) {
+        e.scale.set(0.5, 0.5, 0.5)
+      } else {
+        e.scale.set(1, 1, 1)
+      }
+      e.traverse(c => {
+        switch (c.name) {
+          case 'bone_baseplate':
+            this.setVisible(c, hasBasePlate)
+            c.rotation.y = -e.rotation.y
+            break
+          case 'bone_head':
+            if (armorStandMeta.head_pose) {
+              c.setRotationFromEuler(poseToEuler(armorStandMeta.head_pose))
+            }
+            break
+          case 'bone_body':
+            if (armorStandMeta.body_pose) {
+              c.setRotationFromEuler(poseToEuler(armorStandMeta.body_pose))
+            }
+            break
+          case 'bone_leftarm':
+            if (c.parent?.name !== 'bone_armor') {
+              this.setVisible(c, hasArms)
+            }
+            if (armorStandMeta.left_arm_pose) {
+              c.setRotationFromEuler(poseToEuler(armorStandMeta.left_arm_pose))
+            } else {
+              c.setRotationFromEuler(poseToEuler({ 'yaw': -10, 'pitch': -10, 'roll': 0 }))
+            }
+            break
+          case 'bone_rightarm':
+            if (c.parent?.name !== 'bone_armor') {
+              this.setVisible(c, hasArms)
+            }
+            if (armorStandMeta.right_arm_pose) {
+              c.setRotationFromEuler(poseToEuler(armorStandMeta.right_arm_pose))
+            } else {
+              c.setRotationFromEuler(poseToEuler({ 'yaw': 10, 'pitch': -10, 'roll': 0 }))
+            }
+            break
+          case 'bone_leftleg':
+            if (armorStandMeta.left_leg_pose) {
+              c.setRotationFromEuler(poseToEuler(armorStandMeta.left_leg_pose))
+            } else {
+              c.setRotationFromEuler(poseToEuler({ 'yaw': -1, 'pitch': -1, 'roll': 0 }))
+            }
+            break
+          case 'bone_rightleg':
+            if (armorStandMeta.right_leg_pose) {
+              c.setRotationFromEuler(poseToEuler(armorStandMeta.right_leg_pose))
+            } else {
+              c.setRotationFromEuler(poseToEuler({ 'yaw': 1, 'pitch': 1, 'roll': 0 }))
+            }
+            break
+        }
+      })
     }
 
     // todo handle map, map_chunks events
@@ -482,9 +708,6 @@ export class Entities extends EventEmitter {
     //   }
     // }
 
-    // this can be undefined in case where packet entity_destroy was sent twice (so it was already deleted)
-    const e = this.entities[entity.id]
-
     if (entity.username) {
       e.username = entity.username
     }
@@ -494,15 +717,6 @@ export class Entities extends EventEmitter {
       const headRotationDiff = overrides.rotation.head.y ? overrides.rotation.head.y - entity.yaw : 0
       playerObject.skin.head.rotation.y = -headRotationDiff
       playerObject.skin.head.rotation.x = overrides.rotation.head.x ? - overrides.rotation.head.x : 0
-    }
-
-    if (entity.delete && e) {
-      if (e.additionalCleanup) e.additionalCleanup()
-      this.emit('remove', entity)
-      this.scene.remove(e)
-      disposeObject(e)
-      // todo dispose textures as well ?
-      delete this.entities[entity.id]
     }
 
     if (entity.pos) {
@@ -530,6 +744,92 @@ export class Entities extends EventEmitter {
             .start()
         }
       })
+    }
+  }
+}
+
+function getGeneralEntitiesMetadata (entity: { name; metadata }): Partial<UnionToIntersection<EntityMetadataVersions[keyof EntityMetadataVersions]>> {
+  const entityData = loadedData.entitiesByName[entity.name]
+  return new Proxy({}, {
+    get (target, p, receiver) {
+      if (typeof p !== 'string' || !entityData) return
+      const index = entityData.metadataKeys?.indexOf(p)
+      return entity.metadata[index ?? -1]
+    },
+  })
+}
+
+function getSpecificEntityMetadata<T extends keyof EntityMetadataVersions> (name: T, entity): EntityMetadataVersions[T] | undefined {
+  if (entity.name !== name) return
+  return getGeneralEntitiesMetadata(entity) as any
+}
+
+function addArmorModel (entityMesh: THREE.Object3D, slotType: string, item: Item, layer = 1, overlay = false) {
+  if (!item) {
+    removeArmorModel(entityMesh, slotType)
+    return
+  }
+  const itemParts = item.name.split('_')
+  const armorMaterial = itemParts[0]
+  if (!armorMaterial) {
+    removeArmorModel(entityMesh, slotType)
+    return
+  }
+  // TODO: Support resource pack
+  // TODO: Support mirroring on certain parts of the model
+  const texturePath = armorModels[`${armorMaterial}Layer${layer}${overlay ? 'Overlay' : ''}`]
+  if (!texturePath || !armorModels.armorModel[slotType]) {
+    return
+  }
+
+  const meshName = `geometry_armor_${slotType}${overlay ? '_overlay' : ''}`
+  let mesh = entityMesh.children.findLast(c => c.name === meshName) as THREE.Mesh
+  let material
+  if (mesh) {
+    material = mesh.material
+    loadTexture(texturePath, texture => {
+      texture.magFilter = THREE.NearestFilter
+      texture.minFilter = THREE.NearestFilter
+      texture.flipY = false
+      texture.wrapS = THREE.MirroredRepeatWrapping
+      texture.wrapT = THREE.MirroredRepeatWrapping
+      material.map = texture
+    })
+  } else {
+    mesh = getMesh(texturePath, armorModels.armorModel[slotType])
+    mesh.name = meshName
+    material = mesh.material
+    material.side = THREE.DoubleSide
+  }
+  if (armorMaterial === 'leather' && !overlay) {
+    const color = (item.nbt?.value as any)?.display?.value?.color?.value
+    if (color) {
+      const r = color >> 16 & 0xff
+      const g = color >> 8 & 0xff
+      const b = color & 0xff
+      material.color.setRGB(r / 255, g / 255, b / 255)
+    } else {
+      material.color.setHex(0xB5_6D_51) // default brown color
+    }
+    addArmorModel(entityMesh, slotType, item, layer, true)
+  }
+  const group = new THREE.Object3D()
+  group.name = `armor_${slotType}${overlay ? '_overlay' : ''}`
+  group.add(mesh)
+
+  const skeletonHelper = new THREE.SkeletonHelper(mesh)
+  //@ts-expect-error
+  skeletonHelper.material.linewidth = 2
+  skeletonHelper.visible = false
+  group.add(skeletonHelper)
+
+  entityMesh.add(mesh)
+}
+
+function removeArmorModel (entityMesh: THREE.Object3D, slotType: string) {
+  for (const c of entityMesh.children) {
+    if (c.name === `geometry_armor_${slotType}` || c.name === `geometry_armor_${slotType}_overlay`) {
+      c.removeFromParent()
     }
   }
 }

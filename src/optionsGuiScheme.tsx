@@ -74,7 +74,7 @@ export const guiOptionsScheme: {
       },
       smoothLighting: {},
       newVersionsLighting: {
-        text: 'Lighting in newer versions',
+        text: 'Lighting in Newer Versions',
       },
       lowMemoryMode: {
         text: 'Low Memory Mode',
@@ -89,7 +89,6 @@ export const guiOptionsScheme: {
         tooltip: 'Additional distance to keep the chunks loading before unloading them by marking them as too far',
       },
       handDisplay: {},
-      neighborChunkUpdates: {},
       renderDebug: {
         values: [
           'advanced',
@@ -98,6 +97,19 @@ export const guiOptionsScheme: {
         ],
       },
     },
+    {
+      custom () {
+        return <Category>Resource Packs</Category>
+      },
+      serverResourcePacks: {
+        text: 'Download From Server',
+        values: [
+          'prompt',
+          'always',
+          'never'
+        ],
+      }
+    }
   ],
   main: [
     {
@@ -233,6 +245,19 @@ export const guiOptionsScheme: {
         values: [
           'auto',
           'always',
+          'never'
+        ],
+      },
+    },
+    {
+      custom () {
+        return <Category>Map</Category>
+      },
+      showMinimap: {
+        text: 'Enable Minimap',
+        values: [
+          'always',
+          'singleplayer',
           'never'
         ],
       },

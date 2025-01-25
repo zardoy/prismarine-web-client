@@ -95,10 +95,10 @@ index b9d21bab9faccd5dbf1975fc423fc55c73e906c5..99ffd76527b410e3a393181beb260108
  
        function onJoinServerResponse (err) {
 diff --git a/src/client.js b/src/client.js
-index 5b63c295080f62ca54928660cdfa134214002fa1..d2d24bff963d8ed7747ccb48f8c278950ba7f396 100644
+index 74749698f8cee05b5dc749c271544f78d06645b0..e77e0a3f41c1ee780c3abbd54b0801d248c2a07c 100644
 --- a/src/client.js
 +++ b/src/client.js
-@@ -88,10 +88,12 @@ class Client extends EventEmitter {
+@@ -89,10 +89,12 @@ class Client extends EventEmitter {
        parsed.metadata.name = parsed.data.name
        parsed.data = parsed.data.params
        parsed.metadata.state = state
@@ -115,7 +115,7 @@ index 5b63c295080f62ca54928660cdfa134214002fa1..d2d24bff963d8ed7747ccb48f8c27895
        }
        if (this._hasBundlePacket && parsed.metadata.name === 'bundle_delimiter') {
          if (this._mcBundle.length) { // End bundle
-@@ -109,7 +111,13 @@ class Client extends EventEmitter {
+@@ -110,7 +112,13 @@ class Client extends EventEmitter {
            this._hasBundlePacket = false
          }
        } else {
@@ -130,7 +130,7 @@ index 5b63c295080f62ca54928660cdfa134214002fa1..d2d24bff963d8ed7747ccb48f8c27895
        }
      })
    }
-@@ -167,7 +175,10 @@ class Client extends EventEmitter {
+@@ -168,7 +176,10 @@ class Client extends EventEmitter {
      }
  
      const onFatalError = (err) => {
@@ -142,7 +142,7 @@ index 5b63c295080f62ca54928660cdfa134214002fa1..d2d24bff963d8ed7747ccb48f8c27895
        endSocket()
      }
  
-@@ -196,6 +207,8 @@ class Client extends EventEmitter {
+@@ -197,6 +208,8 @@ class Client extends EventEmitter {
      serializer -> framer -> socket -> splitter -> deserializer */
      if (this.serializer) {
        this.serializer.end()
@@ -151,7 +151,7 @@ index 5b63c295080f62ca54928660cdfa134214002fa1..d2d24bff963d8ed7747ccb48f8c27895
      } else {
        if (this.socket) this.socket.end()
      }
-@@ -237,8 +250,11 @@ class Client extends EventEmitter {
+@@ -238,8 +251,11 @@ class Client extends EventEmitter {
  
    write (name, params) {
      if (!this.serializer.writable) { return }
@@ -166,10 +166,10 @@ index 5b63c295080f62ca54928660cdfa134214002fa1..d2d24bff963d8ed7747ccb48f8c27895
    }
  
 diff --git a/src/index.d.ts b/src/index.d.ts
-index 423085259176a10c9dfeb617f00975df077d02be..ae0558b7c53ab24474b22240e8a2f4e4cde02f19 100644
+index e61d5403bab46251d35b22a2ea30eb09b2746a26..84f597427893671eeac231b11e6e42aa815601df 100644
 --- a/src/index.d.ts
 +++ b/src/index.d.ts
-@@ -134,6 +134,7 @@ declare module 'minecraft-protocol' {
+@@ -135,6 +135,7 @@ declare module 'minecraft-protocol' {
  		sessionServer?: string
  		keepAlive?: boolean
  		closeTimeout?: number
@@ -177,7 +177,7 @@ index 423085259176a10c9dfeb617f00975df077d02be..ae0558b7c53ab24474b22240e8a2f4e4
  		noPongTimeout?: number
  		checkTimeoutInterval?: number
  		version?: string
-@@ -154,6 +155,8 @@ declare module 'minecraft-protocol' {
+@@ -155,6 +156,8 @@ declare module 'minecraft-protocol' {
  		disableChatSigning?: boolean
  		/** Pass custom client implementation if needed. */
  		Client?: Client

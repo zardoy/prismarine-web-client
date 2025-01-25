@@ -1,5 +1,6 @@
 import { test, expect } from 'vitest'
 import supportedVersions from '../../../../../src/supportedVersions.mjs'
+import { INVISIBLE_BLOCKS } from '../worldConstants'
 import { setup } from './mesherTester'
 
 const lastVersion = supportedVersions.at(-1)
@@ -16,7 +17,7 @@ const addPositions = [
 
 test('Known blocks are not rendered', () => {
   const { mesherWorld, getGeometry, pos, mcData } = setup(lastVersion, addPositions as any)
-  const ignoreAsExpected = new Set(['air', 'cave_air', 'void_air', 'barrier', 'water', 'lava', 'moving_piston', 'light'])
+  const ignoreAsExpected = new Set([...INVISIBLE_BLOCKS, 'water', 'lava', 'moving_piston', 'light'])
 
   let time = 0
   let times = 0
@@ -42,8 +43,10 @@ test('Known blocks are not rendered', () => {
       }
     }
   }
+  console.log('Checking blocks of version', lastVersion)
   console.log('Average time', time / times)
   // should be fixed, but to avoid regressions & for visibility
+  // TODO resolve creaking_heart issue (1.21.3)
   expect(missingBlocks).toMatchInlineSnapshot(`
     {
       "bubble_column": true,

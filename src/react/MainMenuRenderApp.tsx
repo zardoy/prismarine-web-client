@@ -64,7 +64,7 @@ export default () => {
           return
         }
         const upStatus = () => {
-          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}${mainMenuState.serviceWorkerLoaded ? ' - Available Offline' : ''})`)
+          setVersionStatus(`(${isLatest ? 'latest' : 'new version available'}${mainMenuState.serviceWorkerLoaded ? ', Downloaded' : ''})`)
         }
         subscribe(mainMenuState, upStatus)
         upStatus()

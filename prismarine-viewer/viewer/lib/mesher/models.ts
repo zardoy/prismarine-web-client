@@ -4,7 +4,9 @@ import legacyJson from '../../../../src/preflatMap.json'
 import { BlockType } from '../../../examples/shared'
 import { World, BlockModelPartsResolved, WorldBlock as Block } from './world'
 import { BlockElement, buildRotationMatrix, elemFaces, matmul3, matmulmat3, vecadd3, vecsub3 } from './modelsGeometryCommon'
-import { MesherGeometryOutput } from './shared'
+import { INVISIBLE_BLOCKS } from './worldConstants'
+import { MesherGeometryOutput, HighestBlockInfo } from './shared'
+
 
 let blockProvider: WorldBlockProvider
 
@@ -121,7 +123,7 @@ const isCube = (block: Block) => {
   if (block.isCube) return true
   if (!block.models?.length || block.models.length !== 1) return false
   // all variants
-  return block.models[0].every(v => v.elements!.every(e => {
+  return block.models[0].every(v => v.elements.every(e => {
     return e.from[0] === 0 && e.from[1] === 0 && e.from[2] === 0 && e.to[0] === 16 && e.to[1] === 16 && e.to[2] === 16
   }))
 }
@@ -226,14 +228,12 @@ const identicalCull = (currentElement: BlockElement, neighbor: Block, direction:
   const models = neighbor.models?.map(m => m[useVar] ?? m[0]) ?? []
   // TODO we should support it! rewrite with optimizing general pipeline
   if (models.some(m => m.x || m.y || m.z)) return
-  for (const model of models) {
-    for (const element of model.elements ?? []) {
+  return models.every(model => {
+    return (model.elements ?? []).every(element => {
       // todo check alfa on texture
-      if (element.faces[lookForOppositeSide]?.cullface && elemCompareForm(currentElement) === elemCompareForm(element) && elementEdgeValidator(element)) {
-        return true
-      }
-    }
-  }
+      return !!(element.faces[lookForOppositeSide]?.cullface && elemCompareForm(currentElement) === elemCompareForm(element) && elementEdgeValidator(element))
+    })
+  })
 }
 
 let needSectionRecomputeOnChange = false
@@ -439,8 +439,6 @@ function renderElement (world: World, cursor: Vec3, element: BlockElement, doAO:
   }
 }
 
-const invisibleBlocks = new Set(['air', 'cave_air', 'void_air', 'barrier'])
-
 const isBlockWaterlogged = (block: Block) => block.getProperties().waterlogged === true || block.getProperties().waterlogged === 'true'
 
 let unknownBlockModel: BlockModelPartsResolved
@@ -464,7 +462,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     // todo this can be removed here
     signs: {},
     // isFull: true,
-    highestBlocks: {}, // todo migrate to map for 2% boost perf
+    highestBlocks: new Map<string, HighestBlockInfo>([]),
     hadErrors: false,
     blocksCount: 0
   }
@@ -474,17 +472,14 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
     for (cursor.z = sz; cursor.z < sz + 16; cursor.z++) {
       for (cursor.x = sx; cursor.x < sx + 16; cursor.x++) {
         let block = world.getBlock(cursor, blockProvider, attr)!
-        if (!invisibleBlocks.has(block.name)) {
-          const highest = attr.highestBlocks[`${cursor.x},${cursor.z}`]
+        if (!INVISIBLE_BLOCKS.has(block.name)) {
+          const highest = attr.highestBlocks.get(`${cursor.x},${cursor.z}`)
           if (!highest || highest.y < cursor.y) {
-            attr.highestBlocks[`${cursor.x},${cursor.z}`] = {
-              y: cursor.y,
-              name: block.name
-            }
+            attr.highestBlocks.set(`${cursor.x},${cursor.z}`, { y: cursor.y, stateId: block.stateId, biomeId: block.biome.id })
           }
         }
-        if (invisibleBlocks.has(block.name)) continue
-        if (block.name.includes('_sign') || block.name === 'sign') {
+        if (INVISIBLE_BLOCKS.has(block.name)) continue
+        if ((block.name.includes('_sign') || block.name === 'sign') && !world.config.disableSignsMapsSupport) {
           const key = `${cursor.x},${cursor.y},${cursor.z}`
           const props: any = block.getProperties()
           const facingRotationMap = {
@@ -531,7 +526,7 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
           renderLiquid(world, cursor, blockProvider.getTextureInfo('lava_still'), block.type, biome, false, attr)
           attr.blocksCount++
         }
-        if (block.name !== 'water' && block.name !== 'lava' && !invisibleBlocks.has(block.name)) {
+        if (block.name !== 'water' && block.name !== 'lava' && !INVISIBLE_BLOCKS.has(block.name)) {
           // cache
           let { models } = block
 
@@ -624,8 +619,8 @@ export function getSectionGeometry (sx, sy, sz, world: World) {
   return attr
 }
 
-export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false, useUnknownBlockModel = true) => {
-  blockProvider = worldBlockProvider(blockstatesModels, blocksAtlas, 'latest')
+export const setBlockStatesData = (blockstatesModels, blocksAtlas: any, _needTiles = false, useUnknownBlockModel = true, version = 'latest') => {
+  blockProvider = worldBlockProvider(blockstatesModels, blocksAtlas, version)
   globalThis.blockProvider = blockProvider
   if (useUnknownBlockModel) {
     unknownBlockModel = blockProvider.getAllResolvedModels0_1({ name: 'unknown', properties: {} })

@@ -2,17 +2,20 @@ import React, { CSSProperties, useEffect, useRef, useState } from 'react'
 import { isMobile } from 'prismarine-viewer/viewer/lib/simpleUtils'
 import styles from './input.module.css'
 
-interface Props extends React.ComponentProps<'input'> {
+interface Props extends Omit<React.ComponentProps<'input'>, 'width'> {
   rootStyles?: React.CSSProperties
   autoFocus?: boolean
   inputRef?: React.RefObject<HTMLInputElement>
   validateInput?: (value: string) => CSSProperties | undefined
+  width?: number
 }
 
-export default ({ autoFocus, rootStyles, inputRef, validateInput, ...inputProps }: Props) => {
+export default ({ autoFocus, rootStyles, inputRef, validateInput, defaultValue, width, ...inputProps }: Props) => {
+  if (width) rootStyles = { ...rootStyles, width }
+
   const ref = useRef<HTMLInputElement>(null!)
   const [validationStyle, setValidationStyle] = useState<CSSProperties>({})
-  const [value, setValue] = useState(inputProps.value ?? '')
+  const [value, setValue] = useState(defaultValue ?? '')
 
   useEffect(() => {
     setValue(inputProps.value === '' || inputProps.value ? inputProps.value : value)

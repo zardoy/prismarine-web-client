@@ -5,6 +5,7 @@ import './globals'
 import './devtools'
 import './entities'
 import './globalDomListeners'
+import './mineflayer/maps'
 import initCollisionShapes from './getCollisionInteractionShapes'
 import { onGameLoad } from './inventoryWindows'
 import { supportedVersions } from 'minecraft-protocol'
@@ -20,7 +21,7 @@ import { initWithRenderer } from './topRightStats'
 
 import { options, watchValue } from './optionsStorage'
 import './reactUi'
-import { contro, onBotCreate } from './controls'
+import { contro, lockUrl, onBotCreate } from './controls'
 import './dragndrop'
 import { possiblyCleanHandle, resetStateAfterDisconnect } from './browserfs'
 import { watchOptionsAfterViewerInit, watchOptionsAfterWorldViewInit } from './watchOptions'
@@ -90,7 +91,7 @@ import { saveToBrowserMemory } from './react/PauseScreen'
 import { ViewerWrapper } from 'prismarine-viewer/viewer/lib/viewerWrapper'
 import './devReload'
 import './water'
-import { ConnectOptions } from './connect'
+import { ConnectOptions, downloadNeededDataOnConnect } from './connect'
 import { ref, subscribe } from 'valtio'
 import { signInMessageState } from './react/SignInMessageProvider'
 import { updateAuthenticatedAccountData, updateLoadedServerData } from './react/ServersListProvider'
@@ -100,6 +101,8 @@ import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
 import { loadMinecraftData, preloadAllMcData } from './mcDataHelpers'
+import { parseFormattedMessagePacket } from './botUtils'
+import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
 
 window.debug = debug
 window.THREE = THREE
@@ -154,6 +157,7 @@ if (isIphone) {
 // Create viewer
 const viewer: import('prismarine-viewer/viewer/lib/viewer').Viewer = new Viewer(renderer)
 window.viewer = viewer
+viewer.getMineflayerBot = () => bot
 // todo unify
 viewer.entities.getItemUv = (idOrName: number | string) => {
   try {
@@ -372,7 +376,7 @@ async function connect (connectOptions: ConnectOptions) {
     signal: errorAbortController.signal
   })
 
-  if (proxy) {
+  if (proxy && !connectOptions.viewerWsConnect) {
     console.log(`using proxy ${proxy.host}:${proxy.port || location.port}`)
 
     net['setProxy']({ hostname: proxy.host, port: proxy.port })
@@ -386,25 +390,12 @@ async function connect (connectOptions: ConnectOptions) {
     Object.assign(serverOptions, connectOptions.serverOverridesFlat ?? {})
     preloadAllMcData()
     const downloadMcData = async (version: string) => {
-      if (connectOptions.authenticatedAccount && versionToNumber(version) < versionToNumber('1.19.4')) {
+      if (connectOptions.authenticatedAccount && (versionToNumber(version) < versionToNumber('1.19.4') || versionToNumber(version) >= versionToNumber('1.21'))) {
         // todo support it (just need to fix .export crash)
-        throw new Error('Microsoft authentication is only supported in 1.19.4 and above (at least for now)')
+        throw new Error('Microsoft authentication is only supported on 1.19.4 - 1.20.6 (at least for now)')
       }
 
-      setLoadingScreenStatus(`Loading data for ${version}`)
-
-      let fontsPromise: Promise<any> | undefined
-      if (!document.fonts.check('1em mojangles')) {
-        // todo instead re-render signs on load
-        fontsPromise = document.fonts.load('1em mojangles').catch(() => { })
-      }
-      await Promise.all([
-        loadMinecraftData(version),
-        fontsPromise,
-        downloadSoundsIfNeeded()
-      ])
-      miscUiState.loadedDataVersion = version
-
+      await downloadNeededDataOnConnect(version)
       try {
         await resourcepackReload(version)
       } catch (err) {
@@ -415,7 +406,7 @@ async function connect (connectOptions: ConnectOptions) {
         }
       }
 
-      viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
+      void viewer.setVersion(version, options.useVersionsTextures === 'latest' ? version : options.useVersionsTextures)
       setLoadingScreenStatus(`Data loaded. Connected to server ${connectOptions.server}`)
     }
 
@@ -456,7 +447,7 @@ async function connect (connectOptions: ConnectOptions) {
       flyingSquidEvents()
     }
 
-    if (connectOptions.authenticatedAccount) username = 'not-used'
+    if (connectOptions.authenticatedAccount) username = 'you'
     let initialLoadingText: string
     if (singleplayer) {
       initialLoadingText = 'Local server is still starting'
@@ -481,12 +472,26 @@ async function connect (connectOptions: ConnectOptions) {
       connectingServer: server.host
     }) : undefined
 
+    let clientDataStream
+    if (p2pMultiplayer) {
+      clientDataStream = await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions)
+    }
+    if (connectOptions.viewerWsConnect) {
+      const { version, time } = await getViewerVersionData(connectOptions.viewerWsConnect)
+      console.log('Latency:', Date.now() - time, 'ms')
+      // const version = '1.21.1'
+      connectOptions.botVersion = version
+      await downloadMcData(version)
+      setLoadingScreenStatus(`Connecting to WebSocket server ${connectOptions.viewerWsConnect}`)
+      clientDataStream = await getWsProtocolStream(connectOptions.viewerWsConnect)
+    }
+
     bot = mineflayer.createBot({
       host: server.host,
       port: server.port ? +server.port : undefined,
       version: connectOptions.botVersion || false,
-      ...p2pMultiplayer ? {
-        stream: await connectToPeer(connectOptions.peerId!, connectOptions.peerOptions),
+      ...clientDataStream ? {
+        stream: clientDataStream,
       } : {},
       ...singleplayer || p2pMultiplayer ? {
         keepAlive: false,
@@ -504,6 +509,7 @@ async function connect (connectOptions: ConnectOptions) {
       sessionServer: authData?.sessionEndpoint?.toString(),
       auth: connectOptions.authenticatedAccount ? async (client, options) => {
         authData!.setOnMsaCodeCallback(options.onMsaCode)
+        authData?.setConnectingVersion(client.version)
         //@ts-expect-error
         client.authflow = authData!.authFlow
         try {
@@ -570,10 +576,13 @@ async function connect (connectOptions: ConnectOptions) {
 
       bot.emit('inject_allowed')
       bot._client.emit('connect')
+    } else if (connectOptions.viewerWsConnect) {
+      // bot.emit('inject_allowed')
+      bot._client.emit('connect')
     } else {
       const setupConnectHandlers = () => {
         bot._client.socket.on('connect', () => {
-          console.log('WebSocket connection established')
+          console.log('Proxy WebSocket connection established')
           //@ts-expect-error
           bot._client.socket._ws.addEventListener('close', () => {
             console.log('WebSocket connection closed')
@@ -614,6 +623,7 @@ async function connect (connectOptions: ConnectOptions) {
       } else {
         const originalSetSocket = bot._client.setSocket.bind(bot._client)
         bot._client.setSocket = (socket) => {
+          if (!bot) return
           originalSetSocket(socket)
           setupConnectHandlers()
         }
@@ -635,17 +645,12 @@ async function connect (connectOptions: ConnectOptions) {
 
   bot.on('kicked', (kickReason) => {
     console.log('You were kicked!', kickReason)
-    let kickReasonString = typeof kickReason === 'string' ? kickReason : JSON.stringify(kickReason)
-    let kickReasonFormatted = undefined as undefined | Record<string, any>
-    if (typeof kickReason === 'object') {
-      try {
-        kickReasonFormatted = nbt.simplify(kickReason)
-        kickReasonString = ''
-      } catch {}
-    }
+    const { formatted: kickReasonFormatted, plain: kickReasonString } = parseFormattedMessagePacket(kickReason)
     setLoadingScreenStatus(`The Minecraft server kicked you. Kick reason: ${kickReasonString}`, true, undefined, undefined, kickReasonFormatted)
     destroyAll()
   })
+
+  // bot.emit('kicked', '{"translate":"disconnect.genericReason","with":["Internal Exception: io.netty.handler.codec.EncoderException: com.viaversion.viaversion.exception.InformativeException: Please report this on the Via support Discord or open an issue on the relevant GitHub repository\\nPacket Type: SYSTEM_CHAT, Index: 1, Type: TagType, Data: [], Packet ID: 103, Source 0: com.viaversion.viabackwards.protocol.v1_20_3to1_20_2.Protocol1_20_3To1_20_2$$Lambda/0x00007f9930f63080"]}', false)
 
   const packetBeforePlay = (_, __, ___, fullBuffer) => {
     lastPacket = fullBuffer.toString()
@@ -689,6 +694,9 @@ async function connect (connectOptions: ConnectOptions) {
     setLoadingScreenStatus('Placing blocks (starting viewer)')
     localStorage.lastConnectOptions = JSON.stringify(connectOptions)
     connectOptions.onSuccessfulPlay?.()
+    if (process.env.NODE_ENV === 'development' && !localStorage.lockUrl && new URLSearchParams(location.search).size === 0) {
+      lockUrl()
+    }
     updateDataAfterJoin()
     if (connectOptions.autoLoginPassword) {
       bot.chat(`/login ${connectOptions.autoLoginPassword}`)
@@ -925,7 +933,7 @@ watchValue(miscUiState, async s => {
     const qs = new URLSearchParams(window.location.search)
     const moreServerOptions = {} as Record<string, any>
     if (qs.has('version')) moreServerOptions.version = qs.get('version')
-    if (qs.get('singleplayer') === '1') {
+    if (qs.get('singleplayer') === '1' || qs.get('sp') === '1') {
       loadSingleplayer({}, {
         worldFolder: undefined,
         ...moreServerOptions
@@ -993,6 +1001,7 @@ downloadAndOpenFile().then((downloadAction) => {
     const ip = qs.get('ip')
     const lastConnect = JSON.parse(localStorage.lastConnectOptions ?? {})
     void connect({
+      botVersion: qs.get('version') ?? undefined,
       ...lastConnect, // todo mixing is not good idea
       ip: ip || undefined
     })
@@ -1043,6 +1052,25 @@ downloadAndOpenFile().then((downloadAction) => {
       })
     }
   })
+
+  if (qs.get('serversList')) {
+    showModal({ reactType: 'serversList' })
+  }
+
+  const viewerWsConnect = qs.get('viewerConnect')
+  if (viewerWsConnect) {
+    void connect({
+      username: `viewer-${Math.random().toString(36).slice(2, 10)}`,
+      viewerWsConnect,
+    })
+  }
+
+  if (qs.get('modal')) {
+    const modals = qs.get('modal')!.split(',')
+    for (const modal of modals) {
+      showModal({ reactType: modal })
+    }
+  }
 }, (err) => {
   console.error(err)
   alert(`Failed to download file: ${err}`)

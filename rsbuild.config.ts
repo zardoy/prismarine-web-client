@@ -162,16 +162,21 @@ const appConfig = defineConfig({
                         fs.copyFileSync('./assets/release.json', './dist/release.json')
                     }
                     const configJson = JSON.parse(fs.readFileSync('./config.json', 'utf8'))
+                    let configLocalJson = {}
+                    try {
+                        configLocalJson = JSON.parse(fs.readFileSync('./config.local.json', 'utf8'))
+                    } catch (err) {}
                     if (dev) {
                         configJson.defaultProxy = ':8080'
                     }
-                    fs.writeFileSync('./dist/config.json', JSON.stringify(configJson), 'utf8')
+                    fs.writeFileSync('./dist/config.json', JSON.stringify({ ...configJson, ...configLocalJson }), 'utf8')
                     // childProcess.execSync('./scripts/prepareSounds.mjs', { stdio: 'inherit' })
                     // childProcess.execSync('tsx ./scripts/genMcDataTypes.ts', { stdio: 'inherit' })
                     // childProcess.execSync('tsx ./scripts/genPixelartTypes.ts', { stdio: 'inherit' })
                     if (fs.existsSync('./prismarine-viewer/dist/mesher.js') && dev) {
                         // copy mesher
                         fs.copyFileSync('./prismarine-viewer/dist/mesher.js', './dist/mesher.js')
+                        fs.copyFileSync('./prismarine-viewer/dist/mesher.js.map', './dist/mesher.js.map')
                     } else if (!dev) {
                         await execAsync('pnpm run build-mesher')
                     }

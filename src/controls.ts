@@ -7,7 +7,7 @@ import { ControMax } from 'contro-max/build/controMax'
 import { CommandEventArgument, SchemaCommandInput } from 'contro-max/build/types'
 import { stringStartsWith } from 'contro-max/build/stringUtils'
 import { UserOverrideCommand, UserOverridesConfig } from 'contro-max/build/types/store'
-import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState, loadedGameState } from './globalState'
+import { isGameActive, showModal, gameAdditionalState, activeModalStack, hideCurrentModal, miscUiState, loadedGameState, hideModal } from './globalState'
 import { goFullscreen, pointerLock, reloadChunks } from './utils'
 import { options } from './optionsStorage'
 import { openPlayerInventory } from './inventoryWindows'
@@ -49,10 +49,13 @@ export const contro = new ControMax({
       chat: [['KeyT', 'Enter']],
       command: ['Slash'],
       swapHands: ['KeyF'],
+      zoom: ['KeyC'],
       selectItem: ['KeyH'] // default will be removed
     },
     ui: {
+      toggleFullscreen: ['F11'],
       back: [null/* 'Escape' */, 'B'],
+      toggleMap: ['KeyM'],
       leftClick: [null, 'A'],
       rightClick: [null, 'Y'],
       speedupCursor: [null, 'Left Stick'],
@@ -156,6 +159,7 @@ let lastCommandTrigger = null as { command: string, time: number } | null
 const secondActionActivationTimeout = 300
 const secondActionCommands = {
   'general.jump' () {
+    // if (bot.game.gameMode === 'spectator') return
     toggleFly()
   },
   'general.forward' () {
@@ -279,6 +283,9 @@ const onTriggerOrReleased = (command: Command, pressed: boolean) => {
       case 'general.interactPlace':
         document.dispatchEvent(new MouseEvent(pressed ? 'mousedown' : 'mouseup', { button: 2 }))
         break
+      case 'general.zoom':
+        gameAdditionalState.isZooming = pressed
+        break
     }
   }
 }
@@ -297,7 +304,7 @@ const alwaysPressedHandledCommand = (command: Command) => {
   }
 }
 
-function lockUrl () {
+export function lockUrl () {
   let newQs = ''
   if (fsState.saveLoaded) {
     const save = localServer!.options.worldFolder.split('/').at(-1)
@@ -306,9 +313,11 @@ function lockUrl () {
     newQs = `reconnect=1`
   } else if (lastConnectOptions.value?.server) {
     const qs = new URLSearchParams()
-    const { server, botVersion } = lastConnectOptions.value
-    qs.set('server', server)
+    const { server, botVersion, proxy, username } = lastConnectOptions.value
+    qs.set('ip', server)
     if (botVersion) qs.set('version', botVersion)
+    if (proxy) qs.set('proxy', proxy)
+    if (username) qs.set('username', username)
     newQs = String(qs.toString())
   }
 
@@ -412,11 +421,25 @@ contro.on('trigger', ({ command }) => {
       case 'general.prevHotbarSlot':
         cycleHotbarSlot(-1)
         break
+      case 'general.zoom':
+        break
     }
   }
 
   if (command === 'ui.pauseMenu') {
     showModal({ reactType: 'pause-screen' })
+  }
+
+  if (command === 'ui.toggleFullscreen') {
+    void goFullscreen(true)
+  }
+
+  if (command === 'ui.toggleMap') {
+    if (activeModalStack.at(-1)?.reactType === 'full-map') {
+      hideModal({ reactType: 'full-map' })
+    } else {
+      showModal({ reactType: 'full-map' })
+    }
   }
 })
 
@@ -508,6 +531,15 @@ export const f3Keybinds = [
       }
     },
     mobileTitle: 'Cycle Game Mode'
+  },
+  {
+    key: 'KeyP',
+    async action () {
+      const { uuid, ping: playerPing, username } = bot.player
+      const proxyPing = await bot['pingProxy']()
+      void showOptionsModal(`${username}: last known total latency (ping): ${playerPing}. Connected to ${lastConnectOptions.value?.proxy} with current ping ${proxyPing}. Player UUID: ${uuid}`, [])
+    },
+    mobileTitle: 'Show Proxy & Ping Details'
   }
 ]
 
@@ -637,6 +669,7 @@ const endFlying = (sendAbilities = true) => {
 let allowFlying = false
 
 export const onBotCreate = () => {
+  let wasSpectatorFlying = false
   bot._client.on('abilities', ({ flags }) => {
     if (flags & 2) { // flying
       toggleFly(true, false)
@@ -644,6 +677,21 @@ export const onBotCreate = () => {
       toggleFly(false, false)
     }
     allowFlying = !!(flags & 4)
+  })
+  const gamemodeCheck = () => {
+    if (bot.game.gameMode === 'spectator') {
+      toggleFly(true, false)
+      wasSpectatorFlying = true
+    } else if (wasSpectatorFlying) {
+      toggleFly(false, false)
+      wasSpectatorFlying = false
+    }
+  }
+  bot.on('game', () => {
+    gamemodeCheck()
+  })
+  bot.on('login', () => {
+    gamemodeCheck()
   })
 }
 
@@ -690,11 +738,22 @@ addEventListener('mousedown', async (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.code !== 'Escape') return
   if (activeModalStack.length) {
-    hideCurrentModal(undefined, () => {
-      if (!activeModalStack.length) {
-        pointerLock.justHitEscape = true
+    const hideAll = e.ctrlKey || e.metaKey
+    if (hideAll) {
+      while (activeModalStack.length > 0) {
+        hideCurrentModal(undefined, () => {
+          if (!activeModalStack.length) {
+            pointerLock.justHitEscape = true
+          }
+        })
       }
-    })
+    } else {
+      hideCurrentModal(undefined, () => {
+        if (!activeModalStack.length) {
+          pointerLock.justHitEscape = true
+        }
+      })
+    }
   } else if (pointerLock.hasPointerLock) {
     document.exitPointerLock?.()
     if (options.autoExitFullscreen) {
@@ -725,10 +784,6 @@ window.addEventListener('keydown', (e) => {
 
 // #region experimental debug things
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'F11') {
-    e.preventDefault()
-    void goFullscreen(true)
-  }
   if (e.code === 'KeyL' && e.altKey) {
     console.clear()
   }

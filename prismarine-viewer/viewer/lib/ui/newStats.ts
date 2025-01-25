@@ -6,7 +6,6 @@ const stats = {}
 let lastY = 20
 export const addNewStat = (id: string, width = 80, x = rightOffset, y = lastY) => {
   const pane = document.createElement('div')
-  pane.id = 'fps-counter'
   pane.style.position = 'fixed'
   pane.style.top = `${y}px`
   pane.style.right = `${x}px`
@@ -27,6 +26,7 @@ export const addNewStat = (id: string, width = 80, x = rightOffset, y = lastY) =
 
   return {
     updateText (text: string) {
+      if (pane.innerText === text) return
       pane.innerText = text
     },
     setVisibility (visible: boolean) {

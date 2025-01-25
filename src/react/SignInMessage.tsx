@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useUtilsEffect } from '@zardoy/react-util'
-import PixelartIcon from './PixelartIcon'
+import { QRCodeSVG } from 'qrcode.react'
+import PixelartIcon, { pixelartIcons } from './PixelartIcon'
 import Screen from './Screen'
 import Button from './Button'
 
@@ -8,7 +9,6 @@ export default ({
   code = 'ABCD-EFGH-IJKL-MNOP',
   loginLink = 'https://aka.ms/devicelogin',
   connectingServer = 'mc.example.comsdlfjsklfjsfjdskfjsj',
-  warningText = true,
   expiresEnd = Date.now() + 1000 * 60 * 5,
   setSaveToken = (() => { }) as ((state: boolean) => void) | undefined,
   defaultSaveToken = true,
@@ -28,7 +28,7 @@ export default ({
     })
   }, [])
 
-  return <Screen title='Microsoft Account Authentication'>
+  return <Screen title='Microsoft Account Authentication' titleMarginTop={5}>
     <div style={{
       background: 'white',
       padding: '20px 18px',
@@ -83,19 +83,25 @@ export default ({
             fontWeight: 600,
           }}
           target='_blank'
-        >{loginLink}
+        >{loginLink.replace(/(https?:\/\/)?(www\.)?/, '')}
         </a>
         {' '}
         and enter the code above.
       </div>
-      {warningText && <div style={{
-        fontSize: 12,
+      <div style={{
+        fontSize: 11,
         marginTop: 5,
-        color: 'gray'
+        color: 'gray',
+        display: 'flex',
+        gap: 2
       }}
       >
-        <PixelartIcon iconName='alert' /> Join only <b>vanilla servers</b>! This client is detectable and may result in a ban by anti-cheat plugins.
-      </div>}
+        <div>
+          <PixelartIcon iconName={pixelartIcons.alert} styles={{ display: 'inline-block', }} />
+          Join only <b>vanilla servers</b>! This client is detectable and may result in a ban by anti-cheat plugins.
+        </div>
+        <QRCodeSVG size={40} value={directLink} style={{ display: 'block', flexShrink: 0 }} color='gray' />
+      </div>
       {setSaveToken && <label style={{
         fontSize: 12,
         display: 'flex',

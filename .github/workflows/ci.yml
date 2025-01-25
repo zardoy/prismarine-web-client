@@ -40,3 +40,25 @@ jobs:
       #   if: ${{ github.event.pull_request.base.ref == 'release' }}
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  dedupe-check:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.ref == 'next'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install pnpm
+        run: npm install -g pnpm@9.0.4
+        
+      - name: Run pnpm dedupe
+        run: pnpm dedupe
+
+      - name: Check for changes
+        run: |
+          if ! git diff --exit-code --quiet pnpm-lock.yaml; then
+            echo "pnpm dedupe introduced changes:"
+            git diff --color=always pnpm-lock.yaml
+            exit 1
+          else
+            echo "No changes detected after pnpm dedupe in pnpm-lock.yaml"
+          fi

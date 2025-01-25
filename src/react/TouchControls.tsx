@@ -57,8 +57,8 @@ export default () => {
       style={{ zIndex: modals.length ? 7 : 8 }}
       className={css`
         position: fixed;
-        inset: 0;
-        height: 100%;
+        bottom: 0;
+        /* height: 100%; */
         display: flex;
         width: 100%;
         justify-content: space-between;

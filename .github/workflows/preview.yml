@@ -55,6 +55,9 @@ jobs:
         run: npm install --global vercel
       - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Write Release Info
+        run: |
+          echo "{\"latestTag\": \"$(git rev-parse --short ${{ github.event.pull_request.head.sha }})\"}" > assets/release.json
       - name: Build Project Artifacts
         run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
       - run: pnpm build-storybook
@@ -63,6 +66,14 @@ jobs:
           mkdir -p .vercel/output/static/playground
           pnpm build-playground
           cp -r prismarine-viewer/dist/* .vercel/output/static/playground/
+      - name: Write pr redirect index.html
+        run: |
+          mkdir -p .vercel/output/static/pr
+          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number || github.event.pull_request.number }}'>" > .vercel/output/static/pr/index.html
+      - name: Write commit redirect index.html
+        run: |
+          mkdir -p .vercel/output/static/commit
+          echo "<meta http-equiv='refresh' content='0;url=https://github.com/${{ github.repository }}/pull/${{ github.event.issue.number || github.event.pull_request.number }}/commits/${{ github.event.pull_request.head.sha }}'>" > .vercel/output/static/commit/index.html
       - name: Download Generated Sounds map
         run: node scripts/downloadSoundsMap.mjs
       - name: Deploy Project Artifacts to Vercel
@@ -81,4 +92,7 @@ jobs:
       # - run: git checkout next scripts/githubActions.mjs
       - name: Set deployment alias
         if: ${{ steps.alias.outputs.alias != '' && steps.alias.outputs.alias != 'mcraft.fun' && steps.alias.outputs.alias != 's.mcraft.fun' }}
-        run: vercel alias set ${{ steps.deploy.outputs.stdout }} ${{ steps.alias.outputs.alias }} --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
+        run: |
+          for alias in $(echo ${{ steps.alias.outputs.alias }} | tr "," "\n"); do
+            vercel alias set ${{ steps.deploy.outputs.stdout }} $alias --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
+          done

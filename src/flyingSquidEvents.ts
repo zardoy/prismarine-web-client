@@ -1,4 +1,7 @@
+import { saveServer } from './flyingSquidUtils'
+import { watchUnloadForCleanup } from './gameUnload'
 import { showModal } from './globalState'
+import { options } from './optionsStorage'
 import { chatInputValueGlobal } from './react/Chat'
 import { showNotification } from './react/NotificationProvider'
 
@@ -10,4 +13,15 @@ export default () => {
       showModal({ reactType: 'chat' })
     })
   })
+
+  if (options.singleplayerAutoSave) {
+    const autoSaveInterval = setInterval(() => {
+      if (options.singleplayerAutoSave) {
+        void saveServer(true)
+      }
+    }, 2000)
+    watchUnloadForCleanup(() => {
+      clearInterval(autoSaveInterval)
+    })
+  }
 }
