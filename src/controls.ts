@@ -736,11 +736,22 @@ addEventListener('mousedown', async (e) => {
 window.addEventListener('keydown', (e) => {
   if (e.code !== 'Escape') return
   if (activeModalStack.length) {
-    hideCurrentModal(undefined, () => {
-      if (!activeModalStack.length) {
-        pointerLock.justHitEscape = true
+    const hideAll = e.ctrlKey || e.metaKey
+    if (hideAll) {
+      while (activeModalStack.length > 0) {
+        hideCurrentModal(undefined, () => {
+          if (!activeModalStack.length) {
+            pointerLock.justHitEscape = true
+          }
+        })
       }
-    })
+    } else {
+      hideCurrentModal(undefined, () => {
+        if (!activeModalStack.length) {
+          pointerLock.justHitEscape = true
+        }
+      })
+    }
   } else if (pointerLock.hasPointerLock) {
     document.exitPointerLock?.()
     if (options.autoExitFullscreen) {
