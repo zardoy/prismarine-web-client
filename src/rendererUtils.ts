@@ -8,10 +8,10 @@ export const watchFov = () => {
     let fov = gameAdditionalState.isZooming ? 30 : options.fov
     // todo check values and add transition
     if (bot.controlState.sprint && !bot.controlState.sneak) {
-      fov -= 5
+      fov += 5
     }
     if (gameAdditionalState.isFlying) {
-      fov -= 5
+      fov += 5
     }
     viewer.camera.fov = fov
     viewer.camera.updateProjectionMatrix()
