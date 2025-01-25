@@ -346,8 +346,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0
       mc-assets:
-        specifier: ^0.2.27
-        version: 0.2.27
+        specifier: ^0.2.28
+        version: 0.2.28
       minecraft-inventory-gui:
         specifier: github:zardoy/minecraft-inventory-gui#next
         version: https://codeload.github.com/zardoy/minecraft-inventory-gui/tar.gz/75e940a4cd50d89e0ba03db3733d5d704917a3c8(@types/react@18.2.20)(react@18.2.0)
@@ -6256,8 +6256,8 @@ packages:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
     engines: {node: '>= 0.4'}
 
-  mc-assets@0.2.27:
-    resolution: {integrity: sha512-9VUM89lRIhclj/+CvSXeum6frA7UWXTQR2TUC/qtXJp7DJ6Jf4Mmo/vM/m6Ztev1jG5ZgKNwL6rrP9lwt0YybA==}
+  mc-assets@0.2.28:
+    resolution: {integrity: sha512-NwUpKFExg/xs5YguFMeGa7Zie2yoJh2EcUSV4n46q4OF60AmgoEj0OSOS2xnZF2BL17JJ3Y97V6quAR9NCKLeQ==}
     engines: {node: '>=18.0.0'}
 
   md5-file@4.0.0:
@@ -16642,7 +16642,7 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
-  mc-assets@0.2.27: {}
+  mc-assets@0.2.28: {}
 
   md5-file@4.0.0: {}
 

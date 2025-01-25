@@ -1,29 +1,16 @@
 import { useEffect, useState } from 'react'
-import { mapDownloader } from 'mineflayer-item-map-downloader/'
-import { setImageConverter } from 'mineflayer-item-map-downloader/lib/util'
 
 export default () => {
   const [dataUrl, setDataUrl] = useState<string | null | true>(null) // true means loading
 
   useEffect(() => {
-    setImageConverter((buf: Uint8Array) => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')!
-      canvas.width = 128
-      canvas.height = 128
-      const imageData = ctx.createImageData(canvas.width, canvas.height)
-      imageData.data.set(buf)
-      ctx.putImageData(imageData, 0, 0)
-      // data url
-      return canvas.toDataURL('image/png')
-    })
-
     // TODO delete maps!
     const updateHeldMap = () => {
       setDataUrl(null)
-      if (!bot.heldItem || !['filled_map', 'map'].includes(bot.heldItem.name)) return
+      const item = bot.heldItem
+      if (!item || !['filled_map', 'map'].includes(item.name)) return
       // setDataUrl(true)
-      const mapNumber = (bot.heldItem?.nbt?.value as any)?.map?.value
+      const mapNumber = ((item?.nbt?.value as any)?.map?.value) ?? (item['components']?.find(x => x.type === 'map_id')?.data)
       // if (!mapNumber) return
       setDataUrl(bot.mapDownloader.maps?.[mapNumber] as unknown as string)
     }
@@ -36,6 +23,8 @@ export default () => {
       // total maps: Object.keys(bot.mapDownloader.maps).length
       updateHeldMap()
     })
+
+    updateHeldMap()
   }, [])
 
   return dataUrl && dataUrl !== true ? <div style={{
