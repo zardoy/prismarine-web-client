@@ -45,7 +45,7 @@ const versionToNumber = (ver) => {
 // if not included here (even as {}) will not be bundled & accessible!
 // const compressedOutput = !!process.env.SINGLE_FILE_BUILD
 const compressedOutput = true
-const dataTypeBundling = {
+const dataTypeBundling2 = {
   blocks: {
     arrKey: 'name',
   },
@@ -56,7 +56,7 @@ const dataTypeBundling = {
     processData: processRecipes
   }
 }
-const dataTypeBundling2 = {
+const dataTypeBundling = {
   language: {
     ignoreRemoved: true,
     ignoreChanges: true
@@ -137,7 +137,8 @@ const dataTypeBundling2 = {
     arrKey: 'block'
   },
   recipes: {
-    processData: processRecipes
+    raw: true
+    // processData: processRecipes
   },
   blockCollisionShapes: {},
   loginPacket: {},

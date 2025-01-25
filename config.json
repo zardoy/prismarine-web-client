@@ -1,7 +1,7 @@
 {
   "version": 1,
   "defaultHost": "<from-proxy>",
-  "defaultProxy": "proxy.mcraft.fun",
+  "defaultProxy": "https://proxy.mcraft.fun",
   "mapsProvider": "https://maps.mcraft.fun/",
   "peerJsServer": "",
   "peerJsServerFallback": "https://p2p.mcraft.fun",

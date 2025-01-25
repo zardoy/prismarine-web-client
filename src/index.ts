@@ -100,7 +100,7 @@ import packetsPatcher from './packetsPatcher'
 import { mainMenuState } from './react/MainMenuRenderApp'
 import { ItemsRenderer } from 'mc-assets/dist/itemsRenderer'
 import './mobileShim'
-import { loadMinecraftData, preloadAllMcData } from './mcDataHelpers'
+import { preloadAllMcData } from './mcDataHelpers'
 import { parseFormattedMessagePacket } from './botUtils'
 import { getViewerVersionData, getWsProtocolStream } from './viewerConnector'
 

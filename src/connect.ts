@@ -4,6 +4,7 @@ import { AuthenticatedAccount } from './react/ServersListProvider'
 import { setLoadingScreenStatus } from './utils'
 import { downloadSoundsIfNeeded } from './soundSystem'
 import { miscUiState } from './globalState'
+import { loadMinecraftData } from './mcDataHelpers'
 
 export type ConnectOptions = {
   server?: string
@@ -25,6 +26,7 @@ export type ConnectOptions = {
 }
 
 export const downloadNeededDataOnConnect = async (version: string) => {
+  await loadMinecraftData(version)
   // todo expose cache
   const initialDataVersion = Object.keys(minecraftInitialDataJson)[0]!
   if (version === initialDataVersion) {
