@@ -16,8 +16,5 @@ setImageConverter((buf: Uint8Array) => {
 customEvents.on('mineflayerBotCreated', () => {
   bot.on('login', () => {
     bot.loadPlugin(mapDownloader)
-    bot.mapDownloader.on('new_map', ({ png, id }) => {
-      viewer.entities.updateMap(id, png)
-    })
   })
 })
