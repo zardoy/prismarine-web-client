@@ -49,6 +49,7 @@ const defaultOptions = {
   useVersionsTextures: 'latest',
   serverResourcePacks: 'prompt' as 'prompt' | 'always' | 'never',
   handDisplay: false,
+  packetsLoggerPreset: 'all' as 'all' | 'no-buffers',
 
   // antiAliasing: false,
 
@@ -93,7 +94,7 @@ const defaultOptions = {
   minimapOptimizations: true,
   displayBossBars: false, // boss bar overlay was removed for some reason, enable safely
   disabledUiParts: [] as string[],
-  neighborChunkUpdates: true
+  neighborChunkUpdates: true,
 }
 
 function getDefaultTouchControlsPositions () {
