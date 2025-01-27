@@ -63,6 +63,8 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
   const valuesTitlesMap = useMemo(() => {
     if (!item.values) {
       return {
+        // true: <span style={{ color: 'lime' }}>ON</span>,
+        // false: <span style={{ color: 'red' }}>OFF</span>,
         true: 'ON',
         false: 'OFF',
       }
@@ -82,6 +84,8 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
   return <Button
     data-setting={item.id}
     label={`${item.text}: ${valuesTitlesMap[optionValue]}`}
+    // label={`${item.text}:`}
+    // postLabel={valuesTitlesMap[optionValue]}
     onClick={async (event) => {
       if (disabledReason) {
         await showOptionsModal(`The option is unavailable. ${disabledReason}`, [])
