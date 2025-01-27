@@ -6,14 +6,7 @@ export interface ClientOnMap {
   } | /** 1.12.2 */ {
     keepAliveId: bigint;
   };
-  login: /** 1.7 */ {
-    entityId: number;
-    gameMode: number;
-    dimension: number;
-    difficulty: number;
-    maxPlayers: number;
-    levelType: string;
-  } | /** 1.8 */ {
+  login:/** 1.8 */ {
     entityId: number;
     gameMode: number;
     dimension: number;
@@ -148,9 +141,7 @@ export interface ClientOnMap {
     entityId: number;
     equipments: any;
   };
-  spawn_position: /** 1.7 */ {
-    location: any;
-  } | /** 1.8 */ {
+  spawn_position:/** 1.8 */ {
     location: { x: number, y: number, z: number };
   } | /** 1.17 */ {
     location: { x: number, y: number, z: number };
@@ -215,14 +206,7 @@ export interface ClientOnMap {
     death: any;
     portalCooldown: number;
   };
-  position: /** 1.7 */ {
-    x: number;
-    y: number;
-    z: number;
-    yaw: number;
-    pitch: number;
-    onGround: boolean;
-  } | /** 1.8 */ {
+  position: /** 1.8 */ {
     x: number;
     y: number;
     z: number;
@@ -905,11 +889,7 @@ export interface ClientOnMap {
   statistics: /** 1.7 */ {
     entries: any;
   };
-  player_info: /** 1.7 */ {
-    playerName: string;
-    online: boolean;
-    ping: number;
-  } | /** 1.8 */ {
+  player_info: /** 1.8 */ {
     action: number;
     data: any;
   };
@@ -926,22 +906,13 @@ export interface ClientOnMap {
     length: number;
     matches: any;
   };
-  scoreboard_objective: /** 1.7 */ {
-    name: string;
-    displayText: string;
-    action: number;
-  } | /** 1.8 */ {
+  scoreboard_objective:/** 1.8 */ {
     name: string;
     action: number;
     displayText: any;
     type: any;
   };
-  scoreboard_score: /** 1.7 */ {
-    itemName: string;
-    action: number;
-    scoreName: any;
-    value: any;
-  } | /** 1.8 */ {
+  scoreboard_score:/** 1.8 */ {
     itemName: string;
     action: number;
     scoreName: string;

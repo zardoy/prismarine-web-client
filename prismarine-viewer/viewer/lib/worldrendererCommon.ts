@@ -54,6 +54,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
   worldConfig = { minY: 0, worldHeight: 256 }
   // todo need to cleanup
   material = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, alphaTest: 0.1 })
+  cameraRoll = 0
 
   @worldCleanup()
   active = false
@@ -324,7 +325,7 @@ export abstract class WorldRendererCommon<WorkerSend = any, WorkerReceive = any>
       Object.assign(blockTexturesChanges, christmasPack)
     }
 
-    const customBlockTextures = Object.keys(this.customTextures.blocks?.textures ?? {}).filter(x => x.includes('/'))
+    const customBlockTextures = Object.keys(this.customTextures.blocks?.textures ?? {})
     const { atlas: blocksAtlas, canvas: blocksCanvas } = await blocksAssetsParser.makeNewAtlas(this.texturesVersion ?? this.version ?? 'latest', (textureName) => {
       const texture = this.customTextures?.blocks?.textures[textureName]
       return blockTexturesChanges[textureName] ?? texture

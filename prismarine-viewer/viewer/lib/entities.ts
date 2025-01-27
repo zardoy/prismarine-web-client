@@ -276,8 +276,20 @@ export class Entities extends EventEmitter {
   // fixme workaround
   defaultSteveTexture
 
+  usernamePerSkinUrlsCache = {} as Record<string, { skinUrl?: string, capeUrl?: string }>
+
   // true means use default skin url
   updatePlayerSkin (entityId: string | number, username: string | undefined, skinUrl: string | true, capeUrl: string | true | undefined = undefined) {
+    if (username) {
+      if (typeof skinUrl === 'string' || typeof capeUrl === 'string') this.usernamePerSkinUrlsCache[username] = {}
+      if (typeof skinUrl === 'string') this.usernamePerSkinUrlsCache[username].skinUrl = skinUrl
+      if (typeof capeUrl === 'string') this.usernamePerSkinUrlsCache[username].capeUrl = capeUrl
+      if (skinUrl === true) {
+        skinUrl = this.usernamePerSkinUrlsCache[username]?.skinUrl ?? skinUrl
+      }
+      capeUrl ??= this.usernamePerSkinUrlsCache[username]?.capeUrl
+    }
+
     let playerObject = this.getPlayerObject(entityId)
     if (!playerObject) return
     // const username = this.entities[entityId].username

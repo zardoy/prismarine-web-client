@@ -145,7 +145,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
   const [defaultUsername, _setDefaultUsername] = useState(localStorage['username'] ?? (`mcrafter${Math.floor(Math.random() * 1000)}`))
   const [authenticatedAccounts, _setAuthenticatedAccounts] = useState<AuthenticatedAccount[]>(JSON.parse(localStorage['authenticatedAccounts'] || '[]'))
   const [quickConnectIp, setQuickConnectIp] = useState('')
-  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [selectedIndex, setSelectedIndex] = useState(0)
 
   const setAuthenticatedAccounts = (newState: typeof authenticatedAccounts) => {
     _setAuthenticatedAccounts(newState)
@@ -252,6 +252,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
   })
 
   const editModalJsx = isEditScreenModal ? <AddServerOrConnect
+    allowAutoConnect={miscUiState.appConfig?.allowAutoConnect}
     placeholders={{
       proxyOverride: selectedProxy,
       usernameOverride: defaultUsername,
@@ -412,6 +413,7 @@ const Inner = ({ hidden, customServersList }: { hidden?: boolean, customServersL
     onRowSelect={(_, i) => {
       setSelectedIndex(i)
     }}
+    selectedRow={selectedIndex}
   />
   return <>
     {serversListJsx}

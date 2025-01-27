@@ -438,21 +438,30 @@ export const guiOptionsScheme: {
           onClick={() => {
             packetsReplaceSessionState.active = !active
           }}
-        >{active ? 'Disable' : 'Enable'} Packets Replay</Button>
+        >{active ? 'Stop' : 'Start'} Packets Replay Logging</Button>
       },
     },
     {
       custom () {
-        const { active } = useSnapshot(packetsReplaceSessionState)
+        const { active, hasRecordedPackets } = useSnapshot(packetsReplaceSessionState)
         return <Button
-          disabled={!active}
+          disabled={!hasRecordedPackets}
           inScreen
           onClick={() => {
             void downloadPacketsReplay()
           }}
         >Download Packets Replay</Button>
       },
-    }
+    },
+    {
+      packetsLoggerPreset: {
+        text: 'Packets Logger Preset',
+        values: [
+          ['all', 'All'],
+          ['no-buffers', 'No Buffers']
+        ],
+      },
+    },
   ],
 }
 export type OptionsGroupType = 'main' | 'render' | 'interface' | 'controls' | 'sound' | 'advanced' | 'VR'

@@ -21,6 +21,15 @@ export const displayClientChat = (text: string) => {
 }
 
 export const parseFormattedMessagePacket = (arg) => {
+  // if (typeof arg === 'string') {
+  //   try {
+  //     arg = JSON.parse(arg)
+  //     return {
+  //       formatted: arg,
+  //       plain: ''
+  //     }
+  //   } catch {}
+  // }
   if (typeof arg === 'object') {
     try {
       return {

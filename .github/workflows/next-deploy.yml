@@ -43,3 +43,26 @@ jobs:
           for alias in $(echo ${{ secrets.TEST_PREVIEW_DOMAIN }} | tr "," "\n"); do
             vercel alias set ${{ steps.deploy.outputs.stdout }} $alias --token=${{ secrets.VERCEL_TOKEN }} --scope=zaro
           done
+
+      - name: Create Release Pull Request
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: pulls } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: `${context.repo.owner}:next`,
+              base: 'release',
+              state: 'open'
+            });
+
+            if (pulls.length === 0) {
+              await github.rest.pulls.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: 'Release',
+                head: 'next',
+                base: 'release',
+                body: 'PR was created automatically by the release workflow, hope you release it as soon as possible!',
+              });
+            }

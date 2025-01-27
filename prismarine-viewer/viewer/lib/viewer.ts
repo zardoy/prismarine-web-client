@@ -159,7 +159,7 @@ export class Viewer {
     }))
   }
 
-  setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number, roll = 0) {
+  setFirstPersonCamera (pos: Vec3 | null, yaw: number, pitch: number) {
     const cam = this.cameraObjectOverride || this.camera
     let yOffset = this.getMineflayerBot()?.entity?.eyeHeight ?? this.playerHeight
     if (this.isSneaking) yOffset -= 0.3

@@ -45,9 +45,13 @@ export const onGameLoad = (onLoad) => {
     if (!viewer.world.itemsAtlasParser) return
     itemsRenderer = new ItemsRenderer(bot.version, viewer.world.blockstatesModels, viewer.world.itemsAtlasParser, viewer.world.blocksAtlasParser)
     globalThis.itemsRenderer = itemsRenderer
-    if (allImagesLoadedState.value) return
-    onLoad?.()
-    allImagesLoadedState.value = true
+    if (!allImagesLoadedState.value) {
+      onLoad?.()
+    }
+    allImagesLoadedState.value = false
+    setTimeout(() => {
+      allImagesLoadedState.value = true
+    }, 0)
   }
   viewer.world.renderUpdateEmitter.on('textureDownloaded', checkIfLoaded)
   checkIfLoaded()
@@ -190,7 +194,7 @@ const renderSlot = (slot: RenderSlot, skipBlock = false): {
     itemTexture = itemsRenderer.getItemTexture(itemName) ?? itemsRenderer.getItemTexture('item/missing_texture')!
   } catch (err) {
     itemTexture = itemsRenderer.getItemTexture('block/errored')!
-    inGameError(`Failed to render item ${itemName} on ${bot.version} (resourcepack: ${options.enabledResourcepack}): ${err.message}`)
+    inGameError(`Failed to render item ${itemName} on ${bot.version} (resourcepack: ${options.enabledResourcepack}): ${err.stack}`)
   }
   if ('type' in itemTexture) {
     // is item
