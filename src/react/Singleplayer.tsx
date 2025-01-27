@@ -155,7 +155,7 @@ export default ({
     if (worldName) {
       worldRefs.current[worldName]?.focus()
     }
-  }, [selectedRow, worldData])
+  }, [selectedRow, worldData?.[selectedRow]?.name])
 
   const onRowSelectHandler = (name: string, index: number) => {
     onRowSelect?.(name, index)
