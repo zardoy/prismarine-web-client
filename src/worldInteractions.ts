@@ -192,6 +192,7 @@ class WorldInteraction {
   // todo this shouldnt be done in the render loop, migrate the code to dom events to avoid delays on lags
   update () {
     const inSpectator = bot.game.gameMode === 'spectator'
+    const inAdventure = bot.game.gameMode === 'adventure'
     const entity = getEntityCursor()
     let cursorBlock = inSpectator && !options.showCursorBlockInSpectator ? null : bot.blockAtCursor(5)
     if (entity) {
@@ -199,7 +200,7 @@ class WorldInteraction {
     }
 
     let cursorBlockDiggable = cursorBlock
-    if (cursorBlock && !bot.canDigBlock(cursorBlock) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
+    if (cursorBlock && (!bot.canDigBlock(cursorBlock) || inAdventure) && bot.game.gameMode !== 'creative') cursorBlockDiggable = null
 
     const cursorChanged = cursorBlock && viewer.world.cursorBlock ? !viewer.world.cursorBlock.equals(cursorBlock.position) : viewer.world.cursorBlock !== cursorBlock
 
@@ -391,6 +392,43 @@ const getDataFromShape = (shape) => {
   const centerZ = (shape[5] + shape[2]) / 2
   const position = new Vec3(centerX, centerY, centerZ)
   return { position, width, height, depth }
+}
+
+// Blocks that can be interacted with in adventure mode
+const activatableBlockPatterns = [
+  // Containers
+  /^(chest|barrel|hopper|dispenser|dropper)$/,
+  /^.*shulker_box$/,
+  /^.*(furnace|smoker)$/,
+  /^(brewing_stand|beacon)$/,
+  // Crafting
+  /^.*table$/,
+  /^(grindstone|stonecutter|loom)$/,
+  /^.*anvil$/,
+  // Redstone
+  /^(lever|repeater|comparator|daylight_detector|observer|note_block|jukebox|bell)$/,
+  // Buttons
+  /^.*button$/,
+  // Doors and trapdoors
+  /^.*door$/,
+  /^.*trapdoor$/,
+  // Functional blocks
+  /^(enchanting_table|lectern|composter|respawn_anchor|lodestone|conduit)$/,
+  /^.*bee.*$/,
+  // Beds
+  /^.*bed$/,
+  // Misc
+  /^(cake|decorated_pot|crafter|trial_spawner|vault)$/
+]
+
+function isBlockActivatable (blockName: string) {
+  return activatableBlockPatterns.some(pattern => pattern.test(blockName))
+}
+
+function isLookingAtActivatableBlock () {
+  const cursorBlock = bot.blockAtCursor(5)
+  if (!cursorBlock) return false
+  return isBlockActivatable(cursorBlock.name)
 }
 
 export const getEntityCursor = () => {
