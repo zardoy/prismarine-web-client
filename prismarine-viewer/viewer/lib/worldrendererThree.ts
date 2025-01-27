@@ -5,6 +5,7 @@ import PrismarineChatLoader from 'prismarine-chat'
 import * as tweenJs from '@tweenjs/tween.js'
 import { BloomPass, RenderPass, UnrealBloomPass, EffectComposer, WaterPass, GlitchPass, LineSegmentsGeometry, Wireframe, LineMaterial } from 'three-stdlib'
 import worldBlockProvider from 'mc-assets/dist/worldBlockProvider'
+import { Water } from 'three-latest/examples/jsm/objects/Water2.js'
 import { renderSign } from '../sign-renderer'
 import { chunkPos, sectionPos } from './simpleUtils'
 import { WorldRendererCommon, WorldRendererConfig } from './worldrendererCommon'
@@ -128,6 +129,34 @@ export class WorldRendererThree extends WorldRendererCommon {
       if (!value) continue
       this.updatePosDataChunk(key)
     }
+  }
+
+  addWater () {
+    // offset 0, -2, 0
+    const chunkPos = new THREE.Vector3(...this.camera.position.clone().toArray().map(x => Math.floor(x / 16) * 16) as [number, number, number])
+    const x = 0
+    const z = 0
+    const y = this.camera.position.y - chunkPos[1]
+
+    // const posChunkMiddle = chunkPos.map((x, i) => i === 0 ? 0 : 0) as [number, number, number]
+    const posChunkMiddle = chunkPos.toArray()
+    const waterGeometry = new THREE.PlaneGeometry(20, 20)
+    const textureLoader = new THREE.TextureLoader()
+    const water = new Water(waterGeometry, {
+      scale: 1,
+      flowDirection: new THREE.Vector2(1, 1),
+      textureWidth: 1024,
+      textureHeight: 1024,
+      normalMap0: textureLoader.load('https://threejs.org/examples/textures/water/Water_1_M_Normal.jpg'),
+      normalMap1: textureLoader.load('https://threejs.org/examples/textures/water/Water_2_M_Normal.jpg'),
+    })
+    const scale = 20 / 16 / 16
+    water.scale.set(scale, scale, 1)
+    //@ts-expect-error
+    water.material.uniforms['color'].value.set(new THREE.Color(117 / 255, 202 / 255, 255 / 255).getHex())
+    water.rotation.x = Math.PI * - 0.5
+    water.position.set(...posChunkMiddle)
+    this.scene.add(water)
   }
 
   // debugRecomputedDeletedObjects = 0
