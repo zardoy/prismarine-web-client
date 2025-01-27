@@ -1,17 +1,16 @@
-import { downloadSoundsIfNeeded } from '../soundSystem'
 import * as THREE from 'three'
 
 class CameraShake {
   private rollAngle = 0
-  private damageRollAmount = 5
-  private damageAnimDuration = 200
+  private get damageRollAmount () { return 5 }
+  private get damageAnimDuration () { return 200 }
   private rollAnimation?: { startTime: number, startRoll: number, targetRoll: number, duration: number, returnToZero?: boolean }
 
-  constructor() {
+  constructor () {
     this.rollAngle = 0
   }
 
-  shakeFromDamage() {
+  shakeFromDamage () {
     // Add roll animation
     const startRoll = this.rollAngle
     const targetRoll = startRoll + (Math.random() < 0.5 ? -1 : 1) * this.damageRollAmount
@@ -24,7 +23,7 @@ class CameraShake {
     }
   }
 
-  update() {
+  update () {
     // Update roll animation
     if (this.rollAnimation) {
       const now = performance.now()
@@ -54,7 +53,7 @@ class CameraShake {
     }
 
     // Apply roll in camera's local space to maintain consistent left/right roll
-    const camera = viewer.camera
+    const { camera } = viewer
     const rollQuat = new THREE.Quaternion()
     rollQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), THREE.MathUtils.degToRad(this.rollAngle))
 
@@ -67,12 +66,12 @@ class CameraShake {
     camera.setRotationFromQuaternion(finalQuat)
   }
 
-  private easeOut(t: number): number {
+  private easeOut (t: number): number {
     return 1 - (1 - t) * (1 - t)
   }
 
-  private easeInOut(t: number): number {
-    return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2
+  private easeInOut (t: number): number {
+    return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2
   }
 }
 

@@ -203,7 +203,7 @@ export default ({
                   {...rest}
                   size={size}
                   name={name}
-                  elemRef={el => worldRefs.current[name] = el}
+                  elemRef={el => { worldRefs.current[name] = el }}
                   onFocus={row => onRowSelectHandler(row, index)}
                   isFocused={focusedWorld === name}
                   key={name}
