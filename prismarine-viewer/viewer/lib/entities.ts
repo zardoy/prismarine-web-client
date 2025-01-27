@@ -696,7 +696,7 @@ export class Entities extends EventEmitter {
     }
     if (itemFrameMeta) {
       // TODO: Figure out why this doesn't match the Item mineflayer type
-      const item = itemFrameMeta?.item as any as { itemId, blockId, nbtData: { value: { map: { value: number } } } }
+      const item = itemFrameMeta?.item as any as { itemId, blockId, components, nbtData: { value: { map: { value: number } } } }
       mesh.scale.set(1, 1, 1)
       e.rotation.x = -entity.pitch
       e.children.find(c => {
@@ -716,7 +716,7 @@ export class Entities extends EventEmitter {
       })?.removeFromParent()
       if (item && (item.itemId ?? item.blockId ?? 0) !== 0) {
         const rotation = (itemFrameMeta.rotation as any as number) ?? 0
-        const mapNumber = item.nbtData?.value?.map?.value
+        const mapNumber = item.nbtData?.value?.map?.value ?? item.components?.find(x => x.type === 'map_id')?.data
         if (mapNumber) {
           // TODO: Use proper larger item frame model when a map exists
           mesh.scale.set(16 / 12, 16 / 12, 1)
