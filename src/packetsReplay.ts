@@ -4,9 +4,10 @@ import { options } from './optionsStorage'
 
 export const packetsReplaceSessionState = proxy({
   active: false,
+  hasRecordedPackets: false
 })
 
-const replayLogger = new PacketsLogger()
+export const replayLogger = new PacketsLogger()
 
 const isBufferData = (data: any): boolean => {
   if (Buffer.isBuffer(data) || data instanceof Uint8Array) return true
@@ -35,11 +36,13 @@ const processPacketData = (data: any): any => {
 export default () => {
   customEvents.on('mineflayerBotCreated', () => {
     replayLogger.contents = ''
+    packetsReplaceSessionState.hasRecordedPackets = false
     const handleServerPacket = (data, { name, state = bot._client.state }) => {
       if (!packetsReplaceSessionState.active) {
         return
       }
       replayLogger.log(true, { name, state }, processPacketData(data))
+      packetsReplaceSessionState.hasRecordedPackets = true
     }
     bot._client.on('packet', handleServerPacket)
     bot._client.on('packet_name' as any, (name, data) => {
@@ -51,6 +54,7 @@ export default () => {
         return
       }
       replayLogger.log(false, { name, state: bot._client.state }, processPacketData(data))
+      packetsReplaceSessionState.hasRecordedPackets = true
     })
   })
 }
@@ -61,3 +65,4 @@ export const downloadPacketsReplay = async () => {
   a.download = `packets-replay-${new Date().toISOString()}.txt`
   a.click()
 }
+globalThis.downloadPacketsReplay = downloadPacketsReplay
