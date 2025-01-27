@@ -82,7 +82,7 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
   return <Button
     data-setting={item.id}
     label={`${item.text}: ${valuesTitlesMap[optionValue]}`}
-    onClick={async () => {
+    onClick={async (event) => {
       if (disabledReason) {
         await showOptionsModal(`The option is unavailable. ${disabledReason}`, [])
         return
@@ -106,7 +106,10 @@ export const OptionButton = ({ item }: { item: Extract<OptionMeta, { type: 'togg
         if (currentIndex === -1) {
           options[item.id!] = getOptionValue(values[0])
         } else {
-          options[item.id!] = getOptionValue(values[(currentIndex + 1) % values.length])
+          const nextIndex = event.shiftKey
+            ? (currentIndex - 1 + values.length) % values.length
+            : (currentIndex + 1) % values.length
+          options[item.id!] = getOptionValue(values[nextIndex])
         }
       } else {
         options[item.id!] = !options[item.id!]
