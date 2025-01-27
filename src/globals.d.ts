@@ -26,6 +26,7 @@ declare const customEvents: import('typed-emitter').default<{
   mineflayerBotCreated (): void
   search (q: string): void
   activateItem (item: Item, slot: number, offhand: boolean): void
+  hurtAnimation (): void
 }>
 declare const beforeRenderFrame: Array<() => void>
 

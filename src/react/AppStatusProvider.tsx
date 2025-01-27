@@ -5,7 +5,7 @@ import { resetLocalStorageWorld } from '../browserfs'
 import { fsState } from '../loadSave'
 import { guessProblem } from '../errorLoadingScreenHelpers'
 import { ConnectOptions } from '../connect'
-import { downloadPacketsReplay, packetsReplaceSessionState } from '../packetsReplay'
+import { downloadPacketsReplay, packetsReplaceSessionState, replayLogger } from '../packetsReplay'
 import { getProxyDetails } from '../microsoftAuthflow'
 import AppStatus from './AppStatus'
 import DiveTransition from './DiveTransition'
@@ -121,7 +121,7 @@ export default () => {
         <>
           {displayAuthButton && <Button label='Authenticate' onClick={authReconnectAction} />}
           {displayVpnButton && <PossiblyVpnBypassProxyButton reconnect={reconnect} />}
-          {replayActive && <Button label='Download Packets Replay' onClick={downloadPacketsReplay} />}
+          {replayActive && <Button label={`Download Packets Replay ${replayLogger.contents.split('\n').length}L`} onClick={downloadPacketsReplay} />}
         </>
       }
     >

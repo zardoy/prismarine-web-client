@@ -153,4 +153,32 @@ customEvents.on('gameLoaded', () => {
   watchValue(options, o => {
     viewer.entities.setDebugMode(o.showChunkBorders ? 'basic' : 'none')
   })
+
+  // Texture override from packet properties
+  bot._client.on('player_info', (packet) => {
+    for (const player of packet.data) {
+      const textureProperty = player.properties?.find(prop => prop.name === 'textures')
+      if (textureProperty) {
+        try {
+          const textureData = JSON.parse(Buffer.from(textureProperty.value, 'base64').toString())
+          const skinUrl = textureData.textures?.SKIN?.url
+          const capeUrl = textureData.textures?.CAPE?.url
+
+          // Find entity with matching UUID and update skin
+          let entityId = ''
+          for (const [entId, entity] of Object.entries(bot.entities)) {
+            if (entity.uuid === player.UUID) {
+              entityId = entId
+              break
+            }
+          }
+          // even if not found, still record to cache
+          viewer.entities.updatePlayerSkin(entityId, player.name, skinUrl, capeUrl)
+        } catch (err) {
+          console.error('Error decoding player texture:', err)
+        }
+      }
+    }
+
+  })
 })

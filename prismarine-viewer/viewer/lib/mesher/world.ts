@@ -10,6 +10,14 @@ import { INVISIBLE_BLOCKS } from './worldConstants'
 
 const ignoreAoBlocks = Object.keys(moreBlockDataGeneratedJson.noOcclusions)
 
+const ALWAYS_WATERLOGGED = new Set([
+  'seagrass',
+  'tall_seagrass',
+  'kelp',
+  'kelp_plant',
+  'bubble_column'
+])
+
 function columnKey (x, z) {
   return `${x},${z}`
 }
@@ -160,6 +168,12 @@ export class World {
     if (block.models === undefined && blockProvider) {
       if (!attr) throw new Error('attr is required')
       const props = block.getProperties()
+
+      // Patch waterlogged property for ocean plants
+      if (ALWAYS_WATERLOGGED.has(block.name)) {
+        props.waterlogged = 'true'
+      }
+
       try {
         // fixme
         if (this.preflat) {
@@ -194,6 +208,7 @@ export class World {
 
     if (block.name === 'flowing_water') block.name = 'water'
     if (block.name === 'flowing_lava') block.name = 'lava'
+    if (block.name === 'bubble_column') block.name = 'water' // TODO need to distinguish between water and bubble column
     // block.position = loc // it overrides position of all currently loaded blocks
     block.biome = this.biomeCache[column.getBiome(locInChunk)] ?? this.biomeCache[1] ?? this.biomeCache[0]
     if (block.name === 'redstone_ore') block.transparent = false

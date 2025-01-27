@@ -232,7 +232,7 @@ export class WorldRendererThree extends WorldRendererCommon {
     if (pos) {
       new tweenJs.Tween(this.camera.position).to({ x: pos.x, y: pos.y, z: pos.z }, 50).start()
     }
-    this.camera.rotation.set(pitch, yaw, 0, 'ZYX')
+    this.camera.rotation.set(pitch, yaw, this.cameraRoll, 'ZYX')
   }
 
   render () {

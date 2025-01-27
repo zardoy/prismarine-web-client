@@ -16,6 +16,7 @@
     "prod-start": "node server.js --prod",
     "test-mc-server": "tsx cypress/minecraft-server.mjs",
     "lint": "eslint \"{src,cypress,prismarine-viewer}/**/*.{ts,js,jsx,tsx}\"",
+    "lint-fix": "pnpm lint --fix",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build && node scripts/build.js moveStorybookFiles",
     "start-experiments": "vite --config experiments/vite.config.ts --host",
