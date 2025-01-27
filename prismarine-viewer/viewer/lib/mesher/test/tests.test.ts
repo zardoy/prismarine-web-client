@@ -49,7 +49,6 @@ test('Known blocks are not rendered', () => {
   // TODO resolve creaking_heart issue (1.21.3)
   expect(missingBlocks).toMatchInlineSnapshot(`
     {
-      "bubble_column": true,
       "end_gateway": true,
       "end_portal": true,
       "structure_void": true,
