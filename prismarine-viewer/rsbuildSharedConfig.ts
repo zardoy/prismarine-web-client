@@ -78,6 +78,12 @@ export const rspackViewerConfig = (config, { appendPlugins, addRules, rspack }: 
         if (absolute.endsWith('/minecraft-data/data.js')) {
             resource.request = path.join(__dirname, `../src/shims/minecraftData.ts`)
         }
+        if (absolute.endsWith('/minecraft-data/data/bedrock/common/legacy.json')) {
+            resource.request = path.join(__dirname, `../src/shims/empty.ts`)
+        }
+        if (absolute.endsWith('/minecraft-data/data/pc/common/legacy.json')) {
+            resource.request = path.join(__dirname, `../src/preflatMap.json`)
+        }
     }))
     addRules([
         {
@@ -91,11 +97,17 @@ export const rspackViewerConfig = (config, { appendPlugins, addRules, rspack }: 
         {
             test: /\.mp3$/,
             type: 'asset/source',
+        },
+        {
+            test: /\.txt$/,
+            type: 'asset/source',
         }
     ])
     config.ignoreWarnings = [
         /the request of a dependency is an expression/,
         /Unsupported pseudo class or element: xr-overlay/
     ]
-
+    if (process.env.SINGLE_FILE_BUILD === 'true') {
+        config.module!.parser!.javascript!.dynamicImportMode = 'eager'
+    }
 }

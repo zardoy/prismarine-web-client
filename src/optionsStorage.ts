@@ -141,9 +141,11 @@ const migrateOptions = (options: Partial<AppOptions & Record<string, any>>) => {
 
 export type AppOptions = typeof defaultOptions
 
+// when opening html file locally in browser, localStorage is shared between all ever opened html files, so we try to avoid conflicts
+const localStorageKey = process.env.SINGLE_FILE_BUILD ? 'minecraftWebClientOptions' : 'options'
 export const options: AppOptions = proxy({
   ...defaultOptions,
-  ...migrateOptions(JSON.parse(localStorage.options || '{}')),
+  ...migrateOptions(JSON.parse(localStorage[localStorageKey] || '{}')),
   ...qsOptions
 })
 
@@ -161,7 +163,7 @@ Object.defineProperty(window, 'debugChangedOptions', {
 
 subscribe(options, () => {
   const saveOptions = omitObj(options, ...Object.keys(qsOptions) as [any])
-  localStorage.options = JSON.stringify(saveOptions)
+  localStorage[localStorageKey] = JSON.stringify(saveOptions)
 })
 
 type WatchValue = <T extends Record<string, any>>(proxy: T, callback: (p: T, isChanged: boolean) => void) => void

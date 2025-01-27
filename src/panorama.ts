@@ -5,9 +5,14 @@ import fs from 'fs'
 import * as THREE from 'three'
 import { subscribeKey } from 'valtio/utils'
 import { EntityMesh } from 'prismarine-viewer/viewer/lib/entity/EntityMesh'
+import { WorldDataEmitter } from 'prismarine-viewer/viewer'
+import { Vec3 } from 'vec3'
+import { getSyncWorld } from 'prismarine-viewer/examples/shared'
+import * as tweenJs from '@tweenjs/tween.js'
 import { fromTexturePackPath, resourcePackState } from './resourcePack'
 import { options, watchValue } from './optionsStorage'
 import { miscUiState } from './globalState'
+import { loadMinecraftData, preloadAllMcData } from './mcDataHelpers'
 
 let panoramaCubeMap
 let shouldDisplayPanorama = false
@@ -41,7 +46,7 @@ const updateResourcePackSupportPanorama = async () => {
   try {
     // TODO!
     // await fs.promises.readFile(fromTexturePackPath(join(panoramaResourcePackPath, panoramaFiles[0])), 'base64')
-    panoramaUsesResourcePack = true
+    // panoramaUsesResourcePack = true
   } catch (err) {
     panoramaUsesResourcePack = false
   }
@@ -65,14 +70,22 @@ subscribeKey(miscUiState, 'loadedDataVersion', () => {
   else void addPanoramaCubeMap()
 })
 
+let unloadPanoramaCallbacks = [] as Array<() => void>
+
 // Menu panorama background
 // TODO-low use abort controller
 export async function addPanoramaCubeMap () {
   if (panoramaCubeMap || miscUiState.loadedDataVersion || options.disableAssets) return
+  viewer.camera.fov = 85
+  await updateResourcePackSupportPanorama()
+  if (process.env.SINGLE_FILE_BUILD_MODE && !panoramaUsesResourcePack) {
+    void initDemoWorld()
+    return
+  }
+
   shouldDisplayPanorama = true
 
   let time = 0
-  viewer.camera.fov = 85
   viewer.camera.near = 0.05
   viewer.camera.updateProjectionMatrix()
   viewer.camera.position.set(0, 0, 0)
@@ -81,7 +94,6 @@ export async function addPanoramaCubeMap () {
 
   const loader = new THREE.TextureLoader()
   const panorMaterials = [] as THREE.MeshBasicMaterial[]
-  await updateResourcePackSupportPanorama()
   for (const file of panoramaFiles) {
     panorMaterials.push(new THREE.MeshBasicMaterial({
       map: loader.load(await possiblyLoadPanoramaFromResourcePack(file)),
@@ -121,11 +133,86 @@ export async function addPanoramaCubeMap () {
 }
 
 export function removePanorama () {
+  for (const unloadPanoramaCallback of unloadPanoramaCallbacks) {
+    unloadPanoramaCallback()
+  }
+  unloadPanoramaCallbacks = []
+  viewer.camera.fov = options.fov
   shouldDisplayPanorama = false
   if (!panoramaCubeMap) return
-  viewer.camera.fov = options.fov
   viewer.camera.near = 0.1
   viewer.camera.updateProjectionMatrix()
   viewer.scene.remove(panoramaCubeMap)
   panoramaCubeMap = null
+}
+
+const initDemoWorld = async () => {
+  const version = '1.21.1'
+  preloadAllMcData()
+  console.time('load mc-data')
+  await loadMinecraftData(version)
+  console.timeEnd('load mc-data')
+  if (miscUiState.gameLoaded) return
+  console.time('load scene')
+  const world = getSyncWorld(version)
+  const PrismarineBlock = require('prismarine-block')
+  const Block = PrismarineBlock(version)
+  const fullBlocks = loadedData.blocksArray.filter(block => {
+    // if (block.name.includes('leaves')) return false
+    if (/* !block.name.includes('wool') &&  */!block.name.includes('stained_glass')/*  && !block.name.includes('terracotta') */) return false
+    const b = Block.fromStateId(block.defaultState, 0)
+    if (b.shapes?.length !== 1) return false
+    const shape = b.shapes[0]
+    return shape[0] === 0 && shape[1] === 0 && shape[2] === 0 && shape[3] === 1 && shape[4] === 1 && shape[5] === 1
+  })
+  const Z = -15
+  const sizeX = 100
+  const sizeY = 100
+  for (let x = -sizeX; x < sizeX; x++) {
+    for (let y = -sizeY; y < sizeY; y++) {
+      const block = fullBlocks[Math.floor(Math.random() * fullBlocks.length)]
+      world.setBlockStateId(new Vec3(x, y, Z), block.defaultState)
+    }
+  }
+  viewer.camera.updateProjectionMatrix()
+  viewer.camera.position.set(0.5, sizeY / 2 + 0.5, 0.5)
+  viewer.camera.rotation.set(0, 0, 0)
+  const initPos = new Vec3(...viewer.camera.position.toArray())
+  const worldView = new WorldDataEmitter(world, 2, initPos)
+  // worldView.addWaitTime = 0
+  await viewer.world.setVersion(version)
+  viewer.connect(worldView)
+  void worldView.init(initPos)
+  await viewer.world.waitForChunksToRender()
+  const abortController = new AbortController()
+  // add small camera rotation to side on mouse move depending on absolute position of the cursor
+  const { camera } = viewer
+  const initX = camera.position.x
+  const initY = camera.position.y
+  let prevTwin: tweenJs.Tween<THREE.Vector3> | undefined
+  document.body.addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return
+    const pos = new THREE.Vector2(e.clientX, e.clientY)
+    const SCALE = 0.2
+    /* -0.5 - 0.5 */
+    const xRel = pos.x / window.innerWidth - 0.5
+    const yRel = -(pos.y / window.innerHeight - 0.5)
+    prevTwin?.stop()
+    const to = {
+      x: initX + (xRel * SCALE),
+      y: initY + (yRel * SCALE)
+    }
+    prevTwin = new tweenJs.Tween(camera.position).to(to, 0) // todo use the number depending on diff // todo use the number depending on diff
+    // prevTwin.easing(tweenJs.Easing.Exponential.InOut)
+    prevTwin.start()
+    camera.updateProjectionMatrix()
+  }, {
+    signal: abortController.signal
+  })
+
+  unloadPanoramaCallbacks.push(() => {
+    abortController.abort()
+  })
+
+  console.timeEnd('load scene')
 }

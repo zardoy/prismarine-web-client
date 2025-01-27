@@ -18,6 +18,102 @@ type SourceData = {
   __IS_OPTIMIZED__: true
 }
 
+function getRecipesProcessorProcessRecipes (items, blocks) {
+  return (current) => {
+    // can require the same multiple times per different versions
+    const itemsIdsMap = Object.fromEntries(items.map((b) => [b.name, b.id]))
+    const blocksIdsMap = Object.fromEntries(blocks.map((b) => [b.name, b.id]))
+    const keys = Object.keys(current)
+    for (const key of keys) {
+      if (key === '_proccessed') {
+        delete current[key]
+        continue
+      }
+      const mapId = (id) => {
+        if (typeof id !== 'string' && typeof id !== 'number') throw new Error('Incorrect type')
+        const mapped = itemsIdsMap[id] ?? blocksIdsMap[id]
+        if (!mapped) {
+          throw new Error(`No item/block name with id ${id}`)
+        }
+        return mapped
+      }
+      const processRecipe = (obj) => {
+        // if (!obj) return
+        // if (Array.isArray(obj)) {
+        //   obj.forEach((id, i) => {
+        //     obj[i] = mapId(obj[id])
+        //   })
+        // } else if (obj && typeof obj === 'object') {
+        //   if (!'count metadata id'.split(' ').every(x => x in obj)) {
+        //     throw new Error(`process error: Unknown deep object pattern: ${JSON.stringify(obj)}`)
+        //   }
+        //   obj.id = mapId(obj.id)
+        // } else {
+        //   throw new Error('unknown type')
+        // }
+        const parseRecipeItem = (item) => {
+          if (typeof item === 'number' || typeof item === 'string') return mapId(item)
+          if (Array.isArray(item)) return [mapId(item), ...item.slice(1)]
+          if (!item) {
+            return item
+          }
+          if ('id' in item) {
+            item.id = mapId(item.id)
+            return item
+          }
+          throw new Error('unhandled')
+        }
+        const maybeProccessShape = (shape) => {
+          if (!shape) return
+          for (const shapeRow of shape) {
+            for (const [i, item] of shapeRow.entries()) {
+              shapeRow[i] = parseRecipeItem(item)
+            }
+          }
+        }
+        if (obj.result) obj.result = parseRecipeItem(obj.result)
+        maybeProccessShape(obj.inShape)
+        maybeProccessShape(obj.outShape)
+        if (obj.ingredients) {
+          for (const [i, ingredient] of obj.ingredients.entries()) {
+            obj.ingredients[i] = parseRecipeItem(ingredient)
+          }
+        }
+      }
+      // eslint-disable-next-line no-useless-catch
+      try {
+        const name = mapId(key)
+        for (const [i, recipe] of current[key].entries()) {
+          // eslint-disable-next-line no-useless-catch
+          try {
+            processRecipe(recipe)
+          } catch (err) {
+            // console.warn(`${version} [warn] Removing incorrect recipe: ${err}`)
+            // delete current[i]
+            throw err
+          }
+        }
+        current[name] = current[key]
+      } catch (err) {
+        // console.warn(`${version} [warn] Removing incorrect recipe: ${err}`)
+        throw err
+      }
+      delete current[key]
+    }
+  }
+}
+
+export const restoreMinecraftData = (allVersionData: any, type: string, version: string) => {
+  let restorer
+  if (type === 'recipes') {
+    restorer = getRecipesProcessorProcessRecipes(
+      JsonOptimizer.restoreData(allVersionData.items, version, undefined),
+      JsonOptimizer.restoreData(allVersionData.blocks, version, undefined),
+    )
+  }
+  return JsonOptimizer.restoreData(allVersionData[type], version, restorer)
+}
+
 export default class JsonOptimizer {
   keys = {} as IdMap
   idToKey = {} as Record<number, string>
@@ -146,6 +242,7 @@ export default class JsonOptimizer {
 
   recordDiff (key: string, diffObj: string) {
     const diff = this.diffObj(diffObj)
+    // problem is that 274 key 10.20.6 no removed keys in diff created
     this.diffs[key] = diff
   }
 
@@ -158,7 +255,7 @@ export default class JsonOptimizer {
     return true
   }
 
-  static restoreData ({ keys, properties, source, arrKey, diffs }: SourceData, targetKey: string) {
+  static restoreData ({ keys, properties, source, arrKey, diffs }: SourceData, targetKey: string, dataRestorer: ((data) => void) | undefined) {
     // if (!diffs[targetKey]) throw new Error(`The requested data to restore with key ${targetKey} does not exist`)
     source = structuredClone(source)
     const keysById = Object.fromEntries(Object.entries(keys).map(x => [x[1], x[0]]))
@@ -204,11 +301,14 @@ export default class JsonOptimizer {
         break
       }
     }
+    let data
     if (arrKey) {
-      return Object.values(dataByKeys)
+      data = Object.values(dataByKeys)
     } else {
-      return Object.fromEntries(Object.entries(dataByKeys).map(([key, val]) => [keysById[key], val]))
+      data = Object.fromEntries(Object.entries(dataByKeys).map(([key, val]) => [keysById[key], val]))
     }
+    dataRestorer?.(data)
+    return data
   }
 
   static getByArrKey (item: any, arrKey: string) {
