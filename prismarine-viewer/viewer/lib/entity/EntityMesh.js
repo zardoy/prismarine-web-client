@@ -94,7 +94,7 @@ function dot(a, b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]
 }
 
-function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64, mirror = false) {
+function addCube(attr, boneId, bone, cube, sameTextureForAllFaces = false, texWidth = 64, texHeight = 64, mirror = false) {
   const cubeRotation = new THREE.Euler(0, 0, 0)
   if (cube.rotation) {
     cubeRotation.x = -cube.rotation[0] * Math.PI / 180
@@ -107,8 +107,15 @@ function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64, mirror
     const eastOrWest = dir[0] !== 0
     const faceUvs = []
     for (const pos of corners) {
-      const u = (cube.uv[0] + dot(pos[3] ? u1 : u0, cube.size)) / texWidth
-      const v = (cube.uv[1] + dot(pos[4] ? v1 : v0, cube.size)) / texHeight
+      let u
+      let v
+      if (sameTextureForAllFaces) {
+        u = (cube.uv[0] + pos[3] * cube.size[0]) / texWidth
+        v = (cube.uv[1] + pos[4] * cube.size[1]) / texHeight
+      } else {
+        u = (cube.uv[0] + dot(pos[3] ? u1 : u0, cube.size)) / texWidth
+        v = (cube.uv[1] + dot(pos[4] ? v1 : v0, cube.size)) / texHeight
+      }
 
       const posX = eastOrWest && mirror ? pos[0] ^ 1 : pos[0]
       const posY = pos[1]
@@ -148,7 +155,23 @@ function addCube(attr, boneId, bone, cube, texWidth = 64, texHeight = 64, mirror
   }
 }
 
-export function getMesh(texture, jsonModel, overrides = {}) {
+export function getMesh(worldRenderer, texture, jsonModel, overrides = {}) {
+  let textureWidth = jsonModel.texturewidth ?? 64
+  let textureHeight = jsonModel.textureheight ?? 64
+  let textureOffset
+  const useBlockTexture = texture.startsWith('block:')
+  if (useBlockTexture) {
+    const blockName = texture.slice(6)
+    const textureInfo = worldRenderer.blocksAtlasParser.getTextureInfo(blockName)
+    if (textureInfo) {
+      textureWidth = worldRenderer.material.map.image.width
+      textureHeight = worldRenderer.material.map.image.height
+      textureOffset = [textureInfo.u, textureInfo.v]
+    } else {
+      console.error(`Unknown block ${blockName}`)
+    }
+  }
+
   const bones = {}
 
   const geoData = {
@@ -186,7 +209,7 @@ export function getMesh(texture, jsonModel, overrides = {}) {
 
     if (jsonBone.cubes) {
       for (const cube of jsonBone.cubes) {
-        addCube(geoData, i, bone, cube, jsonModel.texturewidth, jsonModel.textureheight, jsonBone.mirror)
+        addCube(geoData, i, bone, cube, useBlockTexture, textureWidth, textureHeight, jsonBone.mirror)
       }
     }
     i++
@@ -215,18 +238,25 @@ export function getMesh(texture, jsonModel, overrides = {}) {
   mesh.bind(skeleton)
   mesh.scale.set(1 / 16, 1 / 16, 1 / 16)
 
-  loadTexture(texture, texture => {
-    if (material.map) {
-      // texture is already loaded
-      return
-    }
-    texture.magFilter = THREE.NearestFilter
-    texture.minFilter = THREE.NearestFilter
-    texture.flipY = false
-    texture.wrapS = THREE.RepeatWrapping
-    texture.wrapT = THREE.RepeatWrapping
+  if (textureOffset) {
+    texture = worldRenderer.material.map.clone()
+    texture.offset.set(textureOffset[0], textureOffset[1])
+    texture.needsUpdate = true
     material.map = texture
-  })
+  } else {
+    loadTexture(texture.endsWith('.png') || texture.startsWith('data:image/') ? texture : texture + '.png', texture => {
+      if (material.map) {
+        // texture is already loaded
+        return
+      }
+      texture.magFilter = THREE.NearestFilter
+      texture.minFilter = THREE.NearestFilter
+      texture.flipY = false
+      texture.wrapS = THREE.RepeatWrapping
+      texture.wrapT = THREE.RepeatWrapping
+      material.map = texture
+    })
+  }
 
   return mesh
 }
@@ -252,6 +282,7 @@ export const temporaryMap = {
   'hopper_minecart': 'minecart',
   'command_block_minecart': 'minecart',
   'tnt_minecart': 'minecart',
+  'glow_item_frame': 'item_frame',
   'glow_squid': 'squid',
   'trader_llama': 'llama',
   'chest_boat': 'boat',
@@ -321,7 +352,7 @@ const offsetEntity = {
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class EntityMesh {
-  constructor(version, type, scene, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
+  constructor(version, type, worldRenderer, /** @type {{textures?, rotation?: Record<string, {x,y,z}>}} */overrides = {}) {
     const originalType = type
     const mappedValue = temporaryMap[type]
     if (mappedValue) type = mappedValue
@@ -388,7 +419,7 @@ export class EntityMesh {
       const texture = overrides.textures?.[name] ?? e.textures[name]
       if (!texture) continue
       // console.log(JSON.stringify(jsonModel, null, 2))
-      const mesh = getMesh(texture + '.png', jsonModel, overrides)
+      const mesh = getMesh(worldRenderer, texture, jsonModel, overrides)
       mesh.name = `geometry_${name}`
       this.mesh.add(mesh)
 

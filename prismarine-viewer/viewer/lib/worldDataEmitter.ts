@@ -75,6 +75,10 @@ export class WorldDataEmitter extends EventEmitter {
     this.eventListeners = {
       // 'move': botPosition,
       entitySpawn (e: any) {
+        if (e.name === 'item_frame' || e.name === 'glow_item_frame') {
+          // Item frames use block positions in the protocol, not their center. Fix that.
+          e.position.translate(0.5, 0.5, 0.5)
+        }
         emitEntity(e)
       },
       entityUpdate (e: any) {

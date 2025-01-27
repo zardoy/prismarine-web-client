@@ -48,7 +48,7 @@ export class Viewer {
     this.threeJsWorld = new WorldRendererThree(this.scene, this.renderer, worldConfig)
     this.setWorld()
     this.resetScene()
-    this.entities = new Entities(this.scene)
+    this.entities = new Entities(this)
     // this.primitives = new Primitives(this.scene, this.camera)
 
     this.domElement = renderer.domElement
