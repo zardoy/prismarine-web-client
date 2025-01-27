@@ -17,7 +17,7 @@ const addPositions = [
 
 test('Known blocks are not rendered', () => {
   const { mesherWorld, getGeometry, pos, mcData } = setup(lastVersion, addPositions as any)
-  const ignoreAsExpected = new Set([...INVISIBLE_BLOCKS, 'water', 'lava', 'moving_piston', 'light'])
+  const ignoreAsExpected = new Set([...INVISIBLE_BLOCKS, 'water', 'lava'])
 
   let time = 0
   let times = 0
